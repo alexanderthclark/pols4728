@@ -1,0 +1,982 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Using LLMs &#8212; POLS 4728</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/exercise.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=8ff0586c" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/evals_and_prompting';</script>
+    <link rel="icon" href="../_static/favicon_square_very_bold.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Linear Regression" href="linreg.html" />
+    <link rel="prev" title="Learning" href="learning.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../intro.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/ML_logo_simple.svg" class="logo__image only-light" alt="POLS 4728 - Home"/>
+    <script>document.write(`<img src="../_static/ML_logo_simple.svg" class="logo__image only-dark" alt="POLS 4728 - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../intro.html">
+                    Welcome
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Lectures</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="learning.html">Learning</a></li>
+
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Using LLMs</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="linreg.html">Linear Regression</a></li>
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../reference/prelims_and_digressions.html">Preliminaries and Digressions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/bibliography.html">References</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/alexanderthclark/pols4728" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/alexanderthclark/pols4728/issues/new?title=Issue%20on%20page%20%2Fchapters/evals_and_prompting.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/chapters/evals_and_prompting.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Using LLMs</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Using LLMs</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#is-using-pre-trained-llms-machine-learning">Is Using Pre-trained LLMs Machine Learning?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-llms-work">How LLMs Work</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fancy-autocomplete-and-bias">Fancy Autocomplete and Bias</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-engineering-evolution">Prompt Engineering Evolution</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#practical-prompt-patterns-for-common-tasks">Practical Prompt Patterns for Common Tasks</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fewshot-template-copy-paste">Few‑Shot Template (copy/paste)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluating-llm-classifications">Evaluating LLM Classifications</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluation-mindset-testdriven-ml">1 Evaluation Mindset ≈ Test‑Driven ML</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#microworkflow">1.1 Micro‑workflow</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluating-prompts-think-a-b-testing">2 Evaluating Prompts: Think A/B Testing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-patterns-that-survive-2025">3 Prompt Patterns That Survive 2025</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#zeroshot-cot">3.1 Zero‑Shot CoT</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#oneshot-format-anchor">3.2 One‑Shot (format anchor)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fewshot-structured-cot">3.3 Few‑Shot + Structured CoT</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#zero-vs-few-shots-what-does-the-evidence-say">4 Zero vs. Few Shots: What Does the Evidence Say?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inclass-microlab-20-min">5 In‑Class Micro‑Lab (20 min)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-takeaways">6 Key Take‑aways</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="using-llms">
+<h1>Using LLMs<a class="headerlink" href="#using-llms" title="Link to this heading">#</a></h1>
+<div class="seealso admonition">
+<p class="admonition-title">Reading</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/claude-4-best-practices">Claude 4 Prompt Engineering Best Practices</a></p></li>
+<li><p><a class="reference external" href="https://platform.openai.com/docs/guides/prompt-engineering">OpenAI Prompt Engineering Guide</a></p></li>
+</ul>
+</div>
+<p>While creating and fine-tuning LLMs is beyond our scope, we’ll use them to:</p>
+<ul class="simple">
+<li><p>Ease into coding</p></li>
+<li><p>Explore performance measures for classification tasks</p></li>
+<li><p>Practice effective prompting</p></li>
+</ul>
+<p>If an LLM solves your problem adequately, there’s no need for more complex ML approaches unless the size of the data makes the LLM route too costly.</p>
+<section id="is-using-pre-trained-llms-machine-learning">
+<h2>Is Using Pre-trained LLMs Machine Learning?<a class="headerlink" href="#is-using-pre-trained-llms-machine-learning" title="Link to this heading">#</a></h2>
+<p>This raises an interesting philosophical question, which we might file next to questions like, “Is Katy Perry an Astronaut?”</p>
+<p><strong>Traditional ML Classification:</strong></p>
+<ul class="simple">
+<li><p>You provide labeled data (experience E)</p></li>
+<li><p>Train a model on your specific task (T)</p></li>
+<li><p>Performance (P) improves with more of your data</p></li>
+</ul>
+<p><strong>Using Pre-trained LLMs:</strong></p>
+<ul class="simple">
+<li><p>The model already learned from internet-scale text (someone else’s E)</p></li>
+<li><p>You craft prompts to apply its knowledge to your task</p></li>
+<li><p>Model parameters do not change as you provide more data.</p></li>
+</ul>
+<p>So is it machine learning? By Mitchell’s definition—yes. The learning happened during pre-training, not when you use it. So, using an LLM doesn’t make you a machine learning engineer the same way using a chess engine doesn’t make you an AI researcher. There is one wrinkle: the model’s performance does improve when you provide clearer instructions or examples. An LLM will adapt to your task without changing its underlying knowledge. For practical, research purposes, this distinction doesn’t matter. You’re still solving classification problems, and you still need rigorous evaluation. Whether you trained the model or someone else did, the scientific method remains the same: define your task, measure performance, validate results.</p>
+</section>
+<section id="how-llms-work">
+<h2>How LLMs Work<a class="headerlink" href="#how-llms-work" title="Link to this heading">#</a></h2>
+<p><strong>The “Old” Approach (GPT-3.5 Era):</strong></p>
+<ul class="simple">
+<li><p>“Like a fancy autocomplete,’’ according to Peter Grabowski of Google</p></li>
+<li><p>Statistical pattern matching from many examples</p></li>
+<li><p>Role prompts (e.g., “You are an MIT mathematician”) shifted probability distributions to improve the chances of the autocomplete being correct</p></li>
+<li><p>Hypothesized sweet spot in detail and length of a prompt</p></li>
+</ul>
+<p><strong>Modern Chain-of-Thought Models:</strong></p>
+<ul class="simple">
+<li><p>Built-in multi-step reasoning</p></li>
+<li><p>Hidden “thinking” processes before output</p></li>
+<li><p>Self-selected reasoning approaches</p></li>
+<li><p>Role-playing prompts less effective</p></li>
+</ul>
+<p>In the video below, I ask ChatGPT’s o3 how to get to Carnegie Hall. You can see the thinking process (at 8x speed), where o3 reasons through the intent of my question based on what it already knows about me.</p>
+<div style="width: 99%; margin: auto;">
+  <iframe src="https://www.youtube.com/embed/_tGDS6g63So?si=JU-cZFBjiaZ8bad"
+          style="width: 100%; aspect-ratio: 16 / 9; border: 0;"
+          allow="accelerometer; autoplay; clipboard-write;
+                 encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen>
+  </iframe>
+</div>
+<p>Claude Haiku or ChatGPT 4.5 are more likely to answer “Practice, practice, practice.” This answer is seemingly the best for a sophisticated autocomplete.</p>
+<section id="fancy-autocomplete-and-bias">
+<h3>Fancy Autocomplete and Bias<a class="headerlink" href="#fancy-autocomplete-and-bias" title="Link to this heading">#</a></h3>
+<p>Fancy autocompletes have their drawbacks and these garner a lot of attention. Namely, LLMs can forward whatever bias is in their training data (like any other model). As noted in <span id="id1">[<a class="reference internal" href="../reference/bibliography.html#id36" title="Mohammad Atari, Mona J Xue, Peter S Park, Damián Blasi, and Joseph Henrich. Which humans? OSF Preprints, 2023.">Atari <em>et al.</em>, 2023</a>]</span>, LLMs are biased toward the pyschology of people from WEIRD (Western, Educated, Industrialized, Rich, and Democratic) societies. LLMs exhibit human-like cognitive biases when trying to generate random sequences <span id="id2">[<a class="reference internal" href="../reference/bibliography.html#id37" title="Katherine Van Koevering and Jon Kleinberg. How random is random? evaluating the randomness and humaness of llms' coin flips. arXiv preprint arXiv:2406.00092, 2024.">Van Koevering and Kleinberg, 2024</a>]</span>. If you ask AI for a random number, some models disproportionately choose 42. 42 is a salient number because of Douglas Adams’s “The Hitchhiker’s Guide to the Galaxy.” Its fans are overrepresented on the Internet and thus in training data. Similarly, LLMs can reproduce stereotypes. Companies devote enormous resources to mitigating these biases, but it is not a solved problem.</p>
+<figure class="align-center" id="id6">
+<a class="reference internal image-reference" href="../_images/claudehaiku-refusal-20250603.png"><img alt="../_images/claudehaiku-refusal-20250603.png" src="../_images/claudehaiku-refusal-20250603.png" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-number">Fig. 4 </span><span class="caption-text">Response from Claude Haiku 3.5</span><a class="headerlink" href="#id6" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id7">
+<a class="reference internal image-reference" href="../_images/claude-haiku35-20250603.png"><img alt="../_images/claude-haiku35-20250603.png" src="../_images/claude-haiku35-20250603.png" style="width: 60%;" />
+</a>
+<figcaption>
+<p><span class="caption-number">Fig. 5 </span><span class="caption-text">Response from Claude Haiku 3.5</span><a class="headerlink" href="#id7" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+</section>
+<section id="prompt-engineering-evolution">
+<h2>Prompt Engineering Evolution<a class="headerlink" href="#prompt-engineering-evolution" title="Link to this heading">#</a></h2>
+<p><strong>Less effective now:</strong></p>
+<ul class="simple">
+<li><p>Role priming (“You are an expert…”)</p></li>
+<li><p>Explicit “think step-by-step” instructions</p></li>
+<li><p>Confidence boosting</p></li>
+</ul>
+<p><strong>Still valuable:</strong></p>
+<ul class="simple">
+<li><p>Clear problem specification</p></li>
+<li><p>Relevant context and constraints</p></li>
+<li><p>Examples of desired output format</p></li>
+<li><p>Domain-specific information</p></li>
+</ul>
+<section id="practical-prompt-patterns-for-common-tasks">
+<h3>Practical Prompt Patterns for Common Tasks<a class="headerlink" href="#practical-prompt-patterns-for-common-tasks" title="Link to this heading">#</a></h3>
+<p>Modern LLMs perform well with structured, context-rich prompts that tell the model what result you want, how you will judge success, and where to put the answer.</p>
+<p>Consider these research applications:</p>
+<ul class="simple">
+<li><p><strong>Survey response coding</strong>: Classifying open-ended responses into predefined categories</p></li>
+<li><p><strong>Policy stance extraction</strong>: Identifying positions on issues from legislative speeches</p></li>
+</ul>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Task</p></th>
+<th class="head"><p>“Minimal” prompt <em>(baseline)</em></p></th>
+<th class="head"><p>Improved prompt <em>(adds structure &amp; context)</em></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Sentiment classification</strong> (product reviews)</p></td>
+<td><p>“Is this review positive or negative?”</p></td>
+<td><p>System: “You are a customer‑support analyst.”  User: “Return only <code class="docutils literal notranslate"><span class="pre">positive</span></code>, <code class="docutils literal notranslate"><span class="pre">negative</span></code>, or <code class="docutils literal notranslate"><span class="pre">neutral</span></code>.  Review: ‹text›.”</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Information extraction</strong> (receipts)</p></td>
+<td><p>“Extract the total.”</p></td>
+<td><p>System: “You are a data‑extraction tool.”  User: “From the OCR text below return JSON with <code class="docutils literal notranslate"><span class="pre">{'vendor':</span> <span class="pre">str,</span> <span class="pre">'date':</span> <span class="pre">str,</span> <span class="pre">'total':</span> <span class="pre">float}</span></code>.  If a field is missing, use <code class="docutils literal notranslate"><span class="pre">null</span></code>.”</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Code generation</strong> (Python helper)</p></td>
+<td><p>“Write a factorial function.”</p></td>
+<td><p>System: “You are an efficient Python programmer.”  User: “Write a pure function <code class="docutils literal notranslate"><span class="pre">factorial(n)</span></code> that handles <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">≤</span> <span class="pre">12</span></code>.  Include a docstring and two doctests.”</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Targeted summarization</strong> (meeting transcript)</p></td>
+<td><p>“Summarize this meeting.”</p></td>
+<td><p>User: “Produce ≤ 4 bullet points focusing only on action items.  Each bullet ≤ 15 words.  Ignore greetings and chit‑chat.”</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="fewshot-template-copy-paste">
+<h4>Few‑Shot Template (copy/paste)<a class="headerlink" href="#fewshot-template-copy-paste" title="Link to this heading">#</a></h4>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>System: You are a &lt;role&gt;.
+User: Your task is to &lt;goal&gt;.  
+Output must follow this schema:  
+&lt;code block showing JSON or table&gt;.  
+
+Example 1  
+Input: &lt;short example&gt;  
+Output: &lt;desired output&gt;  
+
+&lt;repeat 1‑2 more examples if needed&gt;  
+
+Now process the following input:  
+&lt;Input goes here&gt;
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="evaluating-llm-classifications">
+<h1>Evaluating LLM Classifications<a class="headerlink" href="#evaluating-llm-classifications" title="Link to this heading">#</a></h1>
+<p><span id="id3">[<a class="reference internal" href="../reference/bibliography.html#id38" title="Fabrizio Gilardi, Meysam Alizadeh, and Maël Kubli. Chatgpt outperforms crowd workers for text-annotation tasks. Proceedings of the National Academy of Sciences, 120(30):e2305016120, 2023.">Gilardi <em>et al.</em>, 2023</a>]</span> showed that ChatGPT can outperform crowd workers (Mechanical Turk) on text annotation tasks. But how do we know this? How do we measure performance? And how do we find the best prompt?</p>
+<p>This chapter shows you how to evaluate LLM classifiers systematically, moving beyond “it worked on these three examples” to real validation.</p>
+<section id="evaluation-mindset-testdriven-ml">
+<h2>1 Evaluation Mindset ≈ Test‑Driven ML<a class="headerlink" href="#evaluation-mindset-testdriven-ml" title="Link to this heading">#</a></h2>
+<p><strong>Key idea:</strong> treat a <em>prompt + model</em> pair as a <em>hypothesis</em> you must test against a labelled gold set.</p>
+<p>Consider Mitchell’s framework: a system learns from experience E with respect to task T and performance measure P. With pre-trained LLMs, we’re in a remarkable situation—we define T through our prompts, but E (the training on internet-scale text) was done by someone else. We still need to rigorously measure P to know if our prompts work.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>If you wouldn’t deploy a logistic regression model after testing it on three hand-picked examples,
+don’t trust an LLM prompt based on the same flimsy evidence.</p>
+</div>
+<section id="microworkflow">
+<h3>1.1 Micro‑workflow<a class="headerlink" href="#microworkflow" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Gold set</strong> – 20‑200 hand‑labelled examples (<code class="docutils literal notranslate"><span class="pre">review</span></code>, <code class="docutils literal notranslate"><span class="pre">sentiment</span></code>).</p></li>
+<li><p><strong>Metric</strong> – accuracy, F‑1, or task‑specific cost (see <em>Learning</em> §Performance Measures).</p></li>
+<li><p><strong>Batch run</strong> – execute the prompt on every row.</p></li>
+<li><p><strong>Record</strong> – score, token cost, failure cases → iterate.</p></li>
+</ol>
+<blockquote>
+<div><p>You now have a <strong>unit test for prompts.</strong></p>
+</div></blockquote>
+</section>
+</section>
+<hr class="docutils" />
+<section id="evaluating-prompts-think-a-b-testing">
+<h2>2 Evaluating Prompts: Think A/B Testing<a class="headerlink" href="#evaluating-prompts-think-a-b-testing" title="Link to this heading">#</a></h2>
+<p>When social scientists evaluate survey questions, we test different wordings to see which performs better. Evaluating LLM prompts works the same way—it’s just A/B testing with different prompt templates.</p>
+<p>Here’s a minimal evaluation setup using the same tools from your assignments:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">google.generativeai</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">genai</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">confusion_matrix</span><span class="p">,</span> <span class="n">accuracy_score</span>
+
+<span class="c1"># Setup (same as your homework)</span>
+<span class="n">genai</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">YOUR_KEY</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">genai</span><span class="o">.</span><span class="n">GenerativeModel</span><span class="p">(</span><span class="s2">&quot;gemini-1.5-flash&quot;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">evaluate_prompt</span><span class="p">(</span><span class="n">test_data</span><span class="p">,</span> <span class="n">prompt_template</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run a prompt on test data and measure performance&quot;&quot;&quot;</span>
+    <span class="n">predictions</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">test_data</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]:</span>
+        <span class="c1"># Insert text into your prompt template</span>
+        <span class="n">prompt</span> <span class="o">=</span> <span class="n">prompt_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate_content</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
+        <span class="n">predictions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    
+    <span class="c1"># Calculate metrics</span>
+    <span class="n">accuracy</span> <span class="o">=</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">test_data</span><span class="p">[</span><span class="s1">&#39;true_label&#39;</span><span class="p">],</span> <span class="n">predictions</span><span class="p">)</span>
+    <span class="n">cm</span> <span class="o">=</span> <span class="n">confusion_matrix</span><span class="p">(</span><span class="n">test_data</span><span class="p">[</span><span class="s1">&#39;true_label&#39;</span><span class="p">],</span> <span class="n">predictions</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;accuracy&#39;</span><span class="p">:</span> <span class="n">accuracy</span><span class="p">,</span>
+        <span class="s1">&#39;predictions&#39;</span><span class="p">:</span> <span class="n">predictions</span><span class="p">,</span>
+        <span class="s1">&#39;confusion_matrix&#39;</span><span class="p">:</span> <span class="n">cm</span>
+    <span class="p">}</span>
+
+<span class="c1"># Define prompt templates</span>
+<span class="n">ZERO_SHOT_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Classify the sentiment of this review as &#39;positive&#39; or &#39;negative&#39;.</span>
+<span class="s2">Review: </span><span class="si">{text}</span>
+<span class="s2">Answer:&quot;&quot;&quot;</span>
+
+<span class="n">FEW_SHOT_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Classify sentiment as &#39;positive&#39; or &#39;negative&#39;.</span>
+
+<span class="s2">Review: &quot;Terrible product, waste of money&quot;</span>
+<span class="s2">Answer: negative</span>
+
+<span class="s2">Review: &quot;Excellent quality, highly recommend!&quot;</span>
+<span class="s2">Answer: positive</span>
+
+<span class="s2">Review: </span><span class="si">{text}</span>
+<span class="s2">Answer:&quot;&quot;&quot;</span>
+
+<span class="c1"># A/B test two prompts</span>
+<span class="n">zero_shot_results</span> <span class="o">=</span> <span class="n">evaluate_prompt</span><span class="p">(</span><span class="n">test_data</span><span class="p">,</span> <span class="n">ZERO_SHOT_PROMPT</span><span class="p">)</span>
+<span class="n">few_shot_results</span> <span class="o">=</span> <span class="n">evaluate_prompt</span><span class="p">(</span><span class="n">test_data</span><span class="p">,</span> <span class="n">FEW_SHOT_PROMPT</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Zero-shot accuracy: </span><span class="si">{</span><span class="n">zero_shot_results</span><span class="p">[</span><span class="s1">&#39;accuracy&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Few-shot accuracy: </span><span class="si">{</span><span class="n">few_shot_results</span><span class="p">[</span><span class="s1">&#39;accuracy&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This is exactly how <span id="id4">[<a class="reference internal" href="../reference/bibliography.html#id38" title="Fabrizio Gilardi, Meysam Alizadeh, and Maël Kubli. Chatgpt outperforms crowd workers for text-annotation tasks. Proceedings of the National Academy of Sciences, 120(30):e2305016120, 2023.">Gilardi <em>et al.</em>, 2023</a>]</span> determined that ChatGPT beats crowd workers—they tested prompts systematically on labeled data, not by eyeballing a few examples.</p>
+<p>The key insight: treat each prompt variant as an experimental condition. Your “treatment” is the prompt wording, and your outcome is classification accuracy.</p>
+</section>
+<hr class="docutils" />
+<section id="prompt-patterns-that-survive-2025">
+<h2>3 Prompt Patterns That Survive 2025<a class="headerlink" href="#prompt-patterns-that-survive-2025" title="Link to this heading">#</a></h2>
+<p>Modern chain-of-thought models have moved past the verbose “you are an expert” prompts from 2022. Today’s models want clear, structured instructions. Here are three patterns that consistently deliver:</p>
+<section id="zeroshot-cot">
+<h3>3.1 Zero‑Shot CoT<a class="headerlink" href="#zeroshot-cot" title="Link to this heading">#</a></h3>
+<div class="highlight-jinja notranslate"><div class="highlight"><pre><span></span><span class="x">Classify the sentiment of the review between &lt;&lt;&lt; &gt;&gt;&gt;.</span>
+<span class="x">Respond with **Positive** or **Negative** only.</span>
+
+<span class="x">Review: &lt;&lt;&lt;</span><span class="cp">{{</span><span class="nv">input</span><span class="cp">}}</span><span class="x">&gt;&gt;&gt;</span>
+
+<span class="x">Let&#39;s think step‑by‑step.</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Pros – 1‑line template, no demos, often ≥ 80 % accuracy on vanilla sentiment.</p></li>
+<li><p>Cons – may hallucinate labels; longer reasoning increases cost.</p></li>
+</ul>
+</section>
+<section id="oneshot-format-anchor">
+<h3>3.2 One‑Shot (format anchor)<a class="headerlink" href="#oneshot-format-anchor" title="Link to this heading">#</a></h3>
+<div class="highlight-jinja notranslate"><div class="highlight"><pre><span></span><span class="x">You are a sentiment analyst.  </span>
+<span class="x">Return `Positive` or `Negative`.</span>
+
+<span class="x">Example  </span>
+<span class="x">Review: &quot;Worst purchase ever.&quot;  </span>
+<span class="x">Answer: Negative  </span>
+<span class="x">---  </span>
+<span class="x">Review: &quot;</span><span class="cp">{{</span><span class="nv">input</span><span class="cp">}}</span><span class="x">&quot;  </span>
+<span class="x">Answer:</span>
+</pre></div>
+</div>
+<p><em>Use when zero‑shot misunderstands output schema.</em></p>
+</section>
+<section id="fewshot-structured-cot">
+<h3>3.3 Few‑Shot + Structured CoT<a class="headerlink" href="#fewshot-structured-cot" title="Link to this heading">#</a></h3>
+<div class="highlight-jinja notranslate"><div class="highlight"><pre><span></span><span class="x">Task: Sentiment classification (Positive/Negative)  </span>
+<span class="x">Output schema:  </span>
+<span class="x">  - chain_of_thought: string  </span>
+<span class="x">  - label: Positive|Negative  </span>
+
+<span class="x">Review: &quot;Loved it. Five stars!&quot;</span>
+<span class="x">chain_of_thought: Uses strong positive verbs (&quot;Loved&quot;), 5‑star rating → Positive</span>
+<span class="x">label: Positive</span>
+<span class="x">---</span>
+<span class="x">Review: &quot;Terrible, broke day 2.&quot;</span>
+<span class="x">chain_of_thought: Breakage and complaint → Negative</span>
+<span class="x">label: Negative</span>
+<span class="x">---</span>
+<span class="x">Review: &quot;</span><span class="cp">{{</span><span class="nv">input</span><span class="cp">}}</span><span class="x">&quot;</span>
+<span class="x">chain_of_thought:</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Best for nuanced or domain‑specific tasks (e.g., sarcasm, political stance).</p></li>
+<li><p>Showcases <em>explanation</em> → easier error analysis.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="zero-vs-few-shots-what-does-the-evidence-say">
+<h2>4 Zero vs. Few Shots: What Does the Evidence Say?<a class="headerlink" href="#zero-vs-few-shots-what-does-the-evidence-say" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Study</p></th>
+<th class="head"><p>Model(s)</p></th>
+<th class="head"><p>Task family</p></th>
+<th class="head"><p>Main result</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Brown et al. 2020</p></td>
+<td><p>GPT‑3</p></td>
+<td><p>42 NLP benchmarks</p></td>
+<td><p>0‑shot &lt; 1‑shot &lt; 16‑shot (classic few‑shot curve)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Kojima et al. 2022</p></td>
+<td><p>GPT‑3</p></td>
+<td><p>Reasoning (GSM‑8K)</p></td>
+<td><p>Adding <em>“Let’s think step by step”</em> closes 60 % of gap to few‑shot.</p></td>
+</tr>
+<tr class="row-even"><td><p>Wei et al. 2022</p></td>
+<td><p>PaLM‑540B</p></td>
+<td><p>Math, commonsense</p></td>
+<td><p>8‑shot CoT boosts accuracy by up to 36 pp over plain few‑shot.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Liyanage et al. 2024</p></td>
+<td><p>GPT‑4</p></td>
+<td><p>Twitter stance</p></td>
+<td><p><strong>Zero‑shot CoT matched 4‑shot accuracy</strong> (≈ 93 %).</p></td>
+</tr>
+<tr class="row-even"><td><p>Chen et al. 2024</p></td>
+<td><p>GPT‑4</p></td>
+<td><p>6 tasks</p></td>
+<td><p>Extra demos show diminishing returns after coverage of each label.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The kicker? <span id="id5">[<a class="reference internal" href="../reference/bibliography.html#id38" title="Fabrizio Gilardi, Meysam Alizadeh, and Maël Kubli. Chatgpt outperforms crowd workers for text-annotation tasks. Proceedings of the National Academy of Sciences, 120(30):e2305016120, 2023.">Gilardi <em>et al.</em>, 2023</a>]</span> found that ChatGPT beat crowd workers on political annotation tasks—even with zero-shot prompts. No fancy engineering required. But here’s the catch: they only knew this because they measured properly.</p>
+<p><strong>Rule of thumb (2025):</strong></p>
+<ol class="arabic simple">
+<li><p>Try <strong>zero‑shot CoT</strong> first.</p></li>
+<li><p>If accuracy &lt; desired, add <strong>1–4 diverse demos</strong>.</p></li>
+<li><p>Escalate to <strong>8+ demos</strong> only when:</p>
+<ul class="simple">
+<li><p>task is subtle <em>and</em></p></li>
+<li><p>API cost is acceptable or you control a local model.</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="inclass-microlab-20-min">
+<h2>5 In‑Class Micro‑Lab (20 min)<a class="headerlink" href="#inclass-microlab-20-min" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Step</p></th>
+<th class="head"><p>Exercise</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1 – Setup</p></td>
+<td><p>Distribute <code class="docutils literal notranslate"><span class="pre">sent20.csv</span></code> (gold labels).</p></td>
+</tr>
+<tr class="row-odd"><td><p>2 – Hypothesis</p></td>
+<td><p>Students predict: “Will 4‑shot raise accuracy ≥ 5 pp over zero‑shot?”</p></td>
+</tr>
+<tr class="row-even"><td><p>3 – Run</p></td>
+<td><p>Provide Colab notebook with the evaluation code from Section 2; they fill their API key.</p></td>
+</tr>
+<tr class="row-odd"><td><p>4 – Debrief</p></td>
+<td><p>Histogram of class accuracies; discuss trade‑off with token cost.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><em>Deliverable</em>: 2‑sentence reflection + confusion matrix visualization.</p>
+</section>
+<hr class="docutils" />
+<section id="key-takeaways">
+<h2>6 Key Take‑aways<a class="headerlink" href="#key-takeaways" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Test like you mean it.</strong> Gold sets, metrics, the whole deal.</p></li>
+<li><p><strong>Start simple.</strong> Zero-shot often works great—the evidence backs this up.</p></li>
+<li><p><strong>Version your prompts.</strong> They’re code. Treat them like it.</p></li>
+<li><p><strong>Structure beats theater.</strong> Clear instructions &gt; elaborate role-play.</p></li>
+<li><p><strong>Keep it simple.</strong> A Python loop beats complex frameworks for research.</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<p>The studies mentioned in Section 4 provide the empirical backing for these recommendations. See the bibliography for full citations.</p>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "alexanderthclark/pols4728",
+            ref: "main",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./chapters"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="learning.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Learning</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="linreg.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Linear Regression</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Using LLMs</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#is-using-pre-trained-llms-machine-learning">Is Using Pre-trained LLMs Machine Learning?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-llms-work">How LLMs Work</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fancy-autocomplete-and-bias">Fancy Autocomplete and Bias</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-engineering-evolution">Prompt Engineering Evolution</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#practical-prompt-patterns-for-common-tasks">Practical Prompt Patterns for Common Tasks</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fewshot-template-copy-paste">Few‑Shot Template (copy/paste)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluating-llm-classifications">Evaluating LLM Classifications</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluation-mindset-testdriven-ml">1 Evaluation Mindset ≈ Test‑Driven ML</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#microworkflow">1.1 Micro‑workflow</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluating-prompts-think-a-b-testing">2 Evaluating Prompts: Think A/B Testing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-patterns-that-survive-2025">3 Prompt Patterns That Survive 2025</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#zeroshot-cot">3.1 Zero‑Shot CoT</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#oneshot-format-anchor">3.2 One‑Shot (format anchor)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fewshot-structured-cot">3.3 Few‑Shot + Structured CoT</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#zero-vs-few-shots-what-does-the-evidence-say">4 Zero vs. Few Shots: What Does the Evidence Say?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inclass-microlab-20-min">5 In‑Class Micro‑Lab (20 min)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-takeaways">6 Key Take‑aways</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Alexander Clark, Columbia University
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

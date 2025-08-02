@@ -1,0 +1,1449 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Learning &#8212; POLS 4728</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/exercise.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=8ff0586c" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/learning';</script>
+    <link rel="icon" href="../_static/favicon_square_very_bold.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Using LLMs" href="evals_and_prompting.html" />
+    <link rel="prev" title="Welcome" href="../intro.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../intro.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/ML_logo_simple.svg" class="logo__image only-light" alt="POLS 4728 - Home"/>
+    <script>document.write(`<img src="../_static/ML_logo_simple.svg" class="logo__image only-dark" alt="POLS 4728 - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../intro.html">
+                    Welcome
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Lectures</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Learning</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="evals_and_prompting.html">Using LLMs</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="linreg.html">Linear Regression</a></li>
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../reference/prelims_and_digressions.html">Preliminaries and Digressions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/bibliography.html">References</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/alexanderthclark/pols4728" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/alexanderthclark/pols4728/issues/new?title=Issue%20on%20page%20%2Fchapters/learning.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/chapters/learning.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Learning</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Learning</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-machine-learning">What is Machine Learning?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#well-posed-learning-problems">Well-Posed Learning Problems</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-wage-prediction">Example: Wage Prediction</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-playing-board-games">Example: Playing Board Games</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#types-of-learning-tasks">Types of Learning Tasks</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#supervised-learning">Supervised Learning</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#unsupervised-learning">Unsupervised Learning</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#performance-measures">Performance Measures</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#binary-classification-example">Binary Classification Example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#making-sense-of-these-metrics-a-concrete-example">Making Sense of These Metrics: A Concrete Example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#all-possible-classification-outcomes">All Possible Classification Outcomes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#experience-and-training">Experience and Training</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#using-llms-for-a-learning-task">Using LLMs for a Learning Task</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-llms-work">How LLMs Work</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fancy-autocomplete-and-bias">Fancy Autocomplete and Bias</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-engineering-evolution">Prompt Engineering Evolution</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#practical-prompt-patterns-for-common-tasks">Practical Prompt Patterns for Common Tasks</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fewshot-template-copy-paste">Few‑Shot Template (copy/paste)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#is-using-pre-trained-llms-machine-learning">Is Using Pre-trained LLMs Machine Learning?</a></li>
+</ul>
+</li>
+</ul>
+
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="learning">
+<h1>Learning<a class="headerlink" href="#learning" title="Link to this heading">#</a></h1>
+<section id="what-is-machine-learning">
+<h2>What is Machine Learning?<a class="headerlink" href="#what-is-machine-learning" title="Link to this heading">#</a></h2>
+<p>I sometimes find the term “machine learning” to be frustrating. It sounds too impressive if you’ve already been inattentively running regressions to fulfill the modern duty to be data driven. Similarly, the use of words like “model” might frustrate you if you have a social science theorist’s understanding of a model as more complete description of behavior. But we come to machine learning on machine learning’s terms, and this requires some language acquisition. Let’s first get our arms around the idea of “learning” and “machine learning,” with the help of two foundational players in the field.</p>
+<p>Computer scientist Marvin Minsky offered the definition below, though with the preface that it was “too broad to have much use.”</p>
+<blockquote>
+<div><p>“Learning is making useful changes in our minds.”<br />
+— <span id="id1">[<a class="reference internal" href="../reference/bibliography.html#id45" title="Marvin Minsky. The Society of Mind. Simon and Schuster, 1986.">Minsky, 1986</a>]</span></p>
+</div></blockquote>
+<p>Computer scientist Tom Mitchell, in his widely cited textbook, provides a structured definition.</p>
+<blockquote>
+<div><p>“Machine Learning is the study of computer algorithms that improve automatically through experience.”<br />
+— <span id="id2">[<a class="reference internal" href="../reference/bibliography.html#id6" title="Tom M Mitchell. Machine Learning. Volume 1. McGraw-Hill New York, 1997.">Mitchell, 1997</a>]</span></p>
+</div></blockquote>
+<p>Mitchell’s definition is common in the field and easily coexists with the idea of a well-posed learning problem, which we will introduce shortly. And there are less precise, but still useful definitions, like the one below from political scientists.</p>
+<blockquote>
+<div><p>“Machine learning is a class of flexible algorithmic and statistical techniques for prediction and dimension reduction.”<br />
+— <span id="id3">[<a class="reference internal" href="../reference/bibliography.html#id9" title="Justin Grimmer, Margaret E Roberts, and Brandon M Stewart. Machine learning for social science: an agnostic approach. Annual Review of Political Science, 24(1):395–419, 2021.">Grimmer <em>et al.</em>, 2021</a>]</span></p>
+</div></blockquote>
+<p>With these rough boundaries, we can discuss learning problems and their key similarities in taking data, “learning” from it to produce a line in the case of linear regression, or a fitted model more abstractly, all guided by some measure of what makes that the best fit. But how do we know when a problem is actually suitable for machine learning? Mitchell offers a more structured framework for identifying well-posed learning problems.</p>
+</section>
+<section id="well-posed-learning-problems">
+<h2>Well-Posed Learning Problems<a class="headerlink" href="#well-posed-learning-problems" title="Link to this heading">#</a></h2>
+<p><strong>Definition:</strong> A computer program is said to <strong>learn</strong> from experience <em>E</em> with respect to some class of tasks <em>T</em> and performance measure <em>P</em>, if its performance at tasks in <em>T</em>, as measured by <em>P</em>, improves with experience <em>E</em> <span id="id4">[<a class="reference internal" href="../reference/bibliography.html#id6" title="Tom M Mitchell. Machine Learning. Volume 1. McGraw-Hill New York, 1997.">Mitchell, 1997</a>]</span>.</p>
+<p>This definition provides a framework for thinking about learning problems, though it can be somewhat narrow. Not all useful ML techniques fit perfectly into this framework—for instance, as we will see.</p>
+<section id="example-wage-prediction">
+<h3>Example: Wage Prediction<a class="headerlink" href="#example-wage-prediction" title="Link to this heading">#</a></h3>
+<p>Consider a system that predicts wages based on education level:</p>
+<ul class="simple">
+<li><p><strong>Task T</strong>: Predicting wages from years of education</p></li>
+<li><p><strong>Performance measure P</strong>: Mean squared error (MSE) between predicted and actual wages</p></li>
+<li><p><strong>Training experience E</strong>: Observing education-wage pairs from survey data</p></li>
+</ul>
+<p>If we observe observations <span class="math notranslate nohighlight">\(i=1,\dots,n\)</span> and make prediction <span class="math notranslate nohighlight">\(\hat{y}_i\)</span> for all <span class="math notranslate nohighlight">\(i\)</span>, our performance measure is <span class="math notranslate nohighlight">\(\frac{1}{n}\sum_{i\in I} (y_i -\hat{y}_i)^2\)</span>. If we use a linear model, <span class="math notranslate nohighlight">\(\hat{y}_i=\hat{\beta}_0 + \hat{\beta}x_i\)</span>, then we are describing ordinary least squares.</p>
+</section>
+<section id="example-playing-board-games">
+<h3>Example: Playing Board Games<a class="headerlink" href="#example-playing-board-games" title="Link to this heading">#</a></h3>
+<p>AlphaGo was trained to play Go by teaching itself.</p>
+<ul class="simple">
+<li><p><strong>Task T</strong>: Playing the board game Go</p></li>
+<li><p><strong>Performance measure P</strong>: Percent of games won against opponents</p></li>
+<li><p><strong>Training experience E</strong>: Playing practice games against itself</p></li>
+</ul>
+<p>Note that while AlphaGo’s performance P is measured by win percentage, the actual training process optimizes a different objective that correlates with winning. P is an <em>evaluation metric</em> and not necessarily what is optimized during training.</p>
+<p>Famously, AlphaGo would go on to defeat the reigning grandmaster of Go in four of five matches. This was celebrated by the AI community and even Rick Rubin <span id="id5">[<a class="reference internal" href="../reference/bibliography.html#id46" title="Rick Rubin. The creative act: A way of being. Penguin, 2023.">Rubin, 2023</a>]</span>. The training experience, playing against itself, was advantageous because AlphaGo discovered a unique and unexpected way to play.</p>
+</section>
+</section>
+<section id="types-of-learning-tasks">
+<h2>Types of Learning Tasks<a class="headerlink" href="#types-of-learning-tasks" title="Link to this heading">#</a></h2>
+<div class="seealso admonition">
+<p class="admonition-title">Reading</p>
+<ul class="simple">
+<li><p><span id="id6">[<a class="reference internal" href="../reference/bibliography.html#id3" title="Gareth James, Daniela Witten, Trevor Hastie, Robert Tibshirani, and Jonathan Taylor. An Introduction to Statistical Learning with Applications in Python. Springer, 2023.">James <em>et al.</em>, 2023</a>]</span>, Chapter 1</p></li>
+</ul>
+</div>
+<p>We won’t encounter many learning problems similar to playing Go in the social sciences. Instead, we’ll see a lot of applications more similar to the wage prediction problem. Wage prediction is a case of <em>supervised learning</em>.</p>
+<p>Textbooks often introduce a clean <em>supervised</em> vs <em>unsupervised</em> dichotomy. We will follow that convention, but note that more complete taxonomies might include reinforcement learning or semi-supervised learning.</p>
+<section id="supervised-learning">
+<h3>Supervised Learning<a class="headerlink" href="#supervised-learning" title="Link to this heading">#</a></h3>
+<p>Supervised learning problems come with <em>supervising output</em> or we might say our data is labeled: we have both the inputs <span class="math notranslate nohighlight">\(x\)</span> and the observed output <span class="math notranslate nohighlight">\(y\)</span>.</p>
+<ul class="simple">
+<li><p><strong>Classification Tasks</strong>: Predict discrete categories (e.g., spam vs. not spam)</p></li>
+<li><p><strong>Regression Tasks</strong>: Predict continuous values (e.g., wages, house prices)</p></li>
+</ul>
+</section>
+<section id="unsupervised-learning">
+<h3>Unsupervised Learning<a class="headerlink" href="#unsupervised-learning" title="Link to this heading">#</a></h3>
+<p>Unsupervised learning problems come with no labels. This creates a different challenge: instead of predicting a known outcome, we’re trying to discover structure in the data itself.</p>
+<p>For example, you might have a large number of posts from a social media platform or the responses to a survey question. Consider the task of categorizing these inputs based on the topic. You have roughly three options.</p>
+<ol class="arabic simple">
+<li><p>Convert this to a supervised problem by hand-labeling some responses (using human coders or an LLM), then treating this as a classification task.</p></li>
+<li><p>Use unsupervised methods to discover natural groupings in the responses.</p></li>
+<li><p>Use a hybrid approach where unsupervised methods suggest categories that humans then refine.</p></li>
+</ol>
+<p>Possible unsupervised tasks include:</p>
+<ul class="simple">
+<li><p>Clustering: Grouping similar observations (e.g., identifying types of political donors based on giving patterns)</p></li>
+<li><p>Dimensionality reduction: Simplifying complex data (e.g., reducing high-dimensional voting data for legislators to a position on a left-right spectrum)</p></li>
+<li><p>Topic modeling: Discovering themes (e.g., finding emerging policy concerns in constituent emails)</p></li>
+</ul>
+<p>Notice how these tasks don’t fit neatly into Mitchell’s framework - what exactly is the “performance measure P” for discovering topics? We might evaluate whether the topics seem interpretable to domain experts, but there’s no single correct answer to optimize against.</p>
+</section>
+</section>
+<section id="performance-measures">
+<h2>Performance Measures<a class="headerlink" href="#performance-measures" title="Link to this heading">#</a></h2>
+<p>Performance measures quantify how well a model performs its task. While often chosen without much thought, this choice can be consequential.</p>
+<section id="binary-classification-example">
+<h3>Binary Classification Example<a class="headerlink" href="#binary-classification-example" title="Link to this heading">#</a></h3>
+<p>Judges make jail-or-release decisions. Based on the data available at the time of a hearing, a judge decides whether or not a defendant is granted pretrial release (whether on bail or release on recognizance). The judge’s decision is to be based on a prediction of whether or not the defendant would fail to appear in court or be rearrested if released. This is the learning task of the judge, or perhaps of a machine when considering algorithmic decisions (and as studied in <span id="id7">[<a class="reference internal" href="../reference/bibliography.html#id20" title="Jon Kleinberg, Himabindu Lakkaraju, Jure Leskovec, Jens Ludwig, and Sendhil Mullainathan. Human decisions and machine predictions. The quarterly journal of economics, 133(1):237–293, 2018. URL: https://www.jstor.org/stable/26495162.">Kleinberg <em>et al.</em>, 2018</a>]</span>).</p>
+<p>Note that in this classification problem, we define “positive” as high risk—that is, a defendant who would fail to appear or be rearrested if released.</p>
+<p>The performance measure is slightly ambiguous, but any reasonable measure will weigh the types of errors. When making predictions, there are four possible outcomes:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p><strong>Predicted: High Risk</strong></p></th>
+<th class="head"><p><strong>Predicted: Low Risk</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Actually: High Risk</strong></p></td>
+<td><p>✓ True Positive</p></td>
+<td><p>✗ False Negative (Type II)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Actually: Low Risk</strong></p></td>
+<td><p>✗ False Positive (Type I)</p></td>
+<td><p>✓ True Negative</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>This matrix reveals a challenge: how do we combine these four numbers into a single performance score?</p>
+<p>Some options include:</p>
+<ul class="simple">
+<li><p>Focus on overall accuracy</p></li>
+<li><p>Weight some errors more than others</p></li>
+<li><p>Consider multiple metrics (but how do we compare models?)</p></li>
+<li><p>Account for the cost of errors (but costs to whom and are the costs measureable?)</p></li>
+</ul>
+<p>There’s no correct answer. The choice of performance measure is itself a value judgment about what matters. The weight of the value judgment is clear in this example, whereas the nuances are easier to ignore if you’re a marketer deciding who to email.</p>
+<p>Common performance measures in classification include</p>
+<ol class="arabic">
+<li><p><strong>Precision</strong><br />
+<span class="math notranslate nohighlight">\(\text{Precision} \;=\; \frac{\text{True Positives (TP)}}{\text{True Positives (TP)} + \text{False Positives (FP)}}\)</span></p>
+<blockquote>
+<div><p>Of all the defendants the model predicted as high risk (would FTA or be rearrested), how many actually did?</p>
+</div></blockquote>
+</li>
+<li><p><strong>Recall</strong><br />
+<span class="math notranslate nohighlight">\( \text{Recall} \;=\; \frac{\text{True Positives (TP)}}{\text{True Positives (TP)} + \text{False Negatives (FN)}} \)</span></p>
+<blockquote>
+<div><p>Of all defendants who actually were high risk (would FTA or be rearrested), how many did the model correctly flag?</p>
+</div></blockquote>
+</li>
+<li><p><strong>F-1 Score</strong><br />
+Harmonic mean of Precision and Recall</p>
+<p><span class="math notranslate nohighlight">\( F_1 \;=\; 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}} \)</span></p>
+</li>
+</ol>
+</section>
+<section id="making-sense-of-these-metrics-a-concrete-example">
+<h3>Making Sense of These Metrics: A Concrete Example<a class="headerlink" href="#making-sense-of-these-metrics-a-concrete-example" title="Link to this heading">#</a></h3>
+<p>Let’s imagine we have data on 5 defendants where we magically know what would have happened if they were all released:</p>
+<ul class="simple">
+<li><p>2 would have failed to appear (FTA) or been rearrested</p></li>
+<li><p>3 would have shown up to court and stayed out of trouble</p></li>
+</ul>
+<p>Now let’s compare three different models:</p>
+<p><strong>Model A: The Oracle (Perfect)</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p><strong>Predicted: High Risk</strong></p></th>
+<th class="head"><p><strong>Predicted: Low Risk</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Actually would FTA</strong></p></td>
+<td><p>2</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Actually wouldn’t FTA</strong></p></td>
+<td><p>0</p></td>
+<td><p>3</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul class="simple">
+<li><p>Precision = 2/2 = <strong>100%</strong></p></li>
+<li><p>Recall = 2/2 = <strong>100%</strong></p></li>
+<li><p>F1 = <strong>100%</strong></p></li>
+</ul>
+<p>Perfect! But this is a nirvana no human can achieve.</p>
+<p><strong>Model B: Nancy Grace (High Recall)</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p><strong>Predicted: High Risk</strong></p></th>
+<th class="head"><p><strong>Predicted: Low Risk</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Actually would FTA</strong></p></td>
+<td><p>2</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Actually wouldn’t FTA</strong></p></td>
+<td><p>2</p></td>
+<td><p>1</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul class="simple">
+<li><p>Precision = 2/4 = <strong>50%</strong></p></li>
+<li><p>Recall = 2/2 = <strong>100%</strong></p></li>
+<li><p>F1 = <strong>66.7%</strong></p></li>
+</ul>
+<p>This model catches everyone who would FTA, but detains 4 people total—2 unnecessarily.</p>
+<p><strong>Model C: Alvin Bragg (High Precision)</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p><strong>Predicted: High Risk</strong></p></th>
+<th class="head"><p><strong>Predicted: Low Risk</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Actually would FTA</strong></p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Actually wouldn’t FTA</strong></p></td>
+<td><p>0</p></td>
+<td><p>3</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul class="simple">
+<li><p>Precision = 1/1 = <strong>100%</strong></p></li>
+<li><p>Recall = 1/2 = <strong>50%</strong></p></li>
+<li><p>F1 = <strong>66.7%</strong></p></li>
+</ul>
+<p>This model is perfectly selective—when it says someone is high risk, it’s always right. But it only catches half of people who would FTA.</p>
+<p>Which model is best? Model B protects public safety but jails more innocent people. Model C minimizes false imprisonment but lets half the risks go free. Notice that both models achieve the same F1 score (66.7%), yet they make very different tradeoffs. The F1 score treats precision and recall as equally important, but is that the right assumption for this decision? The answer is not in a machine learning textbook.</p>
+</section>
+<section id="all-possible-classification-outcomes">
+<h3>All Possible Classification Outcomes<a class="headerlink" href="#all-possible-classification-outcomes" title="Link to this heading">#</a></h3>
+<p>With just 5 defendants, there are only 32 possible ways to classify them (2^5 = 32). The table below shows every possible prediction pattern and the resulting performance metrics. Each row represents a different classifier, with the binary string showing predictions for each defendant (1 = predict high risk, 0 = predict low risk).</p>
+<p><a id="all-classifiers-table"></a></p>
+<div style="width: 100%; text-align: center;">
+<style type="text/css">
+#T_36472  {
+  border-collapse: separate;
+  border-spacing: 2px;
+  margin: 25px auto;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  display: table;
+}
+#T_36472 th {
+  background-color: #f0f0f0;
+  color: #000000;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  text-align: center;
+  font-weight: 600;
+}
+#T_36472 td {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+#T_36472 caption {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+#T_36472_row0_col0, #T_36472_row1_col0, #T_36472_row2_col0, #T_36472_row3_col0, #T_36472_row4_col0, #T_36472_row5_col0, #T_36472_row6_col0, #T_36472_row7_col0, #T_36472_row8_col0, #T_36472_row9_col0, #T_36472_row10_col0, #T_36472_row11_col0, #T_36472_row12_col0, #T_36472_row13_col0, #T_36472_row14_col0, #T_36472_row15_col0, #T_36472_row16_col0, #T_36472_row17_col0, #T_36472_row18_col0, #T_36472_row19_col0, #T_36472_row20_col0, #T_36472_row21_col0, #T_36472_row22_col0, #T_36472_row23_col0, #T_36472_row24_col0, #T_36472_row25_col0, #T_36472_row26_col0, #T_36472_row27_col0, #T_36472_row28_col0, #T_36472_row29_col0, #T_36472_row30_col0, #T_36472_row31_col0 {
+  text-align: center;
+}
+#T_36472_row0_col1, #T_36472_row0_col2, #T_36472_row1_col1, #T_36472_row2_col1, #T_36472_row3_col1, #T_36472_row4_col2, #T_36472_row5_col1, #T_36472_row6_col1, #T_36472_row7_col1, #T_36472_row8_col2, #T_36472_row9_col1, #T_36472_row31_col2 {
+  background-color: #fff5eb;
+  color: #000000;
+  text-align: center;
+}
+#T_36472_row0_col3, #T_36472_row1_col3, #T_36472_row1_col4, #T_36472_row2_col3, #T_36472_row2_col4, #T_36472_row3_col3, #T_36472_row3_col4, #T_36472_row5_col3, #T_36472_row6_col3, #T_36472_row7_col3, #T_36472_row9_col3, #T_36472_row10_col4, #T_36472_row11_col4, #T_36472_row12_col4, #T_36472_row13_col4, #T_36472_row14_col4, #T_36472_row15_col4, #T_36472_row27_col4, #T_36472_row29_col4, #T_36472_row30_col4 {
+  background-color: #37a055;
+  color: #f1f1f1;
+  text-align: center;
+}
+#T_36472_row0_col4, #T_36472_row4_col4, #T_36472_row8_col4, #T_36472_row31_col4 {
+  background-color: #00441b;
+  color: #f1f1f1;
+  text-align: center;
+}
+#T_36472_row0_col5, #T_36472_row0_col6, #T_36472_row0_col7, #T_36472_row1_col6, #T_36472_row2_col6, #T_36472_row3_col6, #T_36472_row4_col3, #T_36472_row4_col5, #T_36472_row5_col4, #T_36472_row5_col6, #T_36472_row6_col4, #T_36472_row6_col6, #T_36472_row7_col4, #T_36472_row7_col6, #T_36472_row8_col3, #T_36472_row8_col5, #T_36472_row9_col6, #T_36472_row10_col3, #T_36472_row11_col3, #T_36472_row12_col3, #T_36472_row13_col3, #T_36472_row14_col3, #T_36472_row15_col3, #T_36472_row16_col3, #T_36472_row16_col4, #T_36472_row17_col3, #T_36472_row17_col4, #T_36472_row18_col3, #T_36472_row18_col4, #T_36472_row19_col3, #T_36472_row19_col4, #T_36472_row20_col3, #T_36472_row20_col4, #T_36472_row21_col3, #T_36472_row21_col4, #T_36472_row22_col3, #T_36472_row23_col3, #T_36472_row25_col4, #T_36472_row26_col4, #T_36472_row28_col4 {
+  background-color: #aedea7;
+  color: #000000;
+  text-align: center;
+}
+#T_36472_row1_col2, #T_36472_row2_col2, #T_36472_row3_col2, #T_36472_row4_col1, #T_36472_row8_col1, #T_36472_row10_col1, #T_36472_row10_col2, #T_36472_row11_col1, #T_36472_row11_col2, #T_36472_row12_col1, #T_36472_row12_col2, #T_36472_row13_col1, #T_36472_row13_col2, #T_36472_row14_col1, #T_36472_row14_col2, #T_36472_row15_col1, #T_36472_row15_col2, #T_36472_row16_col1, #T_36472_row17_col1, #T_36472_row18_col1, #T_36472_row19_col1, #T_36472_row20_col1, #T_36472_row21_col1, #T_36472_row22_col1, #T_36472_row23_col1, #T_36472_row27_col2, #T_36472_row29_col2, #T_36472_row30_col2 {
+  background-color: #fdb97d;
+  color: #000000;
+  text-align: center;
+}
+#T_36472_row1_col5, #T_36472_row2_col5, #T_36472_row3_col5, #T_36472_row4_col7, #T_36472_row5_col7, #T_36472_row6_col7, #T_36472_row7_col7, #T_36472_row8_col7 {
+  background-color: #ceecc8;
+  color: #000000;
+  text-align: center;
+}
+#T_36472_row1_col7, #T_36472_row2_col7, #T_36472_row3_col7 {
+  background-color: #c2e7bb;
+  color: #000000;
+  text-align: center;
+}
+#T_36472_row4_col6, #T_36472_row5_col5, #T_36472_row6_col5, #T_36472_row7_col5, #T_36472_row8_col6, #T_36472_row10_col5, #T_36472_row10_col6, #T_36472_row10_col7, #T_36472_row11_col5, #T_36472_row11_col6, #T_36472_row11_col7, #T_36472_row12_col5, #T_36472_row12_col6, #T_36472_row12_col7, #T_36472_row13_col5, #T_36472_row13_col6, #T_36472_row13_col7, #T_36472_row14_col5, #T_36472_row14_col6, #T_36472_row14_col7, #T_36472_row15_col5, #T_36472_row15_col6, #T_36472_row15_col7, #T_36472_row16_col6, #T_36472_row17_col6, #T_36472_row18_col6, #T_36472_row19_col6, #T_36472_row20_col6, #T_36472_row21_col6, #T_36472_row22_col6, #T_36472_row23_col6 {
+  background-color: #dbf1d6;
+  color: #000000;
+  text-align: center;
+}
+#T_36472_row5_col2, #T_36472_row6_col2, #T_36472_row7_col2, #T_36472_row16_col2, #T_36472_row17_col2, #T_36472_row18_col2, #T_36472_row19_col2, #T_36472_row20_col2, #T_36472_row21_col2, #T_36472_row24_col1, #T_36472_row25_col1, #T_36472_row25_col2, #T_36472_row26_col1, #T_36472_row26_col2, #T_36472_row27_col1, #T_36472_row28_col1, #T_36472_row28_col2, #T_36472_row29_col1, #T_36472_row30_col1, #T_36472_row31_col1 {
+  background-color: #e95e0d;
+  color: #f1f1f1;
+  text-align: center;
+}
+#T_36472_row9_col2, #T_36472_row22_col2, #T_36472_row23_col2, #T_36472_row24_col2 {
+  background-color: #7f2704;
+  color: #f1f1f1;
+  text-align: center;
+}
+#T_36472_row9_col4, #T_36472_row22_col4, #T_36472_row23_col4, #T_36472_row24_col3, #T_36472_row24_col4, #T_36472_row24_col5, #T_36472_row24_col6, #T_36472_row25_col3, #T_36472_row25_col5, #T_36472_row25_col6, #T_36472_row26_col3, #T_36472_row26_col5, #T_36472_row26_col6, #T_36472_row27_col3, #T_36472_row27_col5, #T_36472_row27_col6, #T_36472_row28_col3, #T_36472_row28_col5, #T_36472_row28_col6, #T_36472_row29_col3, #T_36472_row29_col5, #T_36472_row29_col6, #T_36472_row30_col3, #T_36472_row30_col5, #T_36472_row30_col6, #T_36472_row31_col3, #T_36472_row31_col6 {
+  background-color: #f7fcf5;
+  color: #000000;
+  text-align: center;
+}
+#T_36472_row9_col5, #T_36472_row16_col7, #T_36472_row17_col7, #T_36472_row18_col7, #T_36472_row19_col7, #T_36472_row20_col7, #T_36472_row21_col7 {
+  background-color: #e3f4de;
+  color: #000000;
+  text-align: center;
+}
+#T_36472_row9_col7 {
+  background-color: #d6efd0;
+  color: #000000;
+  text-align: center;
+}
+#T_36472_row16_col5, #T_36472_row17_col5, #T_36472_row18_col5, #T_36472_row19_col5, #T_36472_row20_col5, #T_36472_row21_col5, #T_36472_row22_col7, #T_36472_row23_col7 {
+  background-color: #e7f6e3;
+  color: #000000;
+  text-align: center;
+}
+#T_36472_row22_col5, #T_36472_row23_col5 {
+  background-color: #ebf7e7;
+  color: #000000;
+  text-align: center;
+}
+#T_36472_row24_col7, #T_36472_row25_col7, #T_36472_row26_col7, #T_36472_row27_col7, #T_36472_row28_col7, #T_36472_row29_col7, #T_36472_row30_col7, #T_36472_row31_col5, #T_36472_row31_col7 {
+  background-color: #000000;
+  color: #f1f1f1;
+  background-color: lightgray;
+  text-align: center;
+}
+</style>
+<table id="T_36472">
+  <caption>Possible Classifications</caption>
+  <thead>
+    <tr>
+      <th id="T_36472_level0_col0" class="col_heading level0 col0" >predictions</th>
+      <th id="T_36472_level0_col1" class="col_heading level0 col1" >fp</th>
+      <th id="T_36472_level0_col2" class="col_heading level0 col2" >fn</th>
+      <th id="T_36472_level0_col3" class="col_heading level0 col3" >tp</th>
+      <th id="T_36472_level0_col4" class="col_heading level0 col4" >tn</th>
+      <th id="T_36472_level0_col5" class="col_heading level0 col5" >precision</th>
+      <th id="T_36472_level0_col6" class="col_heading level0 col6" >recall</th>
+      <th id="T_36472_level0_col7" class="col_heading level0 col7" >f1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td id="T_36472_row0_col0" class="data row0 col0" >11 000</td>
+      <td id="T_36472_row0_col1" class="data row0 col1" >0.00</td>
+      <td id="T_36472_row0_col2" class="data row0 col2" >0.00</td>
+      <td id="T_36472_row0_col3" class="data row0 col3" >2.00</td>
+      <td id="T_36472_row0_col4" class="data row0 col4" >3.00</td>
+      <td id="T_36472_row0_col5" class="data row0 col5" >1.00</td>
+      <td id="T_36472_row0_col6" class="data row0 col6" >1.00</td>
+      <td id="T_36472_row0_col7" class="data row0 col7" >1.00</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row1_col0" class="data row1 col0" >11 100</td>
+      <td id="T_36472_row1_col1" class="data row1 col1" >0.00</td>
+      <td id="T_36472_row1_col2" class="data row1 col2" >1.00</td>
+      <td id="T_36472_row1_col3" class="data row1 col3" >2.00</td>
+      <td id="T_36472_row1_col4" class="data row1 col4" >2.00</td>
+      <td id="T_36472_row1_col5" class="data row1 col5" >0.67</td>
+      <td id="T_36472_row1_col6" class="data row1 col6" >1.00</td>
+      <td id="T_36472_row1_col7" class="data row1 col7" >0.80</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row2_col0" class="data row2 col0" >11 010</td>
+      <td id="T_36472_row2_col1" class="data row2 col1" >0.00</td>
+      <td id="T_36472_row2_col2" class="data row2 col2" >1.00</td>
+      <td id="T_36472_row2_col3" class="data row2 col3" >2.00</td>
+      <td id="T_36472_row2_col4" class="data row2 col4" >2.00</td>
+      <td id="T_36472_row2_col5" class="data row2 col5" >0.67</td>
+      <td id="T_36472_row2_col6" class="data row2 col6" >1.00</td>
+      <td id="T_36472_row2_col7" class="data row2 col7" >0.80</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row3_col0" class="data row3 col0" >11 001</td>
+      <td id="T_36472_row3_col1" class="data row3 col1" >0.00</td>
+      <td id="T_36472_row3_col2" class="data row3 col2" >1.00</td>
+      <td id="T_36472_row3_col3" class="data row3 col3" >2.00</td>
+      <td id="T_36472_row3_col4" class="data row3 col4" >2.00</td>
+      <td id="T_36472_row3_col5" class="data row3 col5" >0.67</td>
+      <td id="T_36472_row3_col6" class="data row3 col6" >1.00</td>
+      <td id="T_36472_row3_col7" class="data row3 col7" >0.80</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row4_col0" class="data row4 col0" >01 000</td>
+      <td id="T_36472_row4_col1" class="data row4 col1" >1.00</td>
+      <td id="T_36472_row4_col2" class="data row4 col2" >0.00</td>
+      <td id="T_36472_row4_col3" class="data row4 col3" >1.00</td>
+      <td id="T_36472_row4_col4" class="data row4 col4" >3.00</td>
+      <td id="T_36472_row4_col5" class="data row4 col5" >1.00</td>
+      <td id="T_36472_row4_col6" class="data row4 col6" >0.50</td>
+      <td id="T_36472_row4_col7" class="data row4 col7" >0.67</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row5_col0" class="data row5 col0" >11 110</td>
+      <td id="T_36472_row5_col1" class="data row5 col1" >0.00</td>
+      <td id="T_36472_row5_col2" class="data row5 col2" >2.00</td>
+      <td id="T_36472_row5_col3" class="data row5 col3" >2.00</td>
+      <td id="T_36472_row5_col4" class="data row5 col4" >1.00</td>
+      <td id="T_36472_row5_col5" class="data row5 col5" >0.50</td>
+      <td id="T_36472_row5_col6" class="data row5 col6" >1.00</td>
+      <td id="T_36472_row5_col7" class="data row5 col7" >0.67</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row6_col0" class="data row6 col0" >11 101</td>
+      <td id="T_36472_row6_col1" class="data row6 col1" >0.00</td>
+      <td id="T_36472_row6_col2" class="data row6 col2" >2.00</td>
+      <td id="T_36472_row6_col3" class="data row6 col3" >2.00</td>
+      <td id="T_36472_row6_col4" class="data row6 col4" >1.00</td>
+      <td id="T_36472_row6_col5" class="data row6 col5" >0.50</td>
+      <td id="T_36472_row6_col6" class="data row6 col6" >1.00</td>
+      <td id="T_36472_row6_col7" class="data row6 col7" >0.67</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row7_col0" class="data row7 col0" >11 011</td>
+      <td id="T_36472_row7_col1" class="data row7 col1" >0.00</td>
+      <td id="T_36472_row7_col2" class="data row7 col2" >2.00</td>
+      <td id="T_36472_row7_col3" class="data row7 col3" >2.00</td>
+      <td id="T_36472_row7_col4" class="data row7 col4" >1.00</td>
+      <td id="T_36472_row7_col5" class="data row7 col5" >0.50</td>
+      <td id="T_36472_row7_col6" class="data row7 col6" >1.00</td>
+      <td id="T_36472_row7_col7" class="data row7 col7" >0.67</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row8_col0" class="data row8 col0" >10 000</td>
+      <td id="T_36472_row8_col1" class="data row8 col1" >1.00</td>
+      <td id="T_36472_row8_col2" class="data row8 col2" >0.00</td>
+      <td id="T_36472_row8_col3" class="data row8 col3" >1.00</td>
+      <td id="T_36472_row8_col4" class="data row8 col4" >3.00</td>
+      <td id="T_36472_row8_col5" class="data row8 col5" >1.00</td>
+      <td id="T_36472_row8_col6" class="data row8 col6" >0.50</td>
+      <td id="T_36472_row8_col7" class="data row8 col7" >0.67</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row9_col0" class="data row9 col0" >11 111</td>
+      <td id="T_36472_row9_col1" class="data row9 col1" >0.00</td>
+      <td id="T_36472_row9_col2" class="data row9 col2" >3.00</td>
+      <td id="T_36472_row9_col3" class="data row9 col3" >2.00</td>
+      <td id="T_36472_row9_col4" class="data row9 col4" >0.00</td>
+      <td id="T_36472_row9_col5" class="data row9 col5" >0.40</td>
+      <td id="T_36472_row9_col6" class="data row9 col6" >1.00</td>
+      <td id="T_36472_row9_col7" class="data row9 col7" >0.57</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row10_col0" class="data row10 col0" >10 100</td>
+      <td id="T_36472_row10_col1" class="data row10 col1" >1.00</td>
+      <td id="T_36472_row10_col2" class="data row10 col2" >1.00</td>
+      <td id="T_36472_row10_col3" class="data row10 col3" >1.00</td>
+      <td id="T_36472_row10_col4" class="data row10 col4" >2.00</td>
+      <td id="T_36472_row10_col5" class="data row10 col5" >0.50</td>
+      <td id="T_36472_row10_col6" class="data row10 col6" >0.50</td>
+      <td id="T_36472_row10_col7" class="data row10 col7" >0.50</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row11_col0" class="data row11 col0" >10 010</td>
+      <td id="T_36472_row11_col1" class="data row11 col1" >1.00</td>
+      <td id="T_36472_row11_col2" class="data row11 col2" >1.00</td>
+      <td id="T_36472_row11_col3" class="data row11 col3" >1.00</td>
+      <td id="T_36472_row11_col4" class="data row11 col4" >2.00</td>
+      <td id="T_36472_row11_col5" class="data row11 col5" >0.50</td>
+      <td id="T_36472_row11_col6" class="data row11 col6" >0.50</td>
+      <td id="T_36472_row11_col7" class="data row11 col7" >0.50</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row12_col0" class="data row12 col0" >10 001</td>
+      <td id="T_36472_row12_col1" class="data row12 col1" >1.00</td>
+      <td id="T_36472_row12_col2" class="data row12 col2" >1.00</td>
+      <td id="T_36472_row12_col3" class="data row12 col3" >1.00</td>
+      <td id="T_36472_row12_col4" class="data row12 col4" >2.00</td>
+      <td id="T_36472_row12_col5" class="data row12 col5" >0.50</td>
+      <td id="T_36472_row12_col6" class="data row12 col6" >0.50</td>
+      <td id="T_36472_row12_col7" class="data row12 col7" >0.50</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row13_col0" class="data row13 col0" >01 100</td>
+      <td id="T_36472_row13_col1" class="data row13 col1" >1.00</td>
+      <td id="T_36472_row13_col2" class="data row13 col2" >1.00</td>
+      <td id="T_36472_row13_col3" class="data row13 col3" >1.00</td>
+      <td id="T_36472_row13_col4" class="data row13 col4" >2.00</td>
+      <td id="T_36472_row13_col5" class="data row13 col5" >0.50</td>
+      <td id="T_36472_row13_col6" class="data row13 col6" >0.50</td>
+      <td id="T_36472_row13_col7" class="data row13 col7" >0.50</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row14_col0" class="data row14 col0" >01 010</td>
+      <td id="T_36472_row14_col1" class="data row14 col1" >1.00</td>
+      <td id="T_36472_row14_col2" class="data row14 col2" >1.00</td>
+      <td id="T_36472_row14_col3" class="data row14 col3" >1.00</td>
+      <td id="T_36472_row14_col4" class="data row14 col4" >2.00</td>
+      <td id="T_36472_row14_col5" class="data row14 col5" >0.50</td>
+      <td id="T_36472_row14_col6" class="data row14 col6" >0.50</td>
+      <td id="T_36472_row14_col7" class="data row14 col7" >0.50</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row15_col0" class="data row15 col0" >01 001</td>
+      <td id="T_36472_row15_col1" class="data row15 col1" >1.00</td>
+      <td id="T_36472_row15_col2" class="data row15 col2" >1.00</td>
+      <td id="T_36472_row15_col3" class="data row15 col3" >1.00</td>
+      <td id="T_36472_row15_col4" class="data row15 col4" >2.00</td>
+      <td id="T_36472_row15_col5" class="data row15 col5" >0.50</td>
+      <td id="T_36472_row15_col6" class="data row15 col6" >0.50</td>
+      <td id="T_36472_row15_col7" class="data row15 col7" >0.50</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row16_col0" class="data row16 col0" >10 101</td>
+      <td id="T_36472_row16_col1" class="data row16 col1" >1.00</td>
+      <td id="T_36472_row16_col2" class="data row16 col2" >2.00</td>
+      <td id="T_36472_row16_col3" class="data row16 col3" >1.00</td>
+      <td id="T_36472_row16_col4" class="data row16 col4" >1.00</td>
+      <td id="T_36472_row16_col5" class="data row16 col5" >0.33</td>
+      <td id="T_36472_row16_col6" class="data row16 col6" >0.50</td>
+      <td id="T_36472_row16_col7" class="data row16 col7" >0.40</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row17_col0" class="data row17 col0" >10 110</td>
+      <td id="T_36472_row17_col1" class="data row17 col1" >1.00</td>
+      <td id="T_36472_row17_col2" class="data row17 col2" >2.00</td>
+      <td id="T_36472_row17_col3" class="data row17 col3" >1.00</td>
+      <td id="T_36472_row17_col4" class="data row17 col4" >1.00</td>
+      <td id="T_36472_row17_col5" class="data row17 col5" >0.33</td>
+      <td id="T_36472_row17_col6" class="data row17 col6" >0.50</td>
+      <td id="T_36472_row17_col7" class="data row17 col7" >0.40</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row18_col0" class="data row18 col0" >01 110</td>
+      <td id="T_36472_row18_col1" class="data row18 col1" >1.00</td>
+      <td id="T_36472_row18_col2" class="data row18 col2" >2.00</td>
+      <td id="T_36472_row18_col3" class="data row18 col3" >1.00</td>
+      <td id="T_36472_row18_col4" class="data row18 col4" >1.00</td>
+      <td id="T_36472_row18_col5" class="data row18 col5" >0.33</td>
+      <td id="T_36472_row18_col6" class="data row18 col6" >0.50</td>
+      <td id="T_36472_row18_col7" class="data row18 col7" >0.40</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row19_col0" class="data row19 col0" >01 101</td>
+      <td id="T_36472_row19_col1" class="data row19 col1" >1.00</td>
+      <td id="T_36472_row19_col2" class="data row19 col2" >2.00</td>
+      <td id="T_36472_row19_col3" class="data row19 col3" >1.00</td>
+      <td id="T_36472_row19_col4" class="data row19 col4" >1.00</td>
+      <td id="T_36472_row19_col5" class="data row19 col5" >0.33</td>
+      <td id="T_36472_row19_col6" class="data row19 col6" >0.50</td>
+      <td id="T_36472_row19_col7" class="data row19 col7" >0.40</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row20_col0" class="data row20 col0" >01 011</td>
+      <td id="T_36472_row20_col1" class="data row20 col1" >1.00</td>
+      <td id="T_36472_row20_col2" class="data row20 col2" >2.00</td>
+      <td id="T_36472_row20_col3" class="data row20 col3" >1.00</td>
+      <td id="T_36472_row20_col4" class="data row20 col4" >1.00</td>
+      <td id="T_36472_row20_col5" class="data row20 col5" >0.33</td>
+      <td id="T_36472_row20_col6" class="data row20 col6" >0.50</td>
+      <td id="T_36472_row20_col7" class="data row20 col7" >0.40</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row21_col0" class="data row21 col0" >10 011</td>
+      <td id="T_36472_row21_col1" class="data row21 col1" >1.00</td>
+      <td id="T_36472_row21_col2" class="data row21 col2" >2.00</td>
+      <td id="T_36472_row21_col3" class="data row21 col3" >1.00</td>
+      <td id="T_36472_row21_col4" class="data row21 col4" >1.00</td>
+      <td id="T_36472_row21_col5" class="data row21 col5" >0.33</td>
+      <td id="T_36472_row21_col6" class="data row21 col6" >0.50</td>
+      <td id="T_36472_row21_col7" class="data row21 col7" >0.40</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row22_col0" class="data row22 col0" >10 111</td>
+      <td id="T_36472_row22_col1" class="data row22 col1" >1.00</td>
+      <td id="T_36472_row22_col2" class="data row22 col2" >3.00</td>
+      <td id="T_36472_row22_col3" class="data row22 col3" >1.00</td>
+      <td id="T_36472_row22_col4" class="data row22 col4" >0.00</td>
+      <td id="T_36472_row22_col5" class="data row22 col5" >0.25</td>
+      <td id="T_36472_row22_col6" class="data row22 col6" >0.50</td>
+      <td id="T_36472_row22_col7" class="data row22 col7" >0.33</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row23_col0" class="data row23 col0" >01 111</td>
+      <td id="T_36472_row23_col1" class="data row23 col1" >1.00</td>
+      <td id="T_36472_row23_col2" class="data row23 col2" >3.00</td>
+      <td id="T_36472_row23_col3" class="data row23 col3" >1.00</td>
+      <td id="T_36472_row23_col4" class="data row23 col4" >0.00</td>
+      <td id="T_36472_row23_col5" class="data row23 col5" >0.25</td>
+      <td id="T_36472_row23_col6" class="data row23 col6" >0.50</td>
+      <td id="T_36472_row23_col7" class="data row23 col7" >0.33</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row24_col0" class="data row24 col0" >00 111</td>
+      <td id="T_36472_row24_col1" class="data row24 col1" >2.00</td>
+      <td id="T_36472_row24_col2" class="data row24 col2" >3.00</td>
+      <td id="T_36472_row24_col3" class="data row24 col3" >0.00</td>
+      <td id="T_36472_row24_col4" class="data row24 col4" >0.00</td>
+      <td id="T_36472_row24_col5" class="data row24 col5" >0.00</td>
+      <td id="T_36472_row24_col6" class="data row24 col6" >0.00</td>
+      <td id="T_36472_row24_col7" class="data row24 col7" >nan</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row25_col0" class="data row25 col0" >00 110</td>
+      <td id="T_36472_row25_col1" class="data row25 col1" >2.00</td>
+      <td id="T_36472_row25_col2" class="data row25 col2" >2.00</td>
+      <td id="T_36472_row25_col3" class="data row25 col3" >0.00</td>
+      <td id="T_36472_row25_col4" class="data row25 col4" >1.00</td>
+      <td id="T_36472_row25_col5" class="data row25 col5" >0.00</td>
+      <td id="T_36472_row25_col6" class="data row25 col6" >0.00</td>
+      <td id="T_36472_row25_col7" class="data row25 col7" >nan</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row26_col0" class="data row26 col0" >00 101</td>
+      <td id="T_36472_row26_col1" class="data row26 col1" >2.00</td>
+      <td id="T_36472_row26_col2" class="data row26 col2" >2.00</td>
+      <td id="T_36472_row26_col3" class="data row26 col3" >0.00</td>
+      <td id="T_36472_row26_col4" class="data row26 col4" >1.00</td>
+      <td id="T_36472_row26_col5" class="data row26 col5" >0.00</td>
+      <td id="T_36472_row26_col6" class="data row26 col6" >0.00</td>
+      <td id="T_36472_row26_col7" class="data row26 col7" >nan</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row27_col0" class="data row27 col0" >00 100</td>
+      <td id="T_36472_row27_col1" class="data row27 col1" >2.00</td>
+      <td id="T_36472_row27_col2" class="data row27 col2" >1.00</td>
+      <td id="T_36472_row27_col3" class="data row27 col3" >0.00</td>
+      <td id="T_36472_row27_col4" class="data row27 col4" >2.00</td>
+      <td id="T_36472_row27_col5" class="data row27 col5" >0.00</td>
+      <td id="T_36472_row27_col6" class="data row27 col6" >0.00</td>
+      <td id="T_36472_row27_col7" class="data row27 col7" >nan</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row28_col0" class="data row28 col0" >00 011</td>
+      <td id="T_36472_row28_col1" class="data row28 col1" >2.00</td>
+      <td id="T_36472_row28_col2" class="data row28 col2" >2.00</td>
+      <td id="T_36472_row28_col3" class="data row28 col3" >0.00</td>
+      <td id="T_36472_row28_col4" class="data row28 col4" >1.00</td>
+      <td id="T_36472_row28_col5" class="data row28 col5" >0.00</td>
+      <td id="T_36472_row28_col6" class="data row28 col6" >0.00</td>
+      <td id="T_36472_row28_col7" class="data row28 col7" >nan</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row29_col0" class="data row29 col0" >00 010</td>
+      <td id="T_36472_row29_col1" class="data row29 col1" >2.00</td>
+      <td id="T_36472_row29_col2" class="data row29 col2" >1.00</td>
+      <td id="T_36472_row29_col3" class="data row29 col3" >0.00</td>
+      <td id="T_36472_row29_col4" class="data row29 col4" >2.00</td>
+      <td id="T_36472_row29_col5" class="data row29 col5" >0.00</td>
+      <td id="T_36472_row29_col6" class="data row29 col6" >0.00</td>
+      <td id="T_36472_row29_col7" class="data row29 col7" >nan</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row30_col0" class="data row30 col0" >00 001</td>
+      <td id="T_36472_row30_col1" class="data row30 col1" >2.00</td>
+      <td id="T_36472_row30_col2" class="data row30 col2" >1.00</td>
+      <td id="T_36472_row30_col3" class="data row30 col3" >0.00</td>
+      <td id="T_36472_row30_col4" class="data row30 col4" >2.00</td>
+      <td id="T_36472_row30_col5" class="data row30 col5" >0.00</td>
+      <td id="T_36472_row30_col6" class="data row30 col6" >0.00</td>
+      <td id="T_36472_row30_col7" class="data row30 col7" >nan</td>
+    </tr>
+    <tr>
+      <td id="T_36472_row31_col0" class="data row31 col0" >00 000</td>
+      <td id="T_36472_row31_col1" class="data row31 col1" >2.00</td>
+      <td id="T_36472_row31_col2" class="data row31 col2" >0.00</td>
+      <td id="T_36472_row31_col3" class="data row31 col3" >0.00</td>
+      <td id="T_36472_row31_col4" class="data row31 col4" >3.00</td>
+      <td id="T_36472_row31_col5" class="data row31 col5" >nan</td>
+      <td id="T_36472_row31_col6" class="data row31 col6" >0.00</td>
+      <td id="T_36472_row31_col7" class="data row31 col7" >nan</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<p>​</p>
+<p>Notice that:</p>
+<ul class="simple">
+<li><p>The first entry in the <a class="reference internal" href="#all-classifiers-table"><span class="xref myst">classification table</span></a> is our perfect Model A (predicting defendants 1 and 2 as high risk)</p></li>
+<li><p>The sixth entry in the <a class="reference internal" href="#all-classifiers-table"><span class="xref myst">classification table</span></a> matches our Model B (predicting defendants 1, 2, 3, and 4 as high risk) and this is plotted as the left-most orange dot in <a class="reference internal" href="#f1-isoquants"><span class="std std-numref">Fig. 1</span></a></p></li>
+<li><p>The ninth entry in the <a class="reference internal" href="#all-classifiers-table"><span class="xref myst">classification table</span></a> matches our Model C (predicting only defendant 1 as high risk) and this is plotted as the right-most orange dot in <a class="reference internal" href="#f1-isoquants"><span class="std std-numref">Fig. 1</span></a></p></li>
+<li><p>Eight different prediction patterns yield the same F1 score of 66.7%</p></li>
+<li><p>The worst possible classifier (the last entry in the <a class="reference internal" href="#all-classifiers-table"><span class="xref myst">classification table</span></a>) predicts everyone as low risk when there are actually high-risk defendants</p></li>
+</ul>
+<figure class="align-center" id="f1-isoquants">
+<a class="reference internal image-reference" href="../_images/scatter_precision_recall_f1.svg"><img alt="../_images/scatter_precision_recall_f1.svg" src="../_images/scatter_precision_recall_f1.svg" style="width: 80%;" />
+</a>
+<figcaption>
+<p><span class="caption-number">Fig. 1 </span><span class="caption-text">F1 score isoquants showing how different combinations of precision and recall can yield the same F1 score. Each curve represents a constant F1 value.</span><a class="headerlink" href="#f1-isoquants" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<p>In the figure above, it is clear that the green dot is better than the purple dot because it has both a better precision and recall score. Again, it’s not obvious which orange dot is better. The F1 score takes a stance by saying they are tied. Notice the curvature of the F1 isoquants as well. The convexity means that averages are preferred to extremes, roughly. Any dot on the line segment connected the two orange dots would have a higher F1 score and thus correspond to a better model.</p>
+</section>
+</section>
+<section id="experience-and-training">
+<h2>Experience and Training<a class="headerlink" href="#experience-and-training" title="Link to this heading">#</a></h2>
+<p>Our computer programs learn from <em>experience</em> by being <em>trained</em> on data. The training process involves adjusting model parameters to improve performance on the chosen metric.</p>
+<p>In reality, the bail prediction problem faces a prohibitive missing data problem. In practice, we only observe outcomes for defendants who were actually released. We never learn what would have happened to those who were detained, so we can never obtain counts for true or false positives.</p>
+<p>Clever researchers work around this limitation. The paper we cited (<span id="id8">[<a class="reference internal" href="../reference/bibliography.html#id20" title="Jon Kleinberg, Himabindu Lakkaraju, Jure Leskovec, Jens Ludwig, and Sendhil Mullainathan. Human decisions and machine predictions. The quarterly journal of economics, 133(1):237–293, 2018. URL: https://www.jstor.org/stable/26495162.">Kleinberg <em>et al.</em>, 2018</a>]</span>) exploits a natural experiment: comparing decisions by judges with different release tendencies to infer what might have happened in the counterfactual cases. It’s imperfect, but ingenious.</p>
+<p>Moreover, our labels themselves are often proxies for what we really care about. When predicting “crime,” we typically observe arrests or convictions—not actual criminal behavior. Many crimes go unreported or unsolved. This means our training data reflects not just criminal activity, but also policing patterns, community trust, and prosecutorial decisions.</p>
+<p>As the statistician George Box famously said, “All models are wrong, but some are useful.” The question isn’t whether our data perfectly captures reality (it doesn’t), but whether our models can still provide valuable insights despite these limitations. In many cases, even imperfect predictions can improve upon human decision-making—as long as we remain clear-eyed about what our models can and cannot tell us.</p>
+<p>Large Language Models (LLMs) like ChatGPT come pre-trained. Recall that GPT stands for “Generative Pre-trained Transformer.” This broad usefulness makes them remarkable and unlike any machine learning model we’ll train ourselves.</p>
+</section>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="using-llms-for-a-learning-task">
+<h1>Using LLMs for a Learning Task<a class="headerlink" href="#using-llms-for-a-learning-task" title="Link to this heading">#</a></h1>
+<p>While creating and fine-tuning LLMs is beyond our scope, we’ll use them to:</p>
+<ul class="simple">
+<li><p>Ease into coding</p></li>
+<li><p>Explore performance measures for classification tasks</p></li>
+<li><p>Practice effective prompting</p></li>
+</ul>
+<p>If an LLM solves your problem adequately, there’s no need for more complex ML approaches unless the size of the data makes the LLM route too costly.</p>
+<section id="how-llms-work">
+<h2>How LLMs Work<a class="headerlink" href="#how-llms-work" title="Link to this heading">#</a></h2>
+<p><strong>The “Old” Approach (GPT-3.5 Era):</strong></p>
+<ul class="simple">
+<li><p>“Like a fancy autocomplete,’’ according to Peter Grabowski of Google</p></li>
+<li><p>Statistical pattern matching from many examples</p></li>
+<li><p>Role prompts (e.g., “You are an MIT mathematician”) shifted probability distributions to improve the chances of the autocomplete being correct</p></li>
+<li><p>Hypothesized sweet spot in detail and length of a prompt</p></li>
+</ul>
+<p><strong>Modern Chain-of-Thought Models:</strong></p>
+<ul class="simple">
+<li><p>Built-in multi-step reasoning</p></li>
+<li><p>Hidden “thinking” processes before output</p></li>
+<li><p>Self-selected reasoning approaches</p></li>
+<li><p>Role-playing prompts less effective</p></li>
+</ul>
+<p>In the video below, I ask ChatGPT’s o3 how to get to Carnegie Hall. You can see the thinking process (at 8x speed), where o3 reasons through the intent of my question based on what it already knows about me.</p>
+<div style="width: 99%; margin: auto;">
+  <iframe src="https://www.youtube.com/embed/_tGDS6g63So?si=JU-cZFBjiaZ8bad"
+          style="width: 100%; aspect-ratio: 16 / 9; border: 0;"
+          allow="accelerometer; autoplay; clipboard-write;
+                 encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen>
+  </iframe>
+</div>
+<p>Claude Haiku or ChatGPT 4.5 are more likely to answer “Practice, practice, practice.” This answer is seemingly the best for a sophisticated autocomplete.</p>
+<section id="fancy-autocomplete-and-bias">
+<h3>Fancy Autocomplete and Bias<a class="headerlink" href="#fancy-autocomplete-and-bias" title="Link to this heading">#</a></h3>
+<p>Fancy autocompletes have their drawbacks and these garner a lot of attention. Namely, LLMs can forward whatever bias is in their training data (like any other model). As noted in <span id="id9">[<a class="reference internal" href="../reference/bibliography.html#id36" title="Mohammad Atari, Mona J Xue, Peter S Park, Damián Blasi, and Joseph Henrich. Which humans? OSF Preprints, 2023.">Atari <em>et al.</em>, 2023</a>]</span>, LLMs are biased toward the pyschology of people from WEIRD (Western, Educated, Industrialized, Rich, and Democratic) societies. LLMs exhibit human-like cognitive biases when trying to generate random sequences <span id="id10">[<a class="reference internal" href="../reference/bibliography.html#id37" title="Katherine Van Koevering and Jon Kleinberg. How random is random? evaluating the randomness and humaness of llms' coin flips. arXiv preprint arXiv:2406.00092, 2024.">Van Koevering and Kleinberg, 2024</a>]</span>. If you ask AI for a random number, some models disproportionately choose 42. 42 is a salient number because of Douglas Murray. His fans are overrepresented on the Internet and thus in training data. Similarly, LLMs can reproduce stereotypes. Companies devote enormous resources to mitigating these biases, but it is not a solved problem.</p>
+<figure class="align-center" id="id11">
+<a class="reference internal image-reference" href="../_images/claudehaiku-refusal-20250603.png"><img alt="../_images/claudehaiku-refusal-20250603.png" src="../_images/claudehaiku-refusal-20250603.png" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-number">Fig. 2 </span><span class="caption-text">Response from Claude Haiku 3.5</span><a class="headerlink" href="#id11" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id12">
+<a class="reference internal image-reference" href="../_images/claude-haiku35-20250603.png"><img alt="../_images/claude-haiku35-20250603.png" src="../_images/claude-haiku35-20250603.png" style="width: 60%;" />
+</a>
+<figcaption>
+<p><span class="caption-number">Fig. 3 </span><span class="caption-text">Response from Claude Haiku 3.5</span><a class="headerlink" href="#id12" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+</section>
+<section id="prompt-engineering-evolution">
+<h2>Prompt Engineering Evolution<a class="headerlink" href="#prompt-engineering-evolution" title="Link to this heading">#</a></h2>
+<p><strong>Less effective now:</strong></p>
+<ul class="simple">
+<li><p>Role priming (“You are an expert…”)</p></li>
+<li><p>Explicit “think step-by-step” instructions</p></li>
+<li><p>Confidence boosting</p></li>
+</ul>
+<p><strong>Still valuable:</strong></p>
+<ul class="simple">
+<li><p>Clear problem specification</p></li>
+<li><p>Relevant context and constraints</p></li>
+<li><p>Examples of desired output format</p></li>
+<li><p>Domain-specific information</p></li>
+</ul>
+<p>TKTK: Add practical examples of effective prompting for social science research tasks.</p>
+<section id="practical-prompt-patterns-for-common-tasks">
+<h3>Practical Prompt Patterns for Common Tasks<a class="headerlink" href="#practical-prompt-patterns-for-common-tasks" title="Link to this heading">#</a></h3>
+<p>Modern LLMs perform well with structured, context-rich prompts that tell the model what result you want, how you will judge success, and where to put the answer.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Task</p></th>
+<th class="head"><p>“Minimal” prompt <em>(baseline)</em></p></th>
+<th class="head"><p>Improved prompt <em>(adds structure &amp; context)</em></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Sentiment classification</strong> (product reviews)</p></td>
+<td><p>“Is this review positive or negative?”</p></td>
+<td><p>System: “You are a customer‑support analyst.”  User: “Return only <code class="docutils literal notranslate"><span class="pre">positive</span></code>, <code class="docutils literal notranslate"><span class="pre">negative</span></code>, or <code class="docutils literal notranslate"><span class="pre">neutral</span></code>.  Review: ‹text›.”</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Information extraction</strong> (receipts)</p></td>
+<td><p>“Extract the total.”</p></td>
+<td><p>System: “You are a data‑extraction tool.”  User: “From the OCR text below return JSON with <code class="docutils literal notranslate"><span class="pre">{'vendor':</span> <span class="pre">str,</span> <span class="pre">'date':</span> <span class="pre">str,</span> <span class="pre">'total':</span> <span class="pre">float}</span></code>.  If a field is missing, use <code class="docutils literal notranslate"><span class="pre">null</span></code>.”</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Code generation</strong> (Python helper)</p></td>
+<td><p>“Write a factorial function.”</p></td>
+<td><p>System: “You are an efficient Python programmer.”  User: “Write a pure function <code class="docutils literal notranslate"><span class="pre">factorial(n)</span></code> that handles <code class="docutils literal notranslate"><span class="pre">n ≤ 12</span></code>.  Include a docstring and two doctests.”</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Targeted summarization</strong> (meeting transcript)</p></td>
+<td><p>“Summarize this meeting.”</p></td>
+<td><p>User: “Produce ≤ 4 bullet points focusing only on action items.  Each bullet ≤ 15 words.  Ignore greetings and chit‑chat.”</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="fewshot-template-copy-paste">
+<h4>Few‑Shot Template (copy/paste)<a class="headerlink" href="#fewshot-template-copy-paste" title="Link to this heading">#</a></h4>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>System: You are a &lt;role&gt;.
+User: Your task is to &lt;goal&gt;.  
+Output must follow this schema:  
+&lt;code block showing JSON or table&gt;.  
+
+Example 1  
+Input: &lt;short example&gt;  
+Output: &lt;desired output&gt;  
+
+&lt;repeat 1‑2 more examples if needed&gt;  
+
+Now process the following input:  
+&lt;Input goes here&gt;
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="is-using-pre-trained-llms-machine-learning">
+<h2>Is Using Pre-trained LLMs Machine Learning?<a class="headerlink" href="#is-using-pre-trained-llms-machine-learning" title="Link to this heading">#</a></h2>
+<p>This raises an interesting philosophical question:</p>
+<p><strong>Traditional ML Classification:</strong></p>
+<ul class="simple">
+<li><p>You collect labeled data → train a model → performance improves with more data</p></li>
+<li><p>Fits Mitchell’s definition: <em>P</em> improves with experience <em>E</em> on your task <em>T</em></p></li>
+</ul>
+<p><strong>Using Pre-trained LLMs:</strong></p>
+<ul class="simple">
+<li><p>LLM already learned from internet-scale text (someone else’s <em>E</em>)</p></li>
+<li><p>You provide examples/prompts → LLM applies existing knowledge</p></li>
+<li><p>Performance doesn’t improve by seeing more of YOUR data</p></li>
+</ul>
+<p>TKTK: Expand on this distinction and why it matters (or doesn’t) for social science applications.</p>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "alexanderthclark/pols4728",
+            ref: "main",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./chapters"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../intro.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Welcome</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="evals_and_prompting.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Using LLMs</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Learning</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-machine-learning">What is Machine Learning?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#well-posed-learning-problems">Well-Posed Learning Problems</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-wage-prediction">Example: Wage Prediction</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-playing-board-games">Example: Playing Board Games</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#types-of-learning-tasks">Types of Learning Tasks</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#supervised-learning">Supervised Learning</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#unsupervised-learning">Unsupervised Learning</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#performance-measures">Performance Measures</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#binary-classification-example">Binary Classification Example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#making-sense-of-these-metrics-a-concrete-example">Making Sense of These Metrics: A Concrete Example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#all-possible-classification-outcomes">All Possible Classification Outcomes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#experience-and-training">Experience and Training</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#using-llms-for-a-learning-task">Using LLMs for a Learning Task</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-llms-work">How LLMs Work</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fancy-autocomplete-and-bias">Fancy Autocomplete and Bias</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prompt-engineering-evolution">Prompt Engineering Evolution</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#practical-prompt-patterns-for-common-tasks">Practical Prompt Patterns for Common Tasks</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fewshot-template-copy-paste">Few‑Shot Template (copy/paste)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#is-using-pre-trained-llms-machine-learning">Is Using Pre-trained LLMs Machine Learning?</a></li>
+</ul>
+</li>
+</ul>
+
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Alexander Clark, Columbia University
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

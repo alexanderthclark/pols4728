@@ -1,0 +1,1584 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Preliminaries and Digressions &#8212; POLS 4728</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/exercise.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=8ff0586c" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'reference/prelims_and_digressions';</script>
+    <link rel="icon" href="../_static/favicon_square_very_bold.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="References" href="bibliography.html" />
+    <link rel="prev" title="Linear Regression" href="../chapters/linreg.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../intro.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/ML_logo_simple.svg" class="logo__image only-light" alt="POLS 4728 - Home"/>
+    <script>document.write(`<img src="../_static/ML_logo_simple.svg" class="logo__image only-dark" alt="POLS 4728 - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../intro.html">
+                    Welcome
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Lectures</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../chapters/learning.html">Learning</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="../chapters/evals_and_prompting.html">Using LLMs</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="../chapters/linreg.html">Linear Regression</a></li>
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Preliminaries and Digressions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">References</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-launch-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Launch interactive content">
+    <i class="fas fa-rocket"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://mybinder.org/v2/gh/alexanderthclark/pols4728/main?urlpath=lab/tree/book/reference/prelims_and_digressions.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch on Binder"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  
+    <img alt="Binder logo" src="../_static/images/logo_binder.svg">
+  </span>
+<span class="btn__text-container">Binder</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://colab.research.google.com/github/alexanderthclark/pols4728/blob/main/book/reference/prelims_and_digressions.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch on Colab"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  
+    <img alt="Colab logo" src="../_static/images/logo_colab.png">
+  </span>
+<span class="btn__text-container">Colab</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="initThebeSBT()"
+  class="btn btn-sm btn-launch-thebe dropdown-item"
+  title="Launch Thebe"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-play"></i>
+  </span>
+<span class="btn__text-container">Live Code</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/alexanderthclark/pols4728" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/alexanderthclark/pols4728/issues/new?title=Issue%20on%20page%20%2Freference/prelims_and_digressions.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/reference/prelims_and_digressions.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Preliminaries and Digressions</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#python-basics">Python Basics</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#syntax">Syntax</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#where-to-run-the-code">Where to run the code?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-else-do-i-need-to-install">What else do I need to install?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-manipulation-with-python">Data Manipulation with Python</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#american-time-use-survey-atus">American Time Use Survey (ATUS)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#available-microdata-files">Available Microdata Files</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-atus-files-with-statwrap">Downloading ATUS Files with statwrap</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#merging-atus-files">Merging ATUS Files</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#digression-making-dataframes-look-nice-with-stylers">Digression: Making DataFrames Look Nice with Stylers</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#format-control-how-numbers-are-displayed">1. Format: Control how numbers are displayed</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#background-gradient-visualize-patterns-with-color">2. Background gradient: Visualize patterns with color</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bar-add-mini-bar-charts-inside-cells">3. Bar: Add mini bar charts inside cells</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="preliminaries-and-digressions">
+<h1>Preliminaries and Digressions<a class="headerlink" href="#preliminaries-and-digressions" title="Link to this heading">#</a></h1>
+<p>This notebook is a collection of topics that might be considered preliminaries <em>or</em> digressions that might supplement your understanding but aren’t purely necessary for this course. I’ll try to be clear about what is what or split these notes out as they grow.</p>
+<section id="python-basics">
+<h2>Python Basics<a class="headerlink" href="#python-basics" title="Link to this heading">#</a></h2>
+<section id="syntax">
+<h3>Syntax<a class="headerlink" href="#syntax" title="Link to this heading">#</a></h3>
+<p>Let me assume that if you don’t know Python, you at least know R. Then, there are only a few surprises.</p>
+<ul class="simple">
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">=</span></code> for assignment instead of <code class="docutils literal notranslate"><span class="pre">&lt;-</span></code></p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">**</span></code> for exponentiation instead of <code class="docutils literal notranslate"><span class="pre">^</span></code>. So <span class="math notranslate nohighlight">\(2^3\)</span> is coded as <code class="docutils literal notranslate"><span class="pre">2**3</span></code>.</p></li>
+<li><p>Python is zero-indexed. The element of at the beginning of the list <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">[9,</span> <span class="pre">7]</span></code> is the value <code class="docutils literal notranslate"><span class="pre">9</span></code> and it is accessed as <code class="docutils literal notranslate"><span class="pre">x[0]</span></code>. This also means that, though <code class="docutils literal notranslate"><span class="pre">x</span></code> is of length two, the last element is at place <code class="docutils literal notranslate"><span class="pre">x[1]</span></code>. Indices generally run over the interval <span class="math notranslate nohighlight">\(0 \leq i &lt; \text{length of array}\)</span>. This is how <a class="reference external" href="https://www.cs.utexas.edu/~EWD/ewd08xx/EWD831.PDF">Dykstra wanted it</a>.</p></li>
+</ul>
+<p>In action:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Assignment and exponentiation</span>
+<span class="n">x</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1"># In R: x &lt;- 5</span>
+<span class="n">y</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="mi">3</span>  <span class="c1"># In R: 2^3</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x = </span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;2 to the power of 3 = </span><span class="si">{</span><span class="n">y</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Zero-indexing example</span>
+<span class="n">grades</span> <span class="o">=</span> <span class="p">[</span><span class="mi">85</span><span class="p">,</span> <span class="mi">92</span><span class="p">,</span> <span class="mi">78</span><span class="p">,</span> <span class="mi">95</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">First grade (index 0): </span><span class="si">{</span><span class="n">grades</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Last grade (index 3): </span><span class="si">{</span><span class="n">grades</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># grades[4] would give an error!</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>x = 5
+2 to the power of 3 = 8
+
+First grade (index 0): 85
+Last grade (index 3): 95
+</pre></div>
+</div>
+</div>
+</div>
+<p><strong>Quick note on f-strings</strong>: The <code class="docutils literal notranslate"><span class="pre">f&quot;text</span> <span class="pre">{variable}&quot;</span></code> syntax is Python’s way of inserting variables into text. It’s like <code class="docutils literal notranslate"><span class="pre">paste0(&quot;text</span> <span class="pre">&quot;,</span> <span class="pre">variable)</span></code> in R but cleaner. Just put an <code class="docutils literal notranslate"><span class="pre">f</span></code> before the quotes and wrap variables in <code class="docutils literal notranslate"><span class="pre">{}</span></code>.</p>
+<p>Here are a few more differences that will save you debugging time:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Data structures: R vectors become Python lists</span>
+<span class="n">scores</span> <span class="o">=</span> <span class="p">[</span><span class="mi">85</span><span class="p">,</span> <span class="mi">92</span><span class="p">,</span> <span class="mi">78</span><span class="p">]</span>  <span class="c1"># Like c(85, 92, 78) in R</span>
+
+<span class="c1"># R&#39;s named vectors become Python dictionaries</span>
+<span class="n">student</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Alex&quot;</span><span class="p">,</span> <span class="s2">&quot;grade&quot;</span><span class="p">:</span> <span class="mi">92</span><span class="p">}</span>  <span class="c1"># Like c(name=&quot;Alex&quot;, grade=92)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Student name: </span><span class="si">{</span><span class="n">student</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Functions are defined differently</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_mean</span><span class="p">(</span><span class="n">numbers</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the mean of a list of numbers&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">numbers</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">numbers</span><span class="p">)</span>
+
+<span class="c1"># Using the function</span>
+<span class="n">mean_score</span> <span class="o">=</span> <span class="n">calculate_mean</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Mean score: </span><span class="si">{</span><span class="n">mean_score</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Student name: Alex
+
+Mean score: 85.0
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="where-to-run-the-code">
+<h3>Where to run the code?<a class="headerlink" href="#where-to-run-the-code" title="Link to this heading">#</a></h3>
+<p>You can probably get by just using Google Colab notebooks for everything in this course. However, I recommend working in <a class="reference external" href="https://code.visualstudio.com/"><strong>VS Code</strong></a> or <a class="reference external" href="https://github.com/jupyterlab/jupyterlab-desktop"><strong>JupyterLab</strong></a> instead. I usually write notebooks in JupyterLab and write standalone py files in VS Code or Sublime. AI integration is better in VS Code. Cursor is built off of VS Code for even more AI integration.</p>
+<p>VS Code is nice because you can split the screen with files and a terminal session. In the terminal, I run Claude Code.</p>
+<p>If you find yourself using a similar workflow, writing both notebooks and py files, I recommend using the IPython magics <code class="docutils literal notranslate"><span class="pre">%run</span></code> and <code class="docutils literal notranslate"><span class="pre">%load</span></code> to run a python file. For a file called <code class="docutils literal notranslate"><span class="pre">foo.py</span></code>, <code class="docutils literal notranslate"><span class="pre">%run</span> <span class="pre">foo.py</span></code> then executes that code as if it were pasted into your notebook code cell and <code class="docutils literal notranslate"><span class="pre">%run</span> <span class="pre">-i</span> <span class="pre">foo.py</span></code> runs it in the local namespace, meaning it can use variables already defined in the notebook. <code class="docutils literal notranslate"><span class="pre">%load</span> <span class="pre">foo.py</span></code></p>
+<p>If you discover an even better workflow, let me know!</p>
+</section>
+<section id="what-else-do-i-need-to-install">
+<h3>What else do I need to install?<a class="headerlink" href="#what-else-do-i-need-to-install" title="Link to this heading">#</a></h3>
+<p>If you are working outside of a cloud environment, you’ll need to install Python packages.</p>
+<p><strong>Option 1: Using pip</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</pre></div>
+</div>
+<p><strong>Option 2: Using conda environments</strong></p>
+<p>A conda environment is an isolated workspace with its own packages and dependencies. This keeps different projects’ requirements separate.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create environment from the course&#39;s environment.yml file</span>
+conda<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-f<span class="w"> </span>environment.yml
+
+<span class="c1"># Activate the environment</span>
+conda<span class="w"> </span>activate<span class="w"> </span>mlss
+
+<span class="c1"># Deactivate when done</span>
+conda<span class="w"> </span>deactivate
+</pre></div>
+</div>
+<p>The environment.yml file in the repository root includes NumPy, pandas, scikit-learn, PyTorch, and Jupyter.</p>
+</section>
+</section>
+<section id="data-manipulation-with-python">
+<h2>Data Manipulation with Python<a class="headerlink" href="#data-manipulation-with-python" title="Link to this heading">#</a></h2>
+<p>Tabular data is usually stored as DataFrames either in <code class="docutils literal notranslate"><span class="pre">pandas</span></code> or <code class="docutils literal notranslate"><span class="pre">polars</span></code>. <code class="docutils literal notranslate"><span class="pre">pandas</span></code> is more common and AI will default to this when writing code. <code class="docutils literal notranslate"><span class="pre">polars</span></code> is somewhat new–new enough that ChatGPT still makes basic mistakes when writing <code class="docutils literal notranslate"><span class="pre">polars</span></code> code. We’ll basically ignore <code class="docutils literal notranslate"><span class="pre">polars</span></code> for simplicity, but I mention it because my industry workflow is <code class="docutils literal notranslate"><span class="pre">polars</span></code>-first. I sometimes work with data that is too big for <code class="docutils literal notranslate"><span class="pre">pandas</span></code> (&gt;100M rows given the tech I’m working with). I’ve heard R users say <code class="docutils literal notranslate"><span class="pre">polars</span></code> makes more sense to them than <code class="docutils literal notranslate"><span class="pre">pandas</span></code>.</p>
+</section>
+<section id="american-time-use-survey-atus">
+<h2>American Time Use Survey (ATUS)<a class="headerlink" href="#american-time-use-survey-atus" title="Link to this heading">#</a></h2>
+<p>The American Time Use Survey is a federal survey conducted by the Bureau of Labor Statistics. Respondents report their activities for a 24-hour period, creating time diaries. The survey draws from households that completed the Current Population Survey and has been conducted annually since 2003.</p>
+<section id="available-microdata-files">
+<h3>Available Microdata Files<a class="headerlink" href="#available-microdata-files" title="Link to this heading">#</a></h3>
+<p>ATUS releases several microdata files each year:</p>
+<ul class="simple">
+<li><p><strong>resp</strong> - Respondent file with demographics and labor force characteristics</p></li>
+<li><p><strong>act</strong> - Activity file with one record per activity in the diary day</p></li>
+<li><p><strong>sum</strong> - Summary file with total minutes per activity category</p></li>
+<li><p><strong>who</strong> - Who file indicating who was present during activities</p></li>
+<li><p><strong>rost</strong> - Roster file with household member information</p></li>
+<li><p><strong>cps</strong> - CPS file with Current Population Survey data for ATUS households</p></li>
+</ul>
+<p>Each file can be merged using the case ID (TUCASEID).</p>
+</section>
+<section id="downloading-atus-files-with-statwrap">
+<h3>Downloading ATUS Files with statwrap<a class="headerlink" href="#downloading-atus-files-with-statwrap" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">statwrap</span></code> package provides convenience functions for accessing ATUS data:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">statwrap.atus</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_microdata_link</span><span class="p">,</span> <span class="n">read_zip</span>
+
+<span class="c1"># Get download links for different file types</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Respondent file (2023):&quot;</span><span class="p">,</span> <span class="n">get_microdata_link</span><span class="p">(</span><span class="s1">&#39;resp&#39;</span><span class="p">,</span> <span class="mi">2023</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Activity file (2023):&quot;</span><span class="p">,</span> <span class="n">get_microdata_link</span><span class="p">(</span><span class="s1">&#39;act&#39;</span><span class="p">,</span> <span class="mi">2023</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Summary file (2023):&quot;</span><span class="p">,</span> <span class="n">get_microdata_link</span><span class="p">(</span><span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="mi">2023</span><span class="p">))</span>
+
+<span class="c1"># For earlier years</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Respondent file (2020):&quot;</span><span class="p">,</span> <span class="n">get_microdata_link</span><span class="p">(</span><span class="s1">&#39;resp&#39;</span><span class="p">,</span> <span class="mi">2020</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Respondent file (2023): https://www.bls.gov/tus/datafiles/atusresp-0323.zip
+Activity file (2023): https://www.bls.gov/tus/datafiles/atusact-0323.zip
+Summary file (2023): https://www.bls.gov/tus/datafiles/atussum-0323.zip
+
+Respondent file (2020): https://www.bls.gov/tus/datafiles/atusresp-0320.zip
+</pre></div>
+</div>
+</div>
+</div>
+<p>After downloading files manually, use <code class="docutils literal notranslate"><span class="pre">read_zip</span></code> to load them:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Assuming files are downloaded to current directory</span>
+<span class="c1"># resp_df = read_zip(&#39;atusresp-0323.zip&#39;)</span>
+<span class="c1"># sum_df = read_zip(&#39;atussum-0323.zip&#39;)</span>
+<span class="c1"># act_df = read_zip(&#39;atusact-0323.zip&#39;)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="merging-atus-files">
+<h3>Merging ATUS Files<a class="headerlink" href="#merging-atus-files" title="Link to this heading">#</a></h3>
+<p>A common analysis combines respondent characteristics with time use summaries:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example merge between respondent and summary files</span>
+<span class="c1"># Uncomment after downloading both files:</span>
+
+<span class="c1"># import pandas as pd</span>
+<span class="c1"># resp_df = read_zip(&#39;atusresp-0323.zip&#39;)</span>
+<span class="c1"># sum_df = read_zip(&#39;atussum-0323.zip&#39;)</span>
+
+<span class="c1"># # Merge on case ID</span>
+<span class="c1"># merged_df = pd.merge(resp_df, sum_df, on=&#39;TUCASEID&#39;, how=&#39;inner&#39;)</span>
+
+<span class="c1"># # Example analysis: Average work time by sex</span>
+<span class="c1"># work_cols = [&#39;t050101&#39;, &#39;t050102&#39;, &#39;t050103&#39;]  # Work activities</span>
+<span class="c1"># merged_df[&#39;work_minutes&#39;] = merged_df[work_cols].sum(axis=1)</span>
+<span class="c1"># merged_df.groupby(&#39;TESEX&#39;)[&#39;work_minutes&#39;].mean()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="digression-making-dataframes-look-nice-with-stylers">
+<h2>Digression: Making DataFrames Look Nice with Stylers<a class="headerlink" href="#digression-making-dataframes-look-nice-with-stylers" title="Link to this heading">#</a></h2>
+<p>Pandas has a <code class="docutils literal notranslate"><span class="pre">.style</span></code> attribute that lets you format DataFrames for better visual presentation. This is especially useful when presenting results or exploring data patterns. Here are three useful methods:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># First, let&#39;s create a sample dataset with more numeric columns</span>
+<span class="n">results_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+    <span class="s1">&#39;State&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;California&#39;</span><span class="p">,</span> <span class="s1">&#39;Texas&#39;</span><span class="p">,</span> <span class="s1">&#39;Florida&#39;</span><span class="p">,</span> <span class="s1">&#39;New York&#39;</span><span class="p">,</span> <span class="s1">&#39;Pennsylvania&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;Population_M&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">39.5</span><span class="p">,</span> <span class="mf">29.5</span><span class="p">,</span> <span class="mf">21.8</span><span class="p">,</span> <span class="mf">19.5</span><span class="p">,</span> <span class="mf">12.8</span><span class="p">],</span>
+    <span class="s1">&#39;GDP_per_capita&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">88700</span><span class="p">,</span> <span class="mi">71900</span><span class="p">,</span> <span class="mi">55700</span><span class="p">,</span> <span class="mi">95500</span><span class="p">,</span> <span class="mi">72800</span><span class="p">],</span>
+    <span class="s1">&#39;Unemployment_rate&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">3.9</span><span class="p">,</span> <span class="mf">3.4</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">,</span> <span class="mf">3.7</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">],</span>
+    <span class="s1">&#39;College_grad_pct&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">35.0</span><span class="p">,</span> <span class="mf">32.2</span><span class="p">,</span> <span class="mf">31.3</span><span class="p">,</span> <span class="mf">37.5</span><span class="p">,</span> <span class="mf">33.1</span><span class="p">]</span>
+<span class="p">})</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Our data:&quot;</span><span class="p">)</span>
+<span class="n">results_df</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">NameError</span><span class="g g-Whitespace">                                 </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span> <span class="n">line</span> <span class="mi">2</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="c1"># First, let&#39;s create a sample dataset with more numeric columns</span>
+<span class="ne">----&gt; </span><span class="mi">2</span> <span class="n">results_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+<span class="g g-Whitespace">      </span><span class="mi">3</span>     <span class="s1">&#39;State&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;California&#39;</span><span class="p">,</span> <span class="s1">&#39;Texas&#39;</span><span class="p">,</span> <span class="s1">&#39;Florida&#39;</span><span class="p">,</span> <span class="s1">&#39;New York&#39;</span><span class="p">,</span> <span class="s1">&#39;Pennsylvania&#39;</span><span class="p">],</span>
+<span class="g g-Whitespace">      </span><span class="mi">4</span>     <span class="s1">&#39;Population_M&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">39.5</span><span class="p">,</span> <span class="mf">29.5</span><span class="p">,</span> <span class="mf">21.8</span><span class="p">,</span> <span class="mf">19.5</span><span class="p">,</span> <span class="mf">12.8</span><span class="p">],</span>
+<span class="g g-Whitespace">      </span><span class="mi">5</span>     <span class="s1">&#39;GDP_per_capita&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">88700</span><span class="p">,</span> <span class="mi">71900</span><span class="p">,</span> <span class="mi">55700</span><span class="p">,</span> <span class="mi">95500</span><span class="p">,</span> <span class="mi">72800</span><span class="p">],</span>
+<span class="g g-Whitespace">      </span><span class="mi">6</span>     <span class="s1">&#39;Unemployment_rate&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">3.9</span><span class="p">,</span> <span class="mf">3.4</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">,</span> <span class="mf">3.7</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">],</span>
+<span class="g g-Whitespace">      </span><span class="mi">7</span>     <span class="s1">&#39;College_grad_pct&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">35.0</span><span class="p">,</span> <span class="mf">32.2</span><span class="p">,</span> <span class="mf">31.3</span><span class="p">,</span> <span class="mf">37.5</span><span class="p">,</span> <span class="mf">33.1</span><span class="p">]</span>
+<span class="g g-Whitespace">      </span><span class="mi">8</span> <span class="p">})</span>
+<span class="g g-Whitespace">     </span><span class="mi">10</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Our data:&quot;</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">11</span> <span class="n">results_df</span>
+
+<span class="ne">NameError</span>: name &#39;pd&#39; is not defined
+</pre></div>
+</div>
+</div>
+</div>
+<section id="format-control-how-numbers-are-displayed">
+<h3>1. Format: Control how numbers are displayed<a class="headerlink" href="#format-control-how-numbers-are-displayed" title="Link to this heading">#</a></h3>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Format numbers for better readability</span>
+<span class="n">styled</span> <span class="o">=</span> <span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">format</span><span class="p">({</span>
+    <span class="s1">&#39;Population_M&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{:.1f}</span><span class="s1">M&#39;</span><span class="p">,</span>          <span class="c1"># One decimal place with M suffix</span>
+    <span class="s1">&#39;GDP_per_capita&#39;</span><span class="p">:</span> <span class="s1">&#39;$</span><span class="si">{:,.0f}</span><span class="s1">&#39;</span><span class="p">,</span>       <span class="c1"># Dollar sign with commas</span>
+    <span class="s1">&#39;Unemployment_rate&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{:.1%}</span><span class="s1">&#39;</span><span class="p">,</span>      <span class="c1"># Convert to percentage (multiply by 100)</span>
+    <span class="s1">&#39;College_grad_pct&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{:.1f}</span><span class="s1">%&#39;</span>       <span class="c1"># Just add % sign (don&#39;t multiply)</span>
+<span class="p">})</span>
+<span class="n">styled</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><style type="text/css">
+</style>
+<table id="T_55b66">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_55b66_level0_col0" class="col_heading level0 col0" >State</th>
+      <th id="T_55b66_level0_col1" class="col_heading level0 col1" >Population_M</th>
+      <th id="T_55b66_level0_col2" class="col_heading level0 col2" >GDP_per_capita</th>
+      <th id="T_55b66_level0_col3" class="col_heading level0 col3" >Unemployment_rate</th>
+      <th id="T_55b66_level0_col4" class="col_heading level0 col4" >College_grad_pct</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_55b66_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_55b66_row0_col0" class="data row0 col0" >California</td>
+      <td id="T_55b66_row0_col1" class="data row0 col1" >39.5M</td>
+      <td id="T_55b66_row0_col2" class="data row0 col2" >$88,700</td>
+      <td id="T_55b66_row0_col3" class="data row0 col3" >390.0%</td>
+      <td id="T_55b66_row0_col4" class="data row0 col4" >35.0%</td>
+    </tr>
+    <tr>
+      <th id="T_55b66_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_55b66_row1_col0" class="data row1 col0" >Texas</td>
+      <td id="T_55b66_row1_col1" class="data row1 col1" >29.5M</td>
+      <td id="T_55b66_row1_col2" class="data row1 col2" >$71,900</td>
+      <td id="T_55b66_row1_col3" class="data row1 col3" >340.0%</td>
+      <td id="T_55b66_row1_col4" class="data row1 col4" >32.2%</td>
+    </tr>
+    <tr>
+      <th id="T_55b66_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_55b66_row2_col0" class="data row2 col0" >Florida</td>
+      <td id="T_55b66_row2_col1" class="data row2 col1" >21.8M</td>
+      <td id="T_55b66_row2_col2" class="data row2 col2" >$55,700</td>
+      <td id="T_55b66_row2_col3" class="data row2 col3" >280.0%</td>
+      <td id="T_55b66_row2_col4" class="data row2 col4" >31.3%</td>
+    </tr>
+    <tr>
+      <th id="T_55b66_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_55b66_row3_col0" class="data row3 col0" >New York</td>
+      <td id="T_55b66_row3_col1" class="data row3 col1" >19.5M</td>
+      <td id="T_55b66_row3_col2" class="data row3 col2" >$95,500</td>
+      <td id="T_55b66_row3_col3" class="data row3 col3" >370.0%</td>
+      <td id="T_55b66_row3_col4" class="data row3 col4" >37.5%</td>
+    </tr>
+    <tr>
+      <th id="T_55b66_level0_row4" class="row_heading level0 row4" >4</th>
+      <td id="T_55b66_row4_col0" class="data row4 col0" >Pennsylvania</td>
+      <td id="T_55b66_row4_col1" class="data row4 col1" >12.8M</td>
+      <td id="T_55b66_row4_col2" class="data row4 col2" >$72,800</td>
+      <td id="T_55b66_row4_col3" class="data row4 col3" >350.0%</td>
+      <td id="T_55b66_row4_col4" class="data row4 col4" >33.1%</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</section>
+<section id="background-gradient-visualize-patterns-with-color">
+<h3>2. Background gradient: Visualize patterns with color<a class="headerlink" href="#background-gradient-visualize-patterns-with-color" title="Link to this heading">#</a></h3>
+<p>use the <code class="docutils literal notranslate"><span class="pre">axis</span></code> parameter to adjust bar heights relative to other column values (<code class="docutils literal notranslate"><span class="pre">axis=0</span></code>), other row values (<code class="docutils literal notranslate"><span class="pre">axis=1</span></code>) or all values in the table (<code class="docutils literal notranslate"><span class="pre">axis=None</span></code>).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Apply color gradients to see patterns</span>
+<span class="n">numeric_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Population_M&#39;</span><span class="p">,</span> <span class="s1">&#39;GDP_per_capita&#39;</span><span class="p">,</span> <span class="s1">&#39;Unemployment_rate&#39;</span><span class="p">,</span> <span class="s1">&#39;College_grad_pct&#39;</span><span class="p">]</span>
+<span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">background_gradient</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Greens&#39;</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><style type="text/css">
+#T_c6dea_row0_col1, #T_c6dea_row0_col3, #T_c6dea_row3_col2, #T_c6dea_row3_col4 {
+  background-color: #00441b;
+  color: #f1f1f1;
+}
+#T_c6dea_row0_col2 {
+  background-color: #0c7735;
+  color: #f1f1f1;
+}
+#T_c6dea_row0_col4 {
+  background-color: #4db163;
+  color: #f1f1f1;
+}
+#T_c6dea_row1_col1 {
+  background-color: #40aa5d;
+  color: #f1f1f1;
+}
+#T_c6dea_row1_col2 {
+  background-color: #95d391;
+  color: #000000;
+}
+#T_c6dea_row1_col3 {
+  background-color: #62bb6d;
+  color: #f1f1f1;
+}
+#T_c6dea_row1_col4 {
+  background-color: #e0f3db;
+  color: #000000;
+}
+#T_c6dea_row2_col1 {
+  background-color: #acdea6;
+  color: #000000;
+}
+#T_c6dea_row2_col2, #T_c6dea_row2_col3, #T_c6dea_row2_col4, #T_c6dea_row4_col1 {
+  background-color: #f7fcf5;
+  color: #000000;
+}
+#T_c6dea_row3_col1 {
+  background-color: #c7e9c0;
+  color: #000000;
+}
+#T_c6dea_row3_col3 {
+  background-color: #107a37;
+  color: #f1f1f1;
+}
+#T_c6dea_row4_col2 {
+  background-color: #8ed08b;
+  color: #000000;
+}
+#T_c6dea_row4_col3 {
+  background-color: #3fa85b;
+  color: #f1f1f1;
+}
+#T_c6dea_row4_col4 {
+  background-color: #bbe4b4;
+  color: #000000;
+}
+</style>
+<table id="T_c6dea">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_c6dea_level0_col0" class="col_heading level0 col0" >State</th>
+      <th id="T_c6dea_level0_col1" class="col_heading level0 col1" >Population_M</th>
+      <th id="T_c6dea_level0_col2" class="col_heading level0 col2" >GDP_per_capita</th>
+      <th id="T_c6dea_level0_col3" class="col_heading level0 col3" >Unemployment_rate</th>
+      <th id="T_c6dea_level0_col4" class="col_heading level0 col4" >College_grad_pct</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_c6dea_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_c6dea_row0_col0" class="data row0 col0" >California</td>
+      <td id="T_c6dea_row0_col1" class="data row0 col1" >39.500000</td>
+      <td id="T_c6dea_row0_col2" class="data row0 col2" >88700</td>
+      <td id="T_c6dea_row0_col3" class="data row0 col3" >3.900000</td>
+      <td id="T_c6dea_row0_col4" class="data row0 col4" >35.000000</td>
+    </tr>
+    <tr>
+      <th id="T_c6dea_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_c6dea_row1_col0" class="data row1 col0" >Texas</td>
+      <td id="T_c6dea_row1_col1" class="data row1 col1" >29.500000</td>
+      <td id="T_c6dea_row1_col2" class="data row1 col2" >71900</td>
+      <td id="T_c6dea_row1_col3" class="data row1 col3" >3.400000</td>
+      <td id="T_c6dea_row1_col4" class="data row1 col4" >32.200000</td>
+    </tr>
+    <tr>
+      <th id="T_c6dea_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_c6dea_row2_col0" class="data row2 col0" >Florida</td>
+      <td id="T_c6dea_row2_col1" class="data row2 col1" >21.800000</td>
+      <td id="T_c6dea_row2_col2" class="data row2 col2" >55700</td>
+      <td id="T_c6dea_row2_col3" class="data row2 col3" >2.800000</td>
+      <td id="T_c6dea_row2_col4" class="data row2 col4" >31.300000</td>
+    </tr>
+    <tr>
+      <th id="T_c6dea_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_c6dea_row3_col0" class="data row3 col0" >New York</td>
+      <td id="T_c6dea_row3_col1" class="data row3 col1" >19.500000</td>
+      <td id="T_c6dea_row3_col2" class="data row3 col2" >95500</td>
+      <td id="T_c6dea_row3_col3" class="data row3 col3" >3.700000</td>
+      <td id="T_c6dea_row3_col4" class="data row3 col4" >37.500000</td>
+    </tr>
+    <tr>
+      <th id="T_c6dea_level0_row4" class="row_heading level0 row4" >4</th>
+      <td id="T_c6dea_row4_col0" class="data row4 col0" >Pennsylvania</td>
+      <td id="T_c6dea_row4_col1" class="data row4 col1" >12.800000</td>
+      <td id="T_c6dea_row4_col2" class="data row4 col2" >72800</td>
+      <td id="T_c6dea_row4_col3" class="data row4 col3" >3.500000</td>
+      <td id="T_c6dea_row4_col4" class="data row4 col4" >33.100000</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">background_gradient</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;coolwarm_r&#39;</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><style type="text/css">
+#T_54903_row0_col1, #T_54903_row0_col3, #T_54903_row0_col4, #T_54903_row1_col1, #T_54903_row1_col3, #T_54903_row1_col4, #T_54903_row2_col1, #T_54903_row2_col3, #T_54903_row2_col4, #T_54903_row3_col1, #T_54903_row3_col3, #T_54903_row3_col4, #T_54903_row4_col1, #T_54903_row4_col3, #T_54903_row4_col4 {
+  background-color: #b40426;
+  color: #f1f1f1;
+}
+#T_54903_row0_col2 {
+  background-color: #506bda;
+  color: #f1f1f1;
+}
+#T_54903_row1_col2 {
+  background-color: #8caffe;
+  color: #000000;
+}
+#T_54903_row2_col2 {
+  background-color: #c5d6f2;
+  color: #000000;
+}
+#T_54903_row3_col2 {
+  background-color: #3b4cc0;
+  color: #f1f1f1;
+}
+#T_54903_row4_col2 {
+  background-color: #88abfd;
+  color: #000000;
+}
+</style>
+<table id="T_54903">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_54903_level0_col0" class="col_heading level0 col0" >State</th>
+      <th id="T_54903_level0_col1" class="col_heading level0 col1" >Population_M</th>
+      <th id="T_54903_level0_col2" class="col_heading level0 col2" >GDP_per_capita</th>
+      <th id="T_54903_level0_col3" class="col_heading level0 col3" >Unemployment_rate</th>
+      <th id="T_54903_level0_col4" class="col_heading level0 col4" >College_grad_pct</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_54903_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_54903_row0_col0" class="data row0 col0" >California</td>
+      <td id="T_54903_row0_col1" class="data row0 col1" >39.500000</td>
+      <td id="T_54903_row0_col2" class="data row0 col2" >88700</td>
+      <td id="T_54903_row0_col3" class="data row0 col3" >3.900000</td>
+      <td id="T_54903_row0_col4" class="data row0 col4" >35.000000</td>
+    </tr>
+    <tr>
+      <th id="T_54903_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_54903_row1_col0" class="data row1 col0" >Texas</td>
+      <td id="T_54903_row1_col1" class="data row1 col1" >29.500000</td>
+      <td id="T_54903_row1_col2" class="data row1 col2" >71900</td>
+      <td id="T_54903_row1_col3" class="data row1 col3" >3.400000</td>
+      <td id="T_54903_row1_col4" class="data row1 col4" >32.200000</td>
+    </tr>
+    <tr>
+      <th id="T_54903_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_54903_row2_col0" class="data row2 col0" >Florida</td>
+      <td id="T_54903_row2_col1" class="data row2 col1" >21.800000</td>
+      <td id="T_54903_row2_col2" class="data row2 col2" >55700</td>
+      <td id="T_54903_row2_col3" class="data row2 col3" >2.800000</td>
+      <td id="T_54903_row2_col4" class="data row2 col4" >31.300000</td>
+    </tr>
+    <tr>
+      <th id="T_54903_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_54903_row3_col0" class="data row3 col0" >New York</td>
+      <td id="T_54903_row3_col1" class="data row3 col1" >19.500000</td>
+      <td id="T_54903_row3_col2" class="data row3 col2" >95500</td>
+      <td id="T_54903_row3_col3" class="data row3 col3" >3.700000</td>
+      <td id="T_54903_row3_col4" class="data row3 col4" >37.500000</td>
+    </tr>
+    <tr>
+      <th id="T_54903_level0_row4" class="row_heading level0 row4" >4</th>
+      <td id="T_54903_row4_col0" class="data row4 col0" >Pennsylvania</td>
+      <td id="T_54903_row4_col1" class="data row4 col1" >12.800000</td>
+      <td id="T_54903_row4_col2" class="data row4 col2" >72800</td>
+      <td id="T_54903_row4_col3" class="data row4 col3" >3.500000</td>
+      <td id="T_54903_row4_col4" class="data row4 col4" >33.100000</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</section>
+<section id="bar-add-mini-bar-charts-inside-cells">
+<h3>3. Bar: Add mini bar charts inside cells<a class="headerlink" href="#bar-add-mini-bar-charts-inside-cells" title="Link to this heading">#</a></h3>
+<p>Again, use the <code class="docutils literal notranslate"><span class="pre">axis</span></code> parameter to adjust bar heights relative to other column values (<code class="docutils literal notranslate"><span class="pre">axis=0</span></code>), other row values (<code class="docutils literal notranslate"><span class="pre">axis=1</span></code>) or all values in the table (<code class="docutils literal notranslate"><span class="pre">axis=None</span></code>).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add horizontal bars to visualize relative magnitudes</span>
+<span class="n">numeric_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Population_M&#39;</span><span class="p">,</span> <span class="s1">&#39;GDP_per_capita&#39;</span><span class="p">,</span> <span class="s1">&#39;Unemployment_rate&#39;</span><span class="p">,</span> <span class="s1">&#39;College_grad_pct&#39;</span><span class="p">]</span>
+<span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;lightblue&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><style type="text/css">
+#T_e802c_row0_col1, #T_e802c_row0_col3, #T_e802c_row3_col2, #T_e802c_row3_col4 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 100.0%, transparent 100.0%);
+}
+#T_e802c_row0_col2 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 92.9%, transparent 92.9%);
+}
+#T_e802c_row0_col4 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 93.3%, transparent 93.3%);
+}
+#T_e802c_row1_col1 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 74.7%, transparent 74.7%);
+}
+#T_e802c_row1_col2 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 75.3%, transparent 75.3%);
+}
+#T_e802c_row1_col3 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 87.2%, transparent 87.2%);
+}
+#T_e802c_row1_col4 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 85.9%, transparent 85.9%);
+}
+#T_e802c_row2_col1 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 55.2%, transparent 55.2%);
+}
+#T_e802c_row2_col2 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 58.3%, transparent 58.3%);
+}
+#T_e802c_row2_col3 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 71.8%, transparent 71.8%);
+}
+#T_e802c_row2_col4 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 83.5%, transparent 83.5%);
+}
+#T_e802c_row3_col1 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 49.4%, transparent 49.4%);
+}
+#T_e802c_row3_col3 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 94.9%, transparent 94.9%);
+}
+#T_e802c_row4_col1 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 32.4%, transparent 32.4%);
+}
+#T_e802c_row4_col2 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 76.2%, transparent 76.2%);
+}
+#T_e802c_row4_col3 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 89.7%, transparent 89.7%);
+}
+#T_e802c_row4_col4 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 88.3%, transparent 88.3%);
+}
+</style>
+<table id="T_e802c">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_e802c_level0_col0" class="col_heading level0 col0" >State</th>
+      <th id="T_e802c_level0_col1" class="col_heading level0 col1" >Population_M</th>
+      <th id="T_e802c_level0_col2" class="col_heading level0 col2" >GDP_per_capita</th>
+      <th id="T_e802c_level0_col3" class="col_heading level0 col3" >Unemployment_rate</th>
+      <th id="T_e802c_level0_col4" class="col_heading level0 col4" >College_grad_pct</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_e802c_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_e802c_row0_col0" class="data row0 col0" >California</td>
+      <td id="T_e802c_row0_col1" class="data row0 col1" >39.500000</td>
+      <td id="T_e802c_row0_col2" class="data row0 col2" >88700</td>
+      <td id="T_e802c_row0_col3" class="data row0 col3" >3.900000</td>
+      <td id="T_e802c_row0_col4" class="data row0 col4" >35.000000</td>
+    </tr>
+    <tr>
+      <th id="T_e802c_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_e802c_row1_col0" class="data row1 col0" >Texas</td>
+      <td id="T_e802c_row1_col1" class="data row1 col1" >29.500000</td>
+      <td id="T_e802c_row1_col2" class="data row1 col2" >71900</td>
+      <td id="T_e802c_row1_col3" class="data row1 col3" >3.400000</td>
+      <td id="T_e802c_row1_col4" class="data row1 col4" >32.200000</td>
+    </tr>
+    <tr>
+      <th id="T_e802c_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_e802c_row2_col0" class="data row2 col0" >Florida</td>
+      <td id="T_e802c_row2_col1" class="data row2 col1" >21.800000</td>
+      <td id="T_e802c_row2_col2" class="data row2 col2" >55700</td>
+      <td id="T_e802c_row2_col3" class="data row2 col3" >2.800000</td>
+      <td id="T_e802c_row2_col4" class="data row2 col4" >31.300000</td>
+    </tr>
+    <tr>
+      <th id="T_e802c_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_e802c_row3_col0" class="data row3 col0" >New York</td>
+      <td id="T_e802c_row3_col1" class="data row3 col1" >19.500000</td>
+      <td id="T_e802c_row3_col2" class="data row3 col2" >95500</td>
+      <td id="T_e802c_row3_col3" class="data row3 col3" >3.700000</td>
+      <td id="T_e802c_row3_col4" class="data row3 col4" >37.500000</td>
+    </tr>
+    <tr>
+      <th id="T_e802c_level0_row4" class="row_heading level0 row4" >4</th>
+      <td id="T_e802c_row4_col0" class="data row4 col0" >Pennsylvania</td>
+      <td id="T_e802c_row4_col1" class="data row4 col1" >12.800000</td>
+      <td id="T_e802c_row4_col2" class="data row4 col2" >72800</td>
+      <td id="T_e802c_row4_col3" class="data row4 col3" >3.500000</td>
+      <td id="T_e802c_row4_col4" class="data row4 col4" >33.100000</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;lightblue&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><style type="text/css">
+#T_aa4a0_row0_col1, #T_aa4a0_row0_col3, #T_aa4a0_row3_col2, #T_aa4a0_row3_col4 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 100.0%, transparent 100.0%);
+}
+#T_aa4a0_row0_col2 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 92.9%, transparent 92.9%);
+}
+#T_aa4a0_row0_col4 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 93.3%, transparent 93.3%);
+}
+#T_aa4a0_row1_col1 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 74.7%, transparent 74.7%);
+}
+#T_aa4a0_row1_col2 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 75.3%, transparent 75.3%);
+}
+#T_aa4a0_row1_col3 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 87.2%, transparent 87.2%);
+}
+#T_aa4a0_row1_col4 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 85.9%, transparent 85.9%);
+}
+#T_aa4a0_row2_col1 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 55.2%, transparent 55.2%);
+}
+#T_aa4a0_row2_col2 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 58.3%, transparent 58.3%);
+}
+#T_aa4a0_row2_col3 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 71.8%, transparent 71.8%);
+}
+#T_aa4a0_row2_col4 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 83.5%, transparent 83.5%);
+}
+#T_aa4a0_row3_col1 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 49.4%, transparent 49.4%);
+}
+#T_aa4a0_row3_col3 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 94.9%, transparent 94.9%);
+}
+#T_aa4a0_row4_col1 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 32.4%, transparent 32.4%);
+}
+#T_aa4a0_row4_col2 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 76.2%, transparent 76.2%);
+}
+#T_aa4a0_row4_col3 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 89.7%, transparent 89.7%);
+}
+#T_aa4a0_row4_col4 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 88.3%, transparent 88.3%);
+}
+</style>
+<table id="T_aa4a0">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_aa4a0_level0_col0" class="col_heading level0 col0" >State</th>
+      <th id="T_aa4a0_level0_col1" class="col_heading level0 col1" >Population_M</th>
+      <th id="T_aa4a0_level0_col2" class="col_heading level0 col2" >GDP_per_capita</th>
+      <th id="T_aa4a0_level0_col3" class="col_heading level0 col3" >Unemployment_rate</th>
+      <th id="T_aa4a0_level0_col4" class="col_heading level0 col4" >College_grad_pct</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_aa4a0_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_aa4a0_row0_col0" class="data row0 col0" >California</td>
+      <td id="T_aa4a0_row0_col1" class="data row0 col1" >39.500000</td>
+      <td id="T_aa4a0_row0_col2" class="data row0 col2" >88700</td>
+      <td id="T_aa4a0_row0_col3" class="data row0 col3" >3.900000</td>
+      <td id="T_aa4a0_row0_col4" class="data row0 col4" >35.000000</td>
+    </tr>
+    <tr>
+      <th id="T_aa4a0_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_aa4a0_row1_col0" class="data row1 col0" >Texas</td>
+      <td id="T_aa4a0_row1_col1" class="data row1 col1" >29.500000</td>
+      <td id="T_aa4a0_row1_col2" class="data row1 col2" >71900</td>
+      <td id="T_aa4a0_row1_col3" class="data row1 col3" >3.400000</td>
+      <td id="T_aa4a0_row1_col4" class="data row1 col4" >32.200000</td>
+    </tr>
+    <tr>
+      <th id="T_aa4a0_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_aa4a0_row2_col0" class="data row2 col0" >Florida</td>
+      <td id="T_aa4a0_row2_col1" class="data row2 col1" >21.800000</td>
+      <td id="T_aa4a0_row2_col2" class="data row2 col2" >55700</td>
+      <td id="T_aa4a0_row2_col3" class="data row2 col3" >2.800000</td>
+      <td id="T_aa4a0_row2_col4" class="data row2 col4" >31.300000</td>
+    </tr>
+    <tr>
+      <th id="T_aa4a0_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_aa4a0_row3_col0" class="data row3 col0" >New York</td>
+      <td id="T_aa4a0_row3_col1" class="data row3 col1" >19.500000</td>
+      <td id="T_aa4a0_row3_col2" class="data row3 col2" >95500</td>
+      <td id="T_aa4a0_row3_col3" class="data row3 col3" >3.700000</td>
+      <td id="T_aa4a0_row3_col4" class="data row3 col4" >37.500000</td>
+    </tr>
+    <tr>
+      <th id="T_aa4a0_level0_row4" class="row_heading level0 row4" >4</th>
+      <td id="T_aa4a0_row4_col0" class="data row4 col0" >Pennsylvania</td>
+      <td id="T_aa4a0_row4_col1" class="data row4 col1" >12.800000</td>
+      <td id="T_aa4a0_row4_col2" class="data row4 col2" >72800</td>
+      <td id="T_aa4a0_row4_col3" class="data row4 col3" >3.500000</td>
+      <td id="T_aa4a0_row4_col4" class="data row4 col4" >33.100000</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;lightblue&#39;</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><style type="text/css">
+#T_eaa7c_row0_col1, #T_eaa7c_row0_col3, #T_eaa7c_row0_col4, #T_eaa7c_row1_col1, #T_eaa7c_row1_col3, #T_eaa7c_row1_col4, #T_eaa7c_row2_col1, #T_eaa7c_row2_col3, #T_eaa7c_row3_col1, #T_eaa7c_row3_col3, #T_eaa7c_row3_col4, #T_eaa7c_row4_col1, #T_eaa7c_row4_col3, #T_eaa7c_row4_col4 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 0.0%, transparent 0.0%);
+}
+#T_eaa7c_row0_col2, #T_eaa7c_row1_col2, #T_eaa7c_row2_col2, #T_eaa7c_row3_col2, #T_eaa7c_row4_col2 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 100.0%, transparent 100.0%);
+}
+#T_eaa7c_row2_col4 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 0.1%, transparent 0.1%);
+}
+</style>
+<table id="T_eaa7c">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_eaa7c_level0_col0" class="col_heading level0 col0" >State</th>
+      <th id="T_eaa7c_level0_col1" class="col_heading level0 col1" >Population_M</th>
+      <th id="T_eaa7c_level0_col2" class="col_heading level0 col2" >GDP_per_capita</th>
+      <th id="T_eaa7c_level0_col3" class="col_heading level0 col3" >Unemployment_rate</th>
+      <th id="T_eaa7c_level0_col4" class="col_heading level0 col4" >College_grad_pct</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_eaa7c_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_eaa7c_row0_col0" class="data row0 col0" >California</td>
+      <td id="T_eaa7c_row0_col1" class="data row0 col1" >39.500000</td>
+      <td id="T_eaa7c_row0_col2" class="data row0 col2" >88700</td>
+      <td id="T_eaa7c_row0_col3" class="data row0 col3" >3.900000</td>
+      <td id="T_eaa7c_row0_col4" class="data row0 col4" >35.000000</td>
+    </tr>
+    <tr>
+      <th id="T_eaa7c_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_eaa7c_row1_col0" class="data row1 col0" >Texas</td>
+      <td id="T_eaa7c_row1_col1" class="data row1 col1" >29.500000</td>
+      <td id="T_eaa7c_row1_col2" class="data row1 col2" >71900</td>
+      <td id="T_eaa7c_row1_col3" class="data row1 col3" >3.400000</td>
+      <td id="T_eaa7c_row1_col4" class="data row1 col4" >32.200000</td>
+    </tr>
+    <tr>
+      <th id="T_eaa7c_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_eaa7c_row2_col0" class="data row2 col0" >Florida</td>
+      <td id="T_eaa7c_row2_col1" class="data row2 col1" >21.800000</td>
+      <td id="T_eaa7c_row2_col2" class="data row2 col2" >55700</td>
+      <td id="T_eaa7c_row2_col3" class="data row2 col3" >2.800000</td>
+      <td id="T_eaa7c_row2_col4" class="data row2 col4" >31.300000</td>
+    </tr>
+    <tr>
+      <th id="T_eaa7c_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_eaa7c_row3_col0" class="data row3 col0" >New York</td>
+      <td id="T_eaa7c_row3_col1" class="data row3 col1" >19.500000</td>
+      <td id="T_eaa7c_row3_col2" class="data row3 col2" >95500</td>
+      <td id="T_eaa7c_row3_col3" class="data row3 col3" >3.700000</td>
+      <td id="T_eaa7c_row3_col4" class="data row3 col4" >37.500000</td>
+    </tr>
+    <tr>
+      <th id="T_eaa7c_level0_row4" class="row_heading level0 row4" >4</th>
+      <td id="T_eaa7c_row4_col0" class="data row4 col0" >Pennsylvania</td>
+      <td id="T_eaa7c_row4_col1" class="data row4 col1" >12.800000</td>
+      <td id="T_eaa7c_row4_col2" class="data row4 col2" >72800</td>
+      <td id="T_eaa7c_row4_col3" class="data row4 col3" >3.500000</td>
+      <td id="T_eaa7c_row4_col4" class="data row4 col4" >33.100000</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;lightblue&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><style type="text/css">
+#T_f503f_row0_col1, #T_f503f_row0_col3, #T_f503f_row0_col4, #T_f503f_row1_col1, #T_f503f_row1_col3, #T_f503f_row1_col4, #T_f503f_row2_col1, #T_f503f_row2_col3, #T_f503f_row2_col4, #T_f503f_row3_col1, #T_f503f_row3_col3, #T_f503f_row3_col4, #T_f503f_row4_col1, #T_f503f_row4_col3, #T_f503f_row4_col4 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 0.0%, transparent 0.0%);
+}
+#T_f503f_row0_col2 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 92.9%, transparent 92.9%);
+}
+#T_f503f_row1_col2 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 75.3%, transparent 75.3%);
+}
+#T_f503f_row2_col2 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 58.3%, transparent 58.3%);
+}
+#T_f503f_row3_col2 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 100.0%, transparent 100.0%);
+}
+#T_f503f_row4_col2 {
+  width: 10em;
+  background: linear-gradient(90deg, lightblue 76.2%, transparent 76.2%);
+}
+</style>
+<table id="T_f503f">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_f503f_level0_col0" class="col_heading level0 col0" >State</th>
+      <th id="T_f503f_level0_col1" class="col_heading level0 col1" >Population_M</th>
+      <th id="T_f503f_level0_col2" class="col_heading level0 col2" >GDP_per_capita</th>
+      <th id="T_f503f_level0_col3" class="col_heading level0 col3" >Unemployment_rate</th>
+      <th id="T_f503f_level0_col4" class="col_heading level0 col4" >College_grad_pct</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_f503f_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_f503f_row0_col0" class="data row0 col0" >California</td>
+      <td id="T_f503f_row0_col1" class="data row0 col1" >39.500000</td>
+      <td id="T_f503f_row0_col2" class="data row0 col2" >88700</td>
+      <td id="T_f503f_row0_col3" class="data row0 col3" >3.900000</td>
+      <td id="T_f503f_row0_col4" class="data row0 col4" >35.000000</td>
+    </tr>
+    <tr>
+      <th id="T_f503f_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_f503f_row1_col0" class="data row1 col0" >Texas</td>
+      <td id="T_f503f_row1_col1" class="data row1 col1" >29.500000</td>
+      <td id="T_f503f_row1_col2" class="data row1 col2" >71900</td>
+      <td id="T_f503f_row1_col3" class="data row1 col3" >3.400000</td>
+      <td id="T_f503f_row1_col4" class="data row1 col4" >32.200000</td>
+    </tr>
+    <tr>
+      <th id="T_f503f_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_f503f_row2_col0" class="data row2 col0" >Florida</td>
+      <td id="T_f503f_row2_col1" class="data row2 col1" >21.800000</td>
+      <td id="T_f503f_row2_col2" class="data row2 col2" >55700</td>
+      <td id="T_f503f_row2_col3" class="data row2 col3" >2.800000</td>
+      <td id="T_f503f_row2_col4" class="data row2 col4" >31.300000</td>
+    </tr>
+    <tr>
+      <th id="T_f503f_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_f503f_row3_col0" class="data row3 col0" >New York</td>
+      <td id="T_f503f_row3_col1" class="data row3 col1" >19.500000</td>
+      <td id="T_f503f_row3_col2" class="data row3 col2" >95500</td>
+      <td id="T_f503f_row3_col3" class="data row3 col3" >3.700000</td>
+      <td id="T_f503f_row3_col4" class="data row3 col4" >37.500000</td>
+    </tr>
+    <tr>
+      <th id="T_f503f_level0_row4" class="row_heading level0 row4" >4</th>
+      <td id="T_f503f_row4_col0" class="data row4 col0" >Pennsylvania</td>
+      <td id="T_f503f_row4_col1" class="data row4 col1" >12.800000</td>
+      <td id="T_f503f_row4_col2" class="data row4 col2" >72800</td>
+      <td id="T_f503f_row4_col3" class="data row4 col3" >3.500000</td>
+      <td id="T_f503f_row4_col4" class="data row4 col4" >33.100000</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</section>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "alexanderthclark/pols4728",
+            ref: "main",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./reference"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../chapters/linreg.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Linear Regression</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="bibliography.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">References</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#python-basics">Python Basics</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#syntax">Syntax</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#where-to-run-the-code">Where to run the code?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-else-do-i-need-to-install">What else do I need to install?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-manipulation-with-python">Data Manipulation with Python</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#american-time-use-survey-atus">American Time Use Survey (ATUS)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#available-microdata-files">Available Microdata Files</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-atus-files-with-statwrap">Downloading ATUS Files with statwrap</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#merging-atus-files">Merging ATUS Files</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#digression-making-dataframes-look-nice-with-stylers">Digression: Making DataFrames Look Nice with Stylers</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#format-control-how-numbers-are-displayed">1. Format: Control how numbers are displayed</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#background-gradient-visualize-patterns-with-color">2. Background gradient: Visualize patterns with color</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bar-add-mini-bar-charts-inside-cells">3. Bar: Add mini bar charts inside cells</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Alexander Clark, Columbia University
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
