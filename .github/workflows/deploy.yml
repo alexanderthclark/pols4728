@@ -28,13 +28,14 @@ jobs:
       - name: Build Jupyter-Book
         run: jupyter-book build book
 
-      # 4  Encrypt every HTML page with “plums”
+      # 4  Encrypt every HTML page with "plums"
       - name: Encrypt HTML
         env:
           BOOK_PW: ${{ secrets.BOOK_PW }}
         run: |
-          find book/_build/html -name '*.html' -type f \
-            -exec staticrypt "{}" "{}" -p "$BOOK_PW" \;
+          staticrypt book/_build/html/* -r \
+            -p "$BOOK_PW" --short \
+            -d book/_build/html
 
       # 5  Publish to the gh-pages branch
       - name: Deploy to GitHub Pages
