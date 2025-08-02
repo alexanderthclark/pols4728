@@ -33,4 +33,7 @@ jobs:
 
       # 5  Publish to the gh-pages branch
       - name: Deploy to GitHub Pages
-        uses: peaceir
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: _build/html
