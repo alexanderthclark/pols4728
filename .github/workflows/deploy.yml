@@ -1,6 +1,11 @@
 name: build-and-deploy
 on: [push]
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
