@@ -16,7 +16,7 @@ jobs:
 
       - name: Install build deps
         run: |
-          pip install jupyter-book
+          pip install -r book/requirements.txt
           npm install -g staticrypt
 
       # 3  Build the book
