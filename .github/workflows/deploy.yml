@@ -21,14 +21,14 @@ jobs:
 
       # 3  Build the book
       - name: Build Jupyter-Book
-        run: jupyter-book build .
+        run: jupyter-book build book
 
       # 4  Encrypt every HTML page with “plums”
       - name: Encrypt HTML
         env:
           BOOK_PW: ${{ secrets.BOOK_PW }}
         run: |
-          find _build/html -name '*.html' -type f \
+          find book/_build/html -name '*.html' -type f \
             -exec staticrypt "{}" "{}" -p "$BOOK_PW" \;
 
       # 5  Publish to the gh-pages branch
@@ -36,4 +36,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: _build/html
+          publish_dir: book/_build/html
