@@ -1,0 +1,26 @@
+name: build-and-deploy
+on: [push]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - run: pip install jupyter-book
+      - run: npm install -g staticrypt
+
+      - run: jupyter-book build .
+
+      - name: Encrypt HTML
+        env: { BOOK_PW: ${{ secrets.BOOK_PW }} }
+        run: |
+          find _build/html -name '*.html' -type f \
+            -exec staticrypt "{}" "{}" -p "$BOOK_PW" \;
+
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: _build/html
