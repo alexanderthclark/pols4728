@@ -1,0 +1,65 @@
+# Book settings
+# Learn more at https://jupyterbook.org/customize/config.html
+
+title: POLS 4728
+author: Alexander Clark, Columbia University
+logo: assets/logos/ML_logo_simple.svg
+
+# Force re-execution of notebooks on each build.
+# See https://jupyterbook.org/content/execute.html
+execute:
+  execute_notebooks: force
+
+# Define the name of the latex output file for PDF builds
+latex:
+  latex_documents:
+    targetname: book.tex
+
+# Add a bibtex file so that we can create citations
+bibtex_bibfiles:
+  - ../references.bib
+
+# Information about where the book exists on the web
+repository:
+  url: https://github.com/alexanderthclark/pols4728  # Online location of your book
+  path_to_book: book  # Optional path to your book, relative to the repository root
+  branch: main  # Which branch of the repository should be used when creating links (optional)
+
+# Add GitHub buttons to your book
+# See https://jupyterbook.org/customize/config.html#add-a-link-to-your-repository
+html:
+  use_issues_button: true
+  use_repository_button: true
+  favicon: ./_static/favicon_square_very_bold.ico
+  extra_navbar: |
+    <style>
+    .navbar-brand img {
+      max-height: 80px !important;
+      height: 80px !important;
+    }
+    .sidebar-primary .navbar-brand img {
+      max-height: 80px !important;
+      height: 80px !important;
+    }
+    </style>
+
+
+launch_buttons:
+  binderhub_url: "https://mybinder.org"
+  colab_url: "https://colab.research.google.com"
+  thebe: true
+  notebook_interface: "jupyterlab"
+
+sphinx:
+  extra_extensions:
+    - sphinx_exercise
+    - sphinx_togglebutton
+    - sphinxcontrib.bibtex
+  config:
+    numfig: true
+    numfig_secnum_depth: 2
+    bibtex_footbibliography_header: ""
+    bibtex_reference_style: author_year
+    bibtex_default_style: plain
+    # Configure citation appearance for social science style
+    suppress_warnings: ["bibtex.duplicate_label"]

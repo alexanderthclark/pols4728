@@ -1,0 +1,17 @@
+# Table of contents
+# Learn more at https://jupyterbook.org/customize/toc.html
+
+format: jb-book
+root: intro
+
+parts:
+- caption: Lectures
+  chapters:
+  - file: chapters/learning
+  - file: chapters/evals_and_prompting
+  - file: chapters/linreg
+
+- caption: Reference
+  chapters:
+  - file: reference/prelims_and_digressions
+  - file: reference/bibliography

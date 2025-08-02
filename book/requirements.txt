@@ -1,0 +1,15 @@
+jupyter-book
+matplotlib
+numpy
+pandas
+seaborn
+scipy
+bokeh
+networkx
+google-generativeai
+sphinx-exercise
+scikit-learn
+statsmodels
+torch
+transformers
+statwrap
