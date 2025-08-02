@@ -5,22 +5,32 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      # 1  Checkout repo
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with: { python-version: '3.11' }
-      - run: pip install jupyter-book
-      - run: npm install -g staticrypt
+      # 2  Python & Node toolchain
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-      - run: jupyter-book build .
+      - name: Install build deps
+        run: |
+          pip install jupyter-book
+          npm install -g staticrypt
 
+      # 3  Build the book
+      - name: Build Jupyter-Book
+        run: jupyter-book build .
+
+      # 4  Encrypt every HTML page with “plums”
       - name: Encrypt HTML
-        env: { BOOK_PW: ${{ secrets.BOOK_PW }} }
+        env:
+          BOOK_PW: ${{ secrets.BOOK_PW }}
         run: |
           find _build/html -name '*.html' -type f \
             -exec staticrypt "{}" "{}" -p "$BOOK_PW" \;
 
-      - uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: _build/html
+      # 5  Publish to the gh-pages branch
+      - name: Deploy to GitHub Pages
+        uses: peaceir
