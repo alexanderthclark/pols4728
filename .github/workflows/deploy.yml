@@ -28,7 +28,11 @@ jobs:
       - name: Build Jupyter-Book
         run: jupyter-book build book
 
-      # 4  Encrypt every HTML page with "plums"
+      # 4  Create .nojekyll file to disable Jekyll processing
+      - name: Create .nojekyll file
+        run: touch book/_build/html/.nojekyll
+
+      # 5  Encrypt every HTML page with "plums"
       - name: Encrypt HTML
         env:
           BOOK_PW: ${{ secrets.BOOK_PW }}
@@ -37,7 +41,7 @@ jobs:
             -p "$BOOK_PW" --short \
             -d book/_build/html
 
-      # 5  Publish to the gh-pages branch
+      # 6  Publish to the gh-pages branch
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
