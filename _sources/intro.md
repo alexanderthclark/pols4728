@@ -23,3 +23,4 @@ This isn't necessarily advice to do the same, but here is how I use AI currently
 As graduate students and researchers, your job is to work on the frontier of some particular subject. This is impossible if you can only learn from YouTube videos and not from reading a book or research article cold. *That should be obvious*. Similarly, real fluency in coding or machine learning will require being able to work directly with primary documentation and texts instead of solely through the so-far-imperfect AI models we have.  
 
 
+
