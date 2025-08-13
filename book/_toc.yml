@@ -5,6 +5,10 @@ format: jb-book
 root: intro
 
 parts:
+- caption: Course Information
+  chapters:
+  - file: schedule
+
 - caption: Lectures
   chapters:
   - file: chapters/learning

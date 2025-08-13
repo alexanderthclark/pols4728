@@ -39,3 +39,21 @@ pip-delete-this-directory.txt
 *.temp
 *~
 *.jupyterlab-workspace
+
+# LaTeX auxiliary files
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.log
+*.out
+*.run.xml
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+
+# Syllabus directory (keep private)
+syllabus/

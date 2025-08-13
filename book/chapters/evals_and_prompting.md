@@ -44,7 +44,7 @@ So is it machine learning? By Mitchell's definition—yes. The learning happened
 - Self-selected reasoning approaches
 - Role-playing prompts less effective
 
-In the video below, I ask ChatGPT's o3 how to get to Carnegie Hall. You can see the thinking process (at 8x speed), where o3 reasons through the intent of my question based on what it already knows about me. 
+In the video below, I ask ChatGPT's o3 how to get to Carnegie Hall. You can see the thinking process (at 8x speed), where o3 reasons through the intent of my question based on what it already knows about me. ChatGPT 5 Thinking will behave like o3. 
 
 <div style="width: 99%; margin: auto;">
   <iframe src="https://www.youtube.com/embed/_tGDS6g63So?si=JU-cZFBjiaZ8bad"
@@ -59,7 +59,7 @@ Claude Haiku or ChatGPT 4.5 are more likely to answer "Practice, practice, pract
 
 ### Fancy Autocomplete and Bias
 
-Fancy autocompletes have their drawbacks and these garner a lot of attention. Namely, LLMs can forward whatever bias is in their training data (like any other model). As noted in {cite}`atari2023humans`, LLMs are biased toward the pyschology of people from WEIRD (Western, Educated, Industrialized, Rich, and Democratic) societies. LLMs exhibit human-like cognitive biases when trying to generate random sequences {cite}`van2024random`. If you ask AI for a random number, some models disproportionately choose 42. 42 is a salient number because of Douglas Adams's "The Hitchhiker's Guide to the Galaxy." Its fans are overrepresented on the Internet and thus in training data. Similarly, LLMs can reproduce stereotypes. Companies devote enormous resources to mitigating these biases, but it is not a solved problem.
+Fancy autocompletes have their drawbacks and these garner a lot of attention. Namely, LLMs can forward whatever bias is in their training data (like any other model). As noted in {cite}`atari2023humans`, LLMs are biased toward the pyschology of people from WEIRD (Western, Educated, Industrialized, Rich, and Democratic) societies. LLMs exhibit human-like cognitive biases when trying to generate random sequences {cite}`van2024random`. If you ask AI for a random number, some models disproportionately choose 42. Claude is especially bad at this, in my own experience. 42 is a salient number because of Douglas Adams's "The Hitchhiker's Guide to the Galaxy." Its fans are overrepresented on the Internet and thus in training data. Similarly, LLMs can reproduce stereotypes. Companies devote enormous resources to mitigating these biases, but it is not a solved problem.
 
 ```{figure} ../assets/images/claudehaiku-refusal-20250603.png
 :width: 100%
@@ -68,7 +68,6 @@ Fancy autocompletes have their drawbacks and these garner a lot of attention. Na
 Response from Claude Haiku 3.5
 ```
 
-
 ```{figure} ../assets/images/claude-haiku35-20250603.png
 :width: 60%
 :align: center
@@ -76,72 +75,35 @@ Response from Claude Haiku 3.5
 Response from Claude Haiku 3.5
 ```
 
-
-
 ## Prompt Engineering Evolution
+
+Prompt engineering has evolved, meaning many of self-annointed gurus on LinkedIn should probably be ignored. And instead of falling into the trap of trying to hit a moving target by stating best practices in the era of GPT 5, we'll only take the time to mention that prompting strategies, like role priming, that attempted to shift the model to a better probability distribution are no longer important. 
 
 **Less effective now:**
 - Role priming ("You are an expert...")
 - Explicit "think step-by-step" instructions
 - Confidence boosting
+- Mystical incantations
 
 **Still valuable:**
 - Clear problem specification
 - Relevant context and constraints
 - Examples of desired output format
 - Domain-specific information
+- Being smarter than the LLM because they still hallucinate
 
+Something I haven't addressed above is if models do well with zero-shot vs one-shot vs multi-shot prompts. We'll find out for ourselves shortly.
 
-### Practical Prompt Patterns for Common Tasks  
+# Evaluating LLM Classifications for Supervised Tasks
 
-Modern LLMs perform well with structured, context-rich prompts that tell the model what result you want, how you will judge success, and where to put the answer.
-
-Consider these research applications:
-- **Survey response coding**: Classifying open-ended responses into predefined categories
-- **Policy stance extraction**: Identifying positions on issues from legislative speeches
-
-| Task | "Minimal" prompt *(baseline)* | Improved prompt *(adds structure & context)* |
-|------|------------------------------|----------------------------------------------|
-| **Sentiment classification** (product reviews) | "Is this review positive or negative?" | System: "You are a customer‑support analyst."  User: "Return only `positive`, `negative`, or `neutral`.  Review: ‹text›." |
-| **Information extraction** (receipts) | "Extract the total." | System: "You are a data‑extraction tool."  User: "From the OCR text below return JSON with `{'vendor': str, 'date': str, 'total': float}`.  If a field is missing, use `null`." |
-| **Code generation** (Python helper) | "Write a factorial function." | System: "You are an efficient Python programmer."  User: "Write a pure function `factorial(n)` that handles `n ≤ 12`.  Include a docstring and two doctests." |
-| **Targeted summarization** (meeting transcript) | "Summarize this meeting." | User: "Produce ≤ 4 bullet points focusing only on action items.  Each bullet ≤ 15 words.  Ignore greetings and chit‑chat." |
-
-#### Few‑Shot Template (copy/paste)
-```text
-System: You are a <role>.
-User: Your task is to <goal>.  
-Output must follow this schema:  
-<code block showing JSON or table>.  
-
-Example 1  
-Input: <short example>  
-Output: <desired output>  
-
-<repeat 1‑2 more examples if needed>  
-
-Now process the following input:  
-<Input goes here>
-```
-
-
-
-
-# Evaluating LLM Classifications
-
-{cite}`gilardi2023chatgpt` showed that ChatGPT can outperform crowd workers (Mechanical Turk) on text annotation tasks. But how do we know this? How do we measure performance? And how do we find the best prompt? 
-
-This chapter shows you how to evaluate LLM classifiers systematically, moving beyond "it worked on these three examples" to real validation.
+{cite}`gilardi2023chatgpt` showed that ChatGPT can outperform crowd workers (Mechanical Turk) on text annotation tasks. {cite}`tornberg2024large` shows that GPT-4 outperforms even experts in annotating political social media messages. But how do we know this? How do we measure performance? And how do we find the best prompt? Instead of approaching this through prompt engineering principles, we'll tackle this in a data-driven way by *trying stuff and seeing what works best*. 
 
 ## 1 Evaluation Mindset ≈ Test‑Driven ML
 
 **Key idea:** treat a *prompt + model* pair as a *hypothesis* you must test against a labelled gold set.
 
 Consider Mitchell's framework: a system learns from experience E with respect to task T and performance measure P. With pre-trained LLMs, we're in a remarkable situation—we define T through our prompts, but E (the training on internet-scale text) was done by someone else. We still need to rigorously measure P to know if our prompts work.
-```{important}
-If you wouldn't deploy a logistic regression model after testing it on three hand-picked examples, 
-don't trust an LLM prompt based on the same flimsy evidence.
-```
+
 
 ### 1.1 Micro‑workflow
 
@@ -291,38 +253,3 @@ chain_of_thought:
 
 The kicker? {cite}`gilardi2023chatgpt` found that ChatGPT beat crowd workers on political annotation tasks—even with zero-shot prompts. No fancy engineering required. But here's the catch: they only knew this because they measured properly.
 
-**Rule of thumb (2025):**
-
-1. Try **zero‑shot CoT** first.  
-2. If accuracy < desired, add **1–4 diverse demos**.  
-3. Escalate to **8+ demos** only when:  
-   * task is subtle *and*  
-   * API cost is acceptable or you control a local model.
-
----
-
-## 5 In‑Class Micro‑Lab (20 min)
-
-| Step | Exercise |
-|------|----------|
-| 1 – Setup | Distribute `sent20.csv` (gold labels). |
-| 2 – Hypothesis | Students predict: "Will 4‑shot raise accuracy ≥ 5 pp over zero‑shot?" |
-| 3 – Run | Provide Colab notebook with the evaluation code from Section 2; they fill their API key. |
-| 4 – Debrief | Histogram of class accuracies; discuss trade‑off with token cost. |
-
-*Deliverable*: 2‑sentence reflection + confusion matrix visualization.
-
----
-
-## 6 Key Take‑aways
-
-- **Test like you mean it.** Gold sets, metrics, the whole deal.
-- **Start simple.** Zero-shot often works great—the evidence backs this up.
-- **Version your prompts.** They're code. Treat them like it.
-- **Structure beats theater.** Clear instructions > elaborate role-play.
-- **Keep it simple.** A Python loop beats complex frameworks for research.
----
-
-## References
-
-The studies mentioned in Section 4 provide the empirical backing for these recommendations. See the bibliography for full citations.
