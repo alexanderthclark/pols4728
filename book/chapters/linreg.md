@@ -4,10 +4,11 @@ Regression should be a familiar topic. We will move quickly through what might b
 
 ```{admonition} Reading
 :class: seealso
+- {cite}`kuhn2013applied`, Chapter 6\
 - {cite}`hastie2009elements`, Chapter 3
 ```
 
-## Simple Linear Regression
+## Linear Regression
 
 Can you think of some famous lines? Maybe you are thinking of the Equator, the Mason Dixon, or the line in the sand at the Alamo. We can do better. $\hat{y} = 68 + \frac{2}{3}(68-x)$ is the line from which we get the term **regression**.
 
@@ -19,7 +20,9 @@ Ordinary least squares (OLS) is the most common method for estimating the parame
 
 Our predictors give use the design matrix, $X$. With $n$ observations and $k$ features (including an intercept), this is $n\times k$. The target variable is stored in the $n\times 1$ matrix, $y$.
 
-Then, $$\hat{\beta} = (X^TX)^{-1} X^T y.$$
+Then, 
+
+$$\hat{\beta} = (X^TX)^{-1} X^T y.$$
 
 $X\hat{\beta}$ is the projection of $y$ onto the column space of $X$. That means $\Vert y - X\hat{\beta}  \Vert \leq \Vert y - Xv \Vert $ for any other $k\times 1$ vector $v$. The quality of the fit is not generally measured by $\Vert y - X\hat{\beta} \Vert$.[^1] Instead we usually report the mean squared error (MSE),
 

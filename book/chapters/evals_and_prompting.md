@@ -6,6 +6,16 @@
 - [OpenAI Prompt Engineering Guide](https://platform.openai.com/docs/guides/prompt-engineering)
 ```
 
+LLMs are used in social science research for both classification (sentiment analysis, for example) and as a substitute for unsupervised topic modeling. {cite}`haaland2025understanding` highlights the use of LLMs to code open-ended data, noting LLMs will "be the preferred choice over most existing text analysis methods for survey researchers." Other methods might only be preferred when high-quality training data is available or in the case of very large data where LLMs are  expensive. What does very large mean? Using GPT-5 through OpenAI's API, it would cost maybe \$5 to classify 10,000 text responses of about 100 words.[^llm-cost] These costs scale linearly, so classifying 1,000,000 responses would cost \$500. More complicated prompting could triple the cost.[^few-shot] One can save costs by switching to a cheaper model like GPT-5 nano, which is 20-25x cheaper than GPT-5, or using classical text analysis methods. 
+
+The LLM cost would likely be dwarfed by the general administrative costs of conducting any survey. For example, {cite}`roberts2014structural` uses structural topic modeling to analyze open-ended survey responses from the American National Election Survey, which included 2,323 respondents. The LLM cost would be relatively trivial. 
+
+
+[^llm-cost]: *Assumptions.* Model = GPT-5 API priced at \$1.25 per 1M **input** tokens and \$10.00 per 1M **output** tokens. Tokenization rule-of-thumb: **100 tokens ≈ 75 words** ⇒ 100 words ≈ ~130 input tokens. Output kept minimal (label + brief rationale) at ~30 tokens. No few-shot examples; reusable instructions negligible and **no prompt caching** assumed. Per-response cost ≈ \(130×1.25×10^{-6} + 30×1×10^{-5} = \$4.625×10^{-4}\). Totals: **10k** responses ≈ **\$4.63** (rounded to **\$5**); **1M** responses ≈ **\$462.5** (rounded to **\$500**). Costs scale linearly with tokens.
+
+
+[^few-shot]: *Assumptions.* Few-shot, no caching. A prompt includes the 130 input tokens *and* a 200-token rubric with 500 tokens of examples. This modifies the previous calculation by now using 830 input tokens. We still assume 30 output tokens.  Totals: **10k** responses ≈ **\$13.38**; **1M** responses ≈ **\$1338.00**. 
+
 While creating and fine-tuning LLMs is beyond our scope, we'll use them to:
 - Ease into coding
 - Explore performance measures for classification tasks
@@ -27,7 +37,7 @@ This raises an interesting philosophical question, which we might file next to q
 - You craft prompts to apply its knowledge to your task
 - Model parameters do not change as you provide more data. 
 
-So is it machine learning? By Mitchell's definition—yes. The learning happened during pre-training, not when you use it. So, using an LLM doesn't make you a machine learning engineer the same way using a chess engine doesn't make you an AI researcher. There is one wrinkle: the model's performance does improve when you provide clearer instructions or examples. An LLM will adapt to your task without changing its underlying knowledge. For practical, research purposes, this distinction doesn't matter. You're still solving classification problems, and you still need rigorous evaluation. Whether you trained the model or someone else did, the scientific method remains the same: define your task, measure performance, validate results.
+So is it machine learning? Yes, by Mitchell's definition. The learning happened during pre-training, not when you use it. So, using an LLM doesn't make you a machine learning engineer the same way using a chess engine doesn't make you an AI researcher. There is one wrinkle: the model's performance does improve when you provide clearer instructions or examples. An LLM will adapt to your task without changing its underlying knowledge. For practical, research purposes, this distinction doesn't matter. You're still solving classification problems, and you still need rigorous evaluation. Whether you trained the model or someone else did, the scientific method remains the same: define your task, measure performance, validate results.
 
 
 ## How LLMs Work
@@ -77,7 +87,7 @@ Response from Claude Haiku 3.5
 
 ## Prompt Engineering Evolution
 
-Prompt engineering has evolved, meaning many of self-annointed gurus on LinkedIn should probably be ignored. And instead of falling into the trap of trying to hit a moving target by stating best practices in the era of GPT 5, we'll only take the time to mention that prompting strategies, like role priming, that attempted to shift the model to a better probability distribution are no longer important. 
+Prompt engineering has evolved, meaning many of self-annointed gurus on LinkedIn should probably be ignored. And instead of falling into the trap of trying to hit a moving target by stating best practices in the era of GPT-5, we'll only take the time to mention that prompting strategies, like role priming, that attempted to shift the model to a better probability distribution are no longer important. 
 
 **Less effective now:**
 - Role priming ("You are an expert...")
@@ -92,7 +102,7 @@ Prompt engineering has evolved, meaning many of self-annointed gurus on LinkedIn
 - Domain-specific information
 - Being smarter than the LLM because they still hallucinate
 
-Something I haven't addressed above is if models do well with zero-shot vs one-shot vs multi-shot prompts. We'll find out for ourselves shortly.
+It used to be emphasized that LLM performance improves if the prompt included an example with the desired output, instead of merely giving instruction. A prompt with one example corresponds to a one-shot prompting strategy and mutatis mutandis for zero-shot and multi-shot. Something I haven't addressed above is if newer chain-of-thought models still improve with multi-shot prompting strategies. We'll test this for ourselves shortly.
 
 # Evaluating LLM Classifications for Supervised Tasks
 
@@ -107,8 +117,8 @@ Consider Mitchell's framework: a system learns from experience E with respect to
 
 ### 1.1 Micro‑workflow
 
-1. **Gold set** – 20‑200 hand‑labelled examples (`review`, `sentiment`).
-2. **Metric** – accuracy, F‑1, or task‑specific cost (see *Learning* §Performance Measures).
+1. **Gold set** – hand‑labelled examples (`review`, `sentiment`).
+2. **Metric** – accuracy, F‑1, or task‑specific cost.
 3. **Batch run** – execute the prompt on every row.
 4. **Record** – score, token cost, failure cases → iterate.
 
@@ -181,65 +191,6 @@ The key insight: treat each prompt variant as an experimental condition. Your "t
 
 ---
 
-## 3 Prompt Patterns That Survive 2025
-
-Modern chain-of-thought models have moved past the verbose "you are an expert" prompts from 2022. Today's models want clear, structured instructions. Here are three patterns that consistently deliver:
-
-### 3.1 Zero‑Shot CoT
-
-```jinja
-Classify the sentiment of the review between <<< >>>.
-Respond with **Positive** or **Negative** only.
-
-Review: <<<{{input}}>>>
-
-Let's think step‑by‑step.
-```
-
-* Pros – 1‑line template, no demos, often ≥ 80 % accuracy on vanilla sentiment.
-* Cons – may hallucinate labels; longer reasoning increases cost.
-
-### 3.2 One‑Shot (format anchor)
-
-```jinja
-You are a sentiment analyst.  
-Return `Positive` or `Negative`.
-
-Example  
-Review: "Worst purchase ever."  
-Answer: Negative  
----  
-Review: "{{input}}"  
-Answer:
-```
-
-*Use when zero‑shot misunderstands output schema.*
-
-### 3.3 Few‑Shot + Structured CoT
-
-```jinja
-Task: Sentiment classification (Positive/Negative)  
-Output schema:  
-  - chain_of_thought: string  
-  - label: Positive|Negative  
-
-Review: "Loved it. Five stars!"
-chain_of_thought: Uses strong positive verbs ("Loved"), 5‑star rating → Positive
-label: Positive
----
-Review: "Terrible, broke day 2."
-chain_of_thought: Breakage and complaint → Negative
-label: Negative
----
-Review: "{{input}}"
-chain_of_thought:
-```
-
-* Best for nuanced or domain‑specific tasks (e.g., sarcasm, political stance).  
-* Showcases *explanation* → easier error analysis.
-
----
-
 ## 4 Zero vs. Few Shots: What Does the Evidence Say?
 
 | Study | Model(s) | Task family | Main result |
@@ -253,3 +204,14 @@ chain_of_thought:
 
 The kicker? {cite}`gilardi2023chatgpt` found that ChatGPT beat crowd workers on political annotation tasks—even with zero-shot prompts. No fancy engineering required. But here's the catch: they only knew this because they measured properly.
 
+
+
+## Exercises
+
+```{exercise-start}
+:label: LLM
+```
+Find a labeled text data set of interest ([here is one](https://github.com/Ravihari123/GPT-for-Twitter-Stance-Labeling/blob/main/final_annotated_dataset_355%20records.csv) from {cite}`liyanage2024gpt`) with no more than 400 observations. Write two prompts for classification: one with two examples and one with no examples. Classify the entire data set using Gemini 2.5 Pro and then Gemini 2.5 Flash-Lite for a total of four "models." Compare accuracy across each. You will be provided with an API key and some sample code. 
+
+```{exercise-end}
+```
