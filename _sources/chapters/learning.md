@@ -25,7 +25,8 @@ With these rough boundaries, we can discuss learning problems and their key simi
 
 **Definition:** A computer program is said to **learn** from experience *E* with respect to some class of tasks *T* and performance measure *P*, if its performance at tasks in *T*, as measured by *P*, improves with experience *E* {cite}`mitchell1997machine`.
 
-This definition provides a framework for thinking about learning problems, though it can be somewhat narrow. Not all useful ML techniques fit perfectly into this framework—for instance, as we will see.
+This definition provides a framework for thinking about learning problems, though it can be somewhat narrow. Not all useful ML techniques fit perfectly into this framework, as we will see. 
+
 
 ### Example: Wage Prediction
 
@@ -35,32 +36,26 @@ Consider a system that predicts wages based on education level:
 - **Performance measure P**: Mean squared error (MSE) between predicted and actual wages
 - **Training experience E**: Observing education-wage pairs from survey data
 
-If we observe observations $i=1,\dots,n$ and make prediction $\hat{y}_i$ for all $i$, our performance measure is $\frac{1}{n}\sum_{i\in I} (y_i -\hat{y}_i)^2$. If we use a linear model, $\hat{y}_i=\hat{\beta}_0 + \hat{\beta}x_i$, then we are describing ordinary least squares. 
+If we observe $i=1,\dots,n$ and make prediction $\hat{y}_i$ for all $i$, our performance measure is $\frac{1}{n}\sum_{i=1}^{n} (y_i -\hat{y}_i)^2$. If we use a linear model, $\hat{y}_i=\hat{\beta}_0 + \hat{\beta}_1x_i$, then we are describing ordinary least squares. 
 
 ### Example: Playing Board Games
 
-AlphaGo was trained to play Go by teaching itself. 
+AlphaGo was trained to play Go by teaching itself. It used both supervised learning and self-play reinforcement learning.
 
 - **Task T**: Playing the board game Go
 - **Performance measure P**: Percent of games won against opponents
-- **Training experience E**: Playing practice games against itself
+- **Training experience E**: Playing practice games against itself and against humans
 
 Note that while AlphaGo's performance P is measured by win percentage, the actual training process optimizes a different objective that correlates with winning. P is an *evaluation metric* and not necessarily what is optimized during training.
 
 Famously, AlphaGo would go on to defeat the reigning grandmaster of Go in four of five matches. This was celebrated by the AI community and even Rick Rubin {cite}`rubin2023creative`. The training experience, playing against itself, was advantageous because AlphaGo discovered a unique and unexpected way to play. 
 
-
 ## Types of Learning Tasks
-
-```{admonition} Reading
-:class: seealso
-- {cite}`james2023introduction`, Chapter 1
-```
 
 
 We won't encounter many learning problems similar to playing Go in the social sciences. Instead, we'll see a lot of applications more similar to the wage prediction problem. Wage prediction is a case of *supervised learning*. 
 
-Textbooks often introduce a clean *supervised* vs *unsupervised* dichotomy. We will follow that convention, but note that more complete taxonomies might include reinforcement learning or semi-supervised learning.
+Textbooks like {cite}`james2023introduction` often introduce a *supervised* vs *unsupervised* dichotomy. We will follow that convention, but note that more complete taxonomies might include reinforcement learning or semi-supervised learning.
 
 
 ### Supervised Learning
@@ -69,6 +64,8 @@ Supervised learning problems come with *supervising output* or we might say our 
 
 - **Classification Tasks**: Predict discrete categories (e.g., spam vs. not spam)
 - **Regression Tasks**: Predict continuous values (e.g., wages, house prices)
+
+Linear regression is the most common form of supervised learning. Tree-based models, neural networks, and many more models fall under this category.
 
 ### Unsupervised Learning
 
@@ -89,7 +86,6 @@ Possible unsupervised tasks include:
 * Topic modeling: Discovering themes (e.g., finding emerging policy concerns in constituent emails)
 
 Notice how these tasks don't fit neatly into Mitchell's framework - what exactly is the "performance measure P" for discovering topics? We might evaluate whether the topics seem interpretable to domain experts, but there's no single correct answer to optimize against.
-
 
 ## Performance Measures
 
@@ -114,7 +110,7 @@ Some options include:
 - Focus on overall accuracy
 - Weight some errors more than others
 - Consider multiple metrics (but how do we compare models?)
-- Account for the cost of errors (but costs to whom and are the costs measureable?)
+- Account for the cost of errors (but costs to whom and are the costs measurable?)
 
 There's no correct answer. The choice of performance measure is itself a value judgment about what matters. The weight of the value judgment is clear in this example, whereas the nuances are easier to ignore if you're a marketer deciding who to email. 
 
@@ -134,7 +130,7 @@ Common performance measures in classification include
    $ F_1 \;=\; 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}} $
 
 
-### Making Sense of These Metrics: A Concrete Example
+#### More Concrete
 
 Let's imagine we have data on 5 defendants where we magically know what would have happened if they were all released:
 - 2 would have failed to appear (FTA) or been rearrested
@@ -181,7 +177,7 @@ This model is perfectly selective—when it says someone is high risk, it's alwa
 Which model is best? Model B protects public safety but jails more innocent people. Model C minimizes false imprisonment but lets half the risks go free. Notice that both models achieve the same F1 score (66.7%), yet they make very different tradeoffs. The F1 score treats precision and recall as equally important, but is that the right assumption for this decision? The answer is not in a machine learning textbook.
 
 
-### All Possible Classification Outcomes
+#### All Possible Classification Outcomes
 
 With just 5 defendants, there are only 32 possible ways to classify them (2^5 = 32). The table below shows every possible prediction pattern and the resulting performance metrics. Each row represents a different classifier, with the binary string showing predictions for each defendant (1 = predict high risk, 0 = predict low risk).
 
@@ -639,15 +635,14 @@ With just 5 defendants, there are only 32 possible ways to classify them (2^5 = 
 </table>
 </div>
 
-​
+F1 is undefined when no positives are predicted (division by zero); that’s why some rows show ‘nan’.
 
 Notice that:
 - The first entry in the [classification table](#all-classifiers-table) is our perfect Model A (predicting defendants 1 and 2 as high risk)
 - The sixth entry in the [classification table](#all-classifiers-table) matches our Model B (predicting defendants 1, 2, 3, and 4 as high risk) and this is plotted as the left-most orange dot in {numref}`f1-isoquants`
 - The ninth entry in the [classification table](#all-classifiers-table) matches our Model C (predicting only defendant 1 as high risk) and this is plotted as the right-most orange dot in {numref}`f1-isoquants`
-- Eight different prediction patterns yield the same F1 score of 66.7%
+- Five different prediction patterns yield the same F1 score of 66.7%
 - The worst possible classifier (the last entry in the [classification table](#all-classifiers-table)) predicts everyone as low risk when there are actually high-risk defendants
-
 
 
 ```{figure} ../assets/scatter_precision_recall_f1.svg
@@ -658,17 +653,20 @@ Notice that:
 F1 score isoquants showing how different combinations of precision and recall can yield the same F1 score. Each curve represents a constant F1 value.
 ```
 
-In the figure above, it is clear that the green dot is better than the purple dot because it has both a better precision and recall score. Again, it's not obvious which orange dot is better. The F1 score takes a stance by saying they are tied. Notice the curvature of the F1 isoquants as well. The convexity means that averages are preferred to extremes, roughly. Any dot on the line segment connected the two orange dots would have a higher F1 score and thus correspond to a better model.
+In the figure above, it is clear that the green dot is better than the purple dot because it has both a better precision and recall score. Again, it's not obvious which orange dot is better. The F1 score takes a stance by saying they are tied. Notice the curvature of the F1 isoquants as well. The convexity of the region above the curve means that averages are preferred to extremes, roughly. Any dot on the line segment connecting the two orange dots would have a higher F1 score and thus correspond to a better model.
 
 
 ## Experience and Training
 
 Our computer programs learn from *experience* by being *trained* on data. The training process involves adjusting model parameters to improve performance on the chosen metric.
 
-In reality, the bail prediction problem faces a prohibitive missing data problem. In practice, we only observe outcomes for defendants who were actually released. We never learn what would have happened to those who were detained, so we can never obtain counts for true or false positives. 
+In reality, the bail prediction problem faces a prohibitive missing data problem. In practice, we only observe outcomes for defendants who were actually released. We never learn what would have happened to those who were detained, so we can never obtain counts for true or false positives. Clever researchers work around this limitation. {cite}`kleinberg2018human` exploits a natural experiment: comparing decisions by judges with different release tendencies to infer what might have happened in the counterfactual cases.
 
-Clever researchers work around this limitation. The paper we cited ({cite}`kleinberg2018human`) exploits a natural experiment: comparing decisions by judges with different release tendencies to infer what might have happened in the counterfactual cases. It's imperfect, but ingenious.
-
-Moreover, our labels themselves are often proxies for what we really care about. When predicting "crime," we typically observe arrests or convictions—not actual criminal behavior. Many crimes go unreported or unsolved. This means our training data reflects not just criminal activity, but also policing patterns, community trust, and prosecutorial decisions.
+Moreover, our labels themselves are often proxies for what we really care about. When predicting "crime," we typically observe arrests or convictions—not actual criminal behavior. Many crimes go unreported or unsolved. This means our training data, while probably useful, is not perfect.
 
 As the statistician George Box famously said, "All models are wrong, but some are useful." The question isn't whether our data perfectly captures reality (it doesn't), but whether our models can still provide valuable insights despite these limitations. In many cases, even imperfect predictions can improve upon human decision-making—as long as we remain clear-eyed about what our models can and cannot tell us. Finally, remember that your models cannot necessarily tell you anything without appropriate problem-specific knowledge. {cite}`kuhn2013applied` discusses this in the introduction (Section 1.2).
+
+
+## Summary
+
+We introduced the concept of a learning problem. This requires a performance measure and a way to use data (experience) to improve model performance. Prediction tasks are focal and when we have labeled data, we can use supervised learning techniques. We showed that the choice of a performance measure is (1) ambiguous because there are usually multiple plausible candidates and (2) substantive as it can lead you to prefer one model over the other. This highlights the **role of the researcher** in possessing problem-specific knowledge and technical knowledge. There is not generally a one-to-one mapping from learning tasks to particular models. The no free lunch theorems of {cite}`wolpert1996lack` show that for any two learning algorithms, one won't outperform the other in all contexts, aligning with the agnostic approach to machine learning methods advocated by {cite}`grimmer2021machine`. This places the burden on the researcher to understand and explore different models. 

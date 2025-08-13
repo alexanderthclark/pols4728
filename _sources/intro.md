@@ -2,16 +2,16 @@
 
 
 ```{important}
-These notes are not entirely self-contained. They are intended to highlight important topics and should be read in companion with other course readings.
+These notes are not entirely self-contained. They are intended to highlight important topics and should be read in conjunction with other course readings.
 ```
 
 These are the course notes for *POLS 4728: Machine Learning and Artificial Intelligence for the Social Sciences*. 
 
 ## Course Design Choices
 
-- **Forward-looking Topic Selection**. I sometimes reference a "canon" of machine learning techniques, but that canon is not frozen. LLMs outperform classical natural language processing techniques and LLMs are practical for most academic use cases, so we don't spend as much time on text analysis as we might have a few years ago. Similarly, we skip recurrent neural networks in favor of transformers. 
+- **Forward-looking Topic Selection**. I sometimes reference a "canon" of machine learning techniques, but that canon is not frozen. LLMs outperform classical natural language processing techniques and LLMs are practical for most academic use cases, so we don't spend as much time on text analysis as we might have a few years ago. Similarly, we skip recurrent neural networks in favor of transformers. Topic selection is informed by my industry experience, surveys like {cite}`athey2019machine` and {cite}`de2024use`, and my best guess regarding the future.
 - **Applied**. The intended audience is researchers who will *use* machine learning. This course will not prepare you to make significant methodological contributions. Instead, you will understand the applicability of different models and be able to implement them. 
-- **Survey of Fundamentals**. We prefer deep, applied understanding of the simple case for the important methods to (1) even greater breadth that sacrifices understanding or (2) premature optimization where we cover extensions to panel data, time series data, etc. With foundations in place, you the researcher should be prepared to learn necessary extensions in the future.
+- **Survey of Fundamentals**. We prefer deep, applied understanding of the simple case for the important methods to (1) even greater breadth that sacrifices understanding or (2) premature optimization where we cover extensions to panel data, time series data, etc. With foundations in place, you the researcher will be prepared to learn necessary extensions in the future.
 - **AI Maximalist**. We embrace AI for writing code and as a study partner. 
 
 ### AI Maximalism
