@@ -25,33 +25,24 @@ Traceback (most recent call last):
     raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
 nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
 ------------------
-# First, let's create a sample dataset with more numeric columns
-results_df = pd.DataFrame({
-    'State': ['California', 'Texas', 'Florida', 'New York', 'Pennsylvania'],
-    'Population_M': [39.5, 29.5, 21.8, 19.5, 12.8],
-    'GDP_per_capita': [88700, 71900, 55700, 95500, 72800],
-    'Unemployment_rate': [3.9, 3.4, 2.8, 3.7, 3.5],
-    'College_grad_pct': [35.0, 32.2, 31.3, 37.5, 33.1]
-})
+from statwrap.atus import get_microdata_link, read_zip
 
-print("Our data:")
-results_df
+# Get download links for different file types
+print("Respondent file (2023):", get_microdata_link('resp', 2023))
+print("Activity file (2023):", get_microdata_link('act', 2023))
+print("Summary file (2023):", get_microdata_link('sum', 2023))
+
+# For earlier years
+print("\nRespondent file (2020):", get_microdata_link('resp', 2020))
 ------------------
 
 
 [31m---------------------------------------------------------------------------[39m
-[31mNameError[39m                                 Traceback (most recent call last)
-[36mCell[39m[36m [39m[32mIn[6][39m[32m, line 2[39m
-[32m      1[39m [38;5;66;03m# First, let's create a sample dataset with more numeric columns[39;00m
-[32m----> [39m[32m2[39m results_df = [43mpd[49m.DataFrame({
-[32m      3[39m     [33m'[39m[33mState[39m[33m'[39m: [[33m'[39m[33mCalifornia[39m[33m'[39m, [33m'[39m[33mTexas[39m[33m'[39m, [33m'[39m[33mFlorida[39m[33m'[39m, [33m'[39m[33mNew York[39m[33m'[39m, [33m'[39m[33mPennsylvania[39m[33m'[39m],
-[32m      4[39m     [33m'[39m[33mPopulation_M[39m[33m'[39m: [[32m39.5[39m, [32m29.5[39m, [32m21.8[39m, [32m19.5[39m, [32m12.8[39m],
-[32m      5[39m     [33m'[39m[33mGDP_per_capita[39m[33m'[39m: [[32m88700[39m, [32m71900[39m, [32m55700[39m, [32m95500[39m, [32m72800[39m],
-[32m      6[39m     [33m'[39m[33mUnemployment_rate[39m[33m'[39m: [[32m3.9[39m, [32m3.4[39m, [32m2.8[39m, [32m3.7[39m, [32m3.5[39m],
-[32m      7[39m     [33m'[39m[33mCollege_grad_pct[39m[33m'[39m: [[32m35.0[39m, [32m32.2[39m, [32m31.3[39m, [32m37.5[39m, [32m33.1[39m]
-[32m      8[39m })
-[32m     10[39m [38;5;28mprint[39m([33m"[39m[33mOur data:[39m[33m"[39m)
-[32m     11[39m results_df
+[31mModuleNotFoundError[39m                       Traceback (most recent call last)
+[36mCell[39m[36m [39m[32mIn[3][39m[32m, line 1[39m
+[32m----> [39m[32m1[39m [38;5;28;01mfrom[39;00m[38;5;250m [39m[34;01mstatwrap[39;00m[34;01m.[39;00m[34;01matus[39;00m[38;5;250m [39m[38;5;28;01mimport[39;00m get_microdata_link, read_zip
+[32m      3[39m [38;5;66;03m# Get download links for different file types[39;00m
+[32m      4[39m [38;5;28mprint[39m([33m"[39m[33mRespondent file (2023):[39m[33m"[39m, get_microdata_link([33m'[39m[33mresp[39m[33m'[39m, [32m2023[39m))
 
-[31mNameError[39m: name 'pd' is not defined
+[31mModuleNotFoundError[39m: No module named 'statwrap.atus'
 
