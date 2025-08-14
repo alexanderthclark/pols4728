@@ -57,3 +57,4 @@ pip-delete-this-directory.txt
 
 # Syllabus directory (keep private)
 syllabus/
+.virtual_documents/book/chapters/Untitled.ipynb

@@ -6,7 +6,7 @@
 - [OpenAI Prompt Engineering Guide](https://platform.openai.com/docs/guides/prompt-engineering)
 ```
 
-LLMs are used in social science research for both classification (sentiment analysis, for example) and as a substitute for unsupervised topic modeling. {cite}`haaland2025understanding` highlights the use of LLMs to code open-ended data, noting LLMs will "be the preferred choice over most existing text analysis methods for survey researchers." Other methods might only be preferred when high-quality training data is available or in the case of very large data where LLMs are  expensive. What does very large mean? Using GPT-5 through OpenAI's API, it would cost maybe \$5 to classify 10,000 text responses of about 100 words.[^llm-cost] These costs scale linearly, so classifying 1,000,000 responses would cost \$500. More complicated prompting could triple the cost.[^few-shot] One can save costs by switching to a cheaper model like GPT-5 nano, which is 20-25x cheaper than GPT-5, or using classical text analysis methods. 
+LLMs are used in social science research for both classification (sentiment analysis, for example), document scaling, and topic modeling. The term "foundation models" is used to describe such general-purpose models. {cite}`haaland2025understanding` highlights the use of LLMs to code open-ended data, noting LLMs will "be the preferred choice over most existing text analysis methods for survey researchers." {cite}`ornstein2025train` notes where LLMs underperform, though the analysis is limited to GPT-4 and GPT-3. Other methods might be preferred when high-quality training data is available or in the case of very large data where LLMs are expensive. What does very large mean? Using GPT-5 through OpenAI's API, it would cost maybe \$5 to classify 10,000 text responses of about 100 words.[^llm-cost] These costs scale linearly, so classifying 1,000,000 responses would cost \$500. More complicated prompting could triple the cost.[^few-shot] One can save costs by switching to a cheaper model like GPT-5 nano, which is 20-25x cheaper than GPT-5, or using classical text analysis methods. 
 
 The LLM cost would likely be dwarfed by the general administrative costs of conducting any survey. For example, {cite}`roberts2014structural` uses structural topic modeling to analyze open-ended survey responses from the American National Election Survey, which included 2,323 respondents. The LLM cost would be relatively trivial. 
 
@@ -212,6 +212,14 @@ The kicker? {cite}`gilardi2023chatgpt` found that ChatGPT beat crowd workers on 
 :label: LLM
 ```
 Find a labeled text data set of interest ([here is one](https://github.com/Ravihari123/GPT-for-Twitter-Stance-Labeling/blob/main/final_annotated_dataset_355%20records.csv) from {cite}`liyanage2024gpt`) with no more than 400 observations. Write two prompts for classification: one with two examples and one with no examples. Classify the entire data set using Gemini 2.5 Pro and then Gemini 2.5 Flash-Lite for a total of four "models." Compare accuracy across each. You will be provided with an API key and some sample code. 
+
+```{exercise-end}
+```
+
+```{exercise-start}
+:label: LLM-grimmer
+```
+Replicate {cite}`grimmer2010bayesian` using an LLM. Find the data [here](https://github.com/lintool/GrimmerSenatePressReleases).
 
 ```{exercise-end}
 ```
