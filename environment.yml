@@ -37,4 +37,7 @@ dependencies:
   - pip
   - pip:
       - google-generativeai
+      - huggingface_hub
+      - transformers
+      - jupyterlab_widgets>=3
       - statwrap
