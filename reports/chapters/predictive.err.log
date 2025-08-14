@@ -1,0 +1,68 @@
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/jupyter_core/utils/__init__.py", line 154, in wrapped
+    asyncio.get_running_loop()
+RuntimeError: no running event loop
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
+    executenb(
+  File "/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/nbclient/client.py", line 1319, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/jupyter_core/utils/__init__.py", line 158, in wrapped
+    return loop.run_until_complete(inner)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/nbclient/client.py", line 709, in async_execute
+    await self.async_execute_cell(
+  File "/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/nbclient/client.py", line 1062, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+import pandas as pd
+import matplotlib.pyplot as plt
+import statsmodels.formula.api as smf
+
+# ------------------------------------------------------------------
+# Data from Tufte (1975) Table 1   (1942 excluded)
+# ------------------------------------------------------------------
+d = {
+    "year":                  [1938, 1946, 1950, 1954, 1958, 1962, 1966, 1970],
+    "vote_share":            [50.82, 45.27, 50.04, 47.46, 43.90, 52.42, 51.33, 45.68],   # V_i
+    "normal_vote":           [57.18, 52.57, 52.04, 49.79, 49.83, 51.63, 53.06, 46.66],   # N_i*
+    "approval_pct":          [57,    32,    43,    65,    56,    67,    48,    56],      # Gallup
+    "delta_rdi_dollars":     [-82,   -36,   99,    -12,   -13,   60,    96,    69]       # $ change
+}
+
+df = pd.DataFrame(d)
+df["std_loss"]         = df["vote_share"] - df["normal_vote"]     # Y_i
+
+# ------------------------------------------------------------------
+# OLS replication of Tufte Table 2
+# ------------------------------------------------------------------
+X = sm.add_constant(df[["approval_pct", "delta_rdi_dollars"]])
+y = df["std_loss"]
+tufte = sm.OLS(y, X).fit()
+print(tufte.summary())
+------------------
+
+
+[31m---------------------------------------------------------------------------[39m
+[31mNameError[39m                                 Traceback (most recent call last)
+[36mCell[39m[36m [39m[32mIn[1][39m[32m, line 22[39m
+[32m     17[39m df[[33m"[39m[33mstd_loss[39m[33m"[39m]         = df[[33m"[39m[33mvote_share[39m[33m"[39m] - df[[33m"[39m[33mnormal_vote[39m[33m"[39m]     [38;5;66;03m# Y_i[39;00m
+[32m     19[39m [38;5;66;03m# ------------------------------------------------------------------[39;00m
+[32m     20[39m [38;5;66;03m# OLS replication of Tufte Table 2[39;00m
+[32m     21[39m [38;5;66;03m# ------------------------------------------------------------------[39;00m
+[32m---> [39m[32m22[39m X = [43msm[49m.add_constant(df[[[33m"[39m[33mapproval_pct[39m[33m"[39m, [33m"[39m[33mdelta_rdi_dollars[39m[33m"[39m]])
+[32m     23[39m y = df[[33m"[39m[33mstd_loss[39m[33m"[39m]
+[32m     24[39m tufte = sm.OLS(y, X).fit()
+
+[31mNameError[39m: name 'sm' is not defined
+
