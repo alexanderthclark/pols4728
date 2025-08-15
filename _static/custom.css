@@ -648,6 +648,22 @@ a.reference.std, a.reference.std-ref {
 }
 
 /* ========================================
+   INLINE MATH SPACING FIX
+   ======================================== */
+
+/* Fix inline math spacing issues */
+.math:not(.display) {
+    display: inline !important;
+    margin: 0 !important;
+    vertical-align: baseline !important;
+}
+
+p:has(.math:not(.display)) {
+    line-height: inherit !important;
+    margin: 1em 0 !important;
+}
+
+/* ========================================
    UTILITIES
    ======================================== */
 
