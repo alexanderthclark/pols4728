@@ -13,11 +13,12 @@ parts:
   chapters:
   - file: chapters/learning
   - file: chapters/evals_and_prompting
-  - file: chapters/bias_variance
+  - file: chapters/predictive
   - file: chapters/linreg
 
 - caption: Reference
   chapters:
   - file: reference/prelims_and_digressions
   - file: reference/hugging_face
+  - file: reference/solutions
   - file: reference/bibliography

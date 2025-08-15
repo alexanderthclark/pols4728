@@ -1,3 +1,4 @@
+(evals_and_prompting)=
 # Using LLMs
 
 ```{admonition} Reading
