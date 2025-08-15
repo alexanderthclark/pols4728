@@ -1,3 +1,4 @@
+(learning)=
 # Learning
 
 ## What is Machine Learning?
