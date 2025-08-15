@@ -37,7 +37,7 @@ jobs:
         env:
           BOOK_PW: ${{ secrets.BOOK_PW }}
         run: |
-          staticrypt book/_build/html/*.html book/_build/html/**/*.html -r \
+          staticrypt book/_build/html -r \
             -p "$BOOK_PW" --short \
             -d book/_build/html
 
