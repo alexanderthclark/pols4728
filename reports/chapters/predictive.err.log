@@ -25,6 +25,7 @@ Traceback (most recent call last):
     raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
 nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
 ------------------
+# hide code and output
 import pandas as pd
 import matplotlib.pyplot as plt
 import statsmodels.formula.api as smf
@@ -42,20 +43,24 @@ tufte_approval_only = smf.ols(formula='vote_loss ~ pres_approval', data=df[df.in
 
 df['single_lin_reg_residuals'] = df.vote_loss - tufte_approval_only.predict(df.pres_approval)
 df['multi_reg_residuals'] = df.vote_loss - tufte_model_sub.predict(df[['pres_approval', 'dpi_pc_pct_yoy']])
+df['multi_reg_predictions'] = tufte_model_sub.predict(df[['pres_approval', 'dpi_pc_pct_yoy']])
 
 df1 = df[df.in_original==True]
 df2 = df[df.year > 1970]
+
+#calculate_out_of_sample_r2(tufte_approval_only, df2)
+#calculate_out_of_sample_r2(tufte_model_sub, df2)
 ------------------
 
 
 [31m---------------------------------------------------------------------------[39m
 [31mNameError[39m                                 Traceback (most recent call last)
-[36mCell[39m[36m [39m[32mIn[1][39m[32m, line 13[39m
-[32m     11[39m tufte_model = smf.ols(formula=[33m'[39m[33mvote_loss ~ pres_approval + delta_rdi[39m[33m'[39m, data=df[df.in_original==[38;5;28;01mTrue[39;00m]).fit()
-[32m     12[39m tufte_model_sub = smf.ols(formula=[33m'[39m[33mvote_loss ~ pres_approval + dpi_pc_pct_yoy[39m[33m'[39m, data=df[df.in_original==[38;5;28;01mTrue[39;00m]).fit()
-[32m---> [39m[32m13[39m out_of_sample_average = sm.OLS(df[df.year > [32m1970[39m].vote_loss, [43mnp[49m.ones([32m13[39m)).fit()
-[32m     14[39m tufte_approval_only = smf.ols(formula=[33m'[39m[33mvote_loss ~ pres_approval[39m[33m'[39m, data=df[df.in_original==[38;5;28;01mTrue[39;00m]).fit()
-[32m     16[39m df[[33m'[39m[33msingle_lin_reg_residuals[39m[33m'[39m] = df.vote_loss - tufte_approval_only.predict(df.pres_approval)
+[36mCell[39m[36m [39m[32mIn[1][39m[32m, line 14[39m
+[32m     12[39m tufte_model = smf.ols(formula=[33m'[39m[33mvote_loss ~ pres_approval + delta_rdi[39m[33m'[39m, data=df[df.in_original==[38;5;28;01mTrue[39;00m]).fit()
+[32m     13[39m tufte_model_sub = smf.ols(formula=[33m'[39m[33mvote_loss ~ pres_approval + dpi_pc_pct_yoy[39m[33m'[39m, data=df[df.in_original==[38;5;28;01mTrue[39;00m]).fit()
+[32m---> [39m[32m14[39m out_of_sample_average = sm.OLS(df[df.year > [32m1970[39m].vote_loss, [43mnp[49m.ones([32m13[39m)).fit()
+[32m     15[39m tufte_approval_only = smf.ols(formula=[33m'[39m[33mvote_loss ~ pres_approval[39m[33m'[39m, data=df[df.in_original==[38;5;28;01mTrue[39;00m]).fit()
+[32m     17[39m df[[33m'[39m[33msingle_lin_reg_residuals[39m[33m'[39m] = df.vote_loss - tufte_approval_only.predict(df.pres_approval)
 
 [31mNameError[39m: name 'np' is not defined
 
