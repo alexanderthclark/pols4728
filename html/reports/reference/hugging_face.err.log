@@ -1,0 +1,74 @@
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/jupyter_core/utils/__init__.py", line 154, in wrapped
+    asyncio.get_running_loop()
+RuntimeError: no running event loop
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
+    executenb(
+  File "/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/nbclient/client.py", line 1319, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/jupyter_core/utils/__init__.py", line 158, in wrapped
+    return loop.run_until_complete(inner)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/nbclient/client.py", line 709, in async_execute
+    await self.async_execute_cell(
+  File "/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/nbclient/client.py", line 1062, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+r = client.chat_completion(messages=msgs, max_tokens=64, temperature=0.0)
+------------------
+
+
+[31m---------------------------------------------------------------------------[39m
+[31mValueError[39m                                Traceback (most recent call last)
+[36mCell[39m[36m [39m[32mIn[4][39m[32m, line 1[39m
+[32m----> [39m[32m1[39m r = [43mclient[49m[43m.[49m[43mchat_completion[49m[43m([49m[43mmessages[49m[43m=[49m[43mmsgs[49m[43m,[49m[43m [49m[43mmax_tokens[49m[43m=[49m[32;43m64[39;49m[43m,[49m[43m [49m[43mtemperature[49m[43m=[49m[32;43m0.0[39;49m[43m)[49m
+
+[36mFile [39m[32m/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/huggingface_hub/inference/_client.py:916[39m, in [36mInferenceClient.chat_completion[39m[34m(self, messages, model, stream, frequency_penalty, logit_bias, logprobs, max_tokens, n, presence_penalty, response_format, seed, stop, stream_options, temperature, tool_choice, tool_prompt, tools, top_logprobs, top_p, extra_body)[39m
+[32m    894[39m [38;5;66;03m# Prepare the payload[39;00m
+[32m    895[39m parameters = {
+[32m    896[39m     [33m"[39m[33mmodel[39m[33m"[39m: payload_model,
+[32m    897[39m     [33m"[39m[33mfrequency_penalty[39m[33m"[39m: frequency_penalty,
+[32m   (...)[39m[32m    914[39m     **(extra_body [38;5;129;01mor[39;00m {}),
+[32m    915[39m }
+[32m--> [39m[32m916[39m request_parameters = [43mprovider_helper[49m[43m.[49m[43mprepare_request[49m[43m([49m
+[32m    917[39m [43m    [49m[43minputs[49m[43m=[49m[43mmessages[49m[43m,[49m
+[32m    918[39m [43m    [49m[43mparameters[49m[43m=[49m[43mparameters[49m[43m,[49m
+[32m    919[39m [43m    [49m[43mheaders[49m[43m=[49m[38;5;28;43mself[39;49m[43m.[49m[43mheaders[49m[43m,[49m
+[32m    920[39m [43m    [49m[43mmodel[49m[43m=[49m[43mmodel_id_or_url[49m[43m,[49m
+[32m    921[39m [43m    [49m[43mapi_key[49m[43m=[49m[38;5;28;43mself[39;49m[43m.[49m[43mtoken[49m[43m,[49m
+[32m    922[39m [43m[49m[43m)[49m
+[32m    923[39m data = [38;5;28mself[39m._inner_post(request_parameters, stream=stream)
+[32m    925[39m [38;5;28;01mif[39;00m stream:
+
+[36mFile [39m[32m/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/huggingface_hub/inference/_providers/_common.py:87[39m, in [36mTaskProviderHelper.prepare_request[39m[34m(self, inputs, parameters, headers, model, api_key, extra_payload)[39m
+[32m     81[39m [38;5;250m[39m[33;03m"""[39;00m
+[32m     82[39m [33;03mPrepare the request to be sent to the provider.[39;00m
+[32m     83[39m 
+[32m     84[39m [33;03mEach step (api_key, model, headers, url, payload) can be customized in subclasses.[39;00m
+[32m     85[39m [33;03m"""[39;00m
+[32m     86[39m [38;5;66;03m# api_key from user, or local token, or raise error[39;00m
+[32m---> [39m[32m87[39m api_key = [38;5;28;43mself[39;49m[43m.[49m[43m_prepare_api_key[49m[43m([49m[43mapi_key[49m[43m)[49m
+[32m     89[39m [38;5;66;03m# mapped model from HF model ID[39;00m
+[32m     90[39m provider_mapping_info = [38;5;28mself[39m._prepare_mapping_info(model)
+
+[36mFile [39m[32m/opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/huggingface_hub/inference/_providers/_common.py:133[39m, in [36mTaskProviderHelper._prepare_api_key[39m[34m(self, api_key)[39m
+[32m    131[39m     api_key = get_token()
+[32m    132[39m [38;5;28;01mif[39;00m api_key [38;5;129;01mis[39;00m [38;5;28;01mNone[39;00m:
+[32m--> [39m[32m133[39m     [38;5;28;01mraise[39;00m [38;5;167;01mValueError[39;00m(
+[32m    134[39m         [33mf[39m[33m"[39m[33mYou must provide an api_key to work with [39m[38;5;132;01m{[39;00m[38;5;28mself[39m.provider[38;5;132;01m}[39;00m[33m API or log in with `hf auth login`.[39m[33m"[39m
+[32m    135[39m     )
+[32m    136[39m [38;5;28;01mreturn[39;00m api_key
+
+[31mValueError[39m: You must provide an api_key to work with fireworks-ai API or log in with `hf auth login`.
+
