@@ -787,731 +787,115 @@ conda<span class="w"> </span>deactivate
 </div>
 <section id="format-control-how-numbers-are-displayed">
 <h3>1. Format: Control how numbers are displayed<a class="headerlink" href="#format-control-how-numbers-are-displayed" title="Link to this heading">#</a></h3>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Format numbers for better readability</span>
 <span class="n">styled</span> <span class="o">=</span> <span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">format</span><span class="p">({</span>
     <span class="s1">&#39;Population_M&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{:.1f}</span><span class="s1">M&#39;</span><span class="p">,</span>          <span class="c1"># One decimal place with M suffix</span>
     <span class="s1">&#39;GDP_per_capita&#39;</span><span class="p">:</span> <span class="s1">&#39;$</span><span class="si">{:,.0f}</span><span class="s1">&#39;</span><span class="p">,</span>       <span class="c1"># Dollar sign with commas</span>
-    <span class="s1">&#39;Unemployment_rate&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{:.1%}</span><span class="s1">&#39;</span><span class="p">,</span>      <span class="c1"># Convert to percentage (multiply by 100)</span>
+    <span class="s1">&#39;Unemployment_rate&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{:.1f}</span><span class="s1">%&#39;</span><span class="p">,</span>     <span class="c1"># Add % sign (don&#39;t multiply by 100)</span>
     <span class="s1">&#39;College_grad_pct&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{:.1f}</span><span class="s1">%&#39;</span>       <span class="c1"># Just add % sign (don&#39;t multiply)</span>
 <span class="p">})</span>
-<span class="n">styled</span>
+<span class="n">display</span><span class="p">(</span><span class="n">styled</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output text_html"><style type="text/css">
-</style>
-<table id="T_55b66">
-  <thead>
-    <tr>
-      <th class="blank level0" >&nbsp;</th>
-      <th id="T_55b66_level0_col0" class="col_heading level0 col0" >State</th>
-      <th id="T_55b66_level0_col1" class="col_heading level0 col1" >Population_M</th>
-      <th id="T_55b66_level0_col2" class="col_heading level0 col2" >GDP_per_capita</th>
-      <th id="T_55b66_level0_col3" class="col_heading level0 col3" >Unemployment_rate</th>
-      <th id="T_55b66_level0_col4" class="col_heading level0 col4" >College_grad_pct</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th id="T_55b66_level0_row0" class="row_heading level0 row0" >0</th>
-      <td id="T_55b66_row0_col0" class="data row0 col0" >California</td>
-      <td id="T_55b66_row0_col1" class="data row0 col1" >39.5M</td>
-      <td id="T_55b66_row0_col2" class="data row0 col2" >$88,700</td>
-      <td id="T_55b66_row0_col3" class="data row0 col3" >390.0%</td>
-      <td id="T_55b66_row0_col4" class="data row0 col4" >35.0%</td>
-    </tr>
-    <tr>
-      <th id="T_55b66_level0_row1" class="row_heading level0 row1" >1</th>
-      <td id="T_55b66_row1_col0" class="data row1 col0" >Texas</td>
-      <td id="T_55b66_row1_col1" class="data row1 col1" >29.5M</td>
-      <td id="T_55b66_row1_col2" class="data row1 col2" >$71,900</td>
-      <td id="T_55b66_row1_col3" class="data row1 col3" >340.0%</td>
-      <td id="T_55b66_row1_col4" class="data row1 col4" >32.2%</td>
-    </tr>
-    <tr>
-      <th id="T_55b66_level0_row2" class="row_heading level0 row2" >2</th>
-      <td id="T_55b66_row2_col0" class="data row2 col0" >Florida</td>
-      <td id="T_55b66_row2_col1" class="data row2 col1" >21.8M</td>
-      <td id="T_55b66_row2_col2" class="data row2 col2" >$55,700</td>
-      <td id="T_55b66_row2_col3" class="data row2 col3" >280.0%</td>
-      <td id="T_55b66_row2_col4" class="data row2 col4" >31.3%</td>
-    </tr>
-    <tr>
-      <th id="T_55b66_level0_row3" class="row_heading level0 row3" >3</th>
-      <td id="T_55b66_row3_col0" class="data row3 col0" >New York</td>
-      <td id="T_55b66_row3_col1" class="data row3 col1" >19.5M</td>
-      <td id="T_55b66_row3_col2" class="data row3 col2" >$95,500</td>
-      <td id="T_55b66_row3_col3" class="data row3 col3" >370.0%</td>
-      <td id="T_55b66_row3_col4" class="data row3 col4" >37.5%</td>
-    </tr>
-    <tr>
-      <th id="T_55b66_level0_row4" class="row_heading level0 row4" >4</th>
-      <td id="T_55b66_row4_col0" class="data row4 col0" >Pennsylvania</td>
-      <td id="T_55b66_row4_col1" class="data row4 col1" >12.8M</td>
-      <td id="T_55b66_row4_col2" class="data row4 col2" >$72,800</td>
-      <td id="T_55b66_row4_col3" class="data row4 col3" >350.0%</td>
-      <td id="T_55b66_row4_col4" class="data row4 col4" >33.1%</td>
-    </tr>
-  </tbody>
-</table>
-</div></div>
+</details>
 </div>
 </section>
 <section id="background-gradient-visualize-patterns-with-color">
 <h3>2. Background gradient: Visualize patterns with color<a class="headerlink" href="#background-gradient-visualize-patterns-with-color" title="Link to this heading">#</a></h3>
 <p>use the <code class="docutils literal notranslate"><span class="pre">axis</span></code> parameter to adjust bar heights relative to other column values (<code class="docutils literal notranslate"><span class="pre">axis=0</span></code>), other row values (<code class="docutils literal notranslate"><span class="pre">axis=1</span></code>) or all values in the table (<code class="docutils literal notranslate"><span class="pre">axis=None</span></code>).</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Apply color gradients to see patterns</span>
 <span class="n">numeric_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Population_M&#39;</span><span class="p">,</span> <span class="s1">&#39;GDP_per_capita&#39;</span><span class="p">,</span> <span class="s1">&#39;Unemployment_rate&#39;</span><span class="p">,</span> <span class="s1">&#39;College_grad_pct&#39;</span><span class="p">]</span>
-<span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">background_gradient</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Greens&#39;</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">background_gradient</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Greens&#39;</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output text_html"><style type="text/css">
-#T_c6dea_row0_col1, #T_c6dea_row0_col3, #T_c6dea_row3_col2, #T_c6dea_row3_col4 {
-  background-color: #00441b;
-  color: #f1f1f1;
-}
-#T_c6dea_row0_col2 {
-  background-color: #0c7735;
-  color: #f1f1f1;
-}
-#T_c6dea_row0_col4 {
-  background-color: #4db163;
-  color: #f1f1f1;
-}
-#T_c6dea_row1_col1 {
-  background-color: #40aa5d;
-  color: #f1f1f1;
-}
-#T_c6dea_row1_col2 {
-  background-color: #95d391;
-  color: #000000;
-}
-#T_c6dea_row1_col3 {
-  background-color: #62bb6d;
-  color: #f1f1f1;
-}
-#T_c6dea_row1_col4 {
-  background-color: #e0f3db;
-  color: #000000;
-}
-#T_c6dea_row2_col1 {
-  background-color: #acdea6;
-  color: #000000;
-}
-#T_c6dea_row2_col2, #T_c6dea_row2_col3, #T_c6dea_row2_col4, #T_c6dea_row4_col1 {
-  background-color: #f7fcf5;
-  color: #000000;
-}
-#T_c6dea_row3_col1 {
-  background-color: #c7e9c0;
-  color: #000000;
-}
-#T_c6dea_row3_col3 {
-  background-color: #107a37;
-  color: #f1f1f1;
-}
-#T_c6dea_row4_col2 {
-  background-color: #8ed08b;
-  color: #000000;
-}
-#T_c6dea_row4_col3 {
-  background-color: #3fa85b;
-  color: #f1f1f1;
-}
-#T_c6dea_row4_col4 {
-  background-color: #bbe4b4;
-  color: #000000;
-}
-</style>
-<table id="T_c6dea">
-  <thead>
-    <tr>
-      <th class="blank level0" >&nbsp;</th>
-      <th id="T_c6dea_level0_col0" class="col_heading level0 col0" >State</th>
-      <th id="T_c6dea_level0_col1" class="col_heading level0 col1" >Population_M</th>
-      <th id="T_c6dea_level0_col2" class="col_heading level0 col2" >GDP_per_capita</th>
-      <th id="T_c6dea_level0_col3" class="col_heading level0 col3" >Unemployment_rate</th>
-      <th id="T_c6dea_level0_col4" class="col_heading level0 col4" >College_grad_pct</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th id="T_c6dea_level0_row0" class="row_heading level0 row0" >0</th>
-      <td id="T_c6dea_row0_col0" class="data row0 col0" >California</td>
-      <td id="T_c6dea_row0_col1" class="data row0 col1" >39.500000</td>
-      <td id="T_c6dea_row0_col2" class="data row0 col2" >88700</td>
-      <td id="T_c6dea_row0_col3" class="data row0 col3" >3.900000</td>
-      <td id="T_c6dea_row0_col4" class="data row0 col4" >35.000000</td>
-    </tr>
-    <tr>
-      <th id="T_c6dea_level0_row1" class="row_heading level0 row1" >1</th>
-      <td id="T_c6dea_row1_col0" class="data row1 col0" >Texas</td>
-      <td id="T_c6dea_row1_col1" class="data row1 col1" >29.500000</td>
-      <td id="T_c6dea_row1_col2" class="data row1 col2" >71900</td>
-      <td id="T_c6dea_row1_col3" class="data row1 col3" >3.400000</td>
-      <td id="T_c6dea_row1_col4" class="data row1 col4" >32.200000</td>
-    </tr>
-    <tr>
-      <th id="T_c6dea_level0_row2" class="row_heading level0 row2" >2</th>
-      <td id="T_c6dea_row2_col0" class="data row2 col0" >Florida</td>
-      <td id="T_c6dea_row2_col1" class="data row2 col1" >21.800000</td>
-      <td id="T_c6dea_row2_col2" class="data row2 col2" >55700</td>
-      <td id="T_c6dea_row2_col3" class="data row2 col3" >2.800000</td>
-      <td id="T_c6dea_row2_col4" class="data row2 col4" >31.300000</td>
-    </tr>
-    <tr>
-      <th id="T_c6dea_level0_row3" class="row_heading level0 row3" >3</th>
-      <td id="T_c6dea_row3_col0" class="data row3 col0" >New York</td>
-      <td id="T_c6dea_row3_col1" class="data row3 col1" >19.500000</td>
-      <td id="T_c6dea_row3_col2" class="data row3 col2" >95500</td>
-      <td id="T_c6dea_row3_col3" class="data row3 col3" >3.700000</td>
-      <td id="T_c6dea_row3_col4" class="data row3 col4" >37.500000</td>
-    </tr>
-    <tr>
-      <th id="T_c6dea_level0_row4" class="row_heading level0 row4" >4</th>
-      <td id="T_c6dea_row4_col0" class="data row4 col0" >Pennsylvania</td>
-      <td id="T_c6dea_row4_col1" class="data row4 col1" >12.800000</td>
-      <td id="T_c6dea_row4_col2" class="data row4 col2" >72800</td>
-      <td id="T_c6dea_row4_col3" class="data row4 col3" >3.500000</td>
-      <td id="T_c6dea_row4_col4" class="data row4 col4" >33.100000</td>
-    </tr>
-  </tbody>
-</table>
-</div></div>
+</details>
 </div>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">background_gradient</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;coolwarm_r&#39;</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">display</span><span class="p">(</span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">background_gradient</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;coolwarm_r&#39;</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output text_html"><style type="text/css">
-#T_54903_row0_col1, #T_54903_row0_col3, #T_54903_row0_col4, #T_54903_row1_col1, #T_54903_row1_col3, #T_54903_row1_col4, #T_54903_row2_col1, #T_54903_row2_col3, #T_54903_row2_col4, #T_54903_row3_col1, #T_54903_row3_col3, #T_54903_row3_col4, #T_54903_row4_col1, #T_54903_row4_col3, #T_54903_row4_col4 {
-  background-color: #b40426;
-  color: #f1f1f1;
-}
-#T_54903_row0_col2 {
-  background-color: #506bda;
-  color: #f1f1f1;
-}
-#T_54903_row1_col2 {
-  background-color: #8caffe;
-  color: #000000;
-}
-#T_54903_row2_col2 {
-  background-color: #c5d6f2;
-  color: #000000;
-}
-#T_54903_row3_col2 {
-  background-color: #3b4cc0;
-  color: #f1f1f1;
-}
-#T_54903_row4_col2 {
-  background-color: #88abfd;
-  color: #000000;
-}
-</style>
-<table id="T_54903">
-  <thead>
-    <tr>
-      <th class="blank level0" >&nbsp;</th>
-      <th id="T_54903_level0_col0" class="col_heading level0 col0" >State</th>
-      <th id="T_54903_level0_col1" class="col_heading level0 col1" >Population_M</th>
-      <th id="T_54903_level0_col2" class="col_heading level0 col2" >GDP_per_capita</th>
-      <th id="T_54903_level0_col3" class="col_heading level0 col3" >Unemployment_rate</th>
-      <th id="T_54903_level0_col4" class="col_heading level0 col4" >College_grad_pct</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th id="T_54903_level0_row0" class="row_heading level0 row0" >0</th>
-      <td id="T_54903_row0_col0" class="data row0 col0" >California</td>
-      <td id="T_54903_row0_col1" class="data row0 col1" >39.500000</td>
-      <td id="T_54903_row0_col2" class="data row0 col2" >88700</td>
-      <td id="T_54903_row0_col3" class="data row0 col3" >3.900000</td>
-      <td id="T_54903_row0_col4" class="data row0 col4" >35.000000</td>
-    </tr>
-    <tr>
-      <th id="T_54903_level0_row1" class="row_heading level0 row1" >1</th>
-      <td id="T_54903_row1_col0" class="data row1 col0" >Texas</td>
-      <td id="T_54903_row1_col1" class="data row1 col1" >29.500000</td>
-      <td id="T_54903_row1_col2" class="data row1 col2" >71900</td>
-      <td id="T_54903_row1_col3" class="data row1 col3" >3.400000</td>
-      <td id="T_54903_row1_col4" class="data row1 col4" >32.200000</td>
-    </tr>
-    <tr>
-      <th id="T_54903_level0_row2" class="row_heading level0 row2" >2</th>
-      <td id="T_54903_row2_col0" class="data row2 col0" >Florida</td>
-      <td id="T_54903_row2_col1" class="data row2 col1" >21.800000</td>
-      <td id="T_54903_row2_col2" class="data row2 col2" >55700</td>
-      <td id="T_54903_row2_col3" class="data row2 col3" >2.800000</td>
-      <td id="T_54903_row2_col4" class="data row2 col4" >31.300000</td>
-    </tr>
-    <tr>
-      <th id="T_54903_level0_row3" class="row_heading level0 row3" >3</th>
-      <td id="T_54903_row3_col0" class="data row3 col0" >New York</td>
-      <td id="T_54903_row3_col1" class="data row3 col1" >19.500000</td>
-      <td id="T_54903_row3_col2" class="data row3 col2" >95500</td>
-      <td id="T_54903_row3_col3" class="data row3 col3" >3.700000</td>
-      <td id="T_54903_row3_col4" class="data row3 col4" >37.500000</td>
-    </tr>
-    <tr>
-      <th id="T_54903_level0_row4" class="row_heading level0 row4" >4</th>
-      <td id="T_54903_row4_col0" class="data row4 col0" >Pennsylvania</td>
-      <td id="T_54903_row4_col1" class="data row4 col1" >12.800000</td>
-      <td id="T_54903_row4_col2" class="data row4 col2" >72800</td>
-      <td id="T_54903_row4_col3" class="data row4 col3" >3.500000</td>
-      <td id="T_54903_row4_col4" class="data row4 col4" >33.100000</td>
-    </tr>
-  </tbody>
-</table>
-</div></div>
+</details>
 </div>
 </section>
 <section id="bar-add-mini-bar-charts-inside-cells">
 <h3>3. Bar: Add mini bar charts inside cells<a class="headerlink" href="#bar-add-mini-bar-charts-inside-cells" title="Link to this heading">#</a></h3>
 <p>Again, use the <code class="docutils literal notranslate"><span class="pre">axis</span></code> parameter to adjust bar heights relative to other column values (<code class="docutils literal notranslate"><span class="pre">axis=0</span></code>), other row values (<code class="docutils literal notranslate"><span class="pre">axis=1</span></code>) or all values in the table (<code class="docutils literal notranslate"><span class="pre">axis=None</span></code>).</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add horizontal bars to visualize relative magnitudes</span>
 <span class="n">numeric_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Population_M&#39;</span><span class="p">,</span> <span class="s1">&#39;GDP_per_capita&#39;</span><span class="p">,</span> <span class="s1">&#39;Unemployment_rate&#39;</span><span class="p">,</span> <span class="s1">&#39;College_grad_pct&#39;</span><span class="p">]</span>
-<span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;lightblue&#39;</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;lightblue&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output text_html"><style type="text/css">
-#T_e802c_row0_col1, #T_e802c_row0_col3, #T_e802c_row3_col2, #T_e802c_row3_col4 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 100.0%, transparent 100.0%);
-}
-#T_e802c_row0_col2 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 92.9%, transparent 92.9%);
-}
-#T_e802c_row0_col4 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 93.3%, transparent 93.3%);
-}
-#T_e802c_row1_col1 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 74.7%, transparent 74.7%);
-}
-#T_e802c_row1_col2 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 75.3%, transparent 75.3%);
-}
-#T_e802c_row1_col3 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 87.2%, transparent 87.2%);
-}
-#T_e802c_row1_col4 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 85.9%, transparent 85.9%);
-}
-#T_e802c_row2_col1 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 55.2%, transparent 55.2%);
-}
-#T_e802c_row2_col2 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 58.3%, transparent 58.3%);
-}
-#T_e802c_row2_col3 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 71.8%, transparent 71.8%);
-}
-#T_e802c_row2_col4 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 83.5%, transparent 83.5%);
-}
-#T_e802c_row3_col1 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 49.4%, transparent 49.4%);
-}
-#T_e802c_row3_col3 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 94.9%, transparent 94.9%);
-}
-#T_e802c_row4_col1 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 32.4%, transparent 32.4%);
-}
-#T_e802c_row4_col2 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 76.2%, transparent 76.2%);
-}
-#T_e802c_row4_col3 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 89.7%, transparent 89.7%);
-}
-#T_e802c_row4_col4 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 88.3%, transparent 88.3%);
-}
-</style>
-<table id="T_e802c">
-  <thead>
-    <tr>
-      <th class="blank level0" >&nbsp;</th>
-      <th id="T_e802c_level0_col0" class="col_heading level0 col0" >State</th>
-      <th id="T_e802c_level0_col1" class="col_heading level0 col1" >Population_M</th>
-      <th id="T_e802c_level0_col2" class="col_heading level0 col2" >GDP_per_capita</th>
-      <th id="T_e802c_level0_col3" class="col_heading level0 col3" >Unemployment_rate</th>
-      <th id="T_e802c_level0_col4" class="col_heading level0 col4" >College_grad_pct</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th id="T_e802c_level0_row0" class="row_heading level0 row0" >0</th>
-      <td id="T_e802c_row0_col0" class="data row0 col0" >California</td>
-      <td id="T_e802c_row0_col1" class="data row0 col1" >39.500000</td>
-      <td id="T_e802c_row0_col2" class="data row0 col2" >88700</td>
-      <td id="T_e802c_row0_col3" class="data row0 col3" >3.900000</td>
-      <td id="T_e802c_row0_col4" class="data row0 col4" >35.000000</td>
-    </tr>
-    <tr>
-      <th id="T_e802c_level0_row1" class="row_heading level0 row1" >1</th>
-      <td id="T_e802c_row1_col0" class="data row1 col0" >Texas</td>
-      <td id="T_e802c_row1_col1" class="data row1 col1" >29.500000</td>
-      <td id="T_e802c_row1_col2" class="data row1 col2" >71900</td>
-      <td id="T_e802c_row1_col3" class="data row1 col3" >3.400000</td>
-      <td id="T_e802c_row1_col4" class="data row1 col4" >32.200000</td>
-    </tr>
-    <tr>
-      <th id="T_e802c_level0_row2" class="row_heading level0 row2" >2</th>
-      <td id="T_e802c_row2_col0" class="data row2 col0" >Florida</td>
-      <td id="T_e802c_row2_col1" class="data row2 col1" >21.800000</td>
-      <td id="T_e802c_row2_col2" class="data row2 col2" >55700</td>
-      <td id="T_e802c_row2_col3" class="data row2 col3" >2.800000</td>
-      <td id="T_e802c_row2_col4" class="data row2 col4" >31.300000</td>
-    </tr>
-    <tr>
-      <th id="T_e802c_level0_row3" class="row_heading level0 row3" >3</th>
-      <td id="T_e802c_row3_col0" class="data row3 col0" >New York</td>
-      <td id="T_e802c_row3_col1" class="data row3 col1" >19.500000</td>
-      <td id="T_e802c_row3_col2" class="data row3 col2" >95500</td>
-      <td id="T_e802c_row3_col3" class="data row3 col3" >3.700000</td>
-      <td id="T_e802c_row3_col4" class="data row3 col4" >37.500000</td>
-    </tr>
-    <tr>
-      <th id="T_e802c_level0_row4" class="row_heading level0 row4" >4</th>
-      <td id="T_e802c_row4_col0" class="data row4 col0" >Pennsylvania</td>
-      <td id="T_e802c_row4_col1" class="data row4 col1" >12.800000</td>
-      <td id="T_e802c_row4_col2" class="data row4 col2" >72800</td>
-      <td id="T_e802c_row4_col3" class="data row4 col3" >3.500000</td>
-      <td id="T_e802c_row4_col4" class="data row4 col4" >33.100000</td>
-    </tr>
-  </tbody>
-</table>
-</div></div>
+</details>
 </div>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;lightblue&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">display</span><span class="p">(</span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;lightblue&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output text_html"><style type="text/css">
-#T_aa4a0_row0_col1, #T_aa4a0_row0_col3, #T_aa4a0_row3_col2, #T_aa4a0_row3_col4 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 100.0%, transparent 100.0%);
-}
-#T_aa4a0_row0_col2 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 92.9%, transparent 92.9%);
-}
-#T_aa4a0_row0_col4 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 93.3%, transparent 93.3%);
-}
-#T_aa4a0_row1_col1 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 74.7%, transparent 74.7%);
-}
-#T_aa4a0_row1_col2 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 75.3%, transparent 75.3%);
-}
-#T_aa4a0_row1_col3 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 87.2%, transparent 87.2%);
-}
-#T_aa4a0_row1_col4 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 85.9%, transparent 85.9%);
-}
-#T_aa4a0_row2_col1 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 55.2%, transparent 55.2%);
-}
-#T_aa4a0_row2_col2 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 58.3%, transparent 58.3%);
-}
-#T_aa4a0_row2_col3 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 71.8%, transparent 71.8%);
-}
-#T_aa4a0_row2_col4 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 83.5%, transparent 83.5%);
-}
-#T_aa4a0_row3_col1 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 49.4%, transparent 49.4%);
-}
-#T_aa4a0_row3_col3 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 94.9%, transparent 94.9%);
-}
-#T_aa4a0_row4_col1 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 32.4%, transparent 32.4%);
-}
-#T_aa4a0_row4_col2 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 76.2%, transparent 76.2%);
-}
-#T_aa4a0_row4_col3 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 89.7%, transparent 89.7%);
-}
-#T_aa4a0_row4_col4 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 88.3%, transparent 88.3%);
-}
-</style>
-<table id="T_aa4a0">
-  <thead>
-    <tr>
-      <th class="blank level0" >&nbsp;</th>
-      <th id="T_aa4a0_level0_col0" class="col_heading level0 col0" >State</th>
-      <th id="T_aa4a0_level0_col1" class="col_heading level0 col1" >Population_M</th>
-      <th id="T_aa4a0_level0_col2" class="col_heading level0 col2" >GDP_per_capita</th>
-      <th id="T_aa4a0_level0_col3" class="col_heading level0 col3" >Unemployment_rate</th>
-      <th id="T_aa4a0_level0_col4" class="col_heading level0 col4" >College_grad_pct</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th id="T_aa4a0_level0_row0" class="row_heading level0 row0" >0</th>
-      <td id="T_aa4a0_row0_col0" class="data row0 col0" >California</td>
-      <td id="T_aa4a0_row0_col1" class="data row0 col1" >39.500000</td>
-      <td id="T_aa4a0_row0_col2" class="data row0 col2" >88700</td>
-      <td id="T_aa4a0_row0_col3" class="data row0 col3" >3.900000</td>
-      <td id="T_aa4a0_row0_col4" class="data row0 col4" >35.000000</td>
-    </tr>
-    <tr>
-      <th id="T_aa4a0_level0_row1" class="row_heading level0 row1" >1</th>
-      <td id="T_aa4a0_row1_col0" class="data row1 col0" >Texas</td>
-      <td id="T_aa4a0_row1_col1" class="data row1 col1" >29.500000</td>
-      <td id="T_aa4a0_row1_col2" class="data row1 col2" >71900</td>
-      <td id="T_aa4a0_row1_col3" class="data row1 col3" >3.400000</td>
-      <td id="T_aa4a0_row1_col4" class="data row1 col4" >32.200000</td>
-    </tr>
-    <tr>
-      <th id="T_aa4a0_level0_row2" class="row_heading level0 row2" >2</th>
-      <td id="T_aa4a0_row2_col0" class="data row2 col0" >Florida</td>
-      <td id="T_aa4a0_row2_col1" class="data row2 col1" >21.800000</td>
-      <td id="T_aa4a0_row2_col2" class="data row2 col2" >55700</td>
-      <td id="T_aa4a0_row2_col3" class="data row2 col3" >2.800000</td>
-      <td id="T_aa4a0_row2_col4" class="data row2 col4" >31.300000</td>
-    </tr>
-    <tr>
-      <th id="T_aa4a0_level0_row3" class="row_heading level0 row3" >3</th>
-      <td id="T_aa4a0_row3_col0" class="data row3 col0" >New York</td>
-      <td id="T_aa4a0_row3_col1" class="data row3 col1" >19.500000</td>
-      <td id="T_aa4a0_row3_col2" class="data row3 col2" >95500</td>
-      <td id="T_aa4a0_row3_col3" class="data row3 col3" >3.700000</td>
-      <td id="T_aa4a0_row3_col4" class="data row3 col4" >37.500000</td>
-    </tr>
-    <tr>
-      <th id="T_aa4a0_level0_row4" class="row_heading level0 row4" >4</th>
-      <td id="T_aa4a0_row4_col0" class="data row4 col0" >Pennsylvania</td>
-      <td id="T_aa4a0_row4_col1" class="data row4 col1" >12.800000</td>
-      <td id="T_aa4a0_row4_col2" class="data row4 col2" >72800</td>
-      <td id="T_aa4a0_row4_col3" class="data row4 col3" >3.500000</td>
-      <td id="T_aa4a0_row4_col4" class="data row4 col4" >33.100000</td>
-    </tr>
-  </tbody>
-</table>
-</div></div>
+</details>
 </div>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;lightblue&#39;</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">display</span><span class="p">(</span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;lightblue&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output text_html"><style type="text/css">
-#T_eaa7c_row0_col1, #T_eaa7c_row0_col3, #T_eaa7c_row0_col4, #T_eaa7c_row1_col1, #T_eaa7c_row1_col3, #T_eaa7c_row1_col4, #T_eaa7c_row2_col1, #T_eaa7c_row2_col3, #T_eaa7c_row3_col1, #T_eaa7c_row3_col3, #T_eaa7c_row3_col4, #T_eaa7c_row4_col1, #T_eaa7c_row4_col3, #T_eaa7c_row4_col4 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 0.0%, transparent 0.0%);
-}
-#T_eaa7c_row0_col2, #T_eaa7c_row1_col2, #T_eaa7c_row2_col2, #T_eaa7c_row3_col2, #T_eaa7c_row4_col2 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 100.0%, transparent 100.0%);
-}
-#T_eaa7c_row2_col4 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 0.1%, transparent 0.1%);
-}
-</style>
-<table id="T_eaa7c">
-  <thead>
-    <tr>
-      <th class="blank level0" >&nbsp;</th>
-      <th id="T_eaa7c_level0_col0" class="col_heading level0 col0" >State</th>
-      <th id="T_eaa7c_level0_col1" class="col_heading level0 col1" >Population_M</th>
-      <th id="T_eaa7c_level0_col2" class="col_heading level0 col2" >GDP_per_capita</th>
-      <th id="T_eaa7c_level0_col3" class="col_heading level0 col3" >Unemployment_rate</th>
-      <th id="T_eaa7c_level0_col4" class="col_heading level0 col4" >College_grad_pct</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th id="T_eaa7c_level0_row0" class="row_heading level0 row0" >0</th>
-      <td id="T_eaa7c_row0_col0" class="data row0 col0" >California</td>
-      <td id="T_eaa7c_row0_col1" class="data row0 col1" >39.500000</td>
-      <td id="T_eaa7c_row0_col2" class="data row0 col2" >88700</td>
-      <td id="T_eaa7c_row0_col3" class="data row0 col3" >3.900000</td>
-      <td id="T_eaa7c_row0_col4" class="data row0 col4" >35.000000</td>
-    </tr>
-    <tr>
-      <th id="T_eaa7c_level0_row1" class="row_heading level0 row1" >1</th>
-      <td id="T_eaa7c_row1_col0" class="data row1 col0" >Texas</td>
-      <td id="T_eaa7c_row1_col1" class="data row1 col1" >29.500000</td>
-      <td id="T_eaa7c_row1_col2" class="data row1 col2" >71900</td>
-      <td id="T_eaa7c_row1_col3" class="data row1 col3" >3.400000</td>
-      <td id="T_eaa7c_row1_col4" class="data row1 col4" >32.200000</td>
-    </tr>
-    <tr>
-      <th id="T_eaa7c_level0_row2" class="row_heading level0 row2" >2</th>
-      <td id="T_eaa7c_row2_col0" class="data row2 col0" >Florida</td>
-      <td id="T_eaa7c_row2_col1" class="data row2 col1" >21.800000</td>
-      <td id="T_eaa7c_row2_col2" class="data row2 col2" >55700</td>
-      <td id="T_eaa7c_row2_col3" class="data row2 col3" >2.800000</td>
-      <td id="T_eaa7c_row2_col4" class="data row2 col4" >31.300000</td>
-    </tr>
-    <tr>
-      <th id="T_eaa7c_level0_row3" class="row_heading level0 row3" >3</th>
-      <td id="T_eaa7c_row3_col0" class="data row3 col0" >New York</td>
-      <td id="T_eaa7c_row3_col1" class="data row3 col1" >19.500000</td>
-      <td id="T_eaa7c_row3_col2" class="data row3 col2" >95500</td>
-      <td id="T_eaa7c_row3_col3" class="data row3 col3" >3.700000</td>
-      <td id="T_eaa7c_row3_col4" class="data row3 col4" >37.500000</td>
-    </tr>
-    <tr>
-      <th id="T_eaa7c_level0_row4" class="row_heading level0 row4" >4</th>
-      <td id="T_eaa7c_row4_col0" class="data row4 col0" >Pennsylvania</td>
-      <td id="T_eaa7c_row4_col1" class="data row4 col1" >12.800000</td>
-      <td id="T_eaa7c_row4_col2" class="data row4 col2" >72800</td>
-      <td id="T_eaa7c_row4_col3" class="data row4 col3" >3.500000</td>
-      <td id="T_eaa7c_row4_col4" class="data row4 col4" >33.100000</td>
-    </tr>
-  </tbody>
-</table>
-</div></div>
+</details>
 </div>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;lightblue&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">display</span><span class="p">(</span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;lightblue&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output text_html"><style type="text/css">
-#T_f503f_row0_col1, #T_f503f_row0_col3, #T_f503f_row0_col4, #T_f503f_row1_col1, #T_f503f_row1_col3, #T_f503f_row1_col4, #T_f503f_row2_col1, #T_f503f_row2_col3, #T_f503f_row2_col4, #T_f503f_row3_col1, #T_f503f_row3_col3, #T_f503f_row3_col4, #T_f503f_row4_col1, #T_f503f_row4_col3, #T_f503f_row4_col4 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 0.0%, transparent 0.0%);
-}
-#T_f503f_row0_col2 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 92.9%, transparent 92.9%);
-}
-#T_f503f_row1_col2 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 75.3%, transparent 75.3%);
-}
-#T_f503f_row2_col2 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 58.3%, transparent 58.3%);
-}
-#T_f503f_row3_col2 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 100.0%, transparent 100.0%);
-}
-#T_f503f_row4_col2 {
-  width: 10em;
-  background: linear-gradient(90deg, lightblue 76.2%, transparent 76.2%);
-}
-</style>
-<table id="T_f503f">
-  <thead>
-    <tr>
-      <th class="blank level0" >&nbsp;</th>
-      <th id="T_f503f_level0_col0" class="col_heading level0 col0" >State</th>
-      <th id="T_f503f_level0_col1" class="col_heading level0 col1" >Population_M</th>
-      <th id="T_f503f_level0_col2" class="col_heading level0 col2" >GDP_per_capita</th>
-      <th id="T_f503f_level0_col3" class="col_heading level0 col3" >Unemployment_rate</th>
-      <th id="T_f503f_level0_col4" class="col_heading level0 col4" >College_grad_pct</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th id="T_f503f_level0_row0" class="row_heading level0 row0" >0</th>
-      <td id="T_f503f_row0_col0" class="data row0 col0" >California</td>
-      <td id="T_f503f_row0_col1" class="data row0 col1" >39.500000</td>
-      <td id="T_f503f_row0_col2" class="data row0 col2" >88700</td>
-      <td id="T_f503f_row0_col3" class="data row0 col3" >3.900000</td>
-      <td id="T_f503f_row0_col4" class="data row0 col4" >35.000000</td>
-    </tr>
-    <tr>
-      <th id="T_f503f_level0_row1" class="row_heading level0 row1" >1</th>
-      <td id="T_f503f_row1_col0" class="data row1 col0" >Texas</td>
-      <td id="T_f503f_row1_col1" class="data row1 col1" >29.500000</td>
-      <td id="T_f503f_row1_col2" class="data row1 col2" >71900</td>
-      <td id="T_f503f_row1_col3" class="data row1 col3" >3.400000</td>
-      <td id="T_f503f_row1_col4" class="data row1 col4" >32.200000</td>
-    </tr>
-    <tr>
-      <th id="T_f503f_level0_row2" class="row_heading level0 row2" >2</th>
-      <td id="T_f503f_row2_col0" class="data row2 col0" >Florida</td>
-      <td id="T_f503f_row2_col1" class="data row2 col1" >21.800000</td>
-      <td id="T_f503f_row2_col2" class="data row2 col2" >55700</td>
-      <td id="T_f503f_row2_col3" class="data row2 col3" >2.800000</td>
-      <td id="T_f503f_row2_col4" class="data row2 col4" >31.300000</td>
-    </tr>
-    <tr>
-      <th id="T_f503f_level0_row3" class="row_heading level0 row3" >3</th>
-      <td id="T_f503f_row3_col0" class="data row3 col0" >New York</td>
-      <td id="T_f503f_row3_col1" class="data row3 col1" >19.500000</td>
-      <td id="T_f503f_row3_col2" class="data row3 col2" >95500</td>
-      <td id="T_f503f_row3_col3" class="data row3 col3" >3.700000</td>
-      <td id="T_f503f_row3_col4" class="data row3 col4" >37.500000</td>
-    </tr>
-    <tr>
-      <th id="T_f503f_level0_row4" class="row_heading level0 row4" >4</th>
-      <td id="T_f503f_row4_col0" class="data row4 col0" >Pennsylvania</td>
-      <td id="T_f503f_row4_col1" class="data row4 col1" >12.800000</td>
-      <td id="T_f503f_row4_col2" class="data row4 col2" >72800</td>
-      <td id="T_f503f_row4_col3" class="data row4 col3" >3.500000</td>
-      <td id="T_f503f_row4_col4" class="data row4 col4" >33.100000</td>
-    </tr>
-  </tbody>
-</table>
-</div></div>
+</details>
 </div>
 </section>
 </section>
