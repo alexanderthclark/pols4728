@@ -63,7 +63,7 @@
     <link rel="icon" href="../_static/favicon_square_very_bold.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="search_exclude: true" href="solutions.html" />
+    <link rel="next" title="Selected Solutions" href="solutions.html" />
     <link rel="prev" title="Preliminaries and Digressions" href="prelims_and_digressions.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -207,8 +207,7 @@
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="solutions.html">search_exclude: true</a></li>
-
+<li class="toctree-l1"><a class="reference internal" href="solutions.html">Selected Solutions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bibliography.html">References</a></li>
 </ul>
 
@@ -494,7 +493,7 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="hugging-face-i">
+  <section class="tex2jax_ignore mathjax_ignore" id="hugging-face-i">
 <h1>Hugging Face I<a class="headerlink" href="#hugging-face-i" title="Link to this heading">#</a></h1>
 <p>This guide shows how to call gpt-oss via Hugging Face Inference Providers (no local GPU). We’ll use the <code class="docutils literal notranslate"><span class="pre">huggingface_hub</span></code> client for chat completion requests.</p>
 <p>A model like gpt-oss is too big for my Macbook Pro, so we aren’t installing it. Using Hugging Face Inference Providers means requests execute on hosted GPUs; expect shared rate limits and occasional cold starts.</p>
@@ -534,7 +533,7 @@ document.write(`
 </div>
 </section>
 </section>
-<section id="sentiment-classification">
+<section class="tex2jax_ignore mathjax_ignore" id="sentiment-classification">
 <h1>Sentiment Classification<a class="headerlink" href="#sentiment-classification" title="Link to this heading">#</a></h1>
 <div class="cell tag_hide-output docutils container">
 <div class="cell_input docutils container">
@@ -547,12 +546,17 @@ document.write(`
 </div>
 </div>
 </div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
+<div class="cell tag_hide-output docutils container">
+<div class="cell_input above-output-prompt docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">r</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">chat_completion</span><span class="p">(</span><span class="n">messages</span><span class="o">=</span><span class="n">msgs</span><span class="p">,</span> <span class="n">max_tokens</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
+<details class="admonition hide below-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell output</p>
+<p class="expanded admonition-title">Hide code cell output</p>
+</summary>
 <div class="cell_output docutils container">
 <div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
 <span class="ne">ValueError</span><span class="g g-Whitespace">                                </span>Traceback (most recent call last)
@@ -599,6 +603,7 @@ document.write(`
 </pre></div>
 </div>
 </div>
+</details>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -613,7 +618,7 @@ document.write(`
 </div>
 </div>
 </section>
-<section id="stance-classification">
+<section class="tex2jax_ignore mathjax_ignore" id="stance-classification">
 <h1>Stance Classification<a class="headerlink" href="#stance-classification" title="Link to this heading">#</a></h1>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -645,7 +650,7 @@ document.write(`
 </div>
 </div>
 </section>
-<section id="topic-discovery">
+<section class="tex2jax_ignore mathjax_ignore" id="topic-discovery">
 <h1>Topic Discovery<a class="headerlink" href="#topic-discovery" title="Link to this heading">#</a></h1>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -714,7 +719,7 @@ document.write(`
 </div>
 </div>
 </section>
-<section id="compare-to-google-gemma">
+<section class="tex2jax_ignore mathjax_ignore" id="compare-to-google-gemma">
 <h1>Compare to Google Gemma<a class="headerlink" href="#compare-to-google-gemma" title="Link to this heading">#</a></h1>
 <p>Google’s Gemma is a family of low-cost, open-weight large language models.</p>
 <div class="cell docutils container">
@@ -807,7 +812,7 @@ document.write(`
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">search_exclude: true</p>
+        <p class="prev-next-title">Selected Solutions</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

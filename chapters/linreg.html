@@ -59,6 +59,8 @@
     <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/linreg';</script>
     <link rel="icon" href="../_static/favicon_square_very_bold.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -207,8 +209,7 @@
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="../reference/solutions.html">search_exclude: true</a></li>
-
+<li class="toctree-l1"><a class="reference internal" href="../reference/solutions.html">Selected Solutions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../reference/bibliography.html">References</a></li>
 </ul>
 
@@ -428,7 +429,7 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="linear-regression">
+  <section class="tex2jax_ignore mathjax_ignore" id="linear-regression">
 <span id="linreg"></span><h1>Linear Regression<a class="headerlink" href="#linear-regression" title="Link to this heading">#</a></h1>
 <p>Regression should be a familiar topic. We will move quickly through what might be familiar and then introduce machine learning vocabulary and other points of emphasis. Some of this, like discussion of the loss surface, will feel unnecessary. However, this is a chance to ease into new concepts that will arise again for other prediction models.</p>
 <div class="seealso admonition">
@@ -440,18 +441,20 @@ document.write(`
 </div>
 <section id="id2">
 <h2>Linear Regression<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>Can you think of some famous lines? Maybe you are thinking of the Equator, the Mason Dixon, or the line in the sand at the Alamo. We can do better. $\hat{y} = 68 + \frac{2}{3}(68-x)$ is the line from which we get the term <strong>regression</strong>.</p>
+<p>Can you think of some famous lines? Maybe you are thinking of the Equator, the Mason Dixon, or the line in the sand at the Alamo. We can do better. <span class="math notranslate nohighlight">\(\hat{y} = 68 + \frac{2}{3}(68-x)\)</span> is the line from which we get the term <strong>regression</strong>.</p>
 <blockquote>
 <div><p>“The height-deviate of the offspring is, on the average, two-thirds of the height-deviate of its mid-parentage.” <span id="id3">[<a class="reference internal" href="../reference/bibliography.html#id17" title="Francis Galton. Regression towards mediocrity in hereditary stature. The Journal of the Anthropological Institute of Great Britain and Ireland, 15:246–263, 1886.">Galton, 1886</a>]</span></p>
 </div></blockquote>
 <p>Francis Galton found this line by observing that tall parents tended to have shorter (closer to average) children, while short parents tended to have taller kids. He described this phenomenon as “regression to mediocrity,” reflecting the tendency of extreme characteristics to move back toward the population average in subsequent generations. Galton actually used “ocular regression” (eyeballing it) and the term <em>regression</em> has stuck for the general line-of-best-fit technique, even when applied to data that don’t follow this pattern.</p>
 <p>Ordinary least squares (OLS) is the most common method for estimating the parameters in a linear regression model. Linear models are quite flexible because they can still accommodate interactions, categorical predictors, and nonlinearities. You, the analyst, just have to include them in your specification.</p>
-<p>Our predictors give use the design matrix, $X$. With $n$ observations and $k$ features (including an intercept), this is $n\times k$. The target variable is stored in the $n\times 1$ matrix, $y$.</p>
+<p>Our predictors give use the design matrix, <span class="math notranslate nohighlight">\(X\)</span>. With <span class="math notranslate nohighlight">\(n\)</span> observations and <span class="math notranslate nohighlight">\(k\)</span> features (including an intercept), this is <span class="math notranslate nohighlight">\(n\times k\)</span>. The target variable is stored in the <span class="math notranslate nohighlight">\(n\times 1\)</span> matrix, <span class="math notranslate nohighlight">\(y\)</span>.</p>
 <p>Then,</p>
-<p>$$\hat{\beta} = (X^TX)^{-1} X^T y.$$</p>
-<p>$X\hat{\beta}$ is the projection of $y$ onto the column space of $X$. That means $\Vert y - X\hat{\beta}  \Vert \leq \Vert y - Xv \Vert $ for any other $k\times 1$ vector $v$. The quality of the fit is not generally measured by $\Vert y - X\hat{\beta} \Vert$.<a class="footnote-reference brackets" href="#id6" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> Instead we usually report the mean squared error (MSE),</p>
-<p>$$ \mathrm{MSE} = \frac{1}{n} \sum_{i=1}^n (y_i - \hat{y}_i)^2.$$</p>
-<p>This the same as $\frac{1}{n}\Vert y - X\hat{\beta}  \Vert^2$.</p>
+<div class="math notranslate nohighlight">
+\[\hat{\beta} = (X^TX)^{-1} X^T y.\]</div>
+<p><span class="math notranslate nohighlight">\(X\hat{\beta}\)</span> is the projection of <span class="math notranslate nohighlight">\(y\)</span> onto the column space of <span class="math notranslate nohighlight">\(X\)</span>. That means <span class="math notranslate nohighlight">\(\Vert y - X\hat{\beta}  \Vert \leq \Vert y - Xv \Vert \)</span> for any other <span class="math notranslate nohighlight">\(k\times 1\)</span> vector <span class="math notranslate nohighlight">\(v\)</span>. The quality of the fit is not generally measured by <span class="math notranslate nohighlight">\(\Vert y - X\hat{\beta} \Vert\)</span>.<a class="footnote-reference brackets" href="#id6" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> Instead we usually report the mean squared error (MSE),</p>
+<div class="math notranslate nohighlight">
+\[ \mathrm{MSE} = \frac{1}{n} \sum_{i=1}^n (y_i - \hat{y}_i)^2.\]</div>
+<p>This the same as <span class="math notranslate nohighlight">\(\frac{1}{n}\Vert y - X\hat{\beta}  \Vert^2\)</span>.</p>
 </section>
 <section id="multiple-linear-regression">
 <h2>Multiple Linear Regression<a class="headerlink" href="#multiple-linear-regression" title="Link to this heading">#</a></h2>
@@ -459,16 +462,17 @@ document.write(`
 <section id="application-determinants-of-the-outcomes-of-midterm-congressional-elections">
 <h2>Application: Determinants of the Outcomes of Midterm Congressional Elections<a class="headerlink" href="#application-determinants-of-the-outcomes-of-midterm-congressional-elections" title="Link to this heading">#</a></h2>
 <p><span id="id5">[<a class="reference internal" href="../reference/bibliography.html#id18" title="Edward R Tufte. Determinants of the outcomes of midterm congressional elections. American Political Science Review, 69(3):812–826, 1975.">Tufte, 1975</a>]</span> proposes a regression model to understand the outcomes of midterm congressional elections in the US,</p>
-<p>$$\hat{Y}_i = \beta_0 + \beta_1 P_i + \beta_2 (\Delta E_i),$$</p>
+<div class="math notranslate nohighlight">
+\[\hat{Y}_i = \beta_0 + \beta_1 P_i + \beta_2 (\Delta E_i),\]</div>
 <p>where</p>
 <ul class="simple">
-<li><p>$Y_i$ is the standardized midterm vote for the party of the sitting president in midterm election $i$,</p></li>
-<li><p>$P_i$ is the percentage approving of the President in the Gallup poll in the September prior to the election,</p></li>
-<li><p>$\Delta E_i$ is the year-over-year change in real disposable personal income per capita.</p></li>
+<li><p><span class="math notranslate nohighlight">\(Y_i\)</span> is the standardized midterm vote for the party of the sitting president in midterm election <span class="math notranslate nohighlight">\(i\)</span>,</p></li>
+<li><p><span class="math notranslate nohighlight">\(P_i\)</span> is the percentage approving of the President in the Gallup poll in the September prior to the election,</p></li>
+<li><p><span class="math notranslate nohighlight">\(\Delta E_i\)</span> is the year-over-year change in real disposable personal income per capita.</p></li>
 </ul>
 </section>
 </section>
-<section id="python">
+<section class="tex2jax_ignore mathjax_ignore" id="python">
 <h1>Python<a class="headerlink" href="#python" title="Link to this heading">#</a></h1>
 <section id="simple-linear-regression">
 <h2>Simple Linear Regression<a class="headerlink" href="#simple-linear-regression" title="Link to this heading">#</a></h2>
@@ -530,7 +534,7 @@ document.write(`
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="id6" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">1</a><span class="fn-bracket">]</span></span>
-<p>$\Vert \cdot \Vert$ is the Euclidean or L2 norm.</p>
+<p><span class="math notranslate nohighlight">\(\Vert \cdot \Vert\)</span> is the Euclidean or L2 norm.</p>
 </aside>
 </aside>
 </section>

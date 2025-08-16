@@ -59,6 +59,8 @@
     <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'reference/prelims_and_digressions';</script>
     <link rel="icon" href="../_static/favicon_square_very_bold.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -207,8 +209,7 @@
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="solutions.html">search_exclude: true</a></li>
-
+<li class="toctree-l1"><a class="reference internal" href="solutions.html">Selected Solutions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bibliography.html">References</a></li>
 </ul>
 
@@ -502,7 +503,7 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="preliminaries-and-digressions">
+  <section class="tex2jax_ignore mathjax_ignore" id="preliminaries-and-digressions">
 <h1>Preliminaries and Digressions<a class="headerlink" href="#preliminaries-and-digressions" title="Link to this heading">#</a></h1>
 <p>This notebook is a collection of topics that might be considered preliminaries <em>or</em> digressions that might supplement your understanding but aren’t purely necessary for this course. I’ll try to be clear about what is what or split these notes out as they grow.</p>
 <section id="python-basics">
@@ -512,8 +513,8 @@ document.write(`
 <p>Let me assume that if you don’t know Python, you at least know R. Then, there are only a few surprises.</p>
 <ul class="simple">
 <li><p>Use <code class="docutils literal notranslate"><span class="pre">=</span></code> for assignment instead of <code class="docutils literal notranslate"><span class="pre">&lt;-</span></code></p></li>
-<li><p>Use <code class="docutils literal notranslate"><span class="pre">**</span></code> for exponentiation instead of <code class="docutils literal notranslate"><span class="pre">^</span></code>. So $2^3$ is coded as <code class="docutils literal notranslate"><span class="pre">2**3</span></code>.</p></li>
-<li><p>Python is zero-indexed. The element of at the beginning of the list <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">[9,</span> <span class="pre">7]</span></code> is the value <code class="docutils literal notranslate"><span class="pre">9</span></code> and it is accessed as <code class="docutils literal notranslate"><span class="pre">x[0]</span></code>. This also means that, though <code class="docutils literal notranslate"><span class="pre">x</span></code> is of length two, the last element is at place <code class="docutils literal notranslate"><span class="pre">x[1]</span></code>. Indices generally run over the interval $0 \leq i &lt; \text{length of array}$. This is how <a class="reference external" href="https://www.cs.utexas.edu/~EWD/ewd08xx/EWD831.PDF">Dykstra wanted it</a>.</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">**</span></code> for exponentiation instead of <code class="docutils literal notranslate"><span class="pre">^</span></code>. So <span class="math notranslate nohighlight">\(2^3\)</span> is coded as <code class="docutils literal notranslate"><span class="pre">2**3</span></code>.</p></li>
+<li><p>Python is zero-indexed. The element of at the beginning of the list <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">[9,</span> <span class="pre">7]</span></code> is the value <code class="docutils literal notranslate"><span class="pre">9</span></code> and it is accessed as <code class="docutils literal notranslate"><span class="pre">x[0]</span></code>. This also means that, though <code class="docutils literal notranslate"><span class="pre">x</span></code> is of length two, the last element is at place <code class="docutils literal notranslate"><span class="pre">x[1]</span></code>. Indices generally run over the interval <span class="math notranslate nohighlight">\(0 \leq i &lt; \text{length of array}\)</span>. This is how <a class="reference external" href="https://www.cs.utexas.edu/~EWD/ewd08xx/EWD831.PDF">Dykstra wanted it</a>.</p></li>
 </ul>
 <p>In action:</p>
 <div class="cell docutils container">

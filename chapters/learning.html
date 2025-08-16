@@ -59,6 +59,8 @@
     <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/learning';</script>
     <link rel="icon" href="../_static/favicon_square_very_bold.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -207,8 +209,7 @@
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="../reference/solutions.html">search_exclude: true</a></li>
-
+<li class="toctree-l1"><a class="reference internal" href="../reference/solutions.html">Selected Solutions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../reference/bibliography.html">References</a></li>
 </ul>
 
@@ -437,7 +438,7 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="learning">
+  <section class="tex2jax_ignore mathjax_ignore" id="learning">
 <span id="id1"></span><h1>Learning<a class="headerlink" href="#learning" title="Link to this heading">#</a></h1>
 <section id="what-is-machine-learning">
 <h2>What is Machine Learning?<a class="headerlink" href="#what-is-machine-learning" title="Link to this heading">#</a></h2>
@@ -471,7 +472,7 @@ document.write(`
 <li><p><strong>Performance measure P</strong>: Mean squared error (MSE) between predicted and actual wages</p></li>
 <li><p><strong>Training experience E</strong>: Observing education-wage pairs from survey data</p></li>
 </ul>
-<p>If we observe $i=1,\dots,n$ and make prediction $\hat{y}<em>i$ for all $i$, our performance measure is $\frac{1}{n}\sum</em>{i=1}^{n} (y_i -\hat{y}_i)^2$. If we use a linear model, $\hat{y}_i=\hat{\beta}_0 + \hat{\beta}_1x_i$, then we are describing ordinary least squares.</p>
+<p>If we observe <span class="math notranslate nohighlight">\(i=1,\dots,n\)</span> and make prediction <span class="math notranslate nohighlight">\(\hat{y}_i\)</span> for all <span class="math notranslate nohighlight">\(i\)</span>, our performance measure is <span class="math notranslate nohighlight">\(\frac{1}{n}\sum_{i=1}^{n} (y_i -\hat{y}_i)^2\)</span>. If we use a linear model, <span class="math notranslate nohighlight">\(\hat{y}_i=\hat{\beta}_0 + \hat{\beta}_1x_i\)</span>, then we are describing ordinary least squares.</p>
 </section>
 <section id="example-playing-board-games">
 <h3>Example: Playing Board Games<a class="headerlink" href="#example-playing-board-games" title="Link to this heading">#</a></h3>
@@ -491,7 +492,7 @@ document.write(`
 <p>Textbooks like <span id="id7">[<a class="reference internal" href="../reference/bibliography.html#id4" title="Gareth James, Daniela Witten, Trevor Hastie, Robert Tibshirani, and Jonathan Taylor. An Introduction to Statistical Learning with Applications in Python. Springer, 2023. URL: https://www.statlearning.com/.">James <em>et al.</em>, 2023</a>]</span> often introduce a <em>supervised</em> vs <em>unsupervised</em> dichotomy. We will follow that convention, but note that more complete taxonomies might include reinforcement learning or semi-supervised learning.</p>
 <section id="supervised-learning">
 <h3>Supervised Learning<a class="headerlink" href="#supervised-learning" title="Link to this heading">#</a></h3>
-<p>Supervised learning problems come with <em>supervising output</em> or we might say our data is labeled: we have both the inputs $x$ and the observed output $y$.</p>
+<p>Supervised learning problems come with <em>supervising output</em> or we might say our data is labeled: we have both the inputs <span class="math notranslate nohighlight">\(x\)</span> and the observed output <span class="math notranslate nohighlight">\(y\)</span>.</p>
 <ul class="simple">
 <li><p><strong>Classification Tasks</strong>: Predict discrete categories (e.g., spam vs. not spam)</p></li>
 <li><p><strong>Regression Tasks</strong>: Predict continuous values (e.g., wages, house prices)</p></li>
@@ -555,20 +556,20 @@ document.write(`
 <p>Common performance measures in classification include</p>
 <ol class="arabic">
 <li><p><strong>Precision</strong><br />
-$\text{Precision} ;=; \frac{\text{True Positives (TP)}}{\text{True Positives (TP)} + \text{False Positives (FP)}}$</p>
+<span class="math notranslate nohighlight">\(\text{Precision} \;=\; \frac{\text{True Positives (TP)}}{\text{True Positives (TP)} + \text{False Positives (FP)}}\)</span></p>
 <blockquote>
 <div><p>Of all the defendants the model predicted as high risk (would FTA or be rearrested), how many actually did?</p>
 </div></blockquote>
 </li>
 <li><p><strong>Recall</strong><br />
-$ \text{Recall} ;=; \frac{\text{True Positives (TP)}}{\text{True Positives (TP)} + \text{False Negatives (FN)}} $</p>
+<span class="math notranslate nohighlight">\( \text{Recall} \;=\; \frac{\text{True Positives (TP)}}{\text{True Positives (TP)} + \text{False Negatives (FN)}} \)</span></p>
 <blockquote>
 <div><p>Of all defendants who actually were high risk (would FTA or be rearrested), how many did the model correctly flag?</p>
 </div></blockquote>
 </li>
 <li><p><strong>F-1 Score</strong><br />
 Harmonic mean of Precision and Recall</p>
-<p>$ F_1 ;=; 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}} $</p>
+<p><span class="math notranslate nohighlight">\( F_1 \;=\; 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}} \)</span></p>
 </li>
 </ol>
 <section id="more-concrete">

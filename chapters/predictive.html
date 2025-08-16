@@ -59,6 +59,8 @@
     <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/predictive';</script>
     <link rel="icon" href="../_static/favicon_square_very_bold.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -207,8 +209,7 @@
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="../reference/solutions.html">search_exclude: true</a></li>
-
+<li class="toctree-l1"><a class="reference internal" href="../reference/solutions.html">Selected Solutions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../reference/bibliography.html">References</a></li>
 </ul>
 
@@ -473,7 +474,7 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Predictive Modeling</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predicting-hat-y">Predicting $\hat{y}$</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predicting-hat-y">Predicting <span class="math notranslate nohighlight">\(\hat{y}\)</span></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tufte-s-midterm-elections-model">Tufte’s Midterm Elections Model</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#model-1">Model 1</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#model-2">Model 2</a></li>
@@ -506,7 +507,7 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="predictive-modeling">
+  <section class="tex2jax_ignore mathjax_ignore" id="predictive-modeling">
 <span id="predictive"></span><h1>Predictive Modeling<a class="headerlink" href="#predictive-modeling" title="Link to this heading">#</a></h1>
 <p>In this section we discuss the general predictive modeling process, model tuning, the problem of overfitting, and cross-validation. This draws on <span id="id1">[<a class="reference internal" href="../reference/bibliography.html#id3" title="Max Kuhn, Kjell Johnson, and others. Applied predictive modeling. Volume 26. Springer, 2013. URL: https://link-springer-com.ezproxy.cul.columbia.edu/book/10.1007/978-1-4614-6849-3.">Kuhn <em>et al.</em>, 2013</a>]</span> Chapters 2 and 4. ISL is also a good reference for the main ideas. However, I don’t recommend either book for its treatment of cross-validation. Instead, consider <a class="reference external" href="https://scikit-learn.org/stable/modules/cross_validation.html">the scikit-learn documentation</a> and</p>
 <p>Both ISL (Ch 2) and APM (Ch 2 and 4) are suitable references.</p>
@@ -514,16 +515,17 @@ document.write(`
 <p>This section introduces key concepts in the predictive modeling process, drawing on <span id="id4">[<a class="reference internal" href="../reference/bibliography.html#id3" title="Max Kuhn, Kjell Johnson, and others. Applied predictive modeling. Volume 26. Springer, 2013. URL: https://link-springer-com.ezproxy.cul.columbia.edu/book/10.1007/978-1-4614-6849-3.">Kuhn <em>et al.</em>, 2013</a>]</span> Chapters 2-4 and <span id="id5">[<a class="reference internal" href="../reference/bibliography.html#id14" title="Sudhir Varma and Richard Simon. Bias in error estimation when using cross-validation for model selection. BMC bioinformatics, 7(1):91, 2006.">Varma and Simon, 2006</a>]</span>. After the corresponding lecture, you should be prepared to read <span id="id6">[<a class="reference internal" href="../reference/bibliography.html#id20" title="Michael D Ward, Brian D Greenhill, and Kristin M Bakke. The perils of policy by p-value: predicting civil conflicts. Journal of Peace Research, 47(4):363–375, 2010.">Ward <em>et al.</em>, 2010</a>]</span> and <span id="id7">[<a class="reference internal" href="../reference/bibliography.html#id16" title="Marcel Neunhoeffer and Sebastian Sternberg. How cross-validation can go wrong and what to do about it. Political Analysis, 27(1):101–106, 2019.">Neunhoeffer and Sternberg, 2019</a>]</span>.</p>
 <p>Read ISL chapters 2 and 5.</p>
 <section id="predicting-hat-y">
-<h2>Predicting $\hat{y}$<a class="headerlink" href="#predicting-hat-y" title="Link to this heading">#</a></h2>
+<h2>Predicting <span class="math notranslate nohighlight">\(\hat{y}\)</span><a class="headerlink" href="#predicting-hat-y" title="Link to this heading">#</a></h2>
 <p>Most of the machine learning models we will cover focus on prediction. In this world, we are not interested in marginal effects like the increase in wages attributable to schooling, standard errors, or even interpretability. Instead, we focus on some measure of predictive accuracy. A black box model is fine and a simpler model might only be preferred with parsimony as a tiebreaker.</p>
 </section>
 <section id="tufte-s-midterm-elections-model">
 <h2>Tufte’s Midterm Elections Model<a class="headerlink" href="#tufte-s-midterm-elections-model" title="Link to this heading">#</a></h2>
-<p>Let’s focus on regression problems where $y$ is a continuous scalar value. For concreteness, let’s say we are predicting midterm election vote share like in <span id="id8">[<a class="reference internal" href="../reference/bibliography.html#id18" title="Edward R Tufte. Determinants of the outcomes of midterm congressional elections. American Political Science Review, 69(3):812–826, 1975.">Tufte, 1975</a>]</span>. The $y$ variable is the percentage-point difference between the president’s party’s midterm two-party House vote share and that party’s normal vote (average over the previous eight House elections).</p>
+<p>Let’s focus on regression problems where <span class="math notranslate nohighlight">\(y\)</span> is a continuous scalar value. For concreteness, let’s say we are predicting midterm election vote share like in <span id="id8">[<a class="reference internal" href="../reference/bibliography.html#id18" title="Edward R Tufte. Determinants of the outcomes of midterm congressional elections. American Political Science Review, 69(3):812–826, 1975.">Tufte, 1975</a>]</span>. The <span class="math notranslate nohighlight">\(y\)</span> variable is the percentage-point difference between the president’s party’s midterm two-party House vote share and that party’s normal vote (average over the previous eight House elections).</p>
 <p><span id="id9">[<a class="reference internal" href="../reference/bibliography.html#id18" title="Edward R Tufte. Determinants of the outcomes of midterm congressional elections. American Political Science Review, 69(3):812–826, 1975.">Tufte, 1975</a>]</span> finds an equation</p>
-<p>$$\widehat{\text{Vote Loss}} = -11.08 + 0.035\times \Delta\text{Real Disposable Income} + 0.133\times \text{Presidential Approval}.$$</p>
-<p>This line was found based on data from 1938-1970 and the R-squared is 0.912. Recall that R-squared describes how much of the variation in $y$ is captured by the model. A perfect model gives an R-squared of 1 and a model with only an intercept equal to the average of $y$ gives an R-squared of 0. Tufte’s 0.912 is impressive. With intro stats training, you might only ask for the adjusted R-squared as a follow up. The adjusted R-squared is also impressive at 0.876.</p>
-<p>Adjusted R-squared is a blunt way to prevent being overconfident in your model. After all, we can add new features of random noise, uncorrelated to $y$ and improve the R-squared. With enough columns, the R-squared will become exactly 1. The adjusted R-squared formula essentially penalizes the R-squared based on the number of predictor variables and the number of observations.</p>
+<div class="math notranslate nohighlight">
+\[\widehat{\text{Vote Loss}} = -11.08 + 0.035\times \Delta\text{Real Disposable Income} + 0.133\times \text{Presidential Approval}.\]</div>
+<p>This line was found based on data from 1938-1970 and the R-squared is 0.912. Recall that R-squared describes how much of the variation in <span class="math notranslate nohighlight">\(y\)</span> is captured by the model. A perfect model gives an R-squared of 1 and a model with only an intercept equal to the average of <span class="math notranslate nohighlight">\(y\)</span> gives an R-squared of 0. Tufte’s 0.912 is impressive. With intro stats training, you might only ask for the adjusted R-squared as a follow up. The adjusted R-squared is also impressive at 0.876.</p>
+<p>Adjusted R-squared is a blunt way to prevent being overconfident in your model. After all, we can add new features of random noise, uncorrelated to <span class="math notranslate nohighlight">\(y\)</span> and improve the R-squared. With enough columns, the R-squared will become exactly 1. The adjusted R-squared formula essentially penalizes the R-squared based on the number of predictor variables and the number of observations.</p>
 <p>However, the usefulness of this as a predictive model hinges on model performance on elections <em>after</em> 1970. Evaluating the model on a <strong>test set</strong> of previously unseen data is more data driven and it answers the question of interest more exactly. The general principle is that a model should be evaluated with new data that wasn’t used in the model training. Records from 1938-1970 form the <strong>training set</strong> and we can assemble data from 1974-2022 as a <strong>test set</strong>.</p>
 <p>Let’s see how two modifications of Tufte’s model holds up with test data. I was unable to replicate Tufte’s Real Disposable Income variable, so I substitute a similar RDI measure using data available from the BEA. In our model 1, we include only the presidential approval variable: <code class="docutils literal notranslate"><span class="pre">vote_loss</span> <span class="pre">~</span> <span class="pre">presidential_approval</span></code>.  Model 2 is spiritually the same as Tufte’s though: <code class="docutils literal notranslate"><span class="pre">vote_loss</span> <span class="pre">~</span> <span class="pre">change_rdi</span> <span class="pre">+</span> <span class="pre">presidential_approval</span></code>.</p>
 <p>We will see that none of these models performs very well on the test data.</p>
@@ -669,7 +671,7 @@ document.write(`
 <p>Above we see that model 1 is actually better than model 2 on test data. This is a case where a simple model generalizes to new data better. Should Tufte have known this? Probably not. He didn’t have access to the test data. To perform model selection, he would have needed to reserve some of his eight observations for validation. With more data, we should be able to do better. The next section tries to make that process more clear.</p>
 </section>
 </section>
-<section id="training-testing-overfitting">
+<section class="tex2jax_ignore mathjax_ignore" id="training-testing-overfitting">
 <h1>Training, Testing, Overfitting<a class="headerlink" href="#training-testing-overfitting" title="Link to this heading">#</a></h1>
 <section id="bias-variance-tradeoff">
 <h2>Bias-Variance Tradeoff<a class="headerlink" href="#bias-variance-tradeoff" title="Link to this heading">#</a></h2>
@@ -680,46 +682,48 @@ document.write(`
 <h3>Bias–Variance Decomposition (supervised prediction)<a class="headerlink" href="#biasvariance-decomposition-supervised-prediction" title="Link to this heading">#</a></h3>
 <p><strong>Data-generating process</strong></p>
 <ul class="simple">
-<li><p>$Y = f(X) + \varepsilon$</p></li>
-<li><p>$\mathbb{E}[\varepsilon \mid X] = 0$, $\mathbb{Var}(\varepsilon \mid X) = \sigma^2(X)$</p></li>
-<li><p>$\hat f$ is a fitted model (random through the training sample/algorithm)</p></li>
+<li><p><span class="math notranslate nohighlight">\(Y = f(X) + \varepsilon\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbb{E}[\varepsilon \mid X] = 0\)</span>, <span class="math notranslate nohighlight">\(\mathbb{Var}(\varepsilon \mid X) = \sigma^2(X)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\hat f\)</span> is a fitted model (random through the training sample/algorithm)</p></li>
 </ul>
-<p>Define the test MSE at $x$:
-$$
-\mathrm{MSE}(x) ;=; \mathbb{E}!\left[(Y - \hat f(x))^2 \mid X=x\right].
-$$</p>
-<p>Substitute $Y=f(x)+\varepsilon$:
-$$
+<p>Define the test MSE at <span class="math notranslate nohighlight">\(x\)</span>:
+$<span class="math notranslate nohighlight">\(
+\mathrm{MSE}(x) \;=\; \mathbb{E}\!\left[(Y - \hat f(x))^2 \mid X=x\right].
+\)</span>$</p>
+<p>Substitute <span class="math notranslate nohighlight">\(Y=f(x)+\varepsilon\)</span>:
+$<span class="math notranslate nohighlight">\(
 \begin{aligned}
 \mathrm{MSE}(x)
-&amp;= \mathbb{E}!\left[(f(x)+\varepsilon-\hat f(x))^2 \mid X=x\right] \
-&amp;= \mathbb{E}!\left[(f(x)-\hat f(x))^2 \mid X=x\right] + \mathbb{E}[\varepsilon^2 \mid X=x] + 2,\mathbb{E}!\left[\varepsilon{f(x)-\hat f(x)}\mid X=x\right].
+&amp;= \mathbb{E}\!\left[(f(x)+\varepsilon-\hat f(x))^2 \mid X=x\right] \\
+&amp;= \mathbb{E}\!\left[(f(x)-\hat f(x))^2 \mid X=x\right] + \mathbb{E}[\varepsilon^2 \mid X=x] + 2\,\mathbb{E}\!\left[\varepsilon\{f(x)-\hat f(x)\}\mid X=x\right].
 \end{aligned}
-$$</p>
-<p>Because $\mathbb{E}[\varepsilon\mid X=x]=0$ and the test noise $\varepsilon$ is independent of the training randomness in $\hat f$, the cross term is $0$. Hence
-$$
-\mathrm{MSE}(x) ;=; \underbrace{\mathbb{E}!\left[(f(x)-\hat f(x))^2\right]}<em>{\text{estimation error}}
-;+; \underbrace{\sigma^2(x)}</em>{\text{irreducible noise}}.
-$$</p>
-<p>Now split the estimation error into bias$^2$ and variance:
-$$
+\)</span>$</p>
+<p>Because <span class="math notranslate nohighlight">\(\mathbb{E}[\varepsilon\mid X=x]=0\)</span> and the test noise <span class="math notranslate nohighlight">\(\varepsilon\)</span> is independent of the training randomness in <span class="math notranslate nohighlight">\(\hat f\)</span>, the cross term is <span class="math notranslate nohighlight">\(0\)</span>. Hence
+$<span class="math notranslate nohighlight">\(
+\mathrm{MSE}(x) \;=\; \underbrace{\mathbb{E}\!\left[(f(x)-\hat f(x))^2\right]}_{\text{estimation error}}
+\;+\; \underbrace{\sigma^2(x)}_{\text{irreducible noise}}.
+\)</span>$</p>
+<p>Now split the estimation error into bias<span class="math notranslate nohighlight">\(^2\)</span> and variance:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
 \begin{aligned}
-\mathbb{E}!\left[(f(x)-\hat f(x))^2\right]
-&amp;= \mathbb{E}!\left[(\hat f(x)-\mathbb{E}[\hat f(x)] + \mathbb{E}[\hat f(x)]-f(x))^2\right] \
-&amp;= \mathbb{E}!\left[(\hat f(x)-\mathbb{E}[\hat f(x)])^2\right] + (\mathbb{E}[\hat f(x)]-f(x))^2 + 2,\mathbb{E}!\left[(\hat f(x)-\mathbb{E}[\hat f(x)])(\mathbb{E}[\hat f(x)]-f(x))\right] \
-&amp;= \underbrace{\mathbb{Var}(\hat f(x))}<em>{\text{variance}} + \underbrace{(\mathbb{E}[\hat f(x)]-f(x))^2}</em>{\text{bias}^2},
+\mathbb{E}\!\left[(f(x)-\hat f(x))^2\right]
+&amp;= \mathbb{E}\!\left[(\hat f(x)-\mathbb{E}[\hat f(x)] + \mathbb{E}[\hat f(x)]-f(x))^2\right] \\
+&amp;= \mathbb{E}\!\left[(\hat f(x)-\mathbb{E}[\hat f(x)])^2\right] + (\mathbb{E}[\hat f(x)]-f(x))^2 + 2\,\mathbb{E}\!\left[(\hat f(x)-\mathbb{E}[\hat f(x)])(\mathbb{E}[\hat f(x)]-f(x))\right] \\
 \end{aligned}
-$$
-since the cross term is zero (the second factor is constant with respect to the expectation over training randomness).</p>
-<p><strong>Therefore</strong>
-$$
-\boxed{\ \mathrm{MSE}(x)
-= \underbrace{(\mathbb{E}[\hat f(x)]-f(x))^2}_{\text{bias}^2(x)}</p>
-<ul class="simple">
-<li><p>\underbrace{\mathbb{Var}(\hat f(x))}_{\text{variance}(x)}</p></li>
-<li><p>\underbrace{\sigma^2(x)}_{\text{irreducible noise}}\ }.
-$$</p></li>
-</ul>
+\end{split}\]</div>
+<p>The first term is the variance of <span class="math notranslate nohighlight">\(\hat{f}\)</span> by definiton. The second term is the squared bias, by definition. The last, cross term is zero (the second factor is constant with respect to the expectation over training randomness), so</p>
+<div class="math notranslate nohighlight">
+\[
+\begin{aligned}
+\mathbb{E}\!\left[(f(x)-\hat f(x))^2\right] &amp;= \underbrace{\mathbb{Var}(\hat f(x))}_{\text{variance}} + \underbrace{(\mathbb{E}[\hat f(x)]-f(x))^2}_{\text{bias}^2},
+\end{aligned}
+\]</div>
+<p>Therefore,</p>
+<div class="math notranslate nohighlight">
+\[
+\boxed{\ \mathrm{MSE}(x) = \underbrace{(\mathbb{E}[\hat f(x)]-f(x))^2}_{\text{bias}^2(x)} + \underbrace{\mathbb{Var}(\hat f(x))}_{\text{variance}(x)} + \underbrace{\sigma^2(x)}_{\text{irreducible noise}}\ }.
+\]</div>
 </section>
 <section id="interpretation">
 <h3>Interpretation<a class="headerlink" href="#interpretation" title="Link to this heading">#</a></h3>
@@ -728,11 +732,11 @@ $$</p></li>
 <li><p><strong>Variance</strong>: sensitivity to the particular training sample.</p></li>
 <li><p><strong>Noise</strong>: randomness you cannot remove.</p></li>
 </ul>
-<p>Making the model more flexible typically <strong>reduces bias</strong> but <strong>increases variance</strong>; restricting it does the opposite. Optimal predictive performance sits where bias$^2$ + variance is minimized (the noise term is fixed).</p>
+<p>Making the model more flexible typically reduces bias but increases variance restricting it does the opposite. Optimal predictive performance sits where bias<span class="math notranslate nohighlight">\(^2\)</span> + variance is minimized.</p>
 </section>
 <section id="examples">
 <h3>Examples<a class="headerlink" href="#examples" title="Link to this heading">#</a></h3>
-<p>Let $f(x) = \sin x + \varepsilon$, where $\varepsilon$ is normally distributed, iid noise. Suppose we observe $x$ drawn uniformly from $[0,\pi]$ so we only have the symmetric inverted-U shape.</p>
+<p>Let <span class="math notranslate nohighlight">\(f(x) = \sin x + \varepsilon\)</span>, where <span class="math notranslate nohighlight">\(\varepsilon\)</span> is normally distributed, iid noise. Suppose we observe <span class="math notranslate nohighlight">\(x\)</span> drawn uniformly from <span class="math notranslate nohighlight">\([0,\pi]\)</span> so we only have the symmetric inverted-U shape.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -745,14 +749,14 @@ $$</p></li>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span>
 
-<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">1_000</span><span class="p">)</span>
+<span class="c1">#x = np.linspace(0, np.pi, 1_000)</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">2_000</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 <span class="n">n_axs</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">n_axs</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span><span class="mi">9</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_long</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x_long</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Sine from 0 to $\pi$&quot;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">])</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">([</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\pi/2$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\pi$&quot;</span><span class="p">])</span> 
@@ -769,17 +773,17 @@ $$</p></li>
     <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n_axs</span><span class="p">:</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">axs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_long</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x_long</span><span class="p">),</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">ec</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
         
         <span class="c1"># Add both linear and quadratic regression for axs[1] and axs[2]</span>
         <span class="n">p1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">y_lin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_lin</span><span class="p">,</span> <span class="s1">&#39;r-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Linear fit&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C1&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_lin</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Linear fit&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C1&#39;</span><span class="p">)</span>
         
         <span class="n">p2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">y_quad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">p2</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_quad</span><span class="p">,</span> <span class="s1">&#39;g-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Quadratic fit&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C2&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_quad</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Quadratic fit&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C2&#39;</span><span class="p">)</span>
         
         <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> - Linear &amp; Quadratic Regression&quot;</span><span class="p">)</span>
@@ -795,78 +799,121 @@ $$</p></li>
 </div>
 </details>
 <div class="cell_output docutils container">
-<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
-<span class="ne">NameError</span><span class="g g-Whitespace">                                 </span>Traceback (most recent call last)
-<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">line</span> <span class="mi">13</span>
-<span class="g g-Whitespace">     </span><span class="mi">11</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="g g-Whitespace">     </span><span class="mi">12</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="ne">---&gt; </span><span class="mi">13</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_long</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x_long</span><span class="p">))</span>
-<span class="g g-Whitespace">     </span><span class="mi">14</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Sine from 0 to $\pi$&quot;</span><span class="p">)</span>
-<span class="g g-Whitespace">     </span><span class="mi">15</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">])</span>
-
-<span class="ne">NameError</span>: name &#39;x_long&#39; is not defined
-</pre></div>
-</div>
-<img alt="../_images/79a64ec5655f95f0bc7a954c22638c1125366e2dc6f361a7d7e5b0e4f049d811.png" src="../_images/79a64ec5655f95f0bc7a954c22638c1125366e2dc6f361a7d7e5b0e4f049d811.png" />
+<img alt="../_images/b6d413649c64c2f8491f904e02185f0fb451bee647c27704b6c3e1ebb7d5b5c8.png" src="../_images/b6d413649c64c2f8491f904e02185f0fb451bee647c27704b6c3e1ebb7d5b5c8.png" />
 </div>
 </div>
-<p>In the above, the simpler model will perform much better if the distribution of $x$ values shifts (technically called covariate shift), so that we start observing values $x&gt;\pi$. The more complex, quadratic model is probably better in all other circumstances.</p>
-<p>Sometimes the simpler model is better for any sample of $x$ values from the same distribution. This is a more pure bias variance tradeoff. Suppose instead the actual data generating process is one of pure noise $g(x) = \varepsilon$, but that there is a lot of noise so the standard deviation of the noise is high. The quadratic model is <em>correctly specified</em> but, because it is so sensitive to the noise, it might not perform as well as the biased linear model with lower variance.</p>
-<div class="cell tag_hide-input docutils container">
+<p>In the above, the simpler model will perform much better if the distribution of <span class="math notranslate nohighlight">\(x\)</span> values shifts (technically called covariate shift), so that we start observing values <span class="math notranslate nohighlight">\(x&gt;\pi\)</span>. The more complex, quadratic model is probably better in all other circumstances.</p>
+<p>Sometimes the simpler model is better for any sample of <span class="math notranslate nohighlight">\(x\)</span> values from the same distribution. This is a more pure bias variance tradeoff. Suppose instead the actual data generating process is one of pure noise <span class="math notranslate nohighlight">\(g(x) = \varepsilon\)</span>, but that there is a lot of noise so the standard deviation of the noise is high. The quadratic model is <em>correctly specified</em> but, because it is so sensitive to the noise, it might not perform as well as the biased linear model with lower variance. Hence the tradeoff.</p>
+<figure class="align-default" id="fig-bias-variance">
+<a class="reference internal image-reference" href="../_images/scatter_bias_variance.svg"><img alt="Scatter plot showing bias-variance tradeoff" src="../_images/scatter_bias_variance.svg" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-number">Fig. 4 </span><span class="caption-text">Caption describing the bias-variance tradeoff visualization.</span><a class="headerlink" href="#fig-bias-variance" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<div class="cell tag_hide-cell docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
-<p class="collapsed admonition-title">Show code cell source</p>
-<p class="expanded admonition-title">Hide code cell source</p>
+<p class="collapsed admonition-title">Show code cell content</p>
+<p class="expanded admonition-title">Hide code cell content</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># hide code and show output </span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># hide code and hide output </span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
 <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2_000</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="c1">#np.zeros(len(x))</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="o">**</span><span class="mi">2</span>  <span class="c1"># True function</span>
 <span class="n">n_axs</span> <span class="o">=</span> <span class="mi">3</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">n_axs</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span><span class="mi">9</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">n_cols</span> <span class="o">=</span> <span class="mi">2</span>
 
-<span class="c1">#xlim, ylim = ax.get_xlim(), ax.get_ylim()</span>
 
-<span class="n">data_sets</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-<span class="n">n_sims</span> <span class="o">=</span> <span class="mi">100</span>
-<span class="n">n</span><span class="o">=</span><span class="mi">10</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">n_axs</span><span class="p">,</span> <span class="n">n_cols</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">14</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="s1">&#39;col&#39;</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="s1">&#39;row&#39;</span><span class="p">)</span>
+
+<span class="n">n</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">n_test</span> <span class="o">=</span> <span class="mi">20</span>
+
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_axs</span><span class="p">):</span>
-    <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
-    <span class="n">noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
-    <span class="n">y0</span> <span class="o">=</span>  <span class="n">noise</span>
+    <span class="c1"># Generate training data</span>
+    <span class="n">x_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">noise_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">y_train</span> <span class="o">=</span> <span class="n">x_train</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">noise_train</span>  <span class="c1"># FIXED: y = x^2 + noise</span>
     
-    <span class="n">ax</span> <span class="o">=</span> <span class="n">axs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">ec</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+    <span class="c1"># Generate test data from same distribution</span>
+    <span class="n">x_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n_test</span><span class="p">)</span>
+    <span class="n">noise_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n_test</span><span class="p">)</span>
+    <span class="n">y_test</span> <span class="o">=</span> <span class="n">x_test</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">noise_test</span>  <span class="c1"># FIXED: y = x^2 + noise</span>
     
-    <span class="c1"># Add both linear and quadratic regression for axs[1] and axs[2]</span>
-    <span class="n">p1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Fit models on training data</span>
+    <span class="n">p1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">p2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    
+    <span class="c1"># LEFT COLUMN: Training data</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">axs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span> <span class="c1">#, label=&#39;True: $y=x^2$&#39;)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">ec</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    
     <span class="n">y_lin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_lin</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Linear fit&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C1&#39;</span><span class="p">)</span>
     
-    <span class="n">p2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
     <span class="n">y_quad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">p2</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_quad</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Quadratic fit&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C2&#39;</span><span class="p">)</span>
     
-    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> - Linear &amp; Quadratic Regression&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper left&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Training Set </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># Removed R² values as requested</span>
+    
+    <span class="c1"># RIGHT COLUMN: Test data</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">axs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;True: $y=x^2$&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x_test</span><span class="p">,</span> <span class="n">y_test</span><span class="p">,</span> <span class="n">ec</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s1">&#39;lightblue&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    
+    <span class="c1"># Apply fitted models to test data</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_lin</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Linear pred&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C1&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_quad</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Quadratic pred&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C2&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Calculate test R-squared</span>
+    <span class="n">y_lin_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">x_test</span><span class="p">)</span>
+    <span class="n">y_quad_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">p2</span><span class="p">,</span> <span class="n">x_test</span><span class="p">)</span>
+    
+    <span class="n">ss_tot_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y_test</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y_test</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">ss_res_lin_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y_test</span> <span class="o">-</span> <span class="n">y_lin_test</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">ss_res_quad_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y_test</span> <span class="o">-</span> <span class="n">y_quad_test</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    
+    <span class="n">r2_lin_test</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">ss_res_lin_test</span> <span class="o">/</span> <span class="n">ss_tot_test</span><span class="p">)</span>
+    <span class="n">r2_quad_test</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">ss_res_quad_test</span> <span class="o">/</span> <span class="n">ss_tot_test</span><span class="p">)</span>
+    
+    <span class="c1"># Add comparison to title with R² values</span>
+    <span class="k">if</span> <span class="n">r2_quad_test</span> <span class="o">&gt;</span> <span class="n">r2_lin_test</span><span class="p">:</span>
+        <span class="n">title_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Test Set </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> - Quad R² = </span><span class="si">{</span><span class="n">r2_quad_test</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> &gt; Lin R² = </span><span class="si">{</span><span class="n">r2_lin_test</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">title_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Test Set </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> - Lin R² = </span><span class="si">{</span><span class="n">r2_lin_test</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> &gt; Quad R² = </span><span class="si">{</span><span class="n">r2_quad_test</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
+    
+    <span class="c1">#ax.legend()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title_text</span><span class="p">)</span>
 
-<span class="n">ax</span><span class="o">.</span><span class="n">relim</span><span class="p">()</span>
-        
+<span class="c1"># Set labels</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">&#39;Quadratic Truth with Noise: Training vs Test Performance&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">1.02</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="c1">#plt.savefig(&quot;../assets/scatter_bias_variance.svg&quot;, transparent=False)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-</details>
 <div class="cell_output docutils container">
-<img alt="../_images/95bfe57c20621b827f7a45f910361f16dbc0e3932922f49c20bc91a2ff5edcf4.png" src="../_images/95bfe57c20621b827f7a45f910361f16dbc0e3932922f49c20bc91a2ff5edcf4.png" />
+<img alt="../_images/abce7a462a2345abdbb7ac19b7d9734ee28b98d493eb33f1573c7d2426bc2c34.png" src="../_images/abce7a462a2345abdbb7ac19b7d9734ee28b98d493eb33f1573c7d2426bc2c34.png" />
 </div>
+</details>
 </div>
 </section>
 </section>
 </section>
-<section id="james-stein">
+<section class="tex2jax_ignore mathjax_ignore" id="james-stein">
 <h1>James-Stein<a class="headerlink" href="#james-stein" title="Link to this heading">#</a></h1>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -924,11 +971,11 @@ JS+ risk ≈ 1.601375
 </div>
 </div>
 </section>
-<section id="summary">
+<section class="tex2jax_ignore mathjax_ignore" id="summary">
 <h1>Summary<a class="headerlink" href="#summary" title="Link to this heading">#</a></h1>
 <p>We’ve now learned about the predictive modeling process. Model tuning and selection is prone to the problem of over-fitting. Performance measures like R-squared (and adjusted R-squared) are misleading when calculated based on training data. A model’s performance can only truly be measured by using completely new test data that was not involved in the training process. The researcher needs to remain disciplined and use procedures like cross-validation to make model selection more systematic, transparent, and reliable. <a class="reference external" href="https://www.econtalk.org/susan-athey-on-machine-learning-big-data-and-causation/">As noted by Susan Athey</a>, instead of researchers subjectively choosing variables and testing specifications behind the scenes, we can now explicitly use data to determine which variables matter. This technological shift enables what <span id="id10">[<a class="reference internal" href="../reference/bibliography.html#id10" title="Justin Grimmer, Margaret E Roberts, and Brandon M Stewart. Machine learning for social science: an agnostic approach. Annual Review of Political Science, 24(1):395–419, 2021.">Grimmer <em>et al.</em>, 2021</a>]</span> describe as a move away from purely deductive social science toward a more inductive, iterative approach where researchers can discover patterns in data rather than only testing pre-specified hypotheses.</p>
 </section>
-<section id="exercises">
+<section class="tex2jax_ignore mathjax_ignore" id="exercises">
 <h1>Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h1>
 <div class="exercise admonition" id="tufte">
 
@@ -1020,7 +1067,7 @@ JS+ risk ≈ 1.601375
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Predictive Modeling</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predicting-hat-y">Predicting $\hat{y}$</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predicting-hat-y">Predicting <span class="math notranslate nohighlight">\(\hat{y}\)</span></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tufte-s-midterm-elections-model">Tufte’s Midterm Elections Model</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#model-1">Model 1</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#model-2">Model 2</a></li>

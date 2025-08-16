@@ -207,8 +207,7 @@
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="../reference/solutions.html">search_exclude: true</a></li>
-
+<li class="toctree-l1"><a class="reference internal" href="../reference/solutions.html">Selected Solutions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../reference/bibliography.html">References</a></li>
 </ul>
 
@@ -436,7 +435,7 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="using-llms">
+  <section class="tex2jax_ignore mathjax_ignore" id="using-llms">
 <span id="evals-and-prompting"></span><h1>Using LLMs<a class="headerlink" href="#using-llms" title="Link to this heading">#</a></h1>
 <div class="seealso admonition">
 <p class="admonition-title">Reading</p>
@@ -537,7 +536,7 @@ document.write(`
 <p>It used to be emphasized that LLM performance improves if the prompt included an example with the desired output, instead of merely giving instruction. A prompt with one example corresponds to a one-shot prompting strategy and mutatis mutandis for zero-shot and multi-shot. Something I haven’t addressed above is if newer chain-of-thought models still improve with multi-shot prompting strategies. We’ll test this for ourselves shortly.</p>
 </section>
 </section>
-<section id="evaluating-llm-classifications-for-supervised-tasks">
+<section class="tex2jax_ignore mathjax_ignore" id="evaluating-llm-classifications-for-supervised-tasks">
 <h1>Evaluating LLM Classifications for Supervised Tasks<a class="headerlink" href="#evaluating-llm-classifications-for-supervised-tasks" title="Link to this heading">#</a></h1>
 <p><span id="id8">[<a class="reference internal" href="../reference/bibliography.html#id44" title="Fabrizio Gilardi, Meysam Alizadeh, and Maël Kubli. Chatgpt outperforms crowd workers for text-annotation tasks. Proceedings of the National Academy of Sciences, 120(30):e2305016120, 2023.">Gilardi <em>et al.</em>, 2023</a>]</span> showed that ChatGPT can outperform crowd workers (Mechanical Turk) on text annotation tasks. <span id="id9">[<a class="reference internal" href="../reference/bibliography.html#id45" title="Petter Törnberg. Large language models outperform expert coders and supervised classifiers at annotating political social media messages. Social Science Computer Review, pages 08944393241286471, 2024.">Törnberg, 2024</a>]</span> shows that GPT-4 outperforms even experts in annotating political social media messages. But how do we know this? How do we measure performance? And how do we find the best prompt? Instead of approaching this through prompt engineering principles, we’ll tackle this in a data-driven way by <em>trying stuff and seeing what works best</em>.</p>
 <section id="evaluation-mindset-testdriven-ml">
