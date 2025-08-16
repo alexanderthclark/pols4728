@@ -110,3 +110,6 @@ local_settings.py
 # Syllabus directory (keep private)
 syllabus/
 .virtual_documents/book/chapters/Untitled.ipynb
+
+# Claude assistant configuration
+CLAUDE.md

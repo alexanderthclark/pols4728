@@ -31,6 +31,8 @@ html:
   use_issues_button: true
   use_repository_button: true
   favicon: ./_static/favicon_square_very_bold.ico
+  extra_head: |
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   extra_navbar: |
     <style>
     .navbar-brand img {
