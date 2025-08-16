@@ -52,6 +52,11 @@ launch_buttons:
   thebe: true
   notebook_interface: "jupyterlab"
 
+# MyST parser configuration
+parse:
+  myst_enable_extensions:
+    - amsmath
+
 sphinx:
   extra_extensions:
     - sphinx_exercise
