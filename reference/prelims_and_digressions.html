@@ -787,12 +787,7 @@ conda<span class="w"> </span>deactivate
 </div>
 <section id="format-control-how-numbers-are-displayed">
 <h3>1. Format: Control how numbers are displayed<a class="headerlink" href="#format-control-how-numbers-are-displayed" title="Link to this heading">#</a></h3>
-<div class="cell tag_hide-input docutils container">
-<details class="admonition hide above-input">
-<summary aria-label="Toggle hidden content">
-<p class="collapsed admonition-title">Show code cell source</p>
-<p class="expanded admonition-title">Hide code cell source</p>
-</summary>
+<div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Format numbers for better readability</span>
 <span class="n">styled</span> <span class="o">=</span> <span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">format</span><span class="p">({</span>
@@ -805,18 +800,12 @@ conda<span class="w"> </span>deactivate
 </pre></div>
 </div>
 </div>
-</details>
 </div>
 </section>
 <section id="background-gradient-visualize-patterns-with-color">
 <h3>2. Background gradient: Visualize patterns with color<a class="headerlink" href="#background-gradient-visualize-patterns-with-color" title="Link to this heading">#</a></h3>
 <p>use the <code class="docutils literal notranslate"><span class="pre">axis</span></code> parameter to adjust bar heights relative to other column values (<code class="docutils literal notranslate"><span class="pre">axis=0</span></code>), other row values (<code class="docutils literal notranslate"><span class="pre">axis=1</span></code>) or all values in the table (<code class="docutils literal notranslate"><span class="pre">axis=None</span></code>).</p>
-<div class="cell tag_hide-input docutils container">
-<details class="admonition hide above-input">
-<summary aria-label="Toggle hidden content">
-<p class="collapsed admonition-title">Show code cell source</p>
-<p class="expanded admonition-title">Hide code cell source</p>
-</summary>
+<div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Apply color gradients to see patterns</span>
 <span class="n">numeric_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Population_M&#39;</span><span class="p">,</span> <span class="s1">&#39;GDP_per_capita&#39;</span><span class="p">,</span> <span class="s1">&#39;Unemployment_rate&#39;</span><span class="p">,</span> <span class="s1">&#39;College_grad_pct&#39;</span><span class="p">]</span>
@@ -824,31 +813,19 @@ conda<span class="w"> </span>deactivate
 </pre></div>
 </div>
 </div>
-</details>
 </div>
-<div class="cell tag_hide-input docutils container">
-<details class="admonition hide above-input">
-<summary aria-label="Toggle hidden content">
-<p class="collapsed admonition-title">Show code cell source</p>
-<p class="expanded admonition-title">Hide code cell source</p>
-</summary>
+<div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">display</span><span class="p">(</span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">background_gradient</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;coolwarm_r&#39;</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
-</details>
 </div>
 </section>
 <section id="bar-add-mini-bar-charts-inside-cells">
 <h3>3. Bar: Add mini bar charts inside cells<a class="headerlink" href="#bar-add-mini-bar-charts-inside-cells" title="Link to this heading">#</a></h3>
 <p>Again, use the <code class="docutils literal notranslate"><span class="pre">axis</span></code> parameter to adjust bar heights relative to other column values (<code class="docutils literal notranslate"><span class="pre">axis=0</span></code>), other row values (<code class="docutils literal notranslate"><span class="pre">axis=1</span></code>) or all values in the table (<code class="docutils literal notranslate"><span class="pre">axis=None</span></code>).</p>
-<div class="cell tag_hide-input docutils container">
-<details class="admonition hide above-input">
-<summary aria-label="Toggle hidden content">
-<p class="collapsed admonition-title">Show code cell source</p>
-<p class="expanded admonition-title">Hide code cell source</p>
-</summary>
+<div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add horizontal bars to visualize relative magnitudes</span>
 <span class="n">numeric_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Population_M&#39;</span><span class="p">,</span> <span class="s1">&#39;GDP_per_capita&#39;</span><span class="p">,</span> <span class="s1">&#39;Unemployment_rate&#39;</span><span class="p">,</span> <span class="s1">&#39;College_grad_pct&#39;</span><span class="p">]</span>
@@ -856,46 +833,27 @@ conda<span class="w"> </span>deactivate
 </pre></div>
 </div>
 </div>
-</details>
 </div>
-<div class="cell tag_hide-input docutils container">
-<details class="admonition hide above-input">
-<summary aria-label="Toggle hidden content">
-<p class="collapsed admonition-title">Show code cell source</p>
-<p class="expanded admonition-title">Hide code cell source</p>
-</summary>
+<div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">display</span><span class="p">(</span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;lightblue&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
-</details>
 </div>
-<div class="cell tag_hide-input docutils container">
-<details class="admonition hide above-input">
-<summary aria-label="Toggle hidden content">
-<p class="collapsed admonition-title">Show code cell source</p>
-<p class="expanded admonition-title">Hide code cell source</p>
-</summary>
+<div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">display</span><span class="p">(</span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;lightblue&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
-</details>
 </div>
-<div class="cell tag_hide-input docutils container">
-<details class="admonition hide above-input">
-<summary aria-label="Toggle hidden content">
-<p class="collapsed admonition-title">Show code cell source</p>
-<p class="expanded admonition-title">Hide code cell source</p>
-</summary>
+<div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">display</span><span class="p">(</span><span class="n">results_df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">numeric_cols</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;lightblue&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
-</details>
 </div>
 </section>
 </section>
