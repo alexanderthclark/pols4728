@@ -258,12 +258,74 @@ code {
     color: var(--text-primary);
 }
 
-/* Remove jupyter notebook cell styling */
+/* Enhanced Jupyter notebook cell styling for responsiveness */
 .cell {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
     margin: 2rem 0 !important;
+    overflow-x: auto !important;
+    max-width: 100% !important;
+}
+
+/* Jupyter cell inputs and outputs */
+.cell .cell-input,
+.cell .cell-output {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+/* Jupyter code cells */
+.cell .highlight {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+/* Jupyter output data */
+.cell .output {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+/* DataFrame tables in Jupyter outputs */
+.cell .output table,
+.dataframe {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    max-width: 100%;
+    font-size: 0.875rem;
+}
+
+@media (max-width: 576px) {
+    .cell .output table,
+    .dataframe {
+        font-size: 0.75rem;
+    }
+    
+    .cell .output table th,
+    .cell .output table td,
+    .dataframe th,
+    .dataframe td {
+        padding: 0.25rem;
+        min-width: 80px;
+    }
+}
+
+/* Plotly and matplotlib figures */
+.cell .output .plotly-graph-div,
+.cell .output img {
+    max-width: 100% !important;
+    height: auto !important;
+    overflow: hidden;
+}
+
+/* Long text outputs */
+.cell .output pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-x: auto;
+    max-width: 100%;
 }
 
 /* Enhanced blockquotes */
@@ -508,10 +570,61 @@ hr {
     filter: invert(1) brightness(0.9);
 }
 
-/* Content container max width */
-.bd-article {
-    max-width: 900px;
+/* Flexible content container for all screen sizes */
+.bd-container {
+    max-width: 100%;
     margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.bd-article {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+}
+
+/* Progressive content widths for different screen sizes */
+@media (min-width: 576px) {
+    .bd-container {
+        max-width: 540px;
+        padding: 0 1.5rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .bd-container {
+        max-width: 720px;
+    }
+}
+
+@media (min-width: 992px) {
+    .bd-container {
+        max-width: 960px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .bd-container {
+        max-width: 1140px;
+    }
+}
+
+@media (min-width: 1400px) {
+    .bd-container {
+        max-width: 1320px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .bd-container {
+        max-width: 1500px;
+    }
+}
+
+@media (min-width: 1920px) {
+    .bd-container {
+        max-width: 1700px;
+    }
 }
 
 /* ========================================
@@ -596,11 +709,153 @@ a.reference.std, a.reference.std-ref {
 }
 
 /* ========================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN SYSTEM
    ======================================== */
 
-@media (max-width: 768px) {
-    /* Typography adjustments */
+/* Prevent horizontal scroll on all screen sizes */
+html {
+    overflow-x: hidden;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+/* Base responsive adjustments */
+.bd-content {
+    overflow-x: hidden;
+    word-wrap: break-word;
+    hyphens: auto;
+}
+
+/* ========================================
+   EXTRA SMALL DEVICES (PHONES < 576px)
+   ======================================== */
+@media (max-width: 575.98px) {
+    .bd-content {
+        font-size: 15px;
+        line-height: 1.6;
+        padding: 1rem 0;
+    }
+    
+    h1 { 
+        font-size: 1.875rem;
+        margin-top: 0;
+        margin-bottom: 1rem;
+    }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.25rem; }
+    h4 { font-size: 1.125rem; }
+    h5, h6 { font-size: 1rem; }
+    
+    /* Tighter spacing for small screens */
+    section { margin: 2rem 0; }
+    p { margin-bottom: 1rem; }
+    
+    /* Table full-width with horizontal scroll */
+    table {
+        font-size: 0.8rem;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        width: 100%;
+    }
+    
+    table th, table td {
+        padding: 0.5rem;
+        min-width: 100px;
+    }
+    
+    /* Code blocks - prevent overflow */
+    .highlight {
+        overflow-x: auto;
+        margin: 1rem 0;
+    }
+    
+    .highlight pre {
+        padding: 0.75rem;
+        font-size: 0.75rem;
+        white-space: pre-wrap;
+        word-break: break-all;
+    }
+    
+    /* Inline code wrapping */
+    code {
+        word-break: break-word;
+        white-space: pre-wrap;
+    }
+    
+    /* Admonitions compact */
+    div.admonition {
+        padding: 0.75rem;
+        margin: 1rem 0;
+    }
+    
+    div.admonition p.admonition-title {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    /* Lists */
+    ul, ol {
+        padding-left: 1rem;
+        margin: 1rem 0;
+    }
+    
+    li {
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Logo */
+    .logo__image {
+        max-height: 50px !important;
+        height: 50px !important;
+    }
+    
+    /* Math equations */
+    .math {
+        overflow-x: auto;
+        font-size: 0.9rem;
+    }
+}
+
+/* ========================================
+   SMALL DEVICES (PHONES 576px - 767.98px)
+   ======================================== */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .bd-content {
+        font-size: 16px;
+        line-height: 1.65;
+    }
+    
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.625rem; }
+    h3 { font-size: 1.375rem; }
+    h4 { font-size: 1.125rem; }
+    
+    table {
+        font-size: 0.875rem;
+    }
+    
+    table th, table td {
+        padding: 0.625rem;
+    }
+    
+    .highlight pre {
+        padding: 1rem;
+        font-size: 0.8125rem;
+    }
+    
+    .logo__image {
+        max-height: 60px !important;
+        height: 60px !important;
+    }
+}
+
+/* ========================================
+   MEDIUM DEVICES (TABLETS 768px - 991.98px)
+   ======================================== */
+@media (min-width: 768px) and (max-width: 991.98px) {
     .bd-content {
         font-size: 16px;
         line-height: 1.7;
@@ -611,40 +866,141 @@ a.reference.std, a.reference.std-ref {
     h3 { font-size: 1.5rem; }
     h4 { font-size: 1.25rem; }
     
-    /* Spacing adjustments */
-    section { margin: 3rem 0; }
-    
-    /* Table responsiveness */
+    /* Tables can be larger on tablets */
     table {
-        font-size: 0.875rem;
+        font-size: 0.9rem;
     }
     
     table th, table td {
         padding: 0.75rem;
     }
     
-    /* Code blocks */
-    .highlight pre {
-        padding: 1rem;
-        font-size: 0.8125rem;
-    }
+    /* More generous spacing */
+    section { margin: 3rem 0; }
     
-    /* Admonitions */
-    div.admonition {
-        padding: 1rem;
-        margin: 1.5rem 0;
-    }
-    
-    /* Lists */
-    ul, ol {
-        padding-left: 1.5rem;
-    }
-    
-    /* Logo */
     .logo__image {
-        max-height: 60px !important;
-        height: 60px !important;
+        max-height: 70px !important;
+        height: 70px !important;
     }
+}
+
+/* ========================================
+   LARGE DEVICES (DESKTOPS 992px - 1199.98px)
+   ======================================== */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    .bd-content {
+        font-size: 17px;
+        line-height: 1.75;
+    }
+    
+    /* Full typography scale */
+    h1 { font-size: 2.75rem; }
+    h2 { font-size: 2rem; }
+    h3 { font-size: 1.625rem; }
+    h4 { font-size: 1.25rem; }
+    
+    /* Full table sizing */
+    table {
+        font-size: 0.95rem;
+    }
+    
+    table th, table td {
+        padding: 1rem 1.25rem;
+    }
+    
+    .logo__image {
+        max-height: 80px !important;
+        height: 80px !important;
+    }
+}
+
+/* ========================================
+   EXTRA LARGE DEVICES (LARGE DESKTOPS ≥1200px)
+   ======================================== */
+@media (min-width: 1200px) {
+    .bd-content {
+        font-size: 17px;
+        line-height: 1.75;
+    }
+    
+    /* Full scale for large screens */
+    h1 { font-size: 3rem; }
+    h2 { font-size: 2.25rem; }
+    h3 { font-size: 1.75rem; }
+    h4 { font-size: 1.375rem; }
+    
+    /* Maximum comfort spacing */
+    section { margin: 4rem 0; }
+    
+    /* Full table experience */
+    table th, table td {
+        padding: 1rem 1.5rem;
+    }
+    
+    .logo__image {
+        max-height: 80px !important;
+        height: 80px !important;
+    }
+}
+
+/* ========================================
+   UNIVERSAL RESPONSIVE FIXES
+   ======================================== */
+
+/* Prevent images from overflowing */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Responsive tables - always allow horizontal scroll if needed */
+table {
+    width: 100%;
+    overflow-x: auto;
+    display: block;
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    table {
+        display: table;
+        white-space: normal;
+    }
+}
+
+/* Responsive code blocks */
+.highlight {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+.highlight pre {
+    white-space: pre;
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+/* Responsive math */
+.math.display {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+/* Responsive admonitions */
+div.admonition {
+    max-width: 100%;
+    overflow-wrap: break-word;
+}
+
+/* Responsive lists */
+ul, ol {
+    overflow-wrap: break-word;
+}
+
+/* Responsive blockquotes */
+blockquote {
+    max-width: 100%;
+    overflow-wrap: break-word;
 }
 
 /* ========================================
