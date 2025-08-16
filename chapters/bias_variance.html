@@ -59,8 +59,6 @@
     <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/bias_variance';</script>
     <link rel="icon" href="../_static/favicon_square_very_bold.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -408,7 +406,7 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Predictive Modeling</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predicting-hat-y">Predicting <span class="math notranslate nohighlight">\(\hat{y}\)</span></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predicting-hat-y">Predicting $\hat{y}$</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2"></a></li>
 </ul>
 </li>
@@ -425,19 +423,19 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="predictive-modeling">
+  <section id="predictive-modeling">
 <span id="bias-variance"></span><h1>Predictive Modeling<a class="headerlink" href="#predictive-modeling" title="Link to this heading">#</a></h1>
 <section id="predicting-hat-y">
-<h2>Predicting <span class="math notranslate nohighlight">\(\hat{y}\)</span><a class="headerlink" href="#predicting-hat-y" title="Link to this heading">#</a></h2>
+<h2>Predicting $\hat{y}$<a class="headerlink" href="#predicting-hat-y" title="Link to this heading">#</a></h2>
 <p>Most of the machine learning models we will cover focus on prediction. In this world, we are not interested in marginal effects like the increase in wages attributable to schooling, standard errors, or even interpretability. Instead, we focus on some measure of predictive accuracy. A black box model is fine and a simpler model might only be preferred with parsimony as a tiebreaker.</p>
-<p>Let’s focus on regression problems where <span class="math notranslate nohighlight">\(y\)</span> is a continuous scalar value. For concreteness, let’s say we are predicting midterm election vote share like in <span id="id1">[<a class="reference internal" href="../reference/bibliography.html#id18" title="Edward R Tufte. Determinants of the outcomes of midterm congressional elections. American Political Science Review, 69(3):812–826, 1975.">Tufte, 1975</a>]</span>. The <span class="math notranslate nohighlight">\(y\)</span> variable is <span class="math notranslate nohighlight">\(\frac{\text{Votes for Incumbent's Party in House Races}}{\text{Total Votes in House Races}}\)</span> and suppose we have a measure of economic growth as the single predictor variable <span class="math notranslate nohighlight">\(x\)</span>. We can use simple linear regression for this and</p>
+<p>Let’s focus on regression problems where $y$ is a continuous scalar value. For concreteness, let’s say we are predicting midterm election vote share like in <span id="id1">[<a class="reference internal" href="../reference/bibliography.html#id18" title="Edward R Tufte. Determinants of the outcomes of midterm congressional elections. American Political Science Review, 69(3):812–826, 1975.">Tufte, 1975</a>]</span>. The $y$ variable is $\frac{\text{Votes for Incumbent’s Party in House Races}}{\text{Total Votes in House Races}}$ and suppose we have a measure of economic growth as the single predictor variable $x$. We can use simple linear regression for this and</p>
 </section>
 <section id="id2">
 <h2><a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>Many machine learning methods essentially seek to learn a function <span class="math notranslate nohighlight">\(f\)</span>. We observe outcomes <span class="math notranslate nohighlight">\(y_i\)</span> and a predictor variable <span class="math notranslate nohighlight">\(x_i\)</span> where there is some underlying process <span class="math notranslate nohighlight">\(y_i = f(x_i) + \varepsilon\)</span>. <span class="math notranslate nohighlight">\(\varepsilon\)</span> is unavoidable noise in the process. If we learn <span class="math notranslate nohighlight">\(f\)</span>, then we can predict <span class="math notranslate nohighlight">\(y\)</span> for new <span class="math notranslate nohighlight">\(x\)</span>. If we learn <span class="math notranslate nohighlight">\(f\)</span> perfectly, then our predictive accuracy is only limited by the noise component <span class="math notranslate nohighlight">\(\varepsilon\)</span>.</p>
+<p>Many machine learning methods essentially seek to learn a function $f$. We observe outcomes $y_i$ and a predictor variable $x_i$ where there is some underlying process $y_i = f(x_i) + \varepsilon$. $\varepsilon$ is unavoidable noise in the process. If we learn $f$, then we can predict $y$ for new $x$. If we learn $f$ perfectly, then our predictive accuracy is only limited by the noise component $\varepsilon$.</p>
 </section>
 </section>
-<section class="tex2jax_ignore mathjax_ignore" id="summary">
+<section id="summary">
 <h1>Summary<a class="headerlink" href="#summary" title="Link to this heading">#</a></h1>
 <p>Over-fitting is a major concern for anyone doing predictive modeling. Researchers have</p>
 </section>
@@ -489,7 +487,7 @@ document.write(`
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Predictive Modeling</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predicting-hat-y">Predicting <span class="math notranslate nohighlight">\(\hat{y}\)</span></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predicting-hat-y">Predicting $\hat{y}$</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2"></a></li>
 </ul>
 </li>

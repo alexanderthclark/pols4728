@@ -59,8 +59,6 @@
     <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/predictive';</script>
     <link rel="icon" href="../_static/favicon_square_very_bold.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -475,7 +473,7 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Predictive Modeling</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predicting-hat-y">Predicting <span class="math notranslate nohighlight">\(\hat{y}\)</span></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predicting-hat-y">Predicting $\hat{y}$</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tufte-s-midterm-elections-model">Tufte’s Midterm Elections Model</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#model-1">Model 1</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#model-2">Model 2</a></li>
@@ -508,7 +506,7 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="predictive-modeling">
+  <section id="predictive-modeling">
 <span id="predictive"></span><h1>Predictive Modeling<a class="headerlink" href="#predictive-modeling" title="Link to this heading">#</a></h1>
 <p>In this section we discuss the general predictive modeling process, model tuning, the problem of overfitting, and cross-validation. This draws on <span id="id1">[<a class="reference internal" href="../reference/bibliography.html#id3" title="Max Kuhn, Kjell Johnson, and others. Applied predictive modeling. Volume 26. Springer, 2013. URL: https://link-springer-com.ezproxy.cul.columbia.edu/book/10.1007/978-1-4614-6849-3.">Kuhn <em>et al.</em>, 2013</a>]</span> Chapters 2 and 4. ISL is also a good reference for the main ideas. However, I don’t recommend either book for its treatment of cross-validation. Instead, consider <a class="reference external" href="https://scikit-learn.org/stable/modules/cross_validation.html">the scikit-learn documentation</a> and</p>
 <p>Both ISL (Ch 2) and APM (Ch 2 and 4) are suitable references.</p>
@@ -516,17 +514,16 @@ document.write(`
 <p>This section introduces key concepts in the predictive modeling process, drawing on <span id="id4">[<a class="reference internal" href="../reference/bibliography.html#id3" title="Max Kuhn, Kjell Johnson, and others. Applied predictive modeling. Volume 26. Springer, 2013. URL: https://link-springer-com.ezproxy.cul.columbia.edu/book/10.1007/978-1-4614-6849-3.">Kuhn <em>et al.</em>, 2013</a>]</span> Chapters 2-4 and <span id="id5">[<a class="reference internal" href="../reference/bibliography.html#id14" title="Sudhir Varma and Richard Simon. Bias in error estimation when using cross-validation for model selection. BMC bioinformatics, 7(1):91, 2006.">Varma and Simon, 2006</a>]</span>. After the corresponding lecture, you should be prepared to read <span id="id6">[<a class="reference internal" href="../reference/bibliography.html#id20" title="Michael D Ward, Brian D Greenhill, and Kristin M Bakke. The perils of policy by p-value: predicting civil conflicts. Journal of Peace Research, 47(4):363–375, 2010.">Ward <em>et al.</em>, 2010</a>]</span> and <span id="id7">[<a class="reference internal" href="../reference/bibliography.html#id16" title="Marcel Neunhoeffer and Sebastian Sternberg. How cross-validation can go wrong and what to do about it. Political Analysis, 27(1):101–106, 2019.">Neunhoeffer and Sternberg, 2019</a>]</span>.</p>
 <p>Read ISL chapters 2 and 5.</p>
 <section id="predicting-hat-y">
-<h2>Predicting <span class="math notranslate nohighlight">\(\hat{y}\)</span><a class="headerlink" href="#predicting-hat-y" title="Link to this heading">#</a></h2>
+<h2>Predicting $\hat{y}$<a class="headerlink" href="#predicting-hat-y" title="Link to this heading">#</a></h2>
 <p>Most of the machine learning models we will cover focus on prediction. In this world, we are not interested in marginal effects like the increase in wages attributable to schooling, standard errors, or even interpretability. Instead, we focus on some measure of predictive accuracy. A black box model is fine and a simpler model might only be preferred with parsimony as a tiebreaker.</p>
 </section>
 <section id="tufte-s-midterm-elections-model">
 <h2>Tufte’s Midterm Elections Model<a class="headerlink" href="#tufte-s-midterm-elections-model" title="Link to this heading">#</a></h2>
-<p>Let’s focus on regression problems where <span class="math notranslate nohighlight">\(y\)</span> is a continuous scalar value. For concreteness, let’s say we are predicting midterm election vote share like in <span id="id8">[<a class="reference internal" href="../reference/bibliography.html#id18" title="Edward R Tufte. Determinants of the outcomes of midterm congressional elections. American Political Science Review, 69(3):812–826, 1975.">Tufte, 1975</a>]</span>. The <span class="math notranslate nohighlight">\(y\)</span> variable is the percentage-point difference between the president’s party’s midterm two-party House vote share and that party’s normal vote (average over the previous eight House elections).</p>
+<p>Let’s focus on regression problems where $y$ is a continuous scalar value. For concreteness, let’s say we are predicting midterm election vote share like in <span id="id8">[<a class="reference internal" href="../reference/bibliography.html#id18" title="Edward R Tufte. Determinants of the outcomes of midterm congressional elections. American Political Science Review, 69(3):812–826, 1975.">Tufte, 1975</a>]</span>. The $y$ variable is the percentage-point difference between the president’s party’s midterm two-party House vote share and that party’s normal vote (average over the previous eight House elections).</p>
 <p><span id="id9">[<a class="reference internal" href="../reference/bibliography.html#id18" title="Edward R Tufte. Determinants of the outcomes of midterm congressional elections. American Political Science Review, 69(3):812–826, 1975.">Tufte, 1975</a>]</span> finds an equation</p>
-<div class="math notranslate nohighlight">
-\[\widehat{\text{Vote Loss}} = -11.08 + 0.035\times \Delta\text{Real Disposable Income} + 0.133\times \text{Presidential Approval}.\]</div>
-<p>This line was found based on data from 1938-1970 and the R-squared is 0.912. Recall that R-squared describes how much of the variation in <span class="math notranslate nohighlight">\(y\)</span> is captured by the model. A perfect model gives an R-squared of 1 and a model with only an intercept equal to the average of <span class="math notranslate nohighlight">\(y\)</span> gives an R-squared of 0. Tufte’s 0.912 is impressive. With intro stats training, you might only ask for the adjusted R-squared as a follow up. The adjusted R-squared is also impressive at 0.876.</p>
-<p>Adjusted R-squared is a blunt way to prevent being overconfident in your model. After all, we can add new features of random noise, uncorrelated to <span class="math notranslate nohighlight">\(y\)</span> and improve the R-squared. With enough columns, the R-squared will become exactly 1. The adjusted R-squared formula essentially penalizes the R-squared based on the number of predictor variables and the number of observations.</p>
+<p>$$\widehat{\text{Vote Loss}} = -11.08 + 0.035\times \Delta\text{Real Disposable Income} + 0.133\times \text{Presidential Approval}.$$</p>
+<p>This line was found based on data from 1938-1970 and the R-squared is 0.912. Recall that R-squared describes how much of the variation in $y$ is captured by the model. A perfect model gives an R-squared of 1 and a model with only an intercept equal to the average of $y$ gives an R-squared of 0. Tufte’s 0.912 is impressive. With intro stats training, you might only ask for the adjusted R-squared as a follow up. The adjusted R-squared is also impressive at 0.876.</p>
+<p>Adjusted R-squared is a blunt way to prevent being overconfident in your model. After all, we can add new features of random noise, uncorrelated to $y$ and improve the R-squared. With enough columns, the R-squared will become exactly 1. The adjusted R-squared formula essentially penalizes the R-squared based on the number of predictor variables and the number of observations.</p>
 <p>However, the usefulness of this as a predictive model hinges on model performance on elections <em>after</em> 1970. Evaluating the model on a <strong>test set</strong> of previously unseen data is more data driven and it answers the question of interest more exactly. The general principle is that a model should be evaluated with new data that wasn’t used in the model training. Records from 1938-1970 form the <strong>training set</strong> and we can assemble data from 1974-2022 as a <strong>test set</strong>.</p>
 <p>Let’s see how two modifications of Tufte’s model holds up with test data. I was unable to replicate Tufte’s Real Disposable Income variable, so I substitute a similar RDI measure using data available from the BEA. In our model 1, we include only the presidential approval variable: <code class="docutils literal notranslate"><span class="pre">vote_loss</span> <span class="pre">~</span> <span class="pre">presidential_approval</span></code>.  Model 2 is spiritually the same as Tufte’s though: <code class="docutils literal notranslate"><span class="pre">vote_loss</span> <span class="pre">~</span> <span class="pre">change_rdi</span> <span class="pre">+</span> <span class="pre">presidential_approval</span></code>.</p>
 <p>We will see that none of these models performs very well on the test data.</p>
@@ -672,7 +669,7 @@ document.write(`
 <p>Above we see that model 1 is actually better than model 2 on test data. This is a case where a simple model generalizes to new data better. Should Tufte have known this? Probably not. He didn’t have access to the test data. To perform model selection, he would have needed to reserve some of his eight observations for validation. With more data, we should be able to do better. The next section tries to make that process more clear.</p>
 </section>
 </section>
-<section class="tex2jax_ignore mathjax_ignore" id="training-testing-overfitting">
+<section id="training-testing-overfitting">
 <h1>Training, Testing, Overfitting<a class="headerlink" href="#training-testing-overfitting" title="Link to this heading">#</a></h1>
 <section id="bias-variance-tradeoff">
 <h2>Bias-Variance Tradeoff<a class="headerlink" href="#bias-variance-tradeoff" title="Link to this heading">#</a></h2>
@@ -683,46 +680,37 @@ document.write(`
 <h3>Bias–Variance Decomposition (supervised prediction)<a class="headerlink" href="#biasvariance-decomposition-supervised-prediction" title="Link to this heading">#</a></h3>
 <p><strong>Data-generating process</strong></p>
 <ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(Y = f(X) + \varepsilon\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathbb{E}[\varepsilon \mid X] = 0\)</span>, <span class="math notranslate nohighlight">\(\ \mathbb{Var}(\varepsilon \mid X) = \sigma^2(X)\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(\hat f\)</span> is a fitted model (random through the training sample/algorithm)</p></li>
+<li><p>$Y = f(X) + \varepsilon$</p></li>
+<li><p>$\mathbb{E}[\varepsilon \mid X] = 0$, $\mathbb{Var}(\varepsilon \mid X) = \sigma^2(X)$</p></li>
+<li><p>$\hat f$ is a fitted model (random through the training sample/algorithm)</p></li>
 </ul>
-<p>Define the test MSE at <span class="math notranslate nohighlight">\(x\)</span>:
-$<span class="math notranslate nohighlight">\(
-\mathrm{MSE}(x) \;=\; \mathbb{E}\!\left[(Y - \hat f(x))^2 \mid X=x\right].
-\)</span>$</p>
-<p>Substitute <span class="math notranslate nohighlight">\(Y=f(x)+\varepsilon\)</span>:
+<p>Define the test MSE at $x$:
+$$
+\mathrm{MSE}(x) ;=; \mathbb{E}!\left[(Y - \hat f(x))^2 \mid X=x\right].
+$$</p>
+<p>Substitute $Y=f(x)+\varepsilon$:
 $$
 \begin{aligned}
 \mathrm{MSE}(x)
 &amp;= \mathbb{E}!\left[(f(x)+\varepsilon-\hat f(x))^2 \mid X=x\right] \
-&amp;= \mathbb{E}!\left[(f(x)-\hat f(x))^2 \mid X=x\right]</p>
-<ul class="simple">
-<li><p>\mathbb{E}[\varepsilon^2 \mid X=x]</p></li>
-<li><p>2,\mathbb{E}!\left[\varepsilon{f(x)-\hat f(x)}\mid X=x\right].
+&amp;= \mathbb{E}!\left[(f(x)-\hat f(x))^2 \mid X=x\right] + \mathbb{E}[\varepsilon^2 \mid X=x] + 2,\mathbb{E}!\left[\varepsilon{f(x)-\hat f(x)}\mid X=x\right].
 \end{aligned}
-$$</p></li>
-</ul>
-<p>Because <span class="math notranslate nohighlight">\(\mathbb{E}[\varepsilon\mid X=x]=0\)</span> and the test noise <span class="math notranslate nohighlight">\(\varepsilon\)</span> is independent of the training randomness in <span class="math notranslate nohighlight">\(\hat f\)</span>, the cross term is <span class="math notranslate nohighlight">\(0\)</span>. Hence
-$<span class="math notranslate nohighlight">\(
-\mathrm{MSE}(x) \;=\; \underbrace{\mathbb{E}\!\left[(f(x)-\hat f(x))^2\right]}_{\text{estimation error}}
-\;+\; \underbrace{\sigma^2(x)}_{\text{irreducible noise}}.
-\)</span>$</p>
-<p>Now split the estimation error into bias<span class="math notranslate nohighlight">\(^2\)</span> and variance. Let <span class="math notranslate nohighlight">\(\mu(x):=\mathbb{E}[\hat f(x)]\)</span> (expectation over training randomness):
+$$</p>
+<p>Because $\mathbb{E}[\varepsilon\mid X=x]=0$ and the test noise $\varepsilon$ is independent of the training randomness in $\hat f$, the cross term is $0$. Hence
+$$
+\mathrm{MSE}(x) ;=; \underbrace{\mathbb{E}!\left[(f(x)-\hat f(x))^2\right]}<em>{\text{estimation error}}
+;+; \underbrace{\sigma^2(x)}</em>{\text{irreducible noise}}.
+$$</p>
+<p>Now split the estimation error into bias$^2$ and variance:
 $$
 \begin{aligned}
 \mathbb{E}!\left[(f(x)-\hat f(x))^2\right]
-&amp;= \mathbb{E}!\left[(\hat f(x)-\mu(x) + \mu(x)-f(x))^2\right] \
-&amp;= \mathbb{E}!\left[(\hat f(x)-\mu(x))^2\right]</p>
-<ul class="simple">
-<li><p>(\mu(x)-f(x))^2</p></li>
-<li><p>2,\mathbb{E}!\left[(\hat f(x)-\mu(x))(\mu(x)-f(x))\right] \
-&amp;= \underbrace{\mathbb{Var}(\hat f(x))}_{\text{variance}}</p></li>
-<li><p>\underbrace{(\mathbb{E}[\hat f(x)]-f(x))^2}_{\text{bias}^2},
+&amp;= \mathbb{E}!\left[(\hat f(x)-\mathbb{E}[\hat f(x)] + \mathbb{E}[\hat f(x)]-f(x))^2\right] \
+&amp;= \mathbb{E}!\left[(\hat f(x)-\mathbb{E}[\hat f(x)])^2\right] + (\mathbb{E}[\hat f(x)]-f(x))^2 + 2,\mathbb{E}!\left[(\hat f(x)-\mathbb{E}[\hat f(x)])(\mathbb{E}[\hat f(x)]-f(x))\right] \
+&amp;= \underbrace{\mathbb{Var}(\hat f(x))}<em>{\text{variance}} + \underbrace{(\mathbb{E}[\hat f(x)]-f(x))^2}</em>{\text{bias}^2},
 \end{aligned}
 $$
-since the cross term is zero (the second factor is constant).</p></li>
-</ul>
+since the cross term is zero (the second factor is constant with respect to the expectation over training randomness).</p>
 <p><strong>Therefore</strong>
 $$
 \boxed{\ \mathrm{MSE}(x)
@@ -740,11 +728,11 @@ $$</p></li>
 <li><p><strong>Variance</strong>: sensitivity to the particular training sample.</p></li>
 <li><p><strong>Noise</strong>: randomness you cannot remove.</p></li>
 </ul>
-<p>Making the model more flexible typically <strong>reduces bias</strong> but <strong>increases variance</strong>; restricting it does the opposite. Optimal predictive performance sits where bias<span class="math notranslate nohighlight">\(^2\)</span> + variance is minimized (the noise term is fixed).</p>
+<p>Making the model more flexible typically <strong>reduces bias</strong> but <strong>increases variance</strong>; restricting it does the opposite. Optimal predictive performance sits where bias$^2$ + variance is minimized (the noise term is fixed).</p>
 </section>
 <section id="examples">
 <h3>Examples<a class="headerlink" href="#examples" title="Link to this heading">#</a></h3>
-<p>Let <span class="math notranslate nohighlight">\(f(x) = \sin x + \varepsilon\)</span>, where <span class="math notranslate nohighlight">\(\varepsilon\)</span> is normally distributed, iid noise. Suppose we observe <span class="math notranslate nohighlight">\(x\)</span> drawn uniformly from <span class="math notranslate nohighlight">\([0,\pi]\)</span> so we only have the symmetric inverted-U shape.</p>
+<p>Let $f(x) = \sin x + \varepsilon$, where $\varepsilon$ is normally distributed, iid noise. Suppose we observe $x$ drawn uniformly from $[0,\pi]$ so we only have the symmetric inverted-U shape.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -822,8 +810,8 @@ $$</p></li>
 <img alt="../_images/79a64ec5655f95f0bc7a954c22638c1125366e2dc6f361a7d7e5b0e4f049d811.png" src="../_images/79a64ec5655f95f0bc7a954c22638c1125366e2dc6f361a7d7e5b0e4f049d811.png" />
 </div>
 </div>
-<p>In the above, the simpler model will perform much better if the distribution of <span class="math notranslate nohighlight">\(x\)</span> values shifts (technically called covariate shift), so that we start observing values <span class="math notranslate nohighlight">\(x&gt;\pi\)</span>. The more complex, quadratic model is probably better in all other circumstances.</p>
-<p>Sometimes the simpler model is better for any sample of <span class="math notranslate nohighlight">\(x\)</span> values from the same distribution. This is a more pure bias variance tradeoff. Suppose instead the actual data generating process is one of pure noise <span class="math notranslate nohighlight">\(g(x) = \varepsilon\)</span>, but that there is a lot of noise so the standard deviation of the noise is high. The quadratic model is <em>correctly specified</em> but, because it is so sensitive to the noise, it might not perform as well as the biased linear model with lower variance.</p>
+<p>In the above, the simpler model will perform much better if the distribution of $x$ values shifts (technically called covariate shift), so that we start observing values $x&gt;\pi$. The more complex, quadratic model is probably better in all other circumstances.</p>
+<p>Sometimes the simpler model is better for any sample of $x$ values from the same distribution. This is a more pure bias variance tradeoff. Suppose instead the actual data generating process is one of pure noise $g(x) = \varepsilon$, but that there is a lot of noise so the standard deviation of the noise is high. The quadratic model is <em>correctly specified</em> but, because it is so sensitive to the noise, it might not perform as well as the biased linear model with lower variance.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -878,7 +866,7 @@ $$</p></li>
 </section>
 </section>
 </section>
-<section class="tex2jax_ignore mathjax_ignore" id="james-stein">
+<section id="james-stein">
 <h1>James-Stein<a class="headerlink" href="#james-stein" title="Link to this heading">#</a></h1>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -936,11 +924,11 @@ JS+ risk ≈ 1.601375
 </div>
 </div>
 </section>
-<section class="tex2jax_ignore mathjax_ignore" id="summary">
+<section id="summary">
 <h1>Summary<a class="headerlink" href="#summary" title="Link to this heading">#</a></h1>
 <p>We’ve now learned about the predictive modeling process. Model tuning and selection is prone to the problem of over-fitting. Performance measures like R-squared (and adjusted R-squared) are misleading when calculated based on training data. A model’s performance can only truly be measured by using completely new test data that was not involved in the training process. The researcher needs to remain disciplined and use procedures like cross-validation to make model selection more systematic, transparent, and reliable. <a class="reference external" href="https://www.econtalk.org/susan-athey-on-machine-learning-big-data-and-causation/">As noted by Susan Athey</a>, instead of researchers subjectively choosing variables and testing specifications behind the scenes, we can now explicitly use data to determine which variables matter. This technological shift enables what <span id="id10">[<a class="reference internal" href="../reference/bibliography.html#id10" title="Justin Grimmer, Margaret E Roberts, and Brandon M Stewart. Machine learning for social science: an agnostic approach. Annual Review of Political Science, 24(1):395–419, 2021.">Grimmer <em>et al.</em>, 2021</a>]</span> describe as a move away from purely deductive social science toward a more inductive, iterative approach where researchers can discover patterns in data rather than only testing pre-specified hypotheses.</p>
 </section>
-<section class="tex2jax_ignore mathjax_ignore" id="exercises">
+<section id="exercises">
 <h1>Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h1>
 <div class="exercise admonition" id="tufte">
 
@@ -1032,7 +1020,7 @@ JS+ risk ≈ 1.601375
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Predictive Modeling</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predicting-hat-y">Predicting <span class="math notranslate nohighlight">\(\hat{y}\)</span></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predicting-hat-y">Predicting $\hat{y}$</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tufte-s-midterm-elections-model">Tufte’s Midterm Elections Model</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#model-1">Model 1</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#model-2">Model 2</a></li>
