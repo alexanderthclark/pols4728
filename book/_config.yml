@@ -55,7 +55,8 @@ launch_buttons:
 # MyST parser configuration
 parse:
   myst_enable_extensions:
-    - amsmath
+    - amsmath      # For LaTeX environments like \begin{aligned}
+    - dollarmath   # For inline math with $ symbols
 
 sphinx:
   extra_extensions:
