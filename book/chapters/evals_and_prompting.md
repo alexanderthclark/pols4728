@@ -43,6 +43,8 @@ So is it machine learning? Yes, by Mitchell's definition. The learning happened 
 
 ## How LLMs Work
 
+How LLMs work is an overly ambitious title for this short section. They are next-token predictors, but that's not a useful description. Nobody really has a comprehensive answer to what LLMs are doing, at least [according to Stuart Ritchie of Anthropic](https://youtu.be/fGKNUvivvnc?si=6vHzbT3D7zb-maPl&t=13). But here are some reasonable points to be made.
+
 **The "Old" Approach (GPT-3.5 Era):**
 - "Like a fancy autocomplete,'' according to Peter Grabowski of Google 
 - Statistical pattern matching from many examples
