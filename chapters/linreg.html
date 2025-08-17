@@ -407,7 +407,9 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Linear Regression</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Linear Regression</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">Linear Regression</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#residuals">Residuals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#feature-engineering">Feature Engineering</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#multiple-linear-regression">Multiple Linear Regression</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#application-determinants-of-the-outcomes-of-midterm-congressional-elections">Application: Determinants of the Outcomes of Midterm Congressional Elections</a></li>
 </ul>
@@ -435,33 +437,49 @@ document.write(`
 <div class="seealso admonition">
 <p class="admonition-title">Reading</p>
 <ul class="simple">
-<li><p>{cite}<code class="docutils literal notranslate"><span class="pre">kuhn2013applied</span></code>, Chapter 6\</p></li>
-<li><p><span id="id1">[<a class="reference internal" href="../reference/bibliography.html#id2" title="Trevor Hastie, Robert Tibshirani, and Jerome Friedman. The Elements of Statistical Learning: Data Mining, Inference, and Prediction. Volume 2. Springer, 2nd edition, 2009. URL: https://hastie.su.domains/ElemStatLearn/.">Hastie <em>et al.</em>, 2009</a>]</span>, Chapter 3</p></li>
+<li><p><span id="id1">[<a class="reference internal" href="../reference/bibliography.html#id3" title="Max Kuhn, Kjell Johnson, and others. Applied predictive modeling. Volume 26. Springer, 2013. URL: https://link-springer-com.ezproxy.cul.columbia.edu/book/10.1007/978-1-4614-6849-3.">Kuhn <em>et al.</em>, 2013</a>]</span>, Chapter 6</p></li>
+<li><p><span id="id2">[<a class="reference internal" href="../reference/bibliography.html#id2" title="Trevor Hastie, Robert Tibshirani, and Jerome Friedman. The Elements of Statistical Learning: Data Mining, Inference, and Prediction. Volume 2. Springer, 2nd edition, 2009. URL: https://hastie.su.domains/ElemStatLearn/.">Hastie <em>et al.</em>, 2009</a>]</span>, Chapter 3</p></li>
 </ul>
 </div>
-<section id="id2">
-<h2>Linear Regression<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<section id="id3">
+<h2>Linear Regression<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
 <p>Can you think of some famous lines? Maybe you are thinking of the Equator, the Mason Dixon, or the line in the sand at the Alamo. We can do better. <span class="math notranslate nohighlight">\(\hat{y} = 68 + \frac{2}{3}(68-x)\)</span> is the line from which we get the term <strong>regression</strong>.</p>
 <blockquote>
-<div><p>“The height-deviate of the offspring is, on the average, two-thirds of the height-deviate of its mid-parentage.” <span id="id3">[<a class="reference internal" href="../reference/bibliography.html#id17" title="Francis Galton. Regression towards mediocrity in hereditary stature. The Journal of the Anthropological Institute of Great Britain and Ireland, 15:246–263, 1886.">Galton, 1886</a>]</span></p>
+<div><p>“The height-deviate of the offspring is, on the average, two-thirds of the height-deviate of its mid-parentage.” <span id="id4">[<a class="reference internal" href="../reference/bibliography.html#id18" title="Francis Galton. Regression towards mediocrity in hereditary stature. The Journal of the Anthropological Institute of Great Britain and Ireland, 15:246–263, 1886.">Galton, 1886</a>]</span></p>
 </div></blockquote>
 <p>Francis Galton found this line by observing that tall parents tended to have shorter (closer to average) children, while short parents tended to have taller kids. He described this phenomenon as “regression to mediocrity,” reflecting the tendency of extreme characteristics to move back toward the population average in subsequent generations. Galton actually used “ocular regression” (eyeballing it) and the term <em>regression</em> has stuck for the general line-of-best-fit technique, even when applied to data that don’t follow this pattern. Regression is also sometimes used to describe any kind of model that predicts a numeric value (for example, a decision tree might be called regression tree).</p>
-<p>Ordinary least squares (OLS) is the most common method for estimating the parameters in a linear regression model. Linear models are quite flexible because they can still accommodate interactions, categorical predictors, and nonlinearities. You, the analyst, just have to include them in your specification.</p>
-<p>Our predictors give use the design matrix, <span class="math notranslate nohighlight">\(X\)</span>. With <span class="math notranslate nohighlight">\(n\)</span> observations and <span class="math notranslate nohighlight">\(k\)</span> features (including an intercept), this is <span class="math notranslate nohighlight">\(n\times k\)</span>. The target variable is stored in the <span class="math notranslate nohighlight">\(n\times 1\)</span> matrix, <span class="math notranslate nohighlight">\(y\)</span>.</p>
+<p>In 2025, ocular regression doesn’t cut it. Ordinary least squares (OLS) is the most common method for estimating the parameters in a linear regression model. Linear models are flexible because they can still accommodate interactions, categorical predictors, and nonlinearities. You, the analyst, just have to include them in your specification.</p>
+<p>Our predictors give us the design matrix, <span class="math notranslate nohighlight">\(X\)</span>. With <span class="math notranslate nohighlight">\(n\)</span> observations and <span class="math notranslate nohighlight">\(k\)</span> features (including an intercept), this is <span class="math notranslate nohighlight">\(n\times k\)</span>. The target variable is stored in the <span class="math notranslate nohighlight">\(n\times 1\)</span> matrix, <span class="math notranslate nohighlight">\(y\)</span>.</p>
 <p>Then,</p>
 <div class="math notranslate nohighlight">
 \[\hat{\beta} = (X^TX)^{-1} X^T y.\]</div>
-<p><span class="math notranslate nohighlight">\(X\hat{\beta}\)</span> is the projection of <span class="math notranslate nohighlight">\(y\)</span> onto the column space of <span class="math notranslate nohighlight">\(X\)</span>. That means <span class="math notranslate nohighlight">\(\Vert y - X\hat{\beta}  \Vert \leq \Vert y - Xv \Vert \)</span> for any other <span class="math notranslate nohighlight">\(k\times 1\)</span> vector <span class="math notranslate nohighlight">\(v\)</span>. The quality of the fit is not generally measured by <span class="math notranslate nohighlight">\(\Vert y - X\hat{\beta} \Vert\)</span>.<a class="footnote-reference brackets" href="#id6" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> Instead we usually report the mean squared error (MSE),</p>
+<p>Because linear algebra is king in machine learning, we’ll give the geometric interpretation. OLS solves a projection problem:</p>
+<ul class="simple">
+<li><p>The column space of <span class="math notranslate nohighlight">\(X\)</span> is the set of all possible predictions we can make using linear combinations of our features. This forms a <span class="math notranslate nohighlight">\(k\)</span>-dimensional subspace in <span class="math notranslate nohighlight">\(\mathbb{R}^n\)</span>.</p></li>
+<li><p>Our observed <span class="math notranslate nohighlight">\(y\)</span> vector typically doesn’t lie exactly in this column space (for example, for three points that you can’t draw a single line through in simple linear regression).</p></li>
+<li><p>OLS finds <span class="math notranslate nohighlight">\(\hat{\beta}\)</span> such that <span class="math notranslate nohighlight">\(X\hat{\beta}\)</span> is the vector in the column space closest to <span class="math notranslate nohighlight">\(y\)</span>.</p></li>
+</ul>
+<p>Mathematically, <span class="math notranslate nohighlight">\(X\hat{\beta}\)</span> is the orthogonal projection of <span class="math notranslate nohighlight">\(y\)</span> onto the column space of <span class="math notranslate nohighlight">\(X\)</span>. Orthogonality is what makes <span class="math notranslate nohighlight">\(X\hat{\beta}\)</span> closer to <span class="math notranslate nohighlight">\(y\)</span> than any other candidate:</p>
 <div class="math notranslate nohighlight">
-\[ \mathrm{MSE} = \frac{1}{n} \sum_{i=1}^n (y_i - \hat{y}_i)^2.\]</div>
-<p>This the same as <span class="math notranslate nohighlight">\(\frac{1}{n}\Vert y - X\hat{\beta}  \Vert^2\)</span>.</p>
+\[\Vert y - X\hat{\beta} \Vert \leq \Vert y - Xv \Vert.\]</div>
+<p>for any other <span class="math notranslate nohighlight">\(k \times 1\)</span> vector <span class="math notranslate nohighlight">\(v\)</span>. In other words, no other choice of coefficients can get us closer to <span class="math notranslate nohighlight">\(y\)</span>.</p>
+<p>The quality of the fit is not generally measured by <span class="math notranslate nohighlight">\(\Vert y - X\hat{\beta} \Vert\)</span>.<a class="footnote-reference brackets" href="#id7" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> Instead we usually report the mean squared error (MSE),</p>
+<div class="math notranslate nohighlight">
+\[ \mathrm{MSE} = \frac{1}{n} \sum_{i=1}^n (y_i - \hat{y}_i)^2 = \frac{1}{n}\Vert y - X\hat{\beta} \Vert^2.\]</div>
+<p>This scaling makes MSE comparable across datasets of different sizes.</p>
+</section>
+<section id="residuals">
+<h2>Residuals<a class="headerlink" href="#residuals" title="Link to this heading">#</a></h2>
+</section>
+<section id="feature-engineering">
+<h2>Feature Engineering<a class="headerlink" href="#feature-engineering" title="Link to this heading">#</a></h2>
 </section>
 <section id="multiple-linear-regression">
 <h2>Multiple Linear Regression<a class="headerlink" href="#multiple-linear-regression" title="Link to this heading">#</a></h2>
 </section>
 <section id="application-determinants-of-the-outcomes-of-midterm-congressional-elections">
 <h2>Application: Determinants of the Outcomes of Midterm Congressional Elections<a class="headerlink" href="#application-determinants-of-the-outcomes-of-midterm-congressional-elections" title="Link to this heading">#</a></h2>
-<p><span id="id5">[<a class="reference internal" href="../reference/bibliography.html#id18" title="Edward R Tufte. Determinants of the outcomes of midterm congressional elections. American Political Science Review, 69(3):812–826, 1975.">Tufte, 1975</a>]</span> proposes a regression model to understand the outcomes of midterm congressional elections in the US,</p>
+<p><span id="id6">[<a class="reference internal" href="../reference/bibliography.html#id19" title="Edward R Tufte. Determinants of the outcomes of midterm congressional elections. American Political Science Review, 69(3):812–826, 1975.">Tufte, 1975</a>]</span> proposes a regression model to understand the outcomes of midterm congressional elections in the US,</p>
 <div class="math notranslate nohighlight">
 \[\hat{Y}_i = \beta_0 + \beta_1 P_i + \beta_2 (\Delta E_i),\]</div>
 <p>where</p>
@@ -532,8 +550,8 @@ document.write(`
 <p>TKTK ATUS survey data for regularization</p>
 <hr class="footnotes docutils" />
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="id6" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">1</a><span class="fn-bracket">]</span></span>
+<aside class="footnote brackets" id="id7" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">1</a><span class="fn-bracket">]</span></span>
 <p><span class="math notranslate nohighlight">\(\Vert \cdot \Vert\)</span> is the Euclidean or L2 norm.</p>
 </aside>
 </aside>
@@ -605,7 +623,9 @@ document.write(`
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Linear Regression</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Linear Regression</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">Linear Regression</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#residuals">Residuals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#feature-engineering">Feature Engineering</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#multiple-linear-regression">Multiple Linear Regression</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#application-determinants-of-the-outcomes-of-midterm-congressional-elections">Application: Determinants of the Outcomes of Midterm Congressional Elections</a></li>
 </ul>

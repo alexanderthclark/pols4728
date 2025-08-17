@@ -59,6 +59,8 @@
     <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'reference/solutions';</script>
     <link rel="icon" href="../_static/favicon_square_very_bold.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -495,6 +497,34 @@ document.write(`
 <p>Only Lisa uses cross-validation correctly. She tunes models and hyperparameters using 5-fold CV on the training data, picks the winner by the cross-validated score, then evaluates that single, refit model once on the untouched test set to obtain an out-of-sample estimate. This approach keeps the test set completely separate from model selection, so the final performance estimate is not biased by the selection process.</p>
 <p>Bart misuses the test set by selecting the winning model on it after tuning via CV. We already know that we should not tune a specific model using the test set and choosing between models (eg linear regression vs neural network) on the basis of the test set is a similar mistake. This leaks information from the test set into the selection process, which can lead to optimistic bias because the chosen model may perform well on the test set partly due to chance. Once the test set is used for selection, it is no longer a valid measure of true generalization performance.</p>
 <p>A better alternative: if you do not want to hold out a single test split,  use nested cross-validation. An inner CV loop is used for tuning and an outer CV loop is used for unbiased performance estimation. This prevents the kind of bias caused by using the test set in the selection process.</p>
+</section>
+</div>
+<div class="solution dropdown admonition" id="reference/solutions-solution-1">
+
+<p class="admonition-title">Solution to<a class="reference internal" href="../chapters/predictive.html#james-stein"> Exercise 5</a></p>
+<section id="solution-content">
+<p>This is a case of the James-Stein estimator.</p>
+<div class="math notranslate nohighlight">
+\[\text{MSE}(\alpha) = \mathbb{E}[\|\theta - (1-\alpha)Y\|^2]\]</div>
+<p>Since <span class="math notranslate nohighlight">\(Y \sim N(\theta, I_3)\)</span>, we can write <span class="math notranslate nohighlight">\(Y = \theta + Z\)</span> where <span class="math notranslate nohighlight">\(Z \sim N(0, I_3)\)</span>. Substituting:</p>
+<div class="math notranslate nohighlight">
+\[\text{MSE}(\alpha) = \mathbb{E}[\|\theta - (1-\alpha)(\theta + Z)\|^2]\]</div>
+<div class="math notranslate nohighlight">
+\[= \mathbb{E}[\|\theta - (1-\alpha)\theta - (1-\alpha)Z\|^2]\]</div>
+<div class="math notranslate nohighlight">
+\[= \mathbb{E}[\|\alpha\theta - (1-\alpha)Z\|^2]\]</div>
+<p>Expanding the squared norm:
+$<span class="math notranslate nohighlight">\(\text{MSE}(\alpha) = \mathbb{E}[\|\alpha\theta\|^2 - 2\langle\alpha\theta, (1-\alpha)Z\rangle + \|(1-\alpha)Z\|^2]\)</span>$</p>
+<p>Since <span class="math notranslate nohighlight">\(\theta\)</span> is fixed and <span class="math notranslate nohighlight">\(\mathbb{E}[Z] = 0\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\text{MSE}(\alpha) = \alpha^2\|\theta\|^2 - 2\alpha(1-\alpha)\theta^T\mathbb{E}[Z] + (1-\alpha)^2\mathbb{E}[\|Z\|^2]\]</div>
+<div class="math notranslate nohighlight">
+\[= \alpha^2\|\theta\|^2 + (1-\alpha)^2\mathbb{E}[\|Z\|^2]\]</div>
+<p>For <span class="math notranslate nohighlight">\(Z \sim N(0, I_3)\)</span>, we have <span class="math notranslate nohighlight">\(\mathbb{E}[\|Z\|^2] = \mathbb{E}[Z_1^2 + Z_2^2 + Z_3^2] = 1 + 1 + 1 = 3\)</span>.</p>
+<p>Therefore <span class="math notranslate nohighlight">\(\text{MSE}(\alpha) = \alpha^2\|\theta\|^2 + 3(1-\alpha)^2\)</span>.</p>
+<p>Clearly the optimal <span class="math notranslate nohighlight">\(\alpha\)</span> is neither 0 nor 1. The MSE-optimal estimator is:
+$<span class="math notranslate nohighlight">\(\theta_{\alpha^*} = (1 - \alpha^*)Y = \left(1 - \frac{3}{\|\theta\|^2 + 3}\right)Y = \frac{\|\theta\|^2}{\|\theta\|^2 + 3}Y\)</span>$</p>
+<p>The MSE-optimal estimator is biased if <span class="math notranslate nohighlight">\(\theta\)</span> is nonzero.</p>
 </section>
 </div>
 </section>

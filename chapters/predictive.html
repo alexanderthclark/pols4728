@@ -483,16 +483,24 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#could-tufte-have-produced-a-better-model">Could Tufte have produced a better model?</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#training-testing-overfitting">Training, Testing, Overfitting</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#bias-variance-tradeoff">Bias-Variance Tradeoff</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#biasvariance-decomposition-supervised-prediction">Bias–Variance Decomposition (supervised prediction)</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#bias-variance-tradeoff">Bias-Variance Tradeoff</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#biasvariance-decomposition-supervised-prediction">Bias–Variance Decomposition (supervised prediction)</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#interpretation">Interpretation</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#james-stein">James-Stein</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#validation-and-model-selection">Validation and Model Selection</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simple-holdout-validation">Simple Holdout Validation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cross-validation-for-model-performance">Cross Validation (For Model Performance)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nested-cross-validation-for-model-selection-and-model-performance">Nested Cross Validation (For Model Selection and Model Performance)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-nested-cross-validation">Why Nested Cross Validation?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#time-series-unbalanced-data-and-other-complications">Time Series, Unbalanced Data, and Other Complications</a></li>
+</ul>
+</li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">Exercises</a></li>
 </ul>
@@ -511,8 +519,8 @@ document.write(`
 <span id="predictive"></span><h1>Predictive Modeling<a class="headerlink" href="#predictive-modeling" title="Link to this heading">#</a></h1>
 <p>In this section we discuss the general predictive modeling process, model tuning, the problem of overfitting, and cross-validation. This draws on <span id="id1">[<a class="reference internal" href="../reference/bibliography.html#id3" title="Max Kuhn, Kjell Johnson, and others. Applied predictive modeling. Volume 26. Springer, 2013. URL: https://link-springer-com.ezproxy.cul.columbia.edu/book/10.1007/978-1-4614-6849-3.">Kuhn <em>et al.</em>, 2013</a>]</span> Chapters 2 and 4. ISL is also a good reference for the main ideas. However, I don’t recommend either book for its treatment of cross-validation. Instead, consider <a class="reference external" href="https://scikit-learn.org/stable/modules/cross_validation.html">the scikit-learn documentation</a> and</p>
 <p>Both ISL (Ch 2) and APM (Ch 2 and 4) are suitable references.</p>
-<p>We also introduce AUC as a performance measure for binary classifiers. After the corresponding lectures, you should be prepared to read <span id="id2">[<a class="reference internal" href="../reference/bibliography.html#id20" title="Michael D Ward, Brian D Greenhill, and Kristin M Bakke. The perils of policy by p-value: predicting civil conflicts. Journal of Peace Research, 47(4):363–375, 2010.">Ward <em>et al.</em>, 2010</a>]</span> and <span id="id3">[<a class="reference internal" href="../reference/bibliography.html#id16" title="Marcel Neunhoeffer and Sebastian Sternberg. How cross-validation can go wrong and what to do about it. Political Analysis, 27(1):101–106, 2019.">Neunhoeffer and Sternberg, 2019</a>]</span>.</p>
-<p>This section introduces key concepts in the predictive modeling process, drawing on <span id="id4">[<a class="reference internal" href="../reference/bibliography.html#id3" title="Max Kuhn, Kjell Johnson, and others. Applied predictive modeling. Volume 26. Springer, 2013. URL: https://link-springer-com.ezproxy.cul.columbia.edu/book/10.1007/978-1-4614-6849-3.">Kuhn <em>et al.</em>, 2013</a>]</span> Chapters 2-4 and <span id="id5">[<a class="reference internal" href="../reference/bibliography.html#id14" title="Sudhir Varma and Richard Simon. Bias in error estimation when using cross-validation for model selection. BMC bioinformatics, 7(1):91, 2006.">Varma and Simon, 2006</a>]</span>. After the corresponding lecture, you should be prepared to read <span id="id6">[<a class="reference internal" href="../reference/bibliography.html#id20" title="Michael D Ward, Brian D Greenhill, and Kristin M Bakke. The perils of policy by p-value: predicting civil conflicts. Journal of Peace Research, 47(4):363–375, 2010.">Ward <em>et al.</em>, 2010</a>]</span> and <span id="id7">[<a class="reference internal" href="../reference/bibliography.html#id16" title="Marcel Neunhoeffer and Sebastian Sternberg. How cross-validation can go wrong and what to do about it. Political Analysis, 27(1):101–106, 2019.">Neunhoeffer and Sternberg, 2019</a>]</span>.</p>
+<p>We also introduce AUC as a performance measure for binary classifiers. After the corresponding lectures, you should be prepared to read <span id="id2">[<a class="reference internal" href="../reference/bibliography.html#id21" title="Michael D Ward, Brian D Greenhill, and Kristin M Bakke. The perils of policy by p-value: predicting civil conflicts. Journal of Peace Research, 47(4):363–375, 2010.">Ward <em>et al.</em>, 2010</a>]</span> and <span id="id3">[<a class="reference internal" href="../reference/bibliography.html#id16" title="Marcel Neunhoeffer and Sebastian Sternberg. How cross-validation can go wrong and what to do about it. Political Analysis, 27(1):101–106, 2019.">Neunhoeffer and Sternberg, 2019</a>]</span>.</p>
+<p>This section introduces key concepts in the predictive modeling process, drawing on <span id="id4">[<a class="reference internal" href="../reference/bibliography.html#id3" title="Max Kuhn, Kjell Johnson, and others. Applied predictive modeling. Volume 26. Springer, 2013. URL: https://link-springer-com.ezproxy.cul.columbia.edu/book/10.1007/978-1-4614-6849-3.">Kuhn <em>et al.</em>, 2013</a>]</span> Chapters 2-4 and <span id="id5">[<a class="reference internal" href="../reference/bibliography.html#id14" title="Sudhir Varma and Richard Simon. Bias in error estimation when using cross-validation for model selection. BMC bioinformatics, 7(1):91, 2006.">Varma and Simon, 2006</a>]</span>. After the corresponding lecture, you should be prepared to read <span id="id6">[<a class="reference internal" href="../reference/bibliography.html#id21" title="Michael D Ward, Brian D Greenhill, and Kristin M Bakke. The perils of policy by p-value: predicting civil conflicts. Journal of Peace Research, 47(4):363–375, 2010.">Ward <em>et al.</em>, 2010</a>]</span> and <span id="id7">[<a class="reference internal" href="../reference/bibliography.html#id16" title="Marcel Neunhoeffer and Sebastian Sternberg. How cross-validation can go wrong and what to do about it. Political Analysis, 27(1):101–106, 2019.">Neunhoeffer and Sternberg, 2019</a>]</span>.</p>
 <p>Read ISL chapters 2 and 5.</p>
 <section id="predicting-hat-y">
 <h2>Predicting <span class="math notranslate nohighlight">\(\hat{y}\)</span><a class="headerlink" href="#predicting-hat-y" title="Link to this heading">#</a></h2>
@@ -520,8 +528,8 @@ document.write(`
 </section>
 <section id="tufte-s-midterm-elections-model">
 <h2>Tufte’s Midterm Elections Model<a class="headerlink" href="#tufte-s-midterm-elections-model" title="Link to this heading">#</a></h2>
-<p>Let’s focus on regression problems where <span class="math notranslate nohighlight">\(y\)</span> is a continuous scalar value. For concreteness, let’s say we are predicting midterm election vote share like in <span id="id8">[<a class="reference internal" href="../reference/bibliography.html#id18" title="Edward R Tufte. Determinants of the outcomes of midterm congressional elections. American Political Science Review, 69(3):812–826, 1975.">Tufte, 1975</a>]</span>. The <span class="math notranslate nohighlight">\(y\)</span> variable is the percentage-point difference between the president’s party’s midterm two-party House vote share and that party’s normal vote (average over the previous eight House elections).</p>
-<p><span id="id9">[<a class="reference internal" href="../reference/bibliography.html#id18" title="Edward R Tufte. Determinants of the outcomes of midterm congressional elections. American Political Science Review, 69(3):812–826, 1975.">Tufte, 1975</a>]</span> finds an equation</p>
+<p>Let’s focus on regression problems where <span class="math notranslate nohighlight">\(y\)</span> is a continuous scalar value. For concreteness, let’s say we are predicting midterm election vote share like in <span id="id8">[<a class="reference internal" href="../reference/bibliography.html#id19" title="Edward R Tufte. Determinants of the outcomes of midterm congressional elections. American Political Science Review, 69(3):812–826, 1975.">Tufte, 1975</a>]</span>. The <span class="math notranslate nohighlight">\(y\)</span> variable is the percentage-point difference between the president’s party’s midterm two-party House vote share and that party’s normal vote (average over the previous eight House elections).</p>
+<p><span id="id9">[<a class="reference internal" href="../reference/bibliography.html#id19" title="Edward R Tufte. Determinants of the outcomes of midterm congressional elections. American Political Science Review, 69(3):812–826, 1975.">Tufte, 1975</a>]</span> finds an equation</p>
 <div class="math notranslate nohighlight">
 \[\widehat{\text{Vote Loss}} = -11.08 + 0.035\times \Delta\text{Real Disposable Income} + 0.133\times \text{Presidential Approval}.\]</div>
 <p>This line was found based on data from 1938-1970 and the R-squared is 0.912. Recall that R-squared describes how much of the variation in <span class="math notranslate nohighlight">\(y\)</span> is captured by the model. A perfect model gives an R-squared of 1 and a model with only an intercept equal to the average of <span class="math notranslate nohighlight">\(y\)</span> gives an R-squared of 0. Tufte’s 0.912 is impressive. With intro stats training, you might only ask for the adjusted R-squared as a follow up. The adjusted R-squared is also impressive at 0.876.</p>
@@ -671,15 +679,13 @@ document.write(`
 <p>Above we see that model 1 is actually better than model 2 on test data. This is a case where a simple model generalizes to new data better. Should Tufte have known this? Probably not. He didn’t have access to the test data. To perform model selection, he would have needed to reserve some of his eight observations for validation. With more data, we should be able to do better. The next section tries to make that process more clear.</p>
 </section>
 </section>
-<section class="tex2jax_ignore mathjax_ignore" id="training-testing-overfitting">
-<h1>Training, Testing, Overfitting<a class="headerlink" href="#training-testing-overfitting" title="Link to this heading">#</a></h1>
-<section id="bias-variance-tradeoff">
-<h2>Bias-Variance Tradeoff<a class="headerlink" href="#bias-variance-tradeoff" title="Link to this heading">#</a></h2>
+<section class="tex2jax_ignore mathjax_ignore" id="bias-variance-tradeoff">
+<h1>Bias-Variance Tradeoff<a class="headerlink" href="#bias-variance-tradeoff" title="Link to this heading">#</a></h1>
 <p>There is in general a tradeoff between a model’s <em>bias</em> and its <em>variance</em>. Bias refers to the difference between the truth and what your model predits. Variance refers to the tendency for the exact model fit to vary according to the randomness of the data you have. Both are bad. We like unbiased models and we want low variance so that our predictions are more exact.</p>
 <p>More complicated models tend to have higher variance. As you add more features or polynomial terms to a linear regression, your model is more sensitive to noise. However, a more simplistic model won’t come as close to describing the data generating process as it really is. Thus a simple model is biased.</p>
 <p>When we decide on a performance metric like mean squared error (MSE) we are saying that we are willing to trade a reduction in one for an increase in the other. This is somewhat different than an emphasis on unbiased models (OLS is the BLUE) you might be familiar with in other settings.</p>
 <section id="biasvariance-decomposition-supervised-prediction">
-<h3>Bias–Variance Decomposition (supervised prediction)<a class="headerlink" href="#biasvariance-decomposition-supervised-prediction" title="Link to this heading">#</a></h3>
+<h2>Bias–Variance Decomposition (supervised prediction)<a class="headerlink" href="#biasvariance-decomposition-supervised-prediction" title="Link to this heading">#</a></h2>
 <p><strong>Data-generating process</strong></p>
 <ul class="simple">
 <li><p><span class="math notranslate nohighlight">\(Y = f(X) + \varepsilon\)</span></p></li>
@@ -724,7 +730,6 @@ $<span class="math notranslate nohighlight">\(
 \[
 \boxed{\ \mathrm{MSE}(x) = \underbrace{(\mathbb{E}[\hat f(x)]-f(x))^2}_{\text{bias}^2(x)} + \underbrace{\mathbb{Var}(\hat f(x))}_{\text{variance}(x)} + \underbrace{\sigma^2(x)}_{\text{irreducible noise}}\ }.
 \]</div>
-</section>
 <section id="interpretation">
 <h3>Interpretation<a class="headerlink" href="#interpretation" title="Link to this heading">#</a></h3>
 <ul class="simple">
@@ -807,9 +812,6 @@ $<span class="math notranslate nohighlight">\(
 <figure class="align-default" id="fig-bias-variance">
 <a class="reference internal image-reference" href="../_images/scatter_bias_variance.svg"><img alt="Scatter plot showing bias-variance tradeoff" src="../_images/scatter_bias_variance.svg" style="width: 100%;" />
 </a>
-<figcaption>
-<p><span class="caption-number">Fig. 4 </span><span class="caption-text">Caption describing the bias-variance tradeoff visualization.</span><a class="headerlink" href="#fig-bias-variance" title="Link to this image">#</a></p>
-</figcaption>
 </figure>
 <div class="cell tag_hide-cell docutils container">
 <details class="admonition hide above-input">
@@ -828,7 +830,7 @@ $<span class="math notranslate nohighlight">\(
 <span class="n">n_cols</span> <span class="o">=</span> <span class="mi">2</span>
 
 
-<span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">n_axs</span><span class="p">,</span> <span class="n">n_cols</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">14</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="s1">&#39;col&#39;</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="s1">&#39;row&#39;</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">n_axs</span><span class="p">,</span> <span class="n">n_cols</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="s1">&#39;col&#39;</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="s1">&#39;row&#39;</span><span class="p">)</span>
 
 <span class="n">n</span> <span class="o">=</span> <span class="mi">30</span>
 <span class="n">n_test</span> <span class="o">=</span> <span class="mi">20</span>
@@ -906,74 +908,105 @@ $<span class="math notranslate nohighlight">\(
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/abce7a462a2345abdbb7ac19b7d9734ee28b98d493eb33f1573c7d2426bc2c34.png" src="../_images/abce7a462a2345abdbb7ac19b7d9734ee28b98d493eb33f1573c7d2426bc2c34.png" />
+<img alt="../_images/2609238071a4f1eeab79ec9ea21b2d8af68d809e8da3e3be2a3cdedbebbb5e43.png" src="../_images/2609238071a4f1eeab79ec9ea21b2d8af68d809e8da3e3be2a3cdedbebbb5e43.png" />
 </div>
 </details>
 </div>
 </section>
 </section>
 </section>
-<section class="tex2jax_ignore mathjax_ignore" id="james-stein">
-<h1>James-Stein<a class="headerlink" href="#james-stein" title="Link to this heading">#</a></h1>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-
-<span class="n">p</span> <span class="o">=</span> <span class="mi">3</span>
-<span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">50</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>   <span class="c1"># any fixed 3-vector</span>
-<span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>   <span class="c1"># any fixed 3-vector</span>
-
-<span class="n">R</span> <span class="o">=</span> <span class="mi">1_000_000</span>                             <span class="c1"># Monte Carlo replications</span>
-
-<span class="c1"># One-shot normal-means: Y ~ N(theta, I_p)</span>
-<span class="n">Y</span>  <span class="o">=</span> <span class="n">theta</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span>
-<span class="n">r2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">Y</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-
-<span class="c1"># James–Stein shrinkage factors (σ² = 1)</span>
-<span class="n">a</span>  <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">r2</span>                   <span class="c1"># untruncated JS</span>
-<span class="n">ap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>                 <span class="c1"># positive-part JS</span>
-
-<span class="c1"># Squared-error losses</span>
-<span class="n">mle_se</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">Y</span> <span class="o">-</span> <span class="n">theta</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">mle_se2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">Y</span><span class="o">-</span><span class="n">theta</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
-<span class="n">js_se2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">((</span><span class="n">a</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>  <span class="o">*</span> <span class="n">Y</span><span class="p">)</span> <span class="o">-</span><span class="n">theta</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
-
-<span class="n">js_se</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(((</span><span class="n">a</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>  <span class="o">*</span> <span class="n">Y</span><span class="p">)</span> <span class="o">-</span> <span class="n">theta</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">jsp_se</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(((</span><span class="n">ap</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">Y</span><span class="p">)</span> <span class="o">-</span> <span class="n">theta</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Normal-means (p=3, σ²=1)&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MLE risk ≈ </span><span class="si">{</span><span class="n">mle_se</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MLE risk ≈ </span><span class="si">{</span><span class="n">mle_se2</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;JS  risk ≈ </span><span class="si">{</span><span class="n">js_se2</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;JS  risk ≈ </span><span class="si">{</span><span class="n">js_se</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;JS+ risk ≈ </span><span class="si">{</span><span class="n">jsp_se</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Normal-means (p=3, σ²=1)
-MLE risk ≈ 2.998622
-MLE risk ≈ 2.998622
-JS  risk ≈ 1.982706
-JS  risk ≈ 1.982706
-JS+ risk ≈ 1.601375
-</pre></div>
-</div>
-</div>
-</div>
+<section class="tex2jax_ignore mathjax_ignore" id="validation-and-model-selection">
+<h1>Validation and Model Selection<a class="headerlink" href="#validation-and-model-selection" title="Link to this heading">#</a></h1>
+<p>We have seen how simple, biased models can sometimes generalize better than unbiased models. We have seen that complex models will fit our training data better but fail to perfom well on test data. We have even critiqued Ed Tufte with the benefit of hindsight. Soon, it will be our turn to step into the arena and create our own models. Given that our goal is to produce a model that performs well on new data, we need to do our own validation that this will be the case. The way this is typically done is by <strong>cross validation</strong>. Cross validation has two uses:</p>
+<ol class="arabic simple">
+<li><p>Obtain a measure of the performance of your model</p></li>
+<li><p>Tune your model’s <strong>hyperparameters</strong>. This is called model selection.</p></li>
+</ol>
+<p>Hyperparameters are model parameters that need to be set by the researcher. Neural networks and other complex models involve many hyperparameters. If you are working with a fixed OLS specification, then there are no hyperparameters. The slope of a regression line is <em>not</em> a hyperparameter, because it is determined by the model training process. However, we might consider the degree of polynomial that we use in a regression to be a hyperparameter.</p>
+<section id="simple-holdout-validation">
+<h2>Simple Holdout Validation<a class="headerlink" href="#simple-holdout-validation" title="Link to this heading">#</a></h2>
+<p>The most basic form of validation goes like this: randomly split the data into training, test, and a <em>validation</em> (aka <em>dev</em>) set. Then</p>
+<ol class="arabic simple">
+<li><p>Train each model variant (eg different polynomial specifications) on the training set.</p></li>
+<li><p>Measure the error on the dev set.</p></li>
+<li><p>Pick model with the lowest error on the the dev set.</p></li>
+<li><p>Reserve the test set to get a final measure of the model performance.</p></li>
+</ol>
+<p>One rule of thumb is to use 60% of your data for training, 20% for dev, and 20% for test. With large data, you might keep more data for training. Large is relative to the size of an effect you’re trying to detect, so we won’t make this more precise for now.</p>
+<p>This method enables us to perform model selection and to get an estimate of our model’s error. You might find it striking that we <em>make no decisions on the basis of the test set</em>. When data is scarce, this is obviously inconvenient. Why can’t we use the dev set error to report on our model? Each  measurement is a noisy read on the actual model performance. Once we select the model that looks the best on the dev set, we create some bias–we’re selecting for models that perform very well by chance. Of course, we still want to select the model with the best performance, but we shouldn’t be surprised if the model doesn’t do quite as well on the test set. This phenomenon is sometimes referred to as <em>model-selection bias</em>, an instance of the <em>winner’s curse</em>, or simply <em>optimistic bias</em>.</p>
+<p>Whenever you select for an extreme, you tend to end up capturing what might be some exceptional noise. As an analogy, consider all of the Forbes 30 Under 30 honorees who have gone to jail. By selecting for success, as it is noisily measured, Forbes ends up honoring a few people who are fraudsters or just very lucky (see Twyman’s Law and regression to the mean).</p>
+</section>
+<section id="cross-validation-for-model-performance">
+<h2>Cross Validation (For Model Performance)<a class="headerlink" href="#cross-validation-for-model-performance" title="Link to this heading">#</a></h2>
+<p>With scarce data and enough computing power, cross validation is often preferred, where we rotate the data through training and validation sets. Specifically in <span class="math notranslate nohighlight">\(\mathbf{k}\)</span>-<strong>fold</strong> validation,</p>
+<ol class="arabic simple">
+<li><p>Randomly plit the data in <span class="math notranslate nohighlight">\(k\)</span> partitions, or folds, of equal size.</p></li>
+<li><p>Choose <span class="math notranslate nohighlight">\(k-1\)</span> folds for training.</p></li>
+<li><p>Use the remaining fold for validation–for a measure of performance.</p></li>
+<li><p>Repeat 2-3 so that each fold is used as a validation set.</p></li>
+<li><p>Compute the cross-validation estimate as the size-weighted mean of the fold-level validation errors. If folds are equal size, this reduces to the simple average.
+$<span class="math notranslate nohighlight">\(\widehat{\mathrm{CV}}=\sum_{k=1}^K \frac{n_k}{N}\,\mathrm{Err}_k.\)</span>$</p></li>
+</ol>
+<p>There is a sort of bias variance tradeoff in choosing <span class="math notranslate nohighlight">\(k\)</span>. If <span class="math notranslate nohighlight">\(k\)</span> is small, your final performance estimate is pessimistic because the model is trained on relatively few data points. If <span class="math notranslate nohighlight">\(k\)</span> is large (for instance, in the extreme of <span class="math notranslate nohighlight">\(k=n\)</span>, leave-one-out cross validation), then there is less bias but higher variance. <span class="math notranslate nohighlight">\(k\)</span> between 5 and 10 is usually recommended.</p>
+<p>This will generally give you a good measure of your model’s performance on new data <em>as long as you aren’t using this for model selection.</em> <span id="id10">[<a class="reference internal" href="../reference/bibliography.html#id14" title="Sudhir Varma and Richard Simon. Bias in error estimation when using cross-validation for model selection. BMC bioinformatics, 7(1):91, 2006.">Varma and Simon, 2006</a>]</span> shows cross validation is biased in this case, though this isn’t made especially clear in ESL and other texts.</p>
+</section>
+<section id="nested-cross-validation-for-model-selection-and-model-performance">
+<h2>Nested Cross Validation (For Model Selection and Model Performance)<a class="headerlink" href="#nested-cross-validation-for-model-selection-and-model-performance" title="Link to this heading">#</a></h2>
+<p>In nested cross validation, we use two layers of cross validation: an inner loop for model selection (hyperparameter tuning) and an outer loop for performance estimation. This approach provides an unbiased estimate of model performance while avoiding the model-selection bias discussed previously.</p>
+<p>The process works as follows:</p>
+<ol class="arabic simple">
+<li><p><strong>Outer Loop</strong> (Performance Estimation):</p>
+<ul class="simple">
+<li><p>Split data into <span class="math notranslate nohighlight">\(K_{\text{outer}}\)</span> folds</p></li>
+<li><p>For each outer fold <span class="math notranslate nohighlight">\(k = 1, ..., K_{outer}\)</span>:</p>
+<ul>
+<li><p>Hold out fold <span class="math notranslate nohighlight">\(k\)</span> as the test set</p></li>
+<li><p>Use the remaining <span class="math notranslate nohighlight">\(K_{outer} - 1\)</span> folds for the inner loop</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>Inner Loop</strong> (Model Selection):</p>
+<ul class="simple">
+<li><p>Split the training data (from outer loop) into <span class="math notranslate nohighlight">\(K_{inner}\)</span> folds</p></li>
+<li><p>For each hyperparameter configuration:</p>
+<ul>
+<li><p>Perform <span class="math notranslate nohighlight">\(K_{inner}\)</span>-fold cross validation</p></li>
+<li><p>Calculate average validation performance</p></li>
+</ul>
+</li>
+<li><p>Select the best hyperparameter configuration</p></li>
+<li><p>Retrain model with best hyperparameters on all inner loop data</p></li>
+</ul>
+</li>
+<li><p><strong>Evaluation</strong>:</p>
+<ul class="simple">
+<li><p>Test the model from step 2 on the held-out outer fold</p></li>
+<li><p>Repeat for all outer folds</p></li>
+<li><p>Report the average performance across all outer folds as the final estimate</p></li>
+</ul>
+</li>
+</ol>
+<p>Note, your average performance measure might average over models with different hyperparameter and can only be interpreted as the performance of your general algorithm.</p>
+<p>In my experience in industry, a degenerate case of nested cross validation is the most common. <span class="math notranslate nohighlight">\(K_{\text{outer}}\)</span> is usually set to one, so this is just cross-validation over a training+dev set and with a test set that is left untouched until after you have selected your model. This also makes it easier to decide what hyperparameters you should actually pick if you’re deploying a model.</p>
+<section id="why-nested-cross-validation">
+<h3>Why Nested Cross Validation?<a class="headerlink" href="#why-nested-cross-validation" title="Link to this heading">#</a></h3>
+<p>Using regular cross validation for both model selection and performance estimation leads to optimistic bias. When you select the best-performing model based on cross validation scores, you’re essentially “peeking” at the test data through the selection process. The model that performs best might have gotten lucky with the particular data splits.</p>
+<p>Nested cross validation separates these concerns:</p>
+<ul class="simple">
+<li><p>The inner loop finds the best hyperparameters for each outer training set</p></li>
+<li><p>The outer loop provides an unbiased estimate of how well this model selection procedure works on truly unseen data</p></li>
+</ul>
+</section>
+</section>
+<section id="time-series-unbalanced-data-and-other-complications">
+<h2>Time Series, Unbalanced Data, and Other Complications<a class="headerlink" href="#time-series-unbalanced-data-and-other-complications" title="Link to this heading">#</a></h2>
+<p>For time series, the use of longitudinal holdouts are essential so that your validation and test sets contains data from a later time period than the data used for training.</p>
+</section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="summary">
 <h1>Summary<a class="headerlink" href="#summary" title="Link to this heading">#</a></h1>
-<p>We’ve now learned about the predictive modeling process. Model tuning and selection is prone to the problem of over-fitting. Performance measures like R-squared (and adjusted R-squared) are misleading when calculated based on training data. A model’s performance can only truly be measured by using completely new test data that was not involved in the training process. The researcher needs to remain disciplined and use procedures like cross-validation to make model selection more systematic, transparent, and reliable. <a class="reference external" href="https://www.econtalk.org/susan-athey-on-machine-learning-big-data-and-causation/">As noted by Susan Athey</a>, instead of researchers subjectively choosing variables and testing specifications behind the scenes, we can now explicitly use data to determine which variables matter. This technological shift enables what <span id="id10">[<a class="reference internal" href="../reference/bibliography.html#id10" title="Justin Grimmer, Margaret E Roberts, and Brandon M Stewart. Machine learning for social science: an agnostic approach. Annual Review of Political Science, 24(1):395–419, 2021.">Grimmer <em>et al.</em>, 2021</a>]</span> describe as a move away from purely deductive social science toward a more inductive, iterative approach where researchers can discover patterns in data rather than only testing pre-specified hypotheses.</p>
+<p>We’ve now learned about the predictive modeling process. Model tuning and selection is prone to the problem of over-fitting. Performance measures like R-squared (and adjusted R-squared) are misleading when calculated based on training data. A model’s performance can only truly be measured by using completely new test data that was not involved in the training process. The researcher needs to remain disciplined and use procedures like cross-validation to make model selection more systematic, transparent, and reliable. <a class="reference external" href="https://www.econtalk.org/susan-athey-on-machine-learning-big-data-and-causation/">As noted by Susan Athey</a>, instead of researchers subjectively choosing variables and testing specifications behind the scenes, we can now explicitly use data to determine which variables matter. This technological shift enables what <span id="id11">[<a class="reference internal" href="../reference/bibliography.html#id10" title="Justin Grimmer, Margaret E Roberts, and Brandon M Stewart. Machine learning for social science: an agnostic approach. Annual Review of Political Science, 24(1):395–419, 2021.">Grimmer <em>et al.</em>, 2021</a>]</span> describe as a move away from purely deductive social science toward a more inductive, iterative approach where researchers can discover patterns in data rather than only testing pre-specified hypotheses.</p>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="exercises">
 <h1>Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h1>
@@ -993,9 +1026,19 @@ JS+ risk ≈ 1.601375
 <p>Who uses cross validation correctly? Lisa? Bart? Both? Neither?</p>
 </section>
 </div>
-<div class="exercise admonition" id="phack">
+<div class="exercise admonition" id="james-stein">
 
 <p class="admonition-title"><span class="caption-number">Exercise 5 </span></p>
+<section id="exercise-content">
+<p>Consider the estimator: <span class="math notranslate nohighlight">\(\theta_\alpha = (1 - \alpha)Y\)</span>, where <span class="math notranslate nohighlight">\(\alpha\)</span> is a constant in <span class="math notranslate nohighlight">\([0,1]\)</span> and <span class="math notranslate nohighlight">\(Y\in \mathbb{R}^3\)</span> is vector of independent normal random variables where <span class="math notranslate nohighlight">\(Y_i\sim N(\theta_i, 1)\)</span> for <span class="math notranslate nohighlight">\(i=1,2,3\)</span>.</p>
+<p>1.) Show that <span class="math notranslate nohighlight">\(\text{MSE}(\alpha) = \mathbb{E}_Y \Vert \theta - \theta_\alpha \Vert^2  = \alpha^2 \Vert \theta \Vert^2 + 3(1-\alpha)^2 \)</span></p>
+<p>2.) Find the value of <span class="math notranslate nohighlight">\(\alpha\)</span> that minimizes the MSE.</p>
+<p>3.) Show the MSE-optimal <span class="math notranslate nohighlight">\(\theta_\alpha\)</span> is also biased.</p>
+</section>
+</div>
+<div class="exercise admonition" id="phack">
+
+<p class="admonition-title"><span class="caption-number">Exercise 6 </span></p>
 <section id="exercise-content">
 <p>In what ways are p-hacking and overfitting similar? In what ways are they different?</p>
 </section>
@@ -1076,16 +1119,24 @@ JS+ risk ≈ 1.601375
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#could-tufte-have-produced-a-better-model">Could Tufte have produced a better model?</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#training-testing-overfitting">Training, Testing, Overfitting</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#bias-variance-tradeoff">Bias-Variance Tradeoff</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#biasvariance-decomposition-supervised-prediction">Bias–Variance Decomposition (supervised prediction)</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#bias-variance-tradeoff">Bias-Variance Tradeoff</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#biasvariance-decomposition-supervised-prediction">Bias–Variance Decomposition (supervised prediction)</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#interpretation">Interpretation</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#james-stein">James-Stein</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#validation-and-model-selection">Validation and Model Selection</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simple-holdout-validation">Simple Holdout Validation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cross-validation-for-model-performance">Cross Validation (For Model Performance)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nested-cross-validation-for-model-selection-and-model-performance">Nested Cross Validation (For Model Selection and Model Performance)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-nested-cross-validation">Why Nested Cross Validation?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#time-series-unbalanced-data-and-other-complications">Time Series, Unbalanced Data, and Other Complications</a></li>
+</ul>
+</li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">Exercises</a></li>
 </ul>
