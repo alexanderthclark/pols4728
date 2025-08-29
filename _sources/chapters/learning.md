@@ -3,7 +3,7 @@
 
 ## What is Machine Learning?
 
-I sometimes find the term "machine learning" to be frustrating. It sounds too impressive if you've already been inattentively running regressions to fulfill the modern duty to be data driven. Similarly, the use of words like "model" might frustrate you if you have a social science theorist's understanding of a model as more complete description of behavior. But we come to machine learning on machine learning's terms, and this requires some language acquisition. Let's first get our arms around the idea of "learning" and "machine learning," with the help of two foundational players in the field.
+I sometimes find the term "machine learning" to be frustrating. It sounds too impressive if you've already been running regressions to fulfill the modern duty to be data driven. Similarly, the use of words like "model" might frustrate you if you have a theorist's understanding of a model as more complete description of behavior. But we come to machine learning on machine learning's terms, and this requires some language acquisition. Let's first get our arms around the idea of "learning" and "machine learning," with the help of two foundational figures in the field.
 
 Computer scientist Marvin Minsky offered the definition below, though with the preface that it was "too broad to have much use." 
 
@@ -121,7 +121,7 @@ Common performance measures in classification include
    $\text{Precision} \;=\; \frac{\text{True Positives (TP)}}{\text{True Positives (TP)} + \text{False Positives (FP)}}$
    > Of all the defendants the model predicted as high risk (would FTA or be rearrested), how many actually did?
 
-2. **Recall**  
+2. **Recall** (aka True Positive Rate or Sensitivity)  
    $ \text{Recall} \;=\; \frac{\text{True Positives (TP)}}{\text{True Positives (TP)} + \text{False Negatives (FN)}} $ 
    > Of all defendants who actually were high risk (would FTA or be rearrested), how many did the model correctly flag?
 
@@ -129,6 +129,9 @@ Common performance measures in classification include
    Harmonic mean of Precision and Recall
    
    $ F_1 \;=\; 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}} $
+
+4. **ROC curve & AUC**  
+   The ROC curve plots the True Positive Rate, or Recall, vs the False Positive Rate as you vary a decision threshold. This is useful when you have a model that outputs a probability of being high risk and then you have to choose a threshold. The False Positive Rate is $\frac{\text{False Positives}}{\text{True Negatives + False Positives)}}$. The ROC curve always starts at (0,0) and ends at (1,1). As we gradually lower the classification threshold, more cases get labeled positive. This increases the True Positive Rate, but it also increases the False Positive Rate A perfectly random model traces a diagonal line, while a better model bows toward the top-left corner, achieving high TPR with low FPR. The area under the curve, **AUC**, summarizes the performance. If the area is 1, the model is perfect. If the area is 0.5, you could do the same from random guessing. See {cite}`fawcett2006roc`.
 
 
 #### More Concrete
