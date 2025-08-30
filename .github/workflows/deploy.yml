@@ -39,7 +39,7 @@ jobs:
           # Encrypt all HTML files recursively with session persistence
           staticrypt book/_build/html -r \
             -p "$BOOK_PW" --short \
-            --remember 7 \
+            --remember 120 \
             -d /tmp/encrypted_output
           
           # Replace original files with encrypted ones

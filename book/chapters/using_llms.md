@@ -111,90 +111,7 @@ It used to be emphasized that LLM performance improves if the prompt included an
 
 {cite}`gilardi2023chatgpt` showed that ChatGPT can outperform crowd workers (Mechanical Turk) on text annotation tasks. {cite}`tornberg2024large` shows that GPT-4 outperforms even experts in annotating political social media messages. But how do we know this? How do we measure performance? And how do we find the best prompt? Instead of approaching this through prompt engineering principles, we'll tackle this in a data-driven way by *trying stuff and seeing what works best*. 
 
-## 1 Evaluation Mindset ≈ Test‑Driven ML
-
-**Key idea:** treat a *prompt + model* pair as a *hypothesis* you must test against a labelled gold set.
-
-Consider Mitchell's framework: a system learns from experience E with respect to task T and performance measure P. With pre-trained LLMs, we're in a remarkable situation—we define T through our prompts, but E (the training on internet-scale text) was done by someone else. We still need to rigorously measure P to know if our prompts work.
-
-
-### 1.1 Micro‑workflow
-
-1. **Gold set** – hand‑labelled examples (`review`, `sentiment`).
-2. **Metric** – accuracy, F‑1, or task‑specific cost.
-3. **Batch run** – execute the prompt on every row.
-4. **Record** – score, token cost, failure cases → iterate.
-
-> You now have a **unit test for prompts.**
-
----
-
-## 2 Evaluating Prompts: Think A/B Testing
-
-When social scientists evaluate survey questions, we test different wordings to see which performs better. Evaluating LLM prompts works the same way—it's just A/B testing with different prompt templates.
-
-Here's a minimal evaluation setup using the same tools from your assignments:
-
-```python
-import google.generativeai as genai
-import pandas as pd
-from sklearn.metrics import confusion_matrix, accuracy_score
-
-# Setup (same as your homework)
-genai.configure(api_key=YOUR_KEY)
-model = genai.GenerativeModel("gemini-1.5-flash")
-
-def evaluate_prompt(test_data, prompt_template):
-    """Run a prompt on test data and measure performance"""
-    predictions = []
-    
-    for text in test_data['text']:
-        # Insert text into your prompt template
-        prompt = prompt_template.format(text=text)
-        response = model.generate_content(prompt)
-        predictions.append(response.text.strip())
-    
-    # Calculate metrics
-    accuracy = accuracy_score(test_data['true_label'], predictions)
-    cm = confusion_matrix(test_data['true_label'], predictions)
-    
-    return {
-        'accuracy': accuracy,
-        'predictions': predictions,
-        'confusion_matrix': cm
-    }
-
-# Define prompt templates
-ZERO_SHOT_PROMPT = """Classify the sentiment of this review as 'positive' or 'negative'.
-Review: {text}
-Answer:"""
-
-FEW_SHOT_PROMPT = """Classify sentiment as 'positive' or 'negative'.
-
-Review: "Terrible product, waste of money"
-Answer: negative
-
-Review: "Excellent quality, highly recommend!"
-Answer: positive
-
-Review: {text}
-Answer:"""
-
-# A/B test two prompts
-zero_shot_results = evaluate_prompt(test_data, ZERO_SHOT_PROMPT)
-few_shot_results = evaluate_prompt(test_data, FEW_SHOT_PROMPT)
-
-print(f"Zero-shot accuracy: {zero_shot_results['accuracy']:.2%}")
-print(f"Few-shot accuracy: {few_shot_results['accuracy']:.2%}")
-```
-
-This is exactly how {cite}`gilardi2023chatgpt` determined that ChatGPT beats crowd workers—they tested prompts systematically on labeled data, not by eyeballing a few examples.
-
-The key insight: treat each prompt variant as an experimental condition. Your "treatment" is the prompt wording, and your outcome is classification accuracy.
-
----
-
-## 4 Zero vs. Few Shots: What Does the Evidence Say?
+## Zero vs. Few Shots: What Does the Evidence Say?
 
 | Study | Model(s) | Task family | Main result |
 |-------|----------|-------------|-------------|
@@ -204,8 +121,7 @@ The key insight: treat each prompt variant as an experimental condition. Your "t
 | Liyanage et al. 2024 | GPT‑4 | Twitter stance | **Zero‑shot CoT matched 4‑shot accuracy** (≈ 93 %). |
 | Chen et al. 2024 | GPT‑4 | 6 tasks | Extra demos show diminishing returns after coverage of each label. |
 
-
-The kicker? {cite}`gilardi2023chatgpt` found that ChatGPT beat crowd workers on political annotation tasks—even with zero-shot prompts. No fancy engineering required. But here's the catch: they only knew this because they measured properly.
+{cite}`gilardi2023chatgpt` found that ChatGPT beat crowd workers on political annotation tasks—even with zero-shot prompts. 
 
 
 

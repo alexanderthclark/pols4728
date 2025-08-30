@@ -14,6 +14,34 @@ These are the course notes for *POLS 4728: Machine Learning and Artificial Intel
 - **Survey of Fundamentals**. We prefer deep, applied understanding of the simple case for the important methods to (1) even greater breadth that sacrifices understanding or (2) premature optimization where we cover extensions to panel data, time series data, etc. With foundations in place, you the researcher will be prepared to learn necessary extensions in the future.
 - **AI Maximalist**. We embrace AI for writing code and as a study partner. 
 
+### Topic Selection
+
+```{table} Overview of most frequently used machine learning methods in political science (n=339). Topic modeling is the most frequently used machine learning method in the sample of articles. Note that an article may treat multiple methods. Reproduced from Table 5 in {cite}`de2024use`.
+:name: tbl-ml-methods-de-slegte-2024
+
+| Machine Learning method or method class | Paradigm |  N | Percentage |
+|----------------------------------------|----------|---:|-----------:|
+| Topic Modeling Methods                 | UML      | 84 |       24.8 |
+| Random Forest                          | SML      | 55 |       16.2 |
+| Support Vector Machine                 | SML      | 55 |       16.2 |
+| Natural Language Processing Methods    | UML      | 44 |       13.0 |
+| Neural Networks                        | SML      | 42 |       12.4 |
+| Other Tree-based Methods               | SML      | 30 |        8.8 |
+| Regularization Methods                 | SML      | 28 |        8.2 |
+| Naive Bayes                            | SML      | 26 |        7.7 |
+| Other Text Mining Methods              | UML      | 23 |        6.8 |
+| Logistic Regression                    | SML      | 20 |        5.9 |
+| Bayesian Machine Learning Methods      | SML      | 13 |        3.8 |
+| Clustering Methods                     | UML      | 12 |        3.5 |
+| Kernel Regression Methods              | SML      |  7 |        2.1 |
+| Causal Forest                          | SML      |  5 |        1.5 |
+| Supervised Machine Learning Methods    | SML      |  6 |        1.8 |
+| Semi-supervised Machine Learning Methods | SML    |  1 |        0.3 |
+| Other Machine Learning Methods         | SML/UML  | 28 |        8.3 |
+```
+
+This analysis helps guide our topic selection, but I deemphasize NLP methods and some old-fashioned methods like support vector machines that I have never seen used in data-rich settings. 
+
 ### AI Maximalism
 
 It is worth clarifying that AI maximalism does not equate to using AI always and everywhere. Nor does it necessarily equate to techno-optimism. I could easily substitute the phrase "AI realism," meaning that powerful AI models are useful enough and here-to-stay enough that it is silly to ignore them in 2025. 
