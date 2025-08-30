@@ -12,9 +12,9 @@ parts:
 - caption: Lectures
   chapters:
   - file: chapters/learning
-  - file: chapters/evals_and_prompting
+  - file: chapters/using_llms
   - file: chapters/predictive
-  - file: chapters/linreg
+
 
 - caption: Reference
   chapters:
