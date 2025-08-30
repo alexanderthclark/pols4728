@@ -16,7 +16,9 @@ These are the course notes for *POLS 4728: Machine Learning and Artificial Intel
 
 ### Topic Selection
 
-```{table} Overview of most frequently used machine learning methods in political science (n=339). Topic modeling is the most frequently used machine learning method in the sample of articles. Note that an article may treat multiple methods. Reproduced from Table 5 in {cite}`de2024use`.
+{cite}`de2024use` analyzed 339 articles to identify the most frequently used machine learning methods in political science. Topic modeling emerges as the most common approach, followed by random forest and support vector machines. Individual articles may employ multiple methods.
+
+```{table} Most frequently used ML methods in political science (n=339)
 :name: tbl-ml-methods-de-slegte-2024
 
 | Machine Learning method or method class | Paradigm |  N | Percentage |
