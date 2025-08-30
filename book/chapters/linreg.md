@@ -1,7 +1,9 @@
 (linreg)=
 # Linear Regression
 
-Regression should be a familiar topic. We will move quickly through what might be familiar and then introduce machine learning vocabulary and other points of emphasis. Some of this, like discussion of the loss surface, will feel unnecessary. However, this is a chance to ease into new concepts that will arise again for other prediction models. 
+Regression should be a familiar topic. We will review the main ideas, but with some vocabulary and framing that might be unfamiliar. 
+
+We will move quickly through what might be familiar and then introduce machine learning vocabulary and other points of emphasis. Some of this, like discussion of the loss surface, will feel unnecessary. However, this is a chance to ease into new concepts that will arise again for other prediction models. 
 
 ```{admonition} Reading
 :class: seealso
@@ -32,7 +34,7 @@ Because linear algebra is king in machine learning, we'll give the geometric int
 * Our observed $y$ vector typically doesn't lie exactly in this column space (for example, for three points that you can't draw a single line through in simple linear regression).
 * OLS finds $\hat{\beta}$ such that $X\hat{\beta}$ is the vector in the column space closest to $y$.
 
-Mathematically, $X\hat{\beta}$ is the orthogonal projection of $y$ onto the column space of $X$. Orthogonality is what makes $X\hat{\beta}$ closer to $y$ than any other candidate:
+Mathematically, $X\hat{\beta}$ is the orthogonal projection of $y$ onto the column space of $X$. Proving this is beyond our scope. Orthogonality is what makes $X\hat{\beta}$ closer to $y$ than any other candidate:
 
 $$\Vert y - X\hat{\beta} \Vert \leq \Vert y - Xv \Vert.$$
 
