@@ -118,11 +118,10 @@ It used to be emphasized that LLM performance improves if the prompt included an
 | Brown et al. 2020 | GPT‑3 | 42 NLP benchmarks | 0‑shot < 1‑shot < 16‑shot (classic few‑shot curve) |
 | Kojima et al. 2022 | GPT‑3 | Reasoning (GSM‑8K) | Adding *"Let's think step by step"* closes 60 % of gap to few‑shot. |
 | Wei et al. 2022 | PaLM‑540B | Math, commonsense | 8‑shot CoT boosts accuracy by up to 36 pp over plain few‑shot. |
-| Liyanage et al. 2024 | GPT‑4 | Twitter stance | **Zero‑shot CoT matched 4‑shot accuracy** (≈ 93 %). |
+| Liyanage et al. 2024 | GPT‑4 | Twitter stance | Zero‑shot CoT matched 4‑shot accuracy (≈ 93 %). |
 | Chen et al. 2024 | GPT‑4 | 6 tasks | Extra demos show diminishing returns after coverage of each label. |
 
-{cite}`gilardi2023chatgpt` found that ChatGPT beat crowd workers on political annotation tasks—even with zero-shot prompts. 
-
+Including examples should be less important in more modern models. You will test this in your homework. 
 
 
 ## Exercises
