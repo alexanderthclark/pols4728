@@ -252,7 +252,14 @@ Notice that:
 \item The worst possible classifier predicts everyone as low risk when there are actually high-risk defendants
 \end{itemize}
 
-In the precision-recall space, it is clear that one model is better than another if it has both better precision and recall scores. However, it's not obvious which model is better when one has higher precision and the other has higher recall. The F1 score takes a stance by saying they are tied. Notice the curvature of the F1 isoquants as well. The convexity of the region above the curve means that averages are preferred to extremes, roughly. Any point on the line segment connecting two models with the same F1 score would have a higher F1 score and thus correspond to a better model.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{images/scatter_precision_recall_f1.pdf}
+\caption{F1 score isoquants showing how different combinations of precision and recall can yield the same F1 score. Each curve represents a constant F1 value.}
+\label{fig:f1-isoquants}
+\end{figure}
+
+In the figure above, it is clear that the green dot is better than the purple dot because it has both a better precision and recall score. Again, it's not obvious which orange dot is better. The F1 score takes a stance by saying they are tied. Notice the curvature of the F1 isoquants as well. The convexity of the region above the curve means that averages are preferred to extremes, roughly. Any dot on the line segment connecting the two orange dots would have a higher F1 score and thus correspond to a better model.
 
 \subsection{Experience and Training}
 

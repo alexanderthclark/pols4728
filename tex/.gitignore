@@ -13,3 +13,7 @@
 
 # Generated PDFs (optional - remove this line if you want to track PDFs)
 *.pdf
+
+# Keep images directory
+!images/
+!images/*
