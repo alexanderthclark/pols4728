@@ -1,0 +1,45 @@
+\documentclass[11pt]{article}
+
+% Load custom style packages  
+\usepackage{mystyle}
+\usepackage{mycommands}
+
+% Additional packages for tcolorboxes and enhanced content
+\definecolor{cellbackground}{RGB}{248,248,248}
+\definecolor{cellborder}{RGB}{200,200,200}
+
+% Bibliography setup - point to the main references file
+\addbibresource{../references.bib}
+
+% Document metadata
+\title{\class{}: Machine Learning Lecture Notes}
+\author{\instructor{} \\ Columbia University}
+\date{\semester{}}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+% Chapter 1: Learning
+\input{learning}
+\newpage
+
+% Chapter 2: Using LLMs  
+\input{using_llms}
+\newpage
+
+% Chapter 3: Predictive Modeling
+\input{predictive}
+
+% Print bibliography at the end
+\newpage
+\printbibliography
+
+% Creative Commons license notice - REMOVED
+% \vfill
+% \doclicenseThis
+
+\end{document}

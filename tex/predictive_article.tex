@@ -1,0 +1,29 @@
+\documentclass[11pt]{article}
+
+% Load custom style packages
+\usepackage{mystyle}
+\usepackage{mycommands}
+
+% Additional packages for this content
+\definecolor{cellbackground}{RGB}{248,248,248}
+\definecolor{cellborder}{RGB}{200,200,200}
+
+% Bibliography setup - point to the main references file
+\addbibresource{../references.bib}
+
+% Document metadata
+\title{Predictive Modeling}
+\author{\instructor}
+\date{\semester}
+
+\begin{document}
+
+\maketitle
+
+% Input the standalone content
+\input{predictive}
+
+% Print bibliography
+\printbibliography
+
+\end{document}

@@ -107,6 +107,9 @@ local_settings.py
 *.lof
 *.lot
 
+# LaTeX PDF outputs from tex/ folder
+tex/*.pdf
+
 # Syllabus directory (keep private)
 syllabus/
 .virtual_documents/
