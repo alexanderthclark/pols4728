@@ -1,19 +1,24 @@
-\usepackage{graphicx} % for images
-\usepackage{xcolor} % for text colors
-\usepackage{hyperref} % hyperlinking
-\usepackage{csquotes} % display quotes
+% ======= Core Packages (Load First) =======
 \usepackage[utf8]{inputenc} % Unicode input support
-\usepackage[T1]{fontenc} % Nicer default font (+ math font) than Computer Modern for most use cases
-\usepackage{booktabs}  % table support for pandoc > 1.12.2, toprule etc
-\usepackage{adjustbox} % Used to constrain images to a maximum size
-\usepackage[marginparsep=0.4mm]{geometry} % Used to adjust the document margins
-\usepackage{amsmath} % Equations
-\usepackage{amssymb} % Equations
-\usepackage{amsthm} % definitions/theorems
-\usepackage{cleveref} % smart cross-referencing - must be loaded after amsmath
-\usepackage{comment} % block comments
-\usepackage{fontawesome} % emoji stuff
-\usepackage{newunicodechar} % For Unicode emoji support
+\usepackage[T1]{fontenc} % Font encoding
+\usepackage{graphicx} % Images
+\usepackage{xcolor} % Colors
+
+% ======= Math and Text Packages =======
+\usepackage{amsmath} % Math environments
+\usepackage{amssymb} % Math symbols
+\usepackage{amsthm} % Theorem environments
+\usepackage{csquotes} % Display quotes
+
+% ======= Layout and Formatting =======
+\usepackage[marginparsep=0.4mm]{geometry} % Page margins
+\usepackage{booktabs} % Professional tables
+\usepackage{adjustbox} % Image sizing
+\usepackage{comment} % Block comments
+
+% ======= Typography and Visual =======
+\usepackage{fontawesome} % Icons
+\usepackage{newunicodechar} % Unicode support
 \newunicodechar{✏}{\faEdit} % Pencil - using FontAwesome
 \newunicodechar{📚}{\faBook} % Books - using FontAwesome
 \newunicodechar{💡}{\faLightbulbO} % Lightbulb - using FontAwesome
@@ -21,48 +26,95 @@
 \newunicodechar{✓}{\checkmark}
 \newunicodechar{✗}{\times}
 \newunicodechar{×}{\times}
-%\usepackage{marginnote} % for pyfile command
-\usepackage{makeidx} % for index
-\usepackage{caption}
-\usepackage{colortbl}
-\usepackage{float}
-\usepackage{fancyhdr} % for headers and footers
-\usepackage{titlesec} % for custom section formatting
-\usepackage{setspace} % for line spacing control
+% ======= Additional Packages =======
+\usepackage{makeidx} % Index generation
+\usepackage{caption} % Caption formatting
+\usepackage{colortbl} % Colored tables
+\usepackage{float} % Float positioning
+\usepackage{fancyhdr} % Headers and footers
+\usepackage{titlesec} % Section formatting
+\usepackage{setspace} % Line spacing
+\usepackage{cleveref} % Smart cross-referencing - must be loaded after amsmath
 
 
+% ======= Color Definitions =======
+\definecolor{cellbackground}{RGB}{248,248,248}
+\definecolor{cellborder}{RGB}{200,200,200}
+
+% Exercise box colors
+\definecolor{exerciseblue}{RGB}{230,240,250}
+\definecolor{exerciseblue-border}{RGB}{70,130,200}
+\definecolor{readinggreen}{RGB}{235,245,235}
+\definecolor{readinggreen-border}{RGB}{60,140,60}
+\definecolor{definitionyellow}{RGB}{255,250,235}
+\definecolor{definitionyellow-border}{RGB}{200,150,30}
+
+% ======= TColorBox Setup =======
 \usepackage[breakable,skins]{tcolorbox}
 \tcbset{nobeforeafter} % prevents tcolorboxes being placing in paragraphs
 
+% Custom tcolorbox environments
+\newtcolorbox{exercisebox}[1][]{
+  breakable,
+  enhanced,
+  colback=exerciseblue,
+  colframe=exerciseblue-border,
+  boxrule=1.2pt,
+  arc=4pt,
+  title={✏️ Exercise},
+  fonttitle=\bfseries,
+  coltitle=black,
+  attach boxed title to top left={yshift=-2mm,xshift=3mm},
+  boxed title style={arc=2pt,colback=exerciseblue-border,coltext=white},
+  pad at break*=1mm,
+  #1
+}
+
+\newtcolorbox{readingbox}[1][]{
+  breakable,
+  enhanced,
+  colback=readinggreen,
+  colframe=readinggreen-border,
+  boxrule=1.2pt,
+  arc=4pt,
+  title={📚 Reading},
+  fonttitle=\bfseries,
+  coltitle=black,
+  attach boxed title to top left={yshift=-2mm,xshift=3mm},
+  boxed title style={arc=2pt,colback=readinggreen-border,coltext=white},
+  pad at break*=1mm,
+  #1
+}
+
+\newtcolorbox{definitionbox}[1][]{
+  breakable,
+  enhanced,
+  colback=definitionyellow,
+  colframe=definitionyellow-border,
+  boxrule=1.2pt,
+  arc=4pt,
+  title={📖 Definition},
+  fonttitle=\bfseries,
+  coltitle=black,
+  attach boxed title to top left={yshift=-2mm,xshift=3mm},
+  boxed title style={arc=2pt,colback=definitionyellow-border,coltext=white},
+  pad at break*=1mm,
+  #1
+}
+
+% ======= Theorem Environments (available but not used) =======
 %\newtheorem{definition}{Definition}
 
-%% Dagger footnote on title 
-%\usepackage[symbol]{footmisc}
-%\renewcommand{\thefootnote}{\fnsymbol{footnote}}
-%\DefineFNsymbols{mySymbols}{{\ensuremath\dagger}{\ensuremath\ddagger}\S\P
- %  *{**}{\ensuremath{\dagger\dagger}}{\ensuremath{\ddagger\ddagger}}}
-%\setfnsymbol{mySymbols}
-
-
-% Stuff for part images
-% epipart.sty
-%\usepackage{titlesec}
-%\usepackage{epigraph}
-%\setlength{\epigraphwidth}{\textwidth}
-%\titleformat{\part}[display]
-%{\normalfont\huge\filcenter\bfseries\thispagestyle{epigraph}}
-%{\partname\ \thepart}
-%{20pt}
-%{\Huge}
-%\titlespacing*{\part}{0pt}{0pt}{40pt}
-
+% ======= Document Settings =======
 % Prevent overflowing lines due to hard-to-break entities
-\sloppy 
-% Setup hyperref package
+\sloppy
+
+% ======= Hyperref (Load Last) =======
+\usepackage{hyperref} % Must be loaded after most other packages
 \definecolor{citecolor}{rgb}{0,0.5,0}
 \definecolor{linkcolor}{rgb}{0.2,0.2,0.7}
 \hypersetup{
-    breaklinks=true,  % so long urls are correctly broken across lines
+    breaklinks=true,
     colorlinks=true,
     urlcolor=blue,
     linkcolor=linkcolor,

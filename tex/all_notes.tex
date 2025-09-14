@@ -4,67 +4,6 @@
 \usepackage{mystyle}
 \usepackage{mycommands}
 
-% Additional packages for tcolorboxes and enhanced content
-\definecolor{cellbackground}{RGB}{248,248,248}
-\definecolor{cellborder}{RGB}{200,200,200}
-
-% Exercise box colors
-\definecolor{exerciseblue}{RGB}{230,240,250}
-\definecolor{exerciseblue-border}{RGB}{70,130,200}
-\definecolor{readinggreen}{RGB}{235,245,235}
-\definecolor{readinggreen-border}{RGB}{60,140,60}
-\definecolor{definitionyellow}{RGB}{255,250,235}
-\definecolor{definitionyellow-border}{RGB}{200,150,30}
-
-% Custom tcolorbox styles
-\newtcolorbox{exercisebox}[1][]{
-  breakable,
-  enhanced,
-  colback=exerciseblue,
-  colframe=exerciseblue-border,
-  boxrule=1.2pt,
-  arc=4pt,
-  title={✏️ Exercise},
-  fonttitle=\bfseries,
-  coltitle=black,
-  attach boxed title to top left={yshift=-2mm,xshift=3mm},
-  boxed title style={arc=2pt,colback=exerciseblue-border,coltext=white},
-  pad at break*=1mm,
-  #1
-}
-
-\newtcolorbox{readingbox}[1][]{
-  breakable,
-  enhanced,
-  colback=readinggreen,
-  colframe=readinggreen-border,
-  boxrule=1.2pt,
-  arc=4pt,
-  title={📚 Reading},
-  fonttitle=\bfseries,
-  coltitle=black,
-  attach boxed title to top left={yshift=-2mm,xshift=3mm},
-  boxed title style={arc=2pt,colback=readinggreen-border,coltext=white},
-  pad at break*=1mm,
-  #1
-}
-
-\newtcolorbox{definitionbox}[1][]{
-  breakable,
-  enhanced,
-  colback=definitionyellow,
-  colframe=definitionyellow-border,
-  boxrule=1.2pt,
-  arc=4pt,
-  title={📖 Definition},
-  fonttitle=\bfseries,
-  coltitle=black,
-  attach boxed title to top left={yshift=-2mm,xshift=3mm},
-  boxed title style={arc=2pt,colback=definitionyellow-border,coltext=white},
-  pad at break*=1mm,
-  #1
-}
-
 % Bibliography setup - point to the main references file
 \addbibresource{../references.bib}
 
