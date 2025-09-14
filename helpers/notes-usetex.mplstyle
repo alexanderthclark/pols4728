@@ -1,0 +1,84 @@
+# ======== Base look & feel (safe without LaTeX) ========
+
+# --- Typography ---
+font.family: serif
+font.size: 9
+axes.titlesize: 10
+axes.labelsize: 9
+xtick.labelsize: 8
+ytick.labelsize: 8
+legend.fontsize: 8
+
+# --- Lines & markers ---
+lines.linewidth: 1.2
+lines.markersize: 3.6
+lines.solid_capstyle: round
+lines.dash_capstyle: round
+
+# --- Axes & spines ---
+axes.linewidth: 0.6
+axes.spines.top: False
+axes.spines.right: False
+axes.grid: True
+
+# --- Grid ---
+grid.linewidth: 0.3
+grid.alpha: 0.4
+grid.linestyle: -
+
+# --- Ticks ---
+xtick.top: False
+ytick.right: False
+xtick.direction: out
+ytick.direction: out
+xtick.major.size: 3
+ytick.major.size: 3
+xtick.minor.size: 2
+ytick.minor.size: 2
+xtick.minor.visible: True
+ytick.minor.visible: True
+
+# --- Number formatting ---
+axes.formatter.use_mathtext: True
+axes.formatter.limits: -3, 4  # switch to sci for very small/large numbers
+
+# --- Legend ---
+legend.frameon: False
+legend.handlelength: 1.4
+legend.borderpad: 0.3
+legend.labelspacing: 0.3
+
+# --- Figure / saving ---
+figure.figsize: 4.5, 3.0
+figure.dpi: 200
+figure.constrained_layout.use: True
+savefig.bbox: tight
+savefig.pad_inches: 0.02
+savefig.transparent: True
+savefig.format: pdf
+
+# --- Font embedding for high-quality vector fonts ---
+pdf.fonttype: 42        # Embed TrueType fonts as vectors (not bitmaps)
+ps.fonttype: 42         # Same for PostScript output
+svg.fonttype: none      # Don't convert fonts to paths in SVG
+
+# --- Color cycle (Okabe–Ito: colorblind safe) ---
+axes.prop_cycle: cycler("color", ["#0072B2", "#E69F00", "#009E73", "#D55E00", "#CC79A7", "#F0E442", "#56B4E9", "#000000"])
+
+# ======== Additions for LaTeX text rendering (pdf/ps backends) ========
+# Use this when exporting to PDF/PS and you want LaTeX-rendered text.
+# Example usage:
+#   import matplotlib.pyplot as plt
+#   plt.style.use("notes-usetex.mplstyle")
+
+text.usetex: True
+font.family: serif
+font.serif: Computer Modern Roman, Computer Modern, CMU Serif, Latin Modern Roman, DejaVu Serif
+
+# Load common math packages; remove any you don't have installed.
+# Note: separate packages with '\n' inside the single string.
+text.latex.preamble: \usepackage{amsmath}\n\usepackage{amssymb}\n\usepackage{siunitx}
+
+# Embed modern font types in vector outputs
+pdf.fonttype: 42
+ps.fonttype: 42

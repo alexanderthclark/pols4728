@@ -12,7 +12,10 @@ Let's focus on regression problems where $y$ is a continuous scalar value. For c
 
 \cite{tufte1975determinants} finds an equation 
 
-$$\widehat{\mathrm{Vote\,Loss}} = -11.08 + 0.035\times \Delta\mathrm{Real\,Disposable\,Income} + 0.133\times \mathrm{Presidential\,Approval}.$$
+\begin{equation}
+\widehat{\mathrm{Vote\,Loss}} = -11.08 + 0.035\times \Delta\mathrm{Real\,Disposable\,Income} + 0.133\times \mathrm{Presidential\,Approval}
+\label{eq:tufte-model}
+\end{equation}
 
 This line was found based on data from 1938-1970 and the R-squared is 0.912. Recall that R-squared describes how much of the variation in $y$ is captured by the model. A perfect model gives an R-squared of 1 and a model with only an intercept equal to the average of $y$ gives an R-squared of 0. Tufte's 0.912 is impressive. With intro stats training, you might only ask for the adjusted R-squared as a follow-up. The adjusted R-squared is also impressive at 0.876.
 
@@ -54,11 +57,10 @@ df2 = df[df.year > 1970]
 
 Model 1 has an R-squared of 0.253 in the training set. From the scatter plot below, we can see that the regression line is sane but imperfect when compared to the test data. The R-squared is just 0.015 on the test set. That means using the regression model is not much better than just guessing the average from the post-1970 data.
 
-\textit{[Note: The original notebook contains matplotlib plots. In LaTeX, these would typically be saved as separate image files and included with \textbackslash includegraphics. For brevity, I'm indicating where plots would appear.]}
 
 \begin{figure}[H]
 \centering
-\textit{[Plot would show: Model 1 - Linear regression with training/test data scatter plot and residuals by year]}
+\includegraphics[width=\textwidth]{images/model1_scatter.pdf}
 \caption{Model 1: Presidential approval only. Left panel shows training data (blue) and test data (orange) with fitted regression line. Right panel shows residuals over time.}
 \end{figure}
 
@@ -68,7 +70,7 @@ Model 2 has an R-squared of 0.876 in the training set. From the residual scatter
 
 \begin{figure}[H]
 \centering
-\textit{[Plot would show: Model 2 - Predicted vs actual scatter plot and residuals by year]}
+\includegraphics[width=\textwidth]{images/model2_scatter.pdf}
 \caption{Model 2: Presidential approval and economic indicator. Left panel shows predicted vs actual values for training and test data. Right panel shows residuals becoming more volatile over time.}
 \end{figure}
 
@@ -95,7 +97,10 @@ When we decide on a performance metric like mean squared error (MSE) we are sayi
 
 Define the test MSE:
 
-$$\mathrm{MSE} \;=\; \mathbb{E}\!\left[(Y - \hat \theta)^2\right].$$
+\begin{equation}
+\mathrm{MSE} = \mathbb{E}\!\left[(Y - \hat \theta)^2\right]
+\label{eq:mse-definition}
+\end{equation}
 
 Substitute $Y=\theta+\varepsilon$:
 
@@ -126,7 +131,10 @@ $$\begin{aligned}
 
 Therefore,
 
-$$\boxed{\ \mathrm{MSE} = \underbrace{(\mathbb{E}[\hat \theta]-\theta)^2}_{\text{bias}^2} + \underbrace{\mathbb{Var}(\hat \theta)}_{\text{variance}} + \underbrace{\sigma^2}_{\text{irreducible noise}}\ }.$$
+\begin{equation}
+\boxed{\ \mathrm{MSE} = \underbrace{(\mathbb{E}[\hat \theta]-\theta)^2}_{\text{bias}^2} + \underbrace{\mathbb{Var}(\hat \theta)}_{\text{variance}} + \underbrace{\sigma^2}_{\text{irreducible noise}}\ }
+\label{eq:bias-variance-decomposition}
+\end{equation}
 
 \subsubsection{Interpretation}
 
@@ -136,7 +144,7 @@ $$\boxed{\ \mathrm{MSE} = \underbrace{(\mathbb{E}[\hat \theta]-\theta)^2}_{\text
 \item \textbf{Noise}: randomness you cannot remove.
 \end{itemize}
 
-Making the model more flexible typically reduces bias but increases variance restricting it does the opposite. Optimal predictive performance sits where $\mathrm{bias}^2$ + variance is minimized.
+Making the model more flexible typically reduces bias but increases variance; restricting it does the opposite. Optimal predictive performance sits where $\mathrm{bias}^2$ + variance is minimized, as shown in \cref{eq:bias-variance-decomposition}.
 
 \subsubsection{Examples}
 
@@ -144,7 +152,7 @@ Let $f(x) = \sin x + \varepsilon$, where $\varepsilon$ is normally distributed, 
 
 \begin{figure}[H]
 \centering
-\textit{[Plot would show: Three panels showing sine function with different datasets and linear vs quadratic fits]}
+\includegraphics[width=\textwidth]{images/sine_examples.pdf}
 \caption{Sine function examples showing bias-variance tradeoff between linear and quadratic models on different training datasets.}
 \end{figure}
 
@@ -197,7 +205,10 @@ With scarce data and enough computing power, cross validation is often preferred
 \item Use the remaining fold for validation--for a measure of performance.
 \item Repeat 2-3 so that each fold is used as a validation set.
 \item Compute the cross-validation estimate as the size-weighted mean of the fold-level validation errors. If folds are equal size, this reduces to the simple average.
-   $$\widehat{\mathrm{CV}}=\sum_{k=1}^K \frac{n_k}{N}\,\mathrm{Err}_k.$$
+\begin{equation}
+\widehat{\mathrm{CV}}=\sum_{k=1}^K \frac{n_k}{N}\,\mathrm{Err}_k
+\label{eq:cross-validation}
+\end{equation}
 \end{enumerate}
 
 There is a sort of bias variance tradeoff in choosing $k$. If $k$ is small, your final performance estimate is pessimistic because the model is trained on relatively few data points. If $k$ is large (for instance, in the extreme of $k=n$, leave-one-out cross validation), then there is less bias but higher variance. $k$ between 5 and 10 is usually recommended.

@@ -29,7 +29,9 @@ With these rough boundaries, we can discuss learning problems and their key simi
 
 \subsection{Well-Posed Learning Problems}
 
-\textbf{Definition:} A computer program is said to \textbf{learn} from experience \textit{E} with respect to some class of tasks \textit{T} and performance measure \textit{P}, if its performance at tasks in \textit{T}, as measured by \textit{P}, improves with experience \textit{E} \cite{mitchell1997machine}.
+\begin{definitionbox}[title={Machine Learning (Mitchell 1997)}]
+A computer program is said to \textbf{learn} from experience \textit{E} with respect to some class of tasks \textit{T} and performance measure \textit{P}, if its performance at tasks in \textit{T}, as measured by \textit{P}, improves with experience \textit{E} \cite{mitchell1997machine}.
+\end{definitionbox}
 
 This definition provides a framework for thinking about learning problems, though it can be somewhat narrow. Not all useful ML techniques fit perfectly into this framework, as we will see.
 
@@ -43,7 +45,12 @@ Consider a system that predicts wages based on education level:
 \item \textbf{Training experience E}: Observing education-wage pairs from survey data
 \end{itemize}
 
-If we observe $i=1,\dots,n$ and make prediction $\hat{y}_i$ for all $i$, our performance measure is $\frac{1}{n}\sum_{i=1}^{n} (y_i -\hat{y}_i)^2$. If we use a linear model, $\hat{y}_i=\hat{\beta}_0 + \hat{\beta}_1x_i$, then we are describing ordinary least squares.
+If we observe $i=1,\dots,n$ and make prediction $\hat{y}_i$ for all $i$, our performance measure is
+\begin{equation}
+\text{MSE} = \frac{1}{n}\sum_{i=1}^{n} (y_i -\hat{y}_i)^2
+\label{eq:mse-basic}
+\end{equation}
+If we use a linear model, $\hat{y}_i=\hat{\beta}_0 + \hat{\beta}_1x_i$, then we are describing ordinary least squares.
 
 \subsubsection{Example: Playing Board Games}
 
@@ -112,18 +119,19 @@ The performance measure is slightly ambiguous, but any reasonable measure will w
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|c|c|}
-\hline
+\begin{tabular}{lcc}
+\toprule
 & \textbf{Predicted: High Risk} & \textbf{Predicted: Low Risk} \\
-\hline
+\midrule
 \textbf{Actually: High Risk} & \checkmark True Positive & \texttimes False Negative (Type II) \\
-\hline
 \textbf{Actually: Low Risk} & \texttimes False Positive (Type I) & \checkmark True Negative \\
-\hline
+\bottomrule
 \end{tabular}
+\caption{Confusion matrix for binary classification showing four possible outcomes}
+\label{tab:confusion-matrix}
 \end{table}
 
-This matrix reveals a challenge: how do we combine these four numbers into a single performance score?
+The confusion matrix in \cref{tab:confusion-matrix} reveals a challenge: how do we combine these four numbers into a single performance score?
 
 Some options include:
 \begin{itemize}
@@ -139,19 +147,27 @@ Common performance measures in classification include
 
 \begin{enumerate}
 \item \textbf{Precision}\\
-$\text{Precision} \;=\; \frac{\text{True Positives (TP)}}{\text{True Positives (TP)} + \text{False Positives (FP)}}$
+\begin{equation}
+\text{Precision} = \frac{\text{True Positives (TP)}}{\text{True Positives (TP)} + \text{False Positives (FP)}}
+\label{eq:precision}
+\end{equation}
 
 Of all the defendants the model predicted as high risk (would FTA or be rearrested), how many actually did?
 
 \item \textbf{Recall} (aka True Positive Rate or Sensitivity)\\
-$\text{Recall} \;=\; \frac{\text{True Positives (TP)}}{\text{True Positives (TP)} + \text{False Negatives (FN)}}$
+\begin{equation}
+\text{Recall} = \frac{\text{True Positives (TP)}}{\text{True Positives (TP)} + \text{False Negatives (FN)}}
+\label{eq:recall}
+\end{equation}
 
 Of all defendants who actually were high risk (would FTA or be rearrested), how many did the model correctly flag?
 
 \item \textbf{F-1 Score}\\
 Harmonic mean of Precision and Recall
-
-$F_1 \;=\; 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}$
+\begin{equation}
+F_1 = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}
+\label{eq:f1-score}
+\end{equation}
 
 \item \textbf{ROC curve \& AUC}\\
 The ROC curve plots the True Positive Rate, or Recall, vs the False Positive Rate as you vary a decision threshold. This is useful when you have a model that outputs a probability of being high risk and then you have to choose a threshold. The False Positive Rate is $\frac{\text{False Positives}}{\text{True Negatives + False Positives)}}$. The ROC curve always starts at (0,0) and ends at (1,1). As we gradually lower the classification threshold, more cases get labeled positive. This increases the True Positive Rate, but it also increases the False Positive Rate A perfectly random model traces a diagonal line, while a better model bows toward the top-left corner, achieving high TPR with low FPR. The area under the curve, \textbf{AUC}, summarizes the performance. If the area is 1, the model is perfect. If the area is 0.5, you could do the same from random guessing. See \cite{fawcett2006introduction}.
@@ -179,6 +195,8 @@ Now let's compare three different models:
 \textbf{Actually wouldn't FTA} & 0 & 3 \\
 \hline
 \end{tabular}
+\caption{Model A (Oracle): Perfect classification performance}
+\label{tab:model-a-oracle}
 \end{table}
 
 \begin{itemize}
@@ -192,15 +210,16 @@ Perfect! But this is a nirvana no human can achieve.
 \textbf{Model B: Nancy Grace (High Recall)}
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|c|c|}
-\hline
+\begin{tabular}{lcc}
+\toprule
 & \textbf{Predicted: High Risk} & \textbf{Predicted: Low Risk} \\
-\hline
+\midrule
 \textbf{Actually would FTA} & 2 & 0 \\
-\hline
 \textbf{Actually wouldn't FTA} & 2 & 1 \\
-\hline
+\bottomrule
 \end{tabular}
+\caption{Model B: High recall but many false positives}
+\label{tab:model-b-high-recall}
 \end{table}
 
 \begin{itemize}
@@ -214,15 +233,16 @@ This model catches everyone who would FTA, but detains 4 people total—2 unnece
 \textbf{Model C: Alvin Bragg (High Precision)}
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|c|c|}
-\hline
+\begin{tabular}{lcc}
+\toprule
 & \textbf{Predicted: High Risk} & \textbf{Predicted: Low Risk} \\
-\hline
+\midrule
 \textbf{Actually would FTA} & 1 & 1 \\
-\hline
 \textbf{Actually wouldn't FTA} & 0 & 3 \\
-\hline
+\bottomrule
 \end{tabular}
+\caption{Model C: High precision but misses many true positives}
+\label{tab:model-c-high-precision}
 \end{table}
 
 \begin{itemize}
@@ -239,7 +259,34 @@ Which model is best? Model B protects public safety but jails more innocent peop
 
 With just 5 defendants, there are only 32 possible ways to classify them ($2^5 = 32$). The table below shows every possible prediction pattern and the resulting performance metrics. Each row represents a different classifier, with the binary string showing predictions for each defendant (1 = predict high risk, 0 = predict low risk).
 
-\textit{[Note: The original contains a complex styled HTML table with 32 rows showing all possible classifications. This would be better represented as a generated table or figure in LaTeX rather than manually transcribed.]}
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabular}{ccccccc}
+\toprule
+\textbf{Predictions} & \textbf{FP} & \textbf{FN} & \textbf{TP} & \textbf{TN} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} \\
+\midrule
+11000 & 0.00 & 0.00 & 2.00 & 3.00 & 1.00 & 1.00 & 1.00 \\
+11100 & 0.00 & 1.00 & 2.00 & 2.00 & 0.67 & 1.00 & 0.80 \\
+11010 & 0.00 & 1.00 & 2.00 & 2.00 & 0.67 & 1.00 & 0.80 \\
+11001 & 0.00 & 1.00 & 2.00 & 2.00 & 0.67 & 1.00 & 0.80 \\
+01000 & 1.00 & 0.00 & 1.00 & 3.00 & 1.00 & 0.50 & 0.67 \\
+11110 & 0.00 & 2.00 & 2.00 & 1.00 & 0.50 & 1.00 & 0.67 \\
+11101 & 0.00 & 2.00 & 2.00 & 1.00 & 0.50 & 1.00 & 0.67 \\
+11011 & 0.00 & 2.00 & 2.00 & 1.00 & 0.50 & 1.00 & 0.67 \\
+10000 & 1.00 & 0.00 & 1.00 & 3.00 & 1.00 & 0.50 & 0.67 \\
+11111 & 0.00 & 3.00 & 2.00 & 0.00 & 0.40 & 1.00 & 0.57 \\
+10100 & 1.00 & 1.00 & 1.00 & 2.00 & 0.50 & 0.50 & 0.50 \\
+10010 & 1.00 & 1.00 & 1.00 & 2.00 & 0.50 & 0.50 & 0.50 \\
+\midrule
+\multicolumn{7}{c}{\textit{... (showing first 12 of 32 possible classifications)}} \\
+\midrule
+00000 & 2.00 & 0.00 & 0.00 & 3.00 & --- & 0.00 & --- \\
+\bottomrule
+\end{tabular}
+\caption{All possible classification outcomes for 5 defendants (showing key examples). F1 is undefined when no positives are predicted.}
+\label{tab:all-possible-classifications}
+\end{table}
 
 F1 is undefined when no positives are predicted (division by zero); that's why some rows show 'nan'.
 
@@ -259,7 +306,7 @@ Notice that:
 \label{fig:f1-isoquants}
 \end{figure}
 
-In the figure above, it is clear that the green dot is better than the purple dot because it has both a better precision and recall score. Again, it's not obvious which orange dot is better. The F1 score takes a stance by saying they are tied. Notice the curvature of the F1 isoquants as well. The convexity of the region above the curve means that averages are preferred to extremes, roughly. Any dot on the line segment connecting the two orange dots would have a higher F1 score and thus correspond to a better model.
+In \cref{fig:f1-isoquants}, it is clear that the green dot is better than the purple dot because it has both a better precision and recall score. Again, it's not obvious which orange dot is better. The F1 score takes a stance by saying they are tied. Notice the curvature of the F1 isoquants as well. The convexity of the region above the curve means that averages are preferred to extremes, roughly. Any dot on the line segment connecting the two orange dots would have a higher F1 score and thus correspond to a better model.
 
 \subsection{Experience and Training}
 

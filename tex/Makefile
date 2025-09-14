@@ -18,15 +18,15 @@ help:
 %: %.tex
 	@echo "Compiling $<..."
 	pdflatex $<
-	@if grep -q "\\\\bibliography" $< || grep -q "\\\\cite" $<; then \
-		echo "Running bibtex..."; \
-		bibtex $@; \
+	@if grep -q "\\\\addbibresource" $< || grep -q "\\\\cite" $<; then \
+		echo "Running biber..."; \
+		biber $@; \
 		echo "Recompiling for bibliography..."; \
 		pdflatex $<; \
 		pdflatex $<; \
 	fi
 	@echo "Cleaning auxiliary files..."
-	@rm -f *.aux *.log *.bbl *.blg *.out *.toc *.lof *.lot *.fls *.fdb_latexmk *.synctex.gz
+	@rm -f *.aux *.log *.blg *.out *.toc *.lof *.lot *.fls *.fdb_latexmk *.synctex.gz *.bcf *.run.xml
 	@echo "Done! Output: $@.pdf"
 
 # Compile all .tex files
@@ -42,7 +42,7 @@ all:
 # Clean auxiliary files only
 clean:
 	@echo "Removing auxiliary files..."
-	@rm -f *.aux *.log *.bbl *.blg *.out *.toc *.lof *.lot *.fls *.fdb_latexmk *.synctex.gz
+	@rm -f *.aux *.log *.blg *.out *.toc *.lof *.lot *.fls *.fdb_latexmk *.synctex.gz *.bcf *.run.xml
 	@echo "Auxiliary files removed."
 
 # Clean everything including PDFs

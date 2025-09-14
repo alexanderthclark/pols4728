@@ -1,12 +1,11 @@
 \section{Using LLMs}
 
-\begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
-\textbf{Reading:}
+\begin{readingbox}
 \begin{itemize}
 \item Claude 4 Prompt Engineering Best Practices: \url{https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/claude-4-best-practices}
 \item OpenAI Prompt Engineering Guide: \url{https://platform.openai.com/docs/guides/prompt-engineering}
 \end{itemize}
-\end{tcolorbox}
+\end{readingbox}
 
 LLMs are used in social science research for both classification (sentiment analysis, for example), document scaling, and topic modeling. The term ``foundation models'' is used to describe such general-purpose models. \cite{haaland2025understanding} highlights the use of LLMs to code open-ended data, noting LLMs will ``be the preferred choice over most existing text analysis methods for survey researchers.'' \cite{ornstein2025train} notes where LLMs underperform, though the analysis is limited to GPT-4 and GPT-3. Other methods might be preferred when high-quality training data is available or in the case of very large data where LLMs are expensive. What does very large mean? Using GPT-5 through OpenAI's API, it would cost maybe \$5 to classify 10,000 text responses of about 100 words.\footnote{\textit{Assumptions.} Model = GPT-5 API priced at \$1.25 per 1M \textbf{input} tokens and \$10.00 per 1M \textbf{output} tokens. Tokenization rule-of-thumb: \textbf{100 tokens $\approx$ 75 words} $\Rightarrow$ 100 words $\approx$ ~130 input tokens. Output kept minimal (label + brief rationale) at ~30 tokens. No few-shot examples; reusable instructions negligible and \textbf{no prompt caching} assumed. Per-response cost $\approx$ \(130 \times 1.25 \times 10^{-6} + 30 \times 1 \times 10^{-5} = \$4.625 \times 10^{-4}\). Totals: \textbf{10k} responses $\approx$ \textbf{\$4.63} (rounded to \textbf{\$5}); \textbf{1M} responses $\approx$ \textbf{\$462.5} (rounded to \textbf{\$500}). Costs scale linearly with tokens.} These costs scale linearly, so classifying 1,000,000 responses would cost \$500. More complicated prompting could triple the cost.\footnote{\textit{Assumptions.} Few-shot, no caching. A prompt includes the 130 input tokens \textit{and} a 200-token rubric with 500 tokens of examples. This modifies the previous calculation by now using 830 input tokens. We still assume 30 output tokens. Totals: \textbf{10k} responses $\approx$ \textbf{\$13.38}; \textbf{1M} responses $\approx$ \textbf{\$1338.00}.} One can save costs by switching to a cheaper model like GPT-5 nano, which is 20-25x cheaper than GPT-5, or using classical text analysis methods.
 
@@ -63,7 +62,11 @@ How LLMs work is an overly ambitious title for this short section. They are next
 
 In a demonstration video, ChatGPT's o3 was asked how to get to Carnegie Hall. You can see the thinking process (at 8x speed), where o3 reasons through the intent of the question based on what it already knows. ChatGPT 5 Thinking will behave like o3.
 
-\textit{[Note: The original contains an embedded YouTube video which cannot be directly converted to LaTeX. Consider adding a reference to the video URL or a figure placeholder.]}
+\begin{quote}
+\textbf{Video Demo:} See ChatGPT o3's thinking process in action: \\
+\url{https://www.youtube.com/watch?v=_tGDS6g63So} \\
+\textit{(Shows o3 reasoning through "How do you get to Carnegie Hall?" at 8x speed)}
+\end{quote}
 
 Claude Haiku or ChatGPT 4.5 are more likely to answer ``Practice, practice, practice.'' This answer is seemingly the best for a sophisticated autocomplete.
 
@@ -114,32 +117,29 @@ It used to be emphasized that LLM performance improves if the prompt included an
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|l|l|l|}
-\hline
+\begin{tabular}{llll}
+\toprule
 \textbf{Study} & \textbf{Model(s)} & \textbf{Task family} & \textbf{Main result} \\
-\hline
+\midrule
 Brown et al. 2020 & GPT-3 & 42 NLP benchmarks & 0-shot < 1-shot < 16-shot (classic few-shot curve) \\
-\hline
 Kojima et al. 2022 & GPT-3 & Reasoning (GSM-8K) & Adding \textit{``Let's think step by step''} closes 60\% of gap to few-shot. \\
-\hline
 Wei et al. 2022 & PaLM-540B & Math, commonsense & 8-shot CoT boosts accuracy by up to 36 pp over plain few-shot. \\
-\hline
 Liyanage et al. 2024 & GPT-4 & Twitter stance & Zero-shot CoT matched 4-shot accuracy ($\approx$ 93\%). \\
-\hline
 Chen et al. 2024 & GPT-4 & 6 tasks & Extra demos show diminishing returns after coverage of each label. \\
-\hline
+\bottomrule
 \end{tabular}
 \caption{Research on zero-shot vs. few-shot prompting effectiveness}
+\label{tab:few-shot-research}
 \end{table}
 
 Including examples should be less important in more modern models. You will test this in your homework.
 
 \subsection{Exercises}
 
-\begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder, title=Exercise: LLM Classification Comparison]
+\begin{exercisebox}[title={LLM Classification Comparison}]
 Find a labeled text data set of interest (here is one from \cite{liyanage2024gpt}: \url{https://github.com/Ravihari123/GPT-for-Twitter-Stance-Labeling/blob/main/final_annotated_dataset_355\%20records.csv}) with no more than 400 observations. Write two prompts for classification: one with two examples and one with no examples. Classify the entire data set using Gemini 2.5 Pro and then Gemini 2.5 Flash-Lite for a total of four ``models.'' Compare accuracy across each. You will be provided with an API key and some sample code.
-\end{tcolorbox}
+\end{exercisebox}
 
-\begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder, title=Exercise: Grimmer Replication]
+\begin{exercisebox}[title={Grimmer Replication}]
 Replicate \cite{grimmer2010bayesian} using an LLM. Find the data here: \url{https://github.com/lintool/GrimmerSenatePressReleases}.
-\end{tcolorbox}
+\end{exercisebox}

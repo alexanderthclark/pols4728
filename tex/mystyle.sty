@@ -2,24 +2,37 @@
 \usepackage{xcolor} % for text colors
 \usepackage{hyperref} % hyperlinking
 \usepackage{csquotes} % display quotes
+\usepackage[utf8]{inputenc} % Unicode input support
 \usepackage[T1]{fontenc} % Nicer default font (+ math font) than Computer Modern for most use cases
 \usepackage{booktabs}  % table support for pandoc > 1.12.2, toprule etc
-\usepackage{adjustbox} % Used to constrain images to a maximum size 
+\usepackage{adjustbox} % Used to constrain images to a maximum size
 \usepackage[marginparsep=0.4mm]{geometry} % Used to adjust the document margins
 \usepackage{amsmath} % Equations
 \usepackage{amssymb} % Equations
 \usepackage{amsthm} % definitions/theorems
+\usepackage{cleveref} % smart cross-referencing - must be loaded after amsmath
 \usepackage{comment} % block comments
 \usepackage{fontawesome} % emoji stuff
+\usepackage{newunicodechar} % For Unicode emoji support
+\newunicodechar{✏}{\faEdit} % Pencil - using FontAwesome
+\newunicodechar{📚}{\faBook} % Books - using FontAwesome
+\newunicodechar{💡}{\faLightbulbO} % Lightbulb - using FontAwesome
+\newunicodechar{📖}{\faBook} % Dictionary - using FontAwesome
+\newunicodechar{✓}{\checkmark}
+\newunicodechar{✗}{\times}
+\newunicodechar{×}{\times}
 %\usepackage{marginnote} % for pyfile command
 \usepackage{makeidx} % for index
 \usepackage{caption}
 \usepackage{colortbl}
 \usepackage{float}
+\usepackage{fancyhdr} % for headers and footers
+\usepackage{titlesec} % for custom section formatting
+\usepackage{setspace} % for line spacing control
 
 
-\usepackage[breakable]{tcolorbox}
-\tcbset{nobeforeafter} % prevents tcolorboxes from being placed in paragraphs.
+\usepackage[breakable,skins]{tcolorbox}
+\tcbset{nobeforeafter} % prevents tcolorboxes being placing in paragraphs
 
 %\newtheorem{definition}{Definition}
 
@@ -47,16 +60,61 @@
 \sloppy 
 % Setup hyperref package
 \definecolor{citecolor}{rgb}{0,0.5,0}
+\definecolor{linkcolor}{rgb}{0.2,0.2,0.7}
 \hypersetup{
     breaklinks=true,  % so long urls are correctly broken across lines
     colorlinks=true,
     urlcolor=blue,
-    linkcolor=red,
+    linkcolor=linkcolor,
     citecolor=citecolor,
+    bookmarks=true,
+    bookmarksnumbered=true,
+    bookmarksopen=true,
+    pdfstartview=FitH,
+    pdfpagemode=UseOutlines,
+    pdfpagelayout=OneColumn
     }
     
 % Slightly bigger margins than the latex defaults, overwrites book-style left and right margins
 \geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+
+% Headers and footers setup
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\small\leftmark}
+% \fancyhead[R]{\small\rightmark} % Commented out to prevent overlap with long section titles
+\fancyfoot[C]{\thepage}
+
+% Section formatting
+\titleformat{\section}
+  {\Large\bfseries}
+  {\thesection}
+  {1em}
+  {}
+  [\titlerule]
+
+\titleformat{\subsection}
+  {\large\bfseries}
+  {\thesubsection}
+  {1em}
+  {}
+
+\titleformat{\subsubsection}
+  {\normalsize\bfseries}
+  {\thesubsubsection}
+  {1em}
+  {}
+
+% Spacing around sections
+\titlespacing*{\section}{0pt}{1.5em}{0.8em}
+\titlespacing*{\subsection}{0pt}{1.2em}{0.6em}
+\titlespacing*{\subsubsection}{0pt}{1em}{0.4em}
+
+% Improved spacing
+\setlength{\parskip}{0.6em}
+\setlength{\parindent}{0pt}
+\onehalfspacing  % 1.5 line spacing for better readability
 
 % Code Listings
 
