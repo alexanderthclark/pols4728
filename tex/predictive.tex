@@ -14,7 +14,7 @@ Let's focus on regression problems where $y$ is a continuous scalar value. For c
 
 $$\widehat{\mathrm{Vote\,Loss}} = -11.08 + 0.035\times \Delta\mathrm{Real\,Disposable\,Income} + 0.133\times \mathrm{Presidential\,Approval}.$$
 
-This line was found based on data from 1938-1970 and the R-squared is 0.912. Recall that R-squared describes how much of the variation in $y$ is captured by the model. A perfect model gives an R-squared of 1 and a model with only an intercept equal to the average of $y$ gives an R-squared of 0. Tufte's 0.912 is impressive. With intro stats training, you might only ask for the adjusted R-squared as a follow up. The adjusted R-squared is also impressive at 0.876.
+This line was found based on data from 1938-1970 and the R-squared is 0.912. Recall that R-squared describes how much of the variation in $y$ is captured by the model. A perfect model gives an R-squared of 1 and a model with only an intercept equal to the average of $y$ gives an R-squared of 0. Tufte's 0.912 is impressive. With intro stats training, you might only ask for the adjusted R-squared as a follow-up. The adjusted R-squared is also impressive at 0.876.
 
 Adjusted R-squared is a blunt way to prevent being overconfident in your model. After all, we can add new features of random noise, uncorrelated to $y$ and improve the R-squared. With enough columns, the R-squared will become exactly 1. The adjusted R-squared formula essentially penalizes the R-squared based on the number of predictor variables and the number of observations.
 
