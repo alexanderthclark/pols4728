@@ -37,6 +37,9 @@ plt.rcParams['figure.figsize'] = (12, 4)
 np.random.seed(42)
 ------------------
 
+----- stderr -----
+Matplotlib is building the font cache; this may take a moment.
+------------------
 
 [31m---------------------------------------------------------------------------[39m
 [31mModuleNotFoundError[39m                       Traceback (most recent call last)
