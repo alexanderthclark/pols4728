@@ -20,7 +20,7 @@ Adjusted R-squared is a blunt way to prevent being overconfident in your model. 
 
 However, the usefulness of this as a predictive model hinges on model performance on elections \textit{after} 1970. Evaluating the model on a \textbf{test set} of previously unseen data is more data driven and it answers the question of interest more exactly. The general principle is that a model should be evaluated with new data that wasn't used in the model training. Records from 1938-1970 form the \textbf{training set} and we can assemble data from 1974-2022 as a \textbf{test set}.
 
-Let's see how two modifications of Tufte's model holds up with test data. I was unable to replicate Tufte's Real Disposable Income variable, so I substitute a similar RDI measure using data available from the BEA. In our model 1, we include only the presidential approval variable: \code{vote_loss ~ presidential_approval}. Model 2 is spiritually the same as Tufte's though: \code{vote_loss ~ change_rdi + presidential_approval}.
+Let's see how two modifications of Tufte's model hold up with test data. I was unable to replicate Tufte's Real Disposable Income variable, so I substitute a similar RDI measure using data available from the BEA. In our model 1, we include only the presidential approval variable: \code{vote_loss ~ presidential_approval}. Model 2 is spiritually the same as Tufte's though: \code{vote_loss ~ change_rdi + presidential_approval}.
 
 We will see that none of these models performs very well on the test data.
 
