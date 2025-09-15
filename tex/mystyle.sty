@@ -34,7 +34,6 @@
 \usepackage{fancyhdr} % Headers and footers
 \usepackage{titlesec} % Section formatting
 \usepackage{setspace} % Line spacing
-\usepackage{cleveref} % Smart cross-referencing - must be loaded after amsmath
 
 
 % ======= Color Definitions =======
@@ -126,7 +125,10 @@
     pdfpagemode=UseOutlines,
     pdfpagelayout=OneColumn
     }
-    
+
+% ======= Cross-references (Load After Hyperref) =======
+\usepackage{cleveref} % Smart cross-referencing - must be loaded after hyperref
+
 % Slightly bigger margins than the latex defaults, overwrites book-style left and right margins
 \geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
 

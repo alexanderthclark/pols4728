@@ -1,0 +1,120 @@
+\section{Linear Regression}
+
+Regression should be a familiar topic. We will move quickly through what might be familiar and then introduce machine learning vocabulary and other points of emphasis. Some of this, like discussion of the loss surface, will feel unnecessary. However, this is a chance to ease into new concepts that will arise again for other prediction models.
+
+\begin{readingbox}
+\begin{itemize}
+\item \cite{kuhn2013applied}, Chapter 6
+\item \cite{hastie2009elements}, Chapter 3
+\end{itemize}
+\end{readingbox}
+
+\subsection{OLS}
+
+Can you think of some famous lines? Maybe you are thinking of the Equator, the Mason Dixon, or the line in the sand at the Alamo. We can do better. $\hat{y} = 68 + \frac{2}{3}(68-x)$ is the line from which we get the term \textbf{regression}.
+
+\begin{displayquote}
+``The height-deviate of the offspring is, on the average, two-thirds of the height-deviate of its mid-parentage.''\\
+--- \cite{galton1886regression}
+\end{displayquote}
+
+Francis Galton found this line by observing that tall parents tended to have shorter (closer to average) children, while short parents tended to have taller kids. He described this phenomenon as ``regression to mediocrity,'' reflecting the tendency of extreme characteristics to move back toward the population average in subsequent generations. Galton actually used ``ocular regression'' (eyeballing it) and the term \textit{regression} has stuck for the general line-of-best-fit technique, even when applied to data that don't follow this pattern. Regression is also sometimes used to describe any kind of model that predicts a numeric value (for example, a decision tree might be called regression tree).
+
+In 2025, ocular regression doesn't cut it. Ordinary least squares (OLS) is the most common method for estimating the parameters in a linear regression model. Linear models are flexible because they can still accommodate interactions, categorical predictors, and nonlinearities. You, the analyst, just have to include them in your specification.
+
+Our predictors give us the design matrix, $X$. With $n$ observations and $k$ features (including an intercept), this is $n\times k$. The target variable is stored in the $n\times 1$ matrix, $y$.
+
+Then, we find the regression coefficients $\hat{\beta}$, which might also be called the model \textbf{parameters}. Once the parameters are found, we can make predictions $X\hat{\beta}$ and $y-X \hat{\beta}$ is the vector of \textbf{residuals} or prediction errors.
+
+\subsubsection{Optimization}
+
+Parameters for any model are found by minimizing a \textbf{loss function} (also called a cost function\footnote{Cost and loss are used interchangeably but one might insist that the loss function is the individual function for each data point and the cost is the loss aggregated over all data points.}), which describes the quality of the model fit for particular parameter values. The parameters are found by minimizing the loss $L(\beta)$,
+
+\begin{equation}
+\hat{\beta} = \arg\min_{\beta} \left[ L(\beta) \right]
+\label{eq:general-optimization}
+\end{equation}
+
+For least squares,
+
+\begin{equation}
+\hat{\beta} = \arg\min_{\beta} \sum_{i=1}^n (y_i - x_i^T\beta)^2
+\label{eq:ols-optimization}
+\end{equation}
+
+$\hat{\beta}$ is simply where we find the minimum of $L(\beta)$ loss surface. The plot below illustrates such a surface for simple linear regression. Each point in the contour plot corresponds to an entirely different line of fit.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{images/linear_reg_loss_surface.pdf}
+\caption{Loss surface for simple linear regression showing 3D surface (left) and contour plot (right). Each point corresponds to different intercept and slope parameters. The minimum (green point) represents the OLS solution.}
+\label{fig:loss-surface}
+\end{figure}
+
+The optimization is straightforward for OLS. The loss minimizing $\hat{\beta}$ is
+
+\begin{equation}
+\hat{\beta} = (X^TX)^{-1} X^T y
+\label{eq:ols-solution}
+\end{equation}
+
+Because linear algebra is king in machine learning, we'll give the geometric interpretation. OLS solves a projection problem:
+
+\begin{itemize}
+\item The column space of $X$ is the set of all possible predictions we can make using linear combinations of our features. This forms a $k$-dimensional subspace in $\mathbb{R}^n$.
+\item Our observed $y$ vector typically doesn't lie exactly in this column space (for example, for three points that you can't draw a single line through in simple linear regression).
+\item OLS finds $\hat{\beta}$ such that $X\hat{\beta}$ is the vector of predictions in the column space closest to $y$.
+\item $X\hat{\beta}$ is not the regression line. The regression line (or hyperplane) is the set of all points $(x_1, \dots ,x_{k-1}, x^T\hat{\beta})$.
+\end{itemize}
+
+Mathematically, $X\hat{\beta}$ is the orthogonal projection of $y$ onto the column space of $X$. Orthogonality is what makes $X\hat{\beta}$ closer to $y$ than any other candidate:
+
+\begin{equation}
+\Vert y - X\hat{\beta} \Vert \leq \Vert y - Xv \Vert
+\label{eq:orthogonal-projection}
+\end{equation}
+
+for any other $k \times 1$ vector $v$. In other words, no other choice of coefficients can get us closer to $y$.
+
+The quality of the fit is not generally measured by $\Vert y - X\hat{\beta} \Vert$.\footnote{$\Vert \cdot \Vert$ is the Euclidean or L2 norm.} Instead we usually report the mean squared error (MSE),
+
+\begin{equation}
+\mathrm{MSE} = \frac{1}{n} \sum_{i=1}^n (y_i - \hat{y}_i)^2 = \frac{1}{n}\Vert y - X\hat{\beta} \Vert^2
+\label{eq:mse-linear}
+\end{equation}
+
+This scaling makes MSE comparable across datasets of different sizes.
+
+\subsection{Feature Engineering}
+
+Once you have fixed the set of predictor variables (and thus the design matrix $X$), there is no \textbf{tuning} to do for OLS. The important choice for OLS is what variables (or transformations of variables) to include. The process of refining your set of predictor variables (features) is called \textbf{feature engineering}.
+
+You should already be familiar with feature engineering, if not by that name. Review \cite{kuhn2013applied} Chapter 3 for an overview of variable transformations. Let's cover a few.
+
+\subsubsection{Standardization}
+
+Standardization (also called z-score normalization) transforms features to have mean 0 and standard deviation 1:
+
+\begin{equation}
+x_{\text{standardized}} = \frac{x - \mu}{\sigma}
+\label{eq:standardization}
+\end{equation}
+
+This is particularly important when features have different scales (e.g., age in years vs income in dollars).
+
+\subsubsection{Normalization}
+
+Min-max normalization scales features to a fixed range, typically [0,1]:
+
+\begin{equation}
+x_{\text{normalized}} = \frac{x - x_{\min}}{x_{\max} - x_{\min}}
+\label{eq:normalization}
+\end{equation}
+
+\subsubsection{One-hot Encoding}
+
+For categorical variables, one-hot encoding creates binary indicator variables for each category. A categorical variable with $k$ levels becomes $k-1$ binary variables (to avoid the dummy variable trap).
+
+\subsubsection{Principal Components}
+
+Principal Component Analysis (PCA) creates new features that are linear combinations of the original features, ordered by how much variance they explain in the data. This can be useful for dimensionality reduction and handling multicollinearity.

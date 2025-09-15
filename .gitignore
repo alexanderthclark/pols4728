@@ -37,6 +37,13 @@ coverage.xml
 **/execution-*.log
 .jupyter_cache/
 
+# 75 Minutes of Python materials (temporary exclusion)
+tex/75MinutesOfPython.tex
+tex/75MinutesOfPython.pdf
+tex/75MinutesOfPython.*
+tex/figures/
+tex/python/
+
 # macOS
 .DS_Store
 .AppleDouble

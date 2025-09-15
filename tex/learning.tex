@@ -262,7 +262,7 @@ With just 5 defendants, there are only 32 possible ways to classify them ($2^5 =
 \begin{table}[H]
 \centering
 \footnotesize
-\begin{tabular}{ccccccc}
+\begin{tabular}{cccccccc}
 \toprule
 \textbf{Predictions} & \textbf{FP} & \textbf{FN} & \textbf{TP} & \textbf{TN} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} \\
 \midrule
@@ -284,11 +284,10 @@ With just 5 defendants, there are only 32 possible ways to classify them ($2^5 =
 00000 & 2.00 & 0.00 & 0.00 & 3.00 & --- & 0.00 & --- \\
 \bottomrule
 \end{tabular}
-\caption{All possible classification outcomes for 5 defendants (showing key examples). F1 is undefined when no positives are predicted.}
+\caption{All possible classification outcomes for 5 defendants (showing key examples). F1 is undefined when no positives are predicted, though by convention this is often set to 0.}
 \label{tab:all-possible-classifications}
 \end{table}
 
-F1 is undefined when no positives are predicted (division by zero); that's why some rows show 'nan'.
 
 Notice that:
 \begin{itemize}
@@ -301,12 +300,58 @@ Notice that:
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.8\textwidth]{images/scatter_precision_recall_f1.pdf}
+\includegraphics[width=0.6\textwidth]{images/scatter_precision_recall_f1.pdf}
 \caption{F1 score isoquants showing how different combinations of precision and recall can yield the same F1 score. Each curve represents a constant F1 value.}
 \label{fig:f1-isoquants}
 \end{figure}
 
 In \cref{fig:f1-isoquants}, it is clear that the green dot is better than the purple dot because it has both a better precision and recall score. Again, it's not obvious which orange dot is better. The F1 score takes a stance by saying they are tied. Notice the curvature of the F1 isoquants as well. The convexity of the region above the curve means that averages are preferred to extremes, roughly. Any dot on the line segment connecting the two orange dots would have a higher F1 score and thus correspond to a better model.
+
+
+\subsubsection{Precision--Recall (PR) Curves}
+
+The PR curve plots \emph{precision} (y-axis) against \emph{recall} (x-axis) as vary a model's decision threshold. Let the \emph{prevalence} be $\pi = \Pr(Y=1)$. Useful facts:
+\begin{itemize}
+\item At extreme low thresholds (label everything positive), recall $=1$ and precision $=\pi$.
+\item A random classifier that ignores $X$ yields $\mathbb{E}[\text{precision at any recall}]=\pi$; its PR curve is a flat horizontal line at $y=\pi$.
+\item Better-than-random models lie above the baseline for a wide range of recalls; higher \emph{area under the PR curve} (AUPRC) is better.
+\item Threshold trade-off: increasing the threshold typically increases precision (fewer predicted positives) and decreases recall; lowering it does the opposite. PR is often more informative than ROC under class imbalance because the baseline and AUPRC depend on $\pi$.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+% requires \usepackage{tikz}
+\begin{tikzpicture}[x=6cm,y=6cm]
+  \def\prev{0.30} % prevalence \pi (shown for illustration)
+  % axes
+  \draw[->] (0,0) -- (1.05,0) node[below] {Recall};
+  \draw[->] (0,0) -- (0,1.05) node[left] {Precision};
+  % ticks
+  \foreach \x/\lbl in {0/0,0.5/0.5,1/1} {
+    \draw (\x,0) -- (\x,-0.015) node[below] {\small \lbl};
+  }
+  \foreach \y/\lbl in {0/0,0.5/0.5,1/1} {
+    \draw (0,\y) -- (-0.015,\y) node[left] {\small \lbl};
+  }
+  % random baseline at prevalence
+  \draw[dashed] (0,\prev) -- (1,\prev);
+  \node[right] at (1,\prev) {\small random baseline $=\pi$};
+  % an illustrative PR curve (monotonically decreasing in practice)
+  \draw[thick]
+    plot[smooth] coordinates {
+      (0.05,0.95) (0.15,0.90) (0.30,0.80) (0.50,0.62)
+      (0.70,0.50) (0.85,0.36) (1.00,\prev)
+    };
+  % threshold trade-off annotations
+  \fill (0.30,0.80) circle (0.0075) node[above left] {\scriptsize high threshold};
+  \fill (0.85,0.36) circle (0.0075) node[below right] {\scriptsize low threshold};
+
+\end{tikzpicture}
+\caption{Precision--Recall (PR) curve with random-classifier baseline at the prevalence $\pi$. Lower thresholds move rightward (higher recall) and typically downward (lower precision), illustrating the trade-off.}
+\label{fig:pr-curve}
+\end{figure}
+
+
 
 \subsection{Experience and Training}
 
