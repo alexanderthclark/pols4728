@@ -85,6 +85,108 @@ The quality of the fit is not generally measured by $\Vert y - X\hat{\beta} \Ver
 
 This scaling makes MSE comparable across datasets of different sizes.
 
+\subsection{Regression Anatomy}
+
+Multiple regression coefficients can be found as the slopes in a series of univariate regressions. 
+
+Find the parameter $w_2$ from $\hat{y} = w_0 + w_1x_1 + w_2x_2$ by 
+
+\begin{itemize}
+\item Regress $x_2$ on $x_1$ (predict $x_2$ using $x_1$). Find the residuals $\tilde{x}_2$.
+
+\item Find the residuals from prediciting $y$ from just $x_1$. 
+
+\item Find $w_2$ by predicting the residuals from the second step using the residuals from the first. 
+
+\end{itemize}
+
+\subsection{Why OLS is special (two reasons)}
+
+\textbf{Gauss Markov (BLUE).}
+\begin{itemize}\itemsep0.2em
+\item \emph{Claim.} Under the standard linear model conditions, the OLS estimator
+$\hat\beta=(X^\top X)^{-1}X^\top y$ is the \emph{Best Linear Unbiased Estimator} (BLUE): among all linear unbiased estimators, it has the smallest variance.
+\item \emph{Model setup.} $y = X\beta + \varepsilon$, with $X\in\mathbb{R}^{n\times k}$ (full column rank).
+\item \emph{Sufficient conditions (with notation).}
+  \begin{itemize}\itemsep0.15em
+  \item \textbf{Linearity in parameters / correct specification:}
+        $y = X\beta + \varepsilon$ (any nonlinear terms must appear as columns of $X$).
+  \item \textbf{Exogeneity (zero conditional mean):}
+        $\mathbb{E}[\varepsilon\mid X]=0$ \quad (equivalently $\mathbb{E}[X^\top\varepsilon]=0$ or $\mathrm{Cov}(X_j,\varepsilon)=0\ \forall j$).
+  \item \textbf{Full rank (no exact multicollinearity):}
+        $\mathrm{rank}(X)=k$ \ $\Rightarrow$ $X^\top X$ invertible.
+  \item \textbf{Homoskedasticity (constant variance):}
+        $\mathrm{Var}(\varepsilon_i\mid X)=\sigma^2$ for all $i$.
+  \item \textbf{No autocorrelation (uncorrelated errors):}
+        $\mathrm{Cov}(\varepsilon_i,\varepsilon_j\mid X)=0$ for $i\neq j$.
+        \quad (Together with homoskedasticity: $\mathrm{Var}(\varepsilon\mid X)=\sigma^2 I_n$.)
+  \end{itemize}
+\end{itemize}
+
+\textbf{OLS as Maximum Likelihood.}
+\begin{itemize}\itemsep0.2em
+\item \emph{Assumption.} $\varepsilon\mid X \stackrel{\text{i.i.d.}}{\sim} \mathcal{N}(0,\sigma^2)$.
+\item \emph{Likelihood.} 
+$L(\beta,\sigma^2\mid X,y)\propto (\sigma^2)^{-n/2}\exp\!\left(-\tfrac{1}{2\sigma^2}\|y-X\beta\|^2\right)$.
+Maximizing over $\beta$ $\Longleftrightarrow$ minimizing $\sum_i (y_i-x_i^\top\beta)^2$, so the MLE of $\beta$ is OLS.
+\end{itemize}
+
+
+
+\subsection{Multicollinearity as Directional Instability}
+
+
+When two predictors move together, changing their coefficients in opposite ways barely changes fitted values on the training data. Because squared loss cares about fitted values, the loss surface is \emph{flat} in those directions—so many different coefficient pairs fit almost equally well. That flatness is what makes coefficients unstable.
+
+
+The following figure is based on a model where $y = x_1 + x_2 + \varepsilon$ so the true slopes are both one.  
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[b]{0.32\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/loss_contours_r0.pdf}
+    \caption{$\rho = 0$}
+    \label{fig:loss-contours-r0}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.32\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/loss_contours_r94.pdf}
+    \caption{$\rho = 0.94$}
+    \label{fig:loss-contours-r94}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.32\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/loss_contours_r100-1.pdf}
+    \caption{$\rho \approx 1.0$}
+    \label{fig:loss-contours-r100}
+\end{subfigure}
+\caption{Loss surface contours for two-feature linear regression with varying correlation $\rho$ between standardized features. Increasing correlation makes the loss surface more flat along the plane $x+y=2$, corresponding to increasing variance in the coefficients.}
+\label{fig:loss-contours-correlation}
+\end{figure}
+
+The flatness of the loss surface creates more variance in the fitted coefficients.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{images/bootstrap_coef_cloud.pdf}
+\end{figure}
+
+
+
+\paragraph{What this means in practice.}
+\begin{itemize}\itemsep0.2em
+\item \textbf{Coefficient instability.} Because the loss barely changes in the ``swap'' direction, small data perturbations can swing $\hat\beta_1$ up and $\hat\beta_2$ down (or vice‑versa) with almost no change in training error—producing sign flips and large reported standard errors.
+\item \textbf{In‑sample predictions can still look fine.} Many different coefficient pairs give nearly the same $\hat y$ when $x_1\approx x_2$. The instability is about \emph{coefficients}, not necessarily about in‑sample fit.
+\item \textbf{Out‑of‑sample risk.} Predictions are fragile when a new case has $x_{*1}$ and $x_{*2}$ pulling in opposite ways (large $x_{*1}-x_{*2}$). That’s precisely the direction your training data did not pin down well.
+\item \textbf{Quick checks.} Inspect the correlation matrix (or VIFs) and plot $x_1$ vs.\ $x_2$. Compositional features (shares summing to one) and poorly chosen reference categories are common sources—reparameterize to remove exact or near‑exact duplicates.
+\end{itemize}
+
+
+
+
 \subsection{Feature Engineering}
 
 Once you have fixed the set of predictor variables (and thus the design matrix $X$), there is no \textbf{tuning} to do for OLS. The important choice for OLS is what variables (or transformations of variables) to include. The process of refining your set of predictor variables (features) is called \textbf{feature engineering}.

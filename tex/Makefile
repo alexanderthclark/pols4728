@@ -20,10 +20,24 @@ help:
 	pdflatex $<
 	@if grep -q "\\\\addbibresource" $< || grep -q "\\\\cite" $<; then \
 		echo "Running biber..."; \
-		biber $@; \
-		echo "Recompiling for bibliography..."; \
+		if [ -f $@.bbl ] && [ -s $@.bbl ]; then \
+			echo "Backing up existing .bbl file..."; \
+			cp $@.bbl $@.bbl.backup; \
+		fi; \
+		if biber $@ && [ -s $@.bbl ]; then \
+			echo "Biber succeeded. Recompiling for bibliography..."; \
+		else \
+			echo "Biber failed or produced empty output."; \
+			if [ -f $@.bbl.backup ]; then \
+				echo "Restoring backup .bbl file..."; \
+				cp $@.bbl.backup $@.bbl; \
+			else \
+				echo "Warning: No working bibliography file found. Citations may not work."; \
+			fi; \
+		fi; \
 		pdflatex $<; \
 		pdflatex $<; \
+		if [ -f $@.bbl.backup ]; then rm $@.bbl.backup; fi; \
 	fi
 	@echo "Cleaning auxiliary files..."
 	@rm -f *.aux *.log *.blg *.out *.toc *.lof *.lot *.fls *.fdb_latexmk *.synctex.gz *.bcf *.run.xml
