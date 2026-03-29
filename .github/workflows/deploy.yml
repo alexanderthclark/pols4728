@@ -1,5 +1,6 @@
 name: build-and-deploy
-on: [push]
+on:
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -35,17 +36,17 @@ jobs:
         run: |
           # Create a temporary directory for encrypted files
           mkdir -p /tmp/encrypted_output
-          
+
           # Encrypt all HTML files recursively with session persistence
           staticrypt book/_build/html -r \
             -p "$BOOK_PW" --short \
             --remember 120 \
             -d /tmp/encrypted_output
-          
+
           # Replace original files with encrypted ones
           rm -rf book/_build/html
           mv /tmp/encrypted_output/html book/_build
-          
+
           # Create .nojekyll file to disable Jekyll processing
           touch book/_build/html/.nojekyll
 
