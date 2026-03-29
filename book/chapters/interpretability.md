@@ -3,6 +3,12 @@
 
 Interpretability asks why a model predicts what it predicts and which features matter for performance.
 
+## Canon objectives
+
+- distinguish global explanations from local explanations,
+- use PDP/ICE/SHAP/ablation as complementary tools,
+- avoid treating explanation outputs as causal effects.
+
 ## Global versus local explanation
 
 - Global methods summarize average behavior across the dataset.

@@ -3,6 +3,12 @@
 
 Boosting builds an additive predictor sequentially, where each new weak learner corrects errors left by prior learners.
 
+## Canon objectives
+
+- explain why sequential weak learners differ from bagged ensembles,
+- tune learning rate, depth, and boosting rounds as a coupled system,
+- control overfitting with validation-driven early stopping.
+
 ## Core idea
 
 Initialize with a baseline model and iteratively add learners:

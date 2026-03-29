@@ -3,6 +3,12 @@
 
 Logistic regression is the default linear classifier for binary outcomes when we want calibrated probabilities and interpretable log-odds effects.
 
+## Canon objectives
+
+- interpret logistic coefficients and odds ratios correctly,
+- tune thresholds to match substantive costs rather than defaulting to `0.5`,
+- evaluate rare-event settings without being misled by raw accuracy.
+
 ## Model
 
 $$
@@ -47,6 +53,7 @@ Classification requires a probability threshold `t`.
 - Lower `t`: more positives, usually higher recall and lower precision.
 
 With class imbalance, raw accuracy can be misleading. Prioritize precision-recall tradeoffs and PR-AUC.
+Treat threshold choice as a policy decision, not a fixed model property.
 
 ```{figure} ../assets/scatter_precision_recall_f1.svg
 :width: 80%
@@ -79,3 +86,4 @@ Tune penalty strength via cross-validation in a pipeline that includes preproces
 - Inspect confusion matrices at operational thresholds.
 - Report prevalence-aware metrics.
 - Validate probability reliability before deployment decisions.
+- Compare against regularized linear and tree baselines before escalating complexity.

@@ -3,6 +3,12 @@
 
 Regularization constrains model flexibility so prediction error on new data does not explode when models are highly parameterized or predictors are collinear.
 
+## Canon objectives
+
+- distinguish shrinkage for prediction stability from variable selection for sparsity,
+- choose ridge/lasso/elastic net based on signal structure,
+- tune penalties without leakage using cross-validated pipelines.
+
 ## Motivation
 
 Flexible models can fit noise. Penalization provides a middle path between underfit and overfit.
@@ -87,6 +93,8 @@ Key behavior:
 2. Leave intercept unpenalized.
 3. Choose `\lambda` with cross-validation.
 4. Refit final model on full training data with chosen `\lambda`.
+
+When multiple `\lambda` values perform similarly, prefer the simpler model (for example, one-standard-error rule) unless domain costs clearly favor complexity.
 
 ```python
 from sklearn.pipeline import Pipeline

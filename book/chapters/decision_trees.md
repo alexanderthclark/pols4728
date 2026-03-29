@@ -3,6 +3,12 @@
 
 Decision trees learn prediction rules by recursively partitioning feature space. They are interpretable and interaction-friendly but high variance without regularization.
 
+## Canon objectives
+
+- explain CART splitting for regression and classification,
+- tune tree complexity controls to prevent overfitting,
+- decide when a single interpretable tree is preferable to an ensemble.
+
 ## Tree vocabulary
 
 - Root: first split node.

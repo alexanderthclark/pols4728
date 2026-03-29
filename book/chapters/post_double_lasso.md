@@ -3,6 +3,12 @@
 
 Post-double lasso (double selection) is a high-dimensional inference workflow for estimating a target treatment effect while controlling many potential confounders.
 
+## Canon objectives
+
+- understand when post-double-lasso is appropriate in social-science settings,
+- implement the double-selection algorithm without penalizing target regressors,
+- separate predictive regularization goals from inferential validity goals.
+
 ## Problem setup
 
 Partially linear model:
@@ -68,3 +74,4 @@ alpha_hat = ols_with_robust_se(y, d, X_final)
 - Overly aggressive tuning: omitted controls bias final treatment estimate.
 
 Use sensitivity checks on the selected set and compare with domain-driven control specifications.
+If selected controls change dramatically across resamples, report that instability explicitly.

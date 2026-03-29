@@ -3,6 +3,12 @@
 
 Linear regression is the core reference model for this course: transparent, fast, and a useful baseline before adding model complexity.
 
+## Canon objectives
+
+- derive and interpret the OLS objective and solution,
+- diagnose when coefficients are unstable versus when predictions are unstable,
+- decide when linear specification quality is sufficient versus when to escalate model complexity.
+
 ## OLS objective
 
 With outcome vector `y \in \mathbb{R}^n` and design matrix `X \in \mathbb{R}^{n\times p}`,
@@ -53,6 +59,8 @@ Two reasons matter in practice:
 - Likelihood: under Gaussian noise, OLS is the MLE for `\beta`.
 
 These do not mean OLS is always best, but they make it the right baseline for diagnostics and comparisons.
+
+For canonical workflow: always beat or tie linear regression out-of-sample before claiming a more complex model is justified.
 
 ## Multicollinearity as directional instability
 
@@ -106,3 +114,8 @@ $$
 $$
 
 Report training and validation/test metrics separately, and inspect residual structure before claiming model adequacy.
+
+Prediction and inference are related but distinct goals:
+
+- for prediction, prioritize out-of-sample error and calibration;
+- for inference, prioritize identification assumptions and uncertainty quantification.

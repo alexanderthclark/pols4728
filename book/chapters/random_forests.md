@@ -3,6 +3,12 @@
 
 Random forests reduce decision-tree variance by averaging many decorrelated trees.
 
+## Canon objectives
+
+- connect bagging intuition to RF variance reduction,
+- tune RF-specific hyperparameters (`max_features`, `n_estimators`) systematically,
+- interpret feature-importance outputs with appropriate skepticism.
+
 ## Bagging intuition
 
 For bootstrap samples `b=1,\dots,B`, fit trees `\hat f^{*b}` and average:
@@ -45,6 +51,7 @@ As `B` increases, variance approaches `\rho\sigma^2`; lowering tree correlation 
 ## Out-of-bag (OOB) evaluation
 
 Each observation is excluded from roughly one-third of bootstrap samples. Predictions from trees that did not see observation `i` provide an OOB estimate, useful as a quick internal validation check.
+OOB is useful for model development, but keep a final external test set for reported results.
 
 ## Feature importance caveats
 

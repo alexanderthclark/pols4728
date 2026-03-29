@@ -9,27 +9,33 @@ parts:
   chapters:
   - file: schedule
 
-- caption: Lectures
+- caption: Bootcamp
   chapters:
+  - file: reference/prelims_and_digressions
   - file: chapters/learning
   - file: chapters/using_llms
+
+- caption: The Canon
+  chapters:
   - file: chapters/predictive
   - file: chapters/evaluating_predictive_models
   - file: chapters/linear_regression
   - file: chapters/logistic_regression
   - file: chapters/regularization
   - file: chapters/post_double_lasso
-  - file: chapters/pca
   - file: chapters/decision_trees
   - file: chapters/random_forests
   - file: chapters/boosting
-  - file: chapters/applied_issues
   - file: chapters/interpretability
+
+- caption: Advanced Topics
+  chapters:
+  - file: chapters/pca
+  - file: chapters/applied_issues
   - file: chapters/neural_networks
 
 - caption: Reference
   chapters:
-  - file: reference/prelims_and_digressions
   - file: reference/hugging_face
   - file: reference/solutions
   - file: reference/bibliography
