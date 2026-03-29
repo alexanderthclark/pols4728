@@ -1,64 +1,82 @@
 (interpretability)=
 # Interpretability
 
-## Why interpretability matters
+Interpretability asks why a model predicts what it predicts and which features matter for performance.
 
-Predictive performance alone is often insufficient in social science and policy applications.
-Interpretability helps with:
+## Global versus local explanation
 
-- debugging models,
-- communicating mechanisms,
-- auditing fairness and reliability.
+- Global methods summarize average behavior across the dataset.
+- Local methods explain one prediction at a time.
 
-## Global vs local explanation
+Both are necessary: global summaries can hide heterogeneity, while local explanations do not automatically generalize.
 
-- Global explanations summarize average model behavior.
-- Local explanations explain individual predictions.
+## Partial dependence
 
-Both are useful and can disagree when effects are heterogeneous.
-
-## Partial dependence and ICE
-
-For feature `x_j`, partial dependence averages model predictions over the empirical distribution
-of other features:
+For feature set `S`, partial dependence is
 
 $$
-\text{PDP}_j(z)=\mathbb{E}_{X_{-j}}[\hat{f}(z, X_{-j})].
+\mathrm{PD}_S(x_S)=\mathbb{E}_{X_{-S}}\big[\hat f(x_S,X_{-S})\big].
 $$
 
-ICE curves show per-observation trajectories rather than the average, revealing heterogeneity
-hidden by PDP summaries.
+Empirical estimator:
+
+$$
+\widehat{\mathrm{PD}}_S(x_S)=\frac{1}{n}\sum_{i=1}^n \hat f(x_S,x_{-S}^{(i)}).
+$$
+
+PDP is useful for shape diagnostics but can mislead when interactions are strong or feature combinations are unrealistic.
+
+## ICE plots
+
+Individual Conditional Expectation (ICE) plots keep observations separate:
+
+$$
+\mathrm{ICE}_{j,i}(v)=\hat f(v, x_{i,-j}).
+$$
+
+PDP is the average of ICE curves. Non-parallel ICE curves signal interaction effects.
 
 ## Shapley values
 
-Shapley attribution distributes prediction contributions across features via coalition averages.
-For feature `j`:
+Shapley attribution distributes prediction contribution across features via coalition averages.
 
 $$
-\phi_j = \sum_{S \subseteq F \setminus \{j\}} \frac{|S|!(|F|-|S|-1)!}{|F|!}
-\left[v(S \cup \{j\}) - v(S)\right].
+\phi_j = \sum_{S\subseteq F\setminus\{j\}}
+\frac{|S|!(|F|-|S|-1)!}{|F|!}
+\left[v(S\cup\{j\})-v(S)\right].
 $$
 
-Key properties include efficiency, symmetry, and consistency under common definitions.
+Desirable properties include efficiency and symmetry.
 
-## SHAP in practice
+## SHAP
 
-SHAP is a practical approximation framework for Shapley-style attributions.
+SHAP operationalizes Shapley-style explanations for ML models.
 
-Use SHAP carefully:
+Local additive decomposition:
 
-- correlated features can redistribute attribution in unintuitive ways,
-- explanations are conditional on model + background data,
-- explanations are not causal effects.
+$$
+\hat f(x)=\phi_0+\sum_{j=1}^p \phi_j(x),
+$$
+
+where `\phi_0` is a baseline prediction and `\phi_j(x)` is feature `j`'s contribution for observation `x`.
+
+Important caveat: SHAP values depend on the background distribution and feature dependence assumptions.
 
 ## Ablation and SAGE
 
-Ablation removes features (or groups) and measures performance change.
-SAGE generalizes this idea with Shapley-style accounting of global loss contributions.
+Ablation estimates global importance by retraining without a feature and measuring performance loss:
 
-## Workflow
+$$
+\Delta_j = L(\hat f_{-j}) - L(\hat f).
+$$
 
-1. Evaluate predictive performance first.
-2. Use PDP/ICE for shape diagnostics.
-3. Use SHAP/SAGE for attribution summaries.
-4. Validate interpretation claims with robustness checks and domain knowledge.
+SAGE extends this with Shapley-style accounting over feature subsets for global loss contributions.
+
+## Interpretation protocol
+
+1. Validate predictive performance first.
+2. Use PDP/ICE to inspect response shape and heterogeneity.
+3. Use SHAP/ablation for contribution summaries.
+4. Stress-test conclusions under correlated features and alternative preprocessing.
+
+Interpretability methods explain model behavior, not causal mechanisms by themselves.
