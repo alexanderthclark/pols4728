@@ -1,0 +1,90 @@
+\section{Post-Double Lasso (Double Selection) with High-Dimensional Controls}
+
+
+\begin{quotation}
+\noindent The abundance of data and resources facilitates the move away from a deductive social science to a more sequetial, interactive, and ultimately inductive approach to inference.
+\\ \cite{grimmer2021machine}
+\end{quotation}
+
+
+\begin{quotation}
+\noindent We hope readers will that data mining done correctly is the opposite of ``bad practice.'' \\  \cite{belloni2014high} 
+\end{quotation}
+
+\subsection*{Practical guide}
+
+Partially linear model with many controls
+\[
+y_i=\alpha_0 d_i + x_i'\beta_0 + \zeta_i,\qquad
+d_i=x_i'\pi_0+v_i,\qquad \mathbb{E}[\zeta_i\mid d_i,x_i]=\mathbb{E}[v_i\mid x_i]=0.
+\]
+
+In a typical application, we are interested in the effect, $\alpha_0$ of a treatment variable $d$. The vector of covariates $x$ is included to control for confounding. 
+In your data, there might be more predictors than $n$ observations. However, proceeding with double lasso involves a structural assumption that $y$ and $d$ depend only on a subset of predictors that is necessarily less than $n$.
+
+\paragraph{Algorithm (post-double lasso).}
+\begin{enumerate}
+\item \textbf{Outcome lasso:} Regress $y$ on $x$ via lasso (or square-root lasso). Let $\widehat S_y=\{j:\widehat\beta_{y,j}\neq 0\}$.
+\item \textbf{Treatment lasso:} Regress $d$ on $x$ via lasso. Let $\widehat S_d=\{j:\widehat\pi_{d,j}\neq 0\}$.
+\item \textbf{Union:} $\widehat S=\widehat S_y\cup \widehat S_d$ \emph{(optionally augment by a small ``amelioration'' set you insist on keeping).}
+\item \textbf{Final OLS (unpenalized):} Regress $y$ on $\{d, x_{\widehat S}\}$. The coefficient on $d$ is $\widehat\alpha$.
+\end{enumerate}
+
+\paragraph{Multiple target regressors (e.g., interactions).}
+If the final specification includes a small, fixed set of target regressors (e.g., $d$ and an interaction $d\times e$), run step 2 separately for \emph{each}, 
+union all selected controls with $\widehat S_y$, and run the final OLS of $y$ on $W$ and $x_{\widehat S}$.
+
+\paragraph{Penalty level and loadings (lasso tuning).}
+Use predictor-specific \emph{penalty loadings}, which vary the regularization penalty for each variable. Solve
+\[
+\min_b\  \|y-Xb\|_2^2 + \lambda \sum_{j=1}^p \hat\ell_j\,|b_j|,
+\]
+
+\cite{belloni2014inference} uses
+\[
+\lambda = 2c\,\sqrt{n}\,\Phi^{-1}\!\Big(1-\frac{\gamma}{2p}\Big),\qquad
+\hat\ell_j = \sqrt{\mathbb{E}_n[x_{ij}^2\,\hat\varepsilon_i^2]}\ ,
+\]
+where $\hat\varepsilon$ are residuals from a post-lasso fit.
+
+\subsection*{Assumptions}
+
+%\paragraph{Baseline (as in textbook OLS for the partially linear estimand).}
+%\begin{enumerate}
+%\item \textbf{Exogeneity:} $\mathbb{E}[\zeta_i\mid d_i,x_i]=0$ (controls are pre-treatment).
+%\item \textbf{Overlap/variation:} $\mathbb{E}[(d_i-\mathbb{E}[d_i\mid x_i])^2]\ge c>0$ (residual variance of $d$ given $x$ is not vanishing).
+%\item \textbf{Moments:} Finite second (often a bit higher) moments; heteroskedasticity allowed (use robust SE).
+%\end{enumerate}
+
+%\paragraph{Additional for post-double lasso.}
+Typical OLS assumptions \emph{and} \cite{belloni2014inference} lists several technical conditions that are sufficient for valid inference. 
+
+\begin{enumerate}
+\item \textbf{Approximate sparsity:} There exist sparse $\beta_0,\pi_0$; approximation errors don't grow ``too fast.''
+\item \textbf{Restricted eigenvalue/compatibility:} Design of $X$ is ``nice'' (well-conditioned sparse Gram submatrices).
+\item \textbf{Rates:} The strongest condition is $s^2\log^2(p\vee n)/n\to 0$, where $s$ is the number of selected controls and $p$ is the total considered. These can't be too big relative to $n$.
+\item \textbf{Penalty calibration:} $\lambda$ of the same order as $\sqrt{n\log p}$ and heteroskedastic-robust loadings $\hat\ell_j$ (feasible, iterated) to control the coordinate-wise score.
+\end{enumerate}
+
+\bigskip
+
+\subsection*{Technical intuition}
+
+\paragraph{Orthogonal (Neyman) score.} Define
+\[
+\psi_i(\alpha,\beta,\pi)=(y_i-\alpha d_i - x_i'\beta)\,(d_i-x_i'\pi).
+\]
+At the true parameter values $(\alpha_0,\beta_0,\pi_0)$ one has $\mathbb{E}[\psi_i]=0$ \emph{and} this makes the estimating equation \emph{insensitive} (to first order) to small errors in the high-dimensional nuisances $(\beta,\pi)$.
+Double selection implements this orthogonality. Under our assumptions, and the excluded controls should have very small effects and errors are second order. 
+
+\paragraph{Bias decomposition via FWL.} Let $S=\widehat S_y\cup \widehat S_d$ and $M_S=I-X_S(X_S'X_S)^{-1}X_S'$ be the residual-maker for $X_S$. Then the final OLS coefficient obeys
+\[
+\widehat\alpha-\alpha_0
+=\underbrace{\frac{d'M_S X\beta_0}{d'M_S d}}_{\text{bias from omitted $X\beta_0$ after selection}}
++\underbrace{\frac{d'M_S \zeta}{d'M_S d}}_{\text{mean-zero noise (drives SE)}}.
+\]
+
+This can be bound and the asympotitic properties understood.
+
+
+
