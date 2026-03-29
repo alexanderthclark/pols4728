@@ -90,6 +90,29 @@ extract_target_cites() {
   ' "$1" | sort -u
 }
 
+count_source_display_math() {
+  perl -0777 -ne '
+    $t = $_;
+    $count = 0;
+    $count += () = $t =~ /\\begin\{equation\}/g;
+    $count += () = $t =~ /(?<!\\)\\\[/g;
+    $dollars = () = $t =~ /\$\$/g;
+    $count += int($dollars / 2);
+    print "$count\n";
+  ' "$1"
+}
+
+count_target_display_math() {
+  perl -0777 -ne '
+    $t = $_;
+    $count = 0;
+    $count += () = $t =~ /^```{math}/mg;
+    $dollars = () = $t =~ /\$\$/g;
+    $count += int($dollars / 2);
+    print "$count\n";
+  ' "$1"
+}
+
 echo "== Heading Hierarchy Parity =="
 extract_source_headings "$source_file" > "$tmpdir/source_headings.txt"
 extract_target_headings "$target_file" > "$tmpdir/target_headings.txt"
@@ -101,15 +124,15 @@ else
 fi
 echo
 
-echo "== Equation Count Parity =="
-source_eq_count="$(grep -o '\\begin{equation}' "$source_file" | wc -l | tr -d ' ')"
-target_eq_count="$(grep -c '^```{math}' "$target_file" | tr -d ' ')"
-echo "source equation count: $source_eq_count"
-echo "target equation count: $target_eq_count"
-if [[ "$source_eq_count" == "$target_eq_count" ]]; then
-  echo "PASS: equation counts match."
+echo "== Display-Math Count Parity =="
+source_math_count="$(count_source_display_math "$source_file" | tr -d ' ')"
+target_math_count="$(count_target_display_math "$target_file" | tr -d ' ')"
+echo "source display-math count: $source_math_count"
+echo "target display-math count: $target_math_count"
+if [[ "$source_math_count" == "$target_math_count" ]]; then
+  echo "PASS: display-math counts match."
 else
-  echo "FAIL: equation counts differ."
+  echo "FAIL: display-math counts differ."
   fail=1
 fi
 echo
