@@ -9,14 +9,23 @@ logo: assets/logos/ML_logo_simple.svg
 # See https://jupyterbook.org/content/execute.html
 execute:
   execute_notebooks: auto
+  exclude_patterns:
+    - chapters/predictive.ipynb
+    - reference/hugging_face.ipynb
+    - reference/prelims_and_digressions.ipynb
 
-# Exclude generated and local-only artifacts from source discovery
+# Exclude generated and legacy artifacts from source discovery
 exclude_patterns:
   - "**/.virtual_documents/**"
   - "**/.ipynb_checkpoints/**"
   - "**/.DS_Store"
   - "**/.claude/**"
   - "_build/**"
+  - "chapters/interpretability.ipynb"
+  - "chapters/bias_variance.md"
+  - "chapters/dimensionality_reduction.ipynb"
+  - "chapters/linear_reg.ipynb"
+  - "chapters/linreg.md"
 
 # Define the name of the latex output file for PDF builds
 latex:
@@ -52,7 +61,6 @@ html:
       height: 80px !important;
     }
     </style>
-
 
 launch_buttons:
   binderhub_url: "https://mybinder.org"

@@ -14,7 +14,7 @@ parts:
   - file: chapters/learning
   - file: chapters/linear_models
   - file: chapters/tree_methods
-  - file: chapters/interpretability
+  - file: chapters/interpretability.md
   - file: chapters/using_llms
   - file: chapters/predictive
 
