@@ -7,6 +7,9 @@ root: intro
 parts:
 - caption: Bootcamp
   chapters:
+  - file: chapters/matrix_algebra
+  - file: chapters/python
+  - file: chapters/causal_inference
   - file: reference/prelims_and_digressions
   - file: chapters/learning
   - file: chapters/using_llms
@@ -29,6 +32,9 @@ parts:
   - file: chapters/pca
   - file: chapters/applied_issues
   - file: chapters/neural_networks
+  - file: chapters/text
+  - file: chapters/transformers
+  - file: chapters/causal_ml
 
 - caption: Reference
   chapters:
