@@ -1,121 +1,196 @@
 (linear_regression)=
 # Linear Regression
 
-Linear regression is the core reference model for this course: transparent, fast, and a useful baseline before adding model complexity.
+Regression should be a familiar topic. We will move quickly through what might be familiar and then introduce machine learning vocabulary and other points of emphasis. Some of this, like discussion of the loss surface, will feel unnecessary. However, this is a chance to ease into new concepts that will arise again for other prediction models.
 
-## Canon objectives
-
-- derive and interpret the OLS objective and solution,
-- diagnose when coefficients are unstable versus when predictions are unstable,
-- decide when linear specification quality is sufficient versus when to escalate model complexity.
-
-## OLS objective
-
-With outcome vector `y \in \mathbb{R}^n` and design matrix `X \in \mathbb{R}^{n\times p}`,
-
-$$
-\hat\beta = \arg\min_{\beta} \sum_{i=1}^n (y_i - x_i^\top\beta)^2
-= \arg\min_{\beta}\,\|y-X\beta\|_2^2.
-$$
-
-When `X^\top X` is invertible,
-
-$$
-\hat\beta = (X^\top X)^{-1}X^\top y.
-$$
-
-```{figure} ../assets/images/linear_reg_loss_surface.pdf
-:width: 95%
-:align: center
-
-Loss surface for simple linear regression; each point corresponds to one parameter vector.
+```{admonition} Reading
+- {cite}`kuhn2013applied`, Chapter 6
+- {cite}`hastie2009elements`, Chapter 3
 ```
 
-## Geometric interpretation
+## OLS
 
-OLS projects `y` onto the column space of `X`.
+Can you think of some famous lines? Maybe you are thinking of the Equator, the Mason Dixon, or the line in the sand at the Alamo. We can do better. $\hat{y} = 68 + \frac{2}{3}(68-x)$ is the line from which we get the term **regression**.
 
-- `X\hat\beta` is the closest vector in that space.
-- Residuals are orthogonal to every column of `X`.
-- The normal equations summarize this: `X^\top(y-X\hat\beta)=0`.
+> "The height-deviate of the offspring is, on the average, two-thirds of the height-deviate of its mid-parentage."
+> -- {cite}`galton1886regression`
 
-This perspective explains why OLS is stable when predictors are well-conditioned and unstable when predictors are nearly redundant.
+Francis Galton found this line by observing that tall parents tended to have shorter (closer to average) children, while short parents tended to have taller kids. He described this phenomenon as "regression to mediocrity," reflecting the tendency of extreme characteristics to move back toward the population average in subsequent generations. Galton actually used "ocular regression" (eyeballing it) and the term *regression* has stuck for the general line-of-best-fit technique, even when applied to data that do not follow this pattern. Regression is also sometimes used to describe any kind of model that predicts a numeric value (for example, a decision tree might be called regression tree).
 
-## Regression anatomy
+In 2025, ocular regression does not cut it. Ordinary least squares (OLS) is the most common method for estimating the parameters in a linear regression model. Linear models are flexible because they can still accommodate interactions, categorical predictors, and nonlinearities. You, the analyst, just have to include them in your specification.
 
-A multivariate coefficient can be obtained via residual-on-residual regression (Frisch-Waugh-Lovell logic).
+Our predictors give us the design matrix, $X$. With $n$ observations and $k$ features (including an intercept), this is $n \times k$. The target variable is stored in the $n \times 1$ matrix, $y$.
 
-To recover the coefficient on `x_2` in `y = w_0 + w_1x_1 + w_2x_2`:
+Then, we find the regression coefficients $\hat{\beta}$, which might also be called the model **parameters**. Once the parameters are found, we can make predictions $X\hat{\beta}$ and $y-X\hat{\beta}$ is the vector of **residuals** or prediction errors.
 
-1. Regress `x_2` on `x_1`, save residuals `\tilde{x}_2`.
-2. Regress `y` on `x_1`, save residuals `\tilde{y}`.
-3. Regress `\tilde{y}` on `\tilde{x}_2`; slope equals `w_2`.
+### Optimization
 
-## Why OLS is special
+Parameters for any model are found by minimizing a **loss function** (also called a cost function[^cost-loss]), which describes the quality of the model fit for particular parameter values. The parameters are found by minimizing the loss $L(\beta)$,
 
-Two reasons matter in practice:
+```{math}
+:label: eq:general-optimization
+\hat{\beta} = \arg\min_{\beta} \left[ L(\beta) \right]
+```
 
-- Gauss-Markov: under standard linear-model assumptions, OLS is BLUE.
-- Likelihood: under Gaussian noise, OLS is the MLE for `\beta`.
+For least squares,
 
-These do not mean OLS is always best, but they make it the right baseline for diagnostics and comparisons.
+```{math}
+:label: eq:ols-optimization
+\hat{\beta} = \arg\min_{\beta} \sum_{i=1}^n (y_i - x_i^T\beta)^2
+```
 
-For canonical workflow: always beat or tie linear regression out-of-sample before claiming a more complex model is justified.
+$\hat{\beta}$ is simply where we find the minimum of the $L(\beta)$ loss surface. The plot below illustrates such a surface for simple linear regression. Each point in the contour plot corresponds to an entirely different line of fit.
 
-## Multicollinearity as directional instability
+```{figure} ../assets/images/linear_reg_loss_surface.pdf
+:width: 100%
+:align: center
+:name: fig:loss-surface
 
-When predictors are highly correlated, the loss surface is flat in certain directions: many coefficient vectors fit almost equally well.
+Loss surface for simple linear regression showing 3D surface (left) and contour plot (right). Each point corresponds to different intercept and slope parameters. The minimum (green point) represents the OLS solution.
+```
+
+The optimization is straightforward for OLS. The loss minimizing $\hat{\beta}$ is
+
+```{math}
+:label: eq:ols-solution
+\hat{\beta} = (X^TX)^{-1} X^T y
+```
+
+Because linear algebra is king in machine learning, we will give the geometric interpretation. OLS solves a projection problem:
+
+- The column space of $X$ is the set of all possible predictions we can make using linear combinations of our features. This forms a $k$-dimensional subspace in $\mathbb{R}^n$.
+- Our observed $y$ vector typically does not lie exactly in this column space (for example, for three points that you cannot draw a single line through in simple linear regression).
+- OLS finds $\hat{\beta}$ such that $X\hat{\beta}$ is the vector of predictions in the column space closest to $y$.
+- $X\hat{\beta}$ is not the regression line. The regression line (or hyperplane) is the set of all points $(x_1, \dots, x_{k-1}, x^T\hat{\beta})$.
+
+Mathematically, $X\hat{\beta}$ is the orthogonal projection of $y$ onto the column space of $X$. Orthogonality is what makes $X\hat{\beta}$ closer to $y$ than any other candidate:
+
+```{math}
+:label: eq:orthogonal-projection
+\Vert y - X\hat{\beta} \Vert \leq \Vert y - Xv \Vert
+```
+
+for any other $k \times 1$ vector $v$. In other words, no other choice of coefficients can get us closer to $y$.
+
+The quality of the fit is not generally measured by $\Vert y - X\hat{\beta} \Vert$.[^l2norm] Instead we usually report the mean squared error (MSE),
+
+```{math}
+:label: eq:mse-linear
+\mathrm{MSE} = \frac{1}{n} \sum_{i=1}^n (y_i - \hat{y}_i)^2 = \frac{1}{n}\Vert y - X\hat{\beta} \Vert^2
+```
+
+This scaling makes MSE comparable across datasets of different sizes.
+
+## Regression Anatomy
+
+Multiple regression coefficients can be found as the slopes in a series of univariate regressions.
+
+Find the parameter $w_2$ from $\hat{y} = w_0 + w_1x_1 + w_2x_2$ by
+
+- Regress $x_2$ on $x_1$ (predict $x_2$ using $x_1$). Find the residuals $\tilde{x}_2$.
+- Find the residuals from prediciting $y$ from just $x_1$.
+- Find $w_2$ by predicting the residuals from the second step using the residuals from the first.
+
+## Why OLS is special (two reasons)
+
+**Gauss Markov (BLUE).**
+
+- *Claim.* Under the standard linear model conditions, the OLS estimator $\hat\beta=(X^\top X)^{-1}X^\top y$ is the *Best Linear Unbiased Estimator* (BLUE): among all linear unbiased estimators, it has the smallest variance.
+- *Model setup.* $y = X\beta + \varepsilon$, with $X\in\mathbb{R}^{n\times k}$ (full column rank).
+- *Sufficient conditions (with notation).*
+  - **Linearity in parameters / correct specification:** $y = X\beta + \varepsilon$ (any nonlinear terms must appear as columns of $X$).
+  - **Exogeneity (zero conditional mean):** $\mathbb{E}[\varepsilon\mid X]=0$ (equivalently $\mathbb{E}[X^\top\varepsilon]=0$ or $\mathrm{Cov}(X_j,\varepsilon)=0\ \forall j$).
+  - **Full rank (no exact multicollinearity):** $\mathrm{rank}(X)=k \Rightarrow X^\top X$ invertible.
+  - **Homoskedasticity (constant variance):** $\mathrm{Var}(\varepsilon_i\mid X)=\sigma^2$ for all $i$.
+  - **No autocorrelation (uncorrelated errors):** $\mathrm{Cov}(\varepsilon_i,\varepsilon_j\mid X)=0$ for $i\neq j$. (Together with homoskedasticity: $\mathrm{Var}(\varepsilon\mid X)=\sigma^2 I_n$.)
+
+**OLS as Maximum Likelihood.**
+
+- *Assumption.* $\varepsilon\mid X \stackrel{\text{i.i.d.}}{\sim} \mathcal{N}(0,\sigma^2)$.
+- *Likelihood.* $L(\beta,\sigma^2\mid X,y)\propto (\sigma^2)^{-n/2}\exp\!\left(-\tfrac{1}{2\sigma^2}\|y-X\beta\|^2\right)$. Maximizing over $\beta$ $\Longleftrightarrow$ minimizing $\sum_i (y_i-x_i^\top\beta)^2$, so the MLE of $\beta$ is OLS.
+
+## Multicollinearity as Directional Instability
+
+When two predictors move together, changing their coefficients in opposite ways barely changes fitted values on the training data. Because squared loss cares about fitted values, the loss surface is *flat* in those directions, so many different coefficient pairs fit almost equally well. That flatness is what makes coefficients unstable.
+
+The following figure set is based on a model where $y = x_1 + x_2 + \varepsilon$ so the true slopes are both one.
 
 ```{figure} ../assets/images/loss_contours_r0.pdf
-:width: 78%
+:width: 68%
 :align: center
+:name: fig:loss-contours-r0
 
-Low-correlation contours.
+$\rho = 0$
 ```
 
 ```{figure} ../assets/images/loss_contours_r94.pdf
-:width: 78%
+:width: 68%
 :align: center
+:name: fig:loss-contours-r94
 
-High-correlation contours become elongated.
+$\rho = 0.94$
 ```
 
 ```{figure} ../assets/images/loss_contours_r100-1.pdf
-:width: 78%
-:align: center
-
-Near-collinearity yields very flat optimization directions.
-```
-
-```{figure} ../assets/images/bootstrap_coef_cloud.pdf
 :width: 68%
 :align: center
+:name: fig:loss-contours-r100
 
-Bootstrap coefficient cloud under multicollinearity.
+$\rho \approx 1.0$
 ```
 
-Implication: coefficients can vary substantially across samples while prediction quality changes little.
+Loss surface contours for two-feature linear regression with varying correlation $\rho$ between standardized features. Increasing correlation makes the loss surface more flat along the plane $x+y=2$, corresponding to increasing variance in the coefficients.
 
-## Feature engineering for linear models
+The flatness of the loss surface creates more variance in the fitted coefficients.
 
-OLS has no tuning hyperparameters once features are fixed, so specification quality depends on feature engineering.
+```{figure} ../assets/images/bootstrap_coef_cloud.pdf
+:width: 50%
+:align: center
 
-- Standardization: comparable scales and better conditioning.
-- Normalization/transforms: stabilize skewed predictors.
-- One-hot encoding: represent categorical variables cleanly.
-- Interactions and polynomials: capture structured nonlinearity.
+Bootstrap coefficient cloud under collinearity.
+```
 
-## Evaluation focus
+### What this means in practice.
 
-For predictive use, evaluate out-of-sample error:
+- **Coefficient instability.** Because the loss barely changes in the "swap" direction, small data perturbations can swing $\hat\beta_1$ up and $\hat\beta_2$ down (or vice-versa) with almost no change in training error, producing sign flips and large reported standard errors.
+- **In-sample predictions can still look fine.** Many different coefficient pairs give nearly the same $\hat y$ when $x_1\approx x_2$. The instability is about *coefficients*, not necessarily about in-sample fit.
+- **Out-of-sample risk.** Predictions are fragile when a new case has $x_{*1}$ and $x_{*2}$ pulling in opposite ways (large $x_{*1}-x_{*2}$). That is precisely the direction your training data did not pin down well.
+- **Quick checks.** Inspect the correlation matrix (or VIFs) and plot $x_1$ vs. $x_2$. Compositional features (shares summing to one) and poorly chosen reference categories are common sources, reparameterize to remove exact or near-exact duplicates.
 
-$$
-\mathrm{MSE}=\frac{1}{n}\sum_{i=1}^n (y_i-\hat y_i)^2.
-$$
+## Feature Engineering
 
-Report training and validation/test metrics separately, and inspect residual structure before claiming model adequacy.
+Once you have fixed the set of predictor variables (and thus the design matrix $X$), there is no **tuning** to do for OLS. The important choice for OLS is what variables (or transformations of variables) to include. The process of refining your set of predictor variables (features) is called **feature engineering**.
 
-Prediction and inference are related but distinct goals:
+You should already be familiar with feature engineering, if not by that name. Review {cite}`kuhn2013applied` Chapter 3 for an overview of variable transformations. Let us cover a few.
 
-- for prediction, prioritize out-of-sample error and calibration;
-- for inference, prioritize identification assumptions and uncertainty quantification.
+### Standardization
+
+Standardization (also called z-score normalization) transforms features to have mean 0 and standard deviation 1:
+
+```{math}
+:label: eq:standardization
+x_{\text{standardized}} = \frac{x - \mu}{\sigma}
+```
+
+This is particularly important when features have different scales (for example, age in years vs income in dollars).
+
+### Normalization
+
+Min-max normalization scales features to a fixed range, typically $[0,1]$:
+
+```{math}
+:label: eq:normalization
+x_{\text{normalized}} = \frac{x - x_{\min}}{x_{\max} - x_{\min}}
+```
+
+### One-hot Encoding
+
+For categorical variables, one-hot encoding creates binary indicator variables for each category. A categorical variable with $k$ levels becomes $k-1$ binary variables (to avoid the dummy variable trap).
+
+### Principal Components
+
+Principal Component Analysis (PCA) creates new features that are linear combinations of the original features, ordered by how much variance they explain in the data. This can be useful for dimensionality reduction and handling multicollinearity.
+
+[^cost-loss]: Cost and loss are used interchangeably but one might insist that the loss function is the individual function for each data point and the cost is the loss aggregated over all data points.
+
+[^l2norm]: $\Vert \cdot \Vert$ is the Euclidean or L2 norm.

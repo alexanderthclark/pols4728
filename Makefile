@@ -1,4 +1,4 @@
-.PHONY: book-clean book-build book-serve
+.PHONY: book-clean book-build book-serve fidelity-audit
 
 book-clean:
 	rm -rf book/_build book/.jupyter_cache
@@ -9,3 +9,6 @@ book-build:
 
 book-serve:
 	python3 -m http.server --directory book/_build/html 8000
+
+fidelity-audit:
+	bash ./helpers/chapter_fidelity_audit.sh
