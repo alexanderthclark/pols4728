@@ -12,9 +12,11 @@ parts:
 - caption: Lectures
   chapters:
   - file: chapters/learning
+  - file: chapters/linear_models
+  - file: chapters/tree_methods
+  - file: chapters/interpretability
   - file: chapters/using_llms
   - file: chapters/predictive
-
 
 - caption: Reference
   chapters:
