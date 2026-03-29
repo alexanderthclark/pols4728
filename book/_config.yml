@@ -5,10 +5,18 @@ title: POLS 4728
 author: Alexander Clark, Columbia University
 logo: assets/logos/ML_logo_simple.svg
 
-# Force re-execution of notebooks on each build.
+# Execute notebooks only when needed during local development.
 # See https://jupyterbook.org/content/execute.html
 execute:
-  execute_notebooks: force
+  execute_notebooks: auto
+
+# Exclude generated and local-only artifacts from source discovery
+exclude_patterns:
+  - "**/.virtual_documents/**"
+  - "**/.ipynb_checkpoints/**"
+  - "**/.DS_Store"
+  - "**/.claude/**"
+  - "_build/**"
 
 # Define the name of the latex output file for PDF builds
 latex:

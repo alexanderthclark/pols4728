@@ -28,6 +28,7 @@ coverage.xml
 
 # Jupyter Notebooks
 .ipynb_checkpoints
+**/.ipynb_checkpoints/
 */.ipynb_checkpoints/*
 
 # Jupyter Security - Execution artifacts that may contain tokens
@@ -36,6 +37,11 @@ coverage.xml
 **/*.err.log
 **/execution-*.log
 .jupyter_cache/
+
+# Generated editor notebook mirrors
+.virtual_documents/
+**/.virtual_documents/
+**/.virtual_documents/**
 
 # 75 Minutes of Python materials (temporary exclusion)
 tex/75MinutesOfPython.tex
@@ -119,10 +125,10 @@ tex/*.pdf
 
 # Syllabus directory (keep private)
 syllabus/
-.virtual_documents/
 
 # Claude assistant configuration
 CLAUDE.md
+**/.claude/
 
 # Ignore folder
 ignore/
