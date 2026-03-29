@@ -21,14 +21,6 @@ exclude_patterns:
   - "**/.DS_Store"
   - "**/.claude/**"
   - "_build/**"
-  - "chapters/interpretability.ipynb"
-  - "chapters/bias_variance.md"
-  - "chapters/dimensionality_reduction.ipynb"
-  - "chapters/linear_reg.ipynb"
-  - "chapters/linreg.md"
-  - "chapters/linear_models.md"
-  - "chapters/tree_methods.md"
-  - "chapters/model_validation.md"
 
 # Define the name of the latex output file for PDF builds
 latex:
