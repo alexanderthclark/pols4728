@@ -5,10 +5,6 @@ format: jb-book
 root: intro
 
 parts:
-- caption: Course Information
-  chapters:
-  - file: schedule
-
 - caption: Bootcamp
   chapters:
   - file: reference/prelims_and_digressions
