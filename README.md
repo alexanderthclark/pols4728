@@ -1,6 +1,10 @@
-# POLS4728 data
+# POLS4728 data and code
 
-Public data archive for POLS4728. The CSV files remain at their original paths so existing download links continue to work.
+Public data and code archive for POLS4728. The CSV files remain at their original paths so existing download links continue to work.
+
+## Python examples
+
+The [Fall 2026 Python examples](examples/2026f/README.md) accompany the code listings in the lecture notes. The examples README explains dependencies, how to run each script, and the external data needed for the ATUS example.
 
 ## Datasets
 
@@ -24,4 +28,4 @@ df = pd.read_csv(url)
 
 ## Former course materials
 
-The Jupyter Book, teaching materials, and build/deployment configuration have been removed from `main`. The previous version is available in [Git history](https://github.com/alexanderthclark/pols4728/tree/e75b4061d92d80b8bb0ca3ed79aa430d85cbd5a9).
+The former Jupyter Book, teaching materials, and build/deployment configuration were removed from `main`. The previous version is available in [Git history](https://github.com/alexanderthclark/pols4728/tree/e75b4061d92d80b8bb0ca3ed79aa430d85cbd5a9).
