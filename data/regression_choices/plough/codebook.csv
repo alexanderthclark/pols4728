@@ -1,0 +1,9 @@
+column,role,source,description,units
+id_country,identifier,isocode,World Bank country code retained from the original file.,"Country code; identifier only, not a regression control"
+y,outcome,flfp2000,Female labor-force participation in 2000: percentage of women aged 15 to 64 in the labor force.,Percent (0 to 100); regression differences are percentage points
+d,exposure,plow,"Population-weighted ancestral use of the animal plough, based on Ethnographic Atlas variable v39 and the authors' Ethnologue population mapping.","Share (0 to 1); continuous exposure, not a treatment indicator"
+x_agricultural_suitability,control,agricultural_suitability,"Ancestral agricultural suitability: share of land defined as suitable for the authors' cereal crops (millets, sorghum, wheat, barley and rye).",Population-weighted share (0 to 1)
+x_tropical_climate,control,tropical_climate,Fraction of ancestral land in tropical or subtropical climates.,Population-weighted share (0 to 1)
+x_large_animals,control,large_animals,Ancestral presence of large domesticated animals.,Population-weighted measure (0 to 1)
+x_political_hierarchies,control,political_hierarchies,"Ancestral jurisdictional hierarchy beyond the local community, using the authors' coding of Ethnographic Atlas variable v33.","Population-weighted index (1 to 5), not a count of modern governments"
+x_economic_complexity,control,economic_complexity,Ancestral settlement-pattern index from Ethnographic Atlas variable v30; higher values indicate more complex settlements.,"Population-weighted index (1 to 8), not monetary income"

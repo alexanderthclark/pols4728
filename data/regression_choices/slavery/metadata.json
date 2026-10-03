@@ -1,0 +1,285 @@
+{
+  "id": "slavery",
+  "title": "The Political Legacy of American Slavery",
+  "paper_url": "https://doi.org/10.1086/686631",
+  "data_url": "https://doi.org/10.7910/DVN/CAEEG7",
+  "table": "Table 1, column 2",
+  "unit": "county",
+  "controls": [
+    "x_ln_coarea00",
+    "x_latitude",
+    "x_latitude_sq",
+    "x_longitude",
+    "x_longitude_sq",
+    "x_rugged",
+    "x_land_ineq1860",
+    "x_sfarmprop1860",
+    "x_ln_totpop1860",
+    "x_ln_fvalpac1860",
+    "x_ln_acimp1860",
+    "x_fbprop1860",
+    "x_rail1860",
+    "x_water1860"
+  ],
+  "fixed_controls": [
+    "fixed_AR",
+    "fixed_FL",
+    "fixed_GA",
+    "fixed_KY",
+    "fixed_LA",
+    "fixed_MO",
+    "fixed_MS",
+    "fixed_NC",
+    "fixed_SC",
+    "fixed_TN",
+    "fixed_TX",
+    "fixed_VA",
+    "fixed_WV"
+  ],
+  "weight": "weight",
+  "cluster": null,
+  "covariance": "nonrobust",
+  "reference": {
+    "n": 1152,
+    "coefficient": -0.126591037426384,
+    "se": 0.0425041213390103,
+    "coefficient_tolerance": 1e-08,
+    "se_tolerance": 1e-07
+  },
+  "original_reference": {
+    "coefficient": -0.126591037426384,
+    "se": 0.0425041213390103,
+    "n": 1152,
+    "notes": "The original paper reports -0.127 (0.043), using classical homoskedastic weighted-OLS standard errors. The supplied regression preserves the original coefficient, standard error, controls, weights and sample. Standard errors are not clustered by state."
+  },
+  "columns": {
+    "id_source_row": {
+      "role": "id",
+      "source": "original file row",
+      "description": "One-based row number in the unchanged original county CSV.",
+      "units": "identifier"
+    },
+    "id_fips": {
+      "role": "id",
+      "source": "fips",
+      "description": "Numeric county FIPS identifier; leading zeros can be restored by formatting to five digits. Never use this code as a numeric regressor.",
+      "units": "identifier"
+    },
+    "y": {
+      "role": "outcome",
+      "source": "dem",
+      "description": "County share of white CCES respondents identifying with the Democratic Party, including leaners.",
+      "units": "proportion"
+    },
+    "d": {
+      "role": "treatment",
+      "source": "pslave1860",
+      "description": "Enslaved population share in 1860, interpolated to 2000 county boundaries. A 0.1 change is a ten-percentage-point increase.",
+      "units": "proportion"
+    },
+    "weight": {
+      "role": "weight",
+      "source": "sample.size",
+      "description": "Sum of within-county survey sampling weights used by the authors; this is a positive fractional weight, not the raw respondent count.",
+      "units": "sum of survey weights"
+    },
+    "x_ln_coarea00": {
+      "role": "control",
+      "source": "log(coarea00)",
+      "description": "Natural logarithm of the authors' county-area measure from the 2000 county shapefile.",
+      "units": "natural log of original area units"
+    },
+    "x_latitude": {
+      "role": "control",
+      "source": "latitude",
+      "description": "County latitude on the original 2000 boundaries.",
+      "units": "degrees"
+    },
+    "x_latitude_sq": {
+      "role": "control",
+      "source": "latitude^2",
+      "description": "Squared county latitude, included in the original regression.",
+      "units": "degrees squared"
+    },
+    "x_longitude": {
+      "role": "control",
+      "source": "longitude",
+      "description": "County longitude on the original 2000 boundaries.",
+      "units": "degrees"
+    },
+    "x_longitude_sq": {
+      "role": "control",
+      "source": "longitude^2",
+      "description": "Squared county longitude, included in the original regression.",
+      "units": "degrees squared"
+    },
+    "x_rugged": {
+      "role": "control",
+      "source": "rugged",
+      "description": "Terrain ruggedness, using the authors' original measure.",
+      "units": "original index units"
+    },
+    "x_land_ineq1860": {
+      "role": "control",
+      "source": "land.ineq1860",
+      "description": "Gini coefficient of land holdings in 1860, interpolated to 2000 county boundaries.",
+      "units": "Gini coefficient"
+    },
+    "x_sfarmprop1860": {
+      "role": "control",
+      "source": "sfarmprop1860",
+      "description": "Share of farms under 50 acres in 1860, interpolated to 2000 county boundaries.",
+      "units": "proportion"
+    },
+    "x_ln_totpop1860": {
+      "role": "control",
+      "source": "log(totpop1860)",
+      "description": "Natural logarithm of total county population in 1860, interpolated to 2000 county boundaries.",
+      "units": "natural log of people"
+    },
+    "x_ln_fvalpac1860": {
+      "role": "control",
+      "source": "log(fvalpac1860)",
+      "description": "Natural logarithm of farm value per improved acre in 1860, interpolated to 2000 county boundaries.",
+      "units": "natural log of original monetary units per improved acre"
+    },
+    "x_ln_acimp1860": {
+      "role": "control",
+      "source": "log(acimp1860)",
+      "description": "Natural logarithm of total improved farmland acreage in 1860, interpolated to 2000 county boundaries.",
+      "units": "natural log of acres"
+    },
+    "x_fbprop1860": {
+      "role": "control",
+      "source": "fbprop1860",
+      "description": "Free Black population share in 1860, interpolated to 2000 county boundaries.",
+      "units": "proportion"
+    },
+    "x_rail1860": {
+      "role": "control",
+      "source": "rail1860",
+      "description": "Rail access in 1860, evaluated on 2000 county boundaries.",
+      "units": "0/1 indicator"
+    },
+    "x_water1860": {
+      "role": "control",
+      "source": "water1860",
+      "description": "Navigable-waterway access in 1860, evaluated on 2000 county boundaries.",
+      "units": "0/1 indicator"
+    },
+    "fixed_AR": {
+      "role": "fixed_control",
+      "source": "state.abb",
+      "description": "State indicator for AR; AL is the omitted state. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_FL": {
+      "role": "fixed_control",
+      "source": "state.abb",
+      "description": "State indicator for FL; AL is the omitted state. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_GA": {
+      "role": "fixed_control",
+      "source": "state.abb",
+      "description": "State indicator for GA; AL is the omitted state. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_KY": {
+      "role": "fixed_control",
+      "source": "state.abb",
+      "description": "State indicator for KY; AL is the omitted state. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_LA": {
+      "role": "fixed_control",
+      "source": "state.abb",
+      "description": "State indicator for LA; AL is the omitted state. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_MO": {
+      "role": "fixed_control",
+      "source": "state.abb",
+      "description": "State indicator for MO; AL is the omitted state. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_MS": {
+      "role": "fixed_control",
+      "source": "state.abb",
+      "description": "State indicator for MS; AL is the omitted state. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_NC": {
+      "role": "fixed_control",
+      "source": "state.abb",
+      "description": "State indicator for NC; AL is the omitted state. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_SC": {
+      "role": "fixed_control",
+      "source": "state.abb",
+      "description": "State indicator for SC; AL is the omitted state. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_TN": {
+      "role": "fixed_control",
+      "source": "state.abb",
+      "description": "State indicator for TN; AL is the omitted state. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_TX": {
+      "role": "fixed_control",
+      "source": "state.abb",
+      "description": "State indicator for TX; AL is the omitted state. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_VA": {
+      "role": "fixed_control",
+      "source": "state.abb",
+      "description": "State indicator for VA; AL is the omitted state. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_WV": {
+      "role": "fixed_control",
+      "source": "state.abb",
+      "description": "State indicator for WV; AL is the omitted state. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    }
+  },
+  "sample_notes": [
+    "The unchanged original CSV contains 2,931 counties; the authors' 14-state restriction leaves 1,329 before complete-case filtering.",
+    "Applying the original logarithms and squares, then requiring finite original regressors, outcome and exposure and positive weights, yields the same 1,152 counties as Table 1, column 2.",
+    "One row represents one county. Historical values are already interpolated to 2000 county boundaries; students do not need to merge historical maps or reshape panel data.",
+    "The supplied controls are exactly the original 14 substantive regression terms, including the original latitude and longitude squares. No contemporary mediator or cotton instrument has been added.",
+    "The 13 state indicators omit AL; include an intercept. The original sample.size weights are retained without rounding.",
+    "The regression coefficient and classical weighted-OLS standard error reproduce the authors' published specification."
+  ],
+  "identification_notes": [
+    "This is the paper's conditional county-level association, not its separate instrumental-variable analysis. The OLS estimate alone does not establish a causal effect of slavery.",
+    "Some 1860 economic controls may themselves reflect slavery; the original adjustment set does not establish that every variable is a causally appropriate control.",
+    "The outcome concerns white respondents and includes Democratic leaners. A ten-percentage-point exposure increase implies 10 times the raw coefficient in percentage points of Democratic identification.",
+    "Reported standard errors follow the original classical weighted-OLS convention; they are not clustered by state or adjusted for cross-county spatial dependence."
+  ],
+  "provenance": {
+    "source_file": "abs-jop-cces-white-countydata.csv",
+    "download_url": "https://dataverse.harvard.edu/api/access/datafile/2788300?format=original",
+    "dataset_version": "1.0",
+    "file_doi": "https://doi.org/10.7910/DVN/CAEEG7/WOMCOH",
+    "expected_sha256": "579cb0a9015d93531845072300142527b2ff2fea3186436b16b3fbb3390e488b",
+    "observed_sha256": "579cb0a9015d93531845072300142527b2ff2fea3186436b16b3fbb3390e488b",
+    "author_script": "slavery-jop-replication.R, base1860.form and the county Table 1 models",
+    "transformations": "Apply the authors' 14-state restriction, four logarithms and two geographic squares; retain the original complete cases and weights; sort by county FIPS and supply state indicators with AL omitted."
+  },
+  "public_source": {
+    "url": "https://dataverse.harvard.edu/api/access/datafile/2788300?format=original",
+    "member": null,
+    "download_sha256": "579cb0a9015d93531845072300142527b2ff2fea3186436b16b3fbb3390e488b",
+    "raw_sha256": "579cb0a9015d93531845072300142527b2ff2fea3186436b16b3fbb3390e488b"
+  },
+  "clean_file": {
+    "rows": 1152,
+    "columns": 32,
+    "sha256": "42c475fa95d6869ec842371747477517f2829feaf2c1523a69e68ef45a3cd059",
+    "missing_values": 0
+  }
+}

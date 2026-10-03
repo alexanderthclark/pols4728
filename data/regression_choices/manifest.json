@@ -1,0 +1,45 @@
+{
+  "description": "Clean, complete-case datasets and references for reproducing the original regressions.",
+  "datasets": {
+    "plough": {
+      "rows": 177,
+      "mandatory_indicators": 0,
+      "files": {
+        "data.csv": "2bb027ee50be20c518a1546920b01e4ee1728d7a6f5c70c51490d78398905e68",
+        "codebook.csv": "7be9ae13210a3a161b59d5c74874d61b9f681b9a95a3090df66d8a1a2de3c61e",
+        "metadata.json": "1aa12cdac870136efa207821ed9c3b480a4b0f786220e2aef7fbc14835496d41"
+      },
+      "original_controls": 5
+    },
+    "slavery": {
+      "rows": 1152,
+      "mandatory_indicators": 13,
+      "files": {
+        "data.csv": "42c475fa95d6869ec842371747477517f2829feaf2c1523a69e68ef45a3cd059",
+        "codebook.csv": "517b89240a54d38db381ba73f4d386430472829aa08206b89fa013363f92c7bf",
+        "metadata.json": "e3a59d31f5da4acc2f01c5abe60347f9b05a9b06d8a5a014b13f6a1f76bd0e93"
+      },
+      "original_controls": 14
+    },
+    "floods": {
+      "rows": 299,
+      "mandatory_indicators": 0,
+      "files": {
+        "data.csv": "afb45e2401fe505768ec6fe5f214dc9093a029848b5cd561a8be941bef4e2144",
+        "codebook.csv": "831b1f0e869c79b606dd8dbeaed31fc4feb556d2678554cec5e8556f049daf1b",
+        "metadata.json": "0fa8380e59ee1e3e9f90af2c50f730ff4406236873758d532aa4f2006dc1459a"
+      },
+      "original_controls": 10
+    },
+    "fox_news": {
+      "rows": 9256,
+      "mandatory_indicators": 234,
+      "files": {
+        "data.csv": "6015735c523ab22ae288a8ddbef3d8c0ca055a9b81bd3f11d01f32955f4a9294",
+        "codebook.csv": "b6af351f52775a129dd5baf5f743c5f8816ab9c214ac70433d6c44e71db7fc49",
+        "metadata.json": "70eb5226a7d1f1f94e5065214757c5bb068ec8c8865c5c2253c081f073d72c8b"
+      },
+      "original_controls": 42
+    }
+  }
+}
