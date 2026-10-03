@@ -1,0 +1,116 @@
+{
+  "id": "plough",
+  "title": "Ancestral plough use and women's labor-force participation",
+  "paper_url": "https://doi.org/10.1093/qje/qjt005",
+  "data_url": "https://nathannunn.arts.ubc.ca/data/",
+  "table": "Table III, column 1: country-level female labor-force participation",
+  "unit": "Country (one row per original country code)",
+  "controls": [
+    "x_agricultural_suitability",
+    "x_tropical_climate",
+    "x_large_animals",
+    "x_political_hierarchies",
+    "x_economic_complexity"
+  ],
+  "fixed_controls": [],
+  "weight": null,
+  "cluster": null,
+  "covariance": "HC1",
+  "reference": {
+    "n": 177,
+    "coefficient": -14.89459710768444,
+    "se": 3.318041647211651,
+    "coefficient_tolerance": 1e-08,
+    "se_tolerance": 1e-07
+  },
+  "original_reference": {
+    "coefficient": -14.8946,
+    "se": 3.318042,
+    "n": 177,
+    "notes": "Values printed in the authors' replicationcode_AGN.log for Table III, column 1. The corresponding Stata command is reg flfp2000 plow agricultural_suitability tropical_climate large_animals political_hierarchies economic_complexity, r. It includes an intercept and heteroskedasticity-robust HC1 standard errors."
+  },
+  "columns": {
+    "id_country": {
+      "role": "identifier",
+      "source": "isocode",
+      "description": "World Bank country code retained from the original file.",
+      "units": "Country code; identifier only, not a regression control"
+    },
+    "y": {
+      "role": "outcome",
+      "source": "flfp2000",
+      "description": "Female labor-force participation in 2000: percentage of women aged 15 to 64 in the labor force.",
+      "units": "Percent (0 to 100); regression differences are percentage points"
+    },
+    "d": {
+      "role": "exposure",
+      "source": "plow",
+      "description": "Population-weighted ancestral use of the animal plough, based on Ethnographic Atlas variable v39 and the authors' Ethnologue population mapping.",
+      "units": "Share (0 to 1); continuous exposure, not a treatment indicator"
+    },
+    "x_agricultural_suitability": {
+      "role": "control",
+      "source": "agricultural_suitability",
+      "description": "Ancestral agricultural suitability: share of land defined as suitable for the authors' cereal crops (millets, sorghum, wheat, barley and rye).",
+      "units": "Population-weighted share (0 to 1)"
+    },
+    "x_tropical_climate": {
+      "role": "control",
+      "source": "tropical_climate",
+      "description": "Fraction of ancestral land in tropical or subtropical climates.",
+      "units": "Population-weighted share (0 to 1)"
+    },
+    "x_large_animals": {
+      "role": "control",
+      "source": "large_animals",
+      "description": "Ancestral presence of large domesticated animals.",
+      "units": "Population-weighted measure (0 to 1)"
+    },
+    "x_political_hierarchies": {
+      "role": "control",
+      "source": "political_hierarchies",
+      "description": "Ancestral jurisdictional hierarchy beyond the local community, using the authors' coding of Ethnographic Atlas variable v33.",
+      "units": "Population-weighted index (1 to 5), not a count of modern governments"
+    },
+    "x_economic_complexity": {
+      "role": "control",
+      "source": "economic_complexity",
+      "description": "Ancestral settlement-pattern index from Ethnographic Atlas variable v30; higher values indicate more complex settlements.",
+      "units": "Population-weighted index (1 to 8), not monetary income"
+    }
+  },
+  "sample_notes": [
+    "The original file has 234 rows; retain the 177 complete cases on the outcome, exposure and five original controls.",
+    "Preserve original row order and values; no imputation, rescaling, trimming or additional sample restriction is applied.",
+    "The regression includes an intercept, with no weights, fixed effects or clustering; use HC1 standard errors.",
+    "This is the country-level Table III, column 1 exercise. The paper's separate WVS Table V, column 4 analysis concerns individual attitudes about scarce jobs and is not used here."
+  ],
+  "identification_notes": [
+    "This observational OLS specification measures a cross-country conditional association. The OLS estimate alone does not establish exogenous ancestral plough use.",
+    "The coefficient is in labor-force-participation percentage points for a one-unit (zero-to-one) change in ancestral plough-use share.",
+    "The paper's instrumental-variable specifications are separate analyses and are not implemented here."
+  ],
+  "source": {
+    "archive_url": "https://www.dropbox.com/scl/fi/qaacivo811xrnik5jmdz0/Alesina_Giuliano_Nunn_QJE_2013_Replication_Materials.zip?rlkey=n3q8pf0x2nee26vfilhmrvkqb&dl=1",
+    "archive_member": "Replication_Materials/crosscountry_dataset.dta",
+    "archive_sha256": "73519b2ffde257978757273fcdc7dc1144864375276b24aa56c92aded3c57f5c",
+    "raw_file_sha256": "ffe98d78ca7f4e7194b037feb94031394ffa2cdc83f8abd74800c6b6b0b5b494",
+    "source_script": "Replication_Materials/replicationcode_AGN.do",
+    "source_log": "Replication_Materials/replicationcode_AGN.log",
+    "outcome_definition_url": "https://nathannunn.sites.olt.ubc.ca/files/2024/03/Plough_Web_Appendix.pdf",
+    "attribution": "Alesina, Alberto; Giuliano, Paola; Nunn, Nathan (2013). On the Origins of Gender Roles: Women and the Plough. Quarterly Journal of Economics 128(2):469–530.",
+    "license_note": "Public author-posted replication materials; no separate license was identified in the source archive. Retain attribution and do not infer that the repository's software license covers these data."
+  },
+  "public_source": {
+    "url": "https://www.dropbox.com/scl/fi/qaacivo811xrnik5jmdz0/Alesina_Giuliano_Nunn_QJE_2013_Replication_Materials.zip?rlkey=n3q8pf0x2nee26vfilhmrvkqb&dl=1",
+    "member": "Replication_Materials/crosscountry_dataset.dta",
+    "download_sha256": "73519b2ffde257978757273fcdc7dc1144864375276b24aa56c92aded3c57f5c",
+    "raw_sha256": "ffe98d78ca7f4e7194b037feb94031394ffa2cdc83f8abd74800c6b6b0b5b494"
+  },
+  "clean_file": {
+    "rows": 177,
+    "columns": 8,
+    "sha256": "2bb027ee50be20c518a1546920b01e4ee1728d7a6f5c70c51490d78398905e68",
+    "missing_values": 0
+  }
+}

@@ -1,0 +1,2033 @@
+{
+  "id": "fox_news",
+  "title": "The Fox News Effect: Media Bias and Voting",
+  "paper_url": "https://eml.berkeley.edu/~sdellavi/wp/FoxVoteQJEAug07.pdf",
+  "data_url": "https://eml.berkeley.edu/~sdellavi/data/foxnewsdata.shtml",
+  "table": "Table IV, column 4",
+  "unit": "town",
+  "controls": [
+    "x_pop2000",
+    "x_hs2000",
+    "x_hsp2000",
+    "x_college2000",
+    "x_male2000",
+    "x_black2000",
+    "x_hisp2000",
+    "x_empl2000",
+    "x_unempl2000",
+    "x_married2000",
+    "x_income2000",
+    "x_urban2000",
+    "x_pop00m90",
+    "x_hs00m90",
+    "x_hsp00m90",
+    "x_college00m90",
+    "x_male00m90",
+    "x_black00m90",
+    "x_hisp00m90",
+    "x_empl00m90",
+    "x_unempl00m90",
+    "x_married00m90",
+    "x_income00m90",
+    "x_urban00m90",
+    "x_poptot2000d2",
+    "x_poptot2000d3",
+    "x_poptot2000d4",
+    "x_poptot2000d5",
+    "x_poptot2000d6",
+    "x_poptot2000d7",
+    "x_poptot2000d8",
+    "x_poptot2000d9",
+    "x_poptot2000d10",
+    "x_noch2000d2",
+    "x_noch2000d3",
+    "x_noch2000d4",
+    "x_noch2000d5",
+    "x_noch2000d6",
+    "x_noch2000d7",
+    "x_noch2000d8",
+    "x_noch2000d9",
+    "x_noch2000d10"
+  ],
+  "fixed_controls": [
+    "fixed_2",
+    "fixed_3",
+    "fixed_4",
+    "fixed_5",
+    "fixed_6",
+    "fixed_7",
+    "fixed_8",
+    "fixed_9",
+    "fixed_10",
+    "fixed_11",
+    "fixed_12",
+    "fixed_13",
+    "fixed_14",
+    "fixed_15",
+    "fixed_16",
+    "fixed_18",
+    "fixed_19",
+    "fixed_20",
+    "fixed_21",
+    "fixed_22",
+    "fixed_23",
+    "fixed_24",
+    "fixed_25",
+    "fixed_26",
+    "fixed_27",
+    "fixed_28",
+    "fixed_29",
+    "fixed_30",
+    "fixed_31",
+    "fixed_32",
+    "fixed_33",
+    "fixed_34",
+    "fixed_35",
+    "fixed_36",
+    "fixed_37",
+    "fixed_38",
+    "fixed_39",
+    "fixed_40",
+    "fixed_41",
+    "fixed_42",
+    "fixed_43",
+    "fixed_44",
+    "fixed_45",
+    "fixed_46",
+    "fixed_47",
+    "fixed_48",
+    "fixed_49",
+    "fixed_50",
+    "fixed_51",
+    "fixed_52",
+    "fixed_53",
+    "fixed_54",
+    "fixed_55",
+    "fixed_56",
+    "fixed_57",
+    "fixed_58",
+    "fixed_59",
+    "fixed_60",
+    "fixed_61",
+    "fixed_62",
+    "fixed_63",
+    "fixed_64",
+    "fixed_65",
+    "fixed_66",
+    "fixed_67",
+    "fixed_68",
+    "fixed_69",
+    "fixed_70",
+    "fixed_71",
+    "fixed_72",
+    "fixed_73",
+    "fixed_74",
+    "fixed_75",
+    "fixed_76",
+    "fixed_77",
+    "fixed_78",
+    "fixed_79",
+    "fixed_80",
+    "fixed_81",
+    "fixed_82",
+    "fixed_83",
+    "fixed_84",
+    "fixed_85",
+    "fixed_86",
+    "fixed_87",
+    "fixed_88",
+    "fixed_89",
+    "fixed_90",
+    "fixed_91",
+    "fixed_92",
+    "fixed_93",
+    "fixed_94",
+    "fixed_95",
+    "fixed_96",
+    "fixed_97",
+    "fixed_98",
+    "fixed_99",
+    "fixed_100",
+    "fixed_101",
+    "fixed_102",
+    "fixed_103",
+    "fixed_104",
+    "fixed_105",
+    "fixed_106",
+    "fixed_107",
+    "fixed_108",
+    "fixed_109",
+    "fixed_110",
+    "fixed_111",
+    "fixed_112",
+    "fixed_113",
+    "fixed_116",
+    "fixed_117",
+    "fixed_119",
+    "fixed_120",
+    "fixed_121",
+    "fixed_122",
+    "fixed_123",
+    "fixed_124",
+    "fixed_125",
+    "fixed_126",
+    "fixed_127",
+    "fixed_128",
+    "fixed_129",
+    "fixed_130",
+    "fixed_131",
+    "fixed_132",
+    "fixed_133",
+    "fixed_134",
+    "fixed_135",
+    "fixed_136",
+    "fixed_137",
+    "fixed_138",
+    "fixed_139",
+    "fixed_140",
+    "fixed_141",
+    "fixed_142",
+    "fixed_143",
+    "fixed_144",
+    "fixed_150",
+    "fixed_151",
+    "fixed_152",
+    "fixed_153",
+    "fixed_154",
+    "fixed_155",
+    "fixed_156",
+    "fixed_157",
+    "fixed_158",
+    "fixed_159",
+    "fixed_160",
+    "fixed_161",
+    "fixed_162",
+    "fixed_163",
+    "fixed_164",
+    "fixed_165",
+    "fixed_166",
+    "fixed_167",
+    "fixed_168",
+    "fixed_169",
+    "fixed_170",
+    "fixed_171",
+    "fixed_172",
+    "fixed_173",
+    "fixed_174",
+    "fixed_175",
+    "fixed_176",
+    "fixed_177",
+    "fixed_178",
+    "fixed_179",
+    "fixed_180",
+    "fixed_181",
+    "fixed_182",
+    "fixed_183",
+    "fixed_184",
+    "fixed_185",
+    "fixed_186",
+    "fixed_187",
+    "fixed_188",
+    "fixed_189",
+    "fixed_190",
+    "fixed_191",
+    "fixed_192",
+    "fixed_193",
+    "fixed_194",
+    "fixed_195",
+    "fixed_196",
+    "fixed_197",
+    "fixed_198",
+    "fixed_199",
+    "fixed_200",
+    "fixed_201",
+    "fixed_202",
+    "fixed_203",
+    "fixed_204",
+    "fixed_205",
+    "fixed_206",
+    "fixed_207",
+    "fixed_208",
+    "fixed_209",
+    "fixed_210",
+    "fixed_211",
+    "fixed_212",
+    "fixed_213",
+    "fixed_214",
+    "fixed_215",
+    "fixed_216",
+    "fixed_217",
+    "fixed_218",
+    "fixed_219",
+    "fixed_220",
+    "fixed_222",
+    "fixed_224",
+    "fixed_225",
+    "fixed_226",
+    "fixed_227",
+    "fixed_228",
+    "fixed_229",
+    "fixed_230",
+    "fixed_231",
+    "fixed_232",
+    "fixed_233",
+    "fixed_234",
+    "fixed_235",
+    "fixed_236",
+    "fixed_237",
+    "fixed_238",
+    "fixed_239",
+    "fixed_240",
+    "fixed_241",
+    "fixed_242",
+    "fixed_243",
+    "fixed_244",
+    "fixed_245",
+    "fixed_246"
+  ],
+  "weight": "weight",
+  "cluster": "cluster_id",
+  "covariance": "cluster",
+  "reference": {
+    "n": 9256,
+    "coefficient": 0.0042117054491271405,
+    "se": 0.00154090317274,
+    "coefficient_tolerance": 1e-08,
+    "se_tolerance": 1e-07
+  },
+  "original_reference": {
+    "coefficient": 0.0042117054491271405,
+    "se": 0.00154090317274,
+    "n": 9256,
+    "notes": "The paper reports 0.0042 (0.0015). Weighted OLS with all 42 original controls and 235 district intercepts; cable-system clustered CR1 covariance counts the full design rank, matching the original areg specification."
+  },
+  "columns": {
+    "id_source_row": {
+      "role": "id",
+      "source": "original file row",
+      "description": "One-based row number in the unchanged author-prepared data file.",
+      "units": "identifier"
+    },
+    "id_district": {
+      "role": "id",
+      "source": "diststate",
+      "description": "Original congressional-district identifier; use the supplied fixed indicators as controls.",
+      "units": "identifier"
+    },
+    "y": {
+      "role": "outcome",
+      "source": "reppresfv2p00m96",
+      "description": "Republican two-party presidential vote share in 2000 minus its 1996 share. Multiply a coefficient by 100 to express it in percentage points.",
+      "units": "proportion change"
+    },
+    "d": {
+      "role": "treatment",
+      "source": "foxnews2000",
+      "description": "Fox News was available on the town's local cable system in 2000.",
+      "units": "0/1 indicator"
+    },
+    "weight": {
+      "role": "weight",
+      "source": "totpresvotes1996",
+      "description": "Total presidential votes in 1996, used as the original regression weight.",
+      "units": "votes"
+    },
+    "cluster_id": {
+      "role": "cluster",
+      "source": "account2000",
+      "description": "One-based factor code for the original cable-system identifier; towns sharing a cable system share a code.",
+      "units": "identifier"
+    },
+    "x_pop2000": {
+      "role": "control",
+      "source": "pop2000",
+      "description": "Population, in 2000; retained on the original scale.",
+      "units": "original population scale (10,000 people)"
+    },
+    "x_hs2000": {
+      "role": "control",
+      "source": "hs2000",
+      "description": "Share with a high-school degree, in 2000; retained on the original scale.",
+      "units": "proportion"
+    },
+    "x_hsp2000": {
+      "role": "control",
+      "source": "hsp2000",
+      "description": "Share with some college, in 2000; retained on the original scale.",
+      "units": "proportion"
+    },
+    "x_college2000": {
+      "role": "control",
+      "source": "college2000",
+      "description": "Share with a college degree, in 2000; retained on the original scale.",
+      "units": "proportion"
+    },
+    "x_male2000": {
+      "role": "control",
+      "source": "male2000",
+      "description": "Male share, in 2000; retained on the original scale.",
+      "units": "proportion"
+    },
+    "x_black2000": {
+      "role": "control",
+      "source": "black2000",
+      "description": "Black share, in 2000; retained on the original scale.",
+      "units": "proportion"
+    },
+    "x_hisp2000": {
+      "role": "control",
+      "source": "hisp2000",
+      "description": "Hispanic share, in 2000; retained on the original scale.",
+      "units": "proportion"
+    },
+    "x_empl2000": {
+      "role": "control",
+      "source": "empl2000",
+      "description": "Share employed, in 2000; retained on the original scale.",
+      "units": "proportion"
+    },
+    "x_unempl2000": {
+      "role": "control",
+      "source": "unempl2000",
+      "description": "Unemployment rate, in 2000; retained on the original scale.",
+      "units": "proportion"
+    },
+    "x_married2000": {
+      "role": "control",
+      "source": "married2000",
+      "description": "Share married, in 2000; retained on the original scale.",
+      "units": "proportion"
+    },
+    "x_income2000": {
+      "role": "control",
+      "source": "income2000",
+      "description": "Median income, in 2000; retained on the original scale.",
+      "units": "original authors' scaled income units"
+    },
+    "x_urban2000": {
+      "role": "control",
+      "source": "urban2000",
+      "description": "Share living in an urban area, in 2000; retained on the original scale.",
+      "units": "proportion"
+    },
+    "x_pop00m90": {
+      "role": "control",
+      "source": "pop00m90",
+      "description": "Population, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",
+      "units": "change in original population scale (10,000 people)"
+    },
+    "x_hs00m90": {
+      "role": "control",
+      "source": "hs00m90",
+      "description": "Share with a high-school degree, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",
+      "units": "change in proportion"
+    },
+    "x_hsp00m90": {
+      "role": "control",
+      "source": "hsp00m90",
+      "description": "Share with some college, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",
+      "units": "change in proportion"
+    },
+    "x_college00m90": {
+      "role": "control",
+      "source": "college00m90",
+      "description": "Share with a college degree, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",
+      "units": "change in proportion"
+    },
+    "x_male00m90": {
+      "role": "control",
+      "source": "male00m90",
+      "description": "Male share, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",
+      "units": "change in proportion"
+    },
+    "x_black00m90": {
+      "role": "control",
+      "source": "black00m90",
+      "description": "Black share, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",
+      "units": "change in proportion"
+    },
+    "x_hisp00m90": {
+      "role": "control",
+      "source": "hisp00m90",
+      "description": "Hispanic share, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",
+      "units": "change in proportion"
+    },
+    "x_empl00m90": {
+      "role": "control",
+      "source": "empl00m90",
+      "description": "Share employed, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",
+      "units": "change in proportion"
+    },
+    "x_unempl00m90": {
+      "role": "control",
+      "source": "unempl00m90",
+      "description": "Unemployment rate, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",
+      "units": "change in proportion"
+    },
+    "x_married00m90": {
+      "role": "control",
+      "source": "married00m90",
+      "description": "Share married, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",
+      "units": "change in proportion"
+    },
+    "x_income00m90": {
+      "role": "control",
+      "source": "income00m90",
+      "description": "Median income, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",
+      "units": "change in original authors' scaled income units"
+    },
+    "x_urban00m90": {
+      "role": "control",
+      "source": "urban00m90",
+      "description": "Share living in an urban area, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",
+      "units": "change in proportion"
+    },
+    "x_poptot2000d2": {
+      "role": "control",
+      "source": "poptot2000d2",
+      "description": "Indicator for decile 2 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "x_poptot2000d3": {
+      "role": "control",
+      "source": "poptot2000d3",
+      "description": "Indicator for decile 3 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "x_poptot2000d4": {
+      "role": "control",
+      "source": "poptot2000d4",
+      "description": "Indicator for decile 4 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "x_poptot2000d5": {
+      "role": "control",
+      "source": "poptot2000d5",
+      "description": "Indicator for decile 5 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "x_poptot2000d6": {
+      "role": "control",
+      "source": "poptot2000d6",
+      "description": "Indicator for decile 6 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "x_poptot2000d7": {
+      "role": "control",
+      "source": "poptot2000d7",
+      "description": "Indicator for decile 7 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "x_poptot2000d8": {
+      "role": "control",
+      "source": "poptot2000d8",
+      "description": "Indicator for decile 8 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "x_poptot2000d9": {
+      "role": "control",
+      "source": "poptot2000d9",
+      "description": "Indicator for decile 9 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "x_poptot2000d10": {
+      "role": "control",
+      "source": "poptot2000d10",
+      "description": "Indicator for decile 10 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "x_noch2000d2": {
+      "role": "control",
+      "source": "noch2000d2",
+      "description": "Indicator for decile 2 of the cable system's number of cable channels in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "x_noch2000d3": {
+      "role": "control",
+      "source": "noch2000d3",
+      "description": "Indicator for decile 3 of the cable system's number of cable channels in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "x_noch2000d4": {
+      "role": "control",
+      "source": "noch2000d4",
+      "description": "Indicator for decile 4 of the cable system's number of cable channels in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "x_noch2000d5": {
+      "role": "control",
+      "source": "noch2000d5",
+      "description": "Indicator for decile 5 of the cable system's number of cable channels in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "x_noch2000d6": {
+      "role": "control",
+      "source": "noch2000d6",
+      "description": "Indicator for decile 6 of the cable system's number of cable channels in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "x_noch2000d7": {
+      "role": "control",
+      "source": "noch2000d7",
+      "description": "Indicator for decile 7 of the cable system's number of cable channels in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "x_noch2000d8": {
+      "role": "control",
+      "source": "noch2000d8",
+      "description": "Indicator for decile 8 of the cable system's number of cable channels in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "x_noch2000d9": {
+      "role": "control",
+      "source": "noch2000d9",
+      "description": "Indicator for decile 9 of the cable system's number of cable channels in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "x_noch2000d10": {
+      "role": "control",
+      "source": "noch2000d10",
+      "description": "Indicator for decile 10 of the cable system's number of cable channels in 2000; decile 1 is the reference category.",
+      "units": "0/1 indicator"
+    },
+    "fixed_2": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 2; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_3": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 3; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_4": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 4; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_5": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 5; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_6": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 6; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_7": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 7; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_8": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 8; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_9": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 9; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_10": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 10; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_11": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 11; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_12": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 12; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_13": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 13; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_14": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 14; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_15": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 15; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_16": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 16; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_18": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 18; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_19": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 19; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_20": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 20; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_21": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 21; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_22": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 22; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_23": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 23; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_24": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 24; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_25": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 25; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_26": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 26; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_27": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 27; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_28": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 28; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_29": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 29; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_30": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 30; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_31": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 31; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_32": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 32; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_33": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 33; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_34": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 34; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_35": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 35; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_36": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 36; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_37": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 37; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_38": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 38; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_39": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 39; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_40": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 40; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_41": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 41; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_42": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 42; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_43": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 43; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_44": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 44; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_45": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 45; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_46": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 46; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_47": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 47; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_48": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 48; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_49": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 49; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_50": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 50; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_51": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 51; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_52": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 52; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_53": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 53; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_54": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 54; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_55": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 55; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_56": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 56; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_57": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 57; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_58": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 58; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_59": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 59; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_60": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 60; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_61": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 61; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_62": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 62; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_63": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 63; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_64": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 64; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_65": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 65; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_66": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 66; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_67": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 67; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_68": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 68; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_69": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 69; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_70": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 70; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_71": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 71; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_72": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 72; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_73": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 73; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_74": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 74; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_75": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 75; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_76": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 76; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_77": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 77; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_78": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 78; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_79": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 79; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_80": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 80; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_81": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 81; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_82": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 82; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_83": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 83; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_84": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 84; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_85": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 85; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_86": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 86; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_87": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 87; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_88": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 88; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_89": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 89; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_90": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 90; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_91": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 91; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_92": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 92; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_93": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 93; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_94": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 94; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_95": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 95; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_96": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 96; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_97": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 97; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_98": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 98; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_99": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 99; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_100": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 100; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_101": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 101; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_102": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 102; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_103": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 103; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_104": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 104; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_105": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 105; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_106": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 106; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_107": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 107; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_108": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 108; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_109": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 109; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_110": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 110; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_111": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 111; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_112": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 112; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_113": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 113; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_116": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 116; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_117": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 117; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_119": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 119; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_120": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 120; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_121": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 121; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_122": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 122; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_123": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 123; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_124": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 124; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_125": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 125; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_126": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 126; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_127": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 127; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_128": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 128; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_129": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 129; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_130": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 130; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_131": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 131; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_132": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 132; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_133": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 133; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_134": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 134; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_135": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 135; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_136": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 136; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_137": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 137; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_138": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 138; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_139": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 139; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_140": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 140; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_141": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 141; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_142": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 142; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_143": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 143; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_144": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 144; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_150": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 150; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_151": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 151; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_152": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 152; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_153": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 153; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_154": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 154; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_155": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 155; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_156": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 156; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_157": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 157; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_158": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 158; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_159": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 159; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_160": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 160; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_161": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 161; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_162": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 162; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_163": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 163; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_164": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 164; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_165": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 165; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_166": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 166; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_167": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 167; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_168": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 168; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_169": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 169; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_170": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 170; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_171": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 171; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_172": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 172; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_173": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 173; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_174": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 174; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_175": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 175; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_176": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 176; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_177": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 177; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_178": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 178; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_179": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 179; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_180": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 180; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_181": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 181; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_182": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 182; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_183": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 183; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_184": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 184; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_185": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 185; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_186": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 186; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_187": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 187; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_188": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 188; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_189": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 189; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_190": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 190; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_191": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 191; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_192": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 192; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_193": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 193; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_194": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 194; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_195": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 195; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_196": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 196; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_197": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 197; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_198": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 198; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_199": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 199; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_200": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 200; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_201": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 201; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_202": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 202; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_203": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 203; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_204": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 204; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_205": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 205; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_206": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 206; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_207": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 207; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_208": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 208; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_209": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 209; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_210": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 210; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_211": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 211; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_212": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 212; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_213": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 213; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_214": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 214; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_215": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 215; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_216": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 216; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_217": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 217; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_218": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 218; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_219": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 219; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_220": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 220; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_222": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 222; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_224": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 224; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_225": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 225; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_226": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 226; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_227": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 227; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_228": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 228; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_229": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 229; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_230": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 230; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_231": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 231; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_232": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 232; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_233": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 233; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_234": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 234; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_235": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 235; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_236": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 236; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_237": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 237; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_238": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 238; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_239": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 239; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_240": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 240; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_241": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 241; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_242": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 242; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_243": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 243; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_244": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 244; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_245": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 245; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    },
+    "fixed_246": {
+      "role": "fixed_control",
+      "source": "diststate",
+      "description": "Congressional-district indicator for original district code 246; district 1 is omitted. Include an intercept with these indicators.",
+      "units": "0/1 indicator"
+    }
+  },
+  "sample_notes": [
+    "The unchanged prepared author file has 10,126 rows; sample12000 == 1 yields the original 9,256-town regression sample.",
+    "All required original variables are finite and complete in that sample, and all regression weights are positive; no additional rows are lost.",
+    "The outcome is already a 2000-minus-1996 change. Each town occupies one row; no panel reshaping or panel estimator is needed.",
+    "The 42 original substantive controls are 24 census terms and 18 cable-system decile indicators. No original control is replaced, logged, or supplemented with another baseline covariate.",
+    "The 234 supplied district indicators omit district code 1; include an intercept. Cable-system clusters total 2,992.",
+    "The original census levels, original differences and precomputed outcome retain their exact stored values; converting them to float64 does not recreate the authors' earlier calculations."
+  ],
+  "identification_notes": [
+    "The exposure is local cable availability, not individual Fox viewing. The estimate is a conditional difference in Republican vote-share growth.",
+    "Nonrandom Fox rollout and unobserved differences in electoral trends remain identification concerns.",
+    "The original census controls include contemporaneous 2000 values. They must not be described as an entirely pre-treatment adjustment set.",
+    "The original regression includes district indicators and standard errors clustered by cable system."
+  ],
+  "provenance": {
+    "source_file": "FoxNewsFinalDataQJE.dta",
+    "download_url": "https://eml.berkeley.edu/~sdellavi/data/FoxNewsDataQJEMay07.zip",
+    "archive_sha256": "35ae57cd8b886c7053cdad9e38c49911c2ab13fe7e220caa1ca9c870228109b7",
+    "expected_sha256": "15f3757d693576d8210a672ec0b68c649d2c75bfe5ebd4cb438c4a837c9829da",
+    "observed_sha256": "15f3757d693576d8210a672ec0b68c649d2c75bfe5ebd4cb438c4a837c9829da",
+    "author_script": "FoxNewsRegsQJEMay07.do, Table IV, column 4 (line 119)",
+    "transformations": "Filter the original sample flag, retain the exact original numeric variables, rename columns, encode cable-system IDs, and supply district indicators with the first sorted level omitted."
+  },
+  "public_source": {
+    "url": "https://eml.berkeley.edu/~sdellavi/data/FoxNewsDataQJEMay07.zip",
+    "member": "FoxNewsFinalDataQJE.dta",
+    "download_sha256": "35ae57cd8b886c7053cdad9e38c49911c2ab13fe7e220caa1ca9c870228109b7",
+    "raw_sha256": "15f3757d693576d8210a672ec0b68c649d2c75bfe5ebd4cb438c4a837c9829da"
+  },
+  "clean_file": {
+    "rows": 9256,
+    "columns": 282,
+    "sha256": "6015735c523ab22ae288a8ddbef3d8c0ca055a9b81bd3f11d01f32955f4a9294",
+    "missing_values": 0
+  }
+}

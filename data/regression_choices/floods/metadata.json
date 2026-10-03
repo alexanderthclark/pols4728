@@ -1,0 +1,257 @@
+{
+  "id": "floods",
+  "title": "Flood response and SPD voting in Germany",
+  "paper_url": "https://www.mit.edu/~jhainm/Paper/elbe.pdf",
+  "data_url": "https://www.mit.edu/~jhainm/Replication/Elbe.zip",
+  "table": "Table 1, column 3, expressed as a first-difference regression",
+  "unit": "Electoral district; one row for its 1998-to-2002 change",
+  "controls": [
+    "x_xxsinc_SPD",
+    "x_xxpopdensity_",
+    "x_xxshpop_o60_",
+    "x_xxpopnetinp1000_",
+    "x_xxue_",
+    "x_xxshagric_",
+    "x_xxshmanu_",
+    "x_xxshtradservice_",
+    "x_xxshotherservice_",
+    "x_xxshforeign_"
+  ],
+  "fixed_controls": [],
+  "weight": null,
+  "cluster": null,
+  "covariance": "panel_equivalent",
+  "reference": {
+    "n": 299,
+    "coefficient": 6.912639994164012,
+    "se": 0.5710004572057309,
+    "coefficient_tolerance": 1e-08,
+    "se_tolerance": 1e-07
+  },
+  "original_reference": {
+    "coefficient": 6.912639994164043,
+    "se": 0.5710004572057309,
+    "n": 598,
+    "notes": "Original two-period model: 299 district effects, a period effect, ten time-varying controls, and district-clustered standard errors. The source panel contains 598 rows. First differencing gives the supplied 299-row dataset and preserves the original coefficient and standard error when the original finite-sample correction is applied."
+  },
+  "columns": {
+    "id_district": {
+      "role": "identifier",
+      "source": "wkr",
+      "description": "Electoral district identifier on the authors' harmonized boundaries; not a predictor.",
+      "units": "identifier"
+    },
+    "y": {
+      "role": "outcome",
+      "source": "spd_z_vs[PostPeriod=1] - spd_z_vs[PostPeriod=0]",
+      "description": "Change in SPD party-list vote share from the 1998 to the 2002 election.",
+      "units": "percentage points"
+    },
+    "d": {
+      "role": "treatment",
+      "source": "Flooded[PostPeriod=1]",
+      "description": "District affected by the 2002 flood; 1 = affected, 0 = unaffected.",
+      "units": "binary indicator"
+    },
+    "x_xxsinc_SPD": {
+      "role": "control",
+      "source": "xxsinc_SPD[PostPeriod=1] - xxsinc_SPD[PostPeriod=0]",
+      "description": "Change between the 1998 and 2002 source rows: SPD majority-party status in the state (Land) parliament.",
+      "units": "indicator change: -1, 0, or 1"
+    },
+    "x_xxpopdensity_": {
+      "role": "control",
+      "source": "xxpopdensity_[PostPeriod=1] - xxpopdensity_[PostPeriod=0]",
+      "description": "Change between the 1998 and 2002 source rows: Population density, in the archive's stored scale.",
+      "units": "change in original archive population-density units; unrescaled"
+    },
+    "x_xxshpop_o60_": {
+      "role": "control",
+      "source": "xxshpop_o60_[PostPeriod=1] - xxshpop_o60_[PostPeriod=0]",
+      "description": "Change between the 1998 and 2002 source rows: Population share aged 60 and over.",
+      "units": "percentage points"
+    },
+    "x_xxpopnetinp1000_": {
+      "role": "control",
+      "source": "xxpopnetinp1000_[PostPeriod=1] - xxpopnetinp1000_[PostPeriod=0]",
+      "description": "Change between the 1998 and 2002 source rows: Net migration, inflows minus outflows per 1,000 inhabitants.",
+      "units": "change in net migrants per 1,000 inhabitants"
+    },
+    "x_xxue_": {
+      "role": "control",
+      "source": "xxue_[PostPeriod=1] - xxue_[PostPeriod=0]",
+      "description": "Change between the 1998 and 2002 source rows: Official unemployment rate.",
+      "units": "percentage points"
+    },
+    "x_xxshagric_": {
+      "role": "control",
+      "source": "xxshagric_[PostPeriod=1] - xxshagric_[PostPeriod=0]",
+      "description": "Change between the 1998 and 2002 source rows: Agriculture's share of registered employment.",
+      "units": "percentage points"
+    },
+    "x_xxshmanu_": {
+      "role": "control",
+      "source": "xxshmanu_[PostPeriod=1] - xxshmanu_[PostPeriod=0]",
+      "description": "Change between the 1998 and 2002 source rows: Manufacturing's share of registered employment.",
+      "units": "percentage points"
+    },
+    "x_xxshtradservice_": {
+      "role": "control",
+      "source": "xxshtradservice_[PostPeriod=1] - xxshtradservice_[PostPeriod=0]",
+      "description": "Change between the 1998 and 2002 source rows: Trade and traffic services' share of registered employment.",
+      "units": "percentage points"
+    },
+    "x_xxshotherservice_": {
+      "role": "control",
+      "source": "xxshotherservice_[PostPeriod=1] - xxshotherservice_[PostPeriod=0]",
+      "description": "Change between the 1998 and 2002 source rows: Other services' share of registered employment.",
+      "units": "percentage points"
+    },
+    "x_xxshforeign_": {
+      "role": "control",
+      "source": "xxshforeign_[PostPeriod=1] - xxshforeign_[PostPeriod=0]",
+      "description": "Change between the 1998 and 2002 source rows: Registered foreign residents' share of the population.",
+      "units": "change in population fraction (0 to 1 scale)"
+    },
+    "aux_xxpopdensity__1998": {
+      "role": "additional_covariate",
+      "source": "xxpopdensity_[PostPeriod=0]",
+      "description": "Population density, in the archive's stored scale in the source row for the 1998 election. Excluded from the original baseline regression.",
+      "units": "original archive population-density units; unrescaled"
+    },
+    "aux_xxpopdensity__2002": {
+      "role": "additional_covariate",
+      "source": "xxpopdensity_[PostPeriod=1]",
+      "description": "Population density, in the archive's stored scale in the source row for the 2002 election. Excluded from the original baseline regression.",
+      "units": "original archive population-density units; unrescaled"
+    },
+    "aux_xxshpop_o60__1998": {
+      "role": "additional_covariate",
+      "source": "xxshpop_o60_[PostPeriod=0]",
+      "description": "Population share aged 60 and over in the source row for the 1998 election. Excluded from the original baseline regression.",
+      "units": "percent"
+    },
+    "aux_xxshpop_o60__2002": {
+      "role": "additional_covariate",
+      "source": "xxshpop_o60_[PostPeriod=1]",
+      "description": "Population share aged 60 and over in the source row for the 2002 election. Excluded from the original baseline regression.",
+      "units": "percent"
+    },
+    "aux_xxpopnetinp1000__1998": {
+      "role": "additional_covariate",
+      "source": "xxpopnetinp1000_[PostPeriod=0]",
+      "description": "Net migration, inflows minus outflows per 1,000 inhabitants in the source row for the 1998 election. Excluded from the original baseline regression.",
+      "units": "net migrants per 1,000 inhabitants"
+    },
+    "aux_xxpopnetinp1000__2002": {
+      "role": "additional_covariate",
+      "source": "xxpopnetinp1000_[PostPeriod=1]",
+      "description": "Net migration, inflows minus outflows per 1,000 inhabitants in the source row for the 2002 election. Excluded from the original baseline regression.",
+      "units": "net migrants per 1,000 inhabitants"
+    },
+    "aux_xxue__1998": {
+      "role": "additional_covariate",
+      "source": "xxue_[PostPeriod=0]",
+      "description": "Official unemployment rate in the source row for the 1998 election. Excluded from the original baseline regression.",
+      "units": "percent"
+    },
+    "aux_xxue__2002": {
+      "role": "additional_covariate",
+      "source": "xxue_[PostPeriod=1]",
+      "description": "Official unemployment rate in the source row for the 2002 election. Excluded from the original baseline regression.",
+      "units": "percent"
+    },
+    "aux_xxshagric__1998": {
+      "role": "additional_covariate",
+      "source": "xxshagric_[PostPeriod=0]",
+      "description": "Agriculture's share of registered employment in the source row for the 1998 election. Excluded from the original baseline regression.",
+      "units": "percent"
+    },
+    "aux_xxshagric__2002": {
+      "role": "additional_covariate",
+      "source": "xxshagric_[PostPeriod=1]",
+      "description": "Agriculture's share of registered employment in the source row for the 2002 election. Excluded from the original baseline regression.",
+      "units": "percent"
+    },
+    "aux_xxshmanu__1998": {
+      "role": "additional_covariate",
+      "source": "xxshmanu_[PostPeriod=0]",
+      "description": "Manufacturing's share of registered employment in the source row for the 1998 election. Excluded from the original baseline regression.",
+      "units": "percent"
+    },
+    "aux_xxshmanu__2002": {
+      "role": "additional_covariate",
+      "source": "xxshmanu_[PostPeriod=1]",
+      "description": "Manufacturing's share of registered employment in the source row for the 2002 election. Excluded from the original baseline regression.",
+      "units": "percent"
+    },
+    "aux_xxshtradservice__1998": {
+      "role": "additional_covariate",
+      "source": "xxshtradservice_[PostPeriod=0]",
+      "description": "Trade and traffic services' share of registered employment in the source row for the 1998 election. Excluded from the original baseline regression.",
+      "units": "percent"
+    },
+    "aux_xxshtradservice__2002": {
+      "role": "additional_covariate",
+      "source": "xxshtradservice_[PostPeriod=1]",
+      "description": "Trade and traffic services' share of registered employment in the source row for the 2002 election. Excluded from the original baseline regression.",
+      "units": "percent"
+    },
+    "aux_xxshotherservice__1998": {
+      "role": "additional_covariate",
+      "source": "xxshotherservice_[PostPeriod=0]",
+      "description": "Other services' share of registered employment in the source row for the 1998 election. Excluded from the original baseline regression.",
+      "units": "percent"
+    },
+    "aux_xxshotherservice__2002": {
+      "role": "additional_covariate",
+      "source": "xxshotherservice_[PostPeriod=1]",
+      "description": "Other services' share of registered employment in the source row for the 2002 election. Excluded from the original baseline regression.",
+      "units": "percent"
+    },
+    "aux_xxshforeign__1998": {
+      "role": "additional_covariate",
+      "source": "xxshforeign_[PostPeriod=0]",
+      "description": "Registered foreign residents' share of the population in the source row for the 1998 election. Excluded from the original baseline regression.",
+      "units": "proportion from 0 to 1"
+    },
+    "aux_xxshforeign__2002": {
+      "role": "additional_covariate",
+      "source": "xxshforeign_[PostPeriod=1]",
+      "description": "Registered foreign residents' share of the population in the source row for the 2002 election. Excluded from the original baseline regression.",
+      "units": "proportion from 0 to 1"
+    }
+  },
+  "sample_notes": [
+    "All 299 districts have two complete source rows; no observations are dropped, imputed, or reweighted. There are 29 flooded districts.",
+    "The supplied regression includes an intercept. First differencing removes district effects; the intercept captures the common election-period change. No panel estimator is needed.",
+    "The authors' original harmonized district boundaries and stored covariate scales are preserved. Covariate values belong to the source election rows; the source appendix describes their measurement dates only as selected years.",
+    "The original regression contains exactly ten control changes. The additional covariate columns retain the source values for the two election rows and are excluded from this regression. District IDs identify observations and do not enter the regression.",
+    "The first-difference regression reproduces the original coefficient and standard error. Multiply its HC0 covariance by G/(G-1) * (2G-1)/(2G-q-1), where G=299 districts and q=12 coefficients including the intercept, exposure and ten control changes. Use t inference with 298 degrees of freedom.",
+    "Published source: Bechtel and Hainmueller (2011), How Lasting Is Voter Gratitude? An Analysis of the Short- and Long-term Electoral Returns to Beneficial Policy, American Journal of Political Science, DOI 10.1111/j.1540-5907.2011.00533.x."
+  ],
+  "identification_notes": [
+    "This remains a comparison of changes in flooded and unaffected districts. A causal interpretation requires an appropriate parallel-trends assumption.",
+    "Some time-varying controls could themselves respond to the flood. The original covariate-adjusted specification does not resolve this concern or separately identify the effect of relief spending.",
+    "The original standard-error convention does not address spatial correlation between neighboring districts. Flood exposure is geographically concentrated."
+  ],
+  "source": {
+    "archive_url": "https://www.mit.edu/~jhainm/Replication/Elbe.zip",
+    "archive_member": "1998_2002.dta",
+    "archive_sha256": "2151071cc692674e17a9bca3e421c7a2cb1718c6a65ba540f67e0667b9d2ea94",
+    "raw_sha256": "0693e73223b19e869d186619fd6f8a038e59fdf497e46a8d0ebbcedc5eb59361",
+    "appendix_url": "https://www.mit.edu/~jhainm/Paper/elbeSI.pdf"
+  },
+  "public_source": {
+    "url": "https://www.mit.edu/~jhainm/Replication/Elbe.zip",
+    "member": "1998_2002.dta",
+    "download_sha256": "2151071cc692674e17a9bca3e421c7a2cb1718c6a65ba540f67e0667b9d2ea94",
+    "raw_sha256": "0693e73223b19e869d186619fd6f8a038e59fdf497e46a8d0ebbcedc5eb59361"
+  },
+  "clean_file": {
+    "rows": 299,
+    "columns": 31,
+    "sha256": "afb45e2401fe505768ec6fe5f214dc9093a029848b5cd561a8be941bef4e2144",
+    "missing_values": 0
+  }
+}
