@@ -1,0 +1,283 @@
+column,role,source,description,units
+id_source_row,id,original file row,One-based row number in the unchanged author-prepared data file.,identifier
+id_district,id,diststate,Original congressional-district identifier; use the supplied fixed indicators as controls.,identifier
+y,outcome,reppresfv2p00m96,Republican two-party presidential vote share in 2000 minus its 1996 share. Multiply a coefficient by 100 to express it in percentage points.,proportion change
+d,treatment,foxnews2000,Fox News was available on the town's local cable system in 2000.,0/1 indicator
+weight,weight,totpresvotes1996,"Total presidential votes in 1996, used as the original regression weight.",votes
+cluster_id,cluster,account2000,One-based factor code for the original cable-system identifier; towns sharing a cable system share a code.,identifier
+x_pop2000,control,pop2000,"Population, in 2000; retained on the original scale.","original population scale (10,000 people)"
+x_hs2000,control,hs2000,"Share with a high-school degree, in 2000; retained on the original scale.",proportion
+x_hsp2000,control,hsp2000,"Share with some college, in 2000; retained on the original scale.",proportion
+x_college2000,control,college2000,"Share with a college degree, in 2000; retained on the original scale.",proportion
+x_male2000,control,male2000,"Male share, in 2000; retained on the original scale.",proportion
+x_black2000,control,black2000,"Black share, in 2000; retained on the original scale.",proportion
+x_hisp2000,control,hisp2000,"Hispanic share, in 2000; retained on the original scale.",proportion
+x_empl2000,control,empl2000,"Share employed, in 2000; retained on the original scale.",proportion
+x_unempl2000,control,unempl2000,"Unemployment rate, in 2000; retained on the original scale.",proportion
+x_married2000,control,married2000,"Share married, in 2000; retained on the original scale.",proportion
+x_income2000,control,income2000,"Median income, in 2000; retained on the original scale.",original authors' scaled income units
+x_urban2000,control,urban2000,"Share living in an urban area, in 2000; retained on the original scale.",proportion
+x_pop00m90,control,pop00m90,"Population, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.","change in original population scale (10,000 people)"
+x_hs00m90,control,hs00m90,"Share with a high-school degree, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",change in proportion
+x_hsp00m90,control,hsp00m90,"Share with some college, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",change in proportion
+x_college00m90,control,college00m90,"Share with a college degree, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",change in proportion
+x_male00m90,control,male00m90,"Male share, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",change in proportion
+x_black00m90,control,black00m90,"Black share, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",change in proportion
+x_hisp00m90,control,hisp00m90,"Hispanic share, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",change in proportion
+x_empl00m90,control,empl00m90,"Share employed, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",change in proportion
+x_unempl00m90,control,unempl00m90,"Unemployment rate, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",change in proportion
+x_married00m90,control,married00m90,"Share married, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",change in proportion
+x_income00m90,control,income00m90,"Median income, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",change in original authors' scaled income units
+x_urban00m90,control,urban00m90,"Share living in an urban area, change from 1990 to 2000 (2000 minus 1990); retained on the original scale.",change in proportion
+x_poptot2000d2,control,poptot2000d2,Indicator for decile 2 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.,0/1 indicator
+x_poptot2000d3,control,poptot2000d3,Indicator for decile 3 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.,0/1 indicator
+x_poptot2000d4,control,poptot2000d4,Indicator for decile 4 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.,0/1 indicator
+x_poptot2000d5,control,poptot2000d5,Indicator for decile 5 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.,0/1 indicator
+x_poptot2000d6,control,poptot2000d6,Indicator for decile 6 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.,0/1 indicator
+x_poptot2000d7,control,poptot2000d7,Indicator for decile 7 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.,0/1 indicator
+x_poptot2000d8,control,poptot2000d8,Indicator for decile 8 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.,0/1 indicator
+x_poptot2000d9,control,poptot2000d9,Indicator for decile 9 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.,0/1 indicator
+x_poptot2000d10,control,poptot2000d10,Indicator for decile 10 of the cable system's number of potential cable subscribers in 2000; decile 1 is the reference category.,0/1 indicator
+x_noch2000d2,control,noch2000d2,Indicator for decile 2 of the cable system's number of cable channels in 2000; decile 1 is the reference category.,0/1 indicator
+x_noch2000d3,control,noch2000d3,Indicator for decile 3 of the cable system's number of cable channels in 2000; decile 1 is the reference category.,0/1 indicator
+x_noch2000d4,control,noch2000d4,Indicator for decile 4 of the cable system's number of cable channels in 2000; decile 1 is the reference category.,0/1 indicator
+x_noch2000d5,control,noch2000d5,Indicator for decile 5 of the cable system's number of cable channels in 2000; decile 1 is the reference category.,0/1 indicator
+x_noch2000d6,control,noch2000d6,Indicator for decile 6 of the cable system's number of cable channels in 2000; decile 1 is the reference category.,0/1 indicator
+x_noch2000d7,control,noch2000d7,Indicator for decile 7 of the cable system's number of cable channels in 2000; decile 1 is the reference category.,0/1 indicator
+x_noch2000d8,control,noch2000d8,Indicator for decile 8 of the cable system's number of cable channels in 2000; decile 1 is the reference category.,0/1 indicator
+x_noch2000d9,control,noch2000d9,Indicator for decile 9 of the cable system's number of cable channels in 2000; decile 1 is the reference category.,0/1 indicator
+x_noch2000d10,control,noch2000d10,Indicator for decile 10 of the cable system's number of cable channels in 2000; decile 1 is the reference category.,0/1 indicator
+fixed_2,fixed_control,diststate,Congressional-district indicator for original district code 2; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_3,fixed_control,diststate,Congressional-district indicator for original district code 3; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_4,fixed_control,diststate,Congressional-district indicator for original district code 4; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_5,fixed_control,diststate,Congressional-district indicator for original district code 5; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_6,fixed_control,diststate,Congressional-district indicator for original district code 6; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_7,fixed_control,diststate,Congressional-district indicator for original district code 7; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_8,fixed_control,diststate,Congressional-district indicator for original district code 8; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_9,fixed_control,diststate,Congressional-district indicator for original district code 9; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_10,fixed_control,diststate,Congressional-district indicator for original district code 10; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_11,fixed_control,diststate,Congressional-district indicator for original district code 11; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_12,fixed_control,diststate,Congressional-district indicator for original district code 12; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_13,fixed_control,diststate,Congressional-district indicator for original district code 13; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_14,fixed_control,diststate,Congressional-district indicator for original district code 14; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_15,fixed_control,diststate,Congressional-district indicator for original district code 15; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_16,fixed_control,diststate,Congressional-district indicator for original district code 16; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_18,fixed_control,diststate,Congressional-district indicator for original district code 18; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_19,fixed_control,diststate,Congressional-district indicator for original district code 19; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_20,fixed_control,diststate,Congressional-district indicator for original district code 20; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_21,fixed_control,diststate,Congressional-district indicator for original district code 21; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_22,fixed_control,diststate,Congressional-district indicator for original district code 22; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_23,fixed_control,diststate,Congressional-district indicator for original district code 23; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_24,fixed_control,diststate,Congressional-district indicator for original district code 24; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_25,fixed_control,diststate,Congressional-district indicator for original district code 25; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_26,fixed_control,diststate,Congressional-district indicator for original district code 26; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_27,fixed_control,diststate,Congressional-district indicator for original district code 27; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_28,fixed_control,diststate,Congressional-district indicator for original district code 28; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_29,fixed_control,diststate,Congressional-district indicator for original district code 29; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_30,fixed_control,diststate,Congressional-district indicator for original district code 30; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_31,fixed_control,diststate,Congressional-district indicator for original district code 31; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_32,fixed_control,diststate,Congressional-district indicator for original district code 32; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_33,fixed_control,diststate,Congressional-district indicator for original district code 33; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_34,fixed_control,diststate,Congressional-district indicator for original district code 34; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_35,fixed_control,diststate,Congressional-district indicator for original district code 35; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_36,fixed_control,diststate,Congressional-district indicator for original district code 36; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_37,fixed_control,diststate,Congressional-district indicator for original district code 37; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_38,fixed_control,diststate,Congressional-district indicator for original district code 38; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_39,fixed_control,diststate,Congressional-district indicator for original district code 39; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_40,fixed_control,diststate,Congressional-district indicator for original district code 40; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_41,fixed_control,diststate,Congressional-district indicator for original district code 41; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_42,fixed_control,diststate,Congressional-district indicator for original district code 42; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_43,fixed_control,diststate,Congressional-district indicator for original district code 43; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_44,fixed_control,diststate,Congressional-district indicator for original district code 44; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_45,fixed_control,diststate,Congressional-district indicator for original district code 45; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_46,fixed_control,diststate,Congressional-district indicator for original district code 46; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_47,fixed_control,diststate,Congressional-district indicator for original district code 47; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_48,fixed_control,diststate,Congressional-district indicator for original district code 48; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_49,fixed_control,diststate,Congressional-district indicator for original district code 49; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_50,fixed_control,diststate,Congressional-district indicator for original district code 50; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_51,fixed_control,diststate,Congressional-district indicator for original district code 51; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_52,fixed_control,diststate,Congressional-district indicator for original district code 52; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_53,fixed_control,diststate,Congressional-district indicator for original district code 53; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_54,fixed_control,diststate,Congressional-district indicator for original district code 54; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_55,fixed_control,diststate,Congressional-district indicator for original district code 55; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_56,fixed_control,diststate,Congressional-district indicator for original district code 56; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_57,fixed_control,diststate,Congressional-district indicator for original district code 57; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_58,fixed_control,diststate,Congressional-district indicator for original district code 58; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_59,fixed_control,diststate,Congressional-district indicator for original district code 59; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_60,fixed_control,diststate,Congressional-district indicator for original district code 60; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_61,fixed_control,diststate,Congressional-district indicator for original district code 61; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_62,fixed_control,diststate,Congressional-district indicator for original district code 62; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_63,fixed_control,diststate,Congressional-district indicator for original district code 63; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_64,fixed_control,diststate,Congressional-district indicator for original district code 64; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_65,fixed_control,diststate,Congressional-district indicator for original district code 65; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_66,fixed_control,diststate,Congressional-district indicator for original district code 66; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_67,fixed_control,diststate,Congressional-district indicator for original district code 67; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_68,fixed_control,diststate,Congressional-district indicator for original district code 68; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_69,fixed_control,diststate,Congressional-district indicator for original district code 69; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_70,fixed_control,diststate,Congressional-district indicator for original district code 70; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_71,fixed_control,diststate,Congressional-district indicator for original district code 71; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_72,fixed_control,diststate,Congressional-district indicator for original district code 72; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_73,fixed_control,diststate,Congressional-district indicator for original district code 73; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_74,fixed_control,diststate,Congressional-district indicator for original district code 74; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_75,fixed_control,diststate,Congressional-district indicator for original district code 75; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_76,fixed_control,diststate,Congressional-district indicator for original district code 76; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_77,fixed_control,diststate,Congressional-district indicator for original district code 77; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_78,fixed_control,diststate,Congressional-district indicator for original district code 78; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_79,fixed_control,diststate,Congressional-district indicator for original district code 79; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_80,fixed_control,diststate,Congressional-district indicator for original district code 80; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_81,fixed_control,diststate,Congressional-district indicator for original district code 81; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_82,fixed_control,diststate,Congressional-district indicator for original district code 82; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_83,fixed_control,diststate,Congressional-district indicator for original district code 83; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_84,fixed_control,diststate,Congressional-district indicator for original district code 84; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_85,fixed_control,diststate,Congressional-district indicator for original district code 85; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_86,fixed_control,diststate,Congressional-district indicator for original district code 86; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_87,fixed_control,diststate,Congressional-district indicator for original district code 87; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_88,fixed_control,diststate,Congressional-district indicator for original district code 88; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_89,fixed_control,diststate,Congressional-district indicator for original district code 89; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_90,fixed_control,diststate,Congressional-district indicator for original district code 90; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_91,fixed_control,diststate,Congressional-district indicator for original district code 91; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_92,fixed_control,diststate,Congressional-district indicator for original district code 92; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_93,fixed_control,diststate,Congressional-district indicator for original district code 93; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_94,fixed_control,diststate,Congressional-district indicator for original district code 94; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_95,fixed_control,diststate,Congressional-district indicator for original district code 95; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_96,fixed_control,diststate,Congressional-district indicator for original district code 96; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_97,fixed_control,diststate,Congressional-district indicator for original district code 97; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_98,fixed_control,diststate,Congressional-district indicator for original district code 98; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_99,fixed_control,diststate,Congressional-district indicator for original district code 99; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_100,fixed_control,diststate,Congressional-district indicator for original district code 100; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_101,fixed_control,diststate,Congressional-district indicator for original district code 101; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_102,fixed_control,diststate,Congressional-district indicator for original district code 102; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_103,fixed_control,diststate,Congressional-district indicator for original district code 103; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_104,fixed_control,diststate,Congressional-district indicator for original district code 104; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_105,fixed_control,diststate,Congressional-district indicator for original district code 105; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_106,fixed_control,diststate,Congressional-district indicator for original district code 106; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_107,fixed_control,diststate,Congressional-district indicator for original district code 107; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_108,fixed_control,diststate,Congressional-district indicator for original district code 108; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_109,fixed_control,diststate,Congressional-district indicator for original district code 109; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_110,fixed_control,diststate,Congressional-district indicator for original district code 110; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_111,fixed_control,diststate,Congressional-district indicator for original district code 111; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_112,fixed_control,diststate,Congressional-district indicator for original district code 112; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_113,fixed_control,diststate,Congressional-district indicator for original district code 113; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_116,fixed_control,diststate,Congressional-district indicator for original district code 116; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_117,fixed_control,diststate,Congressional-district indicator for original district code 117; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_119,fixed_control,diststate,Congressional-district indicator for original district code 119; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_120,fixed_control,diststate,Congressional-district indicator for original district code 120; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_121,fixed_control,diststate,Congressional-district indicator for original district code 121; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_122,fixed_control,diststate,Congressional-district indicator for original district code 122; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_123,fixed_control,diststate,Congressional-district indicator for original district code 123; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_124,fixed_control,diststate,Congressional-district indicator for original district code 124; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_125,fixed_control,diststate,Congressional-district indicator for original district code 125; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_126,fixed_control,diststate,Congressional-district indicator for original district code 126; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_127,fixed_control,diststate,Congressional-district indicator for original district code 127; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_128,fixed_control,diststate,Congressional-district indicator for original district code 128; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_129,fixed_control,diststate,Congressional-district indicator for original district code 129; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_130,fixed_control,diststate,Congressional-district indicator for original district code 130; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_131,fixed_control,diststate,Congressional-district indicator for original district code 131; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_132,fixed_control,diststate,Congressional-district indicator for original district code 132; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_133,fixed_control,diststate,Congressional-district indicator for original district code 133; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_134,fixed_control,diststate,Congressional-district indicator for original district code 134; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_135,fixed_control,diststate,Congressional-district indicator for original district code 135; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_136,fixed_control,diststate,Congressional-district indicator for original district code 136; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_137,fixed_control,diststate,Congressional-district indicator for original district code 137; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_138,fixed_control,diststate,Congressional-district indicator for original district code 138; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_139,fixed_control,diststate,Congressional-district indicator for original district code 139; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_140,fixed_control,diststate,Congressional-district indicator for original district code 140; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_141,fixed_control,diststate,Congressional-district indicator for original district code 141; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_142,fixed_control,diststate,Congressional-district indicator for original district code 142; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_143,fixed_control,diststate,Congressional-district indicator for original district code 143; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_144,fixed_control,diststate,Congressional-district indicator for original district code 144; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_150,fixed_control,diststate,Congressional-district indicator for original district code 150; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_151,fixed_control,diststate,Congressional-district indicator for original district code 151; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_152,fixed_control,diststate,Congressional-district indicator for original district code 152; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_153,fixed_control,diststate,Congressional-district indicator for original district code 153; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_154,fixed_control,diststate,Congressional-district indicator for original district code 154; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_155,fixed_control,diststate,Congressional-district indicator for original district code 155; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_156,fixed_control,diststate,Congressional-district indicator for original district code 156; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_157,fixed_control,diststate,Congressional-district indicator for original district code 157; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_158,fixed_control,diststate,Congressional-district indicator for original district code 158; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_159,fixed_control,diststate,Congressional-district indicator for original district code 159; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_160,fixed_control,diststate,Congressional-district indicator for original district code 160; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_161,fixed_control,diststate,Congressional-district indicator for original district code 161; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_162,fixed_control,diststate,Congressional-district indicator for original district code 162; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_163,fixed_control,diststate,Congressional-district indicator for original district code 163; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_164,fixed_control,diststate,Congressional-district indicator for original district code 164; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_165,fixed_control,diststate,Congressional-district indicator for original district code 165; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_166,fixed_control,diststate,Congressional-district indicator for original district code 166; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_167,fixed_control,diststate,Congressional-district indicator for original district code 167; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_168,fixed_control,diststate,Congressional-district indicator for original district code 168; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_169,fixed_control,diststate,Congressional-district indicator for original district code 169; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_170,fixed_control,diststate,Congressional-district indicator for original district code 170; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_171,fixed_control,diststate,Congressional-district indicator for original district code 171; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_172,fixed_control,diststate,Congressional-district indicator for original district code 172; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_173,fixed_control,diststate,Congressional-district indicator for original district code 173; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_174,fixed_control,diststate,Congressional-district indicator for original district code 174; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_175,fixed_control,diststate,Congressional-district indicator for original district code 175; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_176,fixed_control,diststate,Congressional-district indicator for original district code 176; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_177,fixed_control,diststate,Congressional-district indicator for original district code 177; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_178,fixed_control,diststate,Congressional-district indicator for original district code 178; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_179,fixed_control,diststate,Congressional-district indicator for original district code 179; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_180,fixed_control,diststate,Congressional-district indicator for original district code 180; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_181,fixed_control,diststate,Congressional-district indicator for original district code 181; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_182,fixed_control,diststate,Congressional-district indicator for original district code 182; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_183,fixed_control,diststate,Congressional-district indicator for original district code 183; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_184,fixed_control,diststate,Congressional-district indicator for original district code 184; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_185,fixed_control,diststate,Congressional-district indicator for original district code 185; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_186,fixed_control,diststate,Congressional-district indicator for original district code 186; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_187,fixed_control,diststate,Congressional-district indicator for original district code 187; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_188,fixed_control,diststate,Congressional-district indicator for original district code 188; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_189,fixed_control,diststate,Congressional-district indicator for original district code 189; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_190,fixed_control,diststate,Congressional-district indicator for original district code 190; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_191,fixed_control,diststate,Congressional-district indicator for original district code 191; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_192,fixed_control,diststate,Congressional-district indicator for original district code 192; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_193,fixed_control,diststate,Congressional-district indicator for original district code 193; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_194,fixed_control,diststate,Congressional-district indicator for original district code 194; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_195,fixed_control,diststate,Congressional-district indicator for original district code 195; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_196,fixed_control,diststate,Congressional-district indicator for original district code 196; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_197,fixed_control,diststate,Congressional-district indicator for original district code 197; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_198,fixed_control,diststate,Congressional-district indicator for original district code 198; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_199,fixed_control,diststate,Congressional-district indicator for original district code 199; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_200,fixed_control,diststate,Congressional-district indicator for original district code 200; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_201,fixed_control,diststate,Congressional-district indicator for original district code 201; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_202,fixed_control,diststate,Congressional-district indicator for original district code 202; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_203,fixed_control,diststate,Congressional-district indicator for original district code 203; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_204,fixed_control,diststate,Congressional-district indicator for original district code 204; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_205,fixed_control,diststate,Congressional-district indicator for original district code 205; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_206,fixed_control,diststate,Congressional-district indicator for original district code 206; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_207,fixed_control,diststate,Congressional-district indicator for original district code 207; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_208,fixed_control,diststate,Congressional-district indicator for original district code 208; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_209,fixed_control,diststate,Congressional-district indicator for original district code 209; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_210,fixed_control,diststate,Congressional-district indicator for original district code 210; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_211,fixed_control,diststate,Congressional-district indicator for original district code 211; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_212,fixed_control,diststate,Congressional-district indicator for original district code 212; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_213,fixed_control,diststate,Congressional-district indicator for original district code 213; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_214,fixed_control,diststate,Congressional-district indicator for original district code 214; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_215,fixed_control,diststate,Congressional-district indicator for original district code 215; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_216,fixed_control,diststate,Congressional-district indicator for original district code 216; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_217,fixed_control,diststate,Congressional-district indicator for original district code 217; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_218,fixed_control,diststate,Congressional-district indicator for original district code 218; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_219,fixed_control,diststate,Congressional-district indicator for original district code 219; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_220,fixed_control,diststate,Congressional-district indicator for original district code 220; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_222,fixed_control,diststate,Congressional-district indicator for original district code 222; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_224,fixed_control,diststate,Congressional-district indicator for original district code 224; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_225,fixed_control,diststate,Congressional-district indicator for original district code 225; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_226,fixed_control,diststate,Congressional-district indicator for original district code 226; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_227,fixed_control,diststate,Congressional-district indicator for original district code 227; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_228,fixed_control,diststate,Congressional-district indicator for original district code 228; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_229,fixed_control,diststate,Congressional-district indicator for original district code 229; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_230,fixed_control,diststate,Congressional-district indicator for original district code 230; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_231,fixed_control,diststate,Congressional-district indicator for original district code 231; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_232,fixed_control,diststate,Congressional-district indicator for original district code 232; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_233,fixed_control,diststate,Congressional-district indicator for original district code 233; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_234,fixed_control,diststate,Congressional-district indicator for original district code 234; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_235,fixed_control,diststate,Congressional-district indicator for original district code 235; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_236,fixed_control,diststate,Congressional-district indicator for original district code 236; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_237,fixed_control,diststate,Congressional-district indicator for original district code 237; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_238,fixed_control,diststate,Congressional-district indicator for original district code 238; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_239,fixed_control,diststate,Congressional-district indicator for original district code 239; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_240,fixed_control,diststate,Congressional-district indicator for original district code 240; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_241,fixed_control,diststate,Congressional-district indicator for original district code 241; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_242,fixed_control,diststate,Congressional-district indicator for original district code 242; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_243,fixed_control,diststate,Congressional-district indicator for original district code 243; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_244,fixed_control,diststate,Congressional-district indicator for original district code 244; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_245,fixed_control,diststate,Congressional-district indicator for original district code 245; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator
+fixed_246,fixed_control,diststate,Congressional-district indicator for original district code 246; district 1 is omitted. Include an intercept with these indicators.,0/1 indicator

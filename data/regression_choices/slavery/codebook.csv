@@ -1,0 +1,33 @@
+column,role,source,description,units
+id_source_row,id,original file row,One-based row number in the unchanged original county CSV.,identifier
+id_fips,id,fips,Numeric county FIPS identifier; leading zeros can be restored by formatting to five digits. Never use this code as a numeric regressor.,identifier
+y,outcome,dem,"County share of white CCES respondents identifying with the Democratic Party, including leaners.",proportion
+d,treatment,pslave1860,"Enslaved population share in 1860, interpolated to 2000 county boundaries. A 0.1 change is a ten-percentage-point increase.",proportion
+weight,weight,sample.size,"Sum of within-county survey sampling weights used by the authors; this is a positive fractional weight, not the raw respondent count.",sum of survey weights
+x_ln_coarea00,control,log(coarea00),Natural logarithm of the authors' county-area measure from the 2000 county shapefile.,natural log of original area units
+x_latitude,control,latitude,County latitude on the original 2000 boundaries.,degrees
+x_latitude_sq,control,latitude^2,"Squared county latitude, included in the original regression.",degrees squared
+x_longitude,control,longitude,County longitude on the original 2000 boundaries.,degrees
+x_longitude_sq,control,longitude^2,"Squared county longitude, included in the original regression.",degrees squared
+x_rugged,control,rugged,"Terrain ruggedness, using the authors' original measure.",original index units
+x_land_ineq1860,control,land.ineq1860,"Gini coefficient of land holdings in 1860, interpolated to 2000 county boundaries.",Gini coefficient
+x_sfarmprop1860,control,sfarmprop1860,"Share of farms under 50 acres in 1860, interpolated to 2000 county boundaries.",proportion
+x_ln_totpop1860,control,log(totpop1860),"Natural logarithm of total county population in 1860, interpolated to 2000 county boundaries.",natural log of people
+x_ln_fvalpac1860,control,log(fvalpac1860),"Natural logarithm of farm value per improved acre in 1860, interpolated to 2000 county boundaries.",natural log of original monetary units per improved acre
+x_ln_acimp1860,control,log(acimp1860),"Natural logarithm of total improved farmland acreage in 1860, interpolated to 2000 county boundaries.",natural log of acres
+x_fbprop1860,control,fbprop1860,"Free Black population share in 1860, interpolated to 2000 county boundaries.",proportion
+x_rail1860,control,rail1860,"Rail access in 1860, evaluated on 2000 county boundaries.",0/1 indicator
+x_water1860,control,water1860,"Navigable-waterway access in 1860, evaluated on 2000 county boundaries.",0/1 indicator
+fixed_AR,fixed_control,state.abb,State indicator for AR; AL is the omitted state. Include an intercept with these indicators.,0/1 indicator
+fixed_FL,fixed_control,state.abb,State indicator for FL; AL is the omitted state. Include an intercept with these indicators.,0/1 indicator
+fixed_GA,fixed_control,state.abb,State indicator for GA; AL is the omitted state. Include an intercept with these indicators.,0/1 indicator
+fixed_KY,fixed_control,state.abb,State indicator for KY; AL is the omitted state. Include an intercept with these indicators.,0/1 indicator
+fixed_LA,fixed_control,state.abb,State indicator for LA; AL is the omitted state. Include an intercept with these indicators.,0/1 indicator
+fixed_MO,fixed_control,state.abb,State indicator for MO; AL is the omitted state. Include an intercept with these indicators.,0/1 indicator
+fixed_MS,fixed_control,state.abb,State indicator for MS; AL is the omitted state. Include an intercept with these indicators.,0/1 indicator
+fixed_NC,fixed_control,state.abb,State indicator for NC; AL is the omitted state. Include an intercept with these indicators.,0/1 indicator
+fixed_SC,fixed_control,state.abb,State indicator for SC; AL is the omitted state. Include an intercept with these indicators.,0/1 indicator
+fixed_TN,fixed_control,state.abb,State indicator for TN; AL is the omitted state. Include an intercept with these indicators.,0/1 indicator
+fixed_TX,fixed_control,state.abb,State indicator for TX; AL is the omitted state. Include an intercept with these indicators.,0/1 indicator
+fixed_VA,fixed_control,state.abb,State indicator for VA; AL is the omitted state. Include an intercept with these indicators.,0/1 indicator
+fixed_WV,fixed_control,state.abb,State indicator for WV; AL is the omitted state. Include an intercept with these indicators.,0/1 indicator

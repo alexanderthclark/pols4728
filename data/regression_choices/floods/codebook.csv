@@ -1,0 +1,32 @@
+column,role,source,description,units
+id_district,identifier,wkr,Electoral district identifier on the authors' harmonized boundaries; not a predictor.,identifier
+y,outcome,spd_z_vs[PostPeriod=1] - spd_z_vs[PostPeriod=0],Change in SPD party-list vote share from the 1998 to the 2002 election.,percentage points
+d,treatment,Flooded[PostPeriod=1],"District affected by the 2002 flood; 1 = affected, 0 = unaffected.",binary indicator
+x_xxsinc_SPD,control,xxsinc_SPD[PostPeriod=1] - xxsinc_SPD[PostPeriod=0],Change between the 1998 and 2002 source rows: SPD majority-party status in the state (Land) parliament.,"indicator change: -1, 0, or 1"
+x_xxpopdensity_,control,xxpopdensity_[PostPeriod=1] - xxpopdensity_[PostPeriod=0],"Change between the 1998 and 2002 source rows: Population density, in the archive's stored scale.",change in original archive population-density units; unrescaled
+x_xxshpop_o60_,control,xxshpop_o60_[PostPeriod=1] - xxshpop_o60_[PostPeriod=0],Change between the 1998 and 2002 source rows: Population share aged 60 and over.,percentage points
+x_xxpopnetinp1000_,control,xxpopnetinp1000_[PostPeriod=1] - xxpopnetinp1000_[PostPeriod=0],"Change between the 1998 and 2002 source rows: Net migration, inflows minus outflows per 1,000 inhabitants.","change in net migrants per 1,000 inhabitants"
+x_xxue_,control,xxue_[PostPeriod=1] - xxue_[PostPeriod=0],Change between the 1998 and 2002 source rows: Official unemployment rate.,percentage points
+x_xxshagric_,control,xxshagric_[PostPeriod=1] - xxshagric_[PostPeriod=0],Change between the 1998 and 2002 source rows: Agriculture's share of registered employment.,percentage points
+x_xxshmanu_,control,xxshmanu_[PostPeriod=1] - xxshmanu_[PostPeriod=0],Change between the 1998 and 2002 source rows: Manufacturing's share of registered employment.,percentage points
+x_xxshtradservice_,control,xxshtradservice_[PostPeriod=1] - xxshtradservice_[PostPeriod=0],Change between the 1998 and 2002 source rows: Trade and traffic services' share of registered employment.,percentage points
+x_xxshotherservice_,control,xxshotherservice_[PostPeriod=1] - xxshotherservice_[PostPeriod=0],Change between the 1998 and 2002 source rows: Other services' share of registered employment.,percentage points
+x_xxshforeign_,control,xxshforeign_[PostPeriod=1] - xxshforeign_[PostPeriod=0],Change between the 1998 and 2002 source rows: Registered foreign residents' share of the population.,change in population fraction (0 to 1 scale)
+aux_xxpopdensity__1998,additional_covariate,xxpopdensity_[PostPeriod=0],"Population density, in the archive's stored scale in the source row for the 1998 election. Excluded from the original baseline regression.",original archive population-density units; unrescaled
+aux_xxpopdensity__2002,additional_covariate,xxpopdensity_[PostPeriod=1],"Population density, in the archive's stored scale in the source row for the 2002 election. Excluded from the original baseline regression.",original archive population-density units; unrescaled
+aux_xxshpop_o60__1998,additional_covariate,xxshpop_o60_[PostPeriod=0],Population share aged 60 and over in the source row for the 1998 election. Excluded from the original baseline regression.,percent
+aux_xxshpop_o60__2002,additional_covariate,xxshpop_o60_[PostPeriod=1],Population share aged 60 and over in the source row for the 2002 election. Excluded from the original baseline regression.,percent
+aux_xxpopnetinp1000__1998,additional_covariate,xxpopnetinp1000_[PostPeriod=0],"Net migration, inflows minus outflows per 1,000 inhabitants in the source row for the 1998 election. Excluded from the original baseline regression.","net migrants per 1,000 inhabitants"
+aux_xxpopnetinp1000__2002,additional_covariate,xxpopnetinp1000_[PostPeriod=1],"Net migration, inflows minus outflows per 1,000 inhabitants in the source row for the 2002 election. Excluded from the original baseline regression.","net migrants per 1,000 inhabitants"
+aux_xxue__1998,additional_covariate,xxue_[PostPeriod=0],Official unemployment rate in the source row for the 1998 election. Excluded from the original baseline regression.,percent
+aux_xxue__2002,additional_covariate,xxue_[PostPeriod=1],Official unemployment rate in the source row for the 2002 election. Excluded from the original baseline regression.,percent
+aux_xxshagric__1998,additional_covariate,xxshagric_[PostPeriod=0],Agriculture's share of registered employment in the source row for the 1998 election. Excluded from the original baseline regression.,percent
+aux_xxshagric__2002,additional_covariate,xxshagric_[PostPeriod=1],Agriculture's share of registered employment in the source row for the 2002 election. Excluded from the original baseline regression.,percent
+aux_xxshmanu__1998,additional_covariate,xxshmanu_[PostPeriod=0],Manufacturing's share of registered employment in the source row for the 1998 election. Excluded from the original baseline regression.,percent
+aux_xxshmanu__2002,additional_covariate,xxshmanu_[PostPeriod=1],Manufacturing's share of registered employment in the source row for the 2002 election. Excluded from the original baseline regression.,percent
+aux_xxshtradservice__1998,additional_covariate,xxshtradservice_[PostPeriod=0],Trade and traffic services' share of registered employment in the source row for the 1998 election. Excluded from the original baseline regression.,percent
+aux_xxshtradservice__2002,additional_covariate,xxshtradservice_[PostPeriod=1],Trade and traffic services' share of registered employment in the source row for the 2002 election. Excluded from the original baseline regression.,percent
+aux_xxshotherservice__1998,additional_covariate,xxshotherservice_[PostPeriod=0],Other services' share of registered employment in the source row for the 1998 election. Excluded from the original baseline regression.,percent
+aux_xxshotherservice__2002,additional_covariate,xxshotherservice_[PostPeriod=1],Other services' share of registered employment in the source row for the 2002 election. Excluded from the original baseline regression.,percent
+aux_xxshforeign__1998,additional_covariate,xxshforeign_[PostPeriod=0],Registered foreign residents' share of the population in the source row for the 1998 election. Excluded from the original baseline regression.,proportion from 0 to 1
+aux_xxshforeign__2002,additional_covariate,xxshforeign_[PostPeriod=1],Registered foreign residents' share of the population in the source row for the 2002 election. Excluded from the original baseline regression.,proportion from 0 to 1

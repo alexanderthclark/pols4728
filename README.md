@@ -8,6 +8,13 @@ The [Fall 2026 Python examples](examples/2026f/README.md) accompany the code lis
 
 ## Datasets
 
+The [clean regression choices](data/regression_choices/README.md) provide four
+ready-to-use research datasets:
+ancestral plough use, slavery and political attitudes, flood response and voting,
+and Fox News. Each includes a complete-case CSV, a codebook, and
+[Python and R original-regression scripts](data/regression_choices/README.md#reproduce-the-original-regression). Students do not
+need to merge files, construct panels, or read Stata data.
+
 | File | Contents | Download |
 | --- | --- | --- |
 | [tufte_midterms.csv](data/tufte_midterms.csv) | Midterm-election data, including approval and economic variables | [Raw CSV](https://raw.githubusercontent.com/alexanderthclark/pols4728/main/data/tufte_midterms.csv) |
