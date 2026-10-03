@@ -112,6 +112,149 @@ Fox News uses the authors' 1996 vote weights, congressional-district indicators,
 and standard errors clustered by 2,992 cable systems. Its outcome and all 42
 substantive controls retain the original prepared values.
 
+## Post-double-selection: R and Python guidance
+
+Post-double-selection (PDS) uses two selection regressions and one unpenalized
+regression. Given an outcome `y`, an exposure `d`, and eligible controls `X`:
+
+1. Use lasso to select controls that predict `y` from `X`.
+2. Separately use lasso to select controls that predict `d` from the same `X`.
+3. Regress `y` on `d` and the **union** of the two selected control sets, with an
+   intercept. Always retain `d`; report its coefficient from this final regression.
+
+Selecting controls only from the outcome regression is not double selection.
+The treatment-prediction step helps retain potential confounders that a procedure
+focused only on predicting the outcome might omit. See
+[Belloni, Chernozhukov, and Hansen (2014)](https://doi.org/10.1093/restud/rdt044).
+
+### Which libraries to use
+
+| Library | Appropriate use |
+| --- | --- |
+| R: [`hdm`](https://search.r-project.org/CRAN/refmans/hdm/html/rlassoEffects.html) | Recommended starting point for Belloni-style PDS. `rlassoEffect(..., method="double selection")` implements selection and effect inference with theoretically calibrated lasso penalties. |
+| R: [`glmnet`](https://glmnet.stanford.edu/articles/glmnet.html) | An established lasso engine for implementing the selection steps yourself. Use `alpha=1` for lasso; `lambda` controls penalty strength. `cv.glmnet()` chooses a prediction-oriented penalty; it does not perform PDS or treatment-effect inference by itself. |
+| Python: [scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html) + [statsmodels](https://www.statsmodels.org/stable/generated/statsmodels.regression.linear_model.OLS.html) | Established tools for lasso selection and the final unpenalized regression. The example below makes the union-and-refit procedure explicit. Its cross-validated penalty differs from `hdm`'s calibration. |
+| R/Python: [`DoubleML`](https://docs.doubleml.org/stable/guide/models.html) | Implements double/debiased machine learning. In particular, `DoubleMLPLR` with the partialling-out score uses nuisance predictions and cross-fitting; it is a related approach, not the union-and-refit PDS estimator above. |
+
+Trusting a library's numerical implementation is different from establishing
+valid inference for a particular design. PDS inference needs assumptions such as
+approximate sparsity (a relatively small set of features adequately captures the
+relevant relationships), adequate residual variation in `d`, and an appropriate
+sampling model. A causal interpretation also needs the study's identification
+assumptions; lasso cannot resolve reverse causality or unobserved confounding.
+
+### R: a synthetic example with `hdm`
+
+Install `hdm` once with `install.packages("hdm")`. This example generates independent,
+unweighted observations with 40 candidate controls and a known effect of 1. It
+does not read any of the course datasets.
+
+```r
+library(hdm)
+set.seed(4728)
+n <- 600
+p <- 40
+X <- matrix(rnorm(n * p), nrow = n, ncol = p)
+colnames(X) <- paste0("x", seq_len(p))
+d <- 0.7 * X[, 1] - 0.5 * X[, 2] + rnorm(n)
+y <- 1.0 * d + 0.8 * X[, 1] + 0.6 * X[, 3] + rnorm(n)
+
+# X contains candidate controls only: no d, y, or intercept column.
+fit <- rlassoEffect(
+  x = X, y = y, d = d,
+  method = "double selection", post = TRUE
+)
+summary(fit)
+confint(fit, level = 0.95)
+```
+
+The default [`rlasso` penalty](https://search.r-project.org/CRAN/refmans/hdm/html/rlasso.html)
+allows heteroskedastic errors. `method="double selection"` requests PDS;
+`post=TRUE` alone does not. No candidate control is forced into this toy model.
+`hdm` provides its own standard errors and confidence intervals; they need not
+match a separate OLS routine's finite-sample correction.
+
+### Python: a synthetic example showing the steps
+
+Install the optional packages with
+`python -m pip install numpy scikit-learn statsmodels`. The following example
+uses cross-validation to choose each lasso penalty. It teaches the PDS mechanics;
+it is **not an implementation of `hdm`'s theoretically calibrated penalty**.
+An HC1 covariance estimate alone does not guarantee valid inference after
+selection with an arbitrary tuning rule.
+
+```python
+import numpy as np
+import statsmodels.api as sm
+from sklearn.linear_model import Lasso
+from sklearn.model_selection import GridSearchCV, KFold
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+
+rng = np.random.default_rng(4728)
+n, p = 600, 40
+X = rng.normal(size=(n, p))
+d = 0.7 * X[:, 0] - 0.5 * X[:, 1] + rng.normal(size=n)
+y = 1.0 * d + 0.8 * X[:, 0] + 0.6 * X[:, 2] + rng.normal(size=n)
+
+def select_controls(target):
+    # GridSearchCV fits the scaler separately inside each training fold.
+    search = GridSearchCV(
+        make_pipeline(StandardScaler(), Lasso(max_iter=10000)),
+        {"lasso__alpha": np.logspace(-3, 0, 40)},
+        scoring="neg_mean_squared_error",
+        cv=KFold(n_splits=5, shuffle=True, random_state=4728),
+    ).fit(X, target)
+    coef = search.best_estimator_.named_steps["lasso"].coef_
+    return np.abs(coef) > 1e-8, search.best_params_["lasso__alpha"]
+
+selected_y, alpha_y = select_controls(y)
+selected_d, alpha_d = select_controls(d)
+selected = selected_y | selected_d
+
+# Refit on the original scales. d and the intercept are always retained.
+Z = sm.add_constant(np.column_stack([d, X[:, selected]]))
+fit = sm.OLS(y, Z).fit(cov_type="HC1")
+for label, mask in [("Outcome", selected_y), ("Exposure", selected_d),
+                    ("Union", selected)]:
+    print(label, [f"x{j + 1}" for j in np.flatnonzero(mask)])
+print("Penalties (y, d):", alpha_y, alpha_d)
+print("Effect:", fit.params[1], "HC1 SE:", fit.bse[1])
+print("95% interval:", fit.conf_int()[1])
+```
+
+Here `alpha` is scikit-learn's penalty strength, unlike `glmnet`'s `alpha`.
+[`GridSearchCV`](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html)
+refits the selected pipeline on the full sample before coefficients are extracted.
+If a chosen penalty is at an endpoint of the grid, expand the grid. The two
+languages generate different random samples and use different penalty rules,
+so their estimates and selected controls need not coincide.
+
+### Applying the idea to a research design
+
+- **Define eligible controls before selecting.** Use the codebook and the paper's
+  causal argument. Lasso cannot decide whether a variable is a confounder, a
+  mediator, or an inappropriate control. Consider squares or interactions only
+  for substantively appropriate variables, and define the candidate feature set
+  before examining which specification gives a preferred result.
+- **Distinguish selection from forced inclusion.** Original substantive controls
+  can be candidates for selection. Keeping all of them fixed and selecting only
+  extra features is a different specification and should be described that way.
+  Design-required indicators should remain in the model and be accounted for
+  during both selection steps; they are not interchangeable with optional controls.
+- **Preserve the design throughout.** These toy examples assume independent,
+  unweighted observations and no fixed effects. They cannot be applied unchanged
+  to a weighted or clustered design. Weights and required indicators must be
+  handled consistently in selection and refitting; dependence requires suitable
+  penalty/tuning choices and clustered inference. Adding clustered standard
+  errors only at the end does not by itself address the selection stage.
+- **Keep comparisons interpretable.** Use the same observations, outcome scale,
+  and exposure definition as the original regression. Record the candidate set,
+  forced controls, penalty rule, seed, package versions, and both selected sets.
+  Address convergence warnings and ensure the final regression has full column
+  rank and enough residual degrees of freedom. Report coefficient changes and
+  uncertainty, rather than treating a change in significance as the sole finding.
+
 ## Sources and scope
 
 These are selected regressions from the papers, not every analysis in them.
