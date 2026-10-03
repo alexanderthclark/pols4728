@@ -133,7 +133,8 @@ focused only on predicting the outcome might omit. See
 | --- | --- |
 | R: [`hdm`](https://search.r-project.org/CRAN/refmans/hdm/html/rlassoEffects.html) | Recommended starting point for Belloni-style PDS. `rlassoEffect(..., method="double selection")` implements selection and effect inference with theoretically calibrated lasso penalties. |
 | R: [`glmnet`](https://glmnet.stanford.edu/articles/glmnet.html) | An established lasso engine for implementing the selection steps yourself. Use `alpha=1` for lasso; `lambda` controls penalty strength. `cv.glmnet()` chooses a prediction-oriented penalty; it does not perform PDS or treatment-effect inference by itself. |
-| Python: [scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html) + [statsmodels](https://www.statsmodels.org/stable/generated/statsmodels.regression.linear_model.OLS.html) | Established tools for lasso selection and the final unpenalized regression. The example below makes the union-and-refit procedure explicit. Its cross-validated penalty differs from `hdm`'s calibration. |
+| Python: call R's `hdm` through `Rscript` | Recommended here for using the same Belloni-style PDS implementation from a Python workflow. Requires both Python and R; the synthetic example below shows the connection. |
+| Python: [scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html) | A reliable lasso solver, but not a complete implementation of Belloni-style PDS. It does not estimate the required penalty loadings or calibrate the penalty for you. Cross-validation and predictor standardization are not substitutes for those steps. |
 | R/Python: [`DoubleML`](https://docs.doubleml.org/stable/guide/models.html) | Implements double/debiased machine learning. In particular, `DoubleMLPLR` with the partialling-out score uses nuisance predictions and cross-fitting; it is a related approach, not the union-and-refit PDS estimator above. |
 
 Trusting a library's numerical implementation is different from establishing
@@ -174,22 +175,25 @@ allows heteroskedastic errors. `method="double selection"` requests PDS;
 `hdm` provides its own standard errors and confidence intervals; they need not
 match a separate OLS routine's finite-sample correction.
 
-### Python: a synthetic example showing the steps
+### Python: use the same `hdm` estimator from Python
 
-Install the optional packages with
-`python -m pip install numpy scikit-learn statsmodels`. The following example
-uses cross-validation to choose each lasso penalty. It teaches the PDS mechanics;
-it is **not an implementation of `hdm`'s theoretically calibrated penalty**.
-An HC1 covariance estimate alone does not guarantee valid inference after
-selection with an arbitrary tuning rule.
+For this exercise, use R's `hdm` for the PDS estimation even if you prepare your
+variables in Python. Install R and `hdm` as above, ensure `Rscript` is available
+on your system's command path, and install NumPy with `python -m pip install numpy`.
+This example uses Python to generate synthetic data and calls `hdm` in R to fit
+the model. It is a Python workflow with an R dependency, not a native Python PDS
+package.
 
 ```python
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
 import numpy as np
-import statsmodels.api as sm
-from sklearn.linear_model import Lasso
-from sklearn.model_selection import GridSearchCV, KFold
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
+
+rscript = shutil.which("Rscript")
+if rscript is None:
+    raise RuntimeError("Install R and make Rscript available on your PATH.")
 
 rng = np.random.default_rng(4728)
 n, p = 600, 40
@@ -197,38 +201,55 @@ X = rng.normal(size=(n, p))
 d = 0.7 * X[:, 0] - 0.5 * X[:, 1] + rng.normal(size=n)
 y = 1.0 * d + 0.8 * X[:, 0] + 0.6 * X[:, 2] + rng.normal(size=n)
 
-def select_controls(target):
-    # GridSearchCV fits the scaler separately inside each training fold.
-    search = GridSearchCV(
-        make_pipeline(StandardScaler(), Lasso(max_iter=10000)),
-        {"lasso__alpha": np.logspace(-3, 0, 40)},
-        scoring="neg_mean_squared_error",
-        cv=KFold(n_splits=5, shuffle=True, random_state=4728),
-    ).fit(X, target)
-    coef = search.best_estimator_.named_steps["lasso"].coef_
-    return np.abs(coef) > 1e-8, search.best_params_["lasso__alpha"]
+r_code = """
+if (!requireNamespace("hdm", quietly = TRUE)) {
+  stop('Install hdm in this R installation with install.packages("hdm").')
+}
+toy <- read.csv(commandArgs(trailingOnly = TRUE)[1])
+X <- as.matrix(toy[, grep("^x", names(toy)), drop = FALSE])
+fit <- hdm::rlassoEffect(
+  x = X, y = toy$y, d = toy$d,
+  method = "double selection", post = TRUE
+)
+print(summary(fit))
+print(confint(fit, level = 0.95))
+"""
 
-selected_y, alpha_y = select_controls(y)
-selected_d, alpha_d = select_controls(d)
-selected = selected_y | selected_d
-
-# Refit on the original scales. d and the intercept are always retained.
-Z = sm.add_constant(np.column_stack([d, X[:, selected]]))
-fit = sm.OLS(y, Z).fit(cov_type="HC1")
-for label, mask in [("Outcome", selected_y), ("Exposure", selected_d),
-                    ("Union", selected)]:
-    print(label, [f"x{j + 1}" for j in np.flatnonzero(mask)])
-print("Penalties (y, d):", alpha_y, alpha_d)
-print("Effect:", fit.params[1], "HC1 SE:", fit.bse[1])
-print("95% interval:", fit.conf_int()[1])
+with tempfile.TemporaryDirectory() as folder:
+    csv_path = Path(folder) / "synthetic.csv"
+    np.savetxt(
+        csv_path, np.column_stack([y, d, X]), delimiter=",",
+        header="y,d," + ",".join(f"x{j + 1}" for j in range(p)), comments="",
+    )
+    result = subprocess.run(
+        [rscript, "-e", r_code, str(csv_path)],
+        check=True, capture_output=True, text=True,
+    )
+    print(result.stdout)
 ```
 
-Here `alpha` is scikit-learn's penalty strength, unlike `glmnet`'s `alpha`.
-[`GridSearchCV`](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html)
-refits the selected pipeline on the full sample before coefficients are extracted.
-If a chosen penalty is at an endpoint of the grid, expand the grid. The two
-languages generate different random samples and use different penalty rules,
-so their estimates and selected controls need not coincide.
+Both examples delegate selection, penalty calibration, and effect inference to
+`hdm`. R and NumPy generate different random samples, so their results need not
+coincide. Both examples assume independent, unweighted observations without fixed
+effects; the design qualifications below still apply.
+
+**Why not just use `LassoCV`?** Belloni-style heteroskedastic lasso uses a separate
+penalty loading for each candidate regressor, estimated using that regressor and
+residuals from the relevant selection equation. These loadings are updated as
+residual estimates improve, separately for the outcome and exposure equations.
+[`hdm::rlasso`](https://search.r-project.org/CRAN/refmans/hdm/html/rlasso.html)
+implements this procedure. Scaling each predictor to unit variance does not
+account for how its values interact with the error variance, and cross-validation
+chooses a prediction-oriented penalty rather than this calibration.
+
+Scikit-learn's `Lasso` exposes a scalar `alpha`, not a vector of penalty loadings.
+For given positive loadings, dividing each predictor by its loading can translate
+the problem into ordinary lasso. However, the loading estimates, iterations,
+penalty normalization, and design adjustments must still be implemented and
+validated. That is additional estimator development, beyond using a lasso solver.
+Two cross-validated selections followed by OLS demonstrate the union-and-refit
+mechanics, but do not reproduce `hdm`'s calibration. Adding HC1 standard errors
+does not supply the missing steps.
 
 ### Applying the idea to a research design
 
