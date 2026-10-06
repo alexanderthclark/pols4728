@@ -2,6 +2,15 @@
 
 Public data and code archive for POLS4728. The CSV files remain at their original paths so existing download links continue to work.
 
+## Course design
+
+Read the [course design guide](design/README.md) before building new pages or
+figures. The [visual reference](design/guide.pdf), [palette and typography
+tokens](design/tokens.json), and [public artwork registry](design/assets.json)
+preserve the Fall 2026 design language. The guide explains how its print
+specifications apply to web work; `AGENTS.md` records the authoring expectations
+for future contributors.
+
 ## Python examples
 
 The [Fall 2026 Python examples](examples/2026f/README.md) accompany the code listings in the lecture notes. The examples README explains dependencies, how to run each script, and the external data needed for the ATUS example.
