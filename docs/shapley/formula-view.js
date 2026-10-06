@@ -2,24 +2,25 @@ import { fraction, matchingOrders } from './game.mjs';
 
 const factorial = n => n < 2 ? 1 : n * factorial(n - 1);
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+const valueApplication = node => `<mrow><mi>v</mi><mo>⁡</mo><mrow><mo stretchy="false">(</mo>${node.members.length ? `<mrow><mo>{</mo>${node.members.map(player => `<mi mathvariant="normal">${escape(player)}</mi>`).join('<mo>,</mo>')}<mo>}</mo></mrow>` : '<mo>∅</mo>'}<mo stretchy="false">)</mo></mrow></mrow>`;
 
 const equation = `
   <div class="formula-equation" role="math" aria-label="The Shapley value of player i in game v equals the sum over all coalitions S contained in N excluding i, of S-size factorial times n minus S-size minus one factorial, divided by n factorial, times the difference between v of S with i added and v of S.">
     <math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-hidden="true">
       <mrow>
-        <msub><mi>ϕ</mi><mi>i</mi></msub><mo>(</mo><mi>v</mi><mo>)</mo><mo>=</mo>
+        <mrow><msub><mi>ϕ</mi><mi>i</mi></msub><mo>⁡</mo><mrow><mo stretchy="false">(</mo><mi>v</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo>
         <munder class="formula-sum"><mo>∑</mo><mrow><mi>S</mi><mo>⊆</mo><mi>N</mi><mo>∖</mo><mo>{</mo><mi>i</mi><mo>}</mo></mrow></munder>
         <mfrac>
           <mrow>
-            <mrow class="formula-before"><mo>|</mo><mi>S</mi><mo>|</mo><mo>!</mo></mrow>
-            <mrow class="formula-after"><mo>(</mo><mi>n</mi><mo>−</mo><mo>|</mo><mi>S</mi><mo>|</mo><mo>−</mo><mn>1</mn><mo>)</mo><mo>!</mo></mrow>
+            <mrow class="formula-before"><mrow><mo form="prefix" stretchy="false">|</mo><mi>S</mi><mo form="postfix" stretchy="false">|</mo></mrow><mo>!</mo></mrow>
+            <mrow class="formula-after"><mrow><mo stretchy="false">(</mo><mi>n</mi><mo>−</mo><mrow><mo form="prefix" stretchy="false">|</mo><mi>S</mi><mo form="postfix" stretchy="false">|</mo></mrow><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><mo>!</mo></mrow>
           </mrow>
           <mrow class="formula-denominator"><mi>n</mi><mo>!</mo></mrow>
         </mfrac>
       </mrow>
     </math>
     <math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-hidden="true">
-      <mrow class="formula-difference"><mo>[</mo><mi>v</mi><mo>(</mo><mi>S</mi><mo>∪</mo><mo>{</mo><mi>i</mi><mo>}</mo><mo>)</mo><mo>−</mo><mi>v</mi><mo>(</mo><mi>S</mi><mo>)</mo><mo>]</mo></mrow>
+      <mrow class="formula-difference"><mo stretchy="false">[</mo><mrow><mi>v</mi><mo>⁡</mo><mrow><mo stretchy="false">(</mo><mi>S</mi><mo>∪</mo><mrow><mo>{</mo><mi>i</mi><mo>}</mo></mrow><mo stretchy="false">)</mo></mrow></mrow><mo>−</mo><mrow><mi>v</mi><mo>⁡</mo><mrow><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo></mrow></mrow><mo stretchy="false">]</mo></mrow>
     </math>
   </div>`;
 
@@ -36,7 +37,7 @@ export function createFormulaView(game, { onCoalitionChange = () => {}, onExplai
   element.innerHTML = `${equation}
     <p class="formula-definitions"></p>
     <div class="formula-choices" role="group" aria-label="Choose the coalition before the selected player joins">
-      <span class="formula-choices-label">S =</span>
+      <span class="formula-choices-label"><math class="math-inline"><mi>S</mi><mo>=</mo></math></span>
       ${joiningEdges.map(edge => `<button type="button" data-formula-edge="${escape(edge.id)}" aria-pressed="false" aria-label="Coalition ${escape(game.nodes[edge.from].label)} before ${escape(player)} joins">${escape(game.nodes[edge.from].label)}</button>`).join('')}
     </div>
     <p class="formula-context" aria-live="polite" aria-atomic="true"></p>
@@ -88,7 +89,7 @@ export function createFormulaView(game, { onCoalitionChange = () => {}, onExplai
     if (currentPhase === 0) {
       context.textContent = `Sum over the ${joiningEdges.length} coalitions that exclude ${player}: one term for each ${player}-joining edge.`;
     } else if (currentPhase === 1) {
-      context.textContent = `For ${coalition.label} → ${added.label}, the contribution is v(${added.label}) − v(${coalition.label}) = ${added.value} − ${coalition.value} = ${currentEdge.delta}.`;
+      context.innerHTML = `For ${escape(coalition.label)} → ${escape(added.label)}, the contribution is <math class="math-inline" aria-label="${escape(`v of ${added.label} minus v of ${coalition.label} equals ${added.value} minus ${coalition.value} equals ${currentEdge.delta}`)}"><mrow>${valueApplication(added)}<mo>−</mo>${valueApplication(coalition)}<mo>=</mo><mn>${added.value}</mn><mo>−</mo><mn>${coalition.value}</mn><mo>=</mo><mn>${currentEdge.delta}</mn></mrow></math>.`;
     } else if (currentPhase === 2) {
       context.textContent = `|S|! = ${coalition.size}! = ${beforeCount}: ${beforeCount === 1 ? 'one order' : `${beforeCount} orders`} for the ${coalition.size} ${coalition.size === 1 ? 'player' : 'players'} before ${player}.${coalition.size === 0 ? ' The empty group has one arrangement: 0! = 1.' : ''}`;
       orders.innerHTML = orderStrips(matches);

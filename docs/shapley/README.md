@@ -26,6 +26,7 @@ Open `http://localhost:8765/shapley/`. A web server is required because the page
 - `story.js` handles scroll stages and the final explorer.
 - `weight-view.js` draws the six-diagram explanation from the game’s orders and edges.
 - `formula-view.js` and `formula.css` connect the final formula to selected edges, factorial counts, and complete orders.
+- `fonts/` contains the locally served STIX Two Math font and its SIL Open Font License, from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/stixtwomath).
 
 Run the mathematical regression checks with Node.js:
 

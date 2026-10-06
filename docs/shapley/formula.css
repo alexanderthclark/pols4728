@@ -1,9 +1,9 @@
 .formula-view{width:100%;max-width:620px;min-width:0;margin:8px auto 0;padding-top:12px;border-top:1px solid var(--line);color:var(--ink);font-family:var(--font);}
 .formula-equation{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 8px;max-width:100%;margin:0 0 12px;line-height:1.2;}
-.formula-equation math{font-family:var(--serif);font-size:26px;max-width:100%;margin:0;}
+.formula-equation math{font-size:26px;max-width:100%;margin:0;}
 .formula-equation .formula-active{color:var(--blue);}
 .formula-definitions{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 12px;font-size:12px;line-height:1.5;color:var(--muted);margin:0 0 9px;}
-.formula-definitions i{font-family:var(--serif);font-size:14px;color:var(--ink);}
+.formula-definitions i{font-family:var(--math);font-size:14px;color:var(--ink);}
 .formula-choices{display:flex;align-items:center;justify-content:center;gap:6px;margin:0 0 9px;}
 .formula-choices-label{font-family:var(--serif);font-size:16px;margin-right:2px;white-space:nowrap;}
 .formula-choices button{font-family:var(--serif);font-size:15px;min-height:44px;min-width:44px;padding:6px 10px;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink);white-space:nowrap;}
