@@ -1,0 +1,11 @@
+{
+  "assets": [
+    {
+      "path": "docs/assets/ML_and_AI_logo.png",
+      "role": "primary",
+      "description": "Outlined, expressive ML and AI letter characters above the course subtitle.",
+      "sha256": "f79c192344d203c3f944585ce1027e9e07e0aa462a663a65f7bf6b46251366cd",
+      "usage": "Primary course identity for the public landing page and course introductions. Preserve the original monochrome artwork and proportions."
+    }
+  ]
+}
