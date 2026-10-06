@@ -1,4 +1,5 @@
 import { majority as game, fraction } from './game.mjs';
+import { createWeightView } from './weight-view.js';
 
 const $ = selector => document.querySelector(selector);
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -7,6 +8,7 @@ const stage = $('.stage-shell');
 const stageViz = $('#stage-viz');
 const svgNS = 'http://www.w3.org/2000/svg';
 const steps = [...document.querySelectorAll('.step')];
+const weightView = createWeightView(game);
 steps.forEach((step, i) => { if (!step.id) step.id = `scene-${i + 1}`; });
 const positions = { 0: [340, 46], 1: [124, 177], 2: [340, 177], 4: [556, 177], 3: [124, 317], 5: [340, 317], 6: [556, 317], 7: [340, 458] };
 const svg = (tag, attrs = {}, text) => {
@@ -63,12 +65,25 @@ list.innerHTML = `<div class="orders-list-heading"><span>IMAGINED ORDER</span><s
 steps[5].querySelector('.step-content').append(list);
 steps[5].querySelector('.step-content').insertAdjacentHTML('beforeend', '<p class="small-note">A is first, second, or third in two orders each. Every arrival position receives total weight 1/3.</p>');
 const weights = document.createElement('div'); weights.className = 'weights-summary';
-weights.innerHTML = `<span class="eyebrow">BEFORE A JOINS</span><div>${[0, 2, 4, 6].map(mask => { const e = game.edges.find(e => e.from === mask && e.playerIndex === 0); return `<span><b>${game.nodes[mask].label}</b><span>${e.count} of 6</span></span>`; }).join('')}</div>`;
+weights.innerHTML = `<span class="eyebrow">BEFORE A JOINS</span><div>${[0, 2, 4, 6].map(mask => { const e = game.edges.find(e => e.from === mask && e.playerIndex === 0); return `<button type="button" data-explain-weight="${e.id}" aria-haspopup="dialog" aria-controls="weight-dialog" aria-label="Explain A joining ${game.nodes[mask].label}, weight ${e.count} out of 6"><b>${game.nodes[mask].label}</b><span>${e.count} of 6</span></button>`; }).join('')}</div>`;
 steps[6].querySelector('.step-content').append(weights);
+const weightTrigger = document.createElement('button');
+weightTrigger.type = 'button'; weightTrigger.className = 'weight-explainer-trigger';
+weightTrigger.textContent = 'See the six paths behind these weights';
+weightTrigger.setAttribute('aria-haspopup', 'dialog'); weightTrigger.setAttribute('aria-controls', 'weight-dialog');
+weightTrigger.addEventListener('click', () => explainWeight('0-1', weightTrigger));
+steps[6].querySelector('.step-content').append(weightTrigger);
+document.querySelectorAll('[data-explain-weight]').forEach(button => button.addEventListener('click', () => explainWeight(button.dataset.explainWeight, button)));
 
 let current = -1, selectedPlayer = 0, removedPlayer = 0, inspectedEdge = null, pathState = null, playbackTimer = null, scrollFrame = 0;
 const kickers = ['01 / THE RULE', '02 / THE REMOVAL PUZZLE', '03 / EMPTY SET + SINGLETONS', '04 / ADD THE PAIRS', '05 / THE COMPLETE LATTICE', '06 / COUNT THE ORDERS', '07 / THE WEIGHTED AVERAGE', '08 / THE HASSE DIAGRAM'];
 const counts = ['3 voters · 2 votes to pass', '2 votes still pass', '4 coalitions · 3 edges', '7 coalitions · 9 edges', '8 coalitions · 12 edges', '6 imagined orders', '4 terms · 1 Shapley value', 'Majority voting · 3 voters'];
+function explainWeight(edgeId, source) {
+  // Keep the story still while its optional explanation is open.
+  clearTimeout(playbackTimer); playbackTimer = null;
+  $('#replay').textContent = 'Replay'; $('#replay').disabled = false;
+  weightView.open(edgeId, source);
+}
 function stopPlayback() {
   clearTimeout(playbackTimer); playbackTimer = null; pathState = null;
   const b = $('#replay'); if (b) { b.textContent = 'Replay'; b.disabled = false; }
@@ -124,7 +139,7 @@ function updateGraph() {
   document.querySelectorAll('[data-show-order]').forEach(b => b.classList.toggle('is-current', !!pathState && Number(b.dataset.showOrder) === pathState.orderIndex));
 }
 function updateCaption() {
-  const captions = ['Every voter supports the proposal.', `Removing ${game.players[removedPlayer]} leaves two votes. The outcome stays at 1.`, 'FAIL = 0 · Nobody or one voter cannot pass the proposal.', 'An arrow adds one voter. The highlighted edge changes 0 to 1.', 'Every path ends at the same full group.', 'Edge labels: contribution above, fraction of orders below.', 'Each term is a contribution multiplied by its weight.', 'Choose an edge below, or click a coalition in the diagram.'];
+  const captions = ['Every voter supports the proposal.', `Removing ${game.players[removedPlayer]} leaves two votes. The outcome stays at 1.`, 'FAIL = 0 · Nobody or one voter cannot pass the proposal.', 'An arrow adds one voter. The highlighted edge changes 0 to 1.', 'Every path ends at the same full group.', 'Edge labels: contribution above, fraction of orders below.', 'Click a term to see which of the six paths give it its weight.', 'Click a term to explain its weight, or inspect an edge below.'];
   $('#stage-bottom').innerHTML = `<span class="legend-mark"></span><span>${captions[current]}</span>`;
   const caption = $('#graph-caption');
   if (pathState) {
@@ -139,8 +154,8 @@ function updateCalculation() {
   const player = game.players[selectedPlayer];
   const edges = game.edges.filter(e => e.playerIndex === selectedPlayer).sort((a, b) => game.nodes[a.from].size - game.nodes[b.from].size || a.from - b.from);
   $('#credit-label').textContent = `${player}’s credit`; $('#total-label').textContent = `Shapley value of ${player}`; $('#total-value').textContent = fraction(game.shares[selectedPlayer]);
-  $('#terms').innerHTML = edges.map(e => `<button type="button" class="term ${e.delta ? 'is-nonzero' : ''}" data-term-edge="${e.id}" ${current === 7 ? '' : 'disabled'} aria-label="Inspect ${player} joining ${game.nodes[e.from].label}: contribution ${e.delta}, weight ${e.count} out of 6"><span class="term-coalition">${game.nodes[e.from].label}</span><span class="term-product">${e.delta} <span>×</span> ${e.count}/${game.totalOrders}</span></button>`).join('<span class="term-plus" aria-hidden="true">+</span>');
-  document.querySelectorAll('[data-term-edge]').forEach(b => b.addEventListener('click', () => inspectEdge(b.dataset.termEdge)));
+  $('#terms').innerHTML = edges.map(e => `<button type="button" class="term ${e.delta ? 'is-nonzero' : ''}" data-term-edge="${e.id}" ${current >= 6 ? '' : 'disabled'} aria-haspopup="dialog" aria-controls="weight-dialog" aria-label="Explain ${player} joining ${game.nodes[e.from].label}: contribution ${e.delta}, weight ${e.count} out of 6"><span class="term-coalition">${game.nodes[e.from].label}</span><span class="term-product">${e.delta} <span>×</span> ${e.count}/${game.totalOrders}</span></button>`).join('<span class="term-plus" aria-hidden="true">+</span>');
+  document.querySelectorAll('[data-term-edge]').forEach(b => b.addEventListener('click', () => explainWeight(b.dataset.termEdge, b)));
   $('#edge-choices').innerHTML = edges.map(e => `<button type="button" data-inspect-edge="${e.id}" aria-pressed="${e.id === inspectedEdge}">${game.nodes[e.from].label} → ${game.nodes[e.to].label}</button>`).join('');
   document.querySelectorAll('[data-inspect-edge]').forEach(b => b.addEventListener('click', () => inspectEdge(b.dataset.inspectEdge)));
   if (current === 7 && !inspectedEdge) $('#edge-detail').textContent = `Select one of ${player}’s joining edges to see its contribution and weight.`;

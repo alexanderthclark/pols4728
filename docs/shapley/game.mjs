@@ -30,6 +30,10 @@ export function defineGame({ id, name, players, value }) {
   return { id, name, players, nodes, edges, orders, shares, totalOrders: factorial(n), gain: nodes.at(-1).value - nodes[0].value };
 }
 export const majority = defineGame({ id: 'majority-three', name: 'Majority voting', players: ['A', 'B', 'C'], value: members => Number(members.length >= 2) });
+export function matchingOrders(game, edgeId) {
+  if (!game.edges.some(edge => edge.id === edgeId)) throw new Error('Unknown joining edge.');
+  return game.orders.filter(order => order.path.some(edge => edge.id === edgeId));
+}
 export function fraction(value) {
   if (Number.isInteger(value)) return String(value);
   for (let d = 2; d <= 720; d++) {

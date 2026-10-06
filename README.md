@@ -6,6 +6,10 @@ Public data and code archive for POLS4728. The CSV files remain at their origina
 
 The [Fall 2026 Python examples](examples/2026f/README.md) accompany the code listings in the lecture notes. The examples README explains dependencies, how to run each script, and the external data needed for the ATUS example.
 
+## Interactive explanations
+
+The [Shapley values story](docs/shapley/README.md) explains majority voting through a gradually built Hasse diagram. An optional six-path view shows where the Shapley weights come from. Its standalone website source is in `docs/shapley/`.
+
 ## Datasets
 
 The [clean regression choices](data/regression_choices/README.md) provide four
