@@ -53,7 +53,9 @@
   "refit": {
     "featureCorrelation": -0.4999999999999999,
     "incomeVoteCorrelation": 0.7499999999999999,
+    "fatalitiesVoteCorrelation": -0.7499999999999999,
     "incomeOnlyCoefficient": 0.75,
+    "fatalitiesOnlyCoefficient": -0.75,
     "omittedVariableTerm": 0.24999999999999994
   },
   "background": [

@@ -47,7 +47,7 @@ test('synthetic income, fatalities, and observed vote are standardized and yield
   data.background.forEach(row => close(row.modelPrediction,predict(row.values),`${row.id} fitted prediction`));
 });
 
-test('income-only refitting absorbs the omitted coefficient times correlation, whereas SHAP freezes coefficients', () => {
+test('correlations recover three OLS fits while SHAP keeps the bivariate coefficients fixed', () => {
   const reducedSlope = incomeOutcome/varianceIncome;
   const correlation = cross/Math.sqrt(varianceIncome*varianceFatalities);
   const outcomeCorrelation = incomeOutcome/Math.sqrt(varianceIncome*covariance(outcomes,outcomes));
@@ -56,6 +56,16 @@ test('income-only refitting absorbs the omitted coefficient times correlation, w
   close(reducedSlope,fitted[0]+correlation*fitted[1],'omitted-variable identity');
   close(data.refit.incomeOnlyCoefficient,reducedSlope,'saved reduced slope');
   close(data.refit.incomeVoteCorrelation,outcomeCorrelation,'saved vote-income correlation');
+  const fatalitiesCorrelation = fatalitiesOutcome/Math.sqrt(varianceFatalities*covariance(outcomes,outcomes));
+  close(fatalitiesCorrelation,-.75,'vote-fatalities correlation');
+  close(data.refit.fatalitiesVoteCorrelation,fatalitiesCorrelation,'saved vote-fatalities correlation');
+  close(data.refit.fatalitiesOnlyCoefficient,fatalitiesOutcome/varianceFatalities,'fatalities-only OLS slope');
+  close(fatalitiesCorrelation,fitted[1]+correlation*fitted[0],'fatalities omitted-variable identity');
+  const fromCorrelations = [
+    (outcomeCorrelation-correlation*fatalitiesCorrelation)/(1-correlation**2),
+    (fatalitiesCorrelation-correlation*outcomeCorrelation)/(1-correlation**2),
+  ];
+  fromCorrelations.forEach((coefficient,index) => close(coefficient,fitted[index],`correlations recover bivariate slope ${index}`));
   close(data.refit.featureCorrelation,correlation,'saved feature correlation');
   close(data.refit.omittedVariableTerm,.25,'saved omitted-variable term');
   for (const observation of data.observations) {

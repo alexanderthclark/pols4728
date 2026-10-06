@@ -25,10 +25,17 @@ combine `0.5 × income − 0.5 × fatalities` with an orthogonal residual of var
 0.25. An OLS fit recovers zero intercept and slopes +0.5 and −0.5. The predictions
 are in outcome SD units; they are not standardized again after fitting.
 
+The story presents the three correlations directly: income–fatalities −0.5,
+income–vote +0.75, and fatalities–vote −0.75. With unit variances, the univariate
+slopes equal the feature–vote correlations. The bivariate slopes are
+`(r_income,vote − rho × r_fatalities,vote) / (1 − rho²)` and its counterpart for
+fatalities. These recover +0.5 and −0.5 without showing a data table.
+
 An income-only OLS refit has slope 0.75, equal to the income–vote correlation.
 This is `0.5 + (−0.5)(−0.5)`: the retained full-model slope plus feature
 correlation times the omitted feature's slope. The reduced model is used only
 to demonstrate that refitting is a different calculation from our SHAP game.
+Fatalities-only OLS has slope −0.75, likewise its correlation with vote.
 
 The same eight input rows form the equally weighted background for exact
 interventional SHAP. For a default synthetic election with income 1 and fatalities
@@ -42,9 +49,13 @@ Coefficients and the background stay fixed throughout each explanation.
 orthogonality, the omitted-variable identity, and exact agreement with the SHAP
 package. It saves training outcomes, fitted predictions, the reduced-model
 comparison, all four coalitions, both orders, and three profiles in
-`docs/shap/bread-peace.json`. Browser tables average predictions, never training
+`docs/shap/bread-peace.json`. Coalition values average predictions, never training
 outcomes or prediction errors. For this additive model, inserting the zero
 background means gives the same coalition averages as averaging the rows.
+The browser uses that equivalence to write both revealing orders directly as
+differences of bivariate predictions, then averages both features' marginals.
+The underlying synthetic rows support numerical verification and do not appear
+in the OLS story; the earnings example retains its hybrid-row tables.
 
 ```sh
 examples/shap/.venv/bin/python examples/shap/generate_bread_peace.py

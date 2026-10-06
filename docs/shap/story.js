@@ -1,11 +1,11 @@
 import { coalition, hybridValues, marginal, precedingMasks, validateData } from './calculation.mjs';
 import { renderWaterfall } from './waterfall.js';
 import { featureLabels, shapleyFormulaMarkup, valueMarkup, joiningMarkup, predictionMarkup } from './formula.js';
-import { validateBreadPeace, breadPeaceFacts, breadPeaceInputTable, renderBreadPeace } from './bread-peace.js';
+import { validateBreadPeace, breadPeaceFacts, renderBreadPeace } from './bread-peace.js';
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
-const names = ['The Shapley formula', 'The observation x', 'The model prediction ŷ', 'The value function', 'The existing feature group S', 'The additional feature i', 'The feature’s final credit', 'A standardized election model', 'One election’s prediction', 'Refit or average?', 'The OLS baseline', 'Income joins the group', 'Two orders; two SHAP values', 'An interaction model; one person', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
+const names = ['The Shapley formula', 'The observation x', 'The model prediction ŷ', 'The value function', 'The existing feature group S', 'The additional feature i', 'The feature’s final credit', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Income first', 'Fatalities first', 'Two orders; two SHAP values', 'An interaction model; one person', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
 const captions = [
   'Scroll to give each part its meaning in a prediction problem.',
   'x is one complete observation; its values supply the fixed inputs.',
@@ -14,12 +14,12 @@ const captions = [
   'S is the group already fixed to x, before the additional feature joins.',
   'i is the additional feature. It belongs to F and is not already in S.',
   'ϕᵢ(vₓ) is feature i’s contribution relative to the background average prediction.',
-  'Income, fatalities, and vote outcomes have mean zero and SD one. Fit OLS once.',
-  'x now identifies one election. The output is measured in SD of incumbent-party vote share.',
-  'Refitting changes a coefficient. Our SHAP game averages outputs of the unchanged full model.',
-  'vₓ(∅) = 0: average the predictions with no election-specific inputs fixed.',
-  'Fix income to x; keep every background fatality value. Average the predictions.',
-  'In this additive model each feature’s marginal is the same in both orders.',
+  'Standardized features and observed vote: three correlations determine the OLS fits.',
+  'Univariate slopes equal correlations. Bivariate slopes adjust for the overlap between features.',
+  'Our SHAP game evaluates the bivariate model with excluded inputs averaged to zero.',
+  'Here 0 supplies each excluded input’s mean; predictions are in SD of vote share.',
+  'Here 0 supplies each excluded input’s mean; predictions are in SD of vote share.',
+  'Each order has weight 1/2. Baseline plus both SHAP values gives the prediction, in SD of vote share.',
   'Fit f once, then hold it fixed. Here we supply a transparent teaching equation.',
   'vₓ(∅): no columns fixed to x. Average the eight model predictions.',
   'After fixes ability to x; before uses its background values. Other columns stay the same.',
@@ -190,7 +190,7 @@ function render() {
   shell.dataset.scene = scene;
   const breadScene = scene.startsWith('ols-');
   const selectorContext = breadScene ? 'bread' : 'earnings';
-  $('.observation-control').hidden = Boolean(formulaStops[scene]) || scene === 'ols-model';
+  $('.observation-control').hidden = Boolean(formulaStops[scene]) || ['ols-model','ols-fits'].includes(scene);
   if (state.selectorContext !== selectorContext) {
     const data = breadScene ? state.breadData : state.data;
     const observation = breadScene ? state.breadObservation : state.observation;
@@ -216,7 +216,7 @@ function render() {
   else if (scene === 'shap-value') renderAverage();
   else renderFinal();
   const ordersScene = scene === 'weights' || scene === 'shap-value';
-  $('#inspect').hidden = !['ols-background','ols-income','background','reveal-ability','neighborhood-first','weights','shap-value'].includes(scene);
+  $('#inspect').hidden = !['background','reveal-ability','neighborhood-first','weights','shap-value'].includes(scene);
   $('#inspect').textContent = ordersScene ? 'Six orders' : 'Inspect rows';
   $('#inspect').setAttribute('aria-label', ordersScene ? 'Inspect the six revealing orders' : 'Inspect hybrid input rows and predictions');
   if (focusSelector) visual.querySelector(focusSelector)?.focus({preventScroll:true});
@@ -225,16 +225,6 @@ function render() {
 function openRows(trigger) {
   state.rowsTrigger = trigger;
   const scene = steps[state.scene].id;
-  if (scene.startsWith('ols-')) {
-    const mask = scene === 'ols-income' ? 1 : 0;
-    const observation = state.breadObservation;
-    $('#rows-heading').textContent = mask ? 'Income fixed to the selected election' : 'No inputs fixed to the election';
-    $('#rows-description').textContent = 'The original OLS coefficients stay fixed at 0.5 for income and −0.5 for fatalities. Predictions are in standard deviations of incumbent-party vote share. The average of the prediction column is the coalition value vₓ(S).';
-    $('#rows-table').innerHTML = breadPeaceInputTable(state.breadData,observation,mask,mask ? 0 : undefined);
-    dialog.showModal();
-    $('#close-rows').focus();
-    return;
-  }
   const mask = scene === 'background' ? 0 : scene === 'reveal-ability' ? 1 : 3;
   const beforeMask = scene === 'reveal-ability' ? 0 : scene === 'neighborhood-first' ? 2 : undefined;
   $('#rows-heading').textContent = `Knowing ${groupName(mask)}`;

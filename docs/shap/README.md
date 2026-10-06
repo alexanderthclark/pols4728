@@ -8,11 +8,13 @@ the same prediction function, average its outputs, then compare those averages.
 
 The first worked example is a stylized Bread and Peace model inspired by
 Douglas Hibbs. Two features, real income growth and war fatalities, predict
-incumbent-party two-party vote share. Eight synthetic rows have standardized
-inputs and observed outcomes (mean zero and empirical SD one, using denominator
-`n`). OLS fits `y_hat(x) = 0.5 × income − 0.5 × fatalities`, with zero intercept.
-The feature correlation is −0.5. Predictions use the outcome's SD units; they
-are not themselves rescaled to SD one.
+incumbent-party two-party vote share. The story begins with centered,
+standardized features and observed vote (mean zero, SD one), and three stipulated
+correlations: income–fatalities −0.5, income–vote +0.75, and fatalities–vote
+−0.75. These determine the two univariate OLS slopes (+0.75 and −0.75) and
+the bivariate slopes (+0.5 and −0.5), with zero intercepts. The two-feature
+coefficient calculations appear beside all three model equations. Predictions
+use the outcome's SD units; they are not themselves rescaled to SD one.
 
 Removing fatalities and refitting income-only OLS gives a slope of 0.75, equal
 to the vote–income correlation. The full-model coefficient of 0.5 plus the
@@ -20,10 +22,18 @@ omitted-variable term `−0.5 × −0.5 = +0.25` recovers that slope. Our SHAP
 calculation instead keeps the full model fixed and averages its predictions.
 For the default election, income 1 and fatalities −1, the income-only coalition
 has value 0.5 and the full prediction is 1. Four coalitions and two revealing
-orders give contributions +0.5 and +0.5 from a zero baseline.
+orders give contributions +0.5 and +0.5 from a zero baseline. The scroll writes
+out both orders as explicit prediction differences, such as
+`y_hat(1, 0) − y_hat(0, 0)` for income joining first and
+`y_hat(1, −1) − y_hat(0, −1)` for income joining second. Both calls use the
+same bivariate coefficients. Zero represents the mean of an averaged-out input
+in this additive model. There are no data tables in the OLS warm-up.
 Alternate elections change the inputs and contributions; the fit and background
 stay fixed. These are constructed examples, not historical elections or Hibbs's
-estimated coefficients. The optional method note distinguishes interventional
+estimated coefficients. The reproduction files construct eight standardized
+synthetic rows to independently verify the stipulated correlations and model
+fits; empirical SD uses denominator `n`. Those verification rows do not appear
+in the story. The optional method note distinguishes interventional
 replacement from conditional SHAP and reduced-model refitting.
 
 The illustrative earnings predictor is
@@ -38,7 +48,7 @@ features, with `F = {ability, neighborhood, experience}`, and `i` denotes the
 feature joining `S`. The interaction is computed inside the predictor.
 
 The eight equally weighted reference profiles cover every endpoint combination.
-All eight rows appear in the main tables. Included columns are fixed to the
+All eight earnings reference rows appear in the main tables. Included columns are fixed to the
 selected person; excluded columns retain the joint values from each background
 row. The before/after output columns and their means show the marginal directly.
 No feature is removed from the model. In the centered additive OLS warm-up,
@@ -61,12 +71,12 @@ profiles use the same model and background.
 5. Highlight `S`, the group already fixed, and define `F` and `m`.
 6. Highlight `i`, the additional feature joining a group that excludes it.
 7. Highlight the result and introduce `phi_i(x)` as shorthand for `phi_i(v_x)`.
-8. Fit the synthetic, standardized Bread and Peace OLS model; display `y` and `y_hat`.
-9. Choose one election and predict its standardized vote share.
-10. Compare refitting income-only OLS with averaging the original full model.
-11. Compute the centered baseline from all eight background input rows.
-12. Fix income to the election, retain background fatalities, and compare means.
-13. Display the four coalitions and two orders; sum both linear SHAP values.
+8. State the three correlations for standardized income, fatalities, and observed vote.
+9. Derive the slopes and display the two univariate fits and one bivariate fit.
+10. Choose an election; compare income-only OLS with the bivariate prediction at mean fatalities.
+11. Reveal income first, then fatalities; show both before/after prediction subtractions.
+12. Reverse the order and show the same bivariate equation evaluated at different inputs.
+13. Average each feature's two marginals and reconstruct the full prediction.
 14. Move to the three-feature earnings interaction and one person to explain.
 15. Compute its `v_x(S)` from background rows, starting with `S = ∅`.
 16. Fix ability and compare with the earnings baseline.
@@ -77,7 +87,7 @@ profiles use the same model and background.
 
 The opening keeps the same equation in place and highlights only the symbols
 under discussion. Definitions enter through scrolling instead of a glossary.
-The election selector appears after the OLS model is introduced. The person
+The election selector appears after all three OLS fits are introduced. The person
 selector appears when the earnings example begins. Each example retains its
 selection when readers move between them.
 The full formula fits on one line in the desktop figure, with type sized to

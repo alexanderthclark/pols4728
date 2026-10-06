@@ -43,9 +43,12 @@ def build():
     correlations = np.corrcoef(standardized.T)
     reduced = np.linalg.lstsq(inputs[:, :1], outcome, rcond=None)[0][0]
     reduced = float(np.round(reduced, 12))
+    fatalities_only = float(np.round(np.linalg.lstsq(inputs[:, 1:], outcome, rcond=None)[0][0], 12))
     np.testing.assert_allclose(reduced, correlations[0, 2], atol=1e-12)
+    np.testing.assert_allclose(fatalities_only, correlations[1, 2], atol=1e-12)
     omitted_term = float(correlations[0, 1] * fatalities_coefficient)
     np.testing.assert_allclose(reduced, income_coefficient + omitted_term, atol=1e-12)
+    np.testing.assert_allclose(fatalities_only, fatalities_coefficient + correlations[0, 1] * income_coefficient, atol=1e-12)
 
     observations = []
     profiles = [
@@ -122,7 +125,9 @@ def build():
                   "predictionUnit": "SD of incumbent-party two-party vote share"},
         "refit": {"featureCorrelation": float(correlations[0, 1]),
                   "incomeVoteCorrelation": float(correlations[0, 2]),
-                  "incomeOnlyCoefficient": reduced, "omittedVariableTerm": omitted_term},
+                  "fatalitiesVoteCorrelation": float(correlations[1, 2]),
+                  "incomeOnlyCoefficient": reduced, "fatalitiesOnlyCoefficient": fatalities_only,
+                  "omittedVariableTerm": omitted_term},
         "background": [
             {"id": f"reference-{index + 1}", "values": values.tolist(),
              "outcome": float(outcome[index]), "modelPrediction": float(predict(values.reshape(1, -1))[0])}
