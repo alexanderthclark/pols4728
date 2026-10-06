@@ -8,6 +8,8 @@ const mobile = window.matchMedia('(max-width: 760px)');
 const stage = $('.stage-shell');
 const stageViz = $('#stage-viz');
 const svgNS = 'http://www.w3.org/2000/svg';
+const escapeMath = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+const payoffMath = node => `<math class="coalition-value-formula"><mrow><mi>v</mi><mo>⁡</mo><mrow><mo stretchy="false">(</mo>${node.members.length ? `<mrow><mo stretchy="false">{</mo>${node.members.map(player => `<mi mathvariant="normal">${escapeMath(player)}</mi>`).join('<mo>,</mo>')}<mo stretchy="false">}</mo></mrow>` : '<mo lspace="0" rspace="0">∅</mo>'}<mo stretchy="false">)</mo></mrow><mo>=</mo><mn>${node.value}</mn></mrow></math>`;
 const steps = [...document.querySelectorAll('.step')];
 const weightView = createWeightView(game);
 steps.forEach((step, i) => { if (!step.id) step.id = `scene-${i + 1}`; });
@@ -46,7 +48,7 @@ for (const node of game.nodes) {
   button.type = 'button'; button.className = `coalition-node ${node.value ? 'is-winning' : ''}`; button.dataset.mask = node.mask;
   button.style.left = `${100 * x / 680}%`; button.style.top = `${100 * y / 510}%`; button.disabled = true;
   button.setAttribute('aria-label', `${node.members.length ? node.members.join(' and ') : 'Empty coalition'}: ${node.value ? 'Pass' : 'Fail'}, value ${node.value}`);
-  button.innerHTML = `<span class="coalition-set">${node.label}</span><span class="coalition-value">${node.value ? 'PASS' : 'FAIL'} <b>${node.value}</b></span>`;
+  button.innerHTML = `<span class="coalition-set">${node.label}</span><span class="coalition-payoff" aria-hidden="true"><span class="coalition-value">${node.value ? 'PASS' : 'FAIL'} <b>${node.value}</b></span>${payoffMath(node)}</span>`;
   button.addEventListener('click', () => inspectNode(node.mask)); $('#graph-nodes').append(button); nodeEls.set(node.mask, button);
 }
 const calc = document.createElement('div'); calc.className = 'calculation'; calc.hidden = true;
@@ -76,7 +78,7 @@ weightTrigger.addEventListener('click', () => explainWeight('0-1', weightTrigger
 steps[6].querySelector('.step-content').append(weightTrigger);
 document.querySelectorAll('[data-explain-weight]').forEach(button => button.addEventListener('click', () => explainWeight(button.dataset.explainWeight, button)));
 
-let current = -1, selectedPlayer = 0, removedPlayer = 0, inspectedEdge = null, pathState = null, playbackTimer = null, scrollFrame = 0;
+let current = -1, selectedPlayer = 0, removedPlayer = 0, inspectedEdge = null, pathState = null, playbackTimer = null, scrollFrame = 0, nodeNotationVisible = false;
 const kickers = ['01 / THE RULE', '02 / THE REMOVAL PUZZLE', '03 / THE SMALLEST GROUPS', '04 / ADD THE PAIRS', '05 / THE COMPLETE DIAGRAM', '06 / COUNT THE ORDERS', '07 / THE WEIGHTED AVERAGE', '08 / THE HASSE DIAGRAM', '09 / THE VALUE FUNCTION', '10 / THE SUMMATION', '11 / THE CONTRIBUTION', '12 / BEFORE A', '13 / AFTER A', '14 / THE WEIGHT', '15 / THE SHAPLEY VALUE'];
 const counts = ['3 voters · 2 votes to pass', '2 votes still pass', '4 groups · 3 edges', '7 groups · 9 edges', '8 groups · 12 edges', '6 imagined orders', '4 terms · 1 Shapley value', 'Majority voting · 3 voters', '0 means failure · 1 means success', 'i = A · n = 3', 'One joining edge', 'Order the voters in S', 'Order the remaining voters', 'Matching orders / all orders', 'Four edges · one weighted sum'];
 const formulaView = createFormulaView(game, {
@@ -95,6 +97,17 @@ function stopPlayback() {
   clearTimeout(playbackTimer); playbackTimer = null; pathState = null;
   const b = $('#replay'); if (b) { b.textContent = 'Replay'; b.disabled = false; }
 }
+function setNodeNotation(visible) {
+  if (visible === nodeNotationVisible) return;
+  nodeNotationVisible = visible;
+  stage.classList.toggle('has-payoff-notation', visible);
+  stage.dataset.payoffNotation = String(visible);
+  for (const node of game.nodes) {
+    const name = node.members.length ? node.members.join(' and ') : 'Empty coalition';
+    nodeEls.get(node.mask).setAttribute('aria-label', visible ? `${name}: v of ${name} equals ${node.value}` : `${name}: ${node.value ? 'Pass' : 'Fail'}, value ${node.value}`);
+  }
+  updateCaption();
+}
 function updateRemoval() {
   document.querySelectorAll('.voter').forEach((el, i) => {
     el.classList.toggle('is-removed', current === 1 && i === removedPlayer);
@@ -110,6 +123,7 @@ function showStep(index) {
   const inFormula = current >= 9;
   stage.classList.toggle('is-formula-scene', inFormula);
   stage.classList.toggle('is-value-function-scene', current === 8);
+  if (current !== 8) setNodeNotation(false);
   stage.setAttribute('aria-label', current < 2 ? 'Voting illustration' : current === 8 ? 'Coalition diagram and voting rule' : inFormula ? 'Coalition diagram and Shapley formula' : 'Coalition diagram and Shapley calculation');
   $('#voters').setAttribute('aria-hidden', String(current >= 2));
   $('#outcome').setAttribute('aria-hidden', String(current >= 2));
@@ -160,7 +174,8 @@ function updateGraph() {
 }
 function updateCaption() {
   const captions = ['Every voter supports the proposal.', `Removing ${game.players[removedPlayer]} leaves two votes. The outcome stays at 1.`, '0 means the group fails. 1 means it passes.', 'The highlighted edge changes failure (0) to success (1).', 'Every path ends at the same full group.', 'Edge labels: contribution above, fraction of orders below.', 'Click a term to see which of the six paths give it its weight.', 'Click a term to explain its weight, or inspect an edge below.', 'The value function names the numbers already on the nodes.', 'Four coalitions without A. Four starting nodes.', 'The bracket measures the change along the selected edge.', 'Hold the coalition fixed; count its internal orders.', 'The minus one removes A from the remaining voters.', 'The factorial ratio is the fraction of paths using this edge.', 'The formula adds the same four weighted contributions.'];
-  $('#stage-bottom').innerHTML = `<span class="legend-mark"></span><span>${captions[current]}</span>`;
+  const text = current === 8 && nodeNotationVisible ? 'The labels now write the same numbers as the value function.' : captions[current];
+  $('#stage-bottom').innerHTML = `<span class="legend-mark"></span><span>${text}</span>`;
   const caption = $('#graph-caption');
   if (pathState) {
     const o = game.orders[pathState.orderIndex], decisive = o.path.find(e => e.delta === 1), finished = pathState.count === 3;
@@ -225,6 +240,8 @@ function updateScroll() {
   const anchor = mobile.matches ? Math.min(innerHeight - 80, header + stage.getBoundingClientRect().height + 80) : innerHeight * .53;
   let index = 0; for (let i = 0; i < steps.length; i++) if (steps[i].getBoundingClientRect().top <= anchor) index = i;
   showStep(index);
+  // Name the existing payoffs when the rule reaches the reader's scroll position.
+  if (current === 8) setNodeNotation(steps[8].querySelector('.value-definition').getBoundingClientRect().top <= anchor);
   // Scrolling through this passage visits all six accounting paths, then
   // gathers them into the four weighted joining edges. Buttons can replay any.
   if (current === 5) {
