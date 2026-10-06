@@ -1,0 +1,227 @@
+import { coalition, hybridValues, marginal, validateData } from './calculation.mjs';
+import { renderWaterfall } from './waterfall.js';
+
+const $ = selector => document.querySelector(selector);
+const steps = [...document.querySelectorAll('.step')];
+const names = ['One observation', 'The reference prediction', 'Reveal ability', 'Neighborhood already known', 'Average the marginals', 'The complete explanation'];
+const captions = [
+  'Three inputs; the interaction is part of the fixed prediction function.',
+  'All eight background rows have equal weight. Average the model outputs.',
+  'Included ability is fixed to this person. Excluded columns keep their background values.',
+  'Neighborhood is already fixed. Only ability changes between the two calculations.',
+  'A single marginal and the SHAP value are different quantities.',
+  'Final SHAP contributions connect the same baseline to this person’s prediction.',
+];
+const visual = $('#visual'), shell = $('.stage-shell');
+const observationSelect = $('#observation-select');
+const dialog = $('#rows-dialog');
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const state = { data:null, observation:null, scene:-1, feature:0, explorerMask:0, rowsTrigger:null };
+
+function escape(value) {
+  return String(value).replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
+}
+function number(value, decimals = 1) {
+  return new Intl.NumberFormat('en-US', {maximumFractionDigits:decimals}).format(value).replace('-', '−');
+}
+function signed(value) { return `${value < 0 ? '−' : '+'}${number(Math.abs(value))}`; }
+function inputNumber(value) { return number(value, 2); }
+function dollars(value, includeSign = false) {
+  return `${value < 0 ? '−' : includeSign ? '+' : ''}$${new Intl.NumberFormat('en-US', {maximumFractionDigits:0}).format(Math.abs(value) * 1000)}`;
+}
+function groupName(mask, short = false) {
+  const labels = state.data.features.filter((_, index) => mask & (1 << index)).map(feature => short ? feature.shortLabel : feature.label.toLowerCase());
+  return labels.length ? labels.join(short ? ' + ' : ' and ') : short ? 'None' : 'no features';
+}
+function setNotation(mask) { return mask ? `{${['A','N','E'].filter((_, index) => mask & (1 << index)).join(', ')}}` : '∅'; }
+
+function updateFacts() {
+  const observation = state.observation;
+  const delta = marginal(observation, 0, 2);
+  const facts = {
+    ability:inputNumber(observation.values[0]), neighborhood:inputNumber(observation.values[1]),
+    baselineDollars:dollars(observation.baseValue), predictionDollars:dollars(observation.prediction),
+    abilityMeanDollars:dollars(coalition(observation, 1).value), abilityFirstDollars:dollars(marginal(observation, 0, 0), true),
+    neighborhoodMeanDollars:dollars(coalition(observation, 2).value), bothMeanDollars:dollars(coalition(observation, 3).value),
+    abilityAfterDollars:dollars(delta, true), abilityShapDollars:dollars(observation.shapValues[0], true),
+    contextInterpretation:delta < 0
+      ? 'Here the adverse context makes revealing this person’s ability lower the averaged prediction. This sign reversal comes from the interaction in our equation.'
+      : delta > 0 ? 'Here revealing this person’s ability raises the averaged prediction. The size of the change depends on the neighborhood value already fixed.'
+      : 'Here revealing ability does not change the averaged prediction. The main ability term and the interaction offset one another for this profile.',
+  };
+  document.querySelectorAll('[data-fact]').forEach(element => {element.textContent = facts[element.dataset.fact];});
+  $('#explanation-table').innerHTML = `<table class="input-table"><caption>${escape(observation.name)} · earnings contributions in $1,000/year</caption><thead><tr><th scope="col">Feature</th><th scope="col">Input value</th><th scope="col">SHAP value</th></tr></thead><tbody>${state.data.features.map((feature, index) => `<tr><th scope="row">${escape(feature.label)}</th><td>${inputNumber(observation.values[index])}</td><td>${signed(observation.shapValues[index])}</td></tr>`).join('')}<tr><th scope="row">Baseline</th><td colspan="2">${number(observation.baseValue)}</td></tr><tr><th scope="row">Prediction</th><td colspan="2">${number(observation.prediction)}</td></tr></tbody></table>`;
+  renderCoalitionExplorer();
+}
+
+function renderObservation() {
+  const observation = state.observation;
+  visual.innerHTML = `<div class="observation-card"><span class="date">${escape(observation.name)}</span><dl>${state.data.features.map((feature, index) => `<dt>${escape(feature.label)}</dt><dd>${inputNumber(observation.values[index])}${index === 1 ? observation.values[1] < 0 ? ' · adverse' : ' · favorable' : ''}</dd>`).join('')}</dl><div class="prediction-number">${dollars(observation.prediction)}<span class="prediction-label">predicted annual earnings</span></div></div><p class="input-note">Ability and experience: 0–1<br>Neighborhood opportunity: −1 to +1</p>`;
+}
+
+function inputCell(background, mask, index, newFeature = -1) {
+  const included = Boolean(mask & (1 << index));
+  const value = hybridValues(background.values, state.observation.values, mask)[index];
+  const changed = included && index === newFeature && value !== background.values[index];
+  return `<td class="${included ? index === newFeature ? 'newly-fixed' : 'fixed' : 'unknown'}">${changed ? `<span class="cell-original">${inputNumber(background.values[index])}</span><span class="replacement-arrow" aria-label="replaced by"> → </span>` : ''}<span class="cell-value">${inputNumber(value)}</span></td>`;
+}
+
+function inputTable(mask, {beforeMask, newFeature = -1, fullLabels = false} = {}) {
+  const group = coalition(state.observation, mask);
+  const before = beforeMask === undefined ? null : coalition(state.observation, beforeMask);
+  return `<table class="input-table"><caption>All 8 reference rows · predictions in $1,000/year</caption><thead><tr><th scope="col">Row</th>${state.data.features.map((feature, index) => `<th scope="col" title="${escape(feature.description)}">${fullLabels ? escape(feature.shortLabel) : ['A','N','E'][index]}<small>${mask & (1 << index) ? 'Included<br>fixed to person' : 'Excluded<br>from background'}</small></th>`).join('')}${before ? '<th scope="col">Before</th><th scope="col">After</th>' : '<th scope="col">Prediction</th>'}</tr></thead><tbody>${state.data.background.map((background, row) => `<tr><td>${row + 1}</td>${state.data.features.map((_, index) => inputCell(background, mask, index, newFeature)).join('')}${before ? `<td>${number(before.predictions[row])}</td>` : ''}<td>${number(group.predictions[row])}</td></tr>`).join('')}</tbody><tfoot><tr><th scope="row" colspan="4">Average of all 8</th>${before ? `<td>${number(before.value)}</td>` : ''}<td>${number(group.value)}</td></tr></tfoot></table>`;
+}
+
+function renderBackground(mask, beforeMask) {
+  const before = beforeMask === undefined ? null : coalition(state.observation, beforeMask);
+  const after = coalition(state.observation, mask);
+  const newFeature = before ? 0 : -1;
+  visual.innerHTML = `<h3>${mask ? `Knowing ${escape(groupName(mask))}` : 'No features revealed'}</h3><p class="focal-values">This person: A = ${inputNumber(state.observation.values[0])}, N = ${inputNumber(state.observation.values[1])}, E = ${inputNumber(state.observation.values[2])}</p>${inputTable(mask, {beforeMask, newFeature})}<p class="table-key">A: ability · N: neighborhood · E: experience</p>${before ? `<div class="table-marginal"><span>Ability’s marginal: after − before</span><span class="${after.value - before.value < 0 ? 'negative' : ''}">${number(after.value)} − ${number(before.value)} = ${signed(after.value - before.value)}</span></div>` : ''}`;
+}
+
+function featureContexts() {
+  const observation = state.observation, feature = state.feature;
+  const partner = feature === 0 ? 1 : feature === 1 ? 0 : null;
+  if (partner === null) return [{mask:0,value:marginal(observation, feature, 0),label:'Every preceding context',count:6}];
+  return [
+    {mask:0,value:marginal(observation, feature, 0),label:`${state.data.features[partner].shortLabel} still unrevealed`,count:3},
+    {mask:1 << partner,value:marginal(observation, feature, 1 << partner),label:`${state.data.features[partner].shortLabel} already revealed`,count:3},
+  ];
+}
+
+function renderAverage() {
+  const feature = state.data.features[state.feature];
+  const contexts = featureContexts();
+  visual.innerHTML = `<label class="orders-feature-label" for="feature-select">Feature to explain</label><select id="feature-select">${state.data.features.map((item, index) => `<option value="${index}" ${index === state.feature ? 'selected' : ''}>${escape(item.label)}</option>`).join('')}</select><div class="marginal-contexts">${contexts.map(context => `<div class="context-summary"><span>${escape(context.label)}</span><span class="context-number ${context.value < 0 ? 'negative' : ''}">${signed(context.value)}</span><small>${context.count} of 6 revealing orders</small></div>`).join('')}</div><div class="shap-average"><span>${escape(feature.label)}’s SHAP value<br>average across all 6 orders</span><span class="number ${state.observation.shapValues[state.feature] < 0 ? 'negative' : ''}">${signed(state.observation.shapValues[state.feature])}</span></div><p class="average-arithmetic">${contexts.length === 2 ? `(${signed(contexts[0].value)} + (${signed(contexts[1].value)})) / 2` : 'The contribution is the same in every order.'}</p>`;
+  $('#feature-select').addEventListener('change', event => {state.feature = Number(event.target.value); render();});
+}
+
+function renderFinal() {
+  visual.innerHTML = '<div id="waterfall-container"></div><div class="waterfall-total"></div>';
+  renderWaterfall($('#waterfall-container'), {features:state.data.features,observation:state.observation,unit:'$1,000/year'});
+  $('#waterfall-container').querySelectorAll('.waterfall-contribution').forEach((bar, index, bars) => {bar.style.setProperty('--bar-delay', `${(bars.length-index-1)*.2}s`);});
+  const observation = state.observation;
+  $('.waterfall-total').textContent = `${number(observation.baseValue)} ${observation.shapValues.map(value => `${value < 0 ? '−' : '+'} ${number(Math.abs(value))}`).join(' ')} = ${number(observation.prediction)} ($1,000/year)`;
+}
+
+function renderCoalitionExplorer() {
+  $('#coalition-table').innerHTML = inputTable(state.explorerMask, {fullLabels:true});
+  $('#coalition-value').textContent = `vₓ(${setNotation(state.explorerMask)}) = ${number(coalition(state.observation, state.explorerMask).value)} ($1,000/year), for ${state.observation.name.toLowerCase()}.`;
+}
+
+function render() {
+  if (!state.data) return;
+  const active = document.activeElement;
+  const focusSelector = visual.contains(active) && active.id ? `#${active.id}` : null;
+  updateFacts();
+  shell.dataset.scene = state.scene;
+  $('#stage-name').textContent = names[state.scene];
+  $('#stage-count').textContent = `${state.scene+1} / ${steps.length}`;
+  $('#stage-caption').textContent = captions[state.scene];
+  $('#previous').disabled = state.scene === 0;
+  $('#next').textContent = state.scene === steps.length-1 ? 'Math & Python →' : 'Next →';
+  if (state.scene === 0) renderObservation();
+  else if (state.scene === 1) renderBackground(0);
+  else if (state.scene === 2) renderBackground(1, 0);
+  else if (state.scene === 3) renderBackground(3, 2);
+  else if (state.scene === 4) renderAverage();
+  else renderFinal();
+  $('#inspect').hidden = state.scene === 0 || state.scene === 5;
+  $('#inspect').textContent = state.scene === 4 ? 'Six orders' : 'Inspect rows';
+  $('#inspect').setAttribute('aria-label', state.scene === 4 ? 'Inspect the six revealing orders' : 'Inspect hybrid input rows and predictions');
+  if (focusSelector) visual.querySelector(focusSelector)?.focus({preventScroll:true});
+}
+
+function openRows(trigger) {
+  state.rowsTrigger = trigger;
+  const mask = state.scene === 1 ? 0 : state.scene === 2 ? 1 : 3;
+  const beforeMask = state.scene === 2 ? 0 : state.scene === 3 ? 2 : undefined;
+  $('#rows-heading').textContent = `Knowing ${groupName(mask)}`;
+  $('#rows-description').textContent = `Included columns use the selected person’s values in every row. Excluded columns keep that reference row’s values. ${beforeMask === undefined ? `vₓ(${setNotation(mask)}) = ${number(coalition(state.observation, mask).value)}.` : `Before: vₓ(${setNotation(beforeMask)}) = ${number(coalition(state.observation, beforeMask).value)}; after: vₓ(${setNotation(mask)}) = ${number(coalition(state.observation, mask).value)}. Their difference is ${signed(marginal(state.observation, 0, beforeMask))}.`} Outputs are in $1,000/year.`;
+  $('#rows-table').innerHTML = inputTable(mask, {beforeMask,newFeature:beforeMask === undefined ? -1 : 0,fullLabels:true});
+  dialog.showModal();
+  $('#close-rows').focus();
+}
+function openOrders(trigger) {
+  state.rowsTrigger = trigger;
+  const feature = state.feature;
+  $('#rows-heading').textContent = `Six orders for ${state.data.features[feature].label.toLowerCase()}`;
+  $('#rows-description').textContent = 'Each row records the marginal contribution when this feature joins. Repeated preceding groups still receive one entry per order. Values are in $1,000/year.';
+  $('#rows-table').innerHTML = `<table class="orders-table"><thead><tr><th scope="col">Revealing order</th><th scope="col">Already revealed</th><th scope="col">Marginal</th></tr></thead><tbody>${state.observation.orders.map(order => {
+    const position = order.features.indexOf(feature);
+    const mask = order.features.slice(0, position).reduce((result,index) => result | (1 << index), 0);
+    return `<tr><td>${order.features.map(index => `<span class="${index === feature ? 'order-target' : ''}">${escape(state.data.features[index].shortLabel)}</span>`).join(' → ')}</td><td>${escape(groupName(mask))}</td><td>${signed(marginal(state.observation, feature, mask))}</td></tr>`;
+  }).join('')}</tbody><tfoot><tr><th scope="row" colspan="2">Mean: the SHAP value</th><td>${signed(state.observation.shapValues[feature])}</td></tr></tfoot></table>`;
+  dialog.showModal();
+  $('#close-rows').focus();
+}
+function navigate(index, behavior = reducedMotion.matches ? 'auto' : 'smooth') {
+  const target = index === steps.length ? $('#method') : steps[index];
+  if (index < steps.length && matchMedia('(max-width:860px)').matches) {
+    state.scene = index;
+    render();
+    const readingOffset = $('.masthead').getBoundingClientRect().height + shell.getBoundingClientRect().height + 15;
+    const top = scrollY + target.getBoundingClientRect().top - readingOffset;
+    scrollTo({top,behavior});
+  } else target.scrollIntoView({behavior,block:'start'});
+  history.replaceState(null,'',`#${target.id}`);
+}
+let scrollPending = false;
+function updateScroll() {
+  scrollPending = false;
+  if (!state.data) return;
+  const mobile = matchMedia('(max-width:860px)').matches;
+  const readingLine = mobile ? shell.getBoundingClientRect().bottom + 60 : innerHeight * .5;
+  let scene = 0;
+  steps.forEach((step,index) => {if (step.getBoundingClientRect().top <= readingLine) scene = index;});
+  if (state.scene !== scene) {state.scene = scene; render();}
+  const progress = Math.max(0,Math.min(1,(scrollY-steps[0].offsetTop)/($('#method').offsetTop-steps[0].offsetTop)));
+  $('#progress').style.width = `${progress*100}%`;
+}
+function queueScroll() {if (!scrollPending) {scrollPending = true; requestAnimationFrame(updateScroll);}}
+
+$('#inspect').addEventListener('click', () => state.scene === 4 ? openOrders($('#inspect')) : openRows($('#inspect')));
+$('#previous').addEventListener('click', () => navigate(Math.max(0,state.scene-1)));
+$('#next').addEventListener('click', () => navigate(state.scene+1));
+$('#close-rows').addEventListener('click', () => dialog.close());
+dialog.addEventListener('click', event => {
+  if (event.target !== dialog) return;
+  const rect = dialog.getBoundingClientRect();
+  if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
+});
+dialog.addEventListener('close', () => {if (state.rowsTrigger?.isConnected) state.rowsTrigger.focus();});
+observationSelect.addEventListener('change', () => {state.observation = state.data.observations.find(item => item.id === observationSelect.value); render();});
+$('#coalition-controls').addEventListener('change', () => {
+  state.explorerMask = [...$('#coalition-controls').querySelectorAll('input:checked')].reduce((mask,input) => mask | (1 << Number(input.value)),0);
+  renderCoalitionExplorer();
+});
+addEventListener('scroll',queueScroll,{passive:true});
+addEventListener('resize', () => {queueScroll(); if (state.scene === 5) renderFinal();});
+addEventListener('hashchange', () => {
+  if (!state.data) return;
+  const index = steps.findIndex(step => `#${step.id}` === location.hash);
+  if (index >= 0) navigate(index, 'auto');
+});
+
+try {
+  const response = await fetch(new URL('./data.json',import.meta.url));
+  if (!response.ok) throw new Error(`Data request failed (${response.status}).`);
+  state.data = validateData(await response.json());
+  state.observation = state.data.observations.find(item => item.id === state.data.defaultObservationId) || state.data.observations[0];
+  observationSelect.innerHTML = state.data.observations.map(item => `<option value="${escape(item.id)}">${escape(item.name)}</option>`).join('');
+  observationSelect.value = state.observation.id;
+  observationSelect.disabled = false;
+  updateScroll();
+  const anchor = location.hash && document.getElementById(location.hash.slice(1));
+  if (anchor) {
+    const index = steps.indexOf(anchor);
+    if (index >= 0) navigate(index, 'auto');
+    else anchor.scrollIntoView({block:'start'});
+    queueScroll();
+  }
+} catch (error) {
+  visual.innerHTML = '<p>The interactive data could not be loaded. The explanation and Python operation below remain available.</p>';
+  $('#stage-caption').textContent = error.message;
+  $('#next').disabled = true;
+  console.error(error);
+}
