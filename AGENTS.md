@@ -19,3 +19,9 @@
 - Never use Airbnb examples unless the user explicitly proposes them.
 - Copy only requested course files from the private semester repository. Never
   merge its Git history or publish unrelated private materials.
+- Keep the shared guide text, PDF, and tokens synchronized with `pols4728-2026f`.
+  Update the private source when editing shared design rules, then use its
+  `make design-export PUBLIC_DESIGN_REPO=/path/to/pols4728` command to refresh
+  the public copy. Its `design-export-check` target checks for drift. Preserve
+  the public introduction and artwork registry, and review and commit changes
+  in each repository separately.
