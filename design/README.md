@@ -1,9 +1,9 @@
-> This guide is a snapshot of the Fall 2026 course design language, copied on
+> This guide is adapted from the Fall 2026 course design language on
 > October 6, 2026. The public repository uses it for new course pages, figures,
 > and other teaching materials. The [visual reference](guide.pdf) and
 > [design tokens](tokens.json) accompany the guide.
 >
-> The preserved semester guide below describes its original course repository.
+> The semester guide below describes its original course repository.
 > Its print dimensions, LaTeX helpers, build commands, and migration status apply
 > to that source checkout; those tools and artwork are not all included here.
 > Its manual document-build policy does not replace this public repository's
@@ -174,11 +174,6 @@ The helper advances the normal part counter and creates the contents entry and
 PDF bookmark without a duplicate visible heading. Both notes editions use it.
 For specimens, `\CoursePartScene[width]{part-key}` reuses the same composition
 without changing the part counter or adding navigation entries.
-
-The part titled `The Canon` begins with the complete Regularization chapter,
-including its shrinkage and OLS/collinearity warmup before ridge and lasso.
-Foundations ends with validation. The full notes and standalone article use the
-same chapter wrapper, keeping the warmup and methods together across both editions.
 
 ### Explanatory illustrations within chapters
 
