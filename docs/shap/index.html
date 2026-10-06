@@ -15,68 +15,96 @@
   <main>
     <div class="story-layout" id="story">
       <aside class="stage-shell" aria-label="Interactive explanation">
-        <div class="stage-top"><span id="stage-name">The Shapley formula</span><span id="stage-count">1 / 8</span></div>
-        <div class="observation-control"><label for="observation-select">Person to explain</label><select id="observation-select" disabled><option>Loading examples…</option></select></div>
+        <div class="stage-top"><span id="stage-name">The Shapley formula</span><span id="stage-count">1 / 13</span></div>
+        <div class="observation-control" hidden><label for="observation-select">Person to explain</label><select id="observation-select" disabled><option>Loading examples…</option></select></div>
         <div id="visual" class="visual" tabindex="0" aria-label="Interactive figure"><p>Loading the prediction’s explanation…</p></div>
         <p id="stage-caption" class="stage-caption"></p>
         <div class="stage-navigation"><button id="previous" type="button" disabled>← Previous</button><button id="inspect" type="button" hidden>Inspect rows</button><button id="next" type="button">Next →</button></div>
       </aside>
       <div class="narrative">
-        <section class="step" id="shapley-formula" data-step="0" aria-labelledby="title"><div class="step-content">
-          <p class="step-number">1 / 8 · Start with Shapley</p><h1 id="title">From Shapley values to SHAP</h1>
-          <p class="lead">You already know the Shapley formula. What changes when the players are a model’s input features?</p>
-          <p>The formula stays the same. We define a new game for the one observation we want to explain. A feature is a player; a coalition is a group of features whose values we fix to that observation. Its payoff is an average model prediction.</p>
-          <p>Write that game as <span class="math-text">v<sub>x</sub></span>, because it depends on the observation <var>x</var>. The difference <span class="math-text">v<sub>x</sub>(S ∪ {i}) − v<sub>x</sub>(S)</span> asks how the average prediction changes when we also fix feature <var>i</var>.</p>
-          <p>We will explain ability, <span class="math-text">i = A</span>, among the three features <span class="math-text">F = {A, N, E}</span>, so <span class="math-text">m = 3</span>. Here <var>N</var> means neighborhood opportunity, and <var>E</var> means experience. The sum visits the four possible groups <var>S</var> that exclude ability.</p>
-          <p class="scroll-prompt">Scroll through the formula’s terms, or use Next.</p>
+        <section class="step formula-step" id="shapley-formula" data-step="0" aria-labelledby="title"><div class="step-content">
+          <p class="step-number">1 / 13 · Start with Shapley</p><h1 id="title">From Shapley values to SHAP</h1>
+          <p class="lead">The players are now a model’s input features. What is the game whose Shapley values explain a prediction?</p>
+          <p>Begin with the familiar formula. As you scroll, we will name its parts in a prediction problem, then compute them with a data table.</p>
+          <p class="scroll-prompt">Scroll to highlight each part, or use Next.</p>
         </div></section>
-        <section class="step" id="observation" data-step="1" aria-labelledby="observation-heading"><div class="step-content">
-          <p class="step-number">2 / 8 · The model and the observation</p><h2 id="observation-heading">Train the model; explain one prediction</h2>
+        <section class="step formula-step" id="value-function" data-step="1" aria-labelledby="value-function-heading"><div class="step-content">
+          <p class="step-number">2 / 13 · The value function</p><h2 id="value-function-heading">The game assigns a prediction to each group</h2>
+          <p>The symbol <span class="math-text">v<sub>x</sub></span> names the value function for our prediction game. It takes a group of features and returns the value we assign to that group.</p>
+          <p>Here that value is an average prediction: fix the group’s inputs to the observation we want to explain, and average the model’s predictions over background values for the other inputs. This gives <span class="math-text">v<sub>x</sub>(S)</span>.</p>
+          <p>With every feature fixed to the observation, this average is the model’s prediction itself. With only some features fixed, it is the prediction average for that partial information.</p>
+        </div></section>
+        <section class="step formula-step" id="observation-symbol" data-step="2" aria-labelledby="observation-symbol-heading"><div class="step-content">
+          <p class="step-number">3 / 13 · The observation x</p><h2 id="observation-symbol-heading">Whose prediction are we explaining?</h2>
+          <p>The subscript <var>x</var> identifies one observation: the complete input row for the person whose prediction we want to explain. Its feature values are already known to us.</p>
+          <p>We use those values in the coalition thought experiment. Each included feature is fixed to its value in <var>x</var>; each excluded feature is averaged over the background. The same person supplies the fixed values throughout this game.</p>
+          <p>Another observation defines another game <span class="math-text">v<sub>x</sub></span>, even when the model and background stay the same.</p>
+        </div></section>
+        <section class="step formula-step" id="preceding-features" data-step="3" aria-labelledby="preceding-features-heading"><div class="step-content">
+          <p class="step-number">4 / 13 · The existing group S</p><h2 id="preceding-features-heading">Which features are already fixed?</h2>
+          <p>The set <var>S</var> is the coalition of features already fixed to this observation. The expression <span class="math-text">v<sub>x</sub>(S)</span> is the average prediction before we add another feature.</p>
+          <p>The set <var>F</var> contains all the model’s input features, and <var>m</var> is their number. The sum considers the possible groups <var>S</var> that leave out the feature we are about to add.</p>
+          <p>The group can be empty. Then no columns are fixed to the observation, and the value is the background average prediction.</p>
+        </div></section>
+        <section class="step formula-step" id="joining-feature" data-step="4" aria-labelledby="joining-feature-heading"><div class="step-content">
+          <p class="step-number">5 / 13 · The additional feature i</p><h2 id="joining-feature-heading">Now one more feature joins</h2>
+          <p>The symbol <var>i</var> identifies the additional feature whose contribution we want to measure. It is not already in <var>S</var>. Adding it gives <span class="math-text">S ∪ {i}</span>.</p>
+          <p>For <span class="math-text">v<sub>x</sub>(S ∪ {i})</span>, keep the features in <var>S</var> fixed and also fix feature <var>i</var> to its value in <var>x</var>. The other features retain their background values.</p>
+          <p>Subtract <span class="math-text">v<sub>x</sub>(S)</span> to get the additional feature’s marginal contribution. The two averages differ in exactly which columns are fixed: <var>S</var> before, <span class="math-text">S ∪ {i}</span> after.</p>
+        </div></section>
+        <section class="step formula-step" id="feature-credit" data-step="5" aria-labelledby="feature-credit-heading"><div class="step-content">
+          <p class="step-number">6 / 13 · The feature’s credit</p><h2 id="feature-credit-heading">The result is credit for feature i</h2>
+          <p>On the left, <span class="math-text">ϕ<sub>i</sub>(v<sub>x</sub>)</span> is the Shapley value assigned to that additional feature in this observation’s game. It is the feature’s final contribution to the prediction, measured in the model output’s units.</p>
+          <p>The sum on the right averages its marginal contributions across possible preceding groups <var>S</var>. The factorials give the same order weights as in the earlier Shapley story.</p>
+          <p>We can now compute those terms. We will choose one person, hold the prediction model fixed, and use background rows to show what each value-function expression does.</p>
+        </div></section>
+        <section class="step" id="observation" data-step="6" aria-labelledby="observation-heading"><div class="step-content">
+          <p class="step-number">7 / 13 · The model and the observation</p><h2 id="observation-heading">Train the model; explain one prediction</h2>
           <p>In a machine-learning application, training data contain features <var>X</var> and observed outcomes <var>y</var>. Fitting learns a prediction function <var>f</var>. SHAP then uses that fixed function to explain its prediction <span class="math-text">f(x)</span> for one observation <var>x</var>.</p>
-          <p>We supply a transparent teaching equation so you can check each prediction. It takes ability <var>A</var>, neighborhood opportunity <var>N</var>, and experience <var>E</var>, and predicts annual earnings in thousands of dollars.</p>
+          <p>We supply a transparent teaching equation so you can check each prediction. Its players are ability <var>A</var>, neighborhood opportunity <var>N</var>, and experience <var>E</var>: <span class="math-text">F = {A, N, E}</span> and <span class="math-text">m = 3</span>. It predicts annual earnings in thousands of dollars.</p>
           <div class="prediction-equation"><math display="block" aria-label="f of A N E equals 40 plus 10 A plus 24 A N plus 4 E"><mrow><mi>f</mi><mo stretchy="false">(</mo><mi>A</mi><mo>,</mo><mi>N</mi><mo>,</mo><mi>E</mi><mo stretchy="false">)</mo><mo>=</mo><mn>40</mn><mo>+</mo><mn>10</mn><mi>A</mi><mo>+</mo><mn>24</mn><mi>A</mi><mi>N</mi><mo>+</mo><mn>4</mn><mi>E</mi></mrow></math></div>
           <p>Ability and experience range from 0 to 1; neighborhood opportunity ranges from −1 to +1. An adverse neighborhood can make the interaction outweigh ability’s positive main term. The product <var>AN</var> belongs inside <var>f</var>; it is not a fourth player.</p>
           <p>This equation and the reference people are constructed for teaching, rather than estimated from earnings data. The steps that follow also apply to a fitted model. All three of the focal person’s inputs are known: “revealing” one is the coalition thought experiment we use to assign credit.</p>
         </div></section>
-        <section class="step" id="background" data-step="2" aria-labelledby="background-heading"><div class="step-content">
-          <p class="step-number">3 / 8 · The term vₓ(S)</p><h2 id="background-heading">What is the value of a feature group?</h2>
+        <section class="step" id="background" data-step="7" aria-labelledby="background-heading"><div class="step-content">
+          <p class="step-number">8 / 13 · The term vₓ(S)</p><h2 id="background-heading">What is the value of a feature group?</h2>
           <div class="narrative-formula" data-formula-focus="before"></div>
           <p>To define <span class="math-text">v<sub>x</sub>(S)</span>, fix the columns in <var>S</var> to this person’s values. For the excluded columns, keep the values from each background row. Run every complete row through the fixed model and average the predictions.</p>
           <p>Start with <span class="math-text">S = ∅</span>: none of the person’s columns are fixed. Our eight equally weighted reference rows cover every combination of low or high ability, adverse or favorable neighborhood, and low or high experience. Their average prediction is <span data-fact="baselineDollars">$47,000</span>, so <span class="math-text">v<sub>x</sub>(∅)</span> is the baseline.</p>
           <p>Background rows define the reference distribution. They may be drawn from training inputs, but here they are used to average predictions. Their observed outcomes are not needed, and the model is not fitted again for each feature group.</p>
           <p>The empty coalition’s value is not zero. It is the prediction average with no columns fixed to this person. Adding no feature leaves any group unchanged: <span class="math-text">S ∪ ∅ = S</span>.</p>
         </div></section>
-        <section class="step" id="reveal-ability" data-step="3" aria-labelledby="ability-heading"><div class="step-content">
-          <p class="step-number">4 / 8 · The term vₓ(S ∪ {i})</p><h2 id="ability-heading">Add the person’s ability to the group</h2>
+        <section class="step" id="reveal-ability" data-step="8" aria-labelledby="ability-heading"><div class="step-content">
+          <p class="step-number">9 / 13 · The term vₓ(S ∪ {i})</p><h2 id="ability-heading">Add the person’s ability to the group</h2>
           <div class="narrative-formula" data-formula-focus="after"></div>
           <p>Here <span class="math-text">S = ∅</span> and <span class="math-text">i = A</span>. The term <span class="math-text">v<sub>x</sub>(S ∪ {i})</span> therefore becomes <span class="math-text">v<sub>x</sub>({A})</span>. Copy this person’s ability, <span data-fact="ability">1</span>, into every background row. Keep neighborhood and experience together as they were in that row.</p>
           <p>Run these hybrid inputs through the same model and average the outputs. The new value is <span data-fact="abilityMeanDollars">$52,000</span>. Subtract <span class="math-text">v<sub>x</sub>(∅)</span> to get <span data-fact="abilityFirstDollars">+$5,000</span>: ability’s marginal contribution to this prediction when no other feature is fixed.</p>
           <p>This is “integrating out” the excluded features: we average predictions over their background values. Every model call still uses all three columns. Included means fixed to this person; excluded means averaged over the background.</p>
           <p>Zero is a legitimate input value in these rows. It is not how we represent an excluded feature.</p>
         </div></section>
-        <section class="step" id="neighborhood-first" data-step="4" aria-labelledby="neighborhood-heading"><div class="step-content">
-          <p class="step-number">5 / 8 · The difference vₓ(S ∪ {i}) − vₓ(S)</p><h2 id="neighborhood-heading">Change S; compare the same two terms</h2>
+        <section class="step" id="neighborhood-first" data-step="9" aria-labelledby="neighborhood-heading"><div class="step-content">
+          <p class="step-number">10 / 13 · The difference vₓ(S ∪ {i}) − vₓ(S)</p><h2 id="neighborhood-heading">Change S; compare the same two terms</h2>
           <div class="narrative-formula" data-formula-focus="difference"></div>
           <p>Now take <span class="math-text">S = {N}</span>, keeping <span class="math-text">i = A</span>. Fix this person’s neighborhood, <span data-fact="neighborhood">−1</span>, in every background row. Ability and experience remain at their background values. The average, <span class="math-text">v<sub>x</sub>({N})</span>, is <span data-fact="neighborhoodMeanDollars">$35,000</span>.</p>
           <p>Add ability to that group: fix both columns to this person, retaining experience from each row. The average, <span class="math-text">v<sub>x</sub>({A, N})</span>, is <span data-fact="bothMeanDollars">$28,000</span>. Subtract the two means to get <span data-fact="abilityAfterDollars">−$7,000</span>.</p>
           <p data-fact="contextInterpretation">Here the adverse context makes revealing this person’s ability lower the averaged prediction. This sign reversal comes from the interaction in our equation.</p>
           <p>The subtraction in the Shapley formula is exactly this comparison of prediction averages. Each preceding group <var>S</var> produces one marginal contribution; the formula then weights and adds them.</p>
         </div></section>
-        <section class="step" id="weights" data-step="5" aria-labelledby="weights-heading"><div class="step-content">
-          <p class="step-number">6 / 8 · The factorial weight</p><h2 id="weights-heading">How often does each group precede ability?</h2>
-          <p>For three features there are <span class="math-text">3! = 6</span> equally weighted revealing orders. A particular preceding group <var>S</var> appears in <span class="math-text">|S|!(3 − |S| − 1)!</span> of them: arrange the features in <var>S</var> before ability, and the remaining features after it.</p>
+        <section class="step" id="weights" data-step="10" aria-labelledby="weights-heading"><div class="step-content">
+          <p class="step-number">11 / 13 · The factorial weight</p><h2 id="weights-heading">How often does each group precede ability?</h2>
+          <p>For three features there are <span class="math-text">3! = 6</span> equally weighted revealing orders. Here <span class="math-text">|S|</span> is the number of features in <var>S</var>. A particular preceding group <var>S</var> appears in <span class="math-text">|S|!(3 − |S| − 1)!</span> of them: arrange the features in <var>S</var> before ability, and the remaining features after it.</p>
           <p>Divide that count by six. The empty group gets weight <span class="math-text">0!2!/3! = 2/6</span>; each one-feature group gets <span class="math-text">1!1!/3! = 1/6</span>; the two-feature group gets <span class="math-text">2!0!/3! = 2/6</span>.</p>
           <p>The table puts each weight beside the two prediction averages it multiplies. Those are the same averages we computed by fixing columns and predicting background rows. No new operation is hidden in the factorials.</p>
           <p>Open the six orders to see the preceding groups counted directly.</p>
         </div></section>
-        <section class="step" id="shap-value" data-step="6" aria-labelledby="shap-heading"><div class="step-content">
-          <p class="step-number">7 / 8 · The sum and its result</p><h2 id="shap-heading">Add the weighted marginal contributions</h2>
+        <section class="step" id="shap-value" data-step="11" aria-labelledby="shap-heading"><div class="step-content">
+          <p class="step-number">12 / 13 · The sum and its result</p><h2 id="shap-heading">Add the weighted marginal contributions</h2>
           <p>The sum visits all four groups that exclude ability. Weight each prediction difference by the fraction of orders in which that group precedes ability, then add. This gives <span class="math-text">ϕ<sub>A</sub>(v<sub>x</sub>)</span>, ability’s SHAP value for this observation.</p>
           <p>We can combine equal contributions in this example. Before neighborhood is fixed, ability contributes <span data-fact="abilityFirstDollars">+$5,000</span> with total weight <span class="math-text">2/6 + 1/6 = 3/6</span>. After neighborhood is fixed, it contributes <span data-fact="abilityAfterDollars">−$7,000</span> with total weight <span class="math-text">1/6 + 2/6 = 3/6</span>. The result is <span data-fact="abilityShapDollars">−$1,000</span>.</p>
           <p>Experience’s position does not change ability’s marginal here because experience enters additively. Select another feature to inspect its average, or open the six orders. The formula assigns credit for the model’s prediction; it does not estimate a causal effect of changing a person’s features.</p>
         </div></section>
-        <section class="step" id="waterfall" data-step="7" aria-labelledby="waterfall-heading"><div class="step-content">
-          <p class="step-number">8 / 8 · From the formula to the plot</p><h2 id="waterfall-heading">From the baseline to this prediction</h2>
+        <section class="step" id="waterfall" data-step="12" aria-labelledby="waterfall-heading"><div class="step-content">
+          <p class="step-number">13 / 13 · From the formula to the plot</p><h2 id="waterfall-heading">From the baseline to this prediction</h2>
           <p>Repeat the same Shapley calculation for each feature. With every column fixed, all hybrid rows equal this person’s inputs, so <span class="math-text">v<sub>x</sub>(F) = f(x)</span>. The SHAP values add to the difference <span class="math-text">f(x) − v<sub>x</sub>(∅)</span>.</p>
           <p>The waterfall starts at <span data-fact="baselineDollars">$47,000</span>. Positive contributions move right; negative contributions move left. Together they reach <span data-fact="predictionDollars">$30,000</span>.</p>
           <p>The values beside the feature names are the person’s inputs. The numbers on the bars are SHAP contributions to predicted earnings, in thousands of dollars. The rows are sorted by contribution magnitude; this is a display order, not a revealing order.</p>
@@ -88,7 +116,7 @@
       <h2 id="method-heading">The calculation we have been doing</h2>
       <p>For a person <var>x</var> and a revealed feature group <var>S</var>, copy that person’s values for the group into every background row. Keep the unrevealed values from the same row, predict with the fixed model, and average. With our eight equally weighted reference rows,</p>
       <div class="equation"><math display="block" aria-label="v sub x of S equals one over eight times the sum from r equals one to eight of f of x S, b r outside S"><mrow><msub><mi>v</mi><mi>x</mi></msub><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mn>8</mn></mfrac><munderover><mo>∑</mo><mrow><mi>r</mi><mo>=</mo><mn>1</mn></mrow><mn>8</mn></munderover><mi>f</mi><mo stretchy="false">(</mo><msub><mi>x</mi><mi>S</mi></msub><mo>,</mo><msubsup><mi>b</mi><mrow><mo>−</mo><mi>S</mi></mrow><mrow><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo></mrow></msubsup><mo stretchy="false">)</mo></mrow></math></div>
-      <p>Revealing feature <var>j</var> changes this average by <span class="math-text">v<sub>x</sub>(S ∪ {j}) − v<sub>x</sub>(S)</span>. Its SHAP value averages that marginal contribution across equally weighted feature orders, exactly as in the earlier <a href="../shapley/">Shapley story</a>.</p>
+      <p>Revealing feature <var>i</var> changes this average by <span class="math-text">v<sub>x</sub>(S ∪ {i}) − v<sub>x</sub>(S)</span>. Its SHAP value averages that marginal contribution across equally weighted feature orders, exactly as in the earlier <a href="../shapley/">Shapley story</a>.</p>
       <p>Our example uses interventional background replacement: average over all reference rows, rather than filtering them to people who match the revealed characteristics. Changing the background or masking rule can change the explanation.</p>
       <details id="coalition-explorer"><summary>Explore v(S) with a data table</summary>
         <p>Include a column to copy this person’s value into every row. Exclude it to keep the original background values. All three input columns remain in the table and in the model.</p>

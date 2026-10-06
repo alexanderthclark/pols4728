@@ -1,6 +1,6 @@
 # Explaining one prediction with SHAP
 
-This eight-frame scrolling story begins with the Shapley formula readers
+This scrolling story begins with the Shapley formula readers
 already know. It maps its players to features and its game to one observation’s
 prediction, distinguishing model training from explanation. The highlighted
 value-function terms show how a revealed feature changes the value of a group: substitute the observation's values into background rows, evaluate
@@ -27,14 +27,23 @@ profiles use the same model and background.
 
 ## Story and controls
 
-1. Begin with the complete Shapley formula and define its prediction game.
-2. Orient training, the fixed predictor, and one observation to explain.
-3. Interpret `v_x(S)` as a background prediction average, starting with `S = ∅`.
-4. Interpret `v_x(S ∪ {i})` by fixing ability and comparing with the baseline.
-5. Start with neighborhood fixed and compare the same two value-function terms.
-6. Match all four preceding groups to their factorial weights and prediction differences.
-7. Add the weighted contributions; select a feature and inspect all six orders.
-8. Assemble the final contributions in a course-styled standard waterfall.
+1. Begin with the complete Shapley formula.
+2. Highlight the value function: a feature group’s prediction average.
+3. Highlight the observation `x` supplying the fixed inputs.
+4. Highlight `S`, the group already fixed, and define `F` and `m`.
+5. Highlight `i`, the additional feature joining a group that excludes it.
+6. Highlight the result: the final contribution assigned to that feature.
+7. Orient training, the fixed predictor, and one observation to explain.
+8. Compute `v_x(S)` from background rows, starting with `S = ∅`.
+9. Compute `v_x(S ∪ {i})` by fixing ability and comparing with the baseline.
+10. Start with neighborhood fixed and compare the same two value-function terms.
+11. Match all four preceding groups to their factorial weights and prediction differences.
+12. Add the weighted contributions; select a feature and inspect all six orders.
+13. Assemble the final contributions in a course-styled standard waterfall.
+
+The opening keeps the same equation in place and highlights only the symbols
+under discussion. Definitions enter through scrolling instead of a glossary.
+The person selector appears when the worked prediction example begins.
 
 The concluding math section supplies the finite-background `v_x(S)` definition.
 Its checkbox-controlled data table exposes every feature group, including the

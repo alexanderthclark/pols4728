@@ -4,9 +4,14 @@ import { shapleyFormulaMarkup, valueMarkup, joiningMarkup } from './formula.js';
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
-const names = ['The Shapley formula', 'A fixed model; one observation', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
+const names = ['The Shapley formula', 'The value function', 'The observation x', 'The existing feature group S', 'The additional feature i', 'The feature’s final credit', 'A fixed model; one observation', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
 const captions = [
-  'The players are features. The payoff is an average prediction for observation x.',
+  'Scroll to give each part its meaning in a prediction problem.',
+  'vₓ is the value function. vₓ(S) returns the prediction average assigned to S.',
+  'x is one complete observation; its values supply the fixed inputs.',
+  'S is the group already fixed to x, before the additional feature joins.',
+  'i is the additional feature. It belongs to F and is not already in S.',
+  'ϕᵢ(vₓ) is the final contribution assigned to feature i for this prediction.',
   'Fit f once, then hold it fixed. Here we supply a transparent teaching equation.',
   'vₓ(∅): no columns fixed to x. Average the eight model predictions.',
   'After fixes ability to x; before uses its background values. Other columns stay the same.',
@@ -15,6 +20,14 @@ const captions = [
   'The sum of weighted prediction differences is the feature’s SHAP value.',
   'Final SHAP contributions connect the same baseline to this person’s prediction.',
 ];
+const formulaStops = {
+  'shapley-formula':{focus:'all'},
+  'value-function':{focus:'value',symbol:'v<sub>x</sub>(S)',meaning:'The prediction average assigned to feature group S by the value function vₓ.'},
+  'observation-symbol':{focus:'observation',symbol:'x',meaning:'The observation whose prediction we explain. Its inputs supply the values to fix.'},
+  'preceding-features':{focus:'coalition',symbol:'S',meaning:'The features already fixed to x. Their prediction average is the “before” value.'},
+  'joining-feature':{focus:'joining',symbol:'i ∉ S',meaning:'The additional feature joins S. Fixing its value gives the “after” group S ∪ {i}.'},
+  'feature-credit':{focus:'result',symbol:'ϕ<sub>i</sub>(v<sub>x</sub>)',meaning:'The final credit for feature i: its weighted average marginal contribution.'},
+};
 const visual = $('#visual'), shell = $('.stage-shell');
 const observationSelect = $('#observation-select');
 const dialog = $('#rows-dialog');
@@ -60,8 +73,9 @@ function updateFacts() {
   renderCoalitionExplorer();
 }
 
-function renderFormula() {
-  visual.innerHTML = `<h3>The same Shapley formula</h3>${shapleyFormulaMarkup()}<p class="formula-definitions"><span class="math-text">F = {A, N, E}</span> · <span class="math-text">m = 3</span> · <span class="math-text">i = A</span></p><dl class="formula-glossary"><dt><span class="math-text">x</span></dt><dd>the person whose prediction we explain</dd><dt><span class="math-text">S</span></dt><dd>the features already fixed to that person</dd><dt><span class="math-text">v<sub>x</sub>(S)</span></dt><dd>average prediction with those columns fixed</dd><dt><span class="math-text">ϕ<sub>i</sub>(v<sub>x</sub>)</span></dt><dd>credit assigned to feature <var>i</var> for this prediction</dd></dl>`;
+function renderFormula(scene) {
+  const stop = formulaStops[scene];
+  visual.innerHTML = `${shapleyFormulaMarkup(stop.focus)}${stop.symbol ? `<div class="formula-explanation"><p class="formula-focus-symbol math-text">${stop.symbol}</p><p class="formula-focus-meaning">${stop.meaning}</p></div>` : ''}`;
 }
 
 function renderObservation() {
@@ -137,14 +151,15 @@ function render() {
   const active = document.activeElement;
   const focusSelector = visual.contains(active) && active.id ? `#${active.id}` : null;
   updateFacts();
-  shell.dataset.scene = state.scene;
+  const scene = steps[state.scene].id;
+  shell.dataset.scene = scene;
+  $('.observation-control').hidden = Boolean(formulaStops[scene]);
   $('#stage-name').textContent = names[state.scene];
   $('#stage-count').textContent = `${state.scene+1} / ${steps.length}`;
   $('#stage-caption').textContent = captions[state.scene];
   $('#previous').disabled = state.scene === 0;
   $('#next').textContent = state.scene === steps.length-1 ? 'Math & Python →' : 'Next →';
-  const scene = steps[state.scene].id;
-  if (scene === 'shapley-formula') renderFormula();
+  if (formulaStops[scene]) renderFormula(scene);
   else if (scene === 'observation') renderObservation();
   else if (scene === 'background') renderBackground(0);
   else if (scene === 'reveal-ability') renderBackground(1, 0);
