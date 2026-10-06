@@ -5,7 +5,7 @@ import { validateBreadPeace, breadPeaceFacts, renderBreadPeace } from './bread-p
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
-const names = ['The Shapley formula', 'The observation x', 'The model prediction ŷ', 'The value function', 'The existing feature group S', 'The additional feature i', 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'An interaction model; one person', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
+const names = ['The Shapley formula', 'The observation x', 'The model prediction ŷ', 'The value function', 'The existing feature group S', 'The additional feature i', 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'When features interact', 'An interaction model; one person', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
 const captions = [
   'Scroll to give each part its meaning in a prediction problem.',
   'x is one complete observation; its values supply the fixed inputs.',
@@ -21,6 +21,7 @@ const captions = [
   'Here 0 supplies each excluded input’s mean; predictions are in SD of vote share.',
   'Here 0 supplies each excluded input’s mean; predictions are in SD of vote share.',
   'Each order has weight 1/2. Baseline plus both SHAP values gives the prediction, in SD of vote share.',
+  '',
   'Fit f once, then hold it fixed. Here we supply a transparent teaching equation.',
   'vₓ(∅): no columns fixed to x. Average the eight model predictions.',
   'After fixes ability to x; before uses its background values. Other columns stay the same.',
@@ -38,7 +39,8 @@ const formulaStops = {
   'joining-feature':{focus:'joining',symbol:'S ∪ {i}',meaning:'<var>i</var> is the additional feature. Fix its value from <var>x</var>, keeping <var>S</var> fixed. Marginal contribution = after − before.'},
   'feature-credit':{focus:'result',symbol:'ϕ<sub>i</sub>(v<sub>x</sub>) = ϕ<sub>i</sub>(x)',meaning:'Feature <var>i</var>’s credit relative to the background average. Average its marginal across orders; the credit uses the prediction’s units.'},
 };
-const isCenteredScene = scene => Boolean(formulaStops[scene]) || scene === 'bread-peace-intro';
+const transitionScenes = new Set(['bread-peace-intro', 'earnings-intro']);
+const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene);
 const visual = $('#visual'), shell = $('.stage-shell'), story = $('#story');
 const observationSelect = $('#observation-select');
 const dialog = $('#rows-dialog');
@@ -95,8 +97,8 @@ function renderFormula(scene) {
   visual.innerHTML = `<h1 class="formula-intro-title">From Shapley values to SHAP</h1>${shapleyFormulaMarkup(stop.focus)}<div class="formula-explanation">${stop.symbol ? `<p class="formula-focus-symbol math-text">${stop.symbol}</p>` : ''}<p class="formula-focus-meaning">${stop.meaning}</p>${scene === 'shapley-formula' ? '<p class="formula-scroll-prompt">Scroll to connect the symbols to predictions, or use Next.</p>' : ''}</div>`;
 }
 
-function renderTransition() {
-  visual.innerHTML = $('#bread-peace-intro .transition-content').outerHTML;
+function renderTransition(scene) {
+  visual.innerHTML = $(`#${scene} .transition-content`).outerHTML;
 }
 
 function renderObservation() {
@@ -213,7 +215,7 @@ function render() {
   $('#previous').disabled = state.scene === 0;
   $('#next').textContent = state.scene === steps.length-1 ? 'Math & Python →' : 'Next →';
   if (formulaStops[scene]) renderFormula(scene);
-  else if (scene === 'bread-peace-intro') renderTransition();
+  else if (transitionScenes.has(scene)) renderTransition(scene);
   else if (breadScene) visual.innerHTML = renderBreadPeace(scene,state.breadData,state.breadObservation);
   else if (scene === 'observation') renderObservation();
   else if (scene === 'background') renderBackground(0);

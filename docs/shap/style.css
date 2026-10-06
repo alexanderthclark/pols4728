@@ -436,7 +436,7 @@ dialog p { font-size:16px; }
   .formula-equation,.stage-shell[data-scene="shap-value"] .formula-equation { font-size:clamp(18px,4.1cqi,22px); }
 }
 
-/* The formula and model transition are centered; worked examples use two columns. */
+/* The formula and model transitions are centered; worked examples use two columns. */
 .story-layout.is-interactive .formula-step,
 .story-layout.is-interactive .transition-step { min-height:100svh; }
 .story-layout.is-interactive .formula-step .step-content,
@@ -463,6 +463,11 @@ dialog p { font-size:16px; }
 .transition-definitions { font:19px/1.5 var(--serif); margin:0 0 10px!important; }
 .transition-note { font:14px/1.5 var(--sans); color:var(--muted); margin:0 0 22px!important; }
 .transition-citation { max-width:660px; margin:0 auto!important; font:16px/1.5 var(--serif); color:var(--muted); }
+.earnings-transition .transition-title { margin-bottom:30px; }
+.earnings-transition-art { width:min(520px,100%); max-height:240px; margin-bottom:8px; }
+.transition-regions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; max-width:520px; margin:0 auto 24px; font:16px/1.4 var(--serif); }
+.earnings-transition .transition-equation { font-size:clamp(24px,5.4cqi,46px); margin-bottom:28px; }
+.transition-explanation { max-width:620px; margin:0 auto 18px!important; font:22px/1.5 var(--serif); }
 @media(max-width:649px), (max-width:860px) and (min-height:551px) {
   /* Overlay the pinned panel so its changing height does not move the scroll stops. */
   .story-layout.is-interactive { display:grid; grid-template-columns:minmax(0,1fr); gap:0; }
@@ -481,6 +486,10 @@ dialog p { font-size:16px; }
   .transition-definitions { font-size:17px; margin-bottom:8px!important; }
   .transition-note { font-size:13px; margin-bottom:16px!important; }
   .transition-citation { font-size:15px; }
+  .earnings-transition .transition-title { margin-bottom:24px; }
+  .earnings-transition-art { width:min(440px,100%); max-height:210px; margin-bottom:6px; }
+  .transition-regions { margin-bottom:18px; font-size:15px; }
+  .transition-explanation { font-size:19px; margin-bottom:16px!important; }
 }
 @media(max-width:450px) {
   .transition-equation { font-size:24px; gap:2px 8px; }
@@ -493,6 +502,12 @@ dialog p { font-size:16px; }
   .transition-definitions { font-size:15px; line-height:1.4; margin-bottom:6px!important; }
   .transition-note { font-size:12px; line-height:1.4; margin-bottom:10px!important; }
   .transition-citation { font-size:14px; line-height:1.4; }
+  .earnings-transition .transition-title { margin-bottom:18px; }
+  .earnings-transition-art { width:min(210px,100%); max-height:105px; margin-bottom:5px; }
+  .transition-regions { max-width:260px; margin-bottom:12px; font-size:14px; line-height:1.3; }
+  .earnings-transition .transition-equation { font-size:clamp(22px,4cqi,30px); margin-bottom:10px; }
+  .transition-explanation { font-size:18px; }
+  .earnings-transition .transition-explanation { font-size:16px; line-height:1.4; margin-bottom:10px!important; }
 }
 @media screen and (min-width:650px) and (max-width:860px) and (max-height:550px) {
   .story-layout[data-layout="formula"] .formula-explanation { min-height:140px; margin-top:10px; padding-top:12px; }
@@ -506,4 +521,16 @@ dialog p { font-size:16px; }
   .story-layout.is-interactive .formula-step .step-content,
   .story-layout.is-interactive .transition-step .step-content,
   .story-layout[data-layout="formula"] .step-content { visibility:visible; }
+}
+
+.transition-source { font:12px/1.4 var(--sans); color:var(--muted); margin:0!important; }
+
+@media(max-width:450px) {
+  .earnings-transition .transition-equation { font-size:clamp(20px,7.5cqi,28px); }
+}
+@media screen and (max-width:450px) and (max-height:550px) {
+  .earnings-transition .transition-title { font-size:24px; margin-bottom:8px; }
+  .earnings-transition-art { width:min(160px,100%); max-height:80px; margin-bottom:3px; }
+  .earnings-transition .transition-regions { margin-bottom:8px; }
+  .earnings-transition .transition-equation { margin-bottom:8px; }
 }

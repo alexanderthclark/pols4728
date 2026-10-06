@@ -13,6 +13,22 @@
       "description": "Compact bread-loaf and circular peace-symbol characters with expressive faces and stick limbs, drawn in the course’s monochrome outlined style.",
       "sha256": "685ef6ffe179f8dd334bbc3c88399dbdc57c148b7f815bfbb899bde962afd3b0",
       "usage": "SHAP story transition introducing the stylized Bread and Peace prediction model. Preserve proportions and transparent background; equation and citation remain real text."
+    },
+    {
+      "path": "docs/shap/assets/earnings-germany-characters.png",
+      "role": "explanatory illustration",
+      "description": "Two oversized round body-and-face characters with stick limbs and no separate torsos stand on a shallow tilted map of divided Germany. The western character wears a top hat; the eastern character wears a patched cap and worn shoes. The artwork uses the course’s monochrome outlined style.",
+      "sha256": "a41be98b87b9d9b6c58d1c232ab43f7edb6477c873810314a66c06d9c3524f4c",
+      "usage": "Centered transition before the SHAP earnings interaction example. The map is an institutional analogy, not an empirical earnings model. Preserve proportions, transparency, and native territory labels.",
+      "references": [
+        {
+          "title": "IEG-Maps, Map 360: Länder der Bundesrepublik 1989",
+          "creators": "Andreas Kunz and Joachim Robert Moeschl",
+          "url": "https://www.ieg-maps.uni-mainz.de/mapsp/mapp989d.htm",
+          "referenceLicense": "CC BY-NC 4.0 International",
+          "usage": "Historical geography reference for an original schematic; source colors, typography, and state subdivisions are not reproduced."
+        }
+      ]
     }
   ]
 }

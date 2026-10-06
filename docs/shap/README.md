@@ -79,13 +79,14 @@ profiles use the same model and background.
 12. Reveal bread first, then peace; show both before/after prediction subtractions.
 13. Reverse the order and show the same bivariate equation evaluated at different inputs.
 14. Average each feature's two marginals and reconstruct the full prediction.
-15. Move to the three-feature earnings interaction and one person to explain.
-16. Compute its `v_x(S)` from background rows, starting with `S = ∅`.
-17. Fix ability and compare with the earnings baseline.
-18. Start with neighborhood fixed and compare the same two value-function terms.
-19. Match all four preceding groups to their factorial weights and prediction differences.
-20. Add the weighted contributions; select a feature and inspect all six orders.
-21. Assemble the final contributions in a course-styled standard waterfall.
+15. Introduce how ability and neighborhood interact with a centered East/West Germany analogy.
+16. Move to the three-feature earnings interaction and one person to explain.
+17. Compute its `v_x(S)` from background rows, starting with `S = ∅`.
+18. Fix ability and compare with the earnings baseline.
+19. Start with neighborhood fixed and compare the same two value-function terms.
+20. Match all four preceding groups to their factorial weights and prediction differences.
+21. Add the weighted contributions; select a feature and inspect all six orders.
+22. Assemble the final contributions in a course-styled standard waterfall.
 
 The first seven frames use a single centered formula, with a short definition
 underneath. The same equation stays in place and highlights the symbols under
@@ -99,7 +100,15 @@ The peace feature reverses the standardized war-fatalities measure, so both
 feature coefficients in the teaching model are positive.
 The equation is a stylized, centered and standardized teaching specification,
 rather than the original historical fit. The split layout begins with the
-three correlations in frame nine. The story has 21 frames.
+three correlations in frame nine. Frame 15 is another centered transition,
+“When features interact,” showing two round body-and-face characters with
+stick limbs on a tilted map of Germany. The western character wears a top hat;
+the eastern character wears a patched cap and worn shoes. West Germany and
+East Germany are labeled in real text. The caption holds ability and experience
+constant while the institutional setting changes. The native math term
+`ability × neighborhood` connects that comparison to the illustrative earnings
+equation. The full earnings model and person selector appear in frame 16.
+The story has 22 frames.
 Each worked frame's left column uses two or three short lecture cues in larger type,
 leaving the instructor room to explain the worked figure. The earnings equation
 appears beside its observation in the figure. Expandable notes retain the notation,
@@ -125,10 +134,10 @@ The sum's narrative follows the selected feature as well as the selected person.
 Reduced-motion preferences disable animated replacements and bar reveals.
 Short landscape screens place the worked prose and figure side by side. Phone tables
 keep every column visible, with larger included/excluded labels and controls.
-Without JavaScript, the lecture cues, complete formula, Bread and Peace transition,
+Without JavaScript, the lecture cues, complete formula, both model transitions,
 earnings equation, worked profiles, and calculation notes remain available in a
 continuous reading layout; interactive figures require it. The opening formula,
-Bread and Peace transition, and worked profiles also appear in print.
+both model transitions, and worked profiles also appear in print.
 
 ## Run and reproduce
 
@@ -170,3 +179,5 @@ GitHub Pages publishes `docs/` after the checks pass on `main`. Merging this
 change makes the page available at
 `https://alexanderthclark.github.io/pols4728/shap/`. It also adds a course-home
 link, preserving the existing logo and Shapley page.
+
+The Germany illustration uses [IEG-Maps, Map 360](https://www.ieg-maps.uni-mainz.de/mapsp/mapp989d.htm), by Andreas Kunz and Joachim Robert Moeschl (CC BY-NC 4.0), as a historical geography reference. Its outline and division are schematic; the two figures represent equal ability and experience in different institutional settings. The illustration does not assign the earnings model’s numerical neighborhood scores to German territories.
