@@ -5,12 +5,11 @@ import { validateBreadPeace, breadPeaceFacts, renderBreadPeace, breadPeaceDecomp
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
-const names = ['The Shapley formula', 'The observation x', 'The model prediction ŷ', 'The value function', 'Before and after feature i', 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'When features interact', 'An interaction model; one person', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
+const names = ['The Shapley formula', 'The observation x', 'The model prediction ŷ', 'Before and after feature i', 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'When features interact', 'An interaction model; one person', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
 const captions = [
   'Scroll to give each part its meaning in a prediction problem.',
   'x is one complete observation; its values supply the fixed inputs.',
   'ŷ(x) is the fitted model’s prediction for one complete input row.',
-  'vₓ(S) averages the same model’s ŷ predictions across completed background rows.',
   'Compare the same model’s average before and after fixing feature i to x.',
   'ϕᵢ(vₓ) is feature i’s contribution relative to the background average prediction.',
   '',
@@ -30,16 +29,15 @@ const captions = [
   'Final SHAP contributions connect the same baseline to this person’s prediction.',
 ];
 const formulaStops = {
-  'shapley-formula':{focus:'all',meaning:'The players are input features. The game assigns credit for one observation’s prediction.'},
+  'shapley-formula':{focus:'all',meaning:'The players are input features. The game assigns credit for one observation’s prediction.',note:'<var>F</var>: all features; <span class="math-text">m = |F|</span>.'},
   'observation-symbol':{focus:'observation',symbol:'x',meaning:'One complete input row. Its values supply every feature fixed in this explanation.'},
   'prediction-symbol':{focus:'all',symbol:predictionMarkup(),meaning:'ŷ(x) is the fitted model’s prediction for the complete row <var>x</var>. <var>y</var> is observed. Keep the model fixed.'},
-  'value-function':{focus:'value',symbol:'v<sub>x</sub>(S) = average prediction',meaning:'Fix <var>S</var> at <var>x</var>; fill other inputs from background rows. Average the same model’s ŷ predictions.',note:`All features fixed → ${predictionMarkup()}.`},
-  'joining-feature':{focus:'difference',comparison:true,meaning:'<var>S</var>: features already fixed to <var>x</var>. <var>i</var>: the additional feature.',note:'Same fitted model; no retraining. <var>F</var>: all features; <span class="math-text">m = |F|</span>.'},
+  'joining-feature':{focus:'difference',comparison:true,meaning:'<var>S</var>: features fixed to <var>x</var>. Other inputs: background rows.',note:'<var>i</var>: the additional feature. No retraining.'},
   'feature-credit':{focus:'result',symbol:'ϕ<sub>i</sub>(v<sub>x</sub>) = ϕ<sub>i</sub>(x)',meaning:'Feature <var>i</var>’s credit relative to the background average. Average its marginal across orders; the credit uses the prediction’s units.'},
 };
 const transitionScenes = new Set(['bread-peace-intro', 'earnings-intro']);
 const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene);
-const canonicalSceneId = id => id === 'preceding-features' ? 'joining-feature' : id;
+const canonicalSceneId = id => ['preceding-features','value-function'].includes(id) ? 'joining-feature' : id;
 const visual = $('#visual'), shell = $('.stage-shell'), story = $('#story');
 const observationSelect = $('#observation-select');
 const dialog = $('#rows-dialog');
@@ -93,7 +91,7 @@ function updateFacts() {
 
 function renderFormula(scene) {
   const stop = formulaStops[scene];
-  const comparison = stop.comparison ? $(`#${scene} .formula-comparison`).outerHTML : '';
+  const comparison = stop.comparison ? $(`#${scene} .formula-comparison-summary`).outerHTML + $(`#${scene} .formula-comparison`).outerHTML : '';
   visual.innerHTML = `<h1 class="formula-intro-title">From Shapley values to SHAP</h1>${shapleyFormulaMarkup(stop.focus)}<div class="formula-explanation">${comparison}${stop.symbol ? `<p class="formula-focus-symbol math-text">${stop.symbol}</p>` : ''}<p class="formula-focus-meaning">${stop.meaning}</p>${stop.note ? `<p class="formula-focus-note">${stop.note}</p>` : ''}${scene === 'shapley-formula' ? '<p class="formula-scroll-prompt">Scroll to connect the symbols to predictions, or use Next.</p>' : ''}</div>`;
 }
 

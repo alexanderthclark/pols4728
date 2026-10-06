@@ -68,42 +68,41 @@ profiles use the same model and background.
 1. Begin with the complete Shapley formula.
 2. Highlight the observation `x` supplying the fixed inputs.
 3. Define `y_hat(x)`, the fixed model’s prediction for one complete input row, distinct from observed outcome `y`.
-4. Highlight its value function: the average of `y_hat` over hybrid input rows.
-5. Compare `v_x(S)` and `v_x(S ∪ {i})` together: feature `i` moves from background values to its value in `x`, while the fitted model stays fixed.
-6. Highlight the result and introduce `phi_i(x)` as shorthand for `phi_i(v_x)`.
-7. Introduce the stylized Bread and Peace specification with the original Hibbs citation and course-style characters.
-8. State the three correlations for standardized bread, peace, and observed vote.
-9. Display the two univariate fits and one bivariate fit, with the derivation in the notes.
-10. Choose an election; compare the muted bread-only refit (not used for SHAP) with the bivariate prediction at mean peace.
-11. Reveal bread first, then peace; show both before/after prediction subtractions.
-12. Reverse the order and show the same bivariate equation evaluated at different inputs.
-13. Average each feature's two marginals and reconstruct the full prediction.
-14. Introduce how ability and neighborhood interact with a centered East/West Germany analogy.
-15. Move to the three-feature earnings interaction and one person to explain.
-16. Compute its `v_x(S)` from background rows, starting with `S = ∅`.
-17. Fix ability and compare with the earnings baseline.
-18. Start with neighborhood fixed and compare the same two value-function terms.
-19. Match all four preceding groups to their factorial weights and prediction differences.
-20. Add the weighted contributions; select a feature and inspect all six orders.
-21. Assemble the final contributions in a course-styled standard waterfall.
+4. Define the value function through a comparison of `v_x(S)` and `v_x(S ∪ {i})`: both average the same model’s predictions, while feature `i` moves from background values to its value in `x`.
+5. Highlight the result and introduce `phi_i(x)` as shorthand for `phi_i(v_x)`.
+6. Introduce the stylized Bread and Peace specification with the original Hibbs citation and course-style characters.
+7. State the three correlations for standardized bread, peace, and observed vote.
+8. Display the two univariate fits and one bivariate fit, with the derivation in the notes.
+9. Choose an election; compare the muted bread-only refit (not used for SHAP) with the bivariate prediction at mean peace.
+10. Reveal bread first, then peace; show both before/after prediction subtractions.
+11. Reverse the order and show the same bivariate equation evaluated at different inputs.
+12. Average each feature's two marginals and reconstruct the full prediction.
+13. Introduce how ability and neighborhood interact with a centered East/West Germany analogy.
+14. Move to the three-feature earnings interaction and one person to explain.
+15. Compute its `v_x(S)` from background rows, starting with `S = ∅`.
+16. Fix ability and compare with the earnings baseline.
+17. Start with neighborhood fixed and compare the same two value-function terms.
+18. Match all four preceding groups to their factorial weights and prediction differences.
+19. Add the weighted contributions; select a feature and inspect all six orders.
+20. Assemble the final contributions in a course-styled standard waterfall.
 
 The opening frames distinguish `ŷ(x)`, the fixed model’s prediction for a
 complete row, from `v_x(S)`, an average of that same model’s predictions across
 completed background rows. Fixing every feature makes every row equal to `x`,
-so the average equals `ŷ(x)`. Frame 5 compares both coalition values in one frame:
+so the average equals `ŷ(x)`. Frame 4 defines this averaged-prediction value function by comparing both coalition values:
 `S` supplies the inputs already fixed to `x`; adding feature `i` uses its value
-from `x` instead of its background values. The note below the comparison states
-that both values use the same fitted model, without retraining. The alias `f(x) = ŷ(x)` is
-introduced with the earnings model. Frame 10 explicitly connects row averaging to the valid linear
+from `x` instead of its background values. The note below the comparison
+identifies `i` as the additional feature and states there is no retraining. The alias `f(x) = ŷ(x)` is
+introduced with the earnings model. Frame 9 explicitly connects row averaging to the valid linear
 shortcut: average `ŷ(bread, peace)` over reference peace values, giving
 `ŷ(bread, 0)` because the overall background mean is zero.
 
-The first six frames use a centered formula, with short definitions
+The first five frames use a centered formula, with short definitions
 underneath. The same equation stays in place and highlights the symbols under
-discussion; frame 5 shows its before and after coalition values together.
+discussion; frame 4 shows its before and after coalition values together.
 Definitions enter through scrolling instead of a glossary, including
 the observation, model prediction, value function, feature groups, and final credit.
-Frame seven is a full-width Bread and Peace transition, with a centered teaching
+Frame six is a full-width Bread and Peace transition, with a centered teaching
 specification, a compact loaf character, and a peace-symbol character. It cites
 [Hibbs (2000), “Bread and Peace Voting in U.S. Presidential Elections”](https://link.springer.com/article/10.1023/A:1005292312412),
 and identifies bread as real income growth and peace as fewer war fatalities.
@@ -111,21 +110,21 @@ The peace feature reverses the standardized war-fatalities measure, so both
 feature coefficients in the teaching model are positive.
 The equation is a stylized, centered and standardized teaching specification,
 rather than the original historical fit. The split layout begins with the
-three correlations in frame eight. Frame 14 is another centered transition,
+three correlations in frame seven. Frame 13 is another centered transition,
 “When features interact,” showing two round body-and-face characters with
 stick limbs on a tilted map of Germany. The smiling western character wears a
 top hat; the frowning eastern character wears a patched cap and worn shoes.
 The bottom map credit names West and East Germany. The native math term
 `ability × neighborhood` connects that comparison to the illustrative earnings
-equation. The full earnings model and person selector appear in frame 15.
-The story has 21 frames.
+equation. The full earnings model and person selector appear in frame 14.
+The story has 20 frames.
 Each worked frame's left column uses two or three short lecture cues in larger type,
 leaving the instructor room to explain the worked figure. The earnings equation
 appears beside its observation in the figure. Expandable notes retain the notation,
 OLS derivation, model assumptions, and factorial-count explanation for later reading.
 The election selector appears after all three OLS fits are introduced. The person
 selector appears when the earnings example begins. Each example retains its
-selection when readers move between them. Frame 13 adds a small prediction
+selection when readers move between them. Frame 12 adds a small prediction
 identity below its order-weight caption:
 `ŷ(x) = ŷ(0, 0) + ϕ_bread(x) + ϕ_peace(x)`. The zero-input baseline applies to
 this centered additive model.
@@ -140,7 +139,7 @@ explainer. Global importance and beeswarm plots are reserved for a later page.
 
 Navigation buttons provide an alternative to scrolling and advance immediately
 so quick clicks cannot repeat a frame during a scroll animation. The opening
-equation stays in place across its six opening frames. Native selects,
+equation stays in place across its five opening frames. Native selects,
 checkboxes, disclosures, and modal dialogs support keyboard operation. Dialogs
 restore focus to their trigger, and a concise status announces stage changes.
 The sum's narrative follows the selected feature as well as the selected person.
