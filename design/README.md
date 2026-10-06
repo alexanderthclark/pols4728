@@ -35,7 +35,6 @@ and tokens together when the semester design language changes, copying the
 requested files without importing private Git history or unrelated course files.
 
 ---
-
 # POLS 4728 design language
 
 The course has a playful visual identity and a serious scholarly text. Character
