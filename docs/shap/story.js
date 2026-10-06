@@ -36,7 +36,7 @@ const formulaStops = {
   'prediction-symbol':{focus:'all',symbol:predictionMarkup(),meaning:'ŷ(x) is the fitted model’s prediction for the complete row <var>x</var>. <var>y</var> is observed. Keep the model fixed.'},
   'value-function':{focus:'value',symbol:'v<sub>x</sub>(S) = average prediction',meaning:'Fix <var>S</var> at <var>x</var>; fill other inputs from background rows. Average the same model’s ŷ predictions.',note:`All features fixed → ${predictionMarkup()}.`},
   'preceding-features':{focus:'coalition',symbol:'S ⊆ F ∖ {i}',meaning:'<var>S</var> contains the features already fixed. <var>F</var> contains all <var>m</var> input features; <var>i</var> is outside <var>S</var>.'},
-  'joining-feature':{focus:'joining',symbol:'S ∪ {i}',meaning:'<var>i</var> is the additional feature. Fix its value from <var>x</var>, keeping <var>S</var> fixed. Marginal contribution = after − before.'},
+  'joining-feature':{focus:'joining',symbol:'S ∪ {i}',meaning:'Before: background values for <var>i</var>. After: its value from <var>x</var>. Keep <var>S</var> fixed.',note:'The same model receives every input column. No retraining without <var>i</var>.'},
   'feature-credit':{focus:'result',symbol:'ϕ<sub>i</sub>(v<sub>x</sub>) = ϕ<sub>i</sub>(x)',meaning:'Feature <var>i</var>’s credit relative to the background average. Average its marginal across orders; the credit uses the prediction’s units.'},
 };
 const transitionScenes = new Set(['bread-peace-intro', 'earnings-intro']);

@@ -91,8 +91,10 @@ profiles use the same model and background.
 The opening frames distinguish `ŷ(x)`, the fixed model’s prediction for a
 complete row, from `v_x(S)`, an average of that same model’s predictions across
 completed background rows. Fixing every feature makes every row equal to `x`,
-so the average equals `ŷ(x)`. The alias `f(x) = ŷ(x)` is introduced with the
-earnings model. Frame 11 explicitly connects row averaging to the valid linear
+so the average equals `ŷ(x)`. Frame 6 distinguishes revealing this observation’s
+value for feature `i` from retraining without that feature: both coalition values
+use the same fitted model and all its input columns. The alias `f(x) = ŷ(x)` is
+introduced with the earnings model. Frame 11 explicitly connects row averaging to the valid linear
 shortcut: average `ŷ(bread, peace)` over reference peace values, giving
 `ŷ(bread, 0)` because the overall background mean is zero.
 
