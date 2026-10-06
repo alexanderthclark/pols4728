@@ -159,6 +159,7 @@
             <li>Average each feature’s two marginals.</li>
             <li>Baseline + SHAP values = prediction.</li>
           </ul>
+          <p class="static-observation bread-decomposition-identity"><math aria-label="y hat of x equals y hat of zero, zero plus the SHAP contribution for bread plus the SHAP contribution for peace"><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo stretchy="false">(</mo><mn>0</mn><mo>,</mo><mn>0</mn><mo stretchy="false">)</mo><mo>+</mo><msub><mi>ϕ</mi><mtext>bread</mtext></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>+</mo><msub><mi>ϕ</mi><mtext>peace</mtext></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></math></p>
           <p class="static-observation">For bread <span data-bread-fact="bread">1</span> and peace <span data-bread-fact="peace">1</span>, the two orders give bread the same marginal of <span data-bread-fact="breadMarginal">+0.5</span> and peace the same marginal of <span data-bread-fact="peaceFirst">+0.5</span>. Their SHAP values add to the prediction, <span data-bread-fact="prediction">1</span>, from a zero baseline.</p>
         </div></section>
         <section class="step transition-step" id="earnings-intro" data-step="14" aria-label="Transition to the earnings interaction model"><div class="step-content">

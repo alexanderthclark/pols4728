@@ -72,7 +72,7 @@ function focalInputs(observation) {
 
 function renderRefit(data, observation) {
   const fixed = coalition(observation,1).value;
-  return `<h3>Which prediction does SHAP use?</h3>${focalInputs(observation)}<p class="bread-focal-prediction">${math(`${prediction(observation.values)}<mo>=</mo>${numeral(observation.prediction)}`,`The bivariate prediction for this election is ${format(observation.prediction)}`)}</p><div class="refit-comparison"><section><h4>Bread-only OLS</h4><p>Use the univariate coefficient, 0.75.</p><p class="refit-equation">0.75 × (${format(observation.values[0])})</p><div class="refit-result">${format(observation.reducedPrediction)}<small>Prediction from a reduced model</small></div></section><section><h4>Bivariate OLS; peace averaged</h4><p>Keep both coefficients; use mean peace, 0.</p><p class="refit-equation">${math(prediction(point(observation,1)), 'The original bivariate model with this election’s bread held fixed and peace at its background mean.')}</p><div class="refit-result">${format(fixed)}<small>${valueMarkup(1,notation)}<br>The value in our SHAP game</small></div></section></div>`;
+  return `<h3>Which prediction does SHAP use?</h3>${focalInputs(observation)}<p class="bread-focal-prediction">${math(`${prediction(observation.values)}<mo>=</mo>${numeral(observation.prediction)}`,`The bivariate prediction for this election is ${format(observation.prediction)}`)}</p><div class="refit-comparison"><section class="refit-unused"><h4>Bread-only OLS</h4><p>Use the univariate coefficient, 0.75.</p><p class="refit-equation">0.75 × (${format(observation.values[0])})</p><div class="refit-result">${format(observation.reducedPrediction)}<small>Reduced model · not used for SHAP</small></div></section><section><h4>Bivariate OLS; peace averaged</h4><p>Keep both coefficients; use mean peace, 0.</p><p class="refit-equation">${math(prediction(point(observation,1)), 'The original bivariate model with this election’s bread held fixed and peace at its background mean.')}</p><div class="refit-result">${format(fixed)}<small>${valueMarkup(1,notation)}<br>The value in our SHAP game</small></div></section></div>`;
 }
 
 function renderDifference(observation, feature, beforeMask) {
@@ -101,6 +101,11 @@ function averageEquation(observation,feature) {
   const result = observation.shapValues[feature];
   const half = '<mfrac><mn>1</mn><mn>2</mn></mfrac>';
   return `<section class="bread-order-step"><h4>${feature === 0 ? 'Bread' : 'Peace'}</h4><div class="bread-average-equation" role="math" aria-label="The SHAP value for ${labels[feature]} equals one half times ${signed(first)} plus one half times ${signed(second)} equals ${signed(result)}"><math aria-hidden="true"><mrow><msub><mi>ϕ</mi><mtext>${labels[feature]}</mtext></msub>${parentheses('<mi>x</mi>')}<mo>=</mo>${half}<mo>×</mo>${parentheses(signedNumeral(first))}</mrow></math><math aria-hidden="true"><mrow><mo>+</mo>${half}<mo>×</mo>${parentheses(signedNumeral(second))}<mo>=</mo>${signedNumeral(result)}</mrow></math></div></section>`;
+}
+
+export function breadPeaceDecompositionMarkup() {
+  const credit = feature => `<msub><mi>ϕ</mi><mtext>${feature}</mtext></msub>${parentheses('<mi>x</mi>')}`;
+  return `<span class="bread-decomposition-identity">${math(`${yHat}${parentheses('<mi>x</mi>')}<mo>=</mo>${prediction([0,0])}<mo>+</mo>${credit('bread')}<mo>+</mo>${credit('peace')}`, 'y hat of x equals y hat of zero, zero plus the SHAP contribution for bread plus the SHAP contribution for peace')}</span>`;
 }
 
 function renderShap(data, observation) {

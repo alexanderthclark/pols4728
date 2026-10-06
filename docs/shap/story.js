@@ -1,7 +1,7 @@
 import { coalition, hybridValues, marginal, precedingMasks, validateData } from './calculation.mjs';
 import { renderWaterfall } from './waterfall.js';
 import { featureLabels, shapleyFormulaMarkup, valueMarkup, joiningMarkup, predictionMarkup } from './formula.js';
-import { validateBreadPeace, breadPeaceFacts, renderBreadPeace } from './bread-peace.js';
+import { validateBreadPeace, breadPeaceFacts, renderBreadPeace, breadPeaceDecompositionMarkup } from './bread-peace.js';
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
@@ -20,7 +20,7 @@ const captions = [
   'Our SHAP game evaluates the bivariate model with excluded inputs averaged to zero.',
   'Here 0 supplies each excluded input’s mean; predictions are in SD of vote share.',
   'Here 0 supplies each excluded input’s mean; predictions are in SD of vote share.',
-  'Each order has weight 1/2. Baseline plus both SHAP values gives the prediction, in SD of vote share.',
+  'Each order has weight 1/2. Predictions are in SD of vote share.',
   '',
   'Fit f once, then hold it fixed. Here we supply a transparent teaching equation.',
   'vₓ(∅): no columns fixed to x. Average the eight model predictions.',
@@ -212,6 +212,7 @@ function render() {
   }
   $('#stage-caption').hidden = isCenteredScene(scene);
   $('#stage-caption').textContent = isCenteredScene(scene) ? '' : captions[state.scene];
+  if (scene === 'ols-shap') $('#stage-caption').insertAdjacentHTML('beforeend', breadPeaceDecompositionMarkup());
   $('#previous').disabled = state.scene === 0;
   $('#next').textContent = state.scene === steps.length-1 ? 'Math & Python →' : 'Next →';
   if (formulaStops[scene]) renderFormula(scene);

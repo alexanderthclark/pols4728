@@ -75,7 +75,7 @@ profiles use the same model and background.
 8. Introduce the stylized Bread and Peace specification with the original Hibbs citation and course-style characters.
 9. State the three correlations for standardized bread, peace, and observed vote.
 10. Display the two univariate fits and one bivariate fit, with the derivation in the notes.
-11. Choose an election; compare bread-only OLS with the bivariate prediction at mean peace.
+11. Choose an election; compare the muted bread-only refit (not used for SHAP) with the bivariate prediction at mean peace.
 12. Reveal bread first, then peace; show both before/after prediction subtractions.
 13. Reverse the order and show the same bivariate equation evaluated at different inputs.
 14. Average each feature's two marginals and reconstruct the full prediction.
@@ -115,7 +115,10 @@ appears beside its observation in the figure. Expandable notes retain the notati
 OLS derivation, model assumptions, and factorial-count explanation for later reading.
 The election selector appears after all three OLS fits are introduced. The person
 selector appears when the earnings example begins. Each example retains its
-selection when readers move between them.
+selection when readers move between them. Frame 14 adds a small prediction
+identity below its order-weight caption:
+`ŷ(x) = ŷ(0, 0) + ϕ_bread(x) + ϕ_peace(x)`. The zero-input baseline applies to
+this centered additive model.
 The full formula fits on one line in the desktop figure, with type sized to
 the figure's width. Phones and narrow prose columns allow a readable line break.
 
