@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A scroll-driven explanation of Shapley values, built one coalition at a time through a three-voter majority game.">
+  <title>Who gets the credit? — Shapley values, step by step</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 4L5 16L16 28L27 16Z' fill='none' stroke='%232747dc' stroke-width='2'/%3E%3Ccircle cx='16' cy='4' r='3' fill='%232747dc'/%3E%3Ccircle cx='5' cy='16' r='3' fill='%232747dc'/%3E%3Ccircle cx='27' cy='16' r='3' fill='%232747dc'/%3E%3Ccircle cx='16' cy='28' r='3' fill='%232747dc'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="masthead"><a class="brand" href="#beginning">THE MATHEMATICS OF CREDIT</a><a class="skip" href="#explore">Skip to the diagram</a></header>
+  <div class="reading-progress" aria-hidden="true"><span id="progress-fill"></span></div>
+  <main class="story" id="beginning">
+    <aside class="stage-shell" aria-label="Voting illustration">
+      <div class="stage-top"><span class="eyebrow" id="stage-kicker">01 / THE RULE</span><span class="stage-count" id="stage-count">3 voters · 2 votes to pass</span></div>
+      <div class="stage-viz" id="stage-viz">
+        <div class="voters" id="voters"><div class="voter" data-player="0"><span class="voter-letter">A</span><span class="voter-vote">Yes</span></div><div class="voter" data-player="1"><span class="voter-letter">B</span><span class="voter-vote">Yes</span></div><div class="voter" data-player="2"><span class="voter-letter">C</span><span class="voter-vote">Yes</span></div></div>
+        <div class="outcome" id="outcome"><span class="outcome-number">3</span><span class="outcome-caption">votes in favor</span><span class="outcome-result">The proposal passes</span></div>
+      </div>
+      <div class="stage-bottom" id="stage-bottom"><span class="legend-mark"></span><span>Every voter supports the proposal.</span></div>
+    </aside>
+    <div class="narrative" id="narrative">
+      <section class="step is-active" data-step="0"><div class="step-content"><p class="eyebrow">A SCROLLING EXPLAINER / MAJORITY RULE</p><h1>Who gets<br>the credit?</h1><p class="lead">Three people vote yes. A proposal needs just two votes to pass.</p><p>Everyone helped. But how much credit belongs to each voter?</p><p class="scroll-prompt">Scroll to follow the argument <span aria-hidden="true">↓</span></p></div></section>
+      <section class="step" data-step="1"><div class="step-content"><span class="step-number">02</span><h2>Take one<br>voter away.</h2><p>Remove A. The remaining pair still passes the proposal. The same happens if we remove B or C.</p><p>Each removal changes the outcome by <strong>zero</strong>. Looking only at the final group leaves us with a puzzle.</p></div></section>
+      <section class="step" data-step="2"><div class="step-content"><span class="step-number">03</span><h2>Start with<br>the smallest groups.</h2><p>A <strong>coalition</strong> is a group of voters whose support we count. Start with nobody: the empty set, ∅.</p><p>Then add A, B, or C alone. None of these groups has enough votes.</p></div></section>
+      <section class="step" data-step="3"><div class="step-content"><span class="step-number">04</span><h2>The second vote<br>makes a difference.</h2><p>Every pair has two votes, so every pair passes.</p><p>An edge means <strong>add exactly one voter</strong>. Going from B alone to A and B changes failure to success.</p></div></section>
+      <section class="step" data-step="4"><div class="step-content"><span class="step-number">05</span><h2>Same destination.<br>Different credit.</h2><p>Adding the third voter changes nothing. We now have every possible group, and every way to add one voter.</p><p>Follow an imagined order: <strong>B, then A, then C</strong>. A supplies the deciding vote.</p></div></section>
+      <section class="step" data-step="5"><div class="step-content"><span class="step-number">06</span><h2>Count every<br>possible order.</h2><p>There are six ways to order three voters. Give each order equal weight.</p><p>A’s four joining edges occur <strong>2, 1, 1, and 2 times</strong>. Those counts explain their weights.</p></div></section>
+      <section class="step" data-step="6"><div class="step-content"><span class="step-number">07</span><h2>Put the<br>pieces together.</h2><p>Multiply each contribution by the fraction of orders in which it occurs. Then add the four terms.</p><p>A receives <strong>one-third</strong> of the total credit.</p></div></section>
+      <section class="step" data-step="7" id="explore"><div class="step-content"><span class="step-number">08 / EXPLORE</span><h2>The whole<br>picture.</h2><p>B and C receive one-third too. Together, their credits sum to the outcome gained: one.</p><p>This is a <strong>Hasse diagram</strong> of the coalition sets. Each edge adds one voter.</p><p>Select a voter or inspect a coalition to explore.</p></div></section>
+    </div>
+  </main>
+  <footer class="footer"><span>Shapley values, step by step.</span><a href="#beginning">Back to the beginning</a></footer>
+  <script type="module" src="story.js"></script>
+</body>
+</html>
