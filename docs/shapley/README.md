@@ -40,4 +40,8 @@ The current story copy, coalition geometry, and six-diagram panel are tailored t
 
 ## Hosting
 
-All asset paths are relative, so the site can be served under a project path such as `/pols4728/shapley/`. The `docs/` layout is ready for a future GitHub Pages deployment. This branch adds the source; it does not enable Pages or change the repository’s current deployment settings.
+All asset paths are relative, so the site can be served under `/pols4728/shapley/`. GitHub Pages publishes the `docs/` directory using `.github/workflows/pages.yml`.
+
+The workflow checks syntax and the mathematical tests on site changes in branches and pull requests. A successful check on `main` then publishes the site automatically. Manual deployment is available from the workflow’s **Run workflow** control when `main` is selected; other branches only run checks. The `github-pages` deployment environment permits `main`.
+
+After this branch is merged, the first successful **Check and publish course site** run will make the story available at `https://alexanderthclark.github.io/pols4728/shapley/`, with a course landing page at `https://alexanderthclark.github.io/pols4728/`. No custom domain, paid hosting, build step, or repository secrets are required.

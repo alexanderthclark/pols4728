@@ -10,6 +10,8 @@ The [Fall 2026 Python examples](examples/2026f/README.md) accompany the code lis
 
 The [Shapley values story](docs/shapley/README.md) explains majority voting through a gradually built Hasse diagram. An optional six-path view shows where the Shapley weights come from. Its standalone website source is in `docs/shapley/`.
 
+GitHub Pages publishes the `docs/` site automatically after the checks pass on `main`. See the [hosting notes](docs/shapley/README.md#hosting) for the website addresses and manual deployment instructions.
+
 ## Datasets
 
 The [clean regression choices](data/regression_choices/README.md) provide four
