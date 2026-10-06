@@ -4,12 +4,11 @@ Public data and code archive for POLS4728. The CSV files remain at their origina
 
 ## Course design
 
-Read the [course design guide](design/README.md) before building new pages or
-figures. The [visual reference](design/guide.pdf), [palette and typography
+The [course design guide](design/README.md) explains the stylistic choices and
+standards that give course materials a consistent design language. The
+[visual reference](design/guide.pdf), [palette and typography
 tokens](design/tokens.json), and [public artwork registry](design/assets.json)
-preserve the Fall 2026 design language. The guide explains how its print
-specifications apply to web work; `AGENTS.md` records the authoring expectations
-for future contributors.
+document the Fall 2026 identity, typography, palette, and approved artwork.
 
 ## Python examples
 
