@@ -289,6 +289,8 @@ dialog p { font-size:16px; }
 .formula-line { margin:0; flex:0 0 auto; }
 .formula-term { color:var(--ink); }
 .formula-active { color:var(--blue); }
+.formula-equation[data-focus="difference"] .formula-after,
+.formula-equation[data-focus="difference"] .formula-before { color:var(--blue); }
 .formula-after.formula-active,.formula-before.formula-active,.formula-difference.formula-active { border-bottom:2px solid var(--blue); padding-bottom:3px; }
 .formula-weight.formula-active,.formula-sum.formula-active { border-bottom:2px solid var(--blue); padding-bottom:3px; }
 .formula-equation[data-focus="all"] .formula-term,.formula-equation[data-focus="all"] .formula-symbol { color:var(--ink); border:0; padding:0; }
@@ -339,7 +341,6 @@ dialog p { font-size:16px; }
 .stage-shell[data-scene="shapley-formula"] .visual,
 .stage-shell[data-scene="value-function"] .visual,
 .stage-shell[data-scene="observation-symbol"] .visual,
-.stage-shell[data-scene="preceding-features"] .visual,
 .stage-shell[data-scene="joining-feature"] .visual,
 .stage-shell[data-scene="feature-credit"] .visual { justify-content:safe center; }
 .formula-symbol.formula-active { color:var(--blue); text-decoration:underline; text-underline-offset:.15em; }
@@ -348,12 +349,16 @@ dialog p { font-size:16px; }
 .formula-focus-symbol { font:28px/1.4 'Course Math',math; color:var(--blue); margin-bottom:12px!important; }
 .formula-focus-meaning { font:16px/1.6 var(--sans); max-width:480px; }
 .formula-focus-note { font:15px/1.5 var(--sans); color:var(--muted); margin-top:14px!important; }
+.formula-comparison { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; max-width:620px; margin:0 auto 16px; text-align:center; }
+.formula-comparison-label { font:14px/1.4 var(--sans); color:var(--muted); margin:0 0 6px!important; }
+.formula-comparison-case math { font:32px/1.4 'Course Math',math; color:var(--blue); margin:0; }
+.formula-comparison-detail { font:15px/1.4 var(--sans); margin:8px 0 0!important; }
+.formula-comparison-definition { font:22px/1.5 var(--serif); text-align:center; }
 @media(max-width:860px) {
   .stage-shell[data-scene="shapley-formula"],
   .stage-shell[data-scene="value-function"],
   .stage-shell[data-scene="observation-symbol"],
   .stage-shell[data-scene="prediction-symbol"],
-  .stage-shell[data-scene="preceding-features"],
   .stage-shell[data-scene="joining-feature"],
   .stage-shell[data-scene="feature-credit"] { height:50svh; min-height:340px; max-height:500px; }
   .formula-explanation { margin-top:16px; padding-top:12px; }
@@ -499,6 +504,13 @@ dialog p { font-size:16px; }
   .transition-explanation { font-size:19px; margin-bottom:16px!important; }
 }
 @media(max-width:450px) {
+  .formula-comparison { gap:12px; margin-bottom:12px; }
+  .formula-comparison-label { font-size:12px; margin-bottom:4px!important; }
+  .formula-comparison-case math { font-size:24px; }
+  .formula-comparison-detail { font-size:13px; margin-top:5px!important; }
+  .formula-comparison-definition,
+  .stage-shell[data-scene="joining-feature"] .formula-focus-meaning { font-size:17px; line-height:1.4; }
+  .stage-shell[data-scene="joining-feature"] .formula-focus-note { font-size:13px; line-height:1.4; margin-top:10px!important; }
   .bread-mean-equation { font-size:14px; }
   .transition-equation { font-size:24px; gap:2px 8px; }
   .transition-definitions { font-size:16px; }

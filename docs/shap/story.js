@@ -5,14 +5,13 @@ import { validateBreadPeace, breadPeaceFacts, renderBreadPeace, breadPeaceDecomp
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
-const names = ['The Shapley formula', 'The observation x', 'The model prediction ŷ', 'The value function', 'The existing feature group S', 'The additional feature i', 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'When features interact', 'An interaction model; one person', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
+const names = ['The Shapley formula', 'The observation x', 'The model prediction ŷ', 'The value function', 'Before and after feature i', 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'When features interact', 'An interaction model; one person', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
 const captions = [
   'Scroll to give each part its meaning in a prediction problem.',
   'x is one complete observation; its values supply the fixed inputs.',
   'ŷ(x) is the fitted model’s prediction for one complete input row.',
   'vₓ(S) averages the same model’s ŷ predictions across completed background rows.',
-  'S is the group already fixed to x, before the additional feature joins.',
-  'i is the additional feature. It belongs to F and is not already in S.',
+  'Compare the same model’s average before and after fixing feature i to x.',
   'ϕᵢ(vₓ) is feature i’s contribution relative to the background average prediction.',
   '',
   'Standardized features and observed vote: three correlations determine the OLS fits.',
@@ -35,12 +34,12 @@ const formulaStops = {
   'observation-symbol':{focus:'observation',symbol:'x',meaning:'One complete input row. Its values supply every feature fixed in this explanation.'},
   'prediction-symbol':{focus:'all',symbol:predictionMarkup(),meaning:'ŷ(x) is the fitted model’s prediction for the complete row <var>x</var>. <var>y</var> is observed. Keep the model fixed.'},
   'value-function':{focus:'value',symbol:'v<sub>x</sub>(S) = average prediction',meaning:'Fix <var>S</var> at <var>x</var>; fill other inputs from background rows. Average the same model’s ŷ predictions.',note:`All features fixed → ${predictionMarkup()}.`},
-  'preceding-features':{focus:'coalition',symbol:'S ⊆ F ∖ {i}',meaning:'<var>S</var> contains the features already fixed. <var>F</var> contains all <var>m</var> input features; <var>i</var> is outside <var>S</var>.'},
-  'joining-feature':{focus:'joining',symbol:'S ∪ {i}',meaning:'Before: background values for <var>i</var>. After: its value from <var>x</var>. Keep <var>S</var> fixed.',note:'The same model receives every input column. No retraining without <var>i</var>.'},
+  'joining-feature':{focus:'difference',comparison:true,meaning:'<var>S</var>: features already fixed to <var>x</var>. <var>i</var>: the additional feature.',note:'Same fitted model; no retraining. <var>F</var>: all features; <span class="math-text">m = |F|</span>.'},
   'feature-credit':{focus:'result',symbol:'ϕ<sub>i</sub>(v<sub>x</sub>) = ϕ<sub>i</sub>(x)',meaning:'Feature <var>i</var>’s credit relative to the background average. Average its marginal across orders; the credit uses the prediction’s units.'},
 };
 const transitionScenes = new Set(['bread-peace-intro', 'earnings-intro']);
 const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene);
+const canonicalSceneId = id => id === 'preceding-features' ? 'joining-feature' : id;
 const visual = $('#visual'), shell = $('.stage-shell'), story = $('#story');
 const observationSelect = $('#observation-select');
 const dialog = $('#rows-dialog');
@@ -94,7 +93,8 @@ function updateFacts() {
 
 function renderFormula(scene) {
   const stop = formulaStops[scene];
-  visual.innerHTML = `<h1 class="formula-intro-title">From Shapley values to SHAP</h1>${shapleyFormulaMarkup(stop.focus)}<div class="formula-explanation">${stop.symbol ? `<p class="formula-focus-symbol math-text">${stop.symbol}</p>` : ''}<p class="formula-focus-meaning">${stop.meaning}</p>${stop.note ? `<p class="formula-focus-note">${stop.note}</p>` : ''}${scene === 'shapley-formula' ? '<p class="formula-scroll-prompt">Scroll to connect the symbols to predictions, or use Next.</p>' : ''}</div>`;
+  const comparison = stop.comparison ? $(`#${scene} .formula-comparison`).outerHTML : '';
+  visual.innerHTML = `<h1 class="formula-intro-title">From Shapley values to SHAP</h1>${shapleyFormulaMarkup(stop.focus)}<div class="formula-explanation">${comparison}${stop.symbol ? `<p class="formula-focus-symbol math-text">${stop.symbol}</p>` : ''}<p class="formula-focus-meaning">${stop.meaning}</p>${stop.note ? `<p class="formula-focus-note">${stop.note}</p>` : ''}${scene === 'shapley-formula' ? '<p class="formula-scroll-prompt">Scroll to connect the symbols to predictions, or use Next.</p>' : ''}</div>`;
 }
 
 function renderTransition(scene) {
@@ -318,7 +318,7 @@ addEventListener('scroll',queueScroll,{passive:true});
 addEventListener('resize', () => {queueScroll(); if (steps[state.scene]?.id === 'waterfall') renderFinal();});
 addEventListener('hashchange', () => {
   if (!state.data || !state.breadData) return;
-  const index = steps.findIndex(step => `#${step.id}` === location.hash);
+  const index = steps.findIndex(step => step.id === canonicalSceneId(location.hash.slice(1)));
   if (index >= 0) navigate(index, 'instant');
 });
 
@@ -334,7 +334,7 @@ try {
   observationSelect.value = state.observation.id;
   observationSelect.disabled = false;
   updateScroll();
-  const anchor = location.hash && document.getElementById(location.hash.slice(1));
+  const anchor = location.hash && document.getElementById(canonicalSceneId(location.hash.slice(1)));
   if (anchor) {
     const index = steps.indexOf(anchor);
     if (index >= 0) navigate(index, 'instant');
