@@ -42,6 +42,7 @@ jobs:
           node --check docs/shap/calculation.mjs
           node --check docs/shap/story.js
           node --check docs/shap/waterfall.js
+          node --check docs/shap/formula.js
       - name: Check Shapley games and local SHAP calculations
         run: node --test tests/*.test.mjs
 

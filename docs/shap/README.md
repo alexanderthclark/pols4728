@@ -1,8 +1,9 @@
 # Explaining one prediction with SHAP
 
-This six-frame scrolling story assumes readers already know Shapley values.
-It shows how a revealed feature changes the value of a group in a local SHAP
-explanation: substitute the observation's values into background rows, evaluate
+This eight-frame scrolling story begins with the Shapley formula readers
+already know. It maps its players to features and its game to one observation’s
+prediction, distinguishing model training from explanation. The highlighted
+value-function terms show how a revealed feature changes the value of a group: substitute the observation's values into background rows, evaluate
 the same prediction function, average its outputs, then compare those averages.
 
 The illustrative earnings predictor is `f(A,N,E) = 40 + 10A + 24AN + 4E`, in
@@ -26,12 +27,14 @@ profiles use the same model and background.
 
 ## Story and controls
 
-1. Select a person and see the three inputs and prediction equation.
-2. Average predictions over the unrevealed background.
-3. Fix ability in every row, predict again, and compare with the baseline.
-4. Start with neighborhood fixed, add ability, and compare the two averages.
-5. Average across contexts; select a feature and optionally inspect all six orders.
-6. Assemble the final contributions in a course-styled standard waterfall.
+1. Begin with the complete Shapley formula and define its prediction game.
+2. Orient training, the fixed predictor, and one observation to explain.
+3. Interpret `v_x(S)` as a background prediction average, starting with `S = ∅`.
+4. Interpret `v_x(S ∪ {i})` by fixing ability and comparing with the baseline.
+5. Start with neighborhood fixed and compare the same two value-function terms.
+6. Match all four preceding groups to their factorial weights and prediction differences.
+7. Add the weighted contributions; select a feature and inspect all six orders.
+8. Assemble the final contributions in a course-styled standard waterfall.
 
 The concluding math section supplies the finite-background `v_x(S)` definition.
 Its checkbox-controlled data table exposes every feature group, including the

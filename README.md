@@ -18,8 +18,8 @@ The [Fall 2026 Python examples](examples/2026f/README.md) accompany the code lis
 
 The [Shapley values story](docs/shapley/README.md) explains majority voting through a gradually built Hasse diagram. An optional six-path view shows where the Shapley weights come from. Its standalone website source is in `docs/shapley/`.
 
-The [local SHAP story](docs/shap/README.md) explains one regression prediction by
-revealing a person's features in background rows, averaging the fixed model's
+The [local SHAP story](docs/shap/README.md) begins with the Shapley formula and
+connects its terms to one regression prediction by revealing a person's features in background rows, averaging the fixed model's
 predictions, comparing those averages, and assembling the final waterfall.
 An illustrative earnings equation makes ability and neighborhood opportunity
 interact, including an adverse neighborhood with negative opportunity.

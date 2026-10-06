@@ -175,7 +175,7 @@ dialog p { font-size:16px; }
   .orders-table button { min-height:26px; }
   .shap-average { padding:7px 0; margin-top:6px; font-size:11px; }
   .shap-average .number { font-size:26px; }
-  .stage-shell[data-scene="5"] { height:65svh; max-height:640px; }
+  .stage-shell[data-scene="7"] { height:65svh; max-height:640px; }
   .waterfall-plot { max-height:calc(65svh - 165px); min-height:200px; }
   #order-feature-select { min-height:30px; font-size:11px; padding:3px 6px; margin-bottom:5px; }
   .orders-feature-label { font-size:10px; }
@@ -191,7 +191,7 @@ dialog p { font-size:16px; }
 .stage-top { padding-bottom:8px; }
 .observation-control { padding-bottom:8px; }
 .visual { overflow-y:auto; padding-top:10px; padding-bottom:5px; }
-.stage-shell[data-scene="1"] .visual,.stage-shell[data-scene="2"] .visual,.stage-shell[data-scene="3"] .visual { justify-content:flex-start; }
+.stage-shell[data-scene="2"] .visual,.stage-shell[data-scene="3"] .visual,.stage-shell[data-scene="4"] .visual { justify-content:flex-start; }
 .visual h3 { font-size:20px; margin-bottom:7px; }
 .visual .input-table { font-size:12px; line-height:1.4; }
 .visual .input-table caption { font-size:11px; line-height:1.4; padding-bottom:6px; }
@@ -231,7 +231,7 @@ dialog p { font-size:16px; }
 #coalition-table table { min-width:550px; }
 @media(max-width:860px) {
   .stage-shell { height:60svh; min-height:410px; max-height:570px; }
-  .stage-shell[data-scene="1"],.stage-shell[data-scene="2"],.stage-shell[data-scene="3"] { height:67svh; min-height:440px; max-height:650px; }
+  .stage-shell[data-scene="2"],.stage-shell[data-scene="3"],.stage-shell[data-scene="4"] { height:70svh; min-height:440px; max-height:650px; }
   .visual .input-table { font-size:11px; }
   .visual .input-table th { padding:3px 2px; }
   .visual .input-table th small { font-size:8px; }
@@ -261,4 +261,62 @@ dialog p { font-size:16px; }
   .average-arithmetic { font-size:12px; margin-top:7px!important; }
   .prediction-equation { font-size:18px; }
   #coalition-table table { min-width:0; }
+}
+.formula-equation { font:28px/1.4 'Course Math',math; margin:12px 0 22px; flex-shrink:0; }
+.stage-shell[data-scene="0"] .visual,.stage-shell[data-scene="5"] .visual,.stage-shell[data-scene="6"] .visual { justify-content:flex-start; }
+.narrative-formula .formula-equation { font-size:22px; margin:0 0 28px; }
+.formula-line { margin:10px 0; }
+.formula-term { color:var(--ink); }
+.formula-active { color:var(--blue); }
+.formula-after.formula-active,.formula-before.formula-active,.formula-difference.formula-active { border-bottom:2px solid var(--blue); padding-bottom:3px; }
+.formula-weight.formula-active,.formula-sum.formula-active { border-bottom:2px solid var(--blue); padding-bottom:3px; }
+.formula-equation[data-focus="all"] .formula-term { color:var(--ink); border:0; padding:0; }
+.formula-definitions { font:13px/1.5 var(--sans); color:var(--muted); margin:0 0 22px!important; }
+.formula-glossary { display:grid; grid-template-columns:90px 1fr; gap:14px 20px; font:15px/1.5 var(--sans); margin:0; }
+.formula-glossary dt { font-size:21px; }
+.formula-glossary dd { margin:0; }
+.training-flow { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 0; font:16px/1.5 var(--sans); border-top:1px solid var(--rule); }
+.training-flow span:last-child { text-align:right; }
+.training-note { font:13px/1.5 var(--sans); color:var(--muted); margin-bottom:18px!important; }
+.stage-shell[data-scene="1"] .observation-card { padding:16px 0; }
+.stage-shell[data-scene="1"] .observation-card dl { margin:14px 0; }
+.stage-shell[data-scene="1"] .prediction-number { font-size:44px; }
+.formula-table-context { font:12px/1.5 var(--sans); color:var(--blue); margin:0 0 6px!important; }
+.visual .coalition-heading { font:24px/1.4 'Course Math',math; }
+.input-table small math { font-size:1em; }
+.weights-table { width:100%; border-collapse:collapse; font:13px/1.5 var(--sans); font-variant-numeric:tabular-nums; }
+.weights-table caption { text-align:left; font:12px/1.5 var(--sans); color:var(--muted); padding-bottom:12px; }
+.weights-table th,.weights-table td { padding:8px 6px; text-align:right; font-weight:normal; border-bottom:1px solid var(--light-rule); }
+.weights-table thead th { border-bottom-color:var(--rule); }
+.weights-table th:first-child { text-align:left; }
+.stage-shell[data-scene="6"] .formula-equation { font-size:23px; margin:0 0 10px; }
+.stage-shell[data-scene="6"] .formula-line { margin:6px 0; }
+.stage-shell[data-scene="6"] #feature-select { margin-bottom:10px; }
+.stage-shell[data-scene="6"] .marginal-contexts { margin:8px 0; }
+.stage-shell[data-scene="6"] .context-summary { padding-top:10px; }
+.stage-shell[data-scene="6"] .context-summary>span:first-child { min-height:34px; }
+.stage-shell[data-scene="6"] .context-summary .context-number { font-size:34px; margin:6px 0; }
+.stage-shell[data-scene="6"] .shap-average { margin-top:8px; padding:10px 0; }
+.stage-shell[data-scene="6"] .average-arithmetic { margin:8px 0 0!important; }
+@media(max-width:860px) {
+  .stage-shell[data-scene="0"],.stage-shell[data-scene="5"],.stage-shell[data-scene="6"] { height:65svh; min-height:450px; max-height:620px; }
+  .stage-shell[data-scene="6"] { height:68svh; }
+  .formula-equation { font-size:22px; margin:8px 0 14px; }
+  .formula-line { margin:6px 0; }
+  .formula-definitions { font-size:11px; margin-bottom:12px!important; }
+  .formula-glossary { font-size:12px; grid-template-columns:65px 1fr; gap:10px 14px; }
+  .formula-glossary dt { font-size:18px; }
+  .training-flow { font-size:12px; padding:6px 0; }
+  .training-note { font-size:10px; margin-bottom:10px!important; }
+  .stage-shell[data-scene="1"] .observation-card { padding:10px 0; }
+  .stage-shell[data-scene="1"] .observation-card dl { margin:10px 0; }
+  .stage-shell[data-scene="1"] .prediction-number { font-size:36px; }
+  .visual .coalition-heading { font-size:21px; margin-bottom:3px; }
+  .formula-table-context { font-size:10px; margin-bottom:4px!important; }
+  .weights-table { font-size:10px; }
+  .weights-table th,.weights-table td { padding:9px 3px; }
+  .weights-table caption { font-size:10px; padding-bottom:6px; }
+  .stage-shell[data-scene="6"] .formula-equation { font-size:20px; margin-bottom:10px; }
+  .stage-shell[data-scene="6"] .context-summary>span:first-child { min-height:30px; }
+  .stage-shell[data-scene="6"] .context-summary .context-number { font-size:28px; margin:4px 0; }
 }
