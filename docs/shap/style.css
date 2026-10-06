@@ -190,7 +190,7 @@ dialog p { font-size:16px; }
 .stage-shell { padding-top:16px; padding-bottom:12px; }
 .stage-top { padding-bottom:8px; }
 .observation-control { padding-bottom:8px; }
-.visual { overflow-y:auto; padding-top:10px; padding-bottom:5px; }
+.visual { overflow-y:auto; padding-top:10px; padding-bottom:5px; container-type:inline-size; }
 .stage-shell[data-scene="background"] .visual,.stage-shell[data-scene="reveal-ability"] .visual,.stage-shell[data-scene="neighborhood-first"] .visual { justify-content:flex-start; }
 .visual h3 { font-size:20px; margin-bottom:7px; }
 .visual .input-table { font-size:12px; line-height:1.4; }
@@ -262,10 +262,10 @@ dialog p { font-size:16px; }
   .prediction-equation { font-size:18px; }
   #coalition-table table { min-width:0; }
 }
-.formula-equation { font:28px/1.4 'Course Math',math; margin:12px 0 22px; flex-shrink:0; }
+.formula-equation { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:4px 8px; max-width:100%; font:26px/1.4 'Course Math',math; font-size:clamp(18px,4.1cqi,26px); margin:12px 0 22px; flex-shrink:0; }
 .stage-shell[data-scene="shapley-formula"] .visual,.stage-shell[data-scene="weights"] .visual,.stage-shell[data-scene="shap-value"] .visual { justify-content:flex-start; }
 .narrative-formula .formula-equation { font-size:22px; margin:0 0 28px; }
-.formula-line { margin:10px 0; }
+.formula-line { margin:0; flex:0 0 auto; }
 .formula-term { color:var(--ink); }
 .formula-active { color:var(--blue); }
 .formula-after.formula-active,.formula-before.formula-active,.formula-difference.formula-active { border-bottom:2px solid var(--blue); padding-bottom:3px; }
@@ -286,8 +286,7 @@ dialog p { font-size:16px; }
 .weights-table th,.weights-table td { padding:8px 6px; text-align:right; font-weight:normal; border-bottom:1px solid var(--light-rule); }
 .weights-table thead th { border-bottom-color:var(--rule); }
 .weights-table th:first-child { text-align:left; }
-.stage-shell[data-scene="shap-value"] .formula-equation { font-size:23px; margin:0 0 10px; }
-.stage-shell[data-scene="shap-value"] .formula-line { margin:6px 0; }
+.stage-shell[data-scene="shap-value"] .formula-equation { font-size:clamp(18px,4.1cqi,23px); margin:0 0 10px; }
 .stage-shell[data-scene="shap-value"] #feature-select { margin-bottom:10px; }
 .stage-shell[data-scene="shap-value"] .marginal-contexts { margin:8px 0; }
 .stage-shell[data-scene="shap-value"] .context-summary { padding-top:10px; }
@@ -299,7 +298,6 @@ dialog p { font-size:16px; }
   .stage-shell[data-scene="shapley-formula"],.stage-shell[data-scene="weights"],.stage-shell[data-scene="shap-value"] { height:65svh; min-height:450px; max-height:620px; }
   .stage-shell[data-scene="shap-value"] { height:68svh; }
   .formula-equation { font-size:22px; margin:8px 0 14px; }
-  .formula-line { margin:6px 0; }
   .formula-definitions { font-size:11px; margin-bottom:12px!important; }
   .training-flow { font-size:12px; padding:6px 0; }
   .training-note { font-size:10px; margin-bottom:10px!important; }
@@ -338,4 +336,7 @@ dialog p { font-size:16px; }
   .formula-explanation { margin-top:16px; padding-top:12px; }
   .formula-focus-symbol { font-size:24px; margin-bottom:8px!important; }
   .formula-focus-meaning { font-size:13px; }
+}
+@media(max-width:350px) {
+  .formula-equation,.narrative-formula .formula-equation,.stage-shell[data-scene="shap-value"] .formula-equation { font-size:18px; }
 }

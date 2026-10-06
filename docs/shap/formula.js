@@ -34,7 +34,7 @@ export function shapleyFormulaMarkup(activeTerm = 'all') {
       <munder class="${classes('sum')}"><mo>∑</mo><mrow>${symbol('S', 'coalition')}<mo>⊆</mo><mi>F</mi><mo>∖</mo><mrow><mo stretchy="false">{</mo>${symbol('i', 'joining')}<mo stretchy="false">}</mo></mrow></mrow></munder>
       <mfrac class="${classes('weight')}"><mrow><mrow>${size}<mo>!</mo></mrow><mrow><mo stretchy="false">(</mo><mi>m</mi><mo>−</mo>${size}<mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo>!</mo></mrow></mrow><mrow><mi>m</mi><mo>!</mo></mrow></mfrac>
     </mrow></math>
-    <math class="formula-line" xmlns="${mathNamespace}" display="block" aria-hidden="true"><mrow><mo>×</mo><mrow class="${classes('difference')}"><mo stretchy="false">[</mo><mrow class="${classes('after')}">${valueApplication(addingFeature, valueFunction)}</mrow><mo>−</mo><mrow class="${classes('before')}">${valueApplication(symbol('S', 'coalition'), valueFunction)}</mrow><mo stretchy="false">]</mo></mrow></mrow></math>
+    <math class="formula-line" xmlns="${mathNamespace}" display="block" aria-hidden="true"><mrow><mrow class="${classes('difference')}"><mo stretchy="false">[</mo><mrow class="${classes('after')}">${valueApplication(addingFeature, valueFunction)}</mrow><mo>−</mo><mrow class="${classes('before')}">${valueApplication(symbol('S', 'coalition'), valueFunction)}</mrow><mo stretchy="false">]</mo></mrow></mrow></math>
   </div>`;
 }
 

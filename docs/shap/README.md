@@ -46,6 +46,8 @@ profiles use the same model and background.
 The opening keeps the same equation in place and highlights only the symbols
 under discussion. Definitions enter through scrolling instead of a glossary.
 The person selector appears when the worked prediction example begins.
+The full formula fits on one line in the desktop figure, with type sized to
+the figure's width. Phones and narrow prose columns allow a readable line break.
 
 The concluding math section supplies the finite-background `v_x(S)` definition.
 Its checkbox-controlled data table exposes every feature group, including the
