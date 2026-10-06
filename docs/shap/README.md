@@ -6,14 +6,16 @@ prediction, distinguishing model training from explanation. The highlighted
 value-function terms show how a revealed feature changes the value of a group: substitute the observation's values into background rows, evaluate
 the same prediction function, average its outputs, then compare those averages.
 
-The illustrative earnings predictor is `f(a,n,e) = 40 + 10a + 24an + 4e`, in
+The illustrative earnings predictor is
+`f(x) = 40 + 10 × ability + 24 × ability × neighborhood + 4 × experience`, in
 thousands of dollars per year. Ability and experience range from 0 to 1;
 neighborhood opportunity ranges from −1 to +1. The interaction can outweigh
 ability's positive main term in an adverse context. The equation and profiles
 are constructed for teaching; they are not empirical estimates or causal claims.
-There are three features, labeled with lowercase `a`, `n`, and `e`. Uppercase
-`S` and `F` denote sets of features, and `i` denotes the feature joining `S`.
-The interaction is computed inside the predictor.
+There are three features, named `ability`, `neighborhood`, and `experience`;
+`neighborhood` denotes neighborhood opportunity. `S` and `F` denote sets of
+features, with `F = {ability, neighborhood, experience}`, and `i` denotes the
+feature joining `S`. The interaction is computed inside the predictor.
 
 The eight equally weighted reference profiles cover every endpoint combination.
 All eight rows appear in the main tables. Included columns are fixed to the
@@ -21,8 +23,9 @@ selected person; excluded columns retain the joint values from each background
 row. The before/after output columns and their means show the marginal directly.
 No feature is removed from the model or zeroed to represent absence.
 
-The default profile has `(a,n,e) = (1,−1,1)`. Its baseline is 47 and prediction is
-30. Ability's marginal is +5 before neighborhood is revealed and −7 after it.
+The default profile has ability 1, neighborhood −1, and experience 1.
+Its baseline is 47 and prediction is 30. Ability's marginal is +5 before
+neighborhood is revealed and −7 after it.
 Each occurs in three of the six orders, giving a final ability SHAP value of −1.
 The complete explanation is `47 − 1 − 18 + 2 = 30`. Alternate favorable and mixed
 profiles use the same model and background.

@@ -14,24 +14,26 @@ contains only local explanations, with no global importance or beeswarm plots.
 The predictor is:
 
 ```text
-f(a, n, e) = 40 + 10a + 24an + 4e
+f(x) = 40 + 10 × ability + 24 × ability × neighborhood + 4 × experience
 ```
 
-Its output is in thousands of dollars per year. `a` denotes ability, `n`
-neighborhood opportunity, and `e` experience. These are illustrative normalized
-scores. Lowercase feature labels distinguish individual features from the
-feature sets `S` and `F`. The scores have the following domains:
+Its output is in thousands of dollars per year. The features are named `ability`,
+`neighborhood`, and `experience`; `neighborhood` denotes neighborhood opportunity.
+These are illustrative normalized scores. `S` and `F` denote sets of features,
+with `F = {ability, neighborhood, experience}`, and `i` denotes the feature
+joining `S`. The scores have the following domains:
 
 | Input | Domain | Interpretation |
 | --- | --- | --- |
-| Ability, a | 0 to 1 | Low to high illustrative ability or skill. |
-| Neighborhood opportunity, n | −1 to +1 | Adverse to favorable illustrative opportunity. |
-| Experience, e | 0 to 1 | Low to high illustrative experience; not a count of years. |
+| Ability | 0 to 1 | Low to high illustrative ability or skill. |
+| Neighborhood opportunity | −1 to +1 | Adverse to favorable illustrative opportunity. |
+| Experience | 0 to 1 | Low to high illustrative experience; not a count of years. |
 
 The interaction coefficient of 24 deliberately makes the role of ability depend
-on neighborhood opportunity. With `n = −1`, the ability terms become
-`10a − 24a = −14a`; increasing ability lowers this predictor's output. With
-`n = +1`, they become `34a`. This is a property of the stipulated teaching model,
+on neighborhood opportunity. With `neighborhood = −1`, the ability terms become
+`10 × ability − 24 × ability = −14 × ability`; increasing ability lowers this
+predictor's output. With `neighborhood = +1`, they become `34 × ability`.
+This is a property of the stipulated teaching model,
 not a claim about real earnings or causal effects.
 
 There is no training, train/test split, refitting, or predictive validation in this
@@ -41,13 +43,14 @@ coefficients so readers can inspect every result.
 ## Background and profiles to explain
 
 The reference background is exactly eight profiles: all combinations of
-`a ∈ {0, 1}`, `n ∈ {−1, +1}`, and `e ∈ {0, 1}`. Each has weight 1/8.
+`ability ∈ {0, 1}`, `neighborhood ∈ {−1, +1}`, and `experience ∈ {0, 1}`.
+Each has weight 1/8.
 Their average prediction is 47, or $47,000 per year. This is the average over the
 declared reference profiles, not an observed population average.
 
 The three profiles to explain are:
 
-| Profile | a | n | e | Prediction | SHAP values for a, n, e |
+| Profile | Ability | Neighborhood | Experience | Prediction | SHAP values for ability, neighborhood, experience |
 | --- | --- | --- | --- | --- | --- |
 | Adverse neighborhood | 1 | −1 | 1 | 30 | −1, −18, +2 |
 | Favorable neighborhood | 1 | +1 | 1 | 78 | +11, +18, +2 |
@@ -68,9 +71,9 @@ Evaluate the same fixed predictor on each of the eight inputs, then average:
 v_x(S) = (1/8) × sum over reference rows z of f(x_S, z_-S)
 ```
 
-For the default profile, revealing neighborhood means fixing `n = −1` in every
+For the default profile, revealing neighborhood means fixing `neighborhood = −1` in every
 row while retaining each row's ability and experience. The eight resulting
-predictions average to 35. Revealing ability too fixes `a = 1` in every row;
+predictions average to 35. Revealing ability too fixes `ability = 1` in every row;
 the new predictions average to 28. Ability's marginal contribution after
 neighborhood is therefore `28 − 35 = −7`, or −$7,000.
 

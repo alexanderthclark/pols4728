@@ -1,13 +1,13 @@
 const mathNamespace = 'http://www.w3.org/1998/Math/MathML';
-export const featureSymbols = ['a', 'n', 'e'];
+export const featureLabels = ['ability', 'neighborhood', 'experience'];
 const featureNames = ['ability', 'neighborhood opportunity', 'experience'];
 const activeTerms = new Set(['all', 'result', 'sum', 'weight', 'after', 'before', 'difference', 'value', 'observation', 'coalition', 'joining']);
 
 function setMarkup(mask) {
   if (!Number.isInteger(mask) || mask < 0 || mask > 7) throw new RangeError('Use a feature mask from 0 to 7.');
-  const members = featureSymbols.filter((symbol, index) => mask & (1 << index));
+  const members = featureLabels.filter((label, index) => mask & (1 << index));
   return members.length
-    ? `<mrow><mo stretchy="false">{</mo>${members.map(symbol => `<mi>${symbol}</mi>`).join('<mo>,</mo>')}<mo stretchy="false">}</mo></mrow>`
+    ? `<mrow><mo stretchy="false">{</mo>${members.map(label => `<mtext>${label}</mtext>`).join('<mo>,</mo>')}<mo stretchy="false">}</mo></mrow>`
     : '<mo lspace="0" rspace="0">∅</mo>';
 }
 
@@ -44,12 +44,11 @@ export function valueMarkup(mask) {
   return `<math class="math-inline coalition-value-math" xmlns="${mathNamespace}" aria-label="v sub x of ${setLabel(mask)}">${valueApplication(argument)}</math>`;
 }
 
-/** The joining edge written as the difference between its two concrete coalitions. */
+/** Keep the two concrete coalition names readable above their prediction columns. */
 export function joiningMarkup(beforeMask, feature) {
-  const before = setMarkup(beforeMask);
-  if (!Number.isInteger(feature) || feature < 0 || feature >= featureSymbols.length) throw new RangeError('Use a feature index from 0 to 2.');
+  setMarkup(beforeMask);
+  if (!Number.isInteger(feature) || feature < 0 || feature >= featureLabels.length) throw new RangeError('Use a feature index from 0 to 2.');
   if (beforeMask & (1 << feature)) throw new RangeError('The joining feature must be excluded from the preceding group.');
   const afterMask = beforeMask | (1 << feature);
-  const after = setMarkup(afterMask);
-  return `<math class="math-inline joining-value-math" xmlns="${mathNamespace}" aria-label="v sub x of ${setLabel(afterMask)} minus v sub x of ${setLabel(beforeMask)}"><mrow>${valueApplication(after)}<mo>−</mo>${valueApplication(before)}</mrow></math>`;
+  return `<div class="coalition-comparison" role="group" aria-label="Compare predictions before and after ${featureNames[feature]} joins"><div><span class="coalition-label">Before</span>${valueMarkup(beforeMask)}</div><div><span class="coalition-label">After</span>${valueMarkup(afterMask)}</div></div>`;
 }

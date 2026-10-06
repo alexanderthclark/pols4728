@@ -106,6 +106,7 @@ h2 { font-size:clamp(32px,3vw,43px); margin:0 0 26px; }
 .equation { padding:18px 0 24px; overflow-x:auto; font-size:25px; }
 math,.math-text { font-family:'Course Math','Cambria Math',math; }
 .math-text { white-space:nowrap; }
+.feature-set { white-space:normal; }
 span[data-fact] { white-space:nowrap; }
 pre { font:14px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; overflow-x:auto; padding:18px 0; border-top:1px solid var(--light-rule); border-bottom:1px solid var(--light-rule); }
 code { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:.9em; }
@@ -188,7 +189,12 @@ dialog p { font-size:16px; }
 @media(max-width:380px) { .masthead nav a:first-child { display:none; } .input-table td,.input-table th { padding-left:2px; padding-right:2px; } .stage-shell { padding-left:14px; padding-right:14px; } .compare-mean .number { font-size:25px; } h1 { font-size:40px; } }
 @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { animation:none!important; transition:none!important; } }
 @media print { .masthead,.reading-progress,.stage-navigation,.observation-control,.stage-shell,dialog { display:none; } .story-layout { display:block; } .step { min-height:0; padding:20px 0; display:block; } .step-content { max-width:none; } }
-.prediction-equation { overflow-x:auto; padding:8px 0 24px; font-size:20px; }
+.prediction-equation { display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 12px; overflow-x:auto; padding:8px 0 24px; font-size:20px; }
+.prediction-line { margin:0; flex:0 0 auto; }
+.coalition-comparison { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px 24px; margin-bottom:8px; font:24px/1.4 'Course Math',math; }
+.coalition-comparison>div { display:flex; flex-direction:column; flex:0 0 auto; }
+.coalition-label { font:12px/1.4 var(--sans); color:var(--muted); margin-bottom:4px; }
+.feature-input { white-space:nowrap; }
 .stage-shell { padding-top:16px; padding-bottom:12px; }
 .stage-top { padding-bottom:8px; }
 .observation-control { padding-bottom:8px; }
@@ -263,6 +269,8 @@ dialog p { font-size:16px; }
   .context-summary small { font-size:10px; }
   .average-arithmetic { font-size:12px; margin-top:7px!important; }
   .prediction-equation { font-size:18px; }
+  .coalition-comparison { font-size:20px; gap:6px 20px; }
+  .coalition-label { font-size:11px; }
   #coalition-table table { min-width:0; }
 }
 .formula-equation { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:4px 8px; max-width:100%; font:26px/1.4 'Course Math',math; font-size:clamp(18px,4.1cqi,26px); margin:12px 0 22px; flex-shrink:0; }

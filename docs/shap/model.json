@@ -27,6 +27,6 @@
     ]
   },
   "predictionUnit": "thousand dollars per year",
-  "equation": "40 + 10a + 24an + 4e",
+  "equation": "40 + 10 × ability + 24 × ability × neighborhood + 4 × experience",
   "fitted": false
 }

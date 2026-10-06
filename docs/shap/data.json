@@ -51,14 +51,14 @@
     "type": "synthetic",
     "description": "Designed reference profiles and observations, not data collected from people.",
     "sourceRows": 8,
-    "backgroundConstruction": "All a,e in {0,1} and n in {−1,+1}; each of the eight combinations has weight 1/8."
+    "backgroundConstruction": "All ability and experience values in {0,1} and neighborhood values in {−1,+1}; each of the eight combinations has weight 1/8."
   },
   "model": {
     "type": "IllustrativeEarningsInteraction",
-    "equation": "40 + 10a + 24an + 4e",
+    "equation": "40 + 10 × ability + 24 × ability × neighborhood + 4 × experience",
     "fitted": false,
     "interpretation": "A transparent, fixed illustrative predictor of yearly earnings in $1,000 units.",
-    "interaction": "The term 24an deliberately lets neighborhood opportunity change how ability enters the prediction.",
+    "interaction": "The term 24 × ability × neighborhood deliberately lets neighborhood opportunity change how ability enters the prediction.",
     "limitations": "The equation and scores are invented for explanation. They are not fitted empirical estimates, validated income predictions, or claims about causal effects of ability or neighborhoods."
   },
   "method": {
