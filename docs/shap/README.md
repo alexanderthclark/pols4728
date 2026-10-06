@@ -57,9 +57,14 @@ explainer. Global importance and beeswarm plots are reserved for a later page.
 
 Navigation buttons provide an alternative to scrolling. Native selects,
 checkboxes, disclosures, and modal dialogs support keyboard operation. Dialogs
-restore focus to their trigger. Reduced-motion preferences disable animated
-replacements and bar reveals. Static narrative numbers remain available without
-JavaScript, but the interactive figures require it.
+restore focus to their trigger, and a concise status announces stage changes.
+The sum's narrative follows the selected feature as well as the selected person.
+Reduced-motion preferences disable animated replacements and bar reveals.
+Short landscape screens place the prose and figure side by side. Phone tables
+keep every column visible, with larger included/excluded labels and controls.
+Without JavaScript, the complete formula, worked profile, and default narrative
+numbers remain available in a continuous reading layout; interactive figures
+require it. The opening formula and worked profile also appear in print.
 
 ## Run and reproduce
 

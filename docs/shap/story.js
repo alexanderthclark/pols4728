@@ -11,7 +11,7 @@ const captions = [
   'x is one complete observation; its values supply the fixed inputs.',
   'S is the group already fixed to x, before the additional feature joins.',
   'i is the additional feature. It belongs to F and is not already in S.',
-  'ϕᵢ(vₓ) is the final contribution assigned to feature i for this prediction.',
+  'ϕᵢ(vₓ) is feature i’s contribution relative to the background average prediction.',
   'Fit f once, then hold it fixed. Here we supply a transparent teaching equation.',
   'vₓ(∅): no columns fixed to x. Average the eight model predictions.',
   'After fixes ability to x; before uses its background values. Other columns stay the same.',
@@ -32,6 +32,10 @@ const visual = $('#visual'), shell = $('.stage-shell');
 const observationSelect = $('#observation-select');
 const dialog = $('#rows-dialog');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const stackedLayout = matchMedia('(max-width:649px), (max-width:860px) and (min-height:551px)');
+$('.stage-top').setAttribute('role', 'status');
+$('.stage-top').setAttribute('aria-live', 'polite');
+$('.stage-top').setAttribute('aria-atomic', 'true');
 document.querySelectorAll('[data-formula-focus]').forEach(element => {
   element.innerHTML = shapleyFormulaMarkup(element.dataset.formulaFocus);
 });
@@ -43,10 +47,10 @@ function escape(value) {
 function number(value, decimals = 1) {
   return new Intl.NumberFormat('en-US', {maximumFractionDigits:decimals}).format(value).replace('-', '−');
 }
-function signed(value) { return `${value < 0 ? '−' : '+'}${number(Math.abs(value))}`; }
+function signed(value) { return value === 0 ? '0' : `${value < 0 ? '−' : '+'}${number(Math.abs(value))}`; }
 function inputNumber(value) { return number(value, 2); }
 function dollars(value, includeSign = false) {
-  return `${value < 0 ? '−' : includeSign ? '+' : ''}$${new Intl.NumberFormat('en-US', {maximumFractionDigits:0}).format(Math.abs(value) * 1000)}`;
+  return `${value < 0 ? '−' : includeSign && value > 0 ? '+' : ''}$${new Intl.NumberFormat('en-US', {maximumFractionDigits:0}).format(Math.abs(value) * 1000)}`;
 }
 function groupName(mask, short = false) {
   const labels = state.data.features.filter((_, index) => mask & (1 << index)).map(feature => short ? feature.shortLabel : feature.label.toLowerCase());
@@ -60,6 +64,7 @@ function updateFacts() {
   const facts = {
     ability:inputNumber(observation.values[0]), neighborhood:inputNumber(observation.values[1]),
     baselineDollars:dollars(observation.baseValue), predictionDollars:dollars(observation.prediction),
+    staticObservation:`For this observation, ability is ${inputNumber(observation.values[0])}, neighborhood opportunity is ${inputNumber(observation.values[1])}, and experience is ${inputNumber(observation.values[2])}. The model predicts ${dollars(observation.prediction)} per year.`,
     abilityMeanDollars:dollars(coalition(observation, 1).value), abilityFirstDollars:dollars(marginal(observation, 0, 0), true),
     neighborhoodMeanDollars:dollars(coalition(observation, 2).value), bothMeanDollars:dollars(coalition(observation, 3).value),
     abilityAfterDollars:dollars(delta, true), abilityShapDollars:dollars(observation.shapValues[0], true),
@@ -69,6 +74,7 @@ function updateFacts() {
       : 'Here revealing ability does not change the averaged prediction. The main ability term and the interaction offset one another for this profile.',
   };
   document.querySelectorAll('[data-fact]').forEach(element => {element.textContent = facts[element.dataset.fact];});
+  updateAverageNarrative();
   $('#explanation-table').innerHTML = `<table class="input-table"><caption>${escape(observation.name)} · earnings contributions in $1,000/year</caption><thead><tr><th scope="col">Feature</th><th scope="col">Input value</th><th scope="col">SHAP value</th></tr></thead><tbody>${state.data.features.map((feature, index) => `<tr><th scope="row">${escape(feature.label)}</th><td>${inputNumber(observation.values[index])}</td><td>${signed(observation.shapValues[index])}</td></tr>`).join('')}<tr><th scope="row">Baseline</th><td colspan="2">${number(observation.baseValue)}</td></tr><tr><th scope="row">Prediction</th><td colspan="2">${number(observation.prediction)}</td></tr></tbody></table>`;
   renderCoalitionExplorer();
 }
@@ -126,6 +132,23 @@ function featureContexts() {
   ];
 }
 
+function updateAverageNarrative() {
+  const feature = state.data.features[state.feature].label.toLowerCase();
+  const symbol = featureSymbols[state.feature];
+  const contexts = featureContexts();
+  const credit = `<span class="math-text">${dollars(state.observation.shapValues[state.feature], true)}</span>`;
+  const contributions = contexts.map(context => `<span class="math-text">${dollars(context.value, true)}</span>`);
+  $('#average-definition').innerHTML = `The sum visits all four groups that exclude ${escape(feature)}. Weight each prediction difference by the fraction of orders in which that group precedes ${escape(feature)}, then add. This gives <span class="math-text">ϕ<sub>${symbol}</sub>(v<sub>x</sub>)</span>, ${escape(feature)}’s SHAP value for this observation.`;
+  if (contexts.length === 2) {
+    const partner = state.feature === 0 ? 'neighborhood' : 'ability';
+    $('#average-context').innerHTML = `We can combine equal contributions in this example. Before ${partner} is fixed, ${escape(feature)} contributes ${contributions[0]} with total weight <span class="math-text">2/6 + 1/6 = 3/6</span>. After ${partner} is fixed, it contributes ${contributions[1]} with total weight <span class="math-text">1/6 + 2/6 = 3/6</span>. The result is ${credit}.`;
+    $('#average-interpretation').textContent = `Experience’s position does not change ${feature}’s marginal here because experience enters additively.`;
+  } else {
+    $('#average-context').innerHTML = `Experience contributes ${contributions[0]} in every preceding group and every revealing order. Combining all six equally weighted orders gives total weight <span class="math-text">6/6 = 1</span>, so its SHAP value is ${credit}.`;
+    $('#average-interpretation').textContent = 'Because experience enters additively, its marginal contribution stays the same whichever other features are already fixed.';
+  }
+}
+
 function renderAverage() {
   const feature = state.data.features[state.feature];
   const contexts = featureContexts();
@@ -154,8 +177,10 @@ function render() {
   const scene = steps[state.scene].id;
   shell.dataset.scene = scene;
   $('.observation-control').hidden = Boolean(formulaStops[scene]);
-  $('#stage-name').textContent = names[state.scene];
-  $('#stage-count').textContent = `${state.scene+1} / ${steps.length}`;
+  if ($('#stage-name').textContent !== names[state.scene]) {
+    $('#stage-name').textContent = names[state.scene];
+    $('#stage-count').textContent = `${state.scene+1} / ${steps.length}`;
+  }
   $('#stage-caption').textContent = captions[state.scene];
   $('#previous').disabled = state.scene === 0;
   $('#next').textContent = state.scene === steps.length-1 ? 'Math & Python →' : 'Next →';
@@ -200,7 +225,7 @@ function openOrders(trigger) {
 }
 function navigate(index, behavior = reducedMotion.matches ? 'instant' : 'smooth') {
   const target = index === steps.length ? $('#method') : steps[index];
-  if (index < steps.length && matchMedia('(max-width:860px)').matches) {
+  if (index < steps.length && stackedLayout.matches) {
     state.scene = index;
     render();
     const readingOffset = $('.masthead').getBoundingClientRect().height + shell.getBoundingClientRect().height + 15;
@@ -213,7 +238,7 @@ let scrollPending = false;
 function updateScroll() {
   scrollPending = false;
   if (!state.data) return;
-  const mobile = matchMedia('(max-width:860px)').matches;
+  const mobile = stackedLayout.matches;
   const readingLine = mobile ? shell.getBoundingClientRect().bottom + 60 : innerHeight * .5;
   let scene = 0;
   steps.forEach((step,index) => {if (step.getBoundingClientRect().top <= readingLine) scene = index;});
