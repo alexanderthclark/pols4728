@@ -263,7 +263,7 @@ window.addEventListener('resize', updateScroll);
 reduced.addEventListener('change', () => { stopPlayback(); updateGraph(); updateCaption(); });
 showStep(0); updateScroll();
 
-function goToStep(index) {
+function goToStep(index, focusDestination = false) {
   showStep(index);
   requestAnimationFrame(() => {
     const header = mobile.matches ? 54 : 68;
@@ -271,17 +271,29 @@ function goToStep(index) {
     const top = mobile.matches ? scrollY + steps[index].querySelector('.step-content').getBoundingClientRect().top : steps[index].offsetTop;
     window.scrollTo({ top: top - offset, behavior: 'instant' });
     updateScroll();
+    if (focusDestination && index === 0) steps[index].focus({ preventScroll: true });
   });
 }
 function stepForHash(hash) {
-  return hash === '#beginning' ? 0 : steps.findIndex(step => `#${step.id}` === hash);
+  return steps.findIndex(step => `#${step.id}` === hash);
+}
+function goToBeginning(focusDestination = false) {
+  stopPlayback();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  updateScroll();
+  if (focusDestination) $('#beginning').focus({ preventScroll: true });
 }
 document.querySelectorAll('a[href^="#"]').forEach(link => link.addEventListener('click', event => {
   const hash = link.getAttribute('href'), index = stepForHash(hash);
+  if (hash === '#beginning') {
+    event.preventDefault(); history.replaceState(null, '', hash); goToBeginning(true);
+    return;
+  }
   if (index < 0) return;
-  event.preventDefault(); history.replaceState(null, '', hash); goToStep(index);
+  event.preventDefault(); history.replaceState(null, '', hash); goToStep(index, true);
 }));
 function followHash() {
+  if (location.hash === '#beginning') { goToBeginning(); return; }
   const index = stepForHash(location.hash);
   if (index >= 0) goToStep(index);
   else updateScroll();

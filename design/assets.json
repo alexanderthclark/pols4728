@@ -6,6 +6,13 @@
       "description": "Outlined, expressive ML and AI letter characters above the course subtitle.",
       "sha256": "f79c192344d203c3f944585ce1027e9e07e0aa462a663a65f7bf6b46251366cd",
       "usage": "Primary course identity for the public landing page and course introductions. Preserve the original monochrome artwork and proportions."
+    },
+    {
+      "path": "docs/shapley/assets/voters-ballot-box.png",
+      "role": "shapley-title-illustration",
+      "description": "Three equally sized round-faced characters with stick arms and legs and no separate torsos lean around one ballot box, pushing three separate ballots into its single slot simultaneously.",
+      "sha256": "155ad58d0cc1c4cdce68e7736bc4e9b112b119cfe7e7180675e39571dc0b4fe9",
+      "usage": "Opening title screen of the Shapley-value explainer. Sparse monochrome artwork follows the SHAP Germany character anatomy. Preserve transparency, full composition, proportions, and clear space; keep titles and mathematical explanations as real HTML text."
     }
   ]
 }

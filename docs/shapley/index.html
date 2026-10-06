@@ -12,7 +12,20 @@
 <body>
   <header class="masthead"><a class="brand" href="#beginning">THE MATHEMATICS OF CREDIT</a><a class="skip" href="#explore">Skip to the diagram</a></header>
   <div class="reading-progress" aria-hidden="true"><span id="progress-fill"></span></div>
-  <main class="story" id="beginning">
+  <main>
+    <section class="title-page" id="beginning" aria-labelledby="cover-title" tabindex="-1">
+      <div class="title-page-content">
+        <p class="title-page-kicker">POLS 4728</p>
+        <h1 id="cover-title">Who gets the credit?</h1>
+        <p class="title-page-subtitle">Shapley values, step by step</p>
+        <figure class="title-page-art">
+          <img src="assets/voters-ballot-box.png" width="1536" height="1024" alt="Three round, torso-free stick figures simultaneously squeeze their three ballots into the same voting box.">
+          <figcaption>Three votes at once. Six imagined orders.</figcaption>
+        </figure>
+        <a class="title-page-start" href="#scene-1">Start the explanation <span aria-hidden="true">↓</span></a>
+      </div>
+    </section>
+    <div class="story">
     <aside class="stage-shell" aria-label="Voting illustration">
       <div class="stage-top"><span class="eyebrow" id="stage-kicker">01 / THE RULE</span><span class="stage-count" id="stage-count">3 voters · 2 votes to pass</span></div>
       <div class="stage-viz" id="stage-viz">
@@ -22,7 +35,7 @@
       <div class="stage-bottom" id="stage-bottom"><span class="legend-mark"></span><span>Every voter supports the proposal.</span></div>
     </aside>
     <div class="narrative" id="narrative">
-      <section class="step is-active" data-step="0"><div class="step-content"><p class="eyebrow">A SCROLLING EXPLAINER / MAJORITY RULE</p><h1>Who gets<br>the credit?</h1><p class="lead">Three people vote yes. A proposal needs just two votes to pass.</p><p>Everyone helped. But how much credit belongs to each voter?</p><p class="scroll-prompt">Scroll to follow the argument <span aria-hidden="true">↓</span></p></div></section>
+      <section class="step is-active" data-step="0" id="scene-1" tabindex="-1"><div class="step-content"><p class="eyebrow">A SCROLLING EXPLAINER / MAJORITY RULE</p><h2>Three votes.<br>One outcome.</h2><p class="lead">Three people vote yes. A proposal needs just two votes to pass.</p><p>Everyone helped. But how much credit belongs to each voter?</p><p class="scroll-prompt">Scroll to follow the argument <span aria-hidden="true">↓</span></p></div></section>
       <section class="step" data-step="1"><div class="step-content"><span class="step-number">02</span><h2>Take one<br>voter away.</h2><p>Remove A. The remaining pair still passes the proposal. The same happens if we remove B or C.</p><p>Each removal changes the outcome by <strong>zero</strong>. Looking only at the final group leaves us with a puzzle.</p></div></section>
       <section class="step" data-step="2"><div class="step-content"><span class="step-number">03</span><h2>Start with<br>the smallest groups.</h2><p>A <strong>coalition</strong> is a group of voters whose support we count.</p><p>Start with nobody, ∅, then A, B, or C alone. None has enough votes to pass. Give each group a value of <strong>zero</strong>.</p></div></section>
       <section class="step" data-step="3"><div class="step-content"><span class="step-number">04</span><h2>The second vote<br>makes a difference.</h2><p>Every pair has two votes, so every pair passes. Give each pair a value of <strong>one</strong>.</p><p>An edge means <strong>add exactly one voter</strong>. Going from B alone to A and B changes failure to success: <strong>0 → 1</strong>.</p></div></section>
@@ -44,6 +57,7 @@
       <section class="step formula-step" data-step="12" id="formula-after"><div class="step-content"><span class="step-number">13 / AFTER A</span><h2>Arrange the voters<br>after A.</h2><p>Of the <math class="math-inline"><mrow><mi>n</mi></mrow></math> voters, <math class="math-inline"><mrow><mrow><mo form="prefix" stretchy="false">|</mo><mi>S</mi><mo form="postfix" stretchy="false">|</mo></mrow></mrow></math> arrived before A, and one is A. That leaves <math class="math-inline"><mrow><mi>n</mi><mo>−</mo><mrow><mo form="prefix" stretchy="false">|</mo><mi>S</mi><mo form="postfix" stretchy="false">|</mo></mrow><mo>−</mo><mn>1</mn></mrow></math> voters, with <math class="math-inline"><mrow><mrow><mo stretchy="false">(</mo><mi>n</mi><mo>−</mo><mrow><mo form="prefix" stretchy="false">|</mo><mi>S</mi><mo form="postfix" stretchy="false">|</mo></mrow><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><mo>!</mo></mrow></math> possible orders.</p><p>With <math class="math-inline"><mrow><mi>S</mi><mo>=</mo><mo>∅</mo></mrow></math>, A arrives first. B and C can then arrive in either order.</p><p class="small-note">0! = 1: there is one way to arrange nobody.</p></div></section>
       <section class="step formula-step" data-step="13" id="formula-weight"><div class="step-content"><span class="step-number">14 / THE WEIGHT</span><h2>Divide by every<br>possible order.</h2><p>These are the same paths we highlighted. Multiply the choices before A by the choices after A. That counts complete orders using this particular joining edge.</p><p>The denominator <math class="math-inline"><mrow><mi>n</mi><mo>!</mo></mrow></math> counts all complete orders. Here <math class="math-inline"><mrow><mn>3</mn><mo>!</mo><mo>=</mo><mn>6</mn></mrow></math>, so the weight is the matching count divided by six.</p></div></section>
       <section class="step formula-step" data-step="14" id="formula-sum"><div class="step-content"><span class="step-number">15 / THE SAME CALCULATION</span><h2>Add the edges.<br>Keep the meaning.</h2><p>One term for each of A’s four joining edges. Each term is its contribution multiplied by its fraction of the six orders.</p><p>The full formula gives the same result: <math class="math-inline"><mrow><mrow><msub><mi>ϕ</mi><mi mathvariant="normal">A</mi></msub><mo>⁡</mo><mrow><mo stretchy="false">(</mo><mi>v</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mfrac><mn>1</mn><mn>3</mn></mfrac></mrow></math>.</p><p>For a different game, change the value function <math class="math-inline"><mrow><mi>v</mi></mrow></math>. The meaning of the formula stays the same.</p><p class="small-note"><a href="#explore">Return to the interactive diagram</a></p></div></section>
+    </div>
     </div>
   </main>
   <footer class="footer">
