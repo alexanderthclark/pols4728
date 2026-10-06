@@ -102,10 +102,10 @@ The equation is a stylized, centered and standardized teaching specification,
 rather than the original historical fit. The split layout begins with the
 three correlations in frame nine. Frame 15 is another centered transition,
 “When features interact,” showing two round body-and-face characters with
-stick limbs on a tilted map of Germany. The western character wears a top hat;
-the eastern character wears a patched cap and worn shoes. West Germany and
-East Germany are labeled in real text. The caption holds ability and experience
-constant while the institutional setting changes. The native math term
+stick limbs on a tilted map of Germany. The smiling western character wears a
+top hat; the frowning eastern character wears a patched cap and worn shoes.
+The bottom map credit names West and East Germany. The caption holds ability
+and experience constant while the institutional setting changes. The native math term
 `ability × neighborhood` connects that comparison to the illustrative earnings
 equation. The full earnings model and person selector appear in frame 16.
 The story has 22 frames.

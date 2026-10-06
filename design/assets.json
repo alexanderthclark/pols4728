@@ -17,9 +17,9 @@
     {
       "path": "docs/shap/assets/earnings-germany-characters.png",
       "role": "explanatory illustration",
-      "description": "Two oversized round body-and-face characters with stick limbs and no separate torsos stand on a shallow tilted map of divided Germany. The western character wears a top hat; the eastern character wears a patched cap and worn shoes. The artwork uses the course’s monochrome outlined style.",
-      "sha256": "a41be98b87b9d9b6c58d1c232ab43f7edb6477c873810314a66c06d9c3524f4c",
-      "usage": "Centered transition before the SHAP earnings interaction example. The map is an institutional analogy, not an empirical earnings model. Preserve proportions, transparency, and native territory labels.",
+      "description": "Two oversized round body-and-face characters with stick limbs and no separate torsos stand on a shallow tilted map of divided Germany. The smiling western character wears a top hat; the frowning eastern character wears a patched cap and worn shoes. The artwork uses the course’s monochrome outlined style.",
+      "sha256": "2237e2ed40a115db5bd17b7d76c0e07b80ba9870a09a905ede541ea226283e87",
+      "usage": "Centered transition before the SHAP earnings interaction example. The map is an institutional analogy, not an empirical earnings model. Preserve proportions, transparency, and native map credit.",
       "references": [
         {
           "title": "IEG-Maps, Map 360: Länder der Bundesrepublik 1989",
