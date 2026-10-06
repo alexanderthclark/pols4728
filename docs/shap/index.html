@@ -47,17 +47,17 @@
           </mrow></math></div>
           <p class="scroll-prompt">Scroll to highlight each part, or use Next.</p>
         </div></section>
-        <section class="step formula-step" id="value-function" data-step="1" aria-labelledby="value-function-heading"><div class="step-content">
-          <p class="step-number">2 / 13 · The value function</p><h2 id="value-function-heading">The game assigns a prediction to each group</h2>
-          <p>The symbol <span class="math-text">v<sub>x</sub></span> names the value function for our prediction game. It takes a group of features and returns the value we assign to that group.</p>
-          <p>Here that value is an average prediction: fix the group’s inputs to the observation we want to explain, and use reference input rows, called the background, for the other inputs. Average the model’s predictions over these complete rows to get <span class="math-text">v<sub>x</sub>(S)</span>.</p>
-          <p>With every feature fixed to the observation, this average is the model’s prediction itself. With only some features fixed, we replace those columns in each reference row and average the resulting predictions.</p>
+        <section class="step formula-step" id="observation-symbol" data-step="1" aria-labelledby="observation-symbol-heading"><div class="step-content">
+          <p class="step-number">2 / 13 · The observation x</p><h2 id="observation-symbol-heading">Whose prediction are we explaining?</h2>
+          <p>The symbol <var>x</var> identifies one observation: the complete input row for the person whose prediction we want to explain. Its feature values are already known to us.</p>
+          <p>When we fix a feature, its value comes from this row. We keep the person’s inputs the same throughout the explanation.</p>
+          <p>The subscript in <span class="math-text">v<sub>x</sub></span> keeps track of whose prediction we are explaining. Another observation can have a different explanation, even with the same prediction model.</p>
         </div></section>
-        <section class="step formula-step" id="observation-symbol" data-step="2" aria-labelledby="observation-symbol-heading"><div class="step-content">
-          <p class="step-number">3 / 13 · The observation x</p><h2 id="observation-symbol-heading">Whose prediction are we explaining?</h2>
-          <p>The subscript <var>x</var> identifies one observation: the complete input row for the person whose prediction we want to explain. Its feature values are already known to us.</p>
-          <p>We use those values in the coalition thought experiment. Each included feature is fixed to its value in <var>x</var>; each excluded feature is averaged over the background. The same person supplies the fixed values throughout this game.</p>
-          <p>Another observation defines another game <span class="math-text">v<sub>x</sub></span>, even when the model and background stay the same.</p>
+        <section class="step formula-step" id="value-function" data-step="2" aria-labelledby="value-function-heading"><div class="step-content">
+          <p class="step-number">3 / 13 · The value function</p><h2 id="value-function-heading">The game assigns a prediction to each group</h2>
+          <p>Now <span class="math-text">v<sub>x</sub></span> names the value function for this observation’s prediction game. It takes a group of features and returns the value we assign to that group.</p>
+          <p>Here that value is an average prediction: fix the group’s inputs to <var>x</var>, and use reference input rows, called the background, for the other inputs. Average the model’s predictions over these complete rows to get <span class="math-text">v<sub>x</sub>(S)</span>.</p>
+          <p>With every feature fixed to the observation, this average is the model’s prediction itself. With only some features fixed, we replace those columns in each reference row and average the resulting predictions.</p>
         </div></section>
         <section class="step formula-step" id="preceding-features" data-step="3" aria-labelledby="preceding-features-heading"><div class="step-content">
           <p class="step-number">4 / 13 · The existing group S</p><h2 id="preceding-features-heading">Which features are already fixed?</h2>

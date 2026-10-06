@@ -30,8 +30,8 @@ profiles use the same model and background.
 ## Story and controls
 
 1. Begin with the complete Shapley formula.
-2. Highlight the value function: a feature group’s prediction average.
-3. Highlight the observation `x` supplying the fixed inputs.
+2. Highlight the observation `x` supplying the fixed inputs.
+3. Highlight its value function: a feature group’s prediction average.
 4. Highlight `S`, the group already fixed, and define `F` and `m`.
 5. Highlight `i`, the additional feature joining a group that excludes it.
 6. Highlight the result: the final contribution assigned to that feature.

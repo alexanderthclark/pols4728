@@ -4,11 +4,11 @@ import { featureSymbols, shapleyFormulaMarkup, valueMarkup, joiningMarkup } from
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
-const names = ['The Shapley formula', 'The value function', 'The observation x', 'The existing feature group S', 'The additional feature i', 'The feature’s final credit', 'A fixed model; one observation', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
+const names = ['The Shapley formula', 'The observation x', 'The value function', 'The existing feature group S', 'The additional feature i', 'The feature’s final credit', 'A fixed model; one observation', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
 const captions = [
   'Scroll to give each part its meaning in a prediction problem.',
-  'vₓ is the value function. vₓ(S) returns the prediction average assigned to S.',
   'x is one complete observation; its values supply the fixed inputs.',
+  'vₓ is the value function. vₓ(S) returns the prediction average assigned to S.',
   'S is the group already fixed to x, before the additional feature joins.',
   'i is the additional feature. It belongs to F and is not already in S.',
   'ϕᵢ(vₓ) is feature i’s contribution relative to the background average prediction.',
