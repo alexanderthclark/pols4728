@@ -3,22 +3,26 @@
   "title": "Stylized Bread and Peace OLS",
   "dataSource": "Synthetic teaching rows, not historical elections or Hibbs's estimates.",
   "source": {
-    "author": "Douglas A. Hibbs",
-    "title": "Obama's Reelection Prospects under Bread and Peace Voting in the 2012 US Presidential Election",
-    "url": "https://www.cambridge.org/core/journals/ps-political-science-and-politics/article/abs/obamas-reelection-prospects-under-bread-and-peace-voting-in-the-2012-us-presidential-election/085A6DB3D1D1310250B5E2566AB352CF"
+    "author": "Douglas A. Hibbs Jr.",
+    "title": "Bread and Peace Voting in U.S. Presidential Elections",
+    "year": 2000,
+    "journal": "Public Choice",
+    "volume": 104,
+    "pages": "149–180",
+    "url": "https://link.springer.com/article/10.1023/A:1005292312412"
   },
   "features": [
     {
-      "id": "income",
-      "label": "Real income growth",
-      "shortLabel": "Income",
+      "id": "bread",
+      "label": "Bread",
+      "shortLabel": "Bread",
       "description": "Standardized real disposable income growth; +1 is one empirical SD above the reference mean."
     },
     {
-      "id": "fatalities",
-      "label": "War fatalities",
-      "shortLabel": "Fatalities",
-      "description": "Standardized war fatalities; -1 is one empirical SD below the reference mean, not a negative count."
+      "id": "peace",
+      "label": "Peace",
+      "shortLabel": "Peace",
+      "description": "Minus standardized war fatalities; +1 means fatalities one empirical SD below the reference mean. Higher peace means fewer war fatalities."
     }
   ],
   "standardization": {
@@ -33,11 +37,12 @@
       1
     ],
     "columns": [
-      "income",
-      "fatalities",
+      "bread",
+      "peace",
       "vote"
     ],
-    "ddof": 0
+    "ddof": 0,
+    "peaceCoding": "peace = -standardized war fatalities"
   },
   "model": {
     "fitted": true,
@@ -45,17 +50,17 @@
     "intercept": 0.0,
     "coefficients": [
       0.5,
-      -0.5
+      0.5
     ],
-    "equation": "y-hat(x) = 0.5 × income - 0.5 × fatalities",
+    "equation": "y-hat(x) = 0.5 × bread + 0.5 × peace",
     "predictionUnit": "SD of incumbent-party two-party vote share"
   },
   "refit": {
-    "featureCorrelation": -0.4999999999999999,
-    "incomeVoteCorrelation": 0.7499999999999999,
-    "fatalitiesVoteCorrelation": -0.7499999999999999,
-    "incomeOnlyCoefficient": 0.75,
-    "fatalitiesOnlyCoefficient": -0.75,
+    "featureCorrelation": 0.4999999999999999,
+    "breadVoteCorrelation": 0.7499999999999999,
+    "peaceVoteCorrelation": 0.7499999999999999,
+    "breadOnlyCoefficient": 0.75,
+    "peaceOnlyCoefficient": 0.75,
     "omittedVariableTerm": 0.24999999999999994
   },
   "background": [
@@ -63,7 +68,7 @@
       "id": "reference-1",
       "values": [
         -1.0,
-        -1.0
+        1.0
       ],
       "outcome": 0.0,
       "modelPrediction": 0.0
@@ -72,7 +77,7 @@
       "id": "reference-2",
       "values": [
         -1.0,
-        1.0
+        -1.0
       ],
       "outcome": -1.7071067811865475,
       "modelPrediction": -1.0
@@ -81,7 +86,7 @@
       "id": "reference-3",
       "values": [
         -1.0,
-        1.0
+        -1.0
       ],
       "outcome": -1.0,
       "modelPrediction": -1.0
@@ -90,7 +95,7 @@
       "id": "reference-4",
       "values": [
         -1.0,
-        1.0
+        -1.0
       ],
       "outcome": -0.29289321881345254,
       "modelPrediction": -1.0
@@ -99,7 +104,7 @@
       "id": "reference-5",
       "values": [
         1.0,
-        -1.0
+        1.0
       ],
       "outcome": 0.29289321881345254,
       "modelPrediction": 1.0
@@ -108,7 +113,7 @@
       "id": "reference-6",
       "values": [
         1.0,
-        -1.0
+        1.0
       ],
       "outcome": 1.0,
       "modelPrediction": 1.0
@@ -117,7 +122,7 @@
       "id": "reference-7",
       "values": [
         1.0,
-        -1.0
+        1.0
       ],
       "outcome": 1.7071067811865475,
       "modelPrediction": 1.0
@@ -126,7 +131,7 @@
       "id": "reference-8",
       "values": [
         1.0,
-        1.0
+        -1.0
       ],
       "outcome": 0.0,
       "modelPrediction": 0.0
@@ -141,10 +146,10 @@
   "observations": [
     {
       "id": "growth-low-fatalities",
-      "name": "Growth, lower fatalities",
+      "name": "High bread, high peace",
       "values": [
         1,
-        -1
+        1
       ],
       "prediction": 1.0,
       "baseValue": 0.0,
@@ -236,10 +241,10 @@
     },
     {
       "id": "growth-high-fatalities",
-      "name": "Growth, higher fatalities",
+      "name": "High bread, low peace",
       "values": [
         1,
-        1
+        -1
       ],
       "prediction": 0.0,
       "baseValue": 0.0,
@@ -331,10 +336,10 @@
     },
     {
       "id": "weak-growth-high-fatalities",
-      "name": "Weak growth, higher fatalities",
+      "name": "Low bread, low peace",
       "values": [
         -1,
-        1
+        -1
       ],
       "prediction": -1.0,
       "baseValue": 0.0,

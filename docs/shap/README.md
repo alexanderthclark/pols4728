@@ -7,25 +7,26 @@ value-function terms show how a revealed feature changes the value of a group: s
 the same prediction function, average its outputs, then compare those averages.
 
 The first worked example is a stylized Bread and Peace model inspired by
-Douglas Hibbs. Two features, real income growth and war fatalities, predict
-incumbent-party two-party vote share. The story begins with centered,
-standardized features and observed vote (mean zero, SD one), and three stipulated
-correlations: income–fatalities −0.5, income–vote +0.75, and fatalities–vote
-−0.75. These determine the two univariate OLS slopes (+0.75 and −0.75) and
-the bivariate slopes (+0.5 and −0.5), with zero intercepts. The figure displays
-all three model equations; the coefficient derivations are in an expandable note. Predictions
-use the outcome's SD units; they are not themselves rescaled to SD one.
+Douglas Hibbs. Two features, `bread` and `peace`, predict incumbent-party
+two-party vote share. Bread is standardized real income growth; peace is minus
+standardized war fatalities, so higher peace means fewer fatalities.
+Features and observed vote have mean zero and SD one. Three stipulated
+correlations, bread–peace +0.5, bread–vote +0.75, and peace–vote +0.75, determine
+both univariate OLS slopes (+0.75) and both bivariate slopes (+0.5), with zero
+intercepts. The figure displays all three model equations; the coefficient
+derivations are in an expandable note. Predictions use the outcome's SD units;
+they are not themselves rescaled to SD one.
 
-Removing fatalities and refitting income-only OLS gives a slope of 0.75, equal
-to the vote–income correlation. The full-model coefficient of 0.5 plus the
-omitted-variable term `−0.5 × −0.5 = +0.25` recovers that slope. Our SHAP
+Removing peace and refitting bread-only OLS gives a slope of 0.75, equal
+to the vote–bread correlation. The full-model coefficient of 0.5 plus the
+omitted-variable term `0.5 × 0.5 = +0.25` recovers that slope. Our SHAP
 calculation instead keeps the full model fixed and averages its predictions.
-For the default election, income 1 and fatalities −1, the income-only coalition
+For the default election, bread 1 and peace 1, the bread-only coalition
 has value 0.5 and the full prediction is 1. Four coalitions and two revealing
 orders give contributions +0.5 and +0.5 from a zero baseline. The scroll writes
 out both orders as explicit prediction differences, such as
-`y_hat(1, 0) − y_hat(0, 0)` for income joining first and
-`y_hat(1, −1) − y_hat(0, −1)` for income joining second. Both calls use the
+`y_hat(1, 0) − y_hat(0, 0)` for bread joining first and
+`y_hat(1, 1) − y_hat(0, 1)` for bread joining second. Both calls use the
 same bivariate coefficients. Zero represents the mean of an averaged-out input
 in this additive model. There are no data tables in the OLS warm-up.
 Alternate elections change the inputs and contributions; the fit and background
@@ -71,25 +72,34 @@ profiles use the same model and background.
 5. Highlight `S`, the group already fixed, and define `F` and `m`.
 6. Highlight `i`, the additional feature joining a group that excludes it.
 7. Highlight the result and introduce `phi_i(x)` as shorthand for `phi_i(v_x)`.
-8. State the three correlations for standardized income, fatalities, and observed vote.
-9. Display the two univariate fits and one bivariate fit, with the derivation in the notes.
-10. Choose an election; compare income-only OLS with the bivariate prediction at mean fatalities.
-11. Reveal income first, then fatalities; show both before/after prediction subtractions.
-12. Reverse the order and show the same bivariate equation evaluated at different inputs.
-13. Average each feature's two marginals and reconstruct the full prediction.
-14. Move to the three-feature earnings interaction and one person to explain.
-15. Compute its `v_x(S)` from background rows, starting with `S = ∅`.
-16. Fix ability and compare with the earnings baseline.
-17. Start with neighborhood fixed and compare the same two value-function terms.
-18. Match all four preceding groups to their factorial weights and prediction differences.
-19. Add the weighted contributions; select a feature and inspect all six orders.
-20. Assemble the final contributions in a course-styled standard waterfall.
+8. Introduce the stylized Bread and Peace specification with the original Hibbs citation and course-style characters.
+9. State the three correlations for standardized bread, peace, and observed vote.
+10. Display the two univariate fits and one bivariate fit, with the derivation in the notes.
+11. Choose an election; compare bread-only OLS with the bivariate prediction at mean peace.
+12. Reveal bread first, then peace; show both before/after prediction subtractions.
+13. Reverse the order and show the same bivariate equation evaluated at different inputs.
+14. Average each feature's two marginals and reconstruct the full prediction.
+15. Move to the three-feature earnings interaction and one person to explain.
+16. Compute its `v_x(S)` from background rows, starting with `S = ∅`.
+17. Fix ability and compare with the earnings baseline.
+18. Start with neighborhood fixed and compare the same two value-function terms.
+19. Match all four preceding groups to their factorial weights and prediction differences.
+20. Add the weighted contributions; select a feature and inspect all six orders.
+21. Assemble the final contributions in a course-styled standard waterfall.
 
 The first seven frames use a single centered formula, with a short definition
 underneath. The same equation stays in place and highlights the symbols under
 discussion. Definitions enter through scrolling instead of a glossary, including
 the observation, model prediction, value function, feature groups, and final credit.
-The split layout begins with the election example in frame eight.
+Frame eight is a full-width Bread and Peace transition, with a centered teaching
+specification, a compact loaf character, and a peace-symbol character. It cites
+[Hibbs (2000), “Bread and Peace Voting in U.S. Presidential Elections”](https://link.springer.com/article/10.1023/A:1005292312412),
+and identifies bread as real income growth and peace as fewer war fatalities.
+The peace feature reverses the standardized war-fatalities measure, so both
+feature coefficients in the teaching model are positive.
+The equation is a stylized, centered and standardized teaching specification,
+rather than the original historical fit. The split layout begins with the
+three correlations in frame nine. The story has 21 frames.
 Each worked frame's left column uses two or three short lecture cues in larger type,
 leaving the instructor room to explain the worked figure. The earnings equation
 appears beside its observation in the figure. Expandable notes retain the notation,
@@ -106,18 +116,19 @@ empty and complete groups. All input columns remain visible. The Python panel
 connects the procedure to a fixed model's `predict` method and SHAP's exact
 explainer. Global importance and beeswarm plots are reserved for a later page.
 
-Navigation buttons provide an alternative to scrolling. Formula navigation
-advances immediately while keeping the equation in place. Native selects,
+Navigation buttons provide an alternative to scrolling and advance immediately
+so quick clicks cannot repeat a frame during a scroll animation. The opening
+equation stays in place across its seven definitions. Native selects,
 checkboxes, disclosures, and modal dialogs support keyboard operation. Dialogs
 restore focus to their trigger, and a concise status announces stage changes.
 The sum's narrative follows the selected feature as well as the selected person.
 Reduced-motion preferences disable animated replacements and bar reveals.
 Short landscape screens place the worked prose and figure side by side. Phone tables
 keep every column visible, with larger included/excluded labels and controls.
-Without JavaScript, the lecture cues, complete formula, earnings equation, worked
-profiles, and calculation notes remain available in a continuous reading layout;
-interactive figures require it. The opening formula and worked profiles also
-appear in print.
+Without JavaScript, the lecture cues, complete formula, Bread and Peace transition,
+earnings equation, worked profiles, and calculation notes remain available in a
+continuous reading layout; interactive figures require it. The opening formula,
+Bread and Peace transition, and worked profiles also appear in print.
 
 ## Run and reproduce
 

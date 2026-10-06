@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Fit and explain a standardized, synthetic Bread and Peace teaching example.
 
-The two substantive predictors follow Hibbs; the rows and coefficients do not
+The substantive predictors follow Hibbs: bread is income growth, and peace
+reverse-codes standardized war fatalities. The rows and coefficients do not
 reproduce his historical data or estimates. No election forecasts are made.
 """
 
@@ -20,19 +21,20 @@ OUTPUT = Path(__file__).resolve().parents[2] / "docs" / "shap" / "bread-peace.js
 
 def build():
     # Empirical SD uses denominator n, consistently for all three columns.
-    # Six opposite-sign rows and two same-sign rows give correlation -0.5.
+    # Six same-sign rows and two opposite-sign rows give correlation +0.5.
+    # Peace is minus the standardized war-fatality input in the original coding.
     inputs = np.array([
-        [-1, -1], [-1, 1], [-1, 1], [-1, 1],
-        [1, -1], [1, -1], [1, -1], [1, 1],
+        [-1, 1], [-1, -1], [-1, -1], [-1, -1],
+        [1, 1], [1, 1], [1, 1], [1, -1],
     ], dtype=float)
     residual = np.array([0, -1, 0, 1, -1, 0, 1, 0], dtype=float) / np.sqrt(2)
-    outcome = inputs @ np.array([0.5, -0.5]) + residual
+    outcome = inputs @ np.array([0.5, 0.5]) + residual
     design = np.column_stack([np.ones(len(inputs)), inputs])
     fitted = np.linalg.lstsq(design, outcome, rcond=None)[0]
-    np.testing.assert_allclose(fitted, [0, 0.5, -0.5], atol=1e-12, rtol=0)
+    np.testing.assert_allclose(fitted, [0, 0.5, 0.5], atol=1e-12, rtol=0)
     # Remove harmless floating-point fit noise from the saved teaching equation.
-    intercept, income_coefficient, fatalities_coefficient = np.round(fitted, 12)
-    coefficients = np.array([income_coefficient, fatalities_coefficient])
+    intercept, bread_coefficient, peace_coefficient = np.round(fitted, 12)
+    coefficients = np.array([bread_coefficient, peace_coefficient])
 
     def predict(rows):
         return intercept + np.asarray(rows) @ coefficients
@@ -43,18 +45,19 @@ def build():
     correlations = np.corrcoef(standardized.T)
     reduced = np.linalg.lstsq(inputs[:, :1], outcome, rcond=None)[0][0]
     reduced = float(np.round(reduced, 12))
-    fatalities_only = float(np.round(np.linalg.lstsq(inputs[:, 1:], outcome, rcond=None)[0][0], 12))
+    peace_only = float(np.round(np.linalg.lstsq(inputs[:, 1:], outcome, rcond=None)[0][0], 12))
     np.testing.assert_allclose(reduced, correlations[0, 2], atol=1e-12)
-    np.testing.assert_allclose(fatalities_only, correlations[1, 2], atol=1e-12)
-    omitted_term = float(correlations[0, 1] * fatalities_coefficient)
-    np.testing.assert_allclose(reduced, income_coefficient + omitted_term, atol=1e-12)
-    np.testing.assert_allclose(fatalities_only, fatalities_coefficient + correlations[0, 1] * income_coefficient, atol=1e-12)
+    np.testing.assert_allclose(peace_only, correlations[1, 2], atol=1e-12)
+    omitted_term = float(correlations[0, 1] * peace_coefficient)
+    np.testing.assert_allclose(reduced, bread_coefficient + omitted_term, atol=1e-12)
+    np.testing.assert_allclose(peace_only, peace_coefficient + correlations[0, 1] * bread_coefficient, atol=1e-12)
 
     observations = []
     profiles = [
-        ("growth-low-fatalities", "Growth, lower fatalities", [1, -1]),
-        ("growth-high-fatalities", "Growth, higher fatalities", [1, 1]),
-        ("weak-growth-high-fatalities", "Weak growth, higher fatalities", [-1, 1]),
+        # Keep existing IDs stable for saved links; display names use the new coding.
+        ("growth-low-fatalities", "High bread, high peace", [1, 1]),
+        ("growth-high-fatalities", "High bread, low peace", [1, -1]),
+        ("weak-growth-high-fatalities", "Low bread, low peace", [-1, -1]),
     ]
     for profile_id, name, values in profiles:
         x = np.array(values, dtype=float)
@@ -107,26 +110,31 @@ def build():
         "title": "Stylized Bread and Peace OLS",
         "dataSource": "Synthetic teaching rows, not historical elections or Hibbs's estimates.",
         "source": {
-            "author": "Douglas A. Hibbs",
-            "title": "Obama's Reelection Prospects under Bread and Peace Voting in the 2012 US Presidential Election",
-            "url": "https://www.cambridge.org/core/journals/ps-political-science-and-politics/article/abs/obamas-reelection-prospects-under-bread-and-peace-voting-in-the-2012-us-presidential-election/085A6DB3D1D1310250B5E2566AB352CF",
+            "author": "Douglas A. Hibbs Jr.",
+            "title": "Bread and Peace Voting in U.S. Presidential Elections",
+            "year": 2000,
+            "journal": "Public Choice",
+            "volume": 104,
+            "pages": "149–180",
+            "url": "https://link.springer.com/article/10.1023/A:1005292312412",
         },
         "features": [
-            {"id": "income", "label": "Real income growth", "shortLabel": "Income",
+            {"id": "bread", "label": "Bread", "shortLabel": "Bread",
              "description": "Standardized real disposable income growth; +1 is one empirical SD above the reference mean."},
-            {"id": "fatalities", "label": "War fatalities", "shortLabel": "Fatalities",
-             "description": "Standardized war fatalities; -1 is one empirical SD below the reference mean, not a negative count."},
+            {"id": "peace", "label": "Peace", "shortLabel": "Peace",
+             "description": "Minus standardized war fatalities; +1 means fatalities one empirical SD below the reference mean. Higher peace means fewer war fatalities."},
         ],
         "standardization": {"means": [0, 0, 0], "standardDeviations": [1, 1, 1],
-                            "columns": ["income", "fatalities", "vote"], "ddof": 0},
+                            "columns": ["bread", "peace", "vote"], "ddof": 0,
+                            "peaceCoding": "peace = -standardized war fatalities"},
         "model": {"fitted": True, "estimator": "OLS on synthetic standardized rows",
                   "intercept": float(intercept), "coefficients": coefficients.tolist(),
-                  "equation": "y-hat(x) = 0.5 × income - 0.5 × fatalities",
+                  "equation": "y-hat(x) = 0.5 × bread + 0.5 × peace",
                   "predictionUnit": "SD of incumbent-party two-party vote share"},
         "refit": {"featureCorrelation": float(correlations[0, 1]),
-                  "incomeVoteCorrelation": float(correlations[0, 2]),
-                  "fatalitiesVoteCorrelation": float(correlations[1, 2]),
-                  "incomeOnlyCoefficient": reduced, "fatalitiesOnlyCoefficient": fatalities_only,
+                  "breadVoteCorrelation": float(correlations[0, 2]),
+                  "peaceVoteCorrelation": float(correlations[1, 2]),
+                  "breadOnlyCoefficient": reduced, "peaceOnlyCoefficient": peace_only,
                   "omittedVariableTerm": omitted_term},
         "background": [
             {"id": f"reference-{index + 1}", "values": values.tolist(),

@@ -5,7 +5,7 @@ import { validateBreadPeace, breadPeaceFacts, renderBreadPeace } from './bread-p
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
-const names = ['The Shapley formula', 'The observation x', 'The model prediction ŷ', 'The value function', 'The existing feature group S', 'The additional feature i', 'The feature’s final credit', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Income first', 'Fatalities first', 'Two orders; two SHAP values', 'An interaction model; one person', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
+const names = ['The Shapley formula', 'The observation x', 'The model prediction ŷ', 'The value function', 'The existing feature group S', 'The additional feature i', 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'An interaction model; one person', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
 const captions = [
   'Scroll to give each part its meaning in a prediction problem.',
   'x is one complete observation; its values supply the fixed inputs.',
@@ -14,6 +14,7 @@ const captions = [
   'S is the group already fixed to x, before the additional feature joins.',
   'i is the additional feature. It belongs to F and is not already in S.',
   'ϕᵢ(vₓ) is feature i’s contribution relative to the background average prediction.',
+  '',
   'Standardized features and observed vote: three correlations determine the OLS fits.',
   'Univariate slopes equal correlations. Bivariate slopes adjust for the overlap between features.',
   'Our SHAP game evaluates the bivariate model with excluded inputs averaged to zero.',
@@ -37,6 +38,7 @@ const formulaStops = {
   'joining-feature':{focus:'joining',symbol:'S ∪ {i}',meaning:'<var>i</var> is the additional feature. Fix its value from <var>x</var>, keeping <var>S</var> fixed. Marginal contribution = after − before.'},
   'feature-credit':{focus:'result',symbol:'ϕ<sub>i</sub>(v<sub>x</sub>) = ϕ<sub>i</sub>(x)',meaning:'Feature <var>i</var>’s credit relative to the background average. Average its marginal across orders; the credit uses the prediction’s units.'},
 };
+const isCenteredScene = scene => Boolean(formulaStops[scene]) || scene === 'bread-peace-intro';
 const visual = $('#visual'), shell = $('.stage-shell'), story = $('#story');
 const observationSelect = $('#observation-select');
 const dialog = $('#rows-dialog');
@@ -91,6 +93,10 @@ function updateFacts() {
 function renderFormula(scene) {
   const stop = formulaStops[scene];
   visual.innerHTML = `<h1 class="formula-intro-title">From Shapley values to SHAP</h1>${shapleyFormulaMarkup(stop.focus)}<div class="formula-explanation">${stop.symbol ? `<p class="formula-focus-symbol math-text">${stop.symbol}</p>` : ''}<p class="formula-focus-meaning">${stop.meaning}</p>${scene === 'shapley-formula' ? '<p class="formula-scroll-prompt">Scroll to connect the symbols to predictions, or use Next.</p>' : ''}</div>`;
+}
+
+function renderTransition() {
+  visual.innerHTML = $('#bread-peace-intro .transition-content').outerHTML;
 }
 
 function renderObservation() {
@@ -186,10 +192,10 @@ function render() {
   const scene = steps[state.scene].id;
   shell.dataset.scene = scene;
   story.classList.add('is-interactive');
-  story.dataset.layout = formulaStops[scene] ? 'formula' : 'worked';
+  story.dataset.layout = isCenteredScene(scene) ? 'formula' : 'worked';
   const breadScene = scene.startsWith('ols-');
   const selectorContext = breadScene ? 'bread' : 'earnings';
-  $('.observation-control').hidden = Boolean(formulaStops[scene]) || ['ols-model','ols-fits'].includes(scene);
+  $('.observation-control').hidden = isCenteredScene(scene) || ['ols-model','ols-fits'].includes(scene);
   if (state.selectorContext !== selectorContext) {
     const data = breadScene ? state.breadData : state.data;
     const observation = breadScene ? state.breadObservation : state.observation;
@@ -202,11 +208,12 @@ function render() {
     $('#stage-name').textContent = names[state.scene];
     $('#stage-count').textContent = `${state.scene+1} / ${steps.length}`;
   }
-  $('#stage-caption').hidden = Boolean(formulaStops[scene]);
-  $('#stage-caption').textContent = formulaStops[scene] ? '' : captions[state.scene];
+  $('#stage-caption').hidden = isCenteredScene(scene);
+  $('#stage-caption').textContent = isCenteredScene(scene) ? '' : captions[state.scene];
   $('#previous').disabled = state.scene === 0;
   $('#next').textContent = state.scene === steps.length-1 ? 'Math & Python →' : 'Next →';
   if (formulaStops[scene]) renderFormula(scene);
+  else if (scene === 'bread-peace-intro') renderTransition();
   else if (breadScene) visual.innerHTML = renderBreadPeace(scene,state.breadData,state.breadObservation);
   else if (scene === 'observation') renderObservation();
   else if (scene === 'background') renderBackground(0);
@@ -246,15 +253,15 @@ function openOrders(trigger) {
   dialog.showModal();
   $('#close-rows').focus();
 }
-function navigate(index, behavior = reducedMotion.matches ? 'instant' : 'smooth') {
+function navigate(index, behavior = 'instant') {
   const target = index === steps.length ? $('#method') : steps[index];
-  const formulaTransition = Boolean(formulaStops[steps[state.scene]?.id] || formulaStops[target.id]);
-  if (formulaTransition) behavior = 'instant';
-  if (index < steps.length && (formulaTransition || stackedLayout.matches)) {
+  const centeredTransition = isCenteredScene(steps[state.scene]?.id) || isCenteredScene(target.id);
+  if (centeredTransition) behavior = 'instant';
+  if (index < steps.length && (centeredTransition || stackedLayout.matches)) {
     state.scene = index;
     render();
   }
-  if (index < steps.length && formulaStops[target.id]) {
+  if (index < steps.length && isCenteredScene(target.id)) {
     const readingOffset = $('.masthead').getBoundingClientRect().height;
     const top = scrollY + target.getBoundingClientRect().top - readingOffset;
     scrollTo({top,behavior});
@@ -274,7 +281,7 @@ function updateScroll() {
   const workedIntroHeight = Math.min(650, Math.max(440, innerHeight * .74));
   const introReadingLine = Math.min(innerHeight - 30, $('.masthead').getBoundingClientRect().height + workedIntroHeight + 60);
   const readingLine = mobile
-    ? (state.scene < 0 || formulaStops[steps[state.scene]?.id] ? introReadingLine : shell.getBoundingClientRect().bottom + 60)
+    ? (state.scene < 0 || isCenteredScene(steps[state.scene]?.id) ? introReadingLine : shell.getBoundingClientRect().bottom + 60)
     : innerHeight * .5;
   let scene = 0;
   steps.forEach((step,index) => {if (step.getBoundingClientRect().top <= readingLine) scene = index;});

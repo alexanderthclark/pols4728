@@ -6,6 +6,13 @@
       "description": "Outlined, expressive ML and AI letter characters above the course subtitle.",
       "sha256": "f79c192344d203c3f944585ce1027e9e07e0aa462a663a65f7bf6b46251366cd",
       "usage": "Primary course identity for the public landing page and course introductions. Preserve the original monochrome artwork and proportions."
+    },
+    {
+      "path": "docs/shap/assets/bread-peace-characters.png",
+      "role": "explanatory illustration",
+      "description": "Compact bread-loaf and circular peace-symbol characters with expressive faces and stick limbs, drawn in the course’s monochrome outlined style.",
+      "sha256": "685ef6ffe179f8dd334bbc3c88399dbdc57c148b7f815bfbb899bde962afd3b0",
+      "usage": "SHAP story transition introducing the stylized Bread and Peace prediction model. Preserve proportions and transparent background; equation and citation remain real text."
     }
   ]
 }

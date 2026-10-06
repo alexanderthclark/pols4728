@@ -436,9 +436,11 @@ dialog p { font-size:16px; }
   .formula-equation,.stage-shell[data-scene="shap-value"] .formula-equation { font-size:clamp(18px,4.1cqi,22px); }
 }
 
-/* The opening is one centered formula; the worked examples use the two-column story. */
-.story-layout.is-interactive .formula-step { min-height:100svh; }
+/* The formula and model transition are centered; worked examples use two columns. */
+.story-layout.is-interactive .formula-step,
+.story-layout.is-interactive .transition-step { min-height:100svh; }
 .story-layout.is-interactive .formula-step .step-content,
+.story-layout.is-interactive .transition-step .step-content,
 .story-layout[data-layout="formula"] .step-content { visibility:hidden; }
 .story-layout[data-layout="formula"] .stage-shell {
   grid-column:1 / -1; height:calc(100svh - 64px); min-height:0; max-height:none;
@@ -453,6 +455,14 @@ dialog p { font-size:16px; }
 .story-layout[data-layout="formula"] .formula-focus-symbol { font-size:30px; white-space:normal; }
 .story-layout[data-layout="formula"] .formula-focus-meaning { max-width:680px; margin-inline:auto; font:22px/1.5 var(--serif); }
 .formula-scroll-prompt { font:14px/1.5 var(--sans); color:var(--muted); margin-top:18px!important; }
+.transition-content { width:100%; max-width:760px; margin-inline:auto; text-align:center; }
+.transition-title { font-size:clamp(30px,3.5vw,44px); margin:0 0 20px; }
+.transition-art { display:block; width:min(440px,100%); height:auto; max-height:220px; object-fit:contain; margin:0 auto 22px; }
+.transition-equation { display:flex; flex-wrap:wrap; justify-content:center; align-items:baseline; gap:4px 10px; font:34px/1.4 'Course Math',math; margin:0 0 16px; }
+.transition-equation math { flex:0 0 auto; }
+.transition-definitions { font:19px/1.5 var(--serif); margin:0 0 10px!important; }
+.transition-note { font:14px/1.5 var(--sans); color:var(--muted); margin:0 0 22px!important; }
+.transition-citation { max-width:660px; margin:0 auto!important; font:16px/1.5 var(--serif); color:var(--muted); }
 @media(max-width:649px), (max-width:860px) and (min-height:551px) {
   /* Overlay the pinned panel so its changing height does not move the scroll stops. */
   .story-layout.is-interactive { display:grid; grid-template-columns:minmax(0,1fr); gap:0; }
@@ -465,6 +475,24 @@ dialog p { font-size:16px; }
   .story-layout[data-layout="formula"] .formula-focus-meaning { font-size:19px; }
   .formula-intro-title { margin-bottom:24px; }
   .formula-scroll-prompt { font-size:12px; }
+  .transition-title { font-size:32px; margin-bottom:14px; }
+  .transition-art { width:min(360px,100%); max-height:180px; margin-bottom:14px; }
+  .transition-equation { font-size:27px; margin-bottom:12px; }
+  .transition-definitions { font-size:17px; margin-bottom:8px!important; }
+  .transition-note { font-size:13px; margin-bottom:16px!important; }
+  .transition-citation { font-size:15px; }
+}
+@media(max-width:450px) {
+  .transition-equation { font-size:24px; gap:2px 8px; }
+  .transition-definitions { font-size:16px; }
+}
+@media screen and (max-height:650px) {
+  .transition-title { font-size:28px; margin-bottom:8px; }
+  .transition-art { width:min(220px,100%); max-height:110px; margin-bottom:8px; }
+  .transition-equation { font-size:25px; line-height:1.25; margin-bottom:8px; }
+  .transition-definitions { font-size:15px; line-height:1.4; margin-bottom:6px!important; }
+  .transition-note { font-size:12px; line-height:1.4; margin-bottom:10px!important; }
+  .transition-citation { font-size:14px; line-height:1.4; }
 }
 @media screen and (min-width:650px) and (max-width:860px) and (max-height:550px) {
   .story-layout[data-layout="formula"] .formula-explanation { min-height:140px; margin-top:10px; padding-top:12px; }
@@ -473,7 +501,9 @@ dialog p { font-size:16px; }
 }
 @media print {
   .story-layout.is-interactive { display:block; }
-  .story-layout.is-interactive .formula-step { min-height:0; }
+  .story-layout.is-interactive .formula-step,
+  .story-layout.is-interactive .transition-step { min-height:0; }
   .story-layout.is-interactive .formula-step .step-content,
+  .story-layout.is-interactive .transition-step .step-content,
   .story-layout[data-layout="formula"] .step-content { visibility:visible; }
 }

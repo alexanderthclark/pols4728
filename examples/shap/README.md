@@ -12,38 +12,44 @@ contains only local explanations, with no global importance or beeswarm plots.
 ## Standardized Bread and Peace OLS warm-up
 
 Douglas Hibbs's Bread and Peace model supplies the two substantive predictors:
-real disposable income growth and war fatalities. The warm-up uses eight
-synthetic training rows and a direct OLS fit; it does not reproduce Hibbs's
+real disposable income growth and war fatalities. We call income growth `bread`
+and reverse-code standardized war fatalities as `peace`: higher peace means
+fewer war deaths. The warm-up uses eight synthetic training rows and a direct
+OLS fit; it does not reproduce Hibbs's
 historical data, income-growth time weighting, coefficients, or forecasts.
-Its [source reference](https://www.cambridge.org/core/journals/ps-political-science-and-politics/article/abs/obamas-reelection-prospects-under-bread-and-peace-voting-in-the-2012-us-presidential-election/085A6DB3D1D1310250B5E2566AB352CF)
+Its [source reference](https://link.springer.com/article/10.1023/A:1005292312412)
 describes the underlying Bread and Peace interpretation.
 
-All three columns (income, fatalities, and observed vote) have mean zero and
-empirical SD one, using denominator `n`. Six rows have opposite-sign predictors
-and two have same-sign predictors, yielding feature correlation −0.5. Outcomes
-combine `0.5 × income − 0.5 × fatalities` with an orthogonal residual of variance
-0.25. An OLS fit recovers zero intercept and slopes +0.5 and −0.5. The predictions
+All three columns (bread, peace, and observed vote) have mean zero and
+empirical SD one, using denominator `n`. Six rows have same-sign predictors
+and two have opposite-sign predictors, yielding feature correlation +0.5. Outcomes
+combine `0.5 × bread + 0.5 × peace` with an orthogonal residual of variance
+0.25. An OLS fit recovers zero intercept and slopes +0.5 and +0.5. The predictions
 are in outcome SD units; they are not standardized again after fitting.
 
-The story presents the three correlations directly: income–fatalities −0.5,
-income–vote +0.75, and fatalities–vote −0.75. With unit variances, the univariate
+The story presents the three correlations directly: bread–peace +0.5,
+bread–vote +0.75, and peace–vote +0.75. With unit variances, the univariate
 slopes equal the feature–vote correlations. The bivariate slopes are
-`(r_income,vote − rho × r_fatalities,vote) / (1 − rho²)` and its counterpart for
-fatalities. These recover +0.5 and −0.5 without showing a data table.
+`(r_bread,vote − rho × r_peace,vote) / (1 − rho²)` and its counterpart for
+peace. These recover +0.5 and +0.5 without showing a data table.
 
-An income-only OLS refit has slope 0.75, equal to the income–vote correlation.
-This is `0.5 + (−0.5)(−0.5)`: the retained full-model slope plus feature
+A bread-only OLS refit has slope 0.75, equal to the bread–vote correlation.
+This is `0.5 + (0.5)(0.5)`: the retained full-model slope plus feature
 correlation times the omitted feature's slope. The reduced model is used only
 to demonstrate that refitting is a different calculation from our SHAP game.
-Fatalities-only OLS has slope −0.75, likewise its correlation with vote.
+Peace-only OLS has slope +0.75, likewise its correlation with vote.
 
 The same eight input rows form the equally weighted background for exact
-interventional SHAP. For a default synthetic election with income 1 and fatalities
-−1, the four coalition values are `[0, 0.5, 0.5, 1]` for masks 0, 1, 2, 3.
-Income contributes +0.5 in both revealing orders; fatalities also contribute
-+0.5. The other saved profiles are `[1, 1]` and `[-1, 1]`, with predictions 0
+interventional SHAP. For a default synthetic election with bread 1 and peace
+1, the four coalition values are `[0, 0.5, 0.5, 1]` for masks 0, 1, 2, 3.
+Bread contributes +0.5 in both revealing orders; peace also contributes
++0.5. The other saved profiles are `[1, -1]` and `[-1, -1]`, with predictions 0
 and −1 and corresponding contributions `[0.5, -0.5]` and `[-0.5, -0.5]`.
 Coefficients and the background stay fixed throughout each explanation.
+The peace recoding preserves every prediction and SHAP contribution from the
+equivalent income-growth/war-fatalities specification; it changes the feature's
+sign and name together. Existing profile IDs retain their original wording to
+preserve saved references.
 
 `generate_bread_peace.py` fits OLS, checks centering, standard deviations, residual
 orthogonality, the omitted-variable identity, and exact agreement with the SHAP
