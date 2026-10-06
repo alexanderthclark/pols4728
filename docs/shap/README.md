@@ -85,9 +85,12 @@ profiles use the same model and background.
 19. Add the weighted contributions; select a feature and inspect all six orders.
 20. Assemble the final contributions in a course-styled standard waterfall.
 
-The opening keeps the same equation in place and highlights only the symbols
-under discussion. Definitions enter through scrolling instead of a glossary.
-Each frame's left column uses two or three short lecture cues in larger type,
+The first seven frames use a single centered formula, with a short definition
+underneath. The same equation stays in place and highlights the symbols under
+discussion. Definitions enter through scrolling instead of a glossary, including
+the observation, model prediction, value function, feature groups, and final credit.
+The split layout begins with the election example in frame eight.
+Each worked frame's left column uses two or three short lecture cues in larger type,
 leaving the instructor room to explain the worked figure. The earnings equation
 appears beside its observation in the figure. Expandable notes retain the notation,
 OLS derivation, model assumptions, and factorial-count explanation for later reading.
@@ -103,12 +106,13 @@ empty and complete groups. All input columns remain visible. The Python panel
 connects the procedure to a fixed model's `predict` method and SHAP's exact
 explainer. Global importance and beeswarm plots are reserved for a later page.
 
-Navigation buttons provide an alternative to scrolling. Native selects,
+Navigation buttons provide an alternative to scrolling. Formula navigation
+advances immediately while keeping the equation in place. Native selects,
 checkboxes, disclosures, and modal dialogs support keyboard operation. Dialogs
 restore focus to their trigger, and a concise status announces stage changes.
 The sum's narrative follows the selected feature as well as the selected person.
 Reduced-motion preferences disable animated replacements and bar reveals.
-Short landscape screens place the prose and figure side by side. Phone tables
+Short landscape screens place the worked prose and figure side by side. Phone tables
 keep every column visible, with larger included/excluded labels and controls.
 Without JavaScript, the lecture cues, complete formula, earnings equation, worked
 profiles, and calculation notes remain available in a continuous reading layout;

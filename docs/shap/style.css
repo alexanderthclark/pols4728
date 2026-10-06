@@ -435,3 +435,45 @@ dialog p { font-size:16px; }
   .step { min-height:calc(105svh - 56px); padding:40px 0; }
   .formula-equation,.stage-shell[data-scene="shap-value"] .formula-equation { font-size:clamp(18px,4.1cqi,22px); }
 }
+
+/* The opening is one centered formula; the worked examples use the two-column story. */
+.story-layout.is-interactive .formula-step { min-height:100svh; }
+.story-layout.is-interactive .formula-step .step-content,
+.story-layout[data-layout="formula"] .step-content { visibility:hidden; }
+.story-layout[data-layout="formula"] .stage-shell {
+  grid-column:1 / -1; height:calc(100svh - 64px); min-height:0; max-height:none;
+  z-index:20; background:white; border-bottom:0;
+}
+.story-layout[data-layout="formula"] .stage-top,
+.story-layout[data-layout="formula"] .stage-navigation { width:100%; max-width:980px; margin-inline:auto; }
+.story-layout[data-layout="formula"] .visual { width:100%; max-width:980px; margin-inline:auto; text-align:center; justify-content:safe center; }
+.formula-intro-title { font-size:clamp(30px,3.5vw,44px); margin:0 0 38px; }
+.story-layout[data-layout="formula"] .formula-equation { font-size:clamp(18px,3.6cqi,34px); margin:0 0 14px; }
+.story-layout[data-layout="formula"] .formula-explanation { width:100%; max-width:680px; min-height:190px; margin:20px auto 0; padding-top:22px; }
+.story-layout[data-layout="formula"] .formula-focus-symbol { font-size:30px; white-space:normal; }
+.story-layout[data-layout="formula"] .formula-focus-meaning { max-width:680px; margin-inline:auto; font:22px/1.5 var(--serif); }
+.formula-scroll-prompt { font:14px/1.5 var(--sans); color:var(--muted); margin-top:18px!important; }
+@media(max-width:649px), (max-width:860px) and (min-height:551px) {
+  /* Overlay the pinned panel so its changing height does not move the scroll stops. */
+  .story-layout.is-interactive { display:grid; grid-template-columns:minmax(0,1fr); gap:0; }
+  .story-layout.is-interactive .stage-shell { grid-column:1; }
+}
+@media(max-width:860px) {
+  .story-layout[data-layout="formula"] .stage-shell { height:calc(100svh - 56px); }
+  .story-layout[data-layout="formula"] .formula-explanation { min-height:200px; padding-top:16px; }
+  .story-layout[data-layout="formula"] .formula-focus-symbol { font-size:24px; }
+  .story-layout[data-layout="formula"] .formula-focus-meaning { font-size:19px; }
+  .formula-intro-title { margin-bottom:24px; }
+  .formula-scroll-prompt { font-size:12px; }
+}
+@media screen and (min-width:650px) and (max-width:860px) and (max-height:550px) {
+  .story-layout[data-layout="formula"] .formula-explanation { min-height:140px; margin-top:10px; padding-top:12px; }
+  .story-layout[data-layout="formula"] .formula-focus-meaning { font-size:18px; }
+  .formula-intro-title { font-size:28px; margin-bottom:18px; }
+}
+@media print {
+  .story-layout.is-interactive { display:block; }
+  .story-layout.is-interactive .formula-step { min-height:0; }
+  .story-layout.is-interactive .formula-step .step-content,
+  .story-layout[data-layout="formula"] .step-content { visibility:visible; }
+}

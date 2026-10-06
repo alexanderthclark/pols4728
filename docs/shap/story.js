@@ -29,15 +29,15 @@ const captions = [
   'Final SHAP contributions connect the same baseline to this person’s prediction.',
 ];
 const formulaStops = {
-  'shapley-formula':{focus:'all'},
-  'value-function':{focus:'value',symbol:'v<sub>x</sub>(S) = average of ŷ',meaning:'Fix S to x, predict each hybrid input row with the original model, then average those predictions.'},
-  'observation-symbol':{focus:'observation',symbol:'x',meaning:'The observation whose prediction we explain. Its inputs supply the values to fix.'},
-  'prediction-symbol':{focus:'all',symbol:predictionMarkup(),meaning:'The same fitted model predicts every complete input row. Its output ŷ is distinct from an observed outcome y.'},
-  'preceding-features':{focus:'coalition',symbol:'S',meaning:'The features already fixed to x. Their prediction average is the “before” value.'},
-  'joining-feature':{focus:'joining',symbol:'i ∉ S',meaning:'The additional feature joins S. Fixing its value gives the “after” group S ∪ {i}.'},
-  'feature-credit':{focus:'result',symbol:'ϕ<sub>i</sub>(v<sub>x</sub>)',meaning:'The final credit for feature i: its weighted average marginal contribution.'},
+  'shapley-formula':{focus:'all',meaning:'The players are input features. The game assigns credit for one observation’s prediction.'},
+  'observation-symbol':{focus:'observation',symbol:'x',meaning:'One complete input row. Its values supply every feature fixed in this explanation.'},
+  'prediction-symbol':{focus:'all',symbol:predictionMarkup(),meaning:'The fitted model’s prediction. <var>y</var> is the observed outcome; hold the model <var>f</var> fixed.'},
+  'value-function':{focus:'value',symbol:'v<sub>x</sub>(S) = average prediction',meaning:'Fix the inputs in <var>S</var> to <var>x</var>; use background values for the other inputs. Average the model’s predictions.'},
+  'preceding-features':{focus:'coalition',symbol:'S ⊆ F ∖ {i}',meaning:'<var>S</var> contains the features already fixed. <var>F</var> contains all <var>m</var> input features; <var>i</var> is outside <var>S</var>.'},
+  'joining-feature':{focus:'joining',symbol:'S ∪ {i}',meaning:'<var>i</var> is the additional feature. Fix its value from <var>x</var>, keeping <var>S</var> fixed. Marginal contribution = after − before.'},
+  'feature-credit':{focus:'result',symbol:'ϕ<sub>i</sub>(v<sub>x</sub>) = ϕ<sub>i</sub>(x)',meaning:'Feature <var>i</var>’s credit relative to the background average. Average its marginal across orders; the credit uses the prediction’s units.'},
 };
-const visual = $('#visual'), shell = $('.stage-shell');
+const visual = $('#visual'), shell = $('.stage-shell'), story = $('#story');
 const observationSelect = $('#observation-select');
 const dialog = $('#rows-dialog');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -90,7 +90,7 @@ function updateFacts() {
 
 function renderFormula(scene) {
   const stop = formulaStops[scene];
-  visual.innerHTML = `${shapleyFormulaMarkup(stop.focus)}${stop.symbol ? `<div class="formula-explanation"><p class="formula-focus-symbol math-text">${stop.symbol}</p><p class="formula-focus-meaning">${stop.meaning}</p></div>` : ''}`;
+  visual.innerHTML = `<h1 class="formula-intro-title">From Shapley values to SHAP</h1>${shapleyFormulaMarkup(stop.focus)}<div class="formula-explanation">${stop.symbol ? `<p class="formula-focus-symbol math-text">${stop.symbol}</p>` : ''}<p class="formula-focus-meaning">${stop.meaning}</p>${scene === 'shapley-formula' ? '<p class="formula-scroll-prompt">Scroll to connect the symbols to predictions, or use Next.</p>' : ''}</div>`;
 }
 
 function renderObservation() {
@@ -185,6 +185,8 @@ function render() {
   updateFacts();
   const scene = steps[state.scene].id;
   shell.dataset.scene = scene;
+  story.classList.add('is-interactive');
+  story.dataset.layout = formulaStops[scene] ? 'formula' : 'worked';
   const breadScene = scene.startsWith('ols-');
   const selectorContext = breadScene ? 'bread' : 'earnings';
   $('.observation-control').hidden = Boolean(formulaStops[scene]) || ['ols-model','ols-fits'].includes(scene);
@@ -200,7 +202,8 @@ function render() {
     $('#stage-name').textContent = names[state.scene];
     $('#stage-count').textContent = `${state.scene+1} / ${steps.length}`;
   }
-  $('#stage-caption').textContent = captions[state.scene];
+  $('#stage-caption').hidden = Boolean(formulaStops[scene]);
+  $('#stage-caption').textContent = formulaStops[scene] ? '' : captions[state.scene];
   $('#previous').disabled = state.scene === 0;
   $('#next').textContent = state.scene === steps.length-1 ? 'Math & Python →' : 'Next →';
   if (formulaStops[scene]) renderFormula(scene);
@@ -245,9 +248,17 @@ function openOrders(trigger) {
 }
 function navigate(index, behavior = reducedMotion.matches ? 'instant' : 'smooth') {
   const target = index === steps.length ? $('#method') : steps[index];
-  if (index < steps.length && stackedLayout.matches) {
+  const formulaTransition = Boolean(formulaStops[steps[state.scene]?.id] || formulaStops[target.id]);
+  if (formulaTransition) behavior = 'instant';
+  if (index < steps.length && (formulaTransition || stackedLayout.matches)) {
     state.scene = index;
     render();
+  }
+  if (index < steps.length && formulaStops[target.id]) {
+    const readingOffset = $('.masthead').getBoundingClientRect().height;
+    const top = scrollY + target.getBoundingClientRect().top - readingOffset;
+    scrollTo({top,behavior});
+  } else if (index < steps.length && stackedLayout.matches) {
     const readingOffset = $('.masthead').getBoundingClientRect().height + shell.getBoundingClientRect().height + 15;
     const top = scrollY + target.getBoundingClientRect().top - readingOffset;
     scrollTo({top,behavior});
@@ -259,7 +270,12 @@ function updateScroll() {
   scrollPending = false;
   if (!state.data || !state.breadData) return;
   const mobile = stackedLayout.matches;
-  const readingLine = mobile ? shell.getBoundingClientRect().bottom + 60 : innerHeight * .5;
+  // Keep the phone reading line consistent when the full-width intro becomes the OLS panel.
+  const workedIntroHeight = Math.min(650, Math.max(440, innerHeight * .74));
+  const introReadingLine = Math.min(innerHeight - 30, $('.masthead').getBoundingClientRect().height + workedIntroHeight + 60);
+  const readingLine = mobile
+    ? (state.scene < 0 || formulaStops[steps[state.scene]?.id] ? introReadingLine : shell.getBoundingClientRect().bottom + 60)
+    : innerHeight * .5;
   let scene = 0;
   steps.forEach((step,index) => {if (step.getBoundingClientRect().top <= readingLine) scene = index;});
   if (state.scene !== scene) {state.scene = scene; render();}
