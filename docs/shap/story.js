@@ -1,17 +1,25 @@
 import { coalition, hybridValues, marginal, precedingMasks, validateData } from './calculation.mjs';
 import { renderWaterfall } from './waterfall.js';
-import { featureLabels, shapleyFormulaMarkup, valueMarkup, joiningMarkup } from './formula.js';
+import { featureLabels, shapleyFormulaMarkup, valueMarkup, joiningMarkup, predictionMarkup } from './formula.js';
+import { validateBreadPeace, breadPeaceFacts, breadPeaceInputTable, renderBreadPeace } from './bread-peace.js';
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
-const names = ['The Shapley formula', 'The observation x', 'The value function', 'The existing feature group S', 'The additional feature i', 'The feature’s final credit', 'A fixed model; one observation', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
+const names = ['The Shapley formula', 'The observation x', 'The model prediction ŷ', 'The value function', 'The existing feature group S', 'The additional feature i', 'The feature’s final credit', 'A standardized election model', 'One election’s prediction', 'Refit or average?', 'The OLS baseline', 'Income joins the group', 'Two orders; two SHAP values', 'An interaction model; one person', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
 const captions = [
   'Scroll to give each part its meaning in a prediction problem.',
   'x is one complete observation; its values supply the fixed inputs.',
-  'vₓ is the value function. vₓ(S) returns the prediction average assigned to S.',
+  'ŷ(x) = f(x) is the model’s prediction for one complete input row.',
+  'vₓ(S) averages predictions ŷ over hybrid rows. It is not a prediction error.',
   'S is the group already fixed to x, before the additional feature joins.',
   'i is the additional feature. It belongs to F and is not already in S.',
   'ϕᵢ(vₓ) is feature i’s contribution relative to the background average prediction.',
+  'Income, fatalities, and vote outcomes have mean zero and SD one. Fit OLS once.',
+  'x now identifies one election. The output is measured in SD of incumbent-party vote share.',
+  'Refitting changes a coefficient. Our SHAP game averages outputs of the unchanged full model.',
+  'vₓ(∅) = 0: average the predictions with no election-specific inputs fixed.',
+  'Fix income to x; keep every background fatality value. Average the predictions.',
+  'In this additive model each feature’s marginal is the same in both orders.',
   'Fit f once, then hold it fixed. Here we supply a transparent teaching equation.',
   'vₓ(∅): no columns fixed to x. Average the eight model predictions.',
   'After fixes ability to x; before uses its background values. Other columns stay the same.',
@@ -22,8 +30,9 @@ const captions = [
 ];
 const formulaStops = {
   'shapley-formula':{focus:'all'},
-  'value-function':{focus:'value',symbol:'v<sub>x</sub>(S)',meaning:'The prediction average assigned to feature group S by the value function vₓ.'},
+  'value-function':{focus:'value',symbol:'v<sub>x</sub>(S) = average of ŷ',meaning:'Fix S to x, predict each hybrid input row with the original model, then average those predictions.'},
   'observation-symbol':{focus:'observation',symbol:'x',meaning:'The observation whose prediction we explain. Its inputs supply the values to fix.'},
+  'prediction-symbol':{focus:'all',symbol:predictionMarkup(),meaning:'The same fitted model predicts every complete input row. Its output ŷ is distinct from an observed outcome y.'},
   'preceding-features':{focus:'coalition',symbol:'S',meaning:'The features already fixed to x. Their prediction average is the “before” value.'},
   'joining-feature':{focus:'joining',symbol:'i ∉ S',meaning:'The additional feature joins S. Fixing its value gives the “after” group S ∪ {i}.'},
   'feature-credit':{focus:'result',symbol:'ϕ<sub>i</sub>(v<sub>x</sub>)',meaning:'The final credit for feature i: its weighted average marginal contribution.'},
@@ -39,7 +48,8 @@ $('.stage-top').setAttribute('aria-atomic', 'true');
 document.querySelectorAll('[data-formula-focus]').forEach(element => {
   element.innerHTML = shapleyFormulaMarkup(element.dataset.formulaFocus);
 });
-const state = { data:null, observation:null, scene:-1, feature:0, explorerMask:0, rowsTrigger:null };
+const state = { data:null, observation:null, breadData:null, breadObservation:null, selectorContext:null, scene:-1, feature:0, explorerMask:0, rowsTrigger:null };
+const yHat = '<math aria-label="y hat"><mover accent="true"><mi>y</mi><mo>^</mo></mover></math>';
 
 function escape(value) {
   return String(value).replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
@@ -74,6 +84,8 @@ function updateFacts() {
       : 'Here revealing ability does not change the averaged prediction. The main ability term and the interaction offset one another for this profile.',
   };
   document.querySelectorAll('[data-fact]').forEach(element => {element.textContent = facts[element.dataset.fact];});
+  const breadFacts = breadPeaceFacts(state.breadData,state.breadObservation);
+  document.querySelectorAll('[data-bread-fact]').forEach(element => {element.textContent = breadFacts[element.dataset.breadFact];});
   updateAverageNarrative();
   $('#explanation-table').innerHTML = `<table class="input-table"><caption>${escape(observation.name)} · earnings contributions in $1,000/year</caption><thead><tr><th scope="col">Feature</th><th scope="col">Input value</th><th scope="col">SHAP value</th></tr></thead><tbody>${state.data.features.map((feature, index) => `<tr><th scope="row">${escape(feature.label)}</th><td>${inputNumber(observation.values[index])}</td><td>${signed(observation.shapValues[index])}</td></tr>`).join('')}<tr><th scope="row">Baseline</th><td colspan="2">${number(observation.baseValue)}</td></tr><tr><th scope="row">Prediction</th><td colspan="2">${number(observation.prediction)}</td></tr></tbody></table>`;
   renderCoalitionExplorer();
@@ -86,7 +98,7 @@ function renderFormula(scene) {
 
 function renderObservation() {
   const observation = state.observation;
-  visual.innerHTML = `<h3>From training to explanation</h3><div class="training-flow" aria-label="In practice: training data X and y fit one prediction function f"><span>Training data<br><span class="math-text">(X, y)</span></span><span aria-hidden="true">→</span><span>Fit once<br><span class="math-text">f</span></span></div><p class="training-note">Here <var>f</var> is our supplied teaching equation.</p><div class="observation-card"><span class="date">Observation x · ${escape(observation.name)}</span><dl>${state.data.features.map((feature, index) => `<dt>${escape(feature.label)}</dt><dd>${inputNumber(observation.values[index])}${index === 1 ? observation.values[1] < 0 ? ' · adverse' : ' · favorable' : ''}</dd>`).join('')}</dl><div class="prediction-number">${dollars(observation.prediction)}<span class="prediction-label">f(x) · predicted annual earnings</span></div></div><p class="input-note">We explain this output of the fixed model.</p>`;
+  visual.innerHTML = `<h3>From an additive model to an interaction</h3><div class="training-flow" aria-label="In practice: training data X and y fit one prediction function f"><span>Training data<br><span class="math-text">(X, y)</span></span><span aria-hidden="true">→</span><span>Fit once<br><span class="math-text">f</span></span></div><p class="training-note">Here <var>f</var> is our supplied earnings equation.</p><div class="observation-card"><span class="date">Observation x · ${escape(observation.name)}</span><dl>${state.data.features.map((feature, index) => `<dt>${escape(feature.label)}</dt><dd>${inputNumber(observation.values[index])}${index === 1 ? observation.values[1] < 0 ? ' · adverse' : ' · favorable' : ''}</dd>`).join('')}</dl><div class="prediction-number">${dollars(observation.prediction)}<span class="prediction-label">ŷ(x) = f(x) · predicted annual earnings</span></div></div><p class="input-note">We explain this output of the fixed model.</p>`;
 }
 
 function inputCell(background, mask, index, newFeature = -1) {
@@ -99,7 +111,7 @@ function inputCell(background, mask, index, newFeature = -1) {
 function inputTable(mask, {beforeMask, newFeature = -1} = {}) {
   const group = coalition(state.observation, mask);
   const before = beforeMask === undefined ? null : coalition(state.observation, beforeMask);
-  return `<table class="input-table"><caption>All 8 reference rows · predictions in $1,000/year</caption><thead><tr><th scope="col">Row</th>${state.data.features.map((feature, index) => `<th scope="col" title="${escape(feature.description)}">${escape(feature.shortLabel)}<small>${mask & (1 << index) ? 'Included<br>fixed to person' : 'Excluded<br>from background'}</small></th>`).join('')}${before ? '<th scope="col">Before</th><th scope="col">After</th>' : '<th scope="col">Prediction</th>'}</tr></thead><tbody>${state.data.background.map((background, row) => `<tr><td>${row + 1}</td>${state.data.features.map((_, index) => inputCell(background, mask, index, newFeature)).join('')}${before ? `<td>${number(before.predictions[row])}</td>` : ''}<td>${number(group.predictions[row])}</td></tr>`).join('')}</tbody><tfoot><tr><th scope="row" colspan="4">Average of all 8</th>${before ? `<td>${number(before.value)}</td>` : ''}<td>${number(group.value)}</td></tr></tfoot></table>`;
+  return `<table class="input-table"><caption>All 8 reference rows · predictions in $1,000/year</caption><thead><tr><th scope="col">Row</th>${state.data.features.map((feature, index) => `<th scope="col" title="${escape(feature.description)}">${escape(feature.shortLabel)}<small>${mask & (1 << index) ? 'Included<br>fixed to person' : 'Excluded<br>from background'}</small></th>`).join('')}${before ? `<th scope="col">${yHat}<small>Before</small></th><th scope="col">${yHat}<small>After</small></th>` : `<th scope="col">${yHat}<small>Prediction</small></th>`}</tr></thead><tbody>${state.data.background.map((background, row) => `<tr><td>${row + 1}</td>${state.data.features.map((_, index) => inputCell(background, mask, index, newFeature)).join('')}${before ? `<td>${number(before.predictions[row])}</td>` : ''}<td>${number(group.predictions[row])}</td></tr>`).join('')}</tbody><tfoot><tr><th scope="row" colspan="4">Average of all 8</th>${before ? `<td>${number(before.value)}</td>` : ''}<td>${number(group.value)}</td></tr></tfoot></table>`;
 }
 
 function renderBackground(mask, beforeMask) {
@@ -170,13 +182,23 @@ function renderCoalitionExplorer() {
 }
 
 function render() {
-  if (!state.data) return;
+  if (!state.data || !state.breadData) return;
   const active = document.activeElement;
   const focusSelector = visual.contains(active) && active.id ? `#${active.id}` : null;
   updateFacts();
   const scene = steps[state.scene].id;
   shell.dataset.scene = scene;
-  $('.observation-control').hidden = Boolean(formulaStops[scene]);
+  const breadScene = scene.startsWith('ols-');
+  const selectorContext = breadScene ? 'bread' : 'earnings';
+  $('.observation-control').hidden = Boolean(formulaStops[scene]) || scene === 'ols-model';
+  if (state.selectorContext !== selectorContext) {
+    const data = breadScene ? state.breadData : state.data;
+    const observation = breadScene ? state.breadObservation : state.observation;
+    observationSelect.innerHTML = data.observations.map(item => `<option value="${escape(item.id)}">${escape(item.name)}</option>`).join('');
+    observationSelect.value = observation.id;
+    $('label[for="observation-select"]').textContent = breadScene ? 'Election to explain' : 'Person to explain';
+    state.selectorContext = selectorContext;
+  }
   if ($('#stage-name').textContent !== names[state.scene]) {
     $('#stage-name').textContent = names[state.scene];
     $('#stage-count').textContent = `${state.scene+1} / ${steps.length}`;
@@ -185,6 +207,7 @@ function render() {
   $('#previous').disabled = state.scene === 0;
   $('#next').textContent = state.scene === steps.length-1 ? 'Math & Python →' : 'Next →';
   if (formulaStops[scene]) renderFormula(scene);
+  else if (breadScene) visual.innerHTML = renderBreadPeace(scene,state.breadData,state.breadObservation);
   else if (scene === 'observation') renderObservation();
   else if (scene === 'background') renderBackground(0);
   else if (scene === 'reveal-ability') renderBackground(1, 0);
@@ -193,7 +216,7 @@ function render() {
   else if (scene === 'shap-value') renderAverage();
   else renderFinal();
   const ordersScene = scene === 'weights' || scene === 'shap-value';
-  $('#inspect').hidden = !['background','reveal-ability','neighborhood-first','weights','shap-value'].includes(scene);
+  $('#inspect').hidden = !['ols-background','ols-income','background','reveal-ability','neighborhood-first','weights','shap-value'].includes(scene);
   $('#inspect').textContent = ordersScene ? 'Six orders' : 'Inspect rows';
   $('#inspect').setAttribute('aria-label', ordersScene ? 'Inspect the six revealing orders' : 'Inspect hybrid input rows and predictions');
   if (focusSelector) visual.querySelector(focusSelector)?.focus({preventScroll:true});
@@ -202,6 +225,16 @@ function render() {
 function openRows(trigger) {
   state.rowsTrigger = trigger;
   const scene = steps[state.scene].id;
+  if (scene.startsWith('ols-')) {
+    const mask = scene === 'ols-income' ? 1 : 0;
+    const observation = state.breadObservation;
+    $('#rows-heading').textContent = mask ? 'Income fixed to the selected election' : 'No inputs fixed to the election';
+    $('#rows-description').textContent = 'The original OLS coefficients stay fixed at 0.5 for income and −0.5 for fatalities. Predictions are in standard deviations of incumbent-party vote share. The average of the prediction column is the coalition value vₓ(S).';
+    $('#rows-table').innerHTML = breadPeaceInputTable(state.breadData,observation,mask,mask ? 0 : undefined);
+    dialog.showModal();
+    $('#close-rows').focus();
+    return;
+  }
   const mask = scene === 'background' ? 0 : scene === 'reveal-ability' ? 1 : 3;
   const beforeMask = scene === 'reveal-ability' ? 0 : scene === 'neighborhood-first' ? 2 : undefined;
   $('#rows-heading').textContent = `Knowing ${groupName(mask)}`;
@@ -237,7 +270,7 @@ function navigate(index, behavior = reducedMotion.matches ? 'instant' : 'smooth'
 let scrollPending = false;
 function updateScroll() {
   scrollPending = false;
-  if (!state.data) return;
+  if (!state.data || !state.breadData) return;
   const mobile = stackedLayout.matches;
   const readingLine = mobile ? shell.getBoundingClientRect().bottom + 60 : innerHeight * .5;
   let scene = 0;
@@ -258,7 +291,11 @@ dialog.addEventListener('click', event => {
   if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
 });
 dialog.addEventListener('close', () => {if (state.rowsTrigger?.isConnected) state.rowsTrigger.focus();});
-observationSelect.addEventListener('change', () => {state.observation = state.data.observations.find(item => item.id === observationSelect.value); render();});
+observationSelect.addEventListener('change', () => {
+  if (state.selectorContext === 'bread') state.breadObservation = state.breadData.observations.find(item => item.id === observationSelect.value);
+  else state.observation = state.data.observations.find(item => item.id === observationSelect.value);
+  render();
+});
 $('#coalition-controls').addEventListener('change', () => {
   state.explorerMask = [...$('#coalition-controls').querySelectorAll('input:checked')].reduce((mask,input) => mask | (1 << Number(input.value)),0);
   renderCoalitionExplorer();
@@ -266,15 +303,18 @@ $('#coalition-controls').addEventListener('change', () => {
 addEventListener('scroll',queueScroll,{passive:true});
 addEventListener('resize', () => {queueScroll(); if (steps[state.scene]?.id === 'waterfall') renderFinal();});
 addEventListener('hashchange', () => {
-  if (!state.data) return;
+  if (!state.data || !state.breadData) return;
   const index = steps.findIndex(step => `#${step.id}` === location.hash);
   if (index >= 0) navigate(index, 'instant');
 });
 
 try {
-  const response = await fetch(new URL('./data.json',import.meta.url));
-  if (!response.ok) throw new Error(`Data request failed (${response.status}).`);
-  state.data = validateData(await response.json());
+  const responses = await Promise.all(['data.json','bread-peace.json'].map(file => fetch(new URL(file,import.meta.url))));
+  for (const response of responses) if (!response.ok) throw new Error(`Data request failed (${response.status}).`);
+  const [earningsData,breadData] = await Promise.all(responses.map(response => response.json()));
+  state.data = validateData(earningsData);
+  state.breadData = validateBreadPeace(breadData);
+  state.breadObservation = state.breadData.observations.find(item => item.id === state.breadData.defaultObservationId) || state.breadData.observations[0];
   state.observation = state.data.observations.find(item => item.id === state.data.defaultObservationId) || state.data.observations[0];
   observationSelect.innerHTML = state.data.observations.map(item => `<option value="${escape(item.id)}">${escape(item.name)}</option>`).join('');
   observationSelect.value = state.observation.id;

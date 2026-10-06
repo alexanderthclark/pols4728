@@ -1,0 +1,431 @@
+{
+  "schemaVersion": 1,
+  "title": "Stylized Bread and Peace OLS",
+  "dataSource": "Synthetic teaching rows, not historical elections or Hibbs's estimates.",
+  "source": {
+    "author": "Douglas A. Hibbs",
+    "title": "Obama's Reelection Prospects under Bread and Peace Voting in the 2012 US Presidential Election",
+    "url": "https://www.cambridge.org/core/journals/ps-political-science-and-politics/article/abs/obamas-reelection-prospects-under-bread-and-peace-voting-in-the-2012-us-presidential-election/085A6DB3D1D1310250B5E2566AB352CF"
+  },
+  "features": [
+    {
+      "id": "income",
+      "label": "Real income growth",
+      "shortLabel": "Income",
+      "description": "Standardized real disposable income growth; +1 is one empirical SD above the reference mean."
+    },
+    {
+      "id": "fatalities",
+      "label": "War fatalities",
+      "shortLabel": "Fatalities",
+      "description": "Standardized war fatalities; -1 is one empirical SD below the reference mean, not a negative count."
+    }
+  ],
+  "standardization": {
+    "means": [
+      0,
+      0,
+      0
+    ],
+    "standardDeviations": [
+      1,
+      1,
+      1
+    ],
+    "columns": [
+      "income",
+      "fatalities",
+      "vote"
+    ],
+    "ddof": 0
+  },
+  "model": {
+    "fitted": true,
+    "estimator": "OLS on synthetic standardized rows",
+    "intercept": 0.0,
+    "coefficients": [
+      0.5,
+      -0.5
+    ],
+    "equation": "y-hat(x) = 0.5 × income - 0.5 × fatalities",
+    "predictionUnit": "SD of incumbent-party two-party vote share"
+  },
+  "refit": {
+    "featureCorrelation": -0.4999999999999999,
+    "incomeVoteCorrelation": 0.7499999999999999,
+    "incomeOnlyCoefficient": 0.75,
+    "omittedVariableTerm": 0.24999999999999994
+  },
+  "background": [
+    {
+      "id": "reference-1",
+      "values": [
+        -1.0,
+        -1.0
+      ],
+      "outcome": 0.0,
+      "modelPrediction": 0.0
+    },
+    {
+      "id": "reference-2",
+      "values": [
+        -1.0,
+        1.0
+      ],
+      "outcome": -1.7071067811865475,
+      "modelPrediction": -1.0
+    },
+    {
+      "id": "reference-3",
+      "values": [
+        -1.0,
+        1.0
+      ],
+      "outcome": -1.0,
+      "modelPrediction": -1.0
+    },
+    {
+      "id": "reference-4",
+      "values": [
+        -1.0,
+        1.0
+      ],
+      "outcome": -0.29289321881345254,
+      "modelPrediction": -1.0
+    },
+    {
+      "id": "reference-5",
+      "values": [
+        1.0,
+        -1.0
+      ],
+      "outcome": 0.29289321881345254,
+      "modelPrediction": 1.0
+    },
+    {
+      "id": "reference-6",
+      "values": [
+        1.0,
+        -1.0
+      ],
+      "outcome": 1.0,
+      "modelPrediction": 1.0
+    },
+    {
+      "id": "reference-7",
+      "values": [
+        1.0,
+        -1.0
+      ],
+      "outcome": 1.7071067811865475,
+      "modelPrediction": 1.0
+    },
+    {
+      "id": "reference-8",
+      "values": [
+        1.0,
+        1.0
+      ],
+      "outcome": 0.0,
+      "modelPrediction": 0.0
+    }
+  ],
+  "method": {
+    "definition": "finite-background interventional replacement",
+    "backgroundSize": 8,
+    "weightPerRow": 0.125
+  },
+  "defaultObservationId": "growth-low-fatalities",
+  "observations": [
+    {
+      "id": "growth-low-fatalities",
+      "name": "Growth, lower fatalities",
+      "values": [
+        1,
+        -1
+      ],
+      "prediction": 1.0,
+      "baseValue": 0.0,
+      "reducedPrediction": 0.75,
+      "coalitions": [
+        {
+          "mask": 0,
+          "value": 0.0,
+          "predictions": [
+            0.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            1.0,
+            1.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "mask": 1,
+          "value": 0.5,
+          "predictions": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "mask": 2,
+          "value": 0.5,
+          "predictions": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "mask": 3,
+          "value": 1.0,
+          "predictions": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      ],
+      "orders": [
+        {
+          "features": [
+            0,
+            1
+          ],
+          "marginals": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "features": [
+            1,
+            0
+          ],
+          "marginals": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "shapValues": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "id": "growth-high-fatalities",
+      "name": "Growth, higher fatalities",
+      "values": [
+        1,
+        1
+      ],
+      "prediction": 0.0,
+      "baseValue": 0.0,
+      "reducedPrediction": 0.75,
+      "coalitions": [
+        {
+          "mask": 0,
+          "value": 0.0,
+          "predictions": [
+            0.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            1.0,
+            1.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "mask": 1,
+          "value": 0.5,
+          "predictions": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "mask": 2,
+          "value": -0.5,
+          "predictions": [
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "mask": 3,
+          "value": 0.0,
+          "predictions": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "orders": [
+        {
+          "features": [
+            0,
+            1
+          ],
+          "marginals": [
+            0.5,
+            -0.5
+          ]
+        },
+        {
+          "features": [
+            1,
+            0
+          ],
+          "marginals": [
+            -0.5,
+            0.5
+          ]
+        }
+      ],
+      "shapValues": [
+        0.5,
+        -0.5
+      ]
+    },
+    {
+      "id": "weak-growth-high-fatalities",
+      "name": "Weak growth, higher fatalities",
+      "values": [
+        -1,
+        1
+      ],
+      "prediction": -1.0,
+      "baseValue": 0.0,
+      "reducedPrediction": -0.75,
+      "coalitions": [
+        {
+          "mask": 0,
+          "value": 0.0,
+          "predictions": [
+            0.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            1.0,
+            1.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "mask": 1,
+          "value": -0.5,
+          "predictions": [
+            0.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "mask": 2,
+          "value": -0.5,
+          "predictions": [
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "mask": 3,
+          "value": -1.0,
+          "predictions": [
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0
+          ]
+        }
+      ],
+      "orders": [
+        {
+          "features": [
+            0,
+            1
+          ],
+          "marginals": [
+            -0.5,
+            -0.5
+          ]
+        },
+        {
+          "features": [
+            1,
+            0
+          ],
+          "marginals": [
+            -0.5,
+            -0.5
+          ]
+        }
+      ],
+      "shapValues": [
+        -0.5,
+        -0.5
+      ]
+    }
+  ],
+  "validation": {
+    "maxShapAgreementError": 0.0,
+    "maxBaselineAgreementError": 0.0,
+    "shapVersion": "0.49.1"
+  }
+}

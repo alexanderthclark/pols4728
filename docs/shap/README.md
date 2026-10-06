@@ -6,6 +6,26 @@ prediction, distinguishing model training from explanation. The highlighted
 value-function terms show how a revealed feature changes the value of a group: substitute the observation's values into background rows, evaluate
 the same prediction function, average its outputs, then compare those averages.
 
+The first worked example is a stylized Bread and Peace model inspired by
+Douglas Hibbs. Two features, real income growth and war fatalities, predict
+incumbent-party two-party vote share. Eight synthetic rows have standardized
+inputs and observed outcomes (mean zero and empirical SD one, using denominator
+`n`). OLS fits `y_hat(x) = 0.5 × income − 0.5 × fatalities`, with zero intercept.
+The feature correlation is −0.5. Predictions use the outcome's SD units; they
+are not themselves rescaled to SD one.
+
+Removing fatalities and refitting income-only OLS gives a slope of 0.75, equal
+to the vote–income correlation. The full-model coefficient of 0.5 plus the
+omitted-variable term `−0.5 × −0.5 = +0.25` recovers that slope. Our SHAP
+calculation instead keeps the full model fixed and averages its predictions.
+For the default election, income 1 and fatalities −1, the income-only coalition
+has value 0.5 and the full prediction is 1. Four coalitions and two revealing
+orders give contributions +0.5 and +0.5 from a zero baseline.
+Alternate elections change the inputs and contributions; the fit and background
+stay fixed. These are constructed examples, not historical elections or Hibbs's
+estimated coefficients. The optional method note distinguishes interventional
+replacement from conditional SHAP and reduced-model refitting.
+
 The illustrative earnings predictor is
 `f(x) = 40 + 10 × ability + 24 × ability × neighborhood + 4 × experience`, in
 thousands of dollars per year. Ability and experience range from 0 to 1;
@@ -21,7 +41,9 @@ The eight equally weighted reference profiles cover every endpoint combination.
 All eight rows appear in the main tables. Included columns are fixed to the
 selected person; excluded columns retain the joint values from each background
 row. The before/after output columns and their means show the marginal directly.
-No feature is removed from the model or zeroed to represent absence.
+No feature is removed from the model. In the centered additive OLS warm-up,
+inserting the excluded features' zero means happens to reproduce the prediction
+average. Background-row averaging is the definition used for both examples.
 
 The default profile has ability 1, neighborhood −1, and experience 1.
 Its baseline is 47 and prediction is 30. Ability's marginal is +5 before
@@ -34,21 +56,30 @@ profiles use the same model and background.
 
 1. Begin with the complete Shapley formula.
 2. Highlight the observation `x` supplying the fixed inputs.
-3. Highlight its value function: a feature group’s prediction average.
-4. Highlight `S`, the group already fixed, and define `F` and `m`.
-5. Highlight `i`, the additional feature joining a group that excludes it.
-6. Highlight the result: the final contribution assigned to that feature.
-7. Orient training, the fixed predictor, and one observation to explain.
-8. Compute `v_x(S)` from background rows, starting with `S = ∅`.
-9. Compute `v_x(S ∪ {i})` by fixing ability and comparing with the baseline.
-10. Start with neighborhood fixed and compare the same two value-function terms.
-11. Match all four preceding groups to their factorial weights and prediction differences.
-12. Add the weighted contributions; select a feature and inspect all six orders.
-13. Assemble the final contributions in a course-styled standard waterfall.
+3. Define `y_hat(x) = f(x)`, distinct from the observed outcome and prediction error.
+4. Highlight its value function: the average of `y_hat` over hybrid input rows.
+5. Highlight `S`, the group already fixed, and define `F` and `m`.
+6. Highlight `i`, the additional feature joining a group that excludes it.
+7. Highlight the result and introduce `phi_i(x)` as shorthand for `phi_i(v_x)`.
+8. Fit the synthetic, standardized Bread and Peace OLS model; display `y` and `y_hat`.
+9. Choose one election and predict its standardized vote share.
+10. Compare refitting income-only OLS with averaging the original full model.
+11. Compute the centered baseline from all eight background input rows.
+12. Fix income to the election, retain background fatalities, and compare means.
+13. Display the four coalitions and two orders; sum both linear SHAP values.
+14. Move to the three-feature earnings interaction and one person to explain.
+15. Compute its `v_x(S)` from background rows, starting with `S = ∅`.
+16. Fix ability and compare with the earnings baseline.
+17. Start with neighborhood fixed and compare the same two value-function terms.
+18. Match all four preceding groups to their factorial weights and prediction differences.
+19. Add the weighted contributions; select a feature and inspect all six orders.
+20. Assemble the final contributions in a course-styled standard waterfall.
 
 The opening keeps the same equation in place and highlights only the symbols
 under discussion. Definitions enter through scrolling instead of a glossary.
-The person selector appears when the worked prediction example begins.
+The election selector appears after the OLS model is introduced. The person
+selector appears when the earnings example begins. Each example retains its
+selection when readers move between them.
 The full formula fits on one line in the desktop figure, with type sized to
 the figure's width. Phones and narrow prose columns allow a readable line break.
 
@@ -87,7 +118,9 @@ model and explanations and independently verify them against SHAP. The website
 displays those results without executing Python in the browser. JavaScript tests
 independently evaluate the equation for every hybrid input, check the averages,
 recover SHAP via subset factorial weights, and verify all order paths and
-additive predictions.
+additive predictions. The OLS tests independently solve its normal equations,
+check standardization, distinguish refitting from masking, and reconstruct all
+two-feature coalitions and orders.
 
 ## Design and hosting
 

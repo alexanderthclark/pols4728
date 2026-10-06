@@ -3,17 +3,17 @@ export const featureLabels = ['ability', 'neighborhood', 'experience'];
 const featureNames = ['ability', 'neighborhood opportunity', 'experience'];
 const activeTerms = new Set(['all', 'result', 'sum', 'weight', 'after', 'before', 'difference', 'value', 'observation', 'coalition', 'joining']);
 
-function setMarkup(mask) {
-  if (!Number.isInteger(mask) || mask < 0 || mask > 7) throw new RangeError('Use a feature mask from 0 to 7.');
-  const members = featureLabels.filter((label, index) => mask & (1 << index));
+function setMarkup(mask, labels = featureLabels) {
+  if (!Number.isInteger(mask) || mask < 0 || mask >= 2 ** labels.length) throw new RangeError('Use a mask within the feature universe.');
+  const members = labels.filter((label, index) => mask & (1 << index));
   return members.length
     ? `<mrow><mo stretchy="false">{</mo>${members.map(label => `<mtext>${label}</mtext>`).join('<mo>,</mo>')}<mo stretchy="false">}</mo></mrow>`
     : '<mo lspace="0" rspace="0">∅</mo>';
 }
 
-function setLabel(mask) {
+function setLabel(mask, names = featureNames) {
   if (!mask) return 'the empty set';
-  return `the set containing ${featureNames.filter((name, index) => mask & (1 << index)).join(', ')}`;
+  return `the set containing ${names.filter((name, index) => mask & (1 << index)).join(', ')}`;
 }
 
 function valueApplication(argument, valueFunction = '<msub><mi>v</mi><mi>x</mi></msub>') {
@@ -39,16 +39,21 @@ export function shapleyFormulaMarkup(activeTerm = 'all') {
 }
 
 /** A concrete coalition value, using the same bit masks as the row table. */
-export function valueMarkup(mask) {
-  const argument = setMarkup(mask);
-  return `<math class="math-inline coalition-value-math" xmlns="${mathNamespace}" aria-label="v sub x of ${setLabel(mask)}">${valueApplication(argument)}</math>`;
+export function valueMarkup(mask, {labels = featureLabels, names = featureNames} = {}) {
+  const argument = setMarkup(mask, labels);
+  return `<math class="math-inline coalition-value-math" xmlns="${mathNamespace}" aria-label="v sub x of ${setLabel(mask, names)}">${valueApplication(argument)}</math>`;
 }
 
 /** Keep the two concrete coalition names readable above their prediction columns. */
-export function joiningMarkup(beforeMask, feature) {
-  setMarkup(beforeMask);
-  if (!Number.isInteger(feature) || feature < 0 || feature >= featureLabels.length) throw new RangeError('Use a feature index from 0 to 2.');
+export function joiningMarkup(beforeMask, feature, {labels = featureLabels, names = featureNames} = {}) {
+  setMarkup(beforeMask, labels);
+  if (!Number.isInteger(feature) || feature < 0 || feature >= labels.length) throw new RangeError('Use an index within the feature universe.');
   if (beforeMask & (1 << feature)) throw new RangeError('The joining feature must be excluded from the preceding group.');
   const afterMask = beforeMask | (1 << feature);
-  return `<div class="coalition-comparison" role="group" aria-label="Compare predictions before and after ${featureNames[feature]} joins"><div><span class="coalition-label">Before</span>${valueMarkup(beforeMask)}</div><div><span class="coalition-label">After</span>${valueMarkup(afterMask)}</div></div>`;
+  return `<div class="coalition-comparison" role="group" aria-label="Compare predictions before and after ${names[feature]} joins"><div><span class="coalition-label">Before</span>${valueMarkup(beforeMask, {labels,names})}</div><div><span class="coalition-label">After</span>${valueMarkup(afterMask, {labels,names})}</div></div>`;
+}
+
+/** A prediction is an output of the fitted model, before any background average. */
+export function predictionMarkup(argument = '<mi>x</mi>', label = 'y hat of x equals f of x') {
+  return `<math class="math-inline" xmlns="${mathNamespace}" aria-label="${label}"><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo stretchy="false">(</mo>${argument}<mo stretchy="false">)</mo><mo>=</mo><mi>f</mi><mo stretchy="false">(</mo>${argument}<mo stretchy="false">)</mo></mrow></math>`;
 }

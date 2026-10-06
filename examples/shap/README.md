@@ -1,13 +1,55 @@
 # Reproduce the local SHAP story
 
-This example explains a transparent, fixed illustrative predictor of yearly
-earnings. Its equation, input scores, and reference profiles are designed teaching
-examples, not empirical estimates or observations collected from people.
-The [local SHAP page](../../docs/shap/) uses the actual outputs of this predictor.
+The [local SHAP page](../../docs/shap/) begins with a synthetic Bread and Peace
+OLS warm-up, then explains a fixed illustrative predictor of yearly earnings.
+Both examples use constructed data, rather than empirical election observations
+or measured people. Their model outputs and SHAP calculations are reproducible.
 
 The browser reads saved JSON. Python and the SHAP package are used only to rebuild
 and verify the data; students do not need Python to read the page. This example
 contains only local explanations, with no global importance or beeswarm plots.
+
+## Standardized Bread and Peace OLS warm-up
+
+Douglas Hibbs's Bread and Peace model supplies the two substantive predictors:
+real disposable income growth and war fatalities. The warm-up uses eight
+synthetic training rows and a direct OLS fit; it does not reproduce Hibbs's
+historical data, income-growth time weighting, coefficients, or forecasts.
+Its [source reference](https://www.cambridge.org/core/journals/ps-political-science-and-politics/article/abs/obamas-reelection-prospects-under-bread-and-peace-voting-in-the-2012-us-presidential-election/085A6DB3D1D1310250B5E2566AB352CF)
+describes the underlying Bread and Peace interpretation.
+
+All three columns (income, fatalities, and observed vote) have mean zero and
+empirical SD one, using denominator `n`. Six rows have opposite-sign predictors
+and two have same-sign predictors, yielding feature correlation −0.5. Outcomes
+combine `0.5 × income − 0.5 × fatalities` with an orthogonal residual of variance
+0.25. An OLS fit recovers zero intercept and slopes +0.5 and −0.5. The predictions
+are in outcome SD units; they are not standardized again after fitting.
+
+An income-only OLS refit has slope 0.75, equal to the income–vote correlation.
+This is `0.5 + (−0.5)(−0.5)`: the retained full-model slope plus feature
+correlation times the omitted feature's slope. The reduced model is used only
+to demonstrate that refitting is a different calculation from our SHAP game.
+
+The same eight input rows form the equally weighted background for exact
+interventional SHAP. For a default synthetic election with income 1 and fatalities
+−1, the four coalition values are `[0, 0.5, 0.5, 1]` for masks 0, 1, 2, 3.
+Income contributes +0.5 in both revealing orders; fatalities also contribute
++0.5. The other saved profiles are `[1, 1]` and `[-1, 1]`, with predictions 0
+and −1 and corresponding contributions `[0.5, -0.5]` and `[-0.5, -0.5]`.
+Coefficients and the background stay fixed throughout each explanation.
+
+`generate_bread_peace.py` fits OLS, checks centering, standard deviations, residual
+orthogonality, the omitted-variable identity, and exact agreement with the SHAP
+package. It saves training outcomes, fitted predictions, the reduced-model
+comparison, all four coalitions, both orders, and three profiles in
+`docs/shap/bread-peace.json`. Browser tables average predictions, never training
+outcomes or prediction errors. For this additive model, inserting the zero
+background means gives the same coalition averages as averaging the rows.
+
+```sh
+examples/shap/.venv/bin/python examples/shap/generate_bread_peace.py
+examples/shap/.venv/bin/python examples/shap/generate_bread_peace.py --check
+```
 
 ## Fixed predictor and input scores
 
@@ -36,8 +78,8 @@ predictor's output. With `neighborhood = +1`, they become `34 × ability`.
 This is a property of the stipulated teaching model,
 not a claim about real earnings or causal effects.
 
-There is no training, train/test split, refitting, or predictive validation in this
-example. The JSON specifies `fitted: false` and stores the exact equation and
+There is no training, train/test split, refitting, or predictive validation in the
+earnings interaction example. Its JSON specifies `fitted: false` and stores the exact equation and
 coefficients so readers can inspect every result.
 
 ## Background and profiles to explain
