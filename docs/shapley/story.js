@@ -77,8 +77,8 @@ steps[6].querySelector('.step-content').append(weightTrigger);
 document.querySelectorAll('[data-explain-weight]').forEach(button => button.addEventListener('click', () => explainWeight(button.dataset.explainWeight, button)));
 
 let current = -1, selectedPlayer = 0, removedPlayer = 0, inspectedEdge = null, pathState = null, playbackTimer = null, scrollFrame = 0;
-const kickers = ['01 / THE RULE', '02 / THE REMOVAL PUZZLE', '03 / EMPTY SET + SINGLETONS', '04 / ADD THE PAIRS', '05 / THE COMPLETE LATTICE', '06 / COUNT THE ORDERS', '07 / THE WEIGHTED AVERAGE', '08 / THE HASSE DIAGRAM', '09 / THE SUMMATION', '10 / THE CONTRIBUTION', '11 / BEFORE A', '12 / AFTER A', '13 / THE WEIGHT', '14 / THE SHAPLEY VALUE'];
-const counts = ['3 voters · 2 votes to pass', '2 votes still pass', '4 coalitions · 3 edges', '7 coalitions · 9 edges', '8 coalitions · 12 edges', '6 imagined orders', '4 terms · 1 Shapley value', 'Majority voting · 3 voters', 'i = A · n = 3', 'One joining edge', 'Order the voters in S', 'Order the remaining voters', 'Matching orders / all orders', 'Four edges · one weighted sum'];
+const kickers = ['01 / THE RULE', '02 / THE REMOVAL PUZZLE', '03 / THE SMALLEST GROUPS', '04 / ADD THE PAIRS', '05 / THE COMPLETE DIAGRAM', '06 / COUNT THE ORDERS', '07 / THE WEIGHTED AVERAGE', '08 / THE HASSE DIAGRAM', '09 / THE VALUE FUNCTION', '10 / THE SUMMATION', '11 / THE CONTRIBUTION', '12 / BEFORE A', '13 / AFTER A', '14 / THE WEIGHT', '15 / THE SHAPLEY VALUE'];
+const counts = ['3 voters · 2 votes to pass', '2 votes still pass', '4 groups · 3 edges', '7 groups · 9 edges', '8 groups · 12 edges', '6 imagined orders', '4 terms · 1 Shapley value', 'Majority voting · 3 voters', '0 means failure · 1 means success', 'i = A · n = 3', 'One joining edge', 'Order the voters in S', 'Order the remaining voters', 'Matching orders / all orders', 'Four edges · one weighted sum'];
 const formulaView = createFormulaView(game, {
   onCoalitionChange: () => { updateGraph(); updateCaption(); },
   onExplainWeight: explainWeight
@@ -107,17 +107,18 @@ function updateRemoval() {
 function showStep(index) {
   if (index === current) return;
   stopPlayback(); current = index; inspectedEdge = null; stage.dataset.scene = current;
-  const inFormula = current >= 8;
+  const inFormula = current >= 9;
   stage.classList.toggle('is-formula-scene', inFormula);
-  stage.setAttribute('aria-label', current < 2 ? 'Voting illustration' : inFormula ? 'Coalition diagram and Shapley formula' : 'Coalition diagram and Shapley calculation');
+  stage.classList.toggle('is-value-function-scene', current === 8);
+  stage.setAttribute('aria-label', current < 2 ? 'Voting illustration' : current === 8 ? 'Coalition diagram and voting rule' : inFormula ? 'Coalition diagram and Shapley formula' : 'Coalition diagram and Shapley calculation');
   $('#voters').setAttribute('aria-hidden', String(current >= 2));
   $('#outcome').setAttribute('aria-hidden', String(current >= 2));
   steps.forEach((s, i) => s.classList.toggle('is-active', i === current));
   $('#stage-kicker').textContent = kickers[current]; $('#stage-count').textContent = counts[current];
   $('#graph-container').setAttribute('aria-hidden', String(current < 2));
-  controls.hidden = current !== 7; calc.hidden = current < 6 || inFormula;
+  controls.hidden = current !== 7; calc.hidden = current < 6 || current >= 8;
   formulaView.element.hidden = !inFormula;
-  if (inFormula) formulaView.update(current - 8);
+  if (inFormula) formulaView.update(current - 9);
   updateRemoval();
   nodeEls.forEach(b => { b.disabled = current !== 7; b.classList.remove('is-inspected'); });
   if (current === 4) pathState = { orderIndex: 2, count: 3 };
@@ -125,7 +126,7 @@ function showStep(index) {
   updateSelectedControls(); updateGraph(); updateCalculation(); updateCaption();
 }
 function updateGraph() {
-  const inFormula = current >= 8;
+  const inFormula = current >= 9;
   const selectedFormulaEdge = inFormula ? formulaView.edge : null;
   const allFormulaEdges = inFormula && (formulaView.phase === 0 || formulaView.phase === 5);
   const maxSize = current === 2 ? 1 : current === 3 ? 2 : 3;
@@ -143,6 +144,7 @@ function updateGraph() {
     const el = edgeEls.get(e.id), visible = current >= 2 && game.nodes[e.to].size <= maxSize;
     let active = current === 3 && e.from === 2 && e.to === 3;
     if (current >= 5 && !order) active = e.playerIndex === selectedPlayer;
+    if (current === 8) active = false;
     if (inFormula) active = allFormulaEdges ? e.playerIndex === 0 : e.id === selectedFormulaEdge.id;
     if (order) active = path.some(p => p.id === e.id);
     el.group.classList.toggle('is-visible', visible); el.group.classList.toggle('is-highlighted', active);
@@ -157,7 +159,7 @@ function updateGraph() {
   document.querySelectorAll('[data-show-order]').forEach(b => b.classList.toggle('is-current', !!pathState && Number(b.dataset.showOrder) === pathState.orderIndex));
 }
 function updateCaption() {
-  const captions = ['Every voter supports the proposal.', `Removing ${game.players[removedPlayer]} leaves two votes. The outcome stays at 1.`, 'Each node’s number is v(S), the value of its coalition.', 'The highlighted edge changes v(S) from 0 to 1.', 'Every path ends at the same full group.', 'Edge labels: contribution above, fraction of orders below.', 'Click a term to see which of the six paths give it its weight.', 'Click a term to explain its weight, or inspect an edge below.', 'Four coalitions without A. Four starting nodes.', 'The bracket measures the change along the selected edge.', 'Hold the coalition fixed; count its internal orders.', 'The minus one removes A from the remaining voters.', 'The factorial ratio is the fraction of paths using this edge.', 'The formula adds the same four weighted contributions.'];
+  const captions = ['Every voter supports the proposal.', `Removing ${game.players[removedPlayer]} leaves two votes. The outcome stays at 1.`, '0 means the group fails. 1 means it passes.', 'The highlighted edge changes failure (0) to success (1).', 'Every path ends at the same full group.', 'Edge labels: contribution above, fraction of orders below.', 'Click a term to see which of the six paths give it its weight.', 'Click a term to explain its weight, or inspect an edge below.', 'The value function names the numbers already on the nodes.', 'Four coalitions without A. Four starting nodes.', 'The bracket measures the change along the selected edge.', 'Hold the coalition fixed; count its internal orders.', 'The minus one removes A from the remaining voters.', 'The factorial ratio is the fraction of paths using this edge.', 'The formula adds the same four weighted contributions.'];
   $('#stage-bottom').innerHTML = `<span class="legend-mark"></span><span>${captions[current]}</span>`;
   const caption = $('#graph-caption');
   if (pathState) {
