@@ -14,23 +14,24 @@ contains only local explanations, with no global importance or beeswarm plots.
 The predictor is:
 
 ```text
-f(A, N, E) = 40 + 10A + 24AN + 4E
+f(a, n, e) = 40 + 10a + 24an + 4e
 ```
 
-Its output is in thousands of dollars per year. `A` denotes ability, `N`
-neighborhood opportunity, and `E` experience. These are illustrative normalized
-scores, with the following domains:
+Its output is in thousands of dollars per year. `a` denotes ability, `n`
+neighborhood opportunity, and `e` experience. These are illustrative normalized
+scores. Lowercase feature labels distinguish individual features from the
+feature sets `S` and `F`. The scores have the following domains:
 
 | Input | Domain | Interpretation |
 | --- | --- | --- |
-| Ability, A | 0 to 1 | Low to high illustrative ability or skill. |
-| Neighborhood opportunity, N | −1 to +1 | Adverse to favorable illustrative opportunity. |
-| Experience, E | 0 to 1 | Low to high illustrative experience; not a count of years. |
+| Ability, a | 0 to 1 | Low to high illustrative ability or skill. |
+| Neighborhood opportunity, n | −1 to +1 | Adverse to favorable illustrative opportunity. |
+| Experience, e | 0 to 1 | Low to high illustrative experience; not a count of years. |
 
 The interaction coefficient of 24 deliberately makes the role of ability depend
-on neighborhood opportunity. With `N = −1`, the ability terms become
-`10A − 24A = −14A`; increasing ability lowers this predictor's output. With
-`N = +1`, they become `34A`. This is a property of the stipulated teaching model,
+on neighborhood opportunity. With `n = −1`, the ability terms become
+`10a − 24a = −14a`; increasing ability lowers this predictor's output. With
+`n = +1`, they become `34a`. This is a property of the stipulated teaching model,
 not a claim about real earnings or causal effects.
 
 There is no training, train/test split, refitting, or predictive validation in this
@@ -40,13 +41,13 @@ coefficients so readers can inspect every result.
 ## Background and profiles to explain
 
 The reference background is exactly eight profiles: all combinations of
-`A ∈ {0, 1}`, `N ∈ {−1, +1}`, and `E ∈ {0, 1}`. Each has weight 1/8.
+`a ∈ {0, 1}`, `n ∈ {−1, +1}`, and `e ∈ {0, 1}`. Each has weight 1/8.
 Their average prediction is 47, or $47,000 per year. This is the average over the
 declared reference profiles, not an observed population average.
 
 The three profiles to explain are:
 
-| Profile | A | N | E | Prediction | SHAP values for A, N, E |
+| Profile | a | n | e | Prediction | SHAP values for a, n, e |
 | --- | --- | --- | --- | --- | --- |
 | Adverse neighborhood | 1 | −1 | 1 | 30 | −1, −18, +2 |
 | Favorable neighborhood | 1 | +1 | 1 | 78 | +11, +18, +2 |
@@ -67,9 +68,9 @@ Evaluate the same fixed predictor on each of the eight inputs, then average:
 v_x(S) = (1/8) × sum over reference rows z of f(x_S, z_-S)
 ```
 
-For the default profile, revealing neighborhood means fixing `N = −1` in every
+For the default profile, revealing neighborhood means fixing `n = −1` in every
 row while retaining each row's ability and experience. The eight resulting
-predictions average to 35. Revealing ability too fixes `A = 1` in every row;
+predictions average to 35. Revealing ability too fixes `a = 1` in every row;
 the new predictions average to 28. Ability's marginal contribution after
 neighborhood is therefore `28 − 35 = −7`, or −$7,000.
 

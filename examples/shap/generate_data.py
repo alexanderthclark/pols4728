@@ -56,7 +56,7 @@ MODEL = {
     "inputFeatures": ["ability", "neighborhood", "experience"],
     "featureDomains": {"ability": [0, 1], "neighborhood": [-1, 1], "experience": [0, 1]},
     "predictionUnit": "thousand dollars per year",
-    "equation": "40 + 10A + 24AN + 4E",
+    "equation": "40 + 10a + 24an + 4e",
     "fitted": False,
 }
 PROFILES = [
@@ -194,14 +194,14 @@ def build(output_dir, check_only=False):
             "type": "synthetic",
             "description": "Designed reference profiles and observations, not data collected from people.",
             "sourceRows": len(background),
-            "backgroundConstruction": "All A,E in {0,1} and N in {−1,+1}; each of the eight combinations has weight 1/8.",
+            "backgroundConstruction": "All a,e in {0,1} and n in {−1,+1}; each of the eight combinations has weight 1/8.",
         },
         "model": {
             "type": MODEL["type"],
             "equation": MODEL["equation"],
             "fitted": False,
             "interpretation": "A transparent, fixed illustrative predictor of yearly earnings in $1,000 units.",
-            "interaction": "The term 24AN deliberately lets neighborhood opportunity change how ability enters the prediction.",
+            "interaction": "The term 24an deliberately lets neighborhood opportunity change how ability enters the prediction.",
             "limitations": "The equation and scores are invented for explanation. They are not fitted empirical estimates, validated income predictions, or claims about causal effects of ability or neighborhoods.",
         },
         "method": {

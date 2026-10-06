@@ -1,6 +1,6 @@
 import { coalition, hybridValues, marginal, precedingMasks, validateData } from './calculation.mjs';
 import { renderWaterfall } from './waterfall.js';
-import { shapleyFormulaMarkup, valueMarkup, joiningMarkup } from './formula.js';
+import { featureSymbols, shapleyFormulaMarkup, valueMarkup, joiningMarkup } from './formula.js';
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
@@ -15,7 +15,7 @@ const captions = [
   'Fit f once, then hold it fixed. Here we supply a transparent teaching equation.',
   'vₓ(∅): no columns fixed to x. Average the eight model predictions.',
   'After fixes ability to x; before uses its background values. Other columns stay the same.',
-  'S = {N}, i = A. Subtract the two prediction averages to get one marginal.',
+  'S = {n}, i = a. Subtract the two prediction averages to get one marginal.',
   'One row per preceding group S. Its weight counts how often it precedes ability.',
   'The sum of weighted prediction differences is the feature’s SHAP value.',
   'Final SHAP contributions connect the same baseline to this person’s prediction.',
@@ -52,7 +52,7 @@ function groupName(mask, short = false) {
   const labels = state.data.features.filter((_, index) => mask & (1 << index)).map(feature => short ? feature.shortLabel : feature.label.toLowerCase());
   return labels.length ? labels.join(short ? ' + ' : ' and ') : short ? 'None' : 'no features';
 }
-function setNotation(mask) { return mask ? `{${['A','N','E'].filter((_, index) => mask & (1 << index)).join(', ')}}` : '∅'; }
+function setNotation(mask) { return mask ? `{${featureSymbols.filter((_, index) => mask & (1 << index)).join(', ')}}` : '∅'; }
 
 function updateFacts() {
   const observation = state.observation;
@@ -93,14 +93,14 @@ function inputCell(background, mask, index, newFeature = -1) {
 function inputTable(mask, {beforeMask, newFeature = -1, fullLabels = false} = {}) {
   const group = coalition(state.observation, mask);
   const before = beforeMask === undefined ? null : coalition(state.observation, beforeMask);
-  return `<table class="input-table"><caption>All 8 reference rows · predictions in $1,000/year</caption><thead><tr><th scope="col">Row</th>${state.data.features.map((feature, index) => `<th scope="col" title="${escape(feature.description)}">${fullLabels ? escape(feature.shortLabel) : ['A','N','E'][index]}<small>${mask & (1 << index) ? 'Included<br>fixed to person' : 'Excluded<br>from background'}</small></th>`).join('')}${before ? `<th scope="col">Before<small>mean =<br>${valueMarkup(beforeMask)}</small></th><th scope="col">After<small>mean =<br>${valueMarkup(mask)}</small></th>` : `<th scope="col">Prediction<small>mean = ${valueMarkup(mask)}</small></th>`}</tr></thead><tbody>${state.data.background.map((background, row) => `<tr><td>${row + 1}</td>${state.data.features.map((_, index) => inputCell(background, mask, index, newFeature)).join('')}${before ? `<td>${number(before.predictions[row])}</td>` : ''}<td>${number(group.predictions[row])}</td></tr>`).join('')}</tbody><tfoot><tr><th scope="row" colspan="4">Average of all 8</th>${before ? `<td>${number(before.value)}</td>` : ''}<td>${number(group.value)}</td></tr></tfoot></table>`;
+  return `<table class="input-table"><caption>All 8 reference rows · predictions in $1,000/year</caption><thead><tr><th scope="col">Row</th>${state.data.features.map((feature, index) => `<th scope="col" title="${escape(feature.description)}">${fullLabels ? escape(feature.shortLabel) : featureSymbols[index]}<small>${mask & (1 << index) ? 'Included<br>fixed to person' : 'Excluded<br>from background'}</small></th>`).join('')}${before ? `<th scope="col">Before<small>mean =<br>${valueMarkup(beforeMask)}</small></th><th scope="col">After<small>mean =<br>${valueMarkup(mask)}</small></th>` : `<th scope="col">Prediction<small>mean = ${valueMarkup(mask)}</small></th>`}</tr></thead><tbody>${state.data.background.map((background, row) => `<tr><td>${row + 1}</td>${state.data.features.map((_, index) => inputCell(background, mask, index, newFeature)).join('')}${before ? `<td>${number(before.predictions[row])}</td>` : ''}<td>${number(group.predictions[row])}</td></tr>`).join('')}</tbody><tfoot><tr><th scope="row" colspan="4">Average of all 8</th>${before ? `<td>${number(before.value)}</td>` : ''}<td>${number(group.value)}</td></tr></tfoot></table>`;
 }
 
 function renderBackground(mask, beforeMask) {
   const before = beforeMask === undefined ? null : coalition(state.observation, beforeMask);
   const after = coalition(state.observation, mask);
   const newFeature = before ? 0 : -1;
-  visual.innerHTML = `<h3 class="coalition-heading">${before ? joiningMarkup(beforeMask, 0) : valueMarkup(mask)}</h3><p class="formula-table-context">${before ? `S = ${setNotation(beforeMask)} · i = A · after − before` : 'S = ∅ · no columns fixed to this person'}</p><p class="focal-values">x: A = ${inputNumber(state.observation.values[0])}, N = ${inputNumber(state.observation.values[1])}, E = ${inputNumber(state.observation.values[2])}</p>${inputTable(mask, {beforeMask, newFeature})}<p class="table-key">A: ability · N: neighborhood · E: experience</p><div class="table-marginal"><span>${before ? 'Ability’s marginal contribution' : 'Value of the empty coalition'}</span><span class="${before && after.value - before.value < 0 ? 'negative' : ''}">${before ? `${number(after.value)} − ${number(before.value)} = ${signed(after.value - before.value)}` : `${number(after.value)}`}</span></div>`;
+  visual.innerHTML = `<h3 class="coalition-heading">${before ? joiningMarkup(beforeMask, 0) : valueMarkup(mask)}</h3><p class="formula-table-context">${before ? `S = ${setNotation(beforeMask)} · i = a · after − before` : 'S = ∅ · no columns fixed to this person'}</p><p class="focal-values">x: a = ${inputNumber(state.observation.values[0])}, n = ${inputNumber(state.observation.values[1])}, e = ${inputNumber(state.observation.values[2])}</p>${inputTable(mask, {beforeMask, newFeature})}<p class="table-key">a: ability · n: neighborhood · e: experience</p><div class="table-marginal"><span>${before ? 'Ability’s marginal contribution' : 'Value of the empty coalition'}</span><span class="${before && after.value - before.value < 0 ? 'negative' : ''}">${before ? `${number(after.value)} − ${number(before.value)} = ${signed(after.value - before.value)}` : `${number(after.value)}`}</span></div>`;
 }
 
 function renderWeights() {
@@ -113,7 +113,7 @@ function renderWeights() {
     }).length;
     return `<tr><th scope="row"><span class="math-text">${setNotation(mask)}</span></th><td>${number(coalition(observation, mask).value)}</td><td>${number(coalition(observation, mask | 1).value)}</td><td class="${marginal(observation, 0, mask) < 0 ? 'negative' : ''}">${signed(marginal(observation, 0, mask))}</td><td>${count}/6</td></tr>`;
   });
-  visual.innerHTML = `${shapleyFormulaMarkup('weight')}<p class="formula-definitions">i = A · four possible preceding groups S</p><table class="weights-table"><caption>Prediction averages in $1,000/year</caption><thead><tr><th scope="col">S</th><th scope="col"><span class="math-text">v<sub>x</sub>(S)</span></th><th scope="col"><span class="math-text">v<sub>x</sub>(S ∪ {A})</span></th><th scope="col">Difference</th><th scope="col">Weight</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+  visual.innerHTML = `${shapleyFormulaMarkup('weight')}<p class="formula-definitions">i = a · four possible preceding groups S</p><table class="weights-table"><caption>Prediction averages in $1,000/year</caption><thead><tr><th scope="col">S</th><th scope="col"><span class="math-text">v<sub>x</sub>(S)</span></th><th scope="col"><span class="math-text">v<sub>x</sub>(S ∪ {a})</span></th><th scope="col">Difference</th><th scope="col">Weight</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
 }
 
 function featureContexts() {
@@ -129,7 +129,7 @@ function featureContexts() {
 function renderAverage() {
   const feature = state.data.features[state.feature];
   const contexts = featureContexts();
-  visual.innerHTML = `${shapleyFormulaMarkup('sum')}<label class="orders-feature-label" for="feature-select">Feature i to explain</label><select id="feature-select">${state.data.features.map((item, index) => `<option value="${index}" ${index === state.feature ? 'selected' : ''}>${escape(item.label)}</option>`).join('')}</select><div class="marginal-contexts">${contexts.map(context => `<div class="context-summary"><span>${escape(context.label)}</span><span class="context-number ${context.value < 0 ? 'negative' : ''}">${signed(context.value)}</span><small>total weight ${context.count}/6</small></div>`).join('')}</div><div class="shap-average"><span>${escape(feature.label)}’s SHAP value<br><span class="math-text">ϕ<sub>${['A','N','E'][state.feature]}</sub>(v<sub>x</sub>)</span></span><span class="number ${state.observation.shapValues[state.feature] < 0 ? 'negative' : ''}">${signed(state.observation.shapValues[state.feature])}</span></div><p class="average-arithmetic">${contexts.length === 2 ? `(3/6) × (${signed(contexts[0].value)}) + (3/6) × (${signed(contexts[1].value)})` : 'Total weight 6/6; the contribution is the same in every order.'}</p>`;
+  visual.innerHTML = `${shapleyFormulaMarkup('sum')}<label class="orders-feature-label" for="feature-select">Feature i to explain</label><select id="feature-select">${state.data.features.map((item, index) => `<option value="${index}" ${index === state.feature ? 'selected' : ''}>${escape(item.label)}</option>`).join('')}</select><div class="marginal-contexts">${contexts.map(context => `<div class="context-summary"><span>${escape(context.label)}</span><span class="context-number ${context.value < 0 ? 'negative' : ''}">${signed(context.value)}</span><small>total weight ${context.count}/6</small></div>`).join('')}</div><div class="shap-average"><span>${escape(feature.label)}’s SHAP value<br><span class="math-text">ϕ<sub>${featureSymbols[state.feature]}</sub>(v<sub>x</sub>)</span></span><span class="number ${state.observation.shapValues[state.feature] < 0 ? 'negative' : ''}">${signed(state.observation.shapValues[state.feature])}</span></div><p class="average-arithmetic">${contexts.length === 2 ? `(3/6) × (${signed(contexts[0].value)}) + (3/6) × (${signed(contexts[1].value)})` : 'Total weight 6/6; the contribution is the same in every order.'}</p>`;
   $('#feature-select').addEventListener('change', event => {state.feature = Number(event.target.value); render();});
 }
 

@@ -27,6 +27,6 @@
     ]
   },
   "predictionUnit": "thousand dollars per year",
-  "equation": "40 + 10A + 24AN + 4E",
+  "equation": "40 + 10a + 24an + 4e",
   "fitted": false
 }

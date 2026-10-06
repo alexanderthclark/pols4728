@@ -1,5 +1,5 @@
 const mathNamespace = 'http://www.w3.org/1998/Math/MathML';
-const featureSymbols = ['A', 'N', 'E'];
+export const featureSymbols = ['a', 'n', 'e'];
 const featureNames = ['ability', 'neighborhood opportunity', 'experience'];
 const activeTerms = new Set(['all', 'result', 'sum', 'weight', 'after', 'before', 'difference', 'value', 'observation', 'coalition', 'joining']);
 
@@ -7,7 +7,7 @@ function setMarkup(mask) {
   if (!Number.isInteger(mask) || mask < 0 || mask > 7) throw new RangeError('Use a feature mask from 0 to 7.');
   const members = featureSymbols.filter((symbol, index) => mask & (1 << index));
   return members.length
-    ? `<mrow><mo stretchy="false">{</mo>${members.map(symbol => `<mi mathvariant="normal">${symbol}</mi>`).join('<mo>,</mo>')}<mo stretchy="false">}</mo></mrow>`
+    ? `<mrow><mo stretchy="false">{</mo>${members.map(symbol => `<mi>${symbol}</mi>`).join('<mo>,</mo>')}<mo stretchy="false">}</mo></mrow>`
     : '<mo lspace="0" rspace="0">∅</mo>';
 }
 
