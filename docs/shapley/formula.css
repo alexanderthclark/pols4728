@@ -1,0 +1,34 @@
+.formula-view{width:100%;max-width:620px;min-width:0;margin:8px auto 0;padding-top:12px;border-top:1px solid var(--line);color:var(--ink);font-family:var(--font);}
+.formula-equation{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 8px;max-width:100%;margin:0 0 12px;line-height:1.2;}
+.formula-equation math{font-family:var(--serif);font-size:26px;max-width:100%;margin:0;}
+.formula-equation .formula-active{color:var(--blue);}
+.formula-definitions{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 12px;font-size:12px;line-height:1.5;color:var(--muted);margin:0 0 9px;}
+.formula-definitions i{font-family:var(--serif);font-size:14px;color:var(--ink);}
+.formula-choices{display:flex;align-items:center;justify-content:center;gap:6px;margin:0 0 9px;}
+.formula-choices-label{font-family:var(--serif);font-size:16px;margin-right:2px;white-space:nowrap;}
+.formula-choices button{font-family:var(--serif);font-size:15px;min-height:44px;min-width:44px;padding:6px 10px;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink);white-space:nowrap;}
+.formula-choices button[aria-pressed="true"]{border-color:var(--blue);color:var(--blue);background:var(--blue-soft);}
+.formula-choices button:hover,.formula-weight-link:hover{border-color:var(--blue);background:var(--blue-soft);}
+.formula-view button:focus-visible{outline:3px solid var(--blue);outline-offset:3px;}
+.formula-context{font-size:13px;line-height:1.45;margin:0 auto 8px;text-align:center;max-width:58ch;}
+.formula-orders{max-width:440px;margin:0 auto;}
+.formula-order-head,.formula-order-strip{display:grid;grid-template-columns:minmax(0,1fr) 58px minmax(0,1fr);gap:6px;text-align:center;}
+.formula-order-head{font-size:10px;line-height:1.5;color:var(--muted);margin-bottom:3px;}
+.formula-order-strips{display:grid;gap:4px;}
+.formula-order-strip{font-family:var(--serif);font-size:16px;line-height:1.4;}
+.formula-order-strip>span{min-height:27px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:3px;padding:1px 6px;}
+.formula-order-strip .formula-order-player{color:var(--ink);background:var(--paper);border-color:#9fa8b8;}
+.formula-order-strip .formula-order-emphasis{background:var(--blue-soft);color:var(--blue);border-color:var(--blue);}
+.formula-all-orders{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 6px;}
+.formula-order-chip{font-family:var(--serif);font-size:14px;line-height:1.4;text-align:center;white-space:nowrap;padding:4px 3px;border:1px solid var(--line);border-radius:3px;color:var(--muted);}
+.formula-order-chip.formula-order-match{background:var(--blue-soft);border-color:var(--blue);color:var(--blue);}
+.formula-weight-link{display:block;min-height:44px;margin:8px auto 0;padding:7px 13px;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--blue);font-size:12px;line-height:1.3;}
+.formula-numeric-sum{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px;font-size:18px;line-height:1.4;font-variant-numeric:tabular-nums;}
+.formula-numeric-term{padding:5px 6px;white-space:nowrap;border-radius:4px;}
+.formula-numeric-term>span{font-size:15px;color:var(--muted);}
+.formula-numeric-nonzero{background:var(--blue-soft);}
+.formula-numeric-plus{color:var(--muted);}
+.formula-numeric-total{font-family:var(--serif);font-size:26px;color:var(--blue);padding:3px 5px;white-space:nowrap;}
+@media(max-width:760px){.formula-view{padding-top:8px;margin-top:4px;}.formula-equation{gap:3px 5px;margin-bottom:6px;}.formula-equation math{font-size:20px;}.formula-definitions{gap:2px 8px;font-size:11px;margin-bottom:5px;}.formula-definitions i{font-size:12px;}.formula-choices{gap:5px;margin-bottom:6px;}.formula-choices-label{font-size:14px;}.formula-choices button{font-size:13px;padding:5px 6px;}.formula-context{font-size:12px;line-height:1.4;margin-bottom:6px;}.formula-order-head{font-size:10px;}.formula-order-head,.formula-order-strip{grid-template-columns:minmax(0,1fr) 46px minmax(0,1fr);gap:5px;}.formula-order-strip{font-size:14px;}.formula-order-strip>span{min-height:25px;padding:1px 4px;}.formula-order-chip{font-size:12px;padding:3px 1px;}.formula-weight-link{margin-top:6px;font-size:11px;padding:6px 9px;}.formula-numeric-sum{gap:3px;font-size:15px;}.formula-numeric-term{padding:3px 4px;}.formula-numeric-term>span{font-size:12px;}.formula-numeric-total{font-size:22px;}}
+@media(max-width:390px){.formula-equation{flex-direction:column;gap:1px;}.formula-equation math{font-size:20px;}.formula-choices{gap:4px;}.formula-choices button{padding:5px 5px;}.formula-definitions{gap:1px 7px;}.formula-context{font-size:11px;}.formula-all-orders{gap:4px;}.formula-order-chip{font-size:11px;}}
+@media(max-width:350px){.formula-equation math{font-size:18px;}}

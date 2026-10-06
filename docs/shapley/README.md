@@ -1,6 +1,8 @@
 # Shapley values, step by step
 
-“Who gets the credit?” is an eight-stage scrolling explanation of Shapley values for three voters. All three support a proposal that needs two votes to pass. The coalition diagram grows from the empty set and singletons into the complete Hasse diagram, then connects joining contributions to the six equally likely accounting orders.
+“Who gets the credit?” is a fourteen-stage scrolling explanation of Shapley values for three voters. All three support a proposal that needs two votes to pass. The coalition diagram grows from the empty set and singletons into the complete Hasse diagram, then connects joining contributions to the six equally likely accounting orders.
+
+The early coalition frames define the value function `v(S)`: one for coalitions with at least two voters, zero otherwise. The six concluding frames connect the general Shapley formula to the diagram, explaining the summation range, marginal contribution, arrangements before the joining voter, arrangements after, division by all orders, and the completed weighted sum. The complete diagram stays visible, and selecting a coalition changes the example edge and its counts. Math uses native MathML, without an external rendering dependency.
 
 At “Put the pieces together,” click a weight or **See the six paths behind these weights**. The optional panel displays all six Hasse diagrams in a three-column grid on wide screens, two columns on medium screens, and a scrolling column on phones. It highlights paths containing the selected joining edge and emphasizes that edge with a thicker arrow. The other paths remain faded. A’s two zero-contribution terms select different pairs of paths.
 
@@ -23,6 +25,7 @@ Open `http://localhost:8765/shapley/`. A web server is required because the page
 - `game.mjs` calculates coalition values, joining edges, all accounting orders, edge frequencies, and Shapley values.
 - `story.js` handles scroll stages and the final explorer.
 - `weight-view.js` draws the six-diagram explanation from the game’s orders and edges.
+- `formula-view.js` and `formula.css` connect the final formula to selected edges, factorial counts, and complete orders.
 
 Run the mathematical regression checks with Node.js:
 
@@ -30,7 +33,7 @@ Run the mathematical regression checks with Node.js:
 node --test tests/shapley-game.test.mjs
 ```
 
-These checks cover all joining-edge frequencies, the partition of orders for each voter, the distinction between zero-contribution edges, and a weighted-voting example with unequal Shapley values. Browser checks also cover frame-seven access, switching weights, B’s explanation, keyboard closing and focus return, and the phone layout.
+These checks cover all joining-edge frequencies, the partition of orders for each voter, the distinction between zero-contribution edges, the independent arrangements before and after a joining voter, and a weighted-voting example with unequal Shapley values. Browser checks cover the original explorer and optional weight panel, formula stages and coalition selection, and phone layouts.
 
 ## Extending the example
 

@@ -53,6 +53,26 @@ test('A’s two zero-contribution edges select distinct pairs of paths', () => {
   assert.deepEqual(matchingOrders(majority, '4-5').map(order => order.label), ['C → A → B']);
 });
 
+test('factorial factors count independent orders before and after a joining voter', () => {
+  const arrangementCounts = [1, 1, 2]; // 0!, 1!, and 2! for this three-voter game.
+  for (const edge of majority.edges) {
+    const matches = matchingOrders(majority, edge.id);
+    const split = matches.map(({ order }) => {
+      const at = order.indexOf(edge.playerIndex);
+      return { before: order.slice(0, at).join(','), after: order.slice(at + 1).join(',') };
+    });
+    const before = new Set(split.map(order => order.before));
+    const after = new Set(split.map(order => order.after));
+    const size = majority.nodes[edge.from].size;
+    assert.equal(before.size, arrangementCounts[size], `${edge.id}: orders before`);
+    assert.equal(after.size, arrangementCounts[majority.players.length - size - 1], `${edge.id}: orders after`);
+    const pairs = new Set(split.map(order => `${order.before}|${order.after}`));
+    for (const prefix of before) for (const suffix of after) assert.ok(pairs.has(`${prefix}|${suffix}`));
+    assert.equal(before.size * after.size, edge.count);
+    closeTo(before.size * after.size / majority.totalOrders, edge.weight);
+  }
+});
+
 test('path frequencies support a game with unequal voting power', () => {
   const votes = { A: 2, B: 1, C: 1 };
   const weighted = defineGame({ id: 'weighted-vote', name: 'Weighted voting', players: ['A', 'B', 'C'],
