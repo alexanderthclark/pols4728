@@ -12,8 +12,8 @@ incumbent-party two-party vote share. The story begins with centered,
 standardized features and observed vote (mean zero, SD one), and three stipulated
 correlations: income–fatalities −0.5, income–vote +0.75, and fatalities–vote
 −0.75. These determine the two univariate OLS slopes (+0.75 and −0.75) and
-the bivariate slopes (+0.5 and −0.5), with zero intercepts. The two-feature
-coefficient calculations appear beside all three model equations. Predictions
+the bivariate slopes (+0.5 and −0.5), with zero intercepts. The figure displays
+all three model equations; the coefficient derivations are in an expandable note. Predictions
 use the outcome's SD units; they are not themselves rescaled to SD one.
 
 Removing fatalities and refitting income-only OLS gives a slope of 0.75, equal
@@ -72,7 +72,7 @@ profiles use the same model and background.
 6. Highlight `i`, the additional feature joining a group that excludes it.
 7. Highlight the result and introduce `phi_i(x)` as shorthand for `phi_i(v_x)`.
 8. State the three correlations for standardized income, fatalities, and observed vote.
-9. Derive the slopes and display the two univariate fits and one bivariate fit.
+9. Display the two univariate fits and one bivariate fit, with the derivation in the notes.
 10. Choose an election; compare income-only OLS with the bivariate prediction at mean fatalities.
 11. Reveal income first, then fatalities; show both before/after prediction subtractions.
 12. Reverse the order and show the same bivariate equation evaluated at different inputs.
@@ -87,6 +87,10 @@ profiles use the same model and background.
 
 The opening keeps the same equation in place and highlights only the symbols
 under discussion. Definitions enter through scrolling instead of a glossary.
+Each frame's left column uses two or three short lecture cues in larger type,
+leaving the instructor room to explain the worked figure. The earnings equation
+appears beside its observation in the figure. Expandable notes retain the notation,
+OLS derivation, model assumptions, and factorial-count explanation for later reading.
 The election selector appears after all three OLS fits are introduced. The person
 selector appears when the earnings example begins. Each example retains its
 selection when readers move between them.
@@ -106,9 +110,10 @@ The sum's narrative follows the selected feature as well as the selected person.
 Reduced-motion preferences disable animated replacements and bar reveals.
 Short landscape screens place the prose and figure side by side. Phone tables
 keep every column visible, with larger included/excluded labels and controls.
-Without JavaScript, the complete formula, worked profile, and default narrative
-numbers remain available in a continuous reading layout; interactive figures
-require it. The opening formula and worked profile also appear in print.
+Without JavaScript, the lecture cues, complete formula, earnings equation, worked
+profiles, and calculation notes remain available in a continuous reading layout;
+interactive figures require it. The opening formula and worked profiles also
+appear in print.
 
 ## Run and reproduce
 
@@ -135,8 +140,10 @@ two-feature coalitions and orders.
 ## Design and hosting
 
 The page follows [the course guide](../../design/README.md): white backgrounds,
-readable serif prose, restrained rules, locally typeset math, and the course
+readable serif type, restrained rules, locally typeset math, and the course
 palette. Included/excluded headings and before/after numbers supplement color.
+The sparse lecture copy follows the instructor's request for in-class presentation;
+the expandable notes preserve the longer reasoning and qualifications.
 Blue and rust distinguish signed contributions in the waterfall, with arrows
 and direct signed labels. They do not indicate good or bad people.
 

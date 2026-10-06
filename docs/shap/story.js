@@ -45,9 +45,6 @@ const stackedLayout = matchMedia('(max-width:649px), (max-width:860px) and (min-
 $('.stage-top').setAttribute('role', 'status');
 $('.stage-top').setAttribute('aria-live', 'polite');
 $('.stage-top').setAttribute('aria-atomic', 'true');
-document.querySelectorAll('[data-formula-focus]').forEach(element => {
-  element.innerHTML = shapleyFormulaMarkup(element.dataset.formulaFocus);
-});
 const state = { data:null, observation:null, breadData:null, breadObservation:null, selectorContext:null, scene:-1, feature:0, explorerMask:0, rowsTrigger:null };
 const yHat = '<math aria-label="y hat"><mover accent="true"><mi>y</mi><mo>^</mo></mover></math>';
 
@@ -98,7 +95,8 @@ function renderFormula(scene) {
 
 function renderObservation() {
   const observation = state.observation;
-  visual.innerHTML = `<h3>From an additive model to an interaction</h3><div class="training-flow" aria-label="In practice: training data X and y fit one prediction function f"><span>Training data<br><span class="math-text">(X, y)</span></span><span aria-hidden="true">→</span><span>Fit once<br><span class="math-text">f</span></span></div><p class="training-note">Here <var>f</var> is our supplied earnings equation.</p><div class="observation-card"><span class="date">Observation x · ${escape(observation.name)}</span><dl>${state.data.features.map((feature, index) => `<dt>${escape(feature.label)}</dt><dd>${inputNumber(observation.values[index])}${index === 1 ? observation.values[1] < 0 ? ' · adverse' : ' · favorable' : ''}</dd>`).join('')}</dl><div class="prediction-number">${dollars(observation.prediction)}<span class="prediction-label">ŷ(x) = f(x) · predicted annual earnings</span></div></div><p class="input-note">We explain this output of the fixed model.</p>`;
+  const equation = $('#observation .prediction-equation').outerHTML;
+  visual.innerHTML = `<h3>The earnings model</h3>${equation}<p class="training-note">A supplied teaching equation · output in $1,000/year</p><div class="observation-card"><span class="date">Observation x · ${escape(observation.name)}</span><dl>${state.data.features.map((feature, index) => `<dt>${escape(feature.label)}</dt><dd>${inputNumber(observation.values[index])}${index === 1 ? observation.values[1] < 0 ? ' · adverse' : ' · favorable' : ''}</dd>`).join('')}</dl><div class="prediction-number">${dollars(observation.prediction)}<span class="prediction-label">ŷ(x) = f(x) · predicted annual earnings</span></div></div><p class="input-note">Hold this model fixed throughout the explanation.</p>`;
 }
 
 function inputCell(background, mask, index, newFeature = -1) {
@@ -145,19 +143,18 @@ function featureContexts() {
 }
 
 function updateAverageNarrative() {
-  const feature = state.data.features[state.feature].label.toLowerCase();
-  const symbol = featureLabels[state.feature];
+  const feature = state.data.features[state.feature].shortLabel;
   const contexts = featureContexts();
   const credit = `<span class="math-text">${dollars(state.observation.shapValues[state.feature], true)}</span>`;
   const contributions = contexts.map(context => `<span class="math-text">${dollars(context.value, true)}</span>`);
-  $('#average-definition').innerHTML = `The sum visits all four groups that exclude ${escape(feature)}. Weight each prediction difference by the fraction of orders in which that group precedes ${escape(feature)}, then add. This gives <span class="math-text">ϕ<sub>${symbol}</sub>(v<sub>x</sub>)</span>, ${escape(feature)}’s SHAP value for this observation.`;
+  $('#average-definition').textContent = `${feature}: average six orders.`;
   if (contexts.length === 2) {
     const partner = state.feature === 0 ? 'neighborhood' : 'ability';
-    $('#average-context').innerHTML = `We can combine equal contributions in this example. Before ${partner} is fixed, ${escape(feature)} contributes ${contributions[0]} with total weight <span class="math-text">2/6 + 1/6 = 3/6</span>. After ${partner} is fixed, it contributes ${contributions[1]} with total weight <span class="math-text">1/6 + 2/6 = 3/6</span>. The result is ${credit}.`;
-    $('#average-interpretation').textContent = `Experience’s position does not change ${feature}’s marginal here because experience enters additively.`;
+    $('#average-context').innerHTML = `Before ${partner}: ${contributions[0]}. After: ${contributions[1]}.`;
+    $('#average-interpretation').innerHTML = `Each weight <span class="math-text">3/6</span> → ${credit}.`;
   } else {
-    $('#average-context').innerHTML = `Experience contributes ${contributions[0]} in every preceding group and every revealing order. Combining all six equally weighted orders gives total weight <span class="math-text">6/6 = 1</span>, so its SHAP value is ${credit}.`;
-    $('#average-interpretation').textContent = 'Because experience enters additively, its marginal contribution stays the same whichever other features are already fixed.';
+    $('#average-context').innerHTML = `Same marginal in all six orders: ${contributions[0]}.`;
+    $('#average-interpretation').innerHTML = `Total weight <span class="math-text">1</span> → ${credit}.`;
   }
 }
 
