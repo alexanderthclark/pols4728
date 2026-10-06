@@ -70,9 +70,16 @@ function focalInputs(observation) {
   return `<p class="bread-context">This election: bread = ${format(observation.values[0])}, peace = ${format(observation.values[1])}. Inputs to ŷ are written in that order.</p>`;
 }
 
+export function breadPeaceMeanPredictionMarkup(observation) {
+  const bread = numeral(observation.values[0]);
+  const predictionWithPeace = `${yHat}${parentheses(`${bread}<mo>,</mo><mtext>peace</mtext>`)}`;
+  const breadValue = `<msub><mi>v</mi><mi>x</mi></msub>${parentheses('<mo stretchy="false">{</mo><mtext>bread</mtext><mo stretchy="false">}</mo>')}`;
+  return `<span class="bread-mean-bridge"><span class="bread-mean-equation" role="math" aria-label="v sub x of bread is the average of y hat of ${format(observation.values[0])}, peace over background peace values, which equals y hat of ${format(observation.values[0])}, zero"><math aria-hidden="true"><mrow>${breadValue}<mo>=</mo><munder><mtext>average</mtext><mtext>background peace</mtext></munder>${predictionWithPeace}</mrow></math><math aria-hidden="true"><mrow><mo>=</mo>${prediction(point(observation,1))}</mrow></math></span></span>`;
+}
+
 function renderRefit(data, observation) {
   const fixed = coalition(observation,1).value;
-  return `<h3>Which prediction does SHAP use?</h3>${focalInputs(observation)}<p class="bread-focal-prediction">${math(`${prediction(observation.values)}<mo>=</mo>${numeral(observation.prediction)}`,`The bivariate prediction for this election is ${format(observation.prediction)}`)}</p><div class="refit-comparison"><section class="refit-unused"><h4>Bread-only OLS</h4><p>Use the univariate coefficient, 0.75.</p><p class="refit-equation">0.75 × (${format(observation.values[0])})</p><div class="refit-result">${format(observation.reducedPrediction)}<small>Reduced model · not used for SHAP</small></div></section><section><h4>Bivariate OLS; peace averaged</h4><p>Keep both coefficients; use mean peace, 0.</p><p class="refit-equation">${math(prediction(point(observation,1)), 'The original bivariate model with this election’s bread held fixed and peace at its background mean.')}</p><div class="refit-result">${format(fixed)}<small>${valueMarkup(1,notation)}<br>The value in our SHAP game</small></div></section></div>`;
+  return `<h3>Which prediction does SHAP use?</h3>${focalInputs(observation)}<p class="bread-focal-prediction">${math(`${prediction(observation.values)}<mo>=</mo>${numeral(observation.prediction)}`,`The bivariate prediction for this election is ${format(observation.prediction)}`)}</p><div class="refit-comparison"><section class="refit-unused"><h4>Bread-only OLS</h4><p>Use the univariate coefficient, 0.75.</p><p class="refit-equation">0.75 × (${format(observation.values[0])})</p><div class="refit-result">${format(observation.reducedPrediction)}<small>Reduced model · not used for SHAP</small></div></section><section><h4>Bivariate OLS; peace averaged</h4><p>Keep both coefficients; average background peace.</p><p class="refit-equation">${math(prediction(point(observation,1)), 'The original bivariate model with this election’s bread held fixed and peace at its background mean.')}</p><div class="refit-result">${format(fixed)}<small>${valueMarkup(1,notation)}<br>The value in our SHAP game</small></div></section></div>`;
 }
 
 function renderDifference(observation, feature, beforeMask) {

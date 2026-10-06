@@ -61,7 +61,7 @@
         <section class="step formula-step" id="prediction-symbol" data-step="2" aria-labelledby="prediction-symbol-heading"><div class="step-content">
           <p class="step-number">3 / 22 · The prediction ŷ</p><h2 id="prediction-symbol-heading">The prediction <span class="math-text">ŷ</span></h2>
           <ul class="slide-points">
-            <li><span class="math-text">ŷ(x) = f(x)</span>: model prediction.</li>
+            <li><span class="math-text">ŷ(x)</span>: fitted-model prediction for the complete row <var>x</var>.</li>
             <li><var>y</var>: observed outcome.</li>
             <li>Hold the fitted model fixed.</li>
           </ul>
@@ -70,8 +70,9 @@
           <p class="step-number">4 / 22 · The value function</p><h2 id="value-function-heading">The value of a feature group</h2>
           <ul class="slide-points">
             <li>Fix inputs in <var>S</var> to <var>x</var>.</li>
-            <li>Other inputs: background values.</li>
-            <li><span class="math-text">v<sub>x</sub>(S)</span> = average prediction.</li>
+            <li>Complete other inputs from each background row.</li>
+            <li><span class="math-text">v<sub>x</sub>(S)</span>: average the same model’s <span class="math-text">ŷ</span> predictions.</li>
+            <li>All features fixed: every completed row is <var>x</var>, giving <span class="math-text">ŷ(x)</span>.</li>
           </ul>
         </div></section>
         <section class="step formula-step" id="preceding-features" data-step="4" aria-labelledby="preceding-features-heading"><div class="step-content">
@@ -133,7 +134,7 @@
           <ul class="slide-points">
             <li>This election: bread <span data-bread-fact="bread">1</span>; peace <span data-bread-fact="peace">1</span>.</li>
             <li>SHAP: bivariate coefficients stay fixed.</li>
-            <li>Linear averaging = predict at excluded means.</li>
+            <li>Linear model: average predictions = predict at overall background means.</li>
           </ul>
         </div></section>
         <section class="step" id="ols-income-first" data-step="11" aria-labelledby="ols-income-first-heading"><div class="step-content">
@@ -180,7 +181,7 @@
             <li>Neighborhood: −1…+1; changes ability’s marginal.</li>
             <li>Output: yearly earnings ($1,000).</li>
           </ul>
-          <div class="static-observation"><div class="prediction-equation earnings-equation" role="math" aria-label="f of x equals 40 plus 10 times ability plus 24 times ability times neighborhood plus 4 times experience">
+          <div class="static-observation"><p><span class="math-text">f(x) = ŷ(x)</span>: the same earnings prediction rule.</p><div class="prediction-equation earnings-equation" role="math" aria-label="f of x equals 40 plus 10 times ability plus 24 times ability times neighborhood plus 4 times experience">
             <math class="prediction-line" aria-hidden="true"><mrow><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mn>40</mn><mo>+</mo><mn>10</mn><mo>×</mo><mtext>ability</mtext></mrow></math>
             <span class="prediction-term"><math class="prediction-line" aria-hidden="true"><mrow><mo>+</mo><mn>24</mn><mo>×</mo><mtext>ability</mtext></mrow></math>
             <math class="prediction-line" aria-hidden="true"><mrow><mo>×</mo><mtext>neighborhood</mtext></mrow></math></span>
@@ -262,7 +263,7 @@
         <p>This is a teaching example inspired by <a href="https://link.springer.com/article/10.1023/A:1005292312412">Douglas Hibbs’s Bread and Peace model</a>. The correlations and election profiles are constructed, rather than estimated from historical elections. Hibbs’s original specification also estimates income-growth time weights; this warm-up uses direct two-feature OLS and reverses the standardized war-fatalities measure to define peace.</p>
       </details>
       <details><summary>The earnings model and its reference people</summary>
-        <p>In a machine-learning application, training inputs <var>X</var> and outcomes <var>y</var> are used to fit <var>f</var> once. Here we supply a transparent earnings equation so every prediction can be checked. The explanation procedure holds that equation fixed:</p>
+        <p>Call the fixed prediction rule <var>f</var>, so <span class="math-text">f(x) = ŷ(x)</span>. In a machine-learning application, training inputs <var>X</var> and outcomes <var>y</var> are used to fit it once. Here we supply a transparent earnings equation so every prediction can be checked. The explanation procedure holds that equation fixed:</p>
         <div class="prediction-equation earnings-equation" role="math" aria-label="f of x equals 40 plus 10 times ability plus 24 times ability times neighborhood plus 4 times experience">
             <math class="prediction-line" aria-hidden="true"><mrow><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mn>40</mn><mo>+</mo><mn>10</mn><mo>×</mo><mtext>ability</mtext></mrow></math>
             <span class="prediction-term"><math class="prediction-line" aria-hidden="true"><mrow><mo>+</mo><mn>24</mn><mo>×</mo><mtext>ability</mtext></mrow></math>
@@ -279,7 +280,7 @@
         <p>The empty group gets <span class="math-text">0!2!/3! = 2/6</span>; each one-feature group gets <span class="math-text">1!1!/3! = 1/6</span>; the two-feature group gets <span class="math-text">2!0!/3! = 2/6</span>. These weights sum to one across the four preceding groups that exclude <var>i</var>.</p>
         <p>In the earnings example, ability’s marginal depends on whether neighborhood is already fixed, and neighborhood’s depends on whether ability is already fixed. Experience’s position does not affect those marginals because experience enters additively. Each of the two contexts has total weight <span class="math-text">3/6</span>. Experience itself has the same marginal in all six orders, giving total weight one.</p>
       </details>
-      <details><summary>Why refitting and conditional averaging are different</summary><p>Removing peace and refitting OLS changes the bread coefficient. The omitted-variable identity compares that new coefficient with the full-model coefficient. Our SHAP calculation instead keeps the full fitted model and averages over the background peace distribution.</p><p>Conditional SHAP is another possible game: it averages excluded features using their distribution conditional on the included values. Correlated features can then share credit differently, even in a linear model. That still keeps the prediction model fixed; it is not refitting a reduced model. See <a href="https://shap.readthedocs.io/en/latest/generated/shap.LinearExplainer.html">SHAP’s linear-model explanation</a>.</p><p>In the additive OLS warm-up, averaging predictions equals predicting with excluded features at their means. The row-averaging definition also works for nonlinear and interaction models, where substituting a single mean row need not reproduce the average prediction.</p></details>
+      <details><summary>Why refitting and conditional averaging are different</summary><p>Removing peace and refitting OLS changes the bread coefficient. The omitted-variable identity compares that new coefficient with the full-model coefficient. Our SHAP calculation instead keeps the full fitted model and averages over the background peace distribution.</p><p>Conditional SHAP is another possible game: it averages excluded features using their distribution conditional on the included values. Correlated features can then share credit differently, even in a linear model. That still keeps the prediction model fixed; it is not refitting a reduced model. See <a href="https://shap.readthedocs.io/en/latest/generated/shap.LinearExplainer.html">SHAP’s linear-model explanation</a>.</p><p>In the linear OLS warm-up, averaging predictions equals predicting with excluded features at their overall background means. The row-averaging definition also works for nonlinear and interaction models, where substituting a single mean row need not reproduce the average prediction.</p></details>
       <details id="coalition-explorer" class="requires-javascript"><summary>Explore vₓ(S) with a data table</summary>
         <p>Include a column to copy this person’s value into every row. Exclude it to keep the original background values. All three input columns remain in the table and in the model.</p>
         <fieldset id="coalition-controls"><legend>Features included in S</legend><label><input type="checkbox" value="0"> Ability</label><label><input type="checkbox" value="1"> Neighborhood opportunity</label><label><input type="checkbox" value="2"> Experience</label></fieldset>

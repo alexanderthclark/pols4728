@@ -54,6 +54,6 @@ export function joiningMarkup(beforeMask, feature, {labels = featureLabels, name
 }
 
 /** A prediction is an output of the fitted model, before any background average. */
-export function predictionMarkup(argument = '<mi>x</mi>', label = 'y hat of x equals f of x') {
-  return `<math class="math-inline" xmlns="${mathNamespace}" aria-label="${label}"><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo stretchy="false">(</mo>${argument}<mo stretchy="false">)</mo><mo>=</mo><mi>f</mi><mo stretchy="false">(</mo>${argument}<mo stretchy="false">)</mo></mrow></math>`;
+export function predictionMarkup(argument = '<mi>x</mi>', label = 'y hat of x, the fitted model prediction') {
+  return `<math class="math-inline" xmlns="${mathNamespace}" aria-label="${label}"><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo stretchy="false">(</mo>${argument}<mo stretchy="false">)</mo></mrow></math>`;
 }

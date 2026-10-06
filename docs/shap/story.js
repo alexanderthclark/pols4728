@@ -1,7 +1,7 @@
 import { coalition, hybridValues, marginal, precedingMasks, validateData } from './calculation.mjs';
 import { renderWaterfall } from './waterfall.js';
 import { featureLabels, shapleyFormulaMarkup, valueMarkup, joiningMarkup, predictionMarkup } from './formula.js';
-import { validateBreadPeace, breadPeaceFacts, renderBreadPeace, breadPeaceDecompositionMarkup } from './bread-peace.js';
+import { validateBreadPeace, breadPeaceFacts, renderBreadPeace, breadPeaceDecompositionMarkup, breadPeaceMeanPredictionMarkup } from './bread-peace.js';
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
@@ -9,17 +9,17 @@ const names = ['The Shapley formula', 'The observation x', 'The model prediction
 const captions = [
   'Scroll to give each part its meaning in a prediction problem.',
   'x is one complete observation; its values supply the fixed inputs.',
-  'ŷ(x) = f(x) is the model’s prediction for one complete input row.',
-  'vₓ(S) averages predictions ŷ over hybrid rows. It is not a prediction error.',
+  'ŷ(x) is the fitted model’s prediction for one complete input row.',
+  'vₓ(S) averages the same model’s ŷ predictions across completed background rows.',
   'S is the group already fixed to x, before the additional feature joins.',
   'i is the additional feature. It belongs to F and is not already in S.',
   'ϕᵢ(vₓ) is feature i’s contribution relative to the background average prediction.',
   '',
   'Standardized features and observed vote: three correlations determine the OLS fits.',
   'Univariate slopes equal correlations. Bivariate slopes adjust for the overlap between features.',
-  'Our SHAP game evaluates the bivariate model with excluded inputs averaged to zero.',
-  'Here 0 supplies each excluded input’s mean; predictions are in SD of vote share.',
-  'Here 0 supplies each excluded input’s mean; predictions are in SD of vote share.',
+  'Linear model + overall background mean peace = 0:',
+  'For this linear model, averaging predictions equals predicting at the excluded input’s background mean, 0.',
+  'For this linear model, averaging predictions equals predicting at the excluded input’s background mean, 0.',
   'Each order has weight 1/2. Predictions are in SD of vote share.',
   '',
   'Fit f once, then hold it fixed. Here we supply a transparent teaching equation.',
@@ -33,8 +33,8 @@ const captions = [
 const formulaStops = {
   'shapley-formula':{focus:'all',meaning:'The players are input features. The game assigns credit for one observation’s prediction.'},
   'observation-symbol':{focus:'observation',symbol:'x',meaning:'One complete input row. Its values supply every feature fixed in this explanation.'},
-  'prediction-symbol':{focus:'all',symbol:predictionMarkup(),meaning:'The fitted model’s prediction. <var>y</var> is the observed outcome; hold the model <var>f</var> fixed.'},
-  'value-function':{focus:'value',symbol:'v<sub>x</sub>(S) = average prediction',meaning:'Fix the inputs in <var>S</var> to <var>x</var>; use background values for the other inputs. Average the model’s predictions.'},
+  'prediction-symbol':{focus:'all',symbol:predictionMarkup(),meaning:'ŷ(x) is the fitted model’s prediction for the complete row <var>x</var>. <var>y</var> is observed. Keep the model fixed.'},
+  'value-function':{focus:'value',symbol:'v<sub>x</sub>(S) = average prediction',meaning:'Fix <var>S</var> at <var>x</var>; fill other inputs from background rows. Average the same model’s ŷ predictions.',note:`All features fixed → ${predictionMarkup()}.`},
   'preceding-features':{focus:'coalition',symbol:'S ⊆ F ∖ {i}',meaning:'<var>S</var> contains the features already fixed. <var>F</var> contains all <var>m</var> input features; <var>i</var> is outside <var>S</var>.'},
   'joining-feature':{focus:'joining',symbol:'S ∪ {i}',meaning:'<var>i</var> is the additional feature. Fix its value from <var>x</var>, keeping <var>S</var> fixed. Marginal contribution = after − before.'},
   'feature-credit':{focus:'result',symbol:'ϕ<sub>i</sub>(v<sub>x</sub>) = ϕ<sub>i</sub>(x)',meaning:'Feature <var>i</var>’s credit relative to the background average. Average its marginal across orders; the credit uses the prediction’s units.'},
@@ -94,7 +94,7 @@ function updateFacts() {
 
 function renderFormula(scene) {
   const stop = formulaStops[scene];
-  visual.innerHTML = `<h1 class="formula-intro-title">From Shapley values to SHAP</h1>${shapleyFormulaMarkup(stop.focus)}<div class="formula-explanation">${stop.symbol ? `<p class="formula-focus-symbol math-text">${stop.symbol}</p>` : ''}<p class="formula-focus-meaning">${stop.meaning}</p>${scene === 'shapley-formula' ? '<p class="formula-scroll-prompt">Scroll to connect the symbols to predictions, or use Next.</p>' : ''}</div>`;
+  visual.innerHTML = `<h1 class="formula-intro-title">From Shapley values to SHAP</h1>${shapleyFormulaMarkup(stop.focus)}<div class="formula-explanation">${stop.symbol ? `<p class="formula-focus-symbol math-text">${stop.symbol}</p>` : ''}<p class="formula-focus-meaning">${stop.meaning}</p>${stop.note ? `<p class="formula-focus-note">${stop.note}</p>` : ''}${scene === 'shapley-formula' ? '<p class="formula-scroll-prompt">Scroll to connect the symbols to predictions, or use Next.</p>' : ''}</div>`;
 }
 
 function renderTransition(scene) {
@@ -104,7 +104,7 @@ function renderTransition(scene) {
 function renderObservation() {
   const observation = state.observation;
   const equation = $('#observation .prediction-equation').outerHTML;
-  visual.innerHTML = `<h3>The earnings model</h3>${equation}<p class="training-note">A supplied teaching equation · output in $1,000/year</p><div class="observation-card"><span class="date">Observation x · ${escape(observation.name)}</span><dl>${state.data.features.map((feature, index) => `<dt>${escape(feature.label)}</dt><dd>${inputNumber(observation.values[index])}${index === 1 ? observation.values[1] < 0 ? ' · adverse' : ' · favorable' : ''}</dd>`).join('')}</dl><div class="prediction-number">${dollars(observation.prediction)}<span class="prediction-label">ŷ(x) = f(x) · predicted annual earnings</span></div></div><p class="input-note">Hold this model fixed throughout the explanation.</p>`;
+  visual.innerHTML = `<h3>The earnings model</h3>${equation}<p class="training-note"><var>f</var> is our earnings prediction rule · output in $1,000/year</p><div class="observation-card"><span class="date">Observation x · ${escape(observation.name)}</span><dl>${state.data.features.map((feature, index) => `<dt>${escape(feature.label)}</dt><dd>${inputNumber(observation.values[index])}${index === 1 ? observation.values[1] < 0 ? ' · adverse' : ' · favorable' : ''}</dd>`).join('')}</dl><div class="prediction-number">${dollars(observation.prediction)}<span class="prediction-label">ŷ(x) = f(x) · predicted annual earnings</span></div></div><p class="input-note">Hold this model fixed throughout the explanation.</p>`;
 }
 
 function inputCell(background, mask, index, newFeature = -1) {
@@ -212,6 +212,7 @@ function render() {
   }
   $('#stage-caption').hidden = isCenteredScene(scene);
   $('#stage-caption').textContent = isCenteredScene(scene) ? '' : captions[state.scene];
+  if (scene === 'ols-refit') $('#stage-caption').insertAdjacentHTML('beforeend', breadPeaceMeanPredictionMarkup(state.breadObservation));
   if (scene === 'ols-shap') $('#stage-caption').insertAdjacentHTML('beforeend', breadPeaceDecompositionMarkup());
   $('#previous').disabled = state.scene === 0;
   $('#next').textContent = state.scene === steps.length-1 ? 'Math & Python →' : 'Next →';

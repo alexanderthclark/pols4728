@@ -67,7 +67,7 @@ profiles use the same model and background.
 
 1. Begin with the complete Shapley formula.
 2. Highlight the observation `x` supplying the fixed inputs.
-3. Define `y_hat(x) = f(x)`, distinct from the observed outcome and prediction error.
+3. Define `y_hat(x)`, the fixed model’s prediction for one complete input row, distinct from observed outcome `y`.
 4. Highlight its value function: the average of `y_hat` over hybrid input rows.
 5. Highlight `S`, the group already fixed, and define `F` and `m`.
 6. Highlight `i`, the additional feature joining a group that excludes it.
@@ -87,6 +87,14 @@ profiles use the same model and background.
 20. Match all four preceding groups to their factorial weights and prediction differences.
 21. Add the weighted contributions; select a feature and inspect all six orders.
 22. Assemble the final contributions in a course-styled standard waterfall.
+
+The opening frames distinguish `ŷ(x)`, the fixed model’s prediction for a
+complete row, from `v_x(S)`, an average of that same model’s predictions across
+completed background rows. Fixing every feature makes every row equal to `x`,
+so the average equals `ŷ(x)`. The alias `f(x) = ŷ(x)` is introduced with the
+earnings model. Frame 11 explicitly connects row averaging to the valid linear
+shortcut: average `ŷ(bread, peace)` over reference peace values, giving
+`ŷ(bread, 0)` because the overall background mean is zero.
 
 The first seven frames use a single centered formula, with a short definition
 underneath. The same equation stays in place and highlights the symbols under
