@@ -1,20 +1,43 @@
-# Learning basketball from five games
+# How an alien learns basketball
 
-A ten-stage scrollytelling explanation of expectation, bias, variance, and MSE, based on the Fall 2026 course notes’ Knicks–Spurs alien example. The separate title screen shows a classic alien stick figure scratching its head while watching basketball. Its registered monochrome illustration is transparent; the title and all teaching content remain selectable HTML text.
+A twelve-stage scrollytelling explanation of expectation, bias, variance, and MSE, based on the Fall 2026 course notes’ Knicks–Spurs alien example. The opening title screen shows a classic alien stick figure scratching its head while watching basketball. Its registered monochrome illustration is transparent. Titles and narrative remain selectable HTML text; quantitative labels remain real SVG text.
 
 ## The argument
 
-One alien observes the original five games and fits a decision stump with cutoff −1.5. This fits all training labels but misclassifies a Knicks loss at −1. The story then introduces 1,000 independently trained aliens and holds their test input fixed at +0.5. Each alien is a concrete representation of a different training dataset passed through the same algorithm.
+One alien observes the original five games and fits a decision stump with cutoff −1.5. This fits all training labels but misclassifies a Knicks loss at −1. The story then introduces independently trained aliens and holds their test input fixed at +0.5. Each alien represents a different training dataset passed through the same algorithm.
+
+The twelve stages develop the argument in order:
+
+1. Observe five final scores and define the input and binary outcome.
+2. Fit the midpoint cutoff between the closest observed loss and win.
+3. Test a new game and compare the fitted cutoff with the true boundary.
+4. Compare three independent training samples and their fitted rules.
+5. Ask every alien about the same half-point Knicks lead.
+6. Repeat training 1,000 times, with one mark for each fitted rule.
+7. Gather predictions at zero and one and estimate their expectation.
+8. Measure bias from the true outcome to the average prediction.
+9. Measure variance from individual predictions to their average.
+10. Measure MSE from individual predictions to the true outcome.
+11. Decompose that MSE into squared bias, variance, and zero outcome noise.
+12. Explore different training-sample sizes, fixed test inputs, and fresh samples.
 
 The finite average estimates expectation over training samples. At +0.5 the original simulation has 532 win predictions and 468 loss predictions: mean 0.532, bias −0.468, squared bias 0.219024, variance 0.248976, and MSE 0.468. Outcome noise is zero conditional on the final score differential. This demonstrates bias and variance within one rule, without claiming a complexity tradeoff.
 
-The illustration grid shows only the first 48 aliens on desktop, or 24 on phones, with this limitation labeled directly. Calculations use all 1,000. Selecting an alien reveals its five training differentials and its learned rule. Win predictions use circle badges and the numeral 1; loss predictions use square badges and 0. The title image and the code-native miniature alien glyphs serve different roles: the title is character artwork; the miniature glyphs mark independently fitted rules.
+## The visual argument
+
+One persistent SVG accompanies the narrative. The first fitted cutoff and its comparison with the true boundary share a score-differential axis. Three aligned sample rows then show how training data change the fitted rule; the sample selector gives access to all 1,000 worked samples. A shared vertical test line at +0.5 makes the fixed-input comparison explicit.
+
+The population contains exactly 1,000 keyed marks, one for each alien in training-sample order. The same marks move from a crowd into prediction piles at zero and one; their identities remain stable through expectation, bias, variance, MSE, and the decomposition. Circles represent win predictions and squares represent loss predictions, alongside numerical labels and counts. A mean marker and true-outcome marker provide the changing reference points. The prediction axis is explicitly distinguished from the earlier score-differential axis.
+
+The decomposition uses exact proportional segment widths on a squared-error scale from zero to one. Squared bias and variance add to the MSE width; outcome noise contributes zero width. Readouts round the worked components to approximately 0.219 and 0.249, while expandable prose retains the exact values.
+
+Phones use compact figure coordinates and shorter displayed formulas, with the substantive explanation and exact values retained in the narrative. The stack column count adapts to the larger prediction group so that all 1,000 marks remain visible even when every alien gives the same answer. The title image supplies character artwork; miniature SVG alien glyphs identify the fitted rules in the sample diagrams.
 
 ## Simulation and explorer
 
 `samples.json` contains exactly the five-game samples from the notes. They were generated with NumPy’s legacy `RandomState` using seed 1. In each repetition, draw five Knicks integers first, then five Spurs integers, independently from 0 through 100 inclusive. Add 0.5 to each Knicks score. The half-point convention prevents ties. For mixed outcomes, put the cutoff halfway between the largest losing differential and smallest winning differential. At equality with a fitted cutoff, predict win. For samples with only one outcome class, predict that class everywhere.
 
-The explorer varies games per alien, fixed test point, and random seed. New samples use a deterministic xorshift generator, not NumPy’s generator. Thus fresh runs are not intended to reproduce the seed-1 notes, although they use the same stated score support and fitting rule. Restore the worked example to return to the exact original fixture. Variance always uses the number of aliens as its divisor; the empirical MSE decomposition holds exactly up to floating-point rounding.
+The explorer varies games per alien and the fixed test point; drawing fresh samples advances the random seed. New samples use a deterministic xorshift generator, not NumPy’s generator. Thus fresh runs are not intended to reproduce the seed-1 notes, although they use the same stated score support and fitting rule. Restore the worked example to return to the exact original fixture. Variance always uses the number of aliens as its divisor; the empirical MSE decomposition holds exactly up to floating-point rounding.
 
 ## Run and validate
 
@@ -26,11 +49,13 @@ node --check docs/alien/story.js
 node --test tests/*.test.mjs
 ```
 
-Open `http://localhost:8873/alien/`. All paths are relative, with no external runtime libraries or external font requests. Mathematics reuses the repository’s locally served STIX Two Math font. The page includes Previous/Next buttons, keyboard-accessible sample selection and controls, reduced-motion support, a text explanation usable without JavaScript, and responsive desktop and phone layouts.
+Open `http://localhost:8873/alien/`. All paths are relative, with no external runtime libraries or external font requests. Mathematics reuses the repository’s locally served STIX Two Math font. The page supports native keyboard-operable selection and controls, visible focus treatments, reduced motion, Previous/Next navigation, a text explanation usable without JavaScript, and responsive desktop and phone layouts.
 
-`model.mjs` holds the fitting rule, prediction, simulations, and error calculations. `story.js` draws the figures and handles scrolling and controls. `tests/alien-model.test.mjs` checks the original simulation, constant-class samples, the illustrative classification error, score support, and the decomposition at win and loss test points and across sample sizes. The existing Pages workflow includes these checks.
+`model.mjs` holds the fitting rule, prediction, simulations, and error calculations. `geometry.mjs` provides DOM-independent crowd positions, centered prediction stacks, and proportional decomposition segments. `story.js` draws the persistent figure and handles scrolling and controls.
 
-Browser verification covers all ten scenes at 1440×1000, 390×844, and 320×740, including navigation, alien inspection, explorer settings, reset, page errors, and horizontal overflow. Visual inspection complements these checks; it does not establish accessibility compliance.
+The five tests in `tests/alien-model.test.mjs` check the original simulation, constant-class samples, the illustrative classification error, score support, and the decomposition at win and loss test points and across sample sizes. The seven tests in `tests/alien-geometry.test.mjs` check the 468/532 split, preserved identities, centered stacks, collision-free worked layouts, proportional widths, zero components, and invalid geometry. All 26 tests in the repository pass. The existing Pages workflow includes these checks.
+
+Browser verification covers all twelve stages at 1440×1000, 600×750, 390×844, and 325×703. The intermediate-width layout was also inspected with Alien 11 selected, whose sample includes a repeated differential. Explorer checks cover twelve combinations: training sizes 5, 25, and 500, each at fixed inputs −20.5, −0.5, +0.5, and +20.5. Every checked combination retains exactly 1,000 marks with no target position outside the figure. No console errors were observed in the desktop run. Enter-key activation of Next was verified; reduced-motion support is implemented but was not verified in the browser. Visual inspection does not establish accessibility compliance.
 
 ## Artwork and publication
 

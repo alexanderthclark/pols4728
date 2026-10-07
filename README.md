@@ -26,7 +26,7 @@ interact, including an adverse neighborhood with negative opportunity.
 [Python reproduction files](examples/shap/README.md) include the fixed-model
 calculation and checks against the SHAP package.
 
-The [basketball bias-and-variance story](docs/alien/README.md) follows one alien learning a cutoff from five games, then aggregates independent training samples across 1,000 aliens to explain expectation, bias, variance, and zero irreducible noise at a fixed test input.
+The [alien basketball story](docs/alien/README.md) follows one alien learning a cutoff from five games. It then keeps 1,000 independently trained predictions visible as they gather into stacks, locating expectation, bias, variance, and mean squared error at a fixed test input. A proportional error bar shows the decomposition, with zero outcome noise.
 
 GitHub Pages publishes the `docs/` site automatically after the checks pass on `main`. See the [hosting notes](docs/shapley/README.md#hosting) for the website addresses and manual deployment instructions.
 
