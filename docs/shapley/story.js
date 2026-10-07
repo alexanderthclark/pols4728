@@ -25,7 +25,7 @@ stageViz.insertAdjacentHTML('beforeend', `<div class="graph-container" id="graph
 
 const graphSvg = $('.graph-svg');
 const defs = svg('defs');
-for (const [id, color] of [['neutral', '#c8ced9'], ['active', '#2747dc']]) {
+for (const [id, color] of [['neutral', 'var(--edge-neutral)'], ['active', 'var(--blue)']]) {
   const marker = svg('marker', { id: `arrow-${id}`, viewBox: '0 0 10 10', refX: 8, refY: 5, markerWidth: 5, markerHeight: 5, orient: 'auto-start-reverse' });
   marker.append(svg('path', { d: 'M 0 0 L 10 5 L 0 10 z', fill: color })); defs.append(marker);
 }
@@ -204,12 +204,12 @@ function inspectEdge(id) {
   stopPlayback(); inspectedEdge = id; const e = game.edges.find(e => e.id === id);
   nodeEls.forEach((b, mask) => b.classList.toggle('is-inspected', mask === e.from || mask === e.to));
   updateGraph(); updateCalculation(); updateCaption();
-  $('#edge-detail').innerHTML = `Adding <strong>${e.player}</strong>: value <strong>${game.nodes[e.from].value} → ${game.nodes[e.to].value}</strong>. Contribution <strong>${e.delta}</strong>, weight <strong>${e.count}/${game.totalOrders}</strong>. Weighted contribution: <strong>${fraction(e.delta * e.weight)}</strong>.`;
+  $('#edge-detail').textContent = `Adding ${e.player}: value ${game.nodes[e.from].value} → ${game.nodes[e.to].value}. Contribution ${e.delta}, weight ${e.count}/${game.totalOrders}. Weighted contribution: ${fraction(e.delta * e.weight)}.`;
 }
 function inspectNode(mask) {
   stopPlayback(); inspectedEdge = null; nodeEls.forEach((b, i) => b.classList.toggle('is-inspected', i === mask));
   const node = game.nodes[mask]; updateGraph(); updateCalculation(); updateCaption();
-  $('#edge-detail').innerHTML = `<strong>${node.label}</strong> contains ${node.size} ${node.size === 1 ? 'voter' : 'voters'}. ${node.value ? 'At least two supporters: the proposal passes.' : 'Fewer than two supporters: the proposal fails.'} Value: <strong>${node.value}</strong>.`;
+  $('#edge-detail').textContent = `${node.label} contains ${node.size} ${node.size === 1 ? 'voter' : 'voters'}. ${node.value ? 'At least two supporters: the proposal passes.' : 'Fewer than two supporters: the proposal fails.'} Value: ${node.value}.`;
 }
 function playOrder(orderIndex, animate = true) {
   stopPlayback(); inspectedEdge = null; nodeEls.forEach(b => b.classList.remove('is-inspected'));

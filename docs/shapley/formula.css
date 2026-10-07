@@ -17,7 +17,7 @@
 .formula-order-strips{display:grid;gap:4px;}
 .formula-order-strip{font-family:var(--serif);font-size:16px;line-height:1.4;}
 .formula-order-strip>span{min-height:27px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:3px;padding:1px 6px;}
-.formula-order-strip .formula-order-player{color:var(--ink);background:var(--paper);border-color:#9fa8b8;}
+.formula-order-strip .formula-order-player{color:var(--ink);background:var(--paper);border-color:var(--rule);}
 .formula-order-strip .formula-order-emphasis{background:var(--blue-soft);color:var(--blue);border-color:var(--blue);}
 .formula-all-orders{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 6px;}
 .formula-order-chip{font-family:var(--serif);font-size:14px;line-height:1.4;text-align:center;white-space:nowrap;padding:4px 3px;border:1px solid var(--line);border-radius:3px;color:var(--muted);}
