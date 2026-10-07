@@ -1,6 +1,8 @@
-# Shapley values, step by step
+# Shapley values for credit assignment
 
-“Who gets the credit?” is a fifteen-stage scrolling explanation of Shapley values for three voters. All three support a proposal that needs two votes to pass. The coalition diagram grows from the empty set and singletons into the complete Hasse diagram, then connects joining contributions to the six equally likely accounting orders.
+“Shapley values for credit assignment” is a fifteen-stage scrolling explanation of Shapley values for three voters. All three support a proposal that needs two votes to pass. The coalition diagram grows from the empty set and singletons into the complete Hasse diagram, then connects joining contributions to the six equally likely accounting orders.
+
+A separate opening page places the real-text title above a registered monochrome illustration of three torso-free stick figures putting their ballots into one box labeled VOTE at once. “A voting application” appears at the bottom of the cover. The cover uses the course guide’s ink, muted, and blue palette, with the full illustration preserved on desktop and phones. **Start the explanation** leads to the first teaching scene; **Back to the beginning** returns to the cover. The cover does not add a scene or change the fifteen-stage sequence.
 
 The first eight frames use plain-language groups, outcomes, paths, and weights. A concluding bridge names the existing node numbers as the value function `v(S)`: one for coalitions with at least two voters, zero otherwise. Scrolling through that bridge replaces each pass/fail payoff row with `v(group) = payoff` as the rule reaches the reading position; scrolling back restores the familiar labels. Only then do six formula frames introduce `N`, `n`, and `i` and connect the general Shapley formula to the diagram, explaining the summation range, marginal contribution, arrangements before the joining voter, arrangements after, division by all orders, and the completed weighted sum. The complete diagram stays visible, and selecting a coalition changes the example edge and its counts. Math uses native MathML, without an external rendering dependency.
 
@@ -20,8 +22,9 @@ Open `http://localhost:8765/shapley/`. A web server is required because the page
 
 ## Files and checks
 
-- `index.html` contains the narrative and page structure.
-- `style.css` styles the story, Hasse diagram, and optional panel.
+- `index.html` contains the opening page, narrative, and page structure.
+- `style.css` styles the opening page, story, Hasse diagram, and optional panel.
+- `assets/voters-ballot-box.png` is the registered opening illustration; the title and application label remain real text in the page.
 - `game.mjs` calculates coalition values, joining edges, all accounting orders, edge frequencies, and Shapley values.
 - `story.js` handles scroll stages and the final explorer.
 - `weight-view.js` draws the six-diagram explanation from the game’s orders and edges.
