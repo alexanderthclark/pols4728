@@ -142,10 +142,16 @@ so quick clicks cannot repeat a frame during a scroll animation. The opening
 equation stays in place across its five opening frames. Native selects,
 checkboxes, disclosures, and modal dialogs support keyboard operation. Dialogs
 restore focus to their trigger, and a concise status announces stage changes.
+Dense figures scroll within their panel when space is limited, with a visible
+cue and keyboard access. Navigation resets that figure scroll for the next frame.
+The compact waterfall retains readable labels and its common quantitative scale;
+its displayed bar order ranks averaged credits, rather than representing one
+revealing order.
 The sum's narrative follows the selected feature as well as the selected person.
 Reduced-motion preferences disable animated replacements and bar reveals.
 Short landscape screens place the worked prose and figure side by side. Phone tables
 keep every column visible, with larger included/excluded labels and controls.
+The weights table uses 12 px text and compact spacing on narrow screens.
 Without JavaScript, the lecture cues, complete formula, both model transitions,
 earnings equation, worked profiles, and calculation notes remain available in a
 continuous reading layout; interactive figures require it. The opening formula,

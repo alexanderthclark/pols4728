@@ -26,19 +26,20 @@ const captions = [
   'S = {neighborhood}, i = ability. Subtract the two prediction averages to get one marginal.',
   'One row per preceding group S. Its weight counts how often it precedes ability.',
   'The sum of weighted prediction differences is the feature’s SHAP value.',
-  'Final SHAP contributions connect the same baseline to this person’s prediction.',
+  'Credits average all six revealing orders; bars are ranked by magnitude.',
 ];
 const formulaStops = {
   'shapley-formula':{focus:'all',meaning:'The players are input features. The game assigns credit for one observation’s prediction.',note:'<var>F</var>: all features; <span class="math-text">m = |F|</span>.'},
   'observation-symbol':{focus:'observation',symbol:'x',meaning:'One complete input row. Its values supply every feature fixed in this explanation.'},
   'prediction-symbol':{focus:'all',symbol:predictionMarkup(),meaning:'ŷ(x) is the fitted model’s prediction for the complete row <var>x</var>. <var>y</var> is observed. Keep the model fixed.'},
-  'joining-feature':{focus:'difference',comparison:true,meaning:'<var>S</var>: features fixed to <var>x</var>. Other inputs: background rows.',note:'<var>i</var>: the additional feature. No retraining.'},
+  'joining-feature':{focus:'difference',comparison:true,meaning:'<var>S</var>: features fixed to <var>x</var>. Unfixed inputs: background rows.',note:'<var>i</var>: the additional feature. No retraining.'},
   'feature-credit':{focus:'result',symbol:'ϕ<sub>i</sub>(v<sub>x</sub>) = ϕ<sub>i</sub>(x)',meaning:'Feature <var>i</var>’s credit relative to the background average. Average its marginal across orders; the credit uses the prediction’s units.'},
 };
 const transitionScenes = new Set(['bread-peace-intro', 'earnings-intro']);
 const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene);
 const canonicalSceneId = id => ['preceding-features','value-function'].includes(id) ? 'joining-feature' : id;
 const visual = $('#visual'), shell = $('.stage-shell'), story = $('#story');
+const figureScrollHint = $('#figure-scroll-hint');
 const observationSelect = $('#observation-select');
 const dialog = $('#rows-dialog');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -184,6 +185,15 @@ function renderCoalitionExplorer() {
   $('#coalition-value').textContent = `vₓ(${setNotation(state.explorerMask)}) = ${number(coalition(state.observation, state.explorerMask).value)} ($1,000/year), for ${state.observation.name.toLowerCase()}.`;
 }
 
+function updateFigureOverflow() {
+  figureScrollHint.hidden = true;
+  const scrollable = story.dataset.layout === 'worked' && visual.scrollHeight > visual.clientHeight + 1;
+  figureScrollHint.hidden = !scrollable;
+  visual.classList.toggle('has-overflow', scrollable);
+  if (scrollable) visual.setAttribute('aria-describedby', figureScrollHint.id);
+  else visual.removeAttribute('aria-describedby');
+}
+
 function render() {
   if (!state.data || !state.breadData) return;
   const active = document.activeElement;
@@ -229,6 +239,8 @@ function render() {
   $('#inspect').textContent = ordersScene ? 'Six orders' : 'Inspect rows';
   $('#inspect').setAttribute('aria-label', ordersScene ? 'Inspect the six revealing orders' : 'Inspect hybrid input rows and predictions');
   if (focusSelector) visual.querySelector(focusSelector)?.focus({preventScroll:true});
+  visual.scrollTop = 0;
+  requestAnimationFrame(updateFigureOverflow);
 }
 
 function openRows(trigger) {
@@ -313,7 +325,7 @@ $('#coalition-controls').addEventListener('change', () => {
   renderCoalitionExplorer();
 });
 addEventListener('scroll',queueScroll,{passive:true});
-addEventListener('resize', () => {queueScroll(); if (steps[state.scene]?.id === 'waterfall') renderFinal();});
+addEventListener('resize', () => {queueScroll(); if (steps[state.scene]?.id === 'waterfall') renderFinal(); requestAnimationFrame(updateFigureOverflow);});
 addEventListener('hashchange', () => {
   if (!state.data || !state.breadData) return;
   const index = steps.findIndex(step => step.id === canonicalSceneId(location.hash.slice(1)));

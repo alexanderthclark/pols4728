@@ -23,6 +23,10 @@ a:focus-visible, button:focus-visible, select:focus-visible, summary:focus-visib
 .observation-control { display:flex; align-items:center; justify-content:space-between; gap:.7rem; font:13px/1.4 var(--sans); border-bottom:1px solid var(--light-rule); padding-bottom:12px; }
 .observation-control select { width:auto; max-width:65%; min-width:0; font-size:13px; }
 .visual { flex:1; min-height:0; display:flex; flex-direction:column; justify-content:safe center; padding:20px 0 8px; }
+.story-layout[data-layout="worked"] .visual { overflow-y:auto; overflow-x:hidden; }
+.story-layout[data-layout="worked"] .visual>* { flex-shrink:0; }
+.visual.has-overflow { overscroll-behavior-y:contain; }
+.figure-scroll-hint { font:11px/1.4 var(--sans); color:var(--muted); margin:3px 0 0; }
 .visual h3 { font:normal 22px/1.25 var(--serif); margin:0 0 14px; }
 .visual p { margin:0 0 12px; }
 .stage-caption { font:13px/1.5 var(--sans); min-height:40px; color:var(--muted); margin:8px 0 12px; }
@@ -187,7 +191,7 @@ dialog p { font-size:16px; }
   .shap-average { padding:7px 0; margin-top:6px; font-size:11px; }
   .shap-average .number { font-size:26px; }
   .stage-shell[data-scene="waterfall"] { height:65svh; max-height:640px; }
-  .waterfall-plot { max-height:calc(65svh - 165px); min-height:200px; }
+  .waterfall-plot { max-height:none; min-height:0; }
   #order-feature-select { min-height:44px; font-size:12px; padding:3px 6px; margin-bottom:5px; }
   .orders-feature-label { font-size:12px; }
   .waterfall-total { font-size:10px; padding-top:4px; margin-top:4px; }
@@ -328,9 +332,11 @@ dialog p { font-size:16px; }
   .stage-shell[data-scene="observation"] .prediction-number { font-size:36px; }
   .visual .coalition-heading { font-size:21px; margin-bottom:3px; }
   .formula-table-context { font-size:10px; margin-bottom:4px!important; }
-  .weights-table { font-size:10px; }
-  .weights-table th,.weights-table td { padding:9px 3px; }
-  .weights-table caption { font-size:10px; padding-bottom:6px; }
+  .weights-table { font-size:12px; }
+  .weights-table th,.weights-table td { padding:4px 3px; }
+  .weights-table caption { font-size:11px; padding-bottom:3px; }
+  .stage-shell[data-scene="weights"] .formula-equation { margin-bottom:8px; }
+  .stage-shell[data-scene="weights"] .formula-definitions { margin-bottom:6px!important; }
   .stage-shell[data-scene="shap-value"] .formula-equation { font-size:20px; margin-bottom:10px; }
   .stage-shell[data-scene="shap-value"] .context-summary>span:first-child { min-height:30px; }
   .stage-shell[data-scene="shap-value"] .context-summary .context-number { font-size:28px; margin:4px 0; }
@@ -534,6 +540,21 @@ dialog p { font-size:16px; }
   .story-layout[data-layout="formula"] .formula-explanation { min-height:140px; margin-top:10px; padding-top:12px; }
   .story-layout[data-layout="formula"] .formula-focus-meaning { font-size:18px; }
   .formula-intro-title { font-size:28px; margin-bottom:18px; }
+}
+@media screen and (min-width:451px) and (min-height:651px) {
+  .story-layout[data-layout="formula"] .formula-explanation { min-height:270px; }
+}
+@media screen and (min-width:451px) and (max-height:650px) {
+  .formula-intro-title { font-size:28px; margin-bottom:14px; }
+  .story-layout[data-layout="formula"] .formula-equation { font-size:28px; margin-bottom:10px; }
+  .story-layout[data-layout="formula"] .formula-explanation { min-height:140px; margin-top:10px; padding-top:12px; }
+  .formula-comparison-summary { font-size:17px; line-height:1.4; margin-bottom:8px!important; }
+  .formula-comparison { margin-bottom:10px; }
+  .formula-comparison-label { font-size:12px; margin-bottom:4px!important; }
+  .formula-comparison-case math { font-size:26px; line-height:1.25; }
+  .formula-comparison-detail { font-size:13px; margin-top:5px!important; }
+  .stage-shell[data-scene="joining-feature"] .formula-focus-meaning { font-size:18px; }
+  .stage-shell[data-scene="joining-feature"] .formula-focus-note { font-size:13px; line-height:1.4; margin-top:8px!important; }
 }
 @media print {
   .story-layout.is-interactive { display:block; }

@@ -30,10 +30,11 @@ function svgElement(name, attributes = {}, content) {
 }
 
 function number(value, maximumFractionDigits = 0) {
-  return new Intl.NumberFormat('en-US', { maximumFractionDigits }).format(value);
+  return new Intl.NumberFormat('en-US', { maximumFractionDigits }).format(value).replace('-', '−');
 }
 
 function signed(value) {
+  if (value === 0) return '0';
   return `${value < 0 ? '−' : '+'}${number(Math.abs(value), 1)}`;
 }
 
@@ -83,15 +84,15 @@ export function renderWaterfall(container, {
 
   const visibleCount = Math.max(0, Math.min(features.length, Math.trunc(revealed)));
   const measuredWidth = container.getBoundingClientRect().width;
-  const width = Math.max(320, Math.min(820, Math.round(measuredWidth || 760)));
+  const width = Math.max(280, Math.min(820, Math.round(measuredWidth || 760)));
   const compact = width < 540;
   const labelWidth = compact ? 120 : 205;
   const plotLeft = labelWidth + 16;
   const plotRight = width - 20;
-  const rowHeight = compact ? 56 : 64;
+  const rowHeight = compact ? 48 : 64;
   const top = compact ? 64 : 84;
   const axisY = top + Math.max(features.length, 1) * rowHeight + 4;
-  const height = axisY + (compact ? 92 : 104);
+  const height = axisY + (compact ? 84 : 104);
   const barHeight = 28;
   const entries = features.map((feature, index) => ({
     feature,
@@ -145,11 +146,9 @@ export function renderWaterfall(container, {
   svg.append(text(compact ? 'Feature contributions' : 'One prediction, feature by feature', {
     x: 0, y: 21, 'font-size': compact ? 17 : 20,
   }));
-  if (!compact) {
-    svg.append(text(`Horizontal position is model output in ${unit}.`, {
-      x: 0, y: 45, fill: colors.muted, 'font-size': 14,
-    }));
-  }
+  svg.append(text(compact ? `Model output in ${unit}.` : `Horizontal position is model output in ${unit}.`, {
+    x: 0, y: compact ? 42 : 45, fill: colors.muted, 'font-size': compact ? 11 : 14,
+  }));
 
   // Baseline and output reference lines use the same axis as every contribution.
   svg.append(svgElement('line', {

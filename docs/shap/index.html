@@ -31,6 +31,7 @@
         <div class="stage-top"><span id="stage-name">The Shapley formula</span><span id="stage-count">1 / 20</span></div>
         <div class="observation-control" hidden><label for="observation-select">Person to explain</label><select id="observation-select" disabled><option>Loading examples…</option></select></div>
         <div id="visual" class="visual" tabindex="0" aria-label="Interactive figure"><p>Loading the prediction’s explanation…</p></div>
+        <p id="figure-scroll-hint" class="figure-scroll-hint" hidden>Scroll within the figure for more ↓</p>
         <p id="stage-caption" class="stage-caption"></p>
         <div class="stage-navigation"><button id="previous" type="button" disabled>← Previous</button><button id="inspect" type="button" hidden>Inspect rows</button><button id="next" type="button">Next →</button></div>
       </aside>
@@ -82,7 +83,7 @@
               <p class="formula-comparison-detail"><var>i</var>: value from <var>x</var></p>
             </div>
           </div>
-          <p class="formula-comparison-definition"><var>S</var>: features fixed to <var>x</var>. Other inputs: background rows.</p>
+          <p class="formula-comparison-definition"><var>S</var>: features fixed to <var>x</var>. Unfixed inputs: background rows.</p>
           <p class="formula-focus-note"><var>i</var>: the additional feature. No retraining.</p>
         </div></section>
         <section class="step formula-step" id="feature-credit" data-step="4" aria-labelledby="feature-credit-heading"><div class="step-content">
@@ -226,7 +227,7 @@
           <p class="step-number">20 / 20 · From the formula to the plot</p><h2 id="waterfall-heading">Baseline + contributions</h2>
           <div class="slide-identity" role="math" aria-label="Prediction equals baseline plus the sum of SHAP contributions"><math><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>v</mi><mi>x</mi></msub><mo stretchy="false">(</mo><mi>∅</mi><mo stretchy="false">)</mo><mo>+</mo><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>ϕ</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></math></div>
           <ul class="slide-points">
-            <li>Bars: signed contributions in $1,000.</li>
+            <li>Bars: averaged contributions in $1,000.</li>
             <li>Inputs beside names; rows ranked by magnitude.</li>
           </ul>
         </div></section>
