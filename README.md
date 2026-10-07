@@ -33,8 +33,8 @@ intervals onto the same coordinate and reuses a downstream pattern. Two hidden
 layers of three ReLU units represent a ten-joint curve with 22 dense parameters;
 a shallow network needs at least 31 for that same curve. An animated fold, linked
 curves, and a network diagram follow Prince's notation and exact piecewise linear
-geometry. The copied joints move together, illustrating the structure behind
-the parameter saving.
+geometry. The input slider follows a value through the fixed fold and prediction,
+illustrating the repeated structure behind the parameter saving.
 
 ## Datasets
 

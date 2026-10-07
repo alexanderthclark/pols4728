@@ -159,7 +159,7 @@ export class LinkedFigures {
     this.scale={type:downstream?'downstream':'curve',width,height,left,right,domain};
     reset(svg,width,height,first?'Three first-layer activation curves':'Response curve '+modeLabels[mode],
       first?'The three ReLU ramps have hinges at zero, one, and two.':
-      (downstream?'Horizontal position is q. Three downstream joints occur at the thresholds.':'Horizontal position is original input x. Rust dots are copied downstream joints; blue dots are surviving first-layer turns.')+' Height is '+modeLabels[mode]+'. Select an input by clicking the curve; a keyboard input control is available in the last frame.');
+      (downstream?'Horizontal position is q. Three downstream joints occur at the thresholds.':'Horizontal position is original input x. Rust dots are copied downstream joints; blue dots are surviving first-layer turns.')+' Height is '+modeLabels[mode]+'. '+(showProbe?(scene>=3?'Select an input on the curve or use the input slider in this explanation.':'Select an input on the curve. The input slider is introduced with the folding diagram.'):'The curve and network parameters stay fixed throughout the story.'));
     if(!downstream && !first && scene!==0) {
       for(const knot of [1,2]) path(svg,[[px(knot),top],[px(knot),bottom]],{stroke:'#B7BDC1','stroke-width':.8,'stroke-dasharray':'3 4'});
     }
@@ -216,7 +216,7 @@ export class LinkedFigures {
     const ys=geometry.points.map(point=>point[1]);
     const low=Math.min(0,...ys)-.05,high=Math.max(.1,...ys)+.05;
     const px=q=>left+q*(right-left),py=y=>bottom-(y-low)/(high-low)*(bottom-top);
-    reset(svg,width,height,'The reused downstream pattern g(q)','Horizontal position is q from zero to one. The three joints of g occur at q=0.2, the adjustable middle threshold, and q=0.8. This same pattern is applied to every folded input interval.');
+    reset(svg,width,height,'The reused downstream pattern g(q)','Horizontal position is q from zero to one. The three joints of g occur at q=0.2, q=0.5, and q=0.8. This same pattern is applied to every folded input interval.');
     text(svg,left,12,'One pattern g(q)',{anchor:'start',size:12,color:BLUE});
     path(svg,[[left,py(0)],[right,py(0)]],{stroke:'#B8B8B8','stroke-width':.8});
     text(svg,left-6,py(0)+3,'0',{anchor:'end',size:11,color:RULE});

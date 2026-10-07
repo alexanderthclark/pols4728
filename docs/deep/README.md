@@ -3,9 +3,10 @@
 A scrollytelling explanation of folding for readers who know shallow ReLU
 networks. Three fixed ramps form a folded input coordinate. The next hidden layer
 places three hinges on that coordinate, reusing the same downstream curve across
-three input pieces. The chosen output has ten joints with 22 dense parameters;
-an exactly matching shallow network needs at least ten hidden units and 31
-dense parameters.
+three input pieces. The public example fixes those hinges at `q = 0.2, 0.5, 0.8`.
+Readers select an input and inspect the linked views. The chosen output has ten
+joints with 22 dense parameters; an exactly matching shallow network needs at
+least ten hidden units and 31 dense parameters.
 
 Hosted path: <https://alexanderthclark.github.io/pols4728/deep/>.
 The page is a static ES-module site with no build step or external runtime.
@@ -26,7 +27,7 @@ y  = β2 + Ω2 h2
 
 β0 = (0, -1, -2)             Ω0 = (1, 1, 1)ᵀ
 
-β1 = (-0.2, -τ, -0.8)        Ω1 = [1  -2  2]
+β1 = (-0.2, -0.5, -0.8)      Ω1 = [1  -2  2]
                                   [1  -2  2]
                                   [1  -2  2]
 
@@ -51,17 +52,18 @@ coordinate `0 < q < 1`, the three inputs `q, 2-q, 2+q` share the same output.
 At the endpoints, branch locations coincide; `q = 0` also has the constant
 branch `x ≤ 0`.
 
-The next layer's features are `a[q-0.2]`, `a[q-τ]`, and `a[q-0.8]`.
+The next layer's features are `a[q-0.2]`, `a[q-0.5]`, and `a[q-0.8]`.
 Their affine output is the downstream curve
 
 ```text
-g(q) = a[q-0.2] - 2 a[q-τ] + 2 a[q-0.8],       y(x) = g(q(x)).
+g(q) = a[q-0.2] - 2 a[q-0.5] + 2 a[q-0.8],    y(x) = g(q(x)).
 ```
 
-The threshold is `τ = 0.5` by default, with `0.35 ≤ τ ≤ 0.65`. It changes only
-the middle new unit's bias. A downstream hinge at `q = t` appears at input
-locations `t, 2-t, 2+t`. Changing the middle threshold moves its three copied
-joints together; they cannot be positioned independently.
+The public thresholds remain fixed. A downstream hinge at `q = t` appears at
+input locations `t, 2-t, 2+t`; the middle hinge therefore appears at
+`x = 0.5, 1.5, 2.5`. These locations are linked by the fold and cannot be
+positioned independently. Selecting different inputs shows that the same
+downstream response is reused on each of the three pieces.
 
 The fold coordinate is notation for the repeated weighted combination in
 `Ω1`; it is not an extra hidden unit or an extra parameter block in the counted
@@ -69,13 +71,11 @@ dense network.
 
 ## Joints and parameter comparison
 
-The default output has ten joints at
+The displayed output has ten joints at
 `0.2, 0.5, 0.8, 1, 1.2, 1.5, 1.8, 2.2, 2.5, 2.8`.
 Their slope jumps are `1, -2, 2, -2, 2, -2, 1, 1, -2, 2`.
 There are nine copied downstream hinges plus the original fold joint at `x=1`.
 The old hinges at `0` and `2` lie within inactive flat regions.
-All ten joints remain distinct with nonzero slope jumps throughout the allowed
-threshold range.
 
 For standard dense architectures, count every weight and bias slot, including
 zeros and repeated numerical values:
@@ -102,11 +102,21 @@ are chosen; no training or prediction-error comparison is performed.
 
 The input window `[-0.25,3.25]` retains global context. The left tail is constant,
 and the right tail rises. The native downstream view `q ∈ [0,1]` describes the
-three full core pieces; inputs above `3` have `q>1`. The inset labels an off-view selected coordinate explicitly; the standalone
-downstream chart shows the core pattern and retains the numeric readout. When `τ<0.5`,
-the affine output can be negative and can cross zero between activation hinges.
+three full core pieces; inputs above `3` have `q>1`. The downstream plots label
+an off-view selected coordinate explicitly and retain the numeric readout.
+The fixed public output is nonnegative; zero output intervals are not additional
+joints unless the slope changes at their boundary.
 
 ## Files and exact geometry API
+
+The public interaction changes the selected input and the inspected view, not
+the network parameters. The mathematical modules retain a generalized middle
+threshold for exact checks and reuse in code: `DEFAULT_THRESHOLD = 0.5` and
+`THRESHOLD_RANGE = [0.35,0.65]`. Passing `threshold: τ` changes only the middle
+second-layer bias to `-τ`. This internal API is not a public slider. Its three
+copied joints move together and remain distinct, with ten nonzero output slope
+jumps throughout that range. For `τ < 0.5`, the generalized affine output can
+be negative and have zeros between activation hinges.
 
 - `index.html`, `style.css`, `story.js`, and `views.js` supply the narrative,
   linked figures, controls, and navigation.
@@ -158,17 +168,21 @@ From the repository root:
 python3 -m http.server 8874 --bind 127.0.0.1 --directory docs
 ```
 
-Open <http://127.0.0.1:8874/deep/>. Run the focused mathematical checks with:
+Open <http://127.0.0.1:8874/deep/>. Select inputs on the plot or with the input
+control, replay the fold, and choose a view in the explorer. The three thresholds
+stay at `0.2, 0.5, 0.8`; the public page has no threshold control.
+Run the focused mathematical checks with:
 
 ```sh
 node --test tests/deep-model.test.mjs tests/deep-geometry.test.mjs
 ```
 
 The complete repository command is `node --test tests/*.test.mjs`.
-The 19 focused tests pass. They cover exact fold and output equations, copied
-crossings, moving grouped joints, ten non-cancelling bends, exact input and
-downstream geometry, signed output zeros, dense parameter counts, and exact
-width-ten shallow reconstruction beyond the displayed domain.
+The 19 focused tests pass. They cover the fixed public model and its generalized
+internal threshold API: exact fold and output equations, copied crossings,
+moving grouped joints, ten non-cancelling bends, exact input and downstream
+geometry, signed output zeros, dense parameter counts, and exact width-ten
+shallow reconstruction beyond the displayed domain.
 
 These tests do not verify layout or accessibility. Review desktop and narrow
 mobile rendering, keyboard controls, and reduced motion separately against
