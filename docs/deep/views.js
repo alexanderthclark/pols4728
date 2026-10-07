@@ -47,8 +47,11 @@ export class LinkedFigures {
       if(sx<this.scale.left || sx>this.scale.right) return;
       const coordinate=this.scale.domain[0]+(sx-this.scale.left)/(this.scale.right-this.scale.left)*(this.scale.domain[1]-this.scale.domain[0]);
       if(this.scale.type==='fold') {
-        const row=this.scale.rows.map((y,index)=>({index,distance:Math.abs(sy-y)})).sort((a,b)=>a.distance-b.distance)[0].index;
-        onPoint(foldedPreimages(Math.max(0,Math.min(1,coordinate)))[row]);
+        const row=this.scale.rows.map((y,index)=>({index,distance:Math.abs(sy-y)})).sort((a,b)=>a.distance-b.distance)[0];
+        // Only the solid intervals contain selectable inputs; the dotted guides
+        // connect two drawings of the same endpoint.
+        if(row.distance>10/Math.hypot(transform.c,transform.d)) return;
+        onPoint(foldedPreimages(Math.max(0,Math.min(1,coordinate)))[row.index]);
       } else if(this.scale.type==='downstream') {
         const row=this.options.x<=1?0:this.options.x<=2?1:2;
         onPoint(foldedPreimages(Math.max(0,Math.min(1,coordinate)))[row]);
@@ -97,16 +100,22 @@ export class LinkedFigures {
     this.scale={type:'fold',width,height,left,right,domain:[0,1],rows};
     const showThresholds=scene===5;
     reset(svg,width,height,'The input line folds into three passes through q',
-      'The first pass is x from zero to one, the second is x from two back to one, and the third is x from two to three. Horizontal position is the folded coordinate q, not x. Vertical row spacing separates the overlapping intervals. '+(showThresholds?'Each of three thresholds intersects all three passes.':'Select a point on a row to see three inputs with the same q.'));
-    // Separate the coincident pieces vertically, retaining the two connected turns.
+      'The first pass is x from zero to one, the second is x from two back to one, and the third is x from two to three. Horizontal position is the folded coordinate q, not x. Vertical row spacing separates the overlapping intervals. Solid segments represent input intervals. Dotted guides join two drawings of the same endpoint at x=1 or x=2 and contain no additional inputs. '+(showThresholds?'Each of three thresholds intersects all three passes.':'Select a point on a row to see three inputs with the same q.'));
+    // The solid segments are the three input intervals. Dotted guides connect
+    // duplicate drawings of x=1 and x=2, with no input interval between them.
     // The starting state is a straight input line; each vertex then moves to q(x).
     const vertices=[[0,0,0],[1,1,0],[1,1,1],[2,0,1],[2,0,2],[3,1,2]];
     const points=vertices.map(([x,q,row])=>[left+(right-left)*((1-p)*x/3+p*q),middle+(rows[row]-middle)*p]);
-    path(svg,points,{stroke:BLUE,'stroke-width':2.5,'stroke-linejoin':'round'});
+    for(const index of [1,3]) path(svg,[points[index],points[index+1]],{stroke:BLUE,'stroke-width':1.4,'stroke-dasharray':'1 5','stroke-linecap':'round','data-fold-guide':index===1?'1':'2'});
+    for(const index of [0,2,4]) path(svg,[points[index],points[index+1]],{stroke:BLUE,'stroke-width':2.5,'data-fold-interval':index/2});
     if(p<.98) {
       text(svg,left,18,'Input x',{anchor:'start',size:12});
       text(svg,left,middle+22,'0',{anchor:'start',size:12});text(svg,right,middle+22,'3',{anchor:'end',size:12});
       return;
+    }
+    if(!narrow) {
+      text(svg,right-8,(rows[0]+rows[1])/2,'x = 1',{anchor:'end',size:12,color:BLUE});
+      text(svg,left+8,(rows[1]+rows[2])/2,'x = 2',{anchor:'start',size:12,color:BLUE});
     }
     text(svg,left,14,'Folded coordinate q',{anchor:'start',size:12});
     for(const q of [0,1]) text(svg,px(q),30,number(q),{size:12});

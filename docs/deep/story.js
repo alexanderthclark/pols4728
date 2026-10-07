@@ -25,7 +25,7 @@ const notes=[
   'Nine copied joints (rust) and one surviving turn of the fold (blue).',
   'Each ramp changes slope once, at x = 0, 1, or 2.',
   'The same q runs from 0 to 1 three times. The middle pass is reversed.',
-  'Vertical alignment means equal q. The rows separate the three input intervals; they are not a second input dimension.',
+  'Solid rows represent input intervals. Dotted guides link two drawings of the same endpoint at x = 1 or 2.',
   '',
   'Each dashed threshold cuts all three passes: nine copied joint locations.',
   '10 true joints · 22 dense parameters. A shallow network needs at least 10 units and 31 parameters for this curve.',
