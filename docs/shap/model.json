@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "type": "IllustrativeEarningsInteraction",
+  "intercept": 40,
+  "coefficients": {
+    "ability": 10,
+    "abilityNeighborhood": 24,
+    "experience": 4
+  },
+  "inputFeatures": [
+    "ability",
+    "neighborhood",
+    "experience"
+  ],
+  "featureDomains": {
+    "ability": [
+      0,
+      1
+    ],
+    "neighborhood": [
+      -1,
+      1
+    ],
+    "experience": [
+      0,
+      1
+    ]
+  },
+  "predictionUnit": "thousand dollars per year",
+  "equation": "40 + 10 × ability + 24 × ability × neighborhood + 4 × experience",
+  "fitted": false
+}

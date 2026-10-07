@@ -1,0 +1,1159 @@
+{
+  "schemaVersion": 1,
+  "title": "Explain one prediction with SHAP",
+  "predictionUnit": "thousand dollars per year",
+  "features": [
+    {
+      "id": "ability",
+      "label": "Ability",
+      "shortLabel": "Ability",
+      "unit": "index",
+      "decimals": 2,
+      "domain": [
+        0,
+        1
+      ],
+      "description": "Illustrative ability or skill score, scaled from 0 to 1; not a measured person-level quantity."
+    },
+    {
+      "id": "neighborhood",
+      "label": "Neighborhood opportunity",
+      "shortLabel": "Neighborhood",
+      "unit": "index",
+      "decimals": 2,
+      "domain": [
+        -1,
+        1
+      ],
+      "description": "Illustrative neighborhood opportunity score from −1 (adverse) to +1 (favorable)."
+    },
+    {
+      "id": "experience",
+      "label": "Experience",
+      "shortLabel": "Experience",
+      "unit": "index",
+      "decimals": 2,
+      "domain": [
+        0,
+        1
+      ],
+      "description": "Illustrative experience score, scaled from 0 to 1; not a number of years."
+    }
+  ],
+  "defaultObservationId": "adverse-neighborhood",
+  "defaultComparison": {
+    "feature": 0,
+    "beforeMask": 2,
+    "afterMask": 3
+  },
+  "dataset": {
+    "name": "Illustrative earnings profiles",
+    "type": "synthetic",
+    "description": "Designed reference profiles and observations, not data collected from people.",
+    "sourceRows": 8,
+    "backgroundConstruction": "All ability and experience values in {0,1} and neighborhood values in {−1,+1}; each of the eight combinations has weight 1/8."
+  },
+  "model": {
+    "type": "IllustrativeEarningsInteraction",
+    "equation": "40 + 10 × ability + 24 × ability × neighborhood + 4 × experience",
+    "fitted": false,
+    "interpretation": "A transparent, fixed illustrative predictor of yearly earnings in $1,000 units.",
+    "interaction": "The term 24 × ability × neighborhood deliberately lets neighborhood opportunity change how ability enters the prediction.",
+    "limitations": "The equation and scores are invented for explanation. They are not fitted empirical estimates, validated income predictions, or claims about causal effects of ability or neighborhoods."
+  },
+  "method": {
+    "name": "Exact interventional SHAP over a finite illustrative background",
+    "backgroundSize": 8,
+    "backgroundSelection": "All eight endpoint profiles, equally weighted.",
+    "coalitionDefinition": "Fix the revealed columns at this profile's values in every background row; retain all other columns from that row; average the fixed predictor's outputs.",
+    "modelRefittedForCoalitions": false,
+    "backgroundRowsFilteredOnRevealedValues": false,
+    "unknownColumnsSampledSeparately": false,
+    "orderCount": 6,
+    "coalitionCount": 8,
+    "unitsNote": "Predictions, coalition averages, marginal contributions, and SHAP values are in thousand dollars per year. The three inputs are illustrative normalized scores."
+  },
+  "validation": {
+    "shapPackage": "0.49.1",
+    "shapAlgorithm": "ExactExplainer with an Independent masker containing all eight background profiles",
+    "maxShapAgreementError": 3.552713678800501e-15,
+    "maxBaselineAgreementError": 0.0,
+    "maxAdditivityError": 0.0,
+    "defaultAbilityMarginalBeforeAnyReveal": 5.0,
+    "defaultAbilityMarginalAfterNeighborhood": -7.0,
+    "defaultExpectedShapValues": [
+      -1,
+      -18,
+      2
+    ]
+  },
+  "buildVersions": {
+    "python": "3.12.14",
+    "numpy": "2.2.6",
+    "shap": "0.49.1"
+  },
+  "background": [
+    {
+      "id": "background-1",
+      "name": "Reference profile 1",
+      "values": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "weight": 0.125,
+      "modelPrediction": 40.0
+    },
+    {
+      "id": "background-2",
+      "name": "Reference profile 2",
+      "values": [
+        0.0,
+        -1.0,
+        1.0
+      ],
+      "weight": 0.125,
+      "modelPrediction": 44.0
+    },
+    {
+      "id": "background-3",
+      "name": "Reference profile 3",
+      "values": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "weight": 0.125,
+      "modelPrediction": 40.0
+    },
+    {
+      "id": "background-4",
+      "name": "Reference profile 4",
+      "values": [
+        0.0,
+        1.0,
+        1.0
+      ],
+      "weight": 0.125,
+      "modelPrediction": 44.0
+    },
+    {
+      "id": "background-5",
+      "name": "Reference profile 5",
+      "values": [
+        1.0,
+        -1.0,
+        0.0
+      ],
+      "weight": 0.125,
+      "modelPrediction": 26.0
+    },
+    {
+      "id": "background-6",
+      "name": "Reference profile 6",
+      "values": [
+        1.0,
+        -1.0,
+        1.0
+      ],
+      "weight": 0.125,
+      "modelPrediction": 30.0
+    },
+    {
+      "id": "background-7",
+      "name": "Reference profile 7",
+      "values": [
+        1.0,
+        1.0,
+        0.0
+      ],
+      "weight": 0.125,
+      "modelPrediction": 74.0
+    },
+    {
+      "id": "background-8",
+      "name": "Reference profile 8",
+      "values": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "weight": 0.125,
+      "modelPrediction": 78.0
+    }
+  ],
+  "observations": [
+    {
+      "id": "adverse-neighborhood",
+      "name": "Adverse neighborhood",
+      "values": [
+        1,
+        -1,
+        1
+      ],
+      "prediction": 30.0,
+      "baseValue": 47.0,
+      "coalitions": [
+        {
+          "mask": 0,
+          "value": 47.0,
+          "predictions": [
+            40.0,
+            44.0,
+            40.0,
+            44.0,
+            26.0,
+            30.0,
+            74.0,
+            78.0
+          ]
+        },
+        {
+          "mask": 1,
+          "value": 52.0,
+          "predictions": [
+            26.0,
+            30.0,
+            74.0,
+            78.0,
+            26.0,
+            30.0,
+            74.0,
+            78.0
+          ]
+        },
+        {
+          "mask": 2,
+          "value": 35.0,
+          "predictions": [
+            40.0,
+            44.0,
+            40.0,
+            44.0,
+            26.0,
+            30.0,
+            26.0,
+            30.0
+          ]
+        },
+        {
+          "mask": 3,
+          "value": 28.0,
+          "predictions": [
+            26.0,
+            30.0,
+            26.0,
+            30.0,
+            26.0,
+            30.0,
+            26.0,
+            30.0
+          ]
+        },
+        {
+          "mask": 4,
+          "value": 49.0,
+          "predictions": [
+            44.0,
+            44.0,
+            44.0,
+            44.0,
+            30.0,
+            30.0,
+            78.0,
+            78.0
+          ]
+        },
+        {
+          "mask": 5,
+          "value": 54.0,
+          "predictions": [
+            30.0,
+            30.0,
+            78.0,
+            78.0,
+            30.0,
+            30.0,
+            78.0,
+            78.0
+          ]
+        },
+        {
+          "mask": 6,
+          "value": 37.0,
+          "predictions": [
+            44.0,
+            44.0,
+            44.0,
+            44.0,
+            30.0,
+            30.0,
+            30.0,
+            30.0
+          ]
+        },
+        {
+          "mask": 7,
+          "value": 30.0,
+          "predictions": [
+            30.0,
+            30.0,
+            30.0,
+            30.0,
+            30.0,
+            30.0,
+            30.0,
+            30.0
+          ]
+        }
+      ],
+      "orders": [
+        {
+          "features": [
+            0,
+            1,
+            2
+          ],
+          "marginals": [
+            5.0,
+            -24.0,
+            2.0
+          ],
+          "steps": [
+            {
+              "feature": 0,
+              "beforeMask": 0,
+              "afterMask": 1,
+              "value": 5.0
+            },
+            {
+              "feature": 1,
+              "beforeMask": 1,
+              "afterMask": 3,
+              "value": -24.0
+            },
+            {
+              "feature": 2,
+              "beforeMask": 3,
+              "afterMask": 7,
+              "value": 2.0
+            }
+          ]
+        },
+        {
+          "features": [
+            0,
+            2,
+            1
+          ],
+          "marginals": [
+            5.0,
+            2.0,
+            -24.0
+          ],
+          "steps": [
+            {
+              "feature": 0,
+              "beforeMask": 0,
+              "afterMask": 1,
+              "value": 5.0
+            },
+            {
+              "feature": 2,
+              "beforeMask": 1,
+              "afterMask": 5,
+              "value": 2.0
+            },
+            {
+              "feature": 1,
+              "beforeMask": 5,
+              "afterMask": 7,
+              "value": -24.0
+            }
+          ]
+        },
+        {
+          "features": [
+            1,
+            0,
+            2
+          ],
+          "marginals": [
+            -12.0,
+            -7.0,
+            2.0
+          ],
+          "steps": [
+            {
+              "feature": 1,
+              "beforeMask": 0,
+              "afterMask": 2,
+              "value": -12.0
+            },
+            {
+              "feature": 0,
+              "beforeMask": 2,
+              "afterMask": 3,
+              "value": -7.0
+            },
+            {
+              "feature": 2,
+              "beforeMask": 3,
+              "afterMask": 7,
+              "value": 2.0
+            }
+          ]
+        },
+        {
+          "features": [
+            1,
+            2,
+            0
+          ],
+          "marginals": [
+            -12.0,
+            2.0,
+            -7.0
+          ],
+          "steps": [
+            {
+              "feature": 1,
+              "beforeMask": 0,
+              "afterMask": 2,
+              "value": -12.0
+            },
+            {
+              "feature": 2,
+              "beforeMask": 2,
+              "afterMask": 6,
+              "value": 2.0
+            },
+            {
+              "feature": 0,
+              "beforeMask": 6,
+              "afterMask": 7,
+              "value": -7.0
+            }
+          ]
+        },
+        {
+          "features": [
+            2,
+            0,
+            1
+          ],
+          "marginals": [
+            2.0,
+            5.0,
+            -24.0
+          ],
+          "steps": [
+            {
+              "feature": 2,
+              "beforeMask": 0,
+              "afterMask": 4,
+              "value": 2.0
+            },
+            {
+              "feature": 0,
+              "beforeMask": 4,
+              "afterMask": 5,
+              "value": 5.0
+            },
+            {
+              "feature": 1,
+              "beforeMask": 5,
+              "afterMask": 7,
+              "value": -24.0
+            }
+          ]
+        },
+        {
+          "features": [
+            2,
+            1,
+            0
+          ],
+          "marginals": [
+            2.0,
+            -12.0,
+            -7.0
+          ],
+          "steps": [
+            {
+              "feature": 2,
+              "beforeMask": 0,
+              "afterMask": 4,
+              "value": 2.0
+            },
+            {
+              "feature": 1,
+              "beforeMask": 4,
+              "afterMask": 6,
+              "value": -12.0
+            },
+            {
+              "feature": 0,
+              "beforeMask": 6,
+              "afterMask": 7,
+              "value": -7.0
+            }
+          ]
+        }
+      ],
+      "shapValues": [
+        -1.0,
+        -18.0,
+        2.0
+      ]
+    },
+    {
+      "id": "favorable-neighborhood",
+      "name": "Favorable neighborhood",
+      "values": [
+        1,
+        1,
+        1
+      ],
+      "prediction": 78.0,
+      "baseValue": 47.0,
+      "coalitions": [
+        {
+          "mask": 0,
+          "value": 47.0,
+          "predictions": [
+            40.0,
+            44.0,
+            40.0,
+            44.0,
+            26.0,
+            30.0,
+            74.0,
+            78.0
+          ]
+        },
+        {
+          "mask": 1,
+          "value": 52.0,
+          "predictions": [
+            26.0,
+            30.0,
+            74.0,
+            78.0,
+            26.0,
+            30.0,
+            74.0,
+            78.0
+          ]
+        },
+        {
+          "mask": 2,
+          "value": 59.0,
+          "predictions": [
+            40.0,
+            44.0,
+            40.0,
+            44.0,
+            74.0,
+            78.0,
+            74.0,
+            78.0
+          ]
+        },
+        {
+          "mask": 3,
+          "value": 76.0,
+          "predictions": [
+            74.0,
+            78.0,
+            74.0,
+            78.0,
+            74.0,
+            78.0,
+            74.0,
+            78.0
+          ]
+        },
+        {
+          "mask": 4,
+          "value": 49.0,
+          "predictions": [
+            44.0,
+            44.0,
+            44.0,
+            44.0,
+            30.0,
+            30.0,
+            78.0,
+            78.0
+          ]
+        },
+        {
+          "mask": 5,
+          "value": 54.0,
+          "predictions": [
+            30.0,
+            30.0,
+            78.0,
+            78.0,
+            30.0,
+            30.0,
+            78.0,
+            78.0
+          ]
+        },
+        {
+          "mask": 6,
+          "value": 61.0,
+          "predictions": [
+            44.0,
+            44.0,
+            44.0,
+            44.0,
+            78.0,
+            78.0,
+            78.0,
+            78.0
+          ]
+        },
+        {
+          "mask": 7,
+          "value": 78.0,
+          "predictions": [
+            78.0,
+            78.0,
+            78.0,
+            78.0,
+            78.0,
+            78.0,
+            78.0,
+            78.0
+          ]
+        }
+      ],
+      "orders": [
+        {
+          "features": [
+            0,
+            1,
+            2
+          ],
+          "marginals": [
+            5.0,
+            24.0,
+            2.0
+          ],
+          "steps": [
+            {
+              "feature": 0,
+              "beforeMask": 0,
+              "afterMask": 1,
+              "value": 5.0
+            },
+            {
+              "feature": 1,
+              "beforeMask": 1,
+              "afterMask": 3,
+              "value": 24.0
+            },
+            {
+              "feature": 2,
+              "beforeMask": 3,
+              "afterMask": 7,
+              "value": 2.0
+            }
+          ]
+        },
+        {
+          "features": [
+            0,
+            2,
+            1
+          ],
+          "marginals": [
+            5.0,
+            2.0,
+            24.0
+          ],
+          "steps": [
+            {
+              "feature": 0,
+              "beforeMask": 0,
+              "afterMask": 1,
+              "value": 5.0
+            },
+            {
+              "feature": 2,
+              "beforeMask": 1,
+              "afterMask": 5,
+              "value": 2.0
+            },
+            {
+              "feature": 1,
+              "beforeMask": 5,
+              "afterMask": 7,
+              "value": 24.0
+            }
+          ]
+        },
+        {
+          "features": [
+            1,
+            0,
+            2
+          ],
+          "marginals": [
+            12.0,
+            17.0,
+            2.0
+          ],
+          "steps": [
+            {
+              "feature": 1,
+              "beforeMask": 0,
+              "afterMask": 2,
+              "value": 12.0
+            },
+            {
+              "feature": 0,
+              "beforeMask": 2,
+              "afterMask": 3,
+              "value": 17.0
+            },
+            {
+              "feature": 2,
+              "beforeMask": 3,
+              "afterMask": 7,
+              "value": 2.0
+            }
+          ]
+        },
+        {
+          "features": [
+            1,
+            2,
+            0
+          ],
+          "marginals": [
+            12.0,
+            2.0,
+            17.0
+          ],
+          "steps": [
+            {
+              "feature": 1,
+              "beforeMask": 0,
+              "afterMask": 2,
+              "value": 12.0
+            },
+            {
+              "feature": 2,
+              "beforeMask": 2,
+              "afterMask": 6,
+              "value": 2.0
+            },
+            {
+              "feature": 0,
+              "beforeMask": 6,
+              "afterMask": 7,
+              "value": 17.0
+            }
+          ]
+        },
+        {
+          "features": [
+            2,
+            0,
+            1
+          ],
+          "marginals": [
+            2.0,
+            5.0,
+            24.0
+          ],
+          "steps": [
+            {
+              "feature": 2,
+              "beforeMask": 0,
+              "afterMask": 4,
+              "value": 2.0
+            },
+            {
+              "feature": 0,
+              "beforeMask": 4,
+              "afterMask": 5,
+              "value": 5.0
+            },
+            {
+              "feature": 1,
+              "beforeMask": 5,
+              "afterMask": 7,
+              "value": 24.0
+            }
+          ]
+        },
+        {
+          "features": [
+            2,
+            1,
+            0
+          ],
+          "marginals": [
+            2.0,
+            12.0,
+            17.0
+          ],
+          "steps": [
+            {
+              "feature": 2,
+              "beforeMask": 0,
+              "afterMask": 4,
+              "value": 2.0
+            },
+            {
+              "feature": 1,
+              "beforeMask": 4,
+              "afterMask": 6,
+              "value": 12.0
+            },
+            {
+              "feature": 0,
+              "beforeMask": 6,
+              "afterMask": 7,
+              "value": 17.0
+            }
+          ]
+        }
+      ],
+      "shapValues": [
+        11.0,
+        18.0,
+        2.0
+      ]
+    },
+    {
+      "id": "mixed-profile",
+      "name": "Mixed profile",
+      "values": [
+        0.75,
+        -0.5,
+        0.5
+      ],
+      "prediction": 40.5,
+      "baseValue": 47.0,
+      "coalitions": [
+        {
+          "mask": 0,
+          "value": 47.0,
+          "predictions": [
+            40.0,
+            44.0,
+            40.0,
+            44.0,
+            26.0,
+            30.0,
+            74.0,
+            78.0
+          ]
+        },
+        {
+          "mask": 1,
+          "value": 49.5,
+          "predictions": [
+            29.5,
+            33.5,
+            65.5,
+            69.5,
+            29.5,
+            33.5,
+            65.5,
+            69.5
+          ]
+        },
+        {
+          "mask": 2,
+          "value": 41.0,
+          "predictions": [
+            40.0,
+            44.0,
+            40.0,
+            44.0,
+            38.0,
+            42.0,
+            38.0,
+            42.0
+          ]
+        },
+        {
+          "mask": 3,
+          "value": 40.5,
+          "predictions": [
+            38.5,
+            42.5,
+            38.5,
+            42.5,
+            38.5,
+            42.5,
+            38.5,
+            42.5
+          ]
+        },
+        {
+          "mask": 4,
+          "value": 47.0,
+          "predictions": [
+            42.0,
+            42.0,
+            42.0,
+            42.0,
+            28.0,
+            28.0,
+            76.0,
+            76.0
+          ]
+        },
+        {
+          "mask": 5,
+          "value": 49.5,
+          "predictions": [
+            31.5,
+            31.5,
+            67.5,
+            67.5,
+            31.5,
+            31.5,
+            67.5,
+            67.5
+          ]
+        },
+        {
+          "mask": 6,
+          "value": 41.0,
+          "predictions": [
+            42.0,
+            42.0,
+            42.0,
+            42.0,
+            40.0,
+            40.0,
+            40.0,
+            40.0
+          ]
+        },
+        {
+          "mask": 7,
+          "value": 40.5,
+          "predictions": [
+            40.5,
+            40.5,
+            40.5,
+            40.5,
+            40.5,
+            40.5,
+            40.5,
+            40.5
+          ]
+        }
+      ],
+      "orders": [
+        {
+          "features": [
+            0,
+            1,
+            2
+          ],
+          "marginals": [
+            2.5,
+            -9.0,
+            0.0
+          ],
+          "steps": [
+            {
+              "feature": 0,
+              "beforeMask": 0,
+              "afterMask": 1,
+              "value": 2.5
+            },
+            {
+              "feature": 1,
+              "beforeMask": 1,
+              "afterMask": 3,
+              "value": -9.0
+            },
+            {
+              "feature": 2,
+              "beforeMask": 3,
+              "afterMask": 7,
+              "value": 0.0
+            }
+          ]
+        },
+        {
+          "features": [
+            0,
+            2,
+            1
+          ],
+          "marginals": [
+            2.5,
+            0.0,
+            -9.0
+          ],
+          "steps": [
+            {
+              "feature": 0,
+              "beforeMask": 0,
+              "afterMask": 1,
+              "value": 2.5
+            },
+            {
+              "feature": 2,
+              "beforeMask": 1,
+              "afterMask": 5,
+              "value": 0.0
+            },
+            {
+              "feature": 1,
+              "beforeMask": 5,
+              "afterMask": 7,
+              "value": -9.0
+            }
+          ]
+        },
+        {
+          "features": [
+            1,
+            0,
+            2
+          ],
+          "marginals": [
+            -6.0,
+            -0.5,
+            0.0
+          ],
+          "steps": [
+            {
+              "feature": 1,
+              "beforeMask": 0,
+              "afterMask": 2,
+              "value": -6.0
+            },
+            {
+              "feature": 0,
+              "beforeMask": 2,
+              "afterMask": 3,
+              "value": -0.5
+            },
+            {
+              "feature": 2,
+              "beforeMask": 3,
+              "afterMask": 7,
+              "value": 0.0
+            }
+          ]
+        },
+        {
+          "features": [
+            1,
+            2,
+            0
+          ],
+          "marginals": [
+            -6.0,
+            0.0,
+            -0.5
+          ],
+          "steps": [
+            {
+              "feature": 1,
+              "beforeMask": 0,
+              "afterMask": 2,
+              "value": -6.0
+            },
+            {
+              "feature": 2,
+              "beforeMask": 2,
+              "afterMask": 6,
+              "value": 0.0
+            },
+            {
+              "feature": 0,
+              "beforeMask": 6,
+              "afterMask": 7,
+              "value": -0.5
+            }
+          ]
+        },
+        {
+          "features": [
+            2,
+            0,
+            1
+          ],
+          "marginals": [
+            0.0,
+            2.5,
+            -9.0
+          ],
+          "steps": [
+            {
+              "feature": 2,
+              "beforeMask": 0,
+              "afterMask": 4,
+              "value": 0.0
+            },
+            {
+              "feature": 0,
+              "beforeMask": 4,
+              "afterMask": 5,
+              "value": 2.5
+            },
+            {
+              "feature": 1,
+              "beforeMask": 5,
+              "afterMask": 7,
+              "value": -9.0
+            }
+          ]
+        },
+        {
+          "features": [
+            2,
+            1,
+            0
+          ],
+          "marginals": [
+            0.0,
+            -6.0,
+            -0.5
+          ],
+          "steps": [
+            {
+              "feature": 2,
+              "beforeMask": 0,
+              "afterMask": 4,
+              "value": 0.0
+            },
+            {
+              "feature": 1,
+              "beforeMask": 4,
+              "afterMask": 6,
+              "value": -6.0
+            },
+            {
+              "feature": 0,
+              "beforeMask": 6,
+              "afterMask": 7,
+              "value": -0.5
+            }
+          ]
+        }
+      ],
+      "shapValues": [
+        1.0,
+        -7.5,
+        0.0
+      ]
+    }
+  ]
+}

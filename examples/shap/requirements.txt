@@ -1,0 +1,4 @@
+# Offline numerical generation and SHAP verification; the website has no Python dependency.
+numpy==2.2.6
+shap==0.49.1
+matplotlib==3.11.2

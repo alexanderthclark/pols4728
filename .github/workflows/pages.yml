@@ -4,13 +4,13 @@ on:
   push:
     paths:
       - 'docs/**'
-      - 'tests/shapley-game.test.mjs'
+      - 'tests/**'
       - '.github/workflows/pages.yml'
   pull_request:
     branches: [main]
     paths:
       - 'docs/**'
-      - 'tests/shapley-game.test.mjs'
+      - 'tests/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -39,8 +39,13 @@ jobs:
           node --check docs/shapley/story.js
           node --check docs/shapley/weight-view.js
           node --check docs/shapley/formula-view.js
-      - name: Check Shapley calculations and edge frequencies
-        run: node --test tests/shapley-game.test.mjs
+          node --check docs/shap/calculation.mjs
+          node --check docs/shap/story.js
+          node --check docs/shap/waterfall.js
+          node --check docs/shap/formula.js
+          node --check docs/shap/bread-peace.js
+      - name: Check Shapley games and local SHAP calculations
+        run: node --test tests/*.test.mjs
 
   deploy:
     name: Publish GitHub Pages
