@@ -44,7 +44,11 @@ jobs:
           node --check docs/shap/waterfall.js
           node --check docs/shap/formula.js
           node --check docs/shap/bread-peace.js
-      - name: Check Shapley games and local SHAP calculations
+          node --check docs/deep/model.mjs
+          node --check docs/deep/geometry.mjs
+          node --check docs/deep/views.js
+          node --check docs/deep/story.js
+      - name: Check teaching models and geometry
         run: node --test tests/*.test.mjs
 
   deploy:

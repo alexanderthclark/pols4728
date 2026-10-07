@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Keep three ReLU features fixed and add a second hidden layer. Watch broad ramps become local features, following the notation of Prince's Understanding Deep Learning.">
+  <title>What does another layer add? · POLS 4728</title>
+  <link rel="preload" href="../shapley/fonts/STIXTwoMath-Regular.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="story.js"></script>
+  <noscript><style>
+    .visual-stage,.scroll-prompt { display:none; }
+    .story-layout { display:block; max-width:48rem; margin:auto; }
+    .step { min-height:0; padding:2rem 0; }
+  </style></noscript>
+</head>
+<body>
+  <a class="skip-link" href="#story">Skip to the explanation</a>
+  <header class="masthead">
+    <a href="../">POLS 4728 · ML &amp; AI</a>
+    <a href="#model-and-reference">Model &amp; reference</a>
+  </header>
+  <main class="deep-story" id="story">
+    <div class="story-layout">
+      <div class="narrative">
+        <section class="step" id="another-layer" data-step="0" aria-labelledby="title">
+          <div class="step-content">
+            <p class="step-kicker">1 / 8 · Deep neural networks</p>
+            <h1 id="title">What does another layer add?</h1>
+            <p class="cover-subtitle">From broad ramps to local features.</p>
+            <div class="step-prose">
+              <p>A point has two inputs, <var>x</var><sub>1</sub> and <var>x</var><sub>2</sub>. A network assigns it one numeric response, <var>y</var>. The height of this surface is that response.</p>
+              <p>Keep three familiar ReLU features fixed. Give them to one additional hidden layer. Watch the new layer build features that respond within a bounded region.</p>
+            </div>
+            <p class="scroll-prompt">Scroll to build the surface, or use Next.</p>
+          </div>
+        </section>
+        <section class="step" id="three-features" data-step="1" aria-labelledby="features-heading">
+          <div class="step-content">
+            <p class="step-kicker">2 / 8 · One hidden layer</p>
+            <h2 id="features-heading">Three familiar ramps</h2>
+            <div class="step-prose">
+              <p>Each first-layer unit applies ReLU to a linear function of the inputs. Its surface bends along a straight line in the input plane.</p>
+            </div>
+            <div class="equation feature-equations">
+              <math display="block" aria-label="h one comma one equals a of x one"><mrow><msub><mi>h</mi><mrow><mn>1</mn><mo>,</mo><mn>1</mn></mrow></msub><mo>=</mo><mi>a</mi><mo>[</mo><msub><mi>x</mi><mn>1</mn></msub><mo>]</mo></mrow></math>
+              <math display="block" aria-label="h one comma two equals a of x two"><mrow><msub><mi>h</mi><mrow><mn>1</mn><mo>,</mo><mn>2</mn></mrow></msub><mo>=</mo><mi>a</mi><mo>[</mo><msub><mi>x</mi><mn>2</mn></msub><mo>]</mo></mrow></math>
+              <math display="block" aria-label="h one comma three equals a of minus x one minus x two"><mrow><msub><mi>h</mi><mrow><mn>1</mn><mo>,</mo><mn>3</mn></mrow></msub><mo>=</mo><mi>a</mi><mo>[</mo><mo>−</mo><msub><mi>x</mi><mn>1</mn></msub><mo>−</mo><msub><mi>x</mi><mn>2</mn></msub><mo>]</mo></mrow></math>
+            </div>
+            <div class="step-prose">
+              <p>Here <span class="math-text">a[z] = max(0, z)</span>. Select a unit to see its ramp and activation boundary. These three features will stay fixed for the rest of the story.</p>
+            </div>
+          </div>
+        </section>
+        <section class="step" id="shallow-readout" data-step="2" aria-labelledby="readout-heading">
+          <div class="step-content">
+            <p class="step-kicker">3 / 8 · An affine output</p>
+            <h2 id="readout-heading">Combine the ramps</h2>
+            <div class="step-prose">
+              <p>A shallow network can weight these features and add a bias. Choose a bias of 1 and a weight of −1 on each feature.</p>
+            </div>
+            <div class="equation">
+              <math display="block" aria-label="y shallow equals one minus h one comma one minus h one comma two minus h one comma three"><mrow><msub><mi>y</mi><mtext>shallow</mtext></msub><mo>=</mo><mn>1</mn><mo>−</mo><msub><mi>h</mi><mrow><mn>1</mn><mo>,</mo><mn>1</mn></mrow></msub><mo>−</mo><msub><mi>h</mi><mrow><mn>1</mn><mo>,</mo><mn>2</mn></mrow></msub><mo>−</mo><msub><mi>h</mi><mrow><mn>1</mn><mo>,</mo><mn>3</mn></mrow></msub></mrow></math>
+            </div>
+            <div class="step-prose">
+              <p>The surface peaks at the origin and slopes down away from it. It crosses zero along the dashed hexagon, then continues to negative values.</p>
+              <p>Its slope changes lie on the original straight crease lines. Changing the output weights can change those slopes.</p>
+            </div>
+          </div>
+        </section>
+        <section class="step" id="add-hidden-layer" data-step="3" aria-labelledby="insert-heading">
+          <div class="step-content">
+            <p class="step-kicker">4 / 8 · Insert a second hidden layer</p>
+            <h2 id="insert-heading">Give the features to new units</h2>
+            <div class="step-prose">
+              <p>Replace the shallow readout with another layer of three hidden units. Each new unit receives all three first-layer activations directly.</p>
+            </div>
+            <div class="equation">
+              <math display="block" aria-label="bold h two equals elementwise a of bold beta one plus bold Omega one times bold h one"><mrow><msub><mi mathvariant="bold">h</mi><mn>2</mn></msub><mo>=</mo><mi mathvariant="bold">a</mi><mo>[</mo><msub><mi mathvariant="bold">β</mi><mn>1</mn></msub><mo>+</mo><msub><mi mathvariant="bold">Ω</mi><mn>1</mn></msub><msub><mi mathvariant="bold">h</mi><mn>1</mn></msub><mo>]</mo></mrow></math>
+            </div>
+            <div class="step-prose">
+              <p>Following Prince, <span class="math-text">β</span> denotes biases and <span class="math-text">Ω</span> denotes weights. The activation acts on each unit separately.</p>
+              <p>For the first new unit, choose the same weighted combination we just saw. Before its ReLU, the surface is unchanged. Now there is another nonlinear operation to apply.</p>
+            </div>
+          </div>
+        </section>
+        <section class="step" id="local-feature" data-step="4" aria-labelledby="local-heading">
+          <div class="step-content">
+            <p class="step-kicker">5 / 8 · Apply the new ReLU</p>
+            <h2 id="local-heading">A response confined to one region</h2>
+            <div class="equation">
+              <math display="block" aria-label="h two comma one equals a of one minus h one comma one minus h one comma two minus h one comma three"><mrow><msub><mi>h</mi><mrow><mn>2</mn><mo>,</mo><mn>1</mn></mrow></msub><mo>=</mo><mi>a</mi><mo>[</mo><mn>1</mn><mo>−</mo><msub><mi>h</mi><mrow><mn>1</mn><mo>,</mo><mn>1</mn></mrow></msub><mo>−</mo><msub><mi>h</mi><mrow><mn>1</mn><mo>,</mo><mn>2</mn></mrow></msub><mo>−</mo><msub><mi>h</mi><mrow><mn>1</mn><mo>,</mo><mn>3</mn></mrow></msub><mo>]</mo></mrow></math>
+            </div>
+            <div class="step-prose">
+              <p>The new ReLU clips every negative value to zero. What remains is a hexagonal tent: a local feature with a peak of 1 and an exactly zero response outside its footprint.</p>
+              <p>The dashed outline now marks an activation boundary. It bends as it crosses the first layer’s regions. The original crease lines terminate at that outline because the surface outside it is flat.</p>
+              <p>Select an input point in the small plot to follow its activations through the network.</p>
+            </div>
+          </div>
+        </section>
+        <section class="step" id="reshape-feature" data-step="5" aria-labelledby="reshape-heading">
+          <div class="step-content">
+            <p class="step-kicker">6 / 8 · A different combination</p>
+            <h2 id="reshape-heading">Pinch one flank</h2>
+            <div class="equation">
+              <math display="block" aria-label="h two comma two equals a of one minus two h one comma one minus h one comma two minus h one comma three"><mrow><msub><mi>h</mi><mrow><mn>2</mn><mo>,</mo><mn>2</mn></mrow></msub><mo>=</mo><mi>a</mi><mo>[</mo><mn>1</mn><mo>−</mo><mn data-pinch-formula>2</mn><msub><mi>h</mi><mrow><mn>1</mn><mo>,</mo><mn>1</mn></mrow></msub><mo>−</mo><msub><mi>h</mi><mrow><mn>1</mn><mo>,</mo><mn>2</mn></mrow></msub><mo>−</mo><msub><mi>h</mi><mrow><mn>1</mn><mo>,</mo><mn>3</mn></mrow></msub><mo>]</mo></mrow></math>
+            </div>
+            <div class="step-prose">
+              <p>At the default weight of −2, the second new unit puts more negative weight on the first feature. Wherever <span class="math-text">h<sub>1,1</sub></span> is active, its preactivation falls faster. That side of the footprint contracts. A weaker negative weight expands it.</p>
+              <p>Move the weight control. The first-layer ramps stay fixed while the new feature’s shape changes.</p>
+            </div>
+          </div>
+        </section>
+        <section class="step" id="combine-local-features" data-step="6" aria-labelledby="combine-heading">
+          <div class="step-content">
+            <p class="step-kicker">7 / 8 · The output surface</p>
+            <h2 id="combine-heading">Combine three local features</h2>
+            <div class="step-prose">
+              <p>The third new unit gives the second first-layer feature a weight of −2. It pinches another flank. All three second-layer units now contribute to an affine output.</p>
+            </div>
+            <div class="equation">
+              <math display="block" aria-label="y equals h two comma one plus zero point three h two comma two plus zero point three h two comma three"><mrow><mi>y</mi><mo>=</mo><msub><mi>h</mi><mrow><mn>2</mn><mo>,</mo><mn>1</mn></mrow></msub><mo>+</mo><mn>0.3</mn><msub><mi>h</mi><mrow><mn>2</mn><mo>,</mo><mn>2</mn></mrow></msub><mo>+</mo><mn>0.3</mn><msub><mi>h</mi><mrow><mn>2</mn><mo>,</mo><mn>3</mn></mrow></msub></mrow></math>
+            </div>
+            <div class="step-prose">
+              <p>Different footprints introduce different crease segments into the final surface. Depth has let the network build nonlinear features from existing nonlinear features, then recombine them.</p>
+              <p>There are two hidden layers, each with three units. The output is linear; there is no third hidden layer.</p>
+            </div>
+          </div>
+        </section>
+        <section class="step" id="explore" data-step="7" aria-labelledby="explore-heading">
+          <div class="step-content">
+            <p class="step-kicker">8 / 8 · Keep the first layer fixed</p>
+            <h2 id="explore-heading">Explore the geometry</h2>
+            <div class="step-prose">
+              <p>Inspect the shallow readout, an individual new feature, or the combined output. Change the weight and trace an input point through the same network.</p>
+              <p>The comparison has a precise scope. With these three first-layer features fixed, a shallow affine readout is affine along every ray from the origin. It cannot form this peak and then remain exactly zero farther out. The added ReLU can.</p>
+              <p>This is a construction of representational capacity. We chose the weights to make the geometry clear; we have not trained a model or compared test error.</p>
+              <p>Prince’s folding viewpoint describes how a layer changes the geometry of its inputs. Here we follow a complementary consequence: a new unit can combine those features into a response active within a local region.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+      <aside class="visual-stage mode-cover" aria-label="Linked neural network figures">
+        <div class="stage-topline"><span class="stage-title" id="stage-title">The surface we will build</span><span class="step-count" id="stage-count" aria-live="polite" aria-atomic="true">1 / 8</span></div>
+        <p class="stage-subtitle" id="stage-subtitle">Two inputs · one numeric response</p>
+        <div class="stage-figure">
+          <div class="surface-view"><svg id="surface" role="img" aria-label="Neural network response surface over inputs x one and x two"></svg></div>
+          <div class="plane-view"><svg id="input-plane" role="img" aria-label="Input plane with the current surface's activation boundaries and the selected input point"></svg></div>
+        </div>
+        <p class="figure-note" id="figure-note">The surface height is the network’s response.</p>
+        <div class="network-view"><svg id="network" role="img" aria-label="Neural network architecture and activations at the selected input"></svg></div>
+        <div class="stage-readout" id="stage-readout" aria-live="off">
+          <div><span class="readout-label">Input <span class="math-text">x</span></span><span class="readout-values" id="input-values">(0.3, 0.2)</span></div>
+          <div><span class="readout-label">First layer <span class="math-text">h<sub>1</sub></span></span><span class="readout-values" id="first-values">(0.3, 0.2, 0)</span></div>
+          <div><span class="readout-label" id="response-label">Response <var>y</var></span><span class="readout-values" id="response-value">0.65</span></div>
+        </div>
+        <div class="feature-controls" id="feature-controls" hidden><label for="feature-select">First-layer unit</label><select id="feature-select"><option value="h11">h₁,₁ · a[x₁]</option><option value="h12">h₁,₂ · a[x₂]</option><option value="h13">h₁,₃ · a[−x₁ − x₂]</option></select></div>
+        <div class="explorer-controls" id="weight-controls" hidden><label for="pinch-weight">Weight on h₁,₁ in the second new unit <output id="pinch-value" for="pinch-weight">−2.00</output></label><input id="pinch-weight" type="range" min="-3" max="-0.5" step="0.05" value="-2" aria-describedby="weight-description"><span id="weight-description" class="sr-only">More negative weight narrows the positive x one flank. The first hidden layer remains fixed.</span></div>
+        <div class="explorer-controls" id="surface-controls" hidden><label for="surface-select">Surface to inspect</label><select id="surface-select"><option value="combined">Full output y</option><option value="unit1">First new unit h₂,₁</option><option value="unit2">Pinched unit h₂,₂</option><option value="unit3">Third new unit h₂,₃</option><option value="shallow">Shallow readout</option></select></div>
+        <div class="probe-controls" id="probe-controls" hidden>
+          <label for="probe-x1">Input x₁ <output id="probe-x1-value" for="probe-x1">0.3</output><input id="probe-x1" type="range" min="-1.6" max="1.6" step="0.05" value="0.3"></label>
+          <label for="probe-x2">Input x₂ <output id="probe-x2-value" for="probe-x2">0.2</output><input id="probe-x2" type="range" min="-1.6" max="1.6" step="0.05" value="0.2"></label>
+        </div>
+        <nav class="story-nav" aria-label="Story frames"><button class="nav-prev" id="previous" type="button" disabled>← Previous</button><div class="progress-dots" id="progress-dots" aria-label="Choose a frame"></div><button class="nav-next" id="next" type="button">Next →</button></nav>
+        <p class="sr-only" id="interaction-status" role="status" aria-live="polite"></p>
+      </aside>
+    </div>
+    <section class="method-notes" id="model-and-reference" aria-labelledby="method-heading">
+      <h2 id="method-heading">The model and its scope</h2>
+      <p>This original example uses the notation of Simon J. D. Prince’s <cite>Understanding Deep Learning</cite>, Chapter 4, especially §4.3. The parameters below are chosen for illustration. The first layer remains fixed; the second hidden layer has three units with separately specified incoming weights.</p>
+      <details>
+        <summary>Show the complete network</summary>
+        <div class="model-equations">
+          <p>With elementwise ReLU <span class="math-text">a[z] = max(0, z)</span>:</p>
+          <math display="block" aria-label="First hidden layer equals elementwise ReLU of beta zero plus Omega zero times x"><mrow><msub><mi mathvariant="bold">h</mi><mn>1</mn></msub><mo>=</mo><mi mathvariant="bold">a</mi><mo>[</mo><msub><mi mathvariant="bold">β</mi><mn>0</mn></msub><mo>+</mo><msub><mi mathvariant="bold">Ω</mi><mn>0</mn></msub><mi mathvariant="bold">x</mi><mo>]</mo></mrow></math>
+          <math display="block" aria-label="Beta zero is a three-vector of zeros. Omega zero has rows one zero, zero one, and minus one minus one"><mrow><msub><mi mathvariant="bold">β</mi><mn>0</mn></msub><mo>=</mo><mi mathvariant="bold">0</mi><mo>,</mo><mspace width="1em"/><msub><mi mathvariant="bold">Ω</mi><mn>0</mn></msub><mo>=</mo><mo>[</mo><mtable><mtr><mtd><mn>1</mn></mtd><mtd><mn>0</mn></mtd></mtr><mtr><mtd><mn>0</mn></mtd><mtd><mn>1</mn></mtd></mtr><mtr><mtd><mo>−</mo><mn>1</mn></mtd><mtd><mo>−</mo><mn>1</mn></mtd></mtr></mtable><mo>]</mo></mrow></math>
+          <math display="block" aria-label="Second hidden layer equals elementwise ReLU of beta one plus Omega one times h one"><mrow><msub><mi mathvariant="bold">h</mi><mn>2</mn></msub><mo>=</mo><mi mathvariant="bold">a</mi><mo>[</mo><msub><mi mathvariant="bold">β</mi><mn>1</mn></msub><mo>+</mo><msub><mi mathvariant="bold">Ω</mi><mn>1</mn></msub><msub><mi mathvariant="bold">h</mi><mn>1</mn></msub><mo>]</mo></mrow></math>
+          <math display="block" aria-label="Beta one has entries one one one, and Omega one has rows minus one minus one minus one, minus c minus one minus one, and minus one minus two minus one"><mrow><msub><mi mathvariant="bold">β</mi><mn>1</mn></msub><mo>=</mo><mo>[</mo><mtable><mtr><mtd><mn>1</mn></mtd></mtr><mtr><mtd><mn>1</mn></mtd></mtr><mtr><mtd><mn>1</mn></mtd></mtr></mtable><mo>]</mo><mo>,</mo><mspace width="1em"/><msub><mi mathvariant="bold">Ω</mi><mn>1</mn></msub><mo>=</mo><mo>[</mo><mtable><mtr><mtd><mo>−</mo><mn>1</mn></mtd><mtd><mo>−</mo><mn>1</mn></mtd><mtd><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd><mo>−</mo><mi>c</mi></mtd><mtd><mo>−</mo><mn>1</mn></mtd><mtd><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd><mo>−</mo><mn>1</mn></mtd><mtd><mo>−</mo><mn>2</mn></mtd><mtd><mo>−</mo><mn>1</mn></mtd></mtr></mtable><mo>]</mo></mrow></math>
+          <p>The default is <span class="math-text">c = 2</span>. The weight control changes only <span class="math-text">c</span>.</p>
+          <math display="block" aria-label="y equals beta two plus Omega two times h two, with beta two zero and Omega two one zero point three zero point three"><mrow><mi>y</mi><mo>=</mo><msub><mi>β</mi><mn>2</mn></msub><mo>+</mo><msub><mi mathvariant="bold">Ω</mi><mn>2</mn></msub><msub><mi mathvariant="bold">h</mi><mn>2</mn></msub><mo>,</mo><mspace width="1em"/><msub><mi>β</mi><mn>2</mn></msub><mo>=</mo><mn>0</mn><mo>,</mo><mspace width="1em"/><msub><mi mathvariant="bold">Ω</mi><mn>2</mn></msub><mo>=</mo><mo>[</mo><mn>1</mn><mspace width="0.4em"/><mn>0.3</mn><mspace width="0.4em"/><mn>0.3</mn><mo>]</mo></mrow></math>
+        </div>
+      </details>
+      <p>Why hold the first features fixed? Along a ray <span class="math-text">r x</span>, with <span class="math-text">r ≥ 0</span>, these bias-free first-layer features satisfy <span class="math-text">h₁(r x) = r h₁(x)</span>. Any affine readout of them is affine in <var>r</var>. It cannot be nonzero near the origin and identically zero beyond a finite distance along every ray. The second-layer ReLU supplies that extra change in slope. This argument concerns these fixed features; it is not a parameter-matched comparison with arbitrary shallow networks.</p>
+      <p>The input window is <span class="math-text">[−1.6, 1.6]²</span>. At the default weights, all three local features are zero outside the displayed hexagonal footprint, including beyond this window. At the control’s weakest negative weight, one flank can extend beyond the displayed window. Dashed lines mark zero crossings or activation boundaries, while solid lines mark actual changes in surface slope.</p>
+      <p><a href="https://github.com/udlbook/udlbook/releases/download/v5.0.2/UnderstandingDeepLearning_05_29_25_C.pdf">Prince, <cite>Understanding Deep Learning</cite>, Chapter 4</a> · <a href="https://udlbook.github.io/udlbook/">Book and companion materials</a> · <a href="https://github.com/alexanderthclark/pols4728/tree/main/docs/deep">Source and mathematical checks</a></p>
+    </section>
+  </main>
+  <footer class="page-footer"><a href="../">POLS 4728 · ML &amp; AI for the Social Sciences</a><span>Two hidden layers · three units per layer</span></footer>
+</body>
+</html>
