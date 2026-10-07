@@ -1,8 +1,10 @@
-// This is an illustrative construction, not a trained or parameter-matched
-// comparison. The first-layer features stay fixed when the layer is added.
-export const DEFAULT_PINCH = 2;
-export const PINCH_RANGE = Object.freeze([0.5, 3]);
-export const INPUT_EXTENT = 1.6;
+// Original illustrative construction using Prince's h / beta / Omega notation.
+// These weights are chosen, not trained. Adding the layer changes the number
+// of units and parameters; this is not an equal-parameter comparison.
+export const DEFAULT_THRESHOLD = 0.3;
+export const THRESHOLD_RANGE = Object.freeze([0.2, 0.8]);
+export const INPUT_DOMAIN = Object.freeze([-0.25, 3.25]);
+export const FIRST_LAYER_KNOTS = Object.freeze([0, 1, 2]);
 export const OUTPUT_WEIGHTS = Object.freeze([1, 0.3, 0.3]);
 export const SURFACE_MODES = Object.freeze([
   'h11', 'h12', 'h13', 'shallow', 'preactivation',
@@ -11,72 +13,84 @@ export const SURFACE_MODES = Object.freeze([
 
 export const relu = value => Math.max(0, value);
 
-export function validatePinch(pinch = DEFAULT_PINCH) {
-  if (!Number.isFinite(pinch) || pinch < PINCH_RANGE[0] || pinch > PINCH_RANGE[1]) {
-    throw new RangeError(`pinch must be between ${PINCH_RANGE[0]} and ${PINCH_RANGE[1]}`);
+export function validateThreshold(threshold = DEFAULT_THRESHOLD) {
+  if (!Number.isFinite(threshold) || threshold < THRESHOLD_RANGE[0] || threshold > THRESHOLD_RANGE[1]) {
+    throw new RangeError('threshold must be between ' + THRESHOLD_RANGE[0] + ' and ' + THRESHOLD_RANGE[1]);
   }
-  return pinch;
+  return threshold;
 }
 
-export function networkParameters({ pinch = DEFAULT_PINCH } = {}) {
-  validatePinch(pinch);
+export function networkParameters({ threshold = DEFAULT_THRESHOLD } = {}) {
+  validateThreshold(threshold);
   return {
-    beta0: [0, 0, 0],
-    omega0: [[1, 0], [0, 1], [-1, -1]],
-    beta1: [1, 1, 1],
-    omega1: [[-1, -1, -1], [-pinch, -1, -1], [-1, -2, -1]],
+    beta0: [0, -1, -2],
+    omega0: [[1], [1], [1]],
+    beta1: [-0.5, -threshold, -0.6],
+    omega1: [[1, -2, 2], [1, -3, 4], [1, -1.5, 1]],
     beta2: 0,
     omega2: [...OUTPUT_WEIGHTS],
   };
 }
 
-export function evaluateNetwork(x1, x2, { pinch = DEFAULT_PINCH } = {}) {
-  if (!Number.isFinite(x1) || !Number.isFinite(x2)) {
-    throw new TypeError('The two inputs must be finite numbers');
-  }
-  validatePinch(pinch);
-  const firstPreactivation = [x1, x2, -x1 - x2];
+export function evaluateNetwork(x, { threshold = DEFAULT_THRESHOLD } = {}) {
+  if (!Number.isFinite(x)) throw new TypeError('The input must be a finite number');
+  validateThreshold(threshold);
+  const firstPreactivation = [x, x - 1, x - 2];
   const h1 = firstPreactivation.map(relu);
   const secondPreactivation = [
-    1 - h1[0] - h1[1] - h1[2],
-    1 - pinch * h1[0] - h1[1] - h1[2],
-    1 - h1[0] - 2 * h1[1] - h1[2],
+    -0.5 + h1[0] - 2 * h1[1] + 2 * h1[2],
+    -threshold + h1[0] - 3 * h1[1] + 4 * h1[2],
+    -0.6 + h1[0] - 1.5 * h1[1] + h1[2],
   ];
   const h2 = secondPreactivation.map(relu);
   const combined = h2.reduce((sum, value, index) => sum + OUTPUT_WEIGHTS[index] * value, 0);
   return {
-    x: [x1, x2], firstPreactivation, h1, secondPreactivation, h2,
+    x, firstPreactivation, h1, secondPreactivation, h2,
     h11: h1[0], h12: h1[1], h13: h1[2],
     shallow: secondPreactivation[0], preactivation: secondPreactivation[0],
     unit1: h2[0], unit2: h2[1], unit3: h2[2], combined, y: combined,
   };
 }
 
-export function surfaceValue(mode, x1, x2, options = {}) {
-  if (!SURFACE_MODES.includes(mode)) throw new RangeError(`Unknown surface mode: ${mode}`);
-  return evaluateNetwork(x1, x2, options)[mode];
+export function surfaceValue(mode, x, options = {}) {
+  if (!SURFACE_MODES.includes(mode)) throw new RangeError('Unknown curve mode: ' + mode);
+  return evaluateNetwork(x, options)[mode];
 }
 
-// Within any of the six input cones and any fixed second-layer activation
-// pattern, every displayed surface is exactly affine. Geometry uses these
-// coefficients directly instead of approximating a curved or gridded surface.
-export function affineSurface(mode, activeFirst, activeSecond, { pinch = DEFAULT_PINCH } = {}) {
-  if (!SURFACE_MODES.includes(mode)) throw new RangeError(`Unknown surface mode: ${mode}`);
-  const { omega0, omega1 } = networkParameters({ pinch });
-  const first = omega0.map((row, index) => activeFirst[index] ? [...row] : [0, 0]);
-  const second = omega1.map(row => ({
-    gradient: [0, 1].map(axis => row.reduce((sum, weight, index) => sum + weight * first[index][axis], 0)),
-    intercept: 1,
+// Full roots on the real line, irrespective of the viewing domain. Every root
+// lies in an open first-layer interval for the allowed threshold range.
+export function preactivationRoots({ threshold = DEFAULT_THRESHOLD } = {}) {
+  validateThreshold(threshold);
+  return [
+    [0.5, 1.5, 2.5],
+    [threshold, (3 - threshold) / 2, (5 + threshold) / 2],
+    [0.6, 1.8, 2.2],
+  ];
+}
+
+// Exact affine coefficients on an interval with fixed activation patterns.
+// Geometry determines each pattern in the interval's interior.
+export function affineSurface(mode, activeFirst, activeSecond, { threshold = DEFAULT_THRESHOLD } = {}) {
+  if (!SURFACE_MODES.includes(mode)) throw new RangeError('Unknown curve mode: ' + mode);
+  const parameters = networkParameters({ threshold });
+  const first = parameters.beta0.map((bias, index) => ({
+    slope: activeFirst[index] ? 1 : 0,
+    intercept: activeFirst[index] ? bias : 0,
   }));
-  if (mode.startsWith('h1')) return { gradient: first[Number(mode.at(-1)) - 1], intercept: 0 };
+  const second = parameters.omega1.map((row, unit) => ({
+    slope: row.reduce((sum, weight, index) => sum + weight * first[index].slope, 0),
+    intercept: parameters.beta1[unit]
+      + row.reduce((sum, weight, index) => sum + weight * first[index].intercept, 0),
+  }));
+  if (mode.startsWith('h1')) return first[Number(mode.at(-1)) - 1];
   if (mode === 'shallow' || mode === 'preactivation') return second[0];
   if (mode.startsWith('unit')) {
     const index = Number(mode.at(-1)) - 1;
-    return activeSecond[index] ? second[index] : { gradient: [0, 0], intercept: 0 };
+    return activeSecond[index] ? second[index] : { slope: 0, intercept: 0 };
   }
   return {
-    gradient: [0, 1].map(axis => second.reduce((sum, item, index) =>
-      sum + (activeSecond[index] ? OUTPUT_WEIGHTS[index] * item.gradient[axis] : 0), 0)),
+    slope: second.reduce((sum, item, index) =>
+      sum + (activeSecond[index] ? OUTPUT_WEIGHTS[index] * item.slope : 0), 0),
     intercept: second.reduce((sum, item, index) =>
       sum + (activeSecond[index] ? OUTPUT_WEIGHTS[index] * item.intercept : 0), 0),
   };

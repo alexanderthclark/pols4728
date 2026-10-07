@@ -1,103 +1,117 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  evaluateNetwork, networkParameters, PINCH_RANGE, surfaceValue,
+  DEFAULT_THRESHOLD, evaluateNetwork, INPUT_DOMAIN, networkParameters,
+  OUTPUT_WEIGHTS, preactivationRoots, surfaceValue, THRESHOLD_RANGE,
 } from '../docs/deep/model.mjs';
 
 const close = (actual, expected, message = '') => assert.ok(Math.abs(actual - expected) < 1e-10,
-  `${message}: ${actual} should equal ${expected}`);
+  message + ': ' + actual + ' should equal ' + expected);
 
-// An independent scalar formula avoids checking a function against itself.
-function expected(x, y, pinch) {
-  const u = x > 0 ? x : 0;
-  const v = y > 0 ? y : 0;
-  const w = x + y < 0 ? -x - y : 0;
-  const q = [1 - u - v - w, 1 - pinch * u - v - w, 1 - u - 2 * v - w];
-  const h2 = q.map(value => value > 0 ? value : 0);
-  return { h1: [u, v, w], q, h2, y: h2[0] + .3 * h2[1] + .3 * h2[2] };
+// Independent scalar equations, including the first-layer interval formulas.
+function expected(x, threshold) {
+  const h1 = [x > 0 ? x : 0, x > 1 ? x - 1 : 0, x > 2 ? x - 2 : 0];
+  let q;
+  if (x <= 0) q = [-.5, -threshold, -.6];
+  else if (x <= 1) q = [x - .5, x - threshold, x - .6];
+  else if (x <= 2) q = [1.5 - x, 3 - threshold - 2 * x, .9 - .5 * x];
+  else q = [x - 2.5, 2 * x - 5 - threshold, .5 * x - 1.1];
+  const h2 = q.map(value => Math.max(0, value));
+  return { h1, q, h2, y: h2[0] + .3 * h2[1] + .3 * h2[2] };
 }
 
-test('the displayed network evaluates its stated matrices and every intermediate', () => {
-  const parameters = networkParameters();
-  assert.deepEqual(parameters.beta0, [0, 0, 0]);
-  assert.deepEqual(parameters.omega0, [[1, 0], [0, 1], [-1, -1]]);
-  assert.deepEqual(parameters.beta1, [1, 1, 1]);
-  assert.deepEqual(parameters.omega1, [[-1, -1, -1], [-2, -1, -1], [-1, -2, -1]]);
-  assert.deepEqual(parameters.omega2, [1, .3, .3]);
-  for (const pinch of [.5, 1, 1.37, 2, 3]) {
-    for (const [x, y] of [[0, 0], [.2, .3], [-.2, .3], [.3, -.2], [-.3, -.2], [1.6, -1.2]]) {
-      const actual = evaluateNetwork(x, y, { pinch });
-      const independent = expected(x, y, pinch);
-      assert.deepEqual(actual.x, [x, y]);
+test('the illustrative network has the stated scalar input, two width-three hidden layers, and defaults', () => {
+  assert.equal(DEFAULT_THRESHOLD, .3);
+  assert.deepEqual(THRESHOLD_RANGE, [.2, .8]);
+  assert.deepEqual(INPUT_DOMAIN, [-.25, 3.25]);
+  assert.deepEqual(OUTPUT_WEIGHTS, [1, .3, .3]);
+  assert.deepEqual(networkParameters(), {
+    beta0: [0, -1, -2], omega0: [[1], [1], [1]],
+    beta1: [-.5, -.3, -.6],
+    omega1: [[1, -2, 2], [1, -3, 4], [1, -1.5, 1]],
+    beta2: 0, omega2: [1, .3, .3],
+  });
+});
+
+test('every intermediate matches independent equations across all first-layer intervals', () => {
+  for (const threshold of [.2, .3, .5, .6, .8]) {
+    for (const x of [-2, -.25, 0, .25, .5, .7, 1, 1.3, 1.7, 2, 2.3, 2.8, 3.25, 5]) {
+      const actual = evaluateNetwork(x, { threshold });
+      const independent = expected(x, threshold);
+      assert.equal(actual.x, x);
+      assert.deepEqual(actual.firstPreactivation, [x, x - 1, x - 2]);
       actual.h1.forEach((value, index) => close(value, independent.h1[index], 'first feature'));
       actual.secondPreactivation.forEach((value, index) => close(value, independent.q[index], 'second preactivation'));
       actual.h2.forEach((value, index) => close(value, independent.h2[index], 'second feature'));
+      close(actual.y, independent.y, 'output');
+      close(actual.combined, independent.y, 'output alias');
       close(actual.shallow, independent.q[0], 'shallow readout');
-      close(actual.preactivation, actual.shallow, 'same affine calculation before the added ReLU');
-      close(actual.combined, independent.y, 'output');
-      close(actual.y, actual.combined, 'output alias');
+      close(actual.preactivation, independent.q[0], 'same sum before the added ReLU');
     }
   }
 });
 
-test('the first new neuron has the exact hexagonal support and local peak', () => {
-  const corners = [[1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1], [1, -1]];
-  close(evaluateNetwork(0, 0).unit1, 1, 'peak');
-  for (const [x, y] of corners) {
-    close(evaluateNetwork(x, y).unit1, 0, 'support vertex');
-    close(evaluateNetwork(.5 * x, .5 * y).unit1, .5, 'inside along ray');
-    close(evaluateNetwork(1.1 * x, 1.1 * y).unit1, 0, 'outside along ray');
-  }
-  for (let x = -2; x <= 2; x += .25) for (let y = -2; y <= 2; y += .25) {
-    const evaluation = evaluateNetwork(x, y);
-    const radius = Math.max(Math.abs(x), Math.abs(y), Math.abs(x + y));
-    close(evaluation.h1.reduce((sum, value) => sum + value, 0), radius, 'hexagonal radius');
-    close(evaluation.unit1, Math.max(0, 1 - radius), 'exact tent');
+test('all three new units cross zero inside the fixed first-layer intervals', () => {
+  for (const threshold of [.2, .3, .5, .6, .8]) {
+    const roots = preactivationRoots({ threshold });
+    roots.forEach((unitRoots, unit) => unitRoots.forEach((root, region) => {
+      assert.ok(root > region && root < region + 1, 'root is inside its fixed interval');
+      close(evaluateNetwork(root, { threshold }).secondPreactivation[unit], 0, 'preactivation root');
+      const before = evaluateNetwork(root - 1e-5, { threshold }).secondPreactivation[unit];
+      const after = evaluateNetwork(root + 1e-5, { threshold }).secondPreactivation[unit];
+      assert.ok(before * after < 0, 'a genuine zero crossing');
+    }));
   }
 });
 
-test('the weight control affects only the second new unit, with a boundary at x1=1/pinch', () => {
-  for (const pinch of [.5, .75, 1, 2, 3]) {
-    const parameters = networkParameters({ pinch });
-    assert.equal(parameters.omega1[1][0], -pinch);
-    close(evaluateNetwork(1 / pinch, 0, { pinch }).unit2, 0, 'controlled boundary');
-    close(evaluateNetwork(.5 / pinch, 0, { pinch }).unit2, .5, 'controlled interior');
-    close(evaluateNetwork(1.1 / pinch, 0, { pinch }).unit2, 0, 'controlled exterior');
-    const focal = evaluateNetwork(.2, .3, { pinch });
-    const baseline = evaluateNetwork(.2, .3);
-    assert.deepEqual(focal.h1, baseline.h1);
-    close(focal.unit1, baseline.unit1, 'unit1 remains fixed');
-    close(focal.unit3, baseline.unit3, 'unit3 remains fixed');
+test('the live threshold changes only the bias and response of the second new unit', () => {
+  for (const x of [-.25, .25, .7, 1.2, 1.7, 2.7, 3.25]) {
+    const low = evaluateNetwork(x, { threshold: .2 });
+    const high = evaluateNetwork(x, { threshold: .8 });
+    assert.deepEqual(high.firstPreactivation, low.firstPreactivation);
+    assert.deepEqual(high.h1, low.h1);
+    close(high.secondPreactivation[1] - low.secondPreactivation[1], -.6, 'bias shift');
+    close(high.secondPreactivation[0], low.secondPreactivation[0], 'unit1 preactivation fixed');
+    close(high.secondPreactivation[2], low.secondPreactivation[2], 'unit3 preactivation fixed');
+    close(high.unit1, low.unit1, 'unit1 activation fixed');
+    close(high.unit3, low.unit3, 'unit3 activation fixed');
+    close(high.y - low.y, .3 * (high.unit2 - low.unit2), 'output changes through only unit2');
   }
 });
 
-test('every second feature and the combined output have bounded support throughout the control range', () => {
-  for (const pinch of [.5, 1, 2, 3]) for (const [x, y] of [[3, 0], [0, 3], [-3, 3], [-3, 0], [0, -3], [3, -3]]) {
-    const evaluation = evaluateNetwork(x, y, { pinch });
-    assert.deepEqual(evaluation.h2, [0, 0, 0]);
-    assert.equal(evaluation.combined, 0);
+test('the three incoming patterns cannot all factor through one scalar affine readout', () => {
+  const rows = networkParameters().omega1;
+  // A nonzero two-by-two minor rules out a rank-one middle weight matrix.
+  close(rows[0][0] * rows[1][1] - rows[0][1] * rows[1][0], -1, 'nonzero minor');
+  // These simple chosen rows have rank two, not three.
+  rows[2].forEach((value, index) => close(value, 1.5 * rows[0][index] - .5 * rows[1][index], 'third-row relation'));
+});
+
+test('every named curve mode reports the intended quantity', () => {
+  for (const x of [.2, .8, 1.4, 1.9, 2.6, 3.1]) {
+    const independent = expected(x, .3);
+    const quantities = {
+      h11: independent.h1[0], h12: independent.h1[1], h13: independent.h1[2],
+      shallow: independent.q[0], preactivation: independent.q[0],
+      unit1: independent.h2[0], unit2: independent.h2[1], unit3: independent.h2[2],
+      combined: independent.y,
+    };
+    for (const [mode, value] of Object.entries(quantities)) close(surfaceValue(mode, x), value, mode);
   }
 });
 
-test('the fixed-feature shallow readout is affine along rays whereas the new response clips to zero', () => {
-  for (const [x, y] of [[.3, .1], [-.2, .4], [-.3, -.4], [.4, -.1]]) {
-    const atOne = evaluateNetwork(x, y);
-    for (const scale of [0, .5, 2, 10]) {
-      const scaled = evaluateNetwork(scale * x, scale * y);
-      close(scaled.shallow, 1 + scale * (atOne.shallow - 1), 'fixed-feature affine readout');
-    }
-    assert.equal(evaluateNetwork(10 * x, 10 * y).unit1, 0);
-  }
+test('the chosen scalar response includes a zero interval but is not globally compactly supported', () => {
+  close(evaluateNetwork(1).y, .83, 'first peak');
+  close(evaluateNetwork(2).y, 0, 'inactive interval');
+  close(evaluateNetwork(3.25).y, 1.2675, 'right endpoint');
+  assert.ok(evaluateNetwork(10).y > evaluateNetwork(3.25).y, 'the right-hand response continues rising');
 });
 
-test('all named surface modes expose the correct network quantity and invalid controls are rejected', () => {
-  const evaluation = evaluateNetwork(.2, .3);
-  for (const mode of ['h11', 'h12', 'h13', 'shallow', 'preactivation', 'unit1', 'unit2', 'unit3', 'combined']) {
-    close(surfaceValue(mode, .2, .3), evaluation[mode], mode);
+test('invalid inputs, thresholds, and modes fail explicitly', () => {
+  for (const x of [NaN, Infinity, -Infinity, '1']) assert.throws(() => evaluateNetwork(x), TypeError);
+  for (const threshold of [0, .19, .81, NaN, Infinity]) {
+    assert.throws(() => evaluateNetwork(0, { threshold }), RangeError);
+    assert.throws(() => preactivationRoots({ threshold }), RangeError);
   }
-  assert.deepEqual(PINCH_RANGE, [.5, 3]);
-  assert.throws(() => evaluateNetwork(NaN, 0), TypeError);
-  assert.throws(() => evaluateNetwork(0, Infinity), TypeError);
-  for (const pinch of [0, .49, 3.01, NaN, Infinity]) assert.throws(() => evaluateNetwork(0, 0, { pinch }), RangeError);
-  assert.throws(() => surfaceValue('unknown', 0, 0), RangeError);
+  assert.throws(() => surfaceValue('unknown', 0), RangeError);
 });

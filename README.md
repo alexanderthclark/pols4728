@@ -28,10 +28,10 @@ calculation and checks against the SHAP package.
 
 GitHub Pages publishes the `docs/` site automatically after the checks pass on `main`. See the [hosting notes](docs/shapley/README.md#hosting) for the website addresses and manual deployment instructions.
 
-The [deep neural network story](docs/deep/README.md) keeps three first-layer ReLU
-features fixed, adds a second hidden layer, and follows how its units create,
-reshape, and combine localized responses. Linked surface, input-plane, and
-network views use Prince's notation and exact piecewise linear geometry.
+The [deep neural network story](docs/deep/README.md) begins with a scalar input
+and three first-layer ReLU features. An added hidden layer turns zero crossings
+into new bends, then combines its features into the output curve. Linked curves
+and a network diagram use Prince's notation and exact piecewise linear geometry.
 
 ## Datasets
 

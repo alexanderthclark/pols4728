@@ -148,20 +148,19 @@ h2 { margin: 0 0 24px; font-size: clamp(33px, 2.85vw, 44px); letter-spacing: -.0
 .stage-figure {
   flex: 1 1 auto;
   min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1.72fr) minmax(0, 1fr);
+  display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
 }
-.surface-view, .plane-view { min-width: 0; min-height: 0; width: 100%; }
-.surface-view svg, .plane-view svg { display: block; width: 100%; max-height: 100%; overflow: visible; }
-.surface-view { align-self: center; }
-.plane-view { align-self: center; }
-.stage-figure svg text, .network-view svg text { font-family: var(--sans); }
-.stage-figure svg .blue, .network-view svg .blue { fill: var(--blue); }
-.stage-figure svg .rust, .network-view svg .rust { fill: var(--rust); }
-.stage-figure svg .muted, .network-view svg .muted { fill: var(--muted); }
-.stage-figure svg .axis, .stage-figure svg .tick { fill: none; stroke: var(--rule); }
+.surface-view { display: flex; align-items: center; justify-content: center; align-self: stretch; min-width: 0; min-height: 0; width: 100%; height: 100%; }
+.surface-view svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.feature-view { flex: 0 0 110px; width: 100%; height: 110px; min-width: 0; min-height: 0; }
+.feature-view svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.stage-figure svg text, .feature-view svg text, .network-view svg text { font-family: var(--sans); }
+.stage-figure svg .blue, .feature-view svg .blue, .network-view svg .blue { fill: var(--blue); }
+.stage-figure svg .rust, .feature-view svg .rust, .network-view svg .rust { fill: var(--rust); }
+.stage-figure svg .muted, .feature-view svg .muted, .network-view svg .muted { fill: var(--muted); }
+.stage-figure svg .axis, .stage-figure svg .tick, .feature-view svg .axis, .feature-view svg .tick { fill: none; stroke: var(--rule); }
 .plot-label { margin: 0 0 5px; color: var(--ink); font: 13px/1.4 var(--sans); }
 .figure-note { margin: 5px 0 0; color: var(--muted); font: 12px/1.5 var(--sans); }
 .network-view { flex: 0 0 auto; width: 100%; min-width: 0; margin: 0; }
@@ -234,11 +233,10 @@ h2 { margin: 0 0 24px; font-size: clamp(33px, 2.85vw, 44px); letter-spacing: -.0
 .explorer-controls output, .probe-controls output { color: var(--blue); font-variant-numeric: tabular-nums; }
 .control-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; }
 .control-row input { grid-column: 1 / -1; }
-.probe-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px 24px; }
+.probe-controls { grid-template-columns: minmax(0, 1fr); gap: 15px 24px; }
 .probe-controls input { display: block; }
-.mode-cover .stage-figure { grid-template-columns: minmax(0, 1fr); }
 .mode-cover .surface-view { max-width: 780px; margin: auto; }
-.mode-cover .plane-view, .mode-cover .network-view, .mode-cover .stage-readout, .mode-cover .feature-controls { display: none; }
+.mode-cover .feature-view, .mode-cover .network-view, .mode-cover .stage-readout, .mode-cover .feature-controls { display: none; }
 .mode-combined .network-view svg { max-height: 155px; }
 
 .method-notes { max-width: 900px; margin: 0 auto; padding: 55px 24px 65px; border-top: 1px solid var(--light-rule); }
@@ -255,6 +253,7 @@ details p { margin: 17px 0 0 !important; font-size: 17px; }
   .visual-stage { gap: 6px; padding: 15px 0 9px; }
   .stage-title { font-size: 21px; }
   .stage-subtitle { font-size: 12px; }
+  .feature-view { flex-basis: 85px; height: 85px; }
   .network-view svg, .mode-combined .network-view svg { max-height: 110px; }
   .stage-readout { padding-top: 7px; }
   .readout-value, .readout-values { font-size: 20px; }
@@ -287,7 +286,7 @@ details p { margin: 17px 0 0 !important; font-size: 17px; }
   .stage-subtitle { font-size: 11px; line-height: 1.35; margin-top: 0; }
   .stage-topline { gap: 10px; }
   .stage-topline .step-count { font-size: 11px; }
-  .stage-figure { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 9px; }
+  .feature-view { flex-basis: 64px; height: 64px; }
   .plot-label { font-size: 11px; margin-bottom: 2px; }
   .figure-note { font-size: 11px; line-height: 1.35; margin-top: 2px; }
   .network-view svg, .mode-combined .network-view svg { max-height: 64px; }
@@ -317,10 +316,10 @@ details p { margin: 17px 0 0 !important; font-size: 17px; }
 
 @media (max-width: 360px) {
   .visual-stage { padding-inline: 13px; }
+  .feature-view { display: none; }
   .narrative { padding-inline: 21px; }
   .stage-title { font-size: 17px; }
   .stage-subtitle { font-size: 11px; }
-  .stage-figure { gap: 7px; }
   .stage-readout { gap: 7px; }
   .readout-value, .readout-values { font-size: 15px; }
   .story-nav > button, .nav-prev, .nav-next { min-width: 60px; font-size: 11px; }
