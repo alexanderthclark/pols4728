@@ -25,7 +25,7 @@ The finite average estimates expectation over training samples. At +0.5 the orig
 
 ## The visual argument
 
-One persistent SVG accompanies the narrative. The first fitted cutoff and its comparison with the true boundary share a score-differential axis. Three aligned sample rows then show how training data change the fitted rule; the sample selector gives access to all 1,000 worked samples. A shared vertical test line at +0.5 makes the fixed-input comparison explicit.
+One persistent SVG accompanies the narrative. The opening table displays outcomes as plain zeroes and ones. The first fitted cutoff and its comparison with the true boundary share a score-differential axis. Three aligned sample rows then show how training data change the fitted rule; the sample selector gives access to all 1,000 worked samples. The default rows are Aliens 1, 2, and 16. Alien 16 sees five wins, uses cutoff −∞, and remains visible as other samples are selected. Infinite cutoffs use an outward arrow instead of a finite boundary line. A shared vertical test line at +0.5 makes the fixed-input comparison explicit.
 
 The population contains exactly 1,000 keyed marks, one for each alien in training-sample order. The same marks move from a crowd into prediction piles at zero and one; their identities remain stable through expectation, bias, variance, MSE, and the decomposition. Circles represent win predictions and squares represent loss predictions, alongside numerical labels and counts. A mean marker and true-outcome marker provide the changing reference points. The prediction axis is explicitly distinguished from the earlier score-differential axis.
 
@@ -35,7 +35,7 @@ Phones use compact figure coordinates and shorter displayed formulas, with the s
 
 ## Simulation and explorer
 
-`samples.json` contains exactly the five-game samples from the notes. They were generated with NumPy’s legacy `RandomState` using seed 1. In each repetition, draw five Knicks integers first, then five Spurs integers, independently from 0 through 100 inclusive. Add 0.5 to each Knicks score. The half-point convention prevents ties. For mixed outcomes, put the cutoff halfway between the largest losing differential and smallest winning differential. At equality with a fitted cutoff, predict win. For samples with only one outcome class, predict that class everywhere.
+`samples.json` contains exactly the five-game samples from the notes. They were generated with NumPy’s legacy `RandomState` using seed 1. In each repetition, draw five Knicks integers first, then five Spurs integers, independently from 0 through 100 inclusive. Add 0.5 to each Knicks score. The half-point convention prevents ties. For mixed outcomes, put the cutoff halfway between the largest losing differential and smallest winning differential. At equality with a fitted cutoff, predict win. For samples with only wins, use cutoff −∞; for only losses, use +∞. Retain the corresponding constant prediction for every finite input.
 
 The explorer varies games per alien and the fixed test point; drawing fresh samples advances the random seed. New samples use a deterministic xorshift generator, not NumPy’s generator. Thus fresh runs are not intended to reproduce the seed-1 notes, although they use the same stated score support and fitting rule. Restore the worked example to return to the exact original fixture. Variance always uses the number of aliens as its divisor; the empirical MSE decomposition holds exactly up to floating-point rounding.
 

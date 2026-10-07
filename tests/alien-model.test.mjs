@@ -8,9 +8,10 @@ test('five-game illustration fits all training labels but misclassifies a one-po
  for(const [k,s] of illustration)assert.equal(predict(rule,k-s),Number(k>s));
  assert.equal(predict(rule,-1),1);assert.equal(predict(rule,-1.5),1);
 });
-test('one-class samples use a constant rule rather than an undefined midpoint',()=>{
- const wins=fitRule([[2,1],[3,0]]),losses=fitRule([[1,2],[0,3]]);
- assert.equal(wins.cutoff,null);assert.equal(losses.cutoff,null);
+test('one-class samples use infinite cutoffs and predict their observed class everywhere',()=>{
+ const wins=fitRule([[82.5,48],[86.5,54],[70.5,15],[66.5,5],[71.5,17]]),losses=fitRule([[1,2],[0,3]]);
+ assert.equal(wins.cutoff,-Infinity);assert.equal(losses.cutoff,Infinity);
+ assert.equal(wins.differences.length,5);assert.ok(wins.differences.every(x=>x>0));
  assert.equal(predict(wins,-100),1);assert.equal(predict(losses,100),0);
 });
 test('the published simulation reproduces the notes and its MSE decomposition',()=>{

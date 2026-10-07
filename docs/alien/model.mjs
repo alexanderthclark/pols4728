@@ -5,8 +5,8 @@ export function fitRule(games) {
   const differences = games.map(([knicks,spurs]) => knicks-spurs);
   const wins = differences.filter(x => x > 0);
   const losses = differences.filter(x => x <= 0);
-  if (!wins.length) return { cutoff: null, constant: 0, differences };
-  if (!losses.length) return { cutoff: null, constant: 1, differences };
+  if (!wins.length) return { cutoff: Infinity, constant: 0, differences };
+  if (!losses.length) return { cutoff: -Infinity, constant: 1, differences };
   return { cutoff: (Math.max(...losses)+Math.min(...wins))/2, constant: null, differences };
 }
 export function predict(rule,x) {
