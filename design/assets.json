@@ -10,8 +10,8 @@
     {
       "path": "docs/shapley/assets/voters-ballot-box.png",
       "role": "shapley-title-illustration",
-      "description": "Three equally sized round-faced characters with stick arms and legs and no separate torsos lean around one ballot box, pushing three separate ballots into its single slot simultaneously.",
-      "sha256": "155ad58d0cc1c4cdce68e7736bc4e9b112b119cfe7e7180675e39571dc0b4fe9",
+      "description": "Three equally sized round-faced characters with stick arms and legs and no separate torsos smile as they push three separate ballots into the single slot of one box labeled VOTE simultaneously.",
+      "sha256": "ac984ebf5a6f636fa1c624d831488cfc0dba9fe1de9cae46e5852f8fdf6387a5",
       "usage": "Opening title screen of the Shapley-value explainer. Sparse monochrome artwork follows the SHAP Germany character anatomy. Preserve transparency, full composition, proportions, and clear space; keep titles and mathematical explanations as real HTML text."
     }
   ]
