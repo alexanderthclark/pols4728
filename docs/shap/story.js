@@ -308,6 +308,12 @@ function queueScroll() {if (!scrollPending) {scrollPending = true; requestAnimat
 $('#inspect').addEventListener('click', () => ['weights','shap-value'].includes(steps[state.scene].id) ? openOrders($('#inspect')) : openRows($('#inspect')));
 $('#previous').addEventListener('click', () => navigate(Math.max(0,state.scene-1)));
 $('#next').addEventListener('click', () => navigate(state.scene+1));
+$('.title-page-start').addEventListener('click', event => {
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !state.data || !state.breadData) return;
+  event.preventDefault();
+  navigate(0, 'instant');
+  visual.focus({preventScroll:true});
+});
 $('#close-rows').addEventListener('click', () => dialog.close());
 dialog.addEventListener('click', event => {
   if (event.target !== dialog) return;

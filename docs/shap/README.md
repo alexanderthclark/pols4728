@@ -1,5 +1,9 @@
 # Explaining one prediction with SHAP
 
+An opening title slide shows two torso-less investigators examining a faceless
+Y-hat in a gently landed spaceship. Its Start link leads into the existing
+20-frame explanation; the cover is separate from the story’s frame count.
+
 This scrolling story begins with the Shapley formula readers
 already know. It maps its players to features and its game to one observation’s
 prediction, distinguishing model training from explanation. The highlighted

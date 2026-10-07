@@ -17,6 +17,42 @@ a:focus-visible, button:focus-visible, select:focus-visible, summary:focus-visib
 .masthead nav { display:flex; gap:1.5rem; }
 .reading-progress { position:fixed; top:63px; left:0; right:0; height:2px; z-index:31; }
 .reading-progress span { display:block; height:100%; width:0; background:var(--blue); }
+.title-page { min-height:calc(100svh - 64px); display:flex; align-items:center; justify-content:center; padding:clamp(32px,5svh,64px) 24px clamp(32px,6svh,72px); text-align:center; }
+.title-page-content { width:100%; max-width:1100px; }
+.title-page-kicker { margin:0 0 13px; font:12px/1.5 var(--sans); letter-spacing:.14em; color:var(--muted); }
+.title-page h1 { margin:0 auto; max-width:19ch; font-size:clamp(46px,5vw,72px); line-height:1.08; letter-spacing:-.035em; text-wrap:balance; }
+.title-page-art { margin:24px 0 0; display:flex; justify-content:center; }
+.title-page-art img { display:block; width:auto; height:auto; max-width:min(660px,100%); max-height:40svh; object-fit:contain; }
+.title-page-start { display:inline-flex; align-items:center; justify-content:center; gap:12px; min-height:44px; margin-top:20px; padding:6px 10px; font:15px/1.5 var(--sans); }
+.title-page-start span { font-size:20px; line-height:1; }
+@media(max-width:860px) {
+  .title-page { min-height:calc(100svh - 56px); padding:28px 24px 32px; }
+  .title-page h1 { font-size:clamp(32px,9vw,46px); max-width:16ch; }
+  .title-page-art { margin-top:18px; }
+  .title-page-art img { max-height:32svh; }
+  .title-page-start { margin-top:18px; font-size:14px; }
+}
+@media(min-width:861px) and (max-height:700px) {
+  .title-page { padding-top:28px; padding-bottom:32px; }
+  .title-page h1 { font-size:52px; }
+  .title-page-art { margin-top:12px; }
+  .title-page-art img { max-height:31svh; }
+  .title-page-start { margin-top:10px; }
+}
+@media(max-width:860px) and (max-height:650px) {
+  .title-page { padding:14px 20px 22px; }
+  .title-page-kicker { font-size:11px; margin-bottom:8px; }
+  .title-page h1 { font-size:32px; }
+  .title-page-art { margin-top:12px; }
+  .title-page-art img { max-height:25svh; }
+  .title-page-start { margin-top:10px; }
+}
+@media print {
+  .title-page { min-height:0; padding:24px; }
+  .title-page h1 { font-size:36px; }
+  .title-page-art img { max-height:240px; }
+  .title-page-start { display:none; }
+}
 .story-layout { max-width:1500px; margin:auto; padding:0 4vw; display:grid; grid-template-columns:minmax(310px,.78fr) minmax(0,1.22fr); gap:5vw; }
 .stage-shell { grid-column:2; grid-row:1; position:sticky; top:64px; height:calc(100svh - 64px); align-self:start; display:flex; flex-direction:column; padding:24px 0 16px; min-width:0; }
 .stage-top { display:flex; justify-content:space-between; gap:1rem; font:13px/1.5 var(--sans); color:var(--muted); padding-bottom:12px; }
