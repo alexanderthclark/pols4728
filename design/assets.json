@@ -36,6 +36,13 @@
       "description": "Three equally sized round-faced characters with stick arms and legs and no separate torsos smile as they push three separate ballots into the single slot of one box labeled VOTE simultaneously.",
       "sha256": "ac984ebf5a6f636fa1c624d831488cfc0dba9fe1de9cae46e5852f8fdf6387a5",
       "usage": "Opening title screen of the Shapley-value explainer. Sparse monochrome artwork follows the SHAP Germany character anatomy. Preserve transparency, full composition, proportions, and clear space; keep titles and mathematical explanations as real HTML text."
+    },
+    {
+      "path": "docs/alien/assets/alien-basketball.png",
+      "role": "alien-title-illustration",
+      "description": "A classic broad-headed alien with almond eyes and stick limbs scratches its head while watching two human stick figures play basketball. Sparse black contours on a transparent field.",
+      "sha256": "e2d6d11e54059eb2e2f47c3d4289f09e3ab0f43521311c65371db2c28dec230d",
+      "usage": "Opening title screen of the basketball bias-and-variance explanation. Preserve the complete composition, proportions, monochrome artwork, transparency, and clear space. Titles and teaching content remain real HTML text."
     }
   ]
 }
