@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An alien predicts whether the Knicks won from the final score difference. Repeated training makes expectation, bias, and variance visible.">
+  <title>Can an alien tell who won? · POLS 4728</title>
+  <link rel="stylesheet" href="style.css?v=20261007">
+</head>
+<body>
+<a class="skip" href="#observe">Skip to the explanation</a>
+<header class="masthead"><a href="../">POLS 4728</a><a href="#beginning">Bias and variance</a></header>
+<main>
+  <section class="cover" id="beginning" aria-labelledby="title">
+    <p class="eyebrow">Machine learning &amp; AI for the social sciences</p>
+    <h1 id="title">Can an alien<br>tell who won?</h1>
+    <p class="cover-deck">Given Knicks points minus Spurs points, predict whether the Knicks won.</p>
+    <img class="cover-art" src="assets/alien-basketball.png" alt="An alien stick figure scratches its broad, almond-eyed head as it watches two stick figures play basketball." width="1536" height="1024">
+    <div class="cover-foot"><p>Five games. A learned rule. Many possible training samples.</p><a class="start" href="#observe">Begin the story <span aria-hidden="true">↓</span></a></div>
+  </section>
+  <div class="story" id="narrative">
+    <aside class="stage-shell" aria-label="Figure accompanying the explanation">
+      <div class="stage-top"><span id="stage-label">Predicting the winner from final scores</span><span id="stage-count">1 / 12</span></div>
+      <p class="stage-context" id="experiment-context" hidden></p>
+      <div class="visual"><svg id="diagram" viewBox="0 0 800 550" role="img" aria-labelledby="diagram-title diagram-description"><title id="diagram-title">One alien’s training data</title><desc id="diagram-description">Five Knicks–Spurs final scores and their outcomes.</desc><defs>
+        <g id="alien-glyph"><path d="M20 4 C3 4 1 18 8 28 Q14 37 20 40 Q26 37 32 28 C39 18 37 4 20 4Z" fill="white" stroke="currentColor" stroke-width="1.8"/><path d="M9 17 Q17 17 17 25 Q9 25 9 17 M31 17 Q23 17 23 25 Q31 25 31 17" fill="currentColor"/><path d="M17 31 L23 31 M20 40 L20 55 M20 44 L8 41 L6 22 M20 44 L30 48 L23 53 M20 55 L10 67 M20 55 L29 67" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></g>
+        <g id="alien-glyph-mirror"><use href="#alien-glyph" transform="translate(40 0) scale(-1 1)"/></g>
+        <g id="alien-glyph-both"><path d="M20 4 C3 4 1 18 8 28 Q14 37 20 40 Q26 37 32 28 C39 18 37 4 20 4Z" fill="white" stroke="currentColor" stroke-width="1.8"/><path d="M9 17 Q17 17 17 25 Q9 25 9 17 M31 17 Q23 17 23 25 Q31 25 31 17" fill="currentColor"/><path d="M17 31 L23 31 M20 40 L20 55 M20 44 L8 44 L2 29 L5 17 Q3 13 6 11 Q8 11 9 14 M20 44 L32 44 L38 29 L35 17 Q37 13 34 11 Q32 11 31 14 M20 55 L8 67 M20 55 L32 67" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></g>
+        <marker id="arrow-ink" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill="#242424"/></marker>
+        <marker id="arrow-rust" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#A54F32"/></marker>
+        <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#234E70"/></marker>
+        <pattern id="error-hatch" patternUnits="userSpaceOnUse" width="7" height="7"><path d="M0 7L7 0" stroke="#A54F32" stroke-width=".8" opacity=".45"/></pattern>
+      </defs><g id="scene-art"></g><g id="population" aria-hidden="true"></g><g id="annotations"></g></svg></div>
+      <div class="figure-math" id="figure-math"></div>
+      <p class="stage-caption" id="caption">Every input is a final score differential.</p>
+      <div class="figure-control" id="sample-control" hidden><button id="new-history" type="button">Give Alien 2 new games</button><button id="restore-histories" type="button">Restore the three histories</button></div>
+      <p class="sample-status" id="sample-status" role="status" hidden></p>
+      <nav class="stage-nav" aria-label="Story sections"><button id="previous" type="button" disabled>← Previous</button><span id="short-title">Five games</span><button id="next" type="button">Next →</button></nav>
+    </aside>
+    <div class="narrative">
+      <section class="step" id="observe" data-step="0"><div>
+        <p class="step-number">01 / THE PREDICTION TASK</p><h2>From a score difference to a winner.</h2>
+        <p>Show the alien the final score difference—Knicks points minus Spurs points—and ask whether the Knicks won. It must learn the connection from five games for which we supply both the scores and the answer.</p>
+        <p>The input is the point differential, <i>x</i>. The target is <i>y</i> = 1 for a Knicks win and <i>y</i> = 0 for a loss. These five labeled games are its <em>training sample</em>.</p>
+        <p>The game is already over. The alien is learning to classify the result from the final score, rather than forecast it before play begins.</p>
+      </div></section>
+      <section class="step" id="cutoff" data-step="1"><div><p class="step-number">02 / THE LEARNING RULE</p><h2>It puts a boundary in the gap.</h2><p>The closest observed loss is −4. The closest observed win is +1. The alien puts its cutoff halfway between them: −1.5.</p><p>It now predicts a win whenever <i>x</i> is at least −1.5. All five training outcomes fall on the correct side of that boundary.</p><p>We will give every alien this same learning procedure. Only the games it observes will change.</p></div></section>
+      <section class="step" id="truth" data-step="2"><div><p class="step-number">03 / A NEW GAME</p><h2>The fit is perfect. The rule is wrong.</h2><p>Now show the alien a game in which the Knicks lost by one point. At <i>x</i> = −1, its learned rule predicts a win.</p><p>The true boundary is zero. For −1.5 ≤ <i>x</i> &lt; 0, the learned rule makes the same error: the alien calls it a win even though the Knicks did not outscore the Spurs.</p><p>The correct boundary was available in the model class. The sample simply did not pin it down.</p></div></section>
+      <section class="step" id="different" data-step="3"><div>
+        <p class="step-number">04 / THREE TRAINING HISTORIES</p><h2>Different games, different boundaries.</h2>
+        <p>Keep Alien 1’s original five games and its cutoff of −1.5. Give two other aliens different training histories. All three apply the same learning procedure.</p>
+        <p>Alien 2 learns a different cutoff. Alien 3 sees five wins and no losses, so it puts its cutoff at −∞ and predicts a win for every finite point differential.</p>
+        <p>Give Alien 2 new games to see how its cutoff changes. Aliens 1 and 3 keep their histories.</p>
+        <details><summary>What if all five outcomes are the same?</summary><p>For a history containing only wins, use cutoff −∞; for only losses, use +∞. These rules predict the observed outcome for every finite input. Otherwise, use the midpoint cutoff and classify equality with it as a win.</p></details>
+      </div></section>
+      <section class="step" id="fixed" data-step="4"><div>
+        <p class="step-number">05 / ONE FIXED INPUT</p><h2>Ask them the same question.</h2>
+        <p>In our synthetic games, the Knicks’ final score is half a point higher than the Spurs’. Who won?</p>
+        <p>Hold this test input fixed at <i>x</i><sub>0</sub> = +0.5. The actual outcome is <i>y</i><sub>0</sub> = 1. Each alien predicts a win when this input is at or to the right of its cutoff, and a loss when it is below the cutoff.</p>
+        <p>The figure zooms around the test input, with the same vertical line through all three rules. Any disagreement comes from their different training histories, because they answer the same question with the same learning procedure.</p>
+      </div></section>
+      <section class="step" id="many" data-step="5"><div>
+        <p class="step-number">06 / A POPULATION OF FITTED RULES</p><h2>Repeat the training 1,000 times.</h2>
+        <p>Now run a controlled simulation. Give 1,000 aliens independently drawn five-game samples and ask each about the same half-point final difference.</p>
+        <p>In this worked simulation, 468 predict a loss and 532 predict a win. Each mark represents one independently trained alien.</p>
+        <p>Next, gather the marks at their <em>predictions</em>, zero or one. The axis will show the aliens’ answers, rather than the game’s point differential.</p>
+        <details><summary>How the games are simulated</summary><p>Draw each team’s score independently and uniformly from the integers 0 through 100, then add half a point to the Knicks’ score to prevent ties. Fit the same cutoff rule to each five-game sample.</p><p>The numerical proportions depend on this score distribution. The three earlier histories illustrate possible fitted rules; this repeated experiment estimates their behavior under the stated generator.</p></details>
+      </div></section>
+      <section class="step" id="expectation" data-step="6"><div>
+        <p class="step-number">07 / EXPECTATION</p><h2>The average lives between their answers.</h2>
+        <p>Gather the aliens by their predictions: 468 at zero and 532 at one. Their average prediction is 0.532.</p>
+        <p>An <em>expectation over training samples</em> averages predictions from datasets drawn in the same way, each fitted by the same procedure. Our 1,000 repeated fits estimate that expectation for the synthetic game generator.</p>
+        <p>No individual alien answers 0.532. It is the average across fitted rules at one fixed input.</p>
+        <details><summary>Write this expectation in notation</summary><p>𝒟 denotes one alien’s training dataset, and <math><msub><mover><mi>f</mi><mo>^</mo></mover><mi>𝒟</mi></msub></math> is the rule fitted to it. The expectation varies the training dataset while keeping the test input <i>x</i><sub>0</sub> fixed.</p><div class="prose-equation"><math display="block" aria-label="Expectation over training datasets of the fitted prediction at x zero is approximately zero point five three two"><mrow><msub><mi>𝔼</mi><mi>𝒟</mi></msub><mo>[</mo><msub><mover><mi>f</mi><mo>^</mo></mover><mi>𝒟</mi></msub><mo>(</mo><msub><mi>x</mi><mn>0</mn></msub><mo>)</mo><mo>]</mo><mo>≈</mo><mn>0.532</mn></mrow></math></div></details>
+      </div></section>
+      <section class="step" id="bias" data-step="7"><div>
+        <p class="step-number">08 / BIAS</p><h2>Measure from the truth to the average.</h2>
+        <p>The true outcome is one. The average prediction is 0.532, which is 0.468 below it.</p>
+        <p><em>Bias</em> is the expected prediction minus the truth. Our estimate is therefore −0.468; its square is approximately 0.219.</p>
+        <p>At this winning input, every wrong answer lies below the truth. These errors cannot cancel when we average them. Squaring the bias gives its contribution to mean squared error.</p>
+      </div></section>
+      <section class="step" id="variance" data-step="8"><div>
+        <p class="step-number">09 / VARIANCE</p><h2>Measure each answer from the average.</h2>
+        <p>Keep the same predictions and the same mean. This time, measure how far each prediction lies from 0.532.</p>
+        <p>The 468 loss predictions are 0.532 below the mean. The 532 win predictions are 0.468 above it. Square those distances and average them to estimate <em>variance</em>: approximately 0.249.</p>
+        <p>For zero-or-one predictions, this spread is largest at an even split, where variance is 0.25. Our aliens are close to that split. Greater agreement among their answers would reduce this variance.</p>
+      </div></section>
+      <section class="step" id="mse" data-step="9"><div>
+        <p class="step-number">10 / MEAN SQUARED ERROR</p><h2>Now measure each answer from the truth.</h2>
+        <p>The 532 win predictions are correct, so their squared errors are zero. The 468 loss predictions are one unit from the truth, so their squared errors are one.</p>
+        <p>Average over all 1,000 aliens. Mean squared error is 468 / 1,000 = 0.468: the fraction of wrong answers.</p>
+        <p>Call the probability that a newly trained alien is wrong <i>q</i>. Our repeated fits estimate <i>q</i> as 0.468. This single probability will connect squared bias and variance.</p>
+        <p>The predictions have not changed. We have changed the reference point: from their mean, for variance, to the actual outcome, for MSE.</p>
+      </div></section>
+      <section class="step" id="decomposition" data-step="10"><div>
+        <p class="step-number">11 / THE DECOMPOSITION</p><h2>One probability sets both parts.</h2>
+        <p>Squared bias measures how far the average prediction is from the truth. Variance measures how much the individual predictions spread around that average.</p>
+        <p>At this winning input, the average prediction is 1 − <i>q</i>, so bias is −<i>q</i> and squared bias is <i>q</i>². Variance is <i>q</i>(1 − <i>q</i>). Their sum is <i>q</i>, the MSE: approximately 0.219 + 0.249 = 0.468.</p>
+        <p>Outcome noise is zero because the final score differential determines the winner.</p>
+        <p>For <i>q</i> below one half, reducing <i>q</i> brings the average closer to the truth and makes the predictions more unanimous. Squared bias and variance then fall together.</p>
+        <p>We have kept the learning rule and its complexity fixed. More informative training samples can reduce both sources of error; there is no necessary tradeoff between them here.</p>
+        <details><summary>The exact worked values</summary><p>Squared bias is 0.219024 and variance is 0.248976. Their sum is 0.468. These are Monte Carlo estimates, but the decomposition holds for this finite population of predictions, using divisor 1,000 for variance.</p></details>
+      </div></section>
+      <section class="step" id="explore" data-step="11"><div>
+        <p class="step-number">12 / EXPLORE</p><h2>Give the aliens more experience.</h2>
+        <p>At +0.5, increase the number of training games and compare both components with the five-game reference. More games tend to locate the true boundary more accurately. In the default sequence, squared bias and variance both become smaller.</p>
+        <div class="controls"><label for="games">Games per alien</label><select id="games"><option value="5">5 games</option><option value="10">10 games</option><option value="25">25 games</option><option value="100">100 games</option><option value="500">500 games</option></select><label for="test-point">Fixed point differential</label><select id="test-point"><option value="-20.5">−20.5 points</option><option value="-5.5">−5.5 points</option><option value="-0.5">−0.5 points</option><option value="0.5" selected>+0.5 points</option><option value="5.5">+5.5 points</option><option value="20.5">+20.5 points</option></select><button id="resample" type="button">Draw 1,000 new training samples</button><button id="reset" type="button">Restore the worked example</button></div>
+        <table class="comparison"><caption>Compare with five training games</caption><thead><tr><th scope="col">Quantity</th><th scope="col">Five-game reference</th><th scope="col" id="current-size">Current: 5 games</th></tr></thead><tbody><tr><th scope="row">Squared bias</th><td id="reference-biasSquared">0.219</td><td id="current-biasSquared">0.219</td></tr><tr><th scope="row">Variance</th><td id="reference-variance">0.249</td><td id="current-variance">0.249</td></tr><tr><th scope="row">Wrong answers</th><td id="reference-mse">46.8%</td><td id="current-mse">46.8%</td></tr></tbody></table>
+        <p id="explorer-status" class="small" role="status"></p>
+        <p>Move the test input or draw fresh samples to repeat the comparison. These finite simulations can fluctuate; more games need not improve every new batch. The prediction stacks, mean, and error components update together.</p>
+        <details><summary>When variance can initially rise</summary><p>If more than half the aliens are wrong, reducing <i>q</i> toward 0.5 lowers squared bias but raises variance. The answers become less unanimously wrong before they become mostly correct. This follows from binary predictions; it does not compare models of different complexity.</p><p>At a losing test input, bias has the opposite sign, +<i>q</i>. Squared bias <i>q</i>², variance <i>q</i>(1 − <i>q</i>), and MSE <i>q</i> retain the same relationship.</p></details>
+      </div></section>
+    </div>
+  </div>
+  <noscript><p class="no-script">The worked explanation above remains readable without JavaScript. The mean prediction is 0.532, squared bias 0.219024, variance 0.248976, MSE 0.468, and irreducible noise zero. Enable JavaScript for the figures and explorer.</p></noscript>
+</main>
+<footer><p>POLS 4728 · Fall 2026<br>Expectation over repeated training samples.</p><p><a href="samples.json" download>Download the worked training samples</a><br><a href="#beginning">Back to the beginning ↑</a></p></footer>
+<script type="module" src="story.js?v=20261007"></script>
+</body></html>

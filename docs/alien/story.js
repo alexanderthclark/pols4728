@@ -1,0 +1,234 @@
+import {illustration,fitRule,predict,summarize,simulate} from './model.mjs';
+import {predictionLayout,crowdLayout,decompositionSegments} from './geometry.mjs';
+
+const $=id=>document.getElementById(id);
+const svg=$('diagram'),art=$('scene-art'),population=$('population'),annotations=$('annotations');
+const steps=[...document.querySelectorAll('.step')];
+const labels=['Predicting the winner from final scores','The closest loss and win locate a cutoff','Test a game outside the training sample','Same learning rule, three training histories','Fixed input: x₀ = +0.5 · actual outcome: 1','1,000 independent training samples','Prediction axis · each mark is one alien','Bias: average prediction minus truth','Variance: squared distances from the mean','MSE: squared distances from the truth','MSE = squared bias + variance + noise','Explore repeated training'];
+const short=['Five games','Learn a cutoff','Test the rule','Different samples','One question','1,000 aliens','Expectation','Bias','Variance','MSE','Decomposition','Explore'];
+const workedCaptions=['Final scores are already known. y = 1 is a win; y = 0 is a loss.','The nearest observations leave a gap from −4 to +1. The midpoint is −1.5.','The narrow hatched interval marks disagreements with the true rule.','Each row shows one alien’s five observations and its fitted cutoff.','Every fitted rule answers the same question. The actual outcome is 1.','Exactly 1,000 marks, in training-sample order: 468 predict loss; 532 predict win.','The same 1,000 marks, regrouped by prediction. Their weighted mean is 0.532.','The arrow runs from the true outcome to the mean. Its signed length is −0.468.','Square each distance to the mean, then average over the 1,000 aliens.','The 468 loss predictions have squared error 1; the 532 win predictions have error 0.','The same wrong-answer probability determines both components. Outcome noise is zero.','Every mark still represents one independently trained alien.'];
+let scene=-1,historyIndex=0,seed=10,allWinsIndex,workedRules,workedStats,explorerRules,explorerStats;
+let particleNodes=[];
+const exampleRule=fitRule(illustration);
+const fmt=(v,d=3)=>Math.abs(v)<1e-12?(0).toFixed(d):v.toFixed(d);
+const signed=v=>v===0?'0':`${v<0?'−':'+'}${Number.isFinite(v)?Math.abs(v):'∞'}`;
+const text=(x,y,value,size=18,anchor='start',className='')=>`<text x="${x}" y="${y}" font-size="${size}" text-anchor="${anchor}" class="${className}">${value}</text>`;
+const line=(x1,y1,x2,y2,className='axis',extra='')=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${className}" ${extra}/>`;
+const glyph=(x,y,scale=1,pose='')=>`<use href="#alien-glyph${pose?'-'+pose:''}" transform="translate(${x} ${y}) scale(${scale})" class="glyph"/>`;
+const mark=(x,y,win,r=6)=>win?`<circle cx="${x}" cy="${y}" r="${r}" fill="var(--blue)"/>`:`<rect x="${x-r}" y="${y-r}" width="${r*2}" height="${r*2}" fill="var(--rust)"/>`;
+function dimensions(){const mobile=matchMedia('(max-width:760px)').matches;return {mobile,W:mobile?(innerWidth>500?600:400):800,H:mobile?250:550,fs:mobile?14:19};}
+function svgDescription(title,description){$('diagram-title').textContent=title;$('diagram-description').textContent=description;}
+function tableScene(d){
+ const {mobile:m,W,fs}=d;const left=m?88:215,right=m?390:W-20,row=m?38:66,top=m?72:117;
+ let s=glyph(m?18:48,m?136:233,m?.8:1.6);
+ const columns=m?[left,left+75,left+151,right-14]:[left+20,left+167,left+309,right-20];
+ ['Knicks','Spurs','x','y'].forEach((label,i)=>s+=text(columns[i],top-row*.75,label,m?12:17,i===3?'middle':'start','muted'));
+ illustration.forEach(([k,spurs],i)=>{const y=top+i*row;const diff=k-spurs;const win=diff>0;s+=line(left,y+row*.42,right,y+row*.42);s+=text(columns[0],y,k,fs);s+=text(columns[1],y,spurs,fs);s+=text(columns[2],y,signed(diff),fs,'start',win?'blue':'rust');s+=text(columns[3],y,Number(win),fs,'middle');});
+ return s;
+}
+function trainingScene(d,truth){
+ const {mobile:m,fs}=d;
+ const left=m?35:80,right=m?375:760,map=x=>left+(x+6)/18*(right-left);
+ const axis=m?155:290,cut=map(exampleRule.cutoff),zero=map(0),tick=m?7:10;
+ let s='';
+ if(truth){
+  s+=`<rect x="${cut}" y="${axis-tick}" width="${zero-cut}" height="${tick*2}" fill="url(#error-hatch)"/>`;
+  s+=line(zero,axis-16,zero,axis+16,'reference');
+  s+=text(cut-8,m?93:210,'Learned −1.5',m?13:19,'end','blue');
+  s+=text(zero+8,m?93:210,'True 0',m?13:19);
+ }else{
+  const bracket=m?115:225;
+  s+=line(map(-4),bracket,map(1),bracket);
+  s+=line(map(-4),bracket-5,map(-4),bracket+5);
+  s+=line(map(1),bracket-5,map(1),bracket+5);
+  s+=text(cut,m?93:205,'Cutoff −1.5',m?13:21,'middle','blue');
+ }
+ s+=line(left,axis,right,axis,'axis','marker-start="url(#arrow-ink)" marker-end="url(#arrow-ink)"');
+ for(const x of [-4,1,4,10]){
+  s+=line(map(x),axis-tick,map(x),axis+tick,'observation');
+  s+=text(map(x),axis+(m?32:41),signed(x),fs,'middle',x>0?'blue':'rust');
+ }
+ s+=text(map(1),axis+(m?53:66),'2 games',m?11:15,'middle','muted');
+ s+=line(cut,axis-16,cut,axis+16,'model');
+ s+=text((left+right)/2,m?250:432,'Knicks points − Spurs points',m?13:18,'middle','muted');
+ if(truth){
+  s+=line(map(-1),axis-5,map(-1),axis+5,'measure');
+  s+=text(map(-1),axis+(m?32:41),'−1',fs,'middle','rust');
+ }
+ return s;
+}
+function sampleRules(){return [{games:illustration,...exampleRule},workedRules[historyIndex],workedRules[allWinsIndex]];}
+function sampleScene(d,fixed){
+ const {mobile:m,fs}=d;
+ const left=m?83:175,right=fixed?(m?319:672):(m?365:744),rows=m?[85,151,217]:[149,281,413];
+ const map=x=>left+(x+3)/6*(right-left),test=map(.5);
+ let s=text(left,m?24:51,fixed?'Learned rules':'Five score differences, sorted',m?12:18,'start','muted');
+ if(m)s+=text(8,24,'Alien',12,'start','muted');
+ if(fixed)s+=text(m?380:741,m?24:51,'Prediction',m?12:18,m?'end':'middle','muted');
+ if(fixed){s+=line(test,m?48:90,test,m?237:454,'reference');s+=text(test+(m?7:12),m?43:80,'Same x₀ = +0.5',m?12:18);}
+ sampleRules().forEach((rule,j)=>{const y=rows[j],c=rule.cutoff;
+ s+=glyph(m?24:48,y-(m?43:80),m?.57:1.1,['','mirror','both'][j]);
+ s+=m?text(8,y-10,j+1,11):text(70,y+31,`Alien ${j+1}`,17,'middle');
+ const label=`Cutoff ${signed(c)}${Number.isFinite(c)||m?'':` · always ${rule.constant?'win':'loss'}`}`;
+ s+=text(left,y-(m?30:55),label,m?12:18,'start','blue');
+ if(fixed){
+  s+=line(left,y,right,y);
+  if(Number.isFinite(c)&&c>=-3&&c<=3)s+=line(map(c),y-(m?17:28),map(c),y+(m?9:15),'model');
+  else {
+   const toLeft=c<0,edge=toLeft?left:right,direction=toLeft?-1:1;
+   s+=line(edge-direction*(m?17:29),y,edge-direction*3,y,'model','marker-end="url(#arrow-blue)"');
+  }
+  const p=predict(rule,.5),bx=m?360:741;
+  s+=line(right+5,y,bx-(m?14:23),y,'axis','marker-end="url(#arrow-ink)"');
+  s+=text(bx,y+(m?5:7),p,m?19:27,'middle');
+ }else{
+  [...rule.differences].sort((a,b)=>a-b).forEach((x,k)=>s+=text(left+k/4*(right-left),y,signed(x),m?16:21,'middle',x>0?'blue':'rust'));
+  if(j<2)s+=line(left,y+(m?24:42),right,y+(m?24:42));
+ }
+ });
+ if(fixed)[-3,0,3].forEach(x=>s+=text(map(x),m?259:485,signed(x),fs,'middle','muted'));
+ s+=text((left+right)/2,m?285:529,'Knicks points − Spurs points',m?13:18,'middle','muted');
+ return s;
+}
+function stackGeometry(d,compact=false,stats=workedStats){
+ const m=d.mobile,edgeMean=stats.mean<.18||stats.mean>.82;
+ // Leave space above a nearly unanimous stack for its mean label.
+ return {left:m?80:160,right:m?320:640,baseline:m?(compact?162:188):(compact?295+(edgeMean?24:0):326),columns:Math.max(20,Math.ceil(Math.max(stats.wins,stats.losses)/27)),gap:m?(compact?2.6:3.1):(compact?6.3:7.1)};
+}
+function populationScene(d,stats,mode){
+ const {mobile:m,W,fs}=d;const compact=mode==='decomposition'||mode==='explore',g=stackGeometry(d,compact,stats),axis=g.baseline+(m?22:42),mean=g.left+(g.right-g.left)*stats.mean,truth=g.left+(g.right-g.left)*stats.truth;
+ let s='';
+ s+=glyph(g.left-(m?9:17),m?-4:18,m?.45:.85)+glyph(g.right-(m?9:17),m?-4:18,m?.45:.85);
+ s+=text(g.left,m?58:95,`${stats.losses} predict 0`,m?14:20,'middle','rust');s+=text(g.right,m?58:95,`${stats.wins} predict 1`,m?14:20,'middle','blue');
+ s+=line(g.left,axis,g.right,axis);
+ [0,1].forEach(v=>{const x=g.left+(g.right-g.left)*v;s+=line(x,axis,x,axis+6);s+=text(x,axis+(m?22:31),v,m?17:23,'middle');});
+ s+=line(truth,axis-15,truth,axis+8,'reference');
+ if(mode!=='mse'){
+  const edgeMean=stats.mean<.18||stats.mean>.82,top=edgeMean?(m?90:143):(m?70:112);s+=line(mean,top,mean,axis,'model');
+  const meanAnchor=stats.mean<.15?'start':stats.mean>.85?'end':'middle';
+  s+=text(mean,top-(m?6:12),`Mean ${fmt(stats.mean)}`,m?13:20,meanAnchor,'blue');
+ }
+ if(mode==='mean'){
+  s+=text((g.left+g.right)/2,m?272:469,'Fitted prediction at the fixed input',m?13:18,'middle','muted');
+  s+=text(g.right,axis+(m?41:57),'True outcome = 1',m?12:17,'end');
+ }
+ if(mode==='bias'){
+  const y=axis-(m?12:23);s+=line(truth-3,y,mean+3,y,'measure','marker-end="url(#arrow-rust)"');
+  s+=text((truth+mean)/2,axis+(m?46:72),`Bias ${fmt(stats.bias)}`,m?14:21,'middle','rust');
+  s+=text(g.right,m?82:124,'True outcome: 1',m?12:17,'middle');
+ }
+ if(mode==='variance'){
+  const y=axis-(m?10:19);s+=line(g.left,y,mean,y,'measure');s+=line(mean,y-9,g.right,y-9,'model');
+  s+=text((g.left+mean)/2,axis+(m?45:67),m?`−${fmt(stats.mean)}`:`0 − mean = −${fmt(stats.mean)}`,m?13:18,'middle','rust');
+  s+=text((g.right+mean)/2,axis+(m?45:67),m?`+${fmt(1-stats.mean)}`:`1 − mean = +${fmt(1-stats.mean)}`,m?13:18,'middle','blue');
+  s+=text((g.left+g.right)/2,m?283:514,'Distances from the same mean',m?12:18,'middle','muted');
+ }
+ if(mode==='mse'){
+  const other=truth===g.right?g.left:g.right,y=axis-(m?11:22);
+  s+=line(other,y,truth,y,'measure','marker-end="url(#arrow-rust)"');
+  s+=text((g.left+g.right)/2,axis+(m?47:72),'Distance to truth: 1',m?14:21,'middle','rust');
+  s+=text(g.left,m?81:127,`Squared error ${stats.truth?1:0}`,m?12:17,'middle','rust');
+  s+=text(g.right,m?81:127,`Squared error ${stats.truth?0:1}`,m?12:17,'middle','blue');
+ }
+ if(compact){
+  const x=m?43:95,width=m?314:610,y=m?258:459,height=m?14:23;
+  const {segments,totalWidth}=decompositionSegments(stats,{x,width,max:1});
+  s+=line(x,y+height+6,x+width,y+height+6);
+  s+=`<rect x="${x}" y="${y}" width="${segments[0].width}" height="${height}" fill="var(--blue)"/><rect x="${segments[1].x}" y="${y}" width="${segments[1].width}" height="${height}" fill="var(--rust)"/>`;
+  s+=text(x,y-(m?8:16),'Squared-error components',m?12:18);
+  s+=text(x+width,y-(m?8:16),`MSE ${fmt(stats.mse)}`,m?12:18,'end');
+  s+=text(x,y+height+(m?22:32),'0',m?11:16,'middle','muted');
+  s+=text(x+width,y+height+(m?22:32),'1',m?11:16,'middle','muted');
+  if(totalWidth>width*.05)s+=line(x+totalWidth,y-3,x+totalWidth,y+height+6,'axis');
+  if(segments[0].width>(m?45:75))s+=text(segments[0].x+segments[0].width/2,y+height+(m?22:34),m?'Bias²':`Bias² ${fmt(stats.biasSquared)}`,m?12:16,'middle','blue');
+  if(segments[1].width>(m?65:110))s+=text(segments[1].x+segments[1].width/2,y+height+(m?22:34),m?'Variance':`Variance ${fmt(stats.variance)}`,m?12:16,'middle','rust');
+ }
+ return s;
+}
+function setParticles(d,stats,crowd=false){
+ const m=d.mobile;const positions=crowd?crowdLayout(1000,{left:m?35:120,top:m?70:105,columns:40,gap:m?8.4:14}):predictionLayout(stats.predictions,stackGeometry(d,scene>=10,stats));
+ const r=m?1:2.65;
+ particleNodes.forEach((node,i)=>{const p=positions[i];node.setAttribute('class',`particle ${stats.predictions[i]?'win':'loss'}`);node.setAttribute('width',r*2);node.setAttribute('height',r*2);node.setAttribute('x',-r);node.setAttribute('y',-r);node.setAttribute('rx',stats.predictions[i]?r:0);node.style.transform=`translate(${m?p.x*d.W/400:p.x}px, ${m?p.y*.8:p.y}px)`;});
+ population.style.opacity='1';
+}
+function setMath(value){$('figure-math').innerHTML=value;}
+function fitMobileArtwork(d){
+ const sx=d.W/400;
+ for(const node of art.querySelectorAll('*')){
+  const square=node.tagName==='rect'&&node.getAttribute('width')===node.getAttribute('height');
+  const oldX=Number(node.getAttribute('x')),oldY=Number(node.getAttribute('y')),width=Number(node.getAttribute('width')),height=Number(node.getAttribute('height'));
+  for(const attr of ['x','x1','x2','cx'])if(node.hasAttribute(attr))node.setAttribute(attr,Number(node.getAttribute(attr))*sx);
+  for(const attr of ['y','y1','y2','cy'])if(node.hasAttribute(attr))node.setAttribute(attr,Number(node.getAttribute(attr))*.8);
+  if(square){node.setAttribute('x',(oldX+width/2)*sx-width/2);node.setAttribute('y',(oldY+height/2)*.8-height/2);}
+  else if(node.tagName==='rect')node.setAttribute('width',width*sx);
+  if(node.tagName==='text')node.setAttribute('font-size',Math.max(18,Number(node.getAttribute('font-size'))||18));
+  if(node.tagName==='use')node.setAttribute('transform',node.getAttribute('transform').replace(/translate\(([-\d.]+) ([-\d.]+)\)/,(_,x,y)=>`translate(${Number(x)*sx} ${Number(y)*.8})`));
+  if(node.tagName==='polygon')node.setAttribute('points',node.getAttribute('points').split(' ').map(p=>{const[x,y]=p.split(',');return`${Number(x)*sx},${Number(y)*.8}`;}).join(' '));
+  if(node.tagName==='rect'&&node.getAttribute('fill')==='url(#error-hatch)')node.setAttribute('height',height*.8);
+ }
+}
+function render(){
+ if(!workedRules)return;const d=dimensions(),s=scene===11?explorerStats:workedStats;
+ svg.setAttribute('viewBox',`0 0 ${d.W} ${d.H}`);
+ $('stage-label').textContent=labels[scene];$('stage-count').textContent=`${scene+1} / ${steps.length}`;$('short-title').textContent=short[scene];$('caption').textContent=workedCaptions[scene];
+ $('previous').disabled=scene===0;$('next').disabled=scene===steps.length-1;$('sample-control').hidden=!(scene===3||scene===4);
+ $('sample-status').hidden=!(scene===3||scene===4)||!$('sample-status').textContent;
+ $('experiment-context').hidden=scene<5;
+ if(scene>=5)$('experiment-context').textContent=`${scene===11?$('games').value:5} games each · score difference ${signed(scene===11?Number($('test-point').value):.5)} · actual outcome ${s.truth}`;
+ annotations.innerHTML='';population.style.opacity='0';
+ if(scene===0){art.innerHTML=tableScene(d);setMath('<span><i>x</i> = Knicks points − Spurs points</span>');svgDescription('Five games observed by one alien','The Knicks scores are 105, 105, 111, 107, and 94; Spurs scores are 95, 104, 115, 106, and 90. Differentials: plus 10, plus 1, minus 4, plus 1, plus 4.');}
+ if(scene===1||scene===2){art.innerHTML=trainingScene(d,scene===2);setMath(scene===1?'<span>Cutoff = (−4 + 1) / 2 = −1.5</span>':'<span>At −1: prediction 1 ≠ true outcome 0</span>');svgDescription(scene===1?'A midpoint cutoff of minus one point five':'The fitted cutoff disagrees with the true cutoff',scene===1?'The closest observed loss is minus four and win is plus one. Place the boundary halfway between them.':'The true rule changes at zero. The fitted rule changes at minus one point five, and incorrectly calls a one-point Knicks loss a win.');}
+ if(scene===3||scene===4){art.innerHTML=sampleScene(d,scene===4);setMath(scene===3?'<span>Same procedure · different games</span>':'<span>Same input +0.5 · actual outcome 1</span>');svgDescription('Three aliens with different training histories',sampleRules().map((rule,j)=>{const cutoff=Number.isFinite(rule.cutoff)?String(rule.cutoff):rule.constant?'negative infinity, always predicts one':'positive infinity, always predicts zero';return `Alien ${j+1}: differentials ${rule.differences.join(', ')}; cutoff ${cutoff}${scene===4?'; predicts '+predict(rule,.5):''}.`;}).join(' '));}
+ if(scene===5){art.innerHTML=glyph(d.mobile?191:380,d.mobile?-4:8,d.mobile?.45:1)+text(d.mobile?200:d.W/2,d.mobile?58:93,'Same learner, 1,000 independent samples',d.mobile?13:19,'middle','muted');setParticles(d,s,true);setMath('<span>468 predict 0 &nbsp; + &nbsp; 532 predict 1</span>');svgDescription('One thousand alien predictions before aggregation','Exactly 1,000 marks represent independent training samples. Each predicts at plus zero point five: 468 zeros and 532 ones.');}
+ if(scene>=6){const mode=['mean','bias','variance','mse','decomposition','explore'][scene-6];art.innerHTML=populationScene(d,s,mode);setParticles(d,s,false);
+  const math={mean:'<span>(468 × 0 + 532 × 1) / 1,000 = 0.532</span>',bias:'<span>Bias ≈ 0.532 − 1 = −0.468<span class="secondary">Squared bias ≈ 0.219</span></span>',variance:'<span class="compact">Variance ≈ 0.468(0.532)² + 0.532(0.468)² ≈ 0.249</span>',mse:'<span>MSE = (468 × 1 + 532 × 0) / 1,000 = 0.468</span>',decomposition:'<span>0.468 ≈ <span class="math-blue">0.219</span> + <span class="math-rust">0.249</span> + 0</span>',explore:`<span class="compact">MSE ${fmt(s.mse)} ≈ bias² ${fmt(s.biasSquared)} + variance ${fmt(s.variance)} + 0</span>`};
+  if(d.mobile){math.mean='<span>Mean = 532 / 1,000 = 0.532</span>';math.variance='<span>Variance ≈ 0.249</span>';math.mse='<span>MSE = 468 / 1,000 = 0.468</span>';math.explore=`<span>${fmt(s.mse)} ≈ ${fmt(s.biasSquared)} + ${fmt(s.variance)} + 0</span>`;}
+  setMath(math[mode]);svgDescription(`${mode}: the same population of fitted predictions`,`${s.losses} predictions of zero; ${s.wins} predictions of one. Mean ${fmt(s.mean)}, true outcome ${s.truth}, bias ${fmt(s.bias)}, squared bias ${fmt(s.biasSquared,6)}, variance ${fmt(s.variance,6)}, MSE ${fmt(s.mse)}. Each mark is one alien. The decomposition bar, when shown, uses a zero-to-one squared-error scale.`);
+  if(scene===11)$('caption').textContent=`1,000 aliens: ${s.losses} predict 0; ${s.wins} predict 1. Mean ${fmt(s.mean)}; bias ${fmt(s.bias)}.`;
+ }
+ if(d.mobile)fitMobileArtwork(d);
+ // Refresh the static SVG layer after replacing it, including unchanged labels.
+ // The separate population layer keeps its movement between frames.
+ art.style.display='none';art.getBoundingClientRect();art.style.display='';
+}
+function setScene(i){i=Math.max(0,Math.min(steps.length-1,i));if(i===scene)return;scene=i;render();}
+function topOffset(){return matchMedia('(max-width:760px)').matches?document.querySelector('.stage-shell').offsetHeight+50:56;}
+function navigate(i){i=Math.max(0,Math.min(steps.length-1,i));setScene(i);window.scrollTo({top:steps[i].getBoundingClientRect().top+scrollY-topOffset(),behavior:'instant'});}
+document.querySelector('.start').addEventListener('click',event=>{event.preventDefault();navigate(0);});
+$('previous').addEventListener('click',()=>navigate(scene-1));$('next').addEventListener('click',()=>navigate(scene+1));
+$('new-history').addEventListener('click',()=>{
+ if(!workedRules)return;
+ do{historyIndex=(historyIndex+1)%workedRules.length;}while(historyIndex===allWinsIndex);
+ $('sample-status').textContent=`Alien 2 now uses cutoff ${signed(workedRules[historyIndex].cutoff)}. Aliens 1 and 3 keep their games.`;render();
+});
+$('restore-histories').addEventListener('click',()=>{if(!workedRules)return;historyIndex=0;$('sample-status').textContent='The three original histories are restored.';render();});
+let scheduled=false;
+function track(){scheduled=false;if(!workedRules)return;const m=matchMedia('(max-width:760px)').matches,line=m?document.querySelector('.stage-shell').getBoundingClientRect().bottom+90:innerHeight*.5;let i=0;for(let j=0;j<steps.length;j++)if(steps[j].getBoundingClientRect().top<=line)i=j;setScene(i);}
+addEventListener('scroll',()=>{if(!scheduled){scheduled=true;requestAnimationFrame(track);}},{passive:true});
+addEventListener('resize',()=>{if(workedRules){render();track();}});
+function updateExperiment(newSamples=false){
+ if(!workedRules)return;const n=Number($('games').value),x=Number($('test-point').value);if(newSamples)seed++;
+ if(newSamples||explorerRules[0].games.length!==n)explorerRules=simulate(1000,n,seed);
+ explorerStats=summarize(explorerRules,x);
+ describeExperiment();
+ if(scene!==11)navigate(11);else render();
+}
+function describeExperiment(){
+ const wrong=explorerStats.truth?explorerStats.losses:explorerStats.wins;
+ const x=Number($('test-point').value),reference=summarize(workedRules,x);
+ $('explorer-status').textContent=`${wrong} of 1,000 aliens are wrong at ${signed(x)}: q ≈ ${fmt(explorerStats.mse)}. Both columns use this same test input.`;
+ $('current-size').textContent=`Current: ${$('games').value} games`;
+ for(const key of ['biasSquared','variance','mse']){
+  $(`reference-${key}`).textContent=key==='mse'?`${(reference[key]*100).toFixed(1)}%`:fmt(reference[key]);
+  $(`current-${key}`).textContent=key==='mse'?`${(explorerStats[key]*100).toFixed(1)}%`:fmt(explorerStats[key]);
+ }
+}
+$('games').addEventListener('change',()=>updateExperiment());$('test-point').addEventListener('change',()=>updateExperiment());$('resample').addEventListener('click',()=>updateExperiment(true));
+$('reset').addEventListener('click',()=>{if(!workedRules)return;seed=10;$('games').value='5';$('test-point').value='0.5';explorerRules=workedRules;explorerStats=workedStats;describeExperiment();render();});
+try{
+ const response=await fetch('./samples.json');if(!response.ok)throw new Error('Training samples did not load.');const fixture=await response.json();
+ workedRules=fixture.games.map(games=>({games,...fitRule(games)}));allWinsIndex=workedRules.findIndex(rule=>rule.constant===1);workedStats=summarize(workedRules);explorerRules=workedRules;explorerStats=workedStats;
+ describeExperiment();
+ const ns='http://www.w3.org/2000/svg';particleNodes=workedRules.map((rule,i)=>{const node=document.createElementNS(ns,'rect');node.dataset.alien=i;population.append(node);return node;});
+ setScene(0);track();
+}catch(error){$('caption').textContent='The figures could not load. The complete worked explanation remains readable; reload to retry.';console.error(error);}
