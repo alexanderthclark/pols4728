@@ -6,7 +6,7 @@ const svg=$('diagram'),art=$('scene-art'),population=$('population'),annotations
 const steps=[...document.querySelectorAll('.step')];
 const labels=['One alien learns from five games','The closest loss and win locate a cutoff','Test a game outside the training sample','The same procedure, different training samples','Fixed input: x₀ = +0.5 · true outcome: 1','1,000 independent training samples','Prediction axis · each mark is one alien','Bias: average prediction minus truth','Variance: squared distances from the mean','MSE: squared distances from the truth','MSE = squared bias + variance + noise','The same experiment with new settings'];
 const short=['Five games','Learn a cutoff','Test the rule','Different samples','One question','1,000 aliens','Expectation','Bias','Variance','MSE','Decomposition','Explore'];
-const workedCaptions=['Final scores are already known. y = 1 is a win; y = 0 is a loss.','The nearest observations leave a gap from −4 to +1. The midpoint is −1.5.','The hatched interval marks disagreements with the true rule.','Each row shows one alien’s five observations and its fitted cutoff.','A circle / 1 means predict win. A square / 0 means predict loss.','Exactly 1,000 marks, in training-sample order: 468 predict loss; 532 predict win.','The same 1,000 marks, regrouped by prediction. Their weighted mean is 0.532.','The arrow runs from the true outcome to the mean. Its signed length is −0.468.','Square each distance to the mean, then average over the 1,000 aliens.','The 468 loss predictions have squared error 1; the 532 win predictions have error 0.','Bar lengths use squared-error units. Outcome noise is zero at this fixed input.','Every mark still represents one independently trained alien.'];
+const workedCaptions=['Final scores are already known. y = 1 is a win; y = 0 is a loss.','The nearest observations leave a gap from −4 to +1. The midpoint is −1.5.','The narrow hatched interval marks disagreements with the true rule.','Each row shows one alien’s five observations and its fitted cutoff.','Every fitted rule answers the same question. The actual outcome is 1.','Exactly 1,000 marks, in training-sample order: 468 predict loss; 532 predict win.','The same 1,000 marks, regrouped by prediction. Their weighted mean is 0.532.','The arrow runs from the true outcome to the mean. Its signed length is −0.468.','Square each distance to the mean, then average over the 1,000 aliens.','The 468 loss predictions have squared error 1; the 532 win predictions have error 0.','The same wrong-answer probability determines both components. Outcome noise is zero.','Every mark still represents one independently trained alien.'];
 let scene=-1,selected=0,seed=10,allWinsIndex,workedRules,workedStats,explorerRules,explorerStats;
 let particleNodes=[];
 const exampleRule=fitRule(illustration);
@@ -27,19 +27,34 @@ function tableScene(d){
  return s;
 }
 function trainingScene(d,truth){
- const {mobile:m,W,fs}=d;const left=m?55:120,right=m?378:W-35,map=x=>left+(x+6)/18*(right-left),axis=m?226:376,cut=map(-1.5),zero=map(0),pointY=m?171:285;
+ const {mobile:m,fs}=d;
+ const left=m?35:80,right=m?375:760,map=x=>left+(x+6)/18*(right-left);
+ const axis=m?155:290,cut=map(exampleRule.cutoff),zero=map(0),tick=m?7:10;
  let s='';
- s+=text(left,m?32:63,'Observed point differentials',m?13:19,'start','muted');
- s+=line(left,axis,right,axis);
- [-4,0,4,8,12].forEach(x=>{s+=line(map(x),axis,map(x),axis+6);s+=text(map(x),axis+(m?23:32),x,fs,'middle','muted');});
- s+=text((left+right)/2,m?288:499,'Knicks points − Spurs points',m?13:18,'middle','muted');
- if(truth){s+=`<rect x="${cut}" y="${m?80:133}" width="${zero-cut}" height="${axis-(m?80:133)}" fill="url(#error-hatch)"/>`;s+=line(zero,m?76:128,zero,axis,'reference');s+=text(zero+9,m?70:116,'True: 0',m?12:18);}
- const groups=new Map();illustration.forEach(([k,spurs])=>{const diff=k-spurs;const count=groups.get(diff)||0;groups.set(diff,count+1);const y=pointY-count*(m?29:44);s+=mark(map(diff),y,diff>0,m?5:8);if(!truth||diff!==1||count===1)s+=text(map(diff),y-(m?12:19),signed(diff),m?12:17,'middle',diff>0?'blue':'rust');});
- s+=line(cut,m?93:128,cut,axis,'model');
- s+=text(cut-(m?7:13),m?77:116,'Learned: −1.5',m?12:18,'end','blue');
- if(!truth){const y=m?117:194;s+=line(map(-4),y,map(1),y,'axis');s+=line(map(-4),y-5,map(-4),y+5);s+=line(map(1),y-5,map(1),y+5);s+=text(map(-4)-(m?3:8),y-(m?12:19),'Closest loss',m?11:16,'end','rust');s+=text(map(1)+(m?3:8),y-(m?12:19),'Closest win',m?11:16,'start','blue');}
- if(truth){const x=map(-1);s+=`<polygon points="${x},${axis-7} ${x-6},${axis-17} ${x+6},${axis-17}" fill="var(--rust)"/>`;s+=line(x,m?207:343,x,axis-17,'measure');s+=text(x-(m?5:10),m?210:345,'New game: −1',m?12:18,'end','rust');s+=text(left,m?267:453,'Alien: win (1)   ·   Actual: loss (0)',m?13:20);}
- else{s+=text(left,m?267:453,'Predict loss',m?13:18);s+=text(right,m?267:453,'Predict win',m?13:18,'end');}
+ if(truth){
+  s+=`<rect x="${cut}" y="${axis-tick}" width="${zero-cut}" height="${tick*2}" fill="url(#error-hatch)"/>`;
+  s+=line(zero,axis-16,zero,axis+16,'reference');
+  s+=text(cut-8,m?93:210,'Learned −1.5',m?13:19,'end','blue');
+  s+=text(zero+8,m?93:210,'True 0',m?13:19);
+ }else{
+  const bracket=m?115:225;
+  s+=line(map(-4),bracket,map(1),bracket);
+  s+=line(map(-4),bracket-5,map(-4),bracket+5);
+  s+=line(map(1),bracket-5,map(1),bracket+5);
+  s+=text(cut,m?93:205,'Cutoff −1.5',m?13:21,'middle','blue');
+ }
+ s+=line(left,axis,right,axis,'axis','marker-start="url(#arrow-ink)" marker-end="url(#arrow-ink)"');
+ for(const x of [-4,1,4,10]){
+  s+=line(map(x),axis-tick,map(x),axis+tick,'observation');
+  s+=text(map(x),axis+(m?32:41),signed(x),fs,'middle',x>0?'blue':'rust');
+ }
+ s+=text(map(1),axis+(m?53:66),'2 games',m?11:15,'middle','muted');
+ s+=line(cut,axis-16,cut,axis+16,'model');
+ s+=text((left+right)/2,m?250:432,'Knicks points − Spurs points',m?13:18,'middle','muted');
+ if(truth){
+  s+=line(map(-1),axis-5,map(-1),axis+5,'measure');
+  s+=text(map(-1),axis+(m?32:41),'−1',fs,'middle','rust');
+ }
  return s;
 }
 function rowIndices(){
@@ -49,7 +64,8 @@ function rowIndices(){
 }
 function sampleScene(d,fixed){
  const {mobile:m,W,fs}=d;const left=m?83:175,right=m?319:672,map=x=>left+(x+101)/202*(right-left),test=map(.5),rows=m?[85,151,217]:[149,281,413];
- let s=text(left,m?24:51,'Training observations and learned cutoffs',m?12:18,'start','muted');
+ let s=text(left,m?24:51,fixed?'Training samples':'Training observations and learned cutoffs',m?12:18,'start','muted');
+ if(fixed)s+=text(m?380:741,m?24:51,'Prediction',m?12:18,m?'end':'middle','muted');
  if(fixed){s+=line(test,m?48:90,test,m?237:454,'reference');s+=text(test+(m?7:12),m?43:80,'Same x₀ = +0.5',m?12:18);}
  rowIndices().forEach((i,j)=>{const rule=workedRules[i],y=rows[j],c=rule.cutoff;
  s+=glyph(m?23:55,y-(m?39:74),m?.47:.9);s+=text(m?32:73,y+(m?17:31),`Alien ${i+1}`,m?11:17,'middle');
@@ -66,7 +82,7 @@ function sampleScene(d,fixed){
   const edge=rule.constant?left:right,direction=rule.constant?-1:1;
   s+=line(edge+direction*3,y,edge+direction*(m?17:29),y,'model','marker-end="url(#arrow-blue)"');
  }
- if(fixed){const p=predict(rule,.5),bx=m?360:741;s+=line(right+5,y,bx-(m?14:23),y,'axis', 'marker-end="url(#arrow-ink)"');s+=mark(bx,y,p,m?13:22);s+=text(bx,y+(m?4:6),p,m?15:25,'middle','inverse');}
+ if(fixed){const p=predict(rule,.5),bx=m?360:741;s+=line(right+5,y,bx-(m?14:23),y,'axis', 'marker-end="url(#arrow-ink)"');s+=text(bx,y+(m?5:7),p,m?19:27,'middle');}
  });
  [-100,0,100].forEach(x=>s+=text(map(x),m?259:485,x,fs,'middle','muted'));
  s+=text((left+right)/2,m?285:529,'Knicks points − Spurs points',m?13:18,'middle','muted');
@@ -179,14 +195,19 @@ function updateExperiment(newSamples=false){
  if(!workedRules)return;const n=Number($('games').value),x=Number($('test-point').value);if(newSamples)seed++;
  if(newSamples||explorerRules[0].games.length!==n)explorerRules=simulate(1000,n,seed);
  explorerStats=summarize(explorerRules,x);
- $('explorer-status').textContent=`1,000 independently trained aliens; ${n} games each; fixed input ${signed(x)}. Mean prediction ${fmt(explorerStats.mean)}, bias ${fmt(explorerStats.bias)}, MSE ${fmt(explorerStats.mse)}.`;
+ describeExperiment();
  if(scene!==11)navigate(11);else render();
 }
+function describeExperiment(){
+ const wrong=explorerStats.truth?explorerStats.losses:explorerStats.wins;
+ $('explorer-status').textContent=`${wrong} of 1,000 aliens are wrong at ${signed(Number($('test-point').value))}: q ≈ ${fmt(explorerStats.mse)}. Squared bias ${fmt(explorerStats.biasSquared)}; variance ${fmt(explorerStats.variance)}. Each alien learned from ${$('games').value} games.`;
+}
 $('games').addEventListener('change',()=>updateExperiment());$('test-point').addEventListener('change',()=>updateExperiment());$('resample').addEventListener('click',()=>updateExperiment(true));
-$('reset').addEventListener('click',()=>{if(!workedRules)return;$('games').value='5';$('test-point').value='0.5';explorerRules=workedRules;explorerStats=workedStats;$('explorer-status').textContent='Restored the worked example: 468 loss predictions and 532 win predictions.';render();});
+$('reset').addEventListener('click',()=>{if(!workedRules)return;seed=10;$('games').value='5';$('test-point').value='0.5';explorerRules=workedRules;explorerStats=workedStats;describeExperiment();render();});
 try{
  const response=await fetch('./samples.json');if(!response.ok)throw new Error('Training samples did not load.');const fixture=await response.json();
  workedRules=fixture.games.map(games=>({games,...fitRule(games)}));allWinsIndex=workedRules.findIndex(rule=>rule.constant===1);workedStats=summarize(workedRules);explorerRules=workedRules;explorerStats=workedStats;
+ describeExperiment();
  const ns='http://www.w3.org/2000/svg';particleNodes=workedRules.map((rule,i)=>{const node=document.createElementNS(ns,'rect');node.dataset.alien=i;population.append(node);return node;});
  $('sample-alien').innerHTML=Array.from({length:1000},(_,i)=>`<option value="${i}">Alien ${i+1}</option>`).join('');
  setScene(0);track();

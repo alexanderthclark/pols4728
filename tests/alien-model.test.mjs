@@ -27,6 +27,7 @@ test('decomposition also holds at a loss input and in new sample sizes',()=>{
  const rules=simulate(1000,n,45);
  for(const x of [-20.5,-.5,.5,20.5]){
  const r=summarize(rules,x);near(r.mse,r.biasSquared+r.variance);assert.equal(r.noise,0);assert.equal(r.truth,Number(x>0));
+ near(r.biasSquared,r.mse**2);near(r.variance,r.mse*(1-r.mse));near(r.bias,(r.truth?-1:1)*r.mse);
  }
  }
 });

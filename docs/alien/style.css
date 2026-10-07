@@ -34,6 +34,7 @@ h1 {font-size:clamp(43px,4.8vw,70px);margin:12px 0 18px}
 #diagram .blue {fill:var(--blue)}
 #diagram .rust {fill:var(--rust)}
 #diagram .axis {stroke:var(--rule);stroke-width:1;fill:none}
+#diagram .observation {stroke:var(--ink);stroke-width:1.8;fill:none}
 #diagram .reference {stroke:var(--ink);stroke-width:1.7;stroke-dasharray:5 5;fill:none}
 #diagram .model {stroke:var(--blue);stroke-width:2.4;fill:none}
 #diagram .measure {stroke:var(--rust);stroke-width:2;fill:none}
