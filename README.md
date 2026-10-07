@@ -28,10 +28,13 @@ calculation and checks against the SHAP package.
 
 GitHub Pages publishes the `docs/` site automatically after the checks pass on `main`. See the [hosting notes](docs/shapley/README.md#hosting) for the website addresses and manual deployment instructions.
 
-The [deep neural network story](docs/deep/README.md) begins with a scalar input
-and three first-layer ReLU features. An added hidden layer turns zero crossings
-into new bends, then combines its features into the output curve. Linked curves
-and a network diagram use Prince's notation and exact piecewise linear geometry.
+The [deep neural network story](docs/deep/README.md) folds three scalar-input
+intervals onto the same coordinate and reuses a downstream pattern. Two hidden
+layers of three ReLU units represent a ten-joint curve with 22 dense parameters;
+a shallow network needs at least 31 for that same curve. An animated fold, linked
+curves, and a network diagram follow Prince's notation and exact piecewise linear
+geometry. The copied joints move together, illustrating the structure behind
+the parameter saving.
 
 ## Datasets
 

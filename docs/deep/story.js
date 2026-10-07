@@ -1,5 +1,5 @@
-import { evaluateNetwork, surfaceValue, INPUT_DOMAIN } from './model.mjs';
-import { curveGeometry } from './geometry.mjs';
+import { evaluateNetwork, foldedValue, INPUT_DOMAIN, DEFAULT_THRESHOLD } from './model.mjs';
+import { curveGeometry, foldedCurveGeometry } from './geometry.mjs';
 import { LinkedFigures, renderNetwork, modeLabels } from './views.js';
 
 const $=selector=>document.querySelector(selector);
@@ -10,36 +10,38 @@ const mobile=matchMedia('(max-width: 820px)');
 const formatter=new Intl.NumberFormat('en-US',{maximumFractionDigits:2});
 const number=value=>formatter.format(Math.abs(value)<1e-9?0:Math.sign(value)*Math.round((Math.abs(value)+1e-12)*100)/100).replace('-','−');
 const names=[
-  'The curve we will build','Three fixed first-layer features','The shallow readout',
-  'Before the new ReLU','Three crossings become new bends','Move the new bends',
-  'The combined output','Explore the same network',
+  'One ten-joint curve','Three first-layer ramps','The fold q(x)',
+  'Fold the input line','One joint, three locations','Reuse the whole pattern',
+  'The same curve, fewer parameters','Explore the linked joints',
 ];
 const subtitles=[
-  'One input x · one numeric response y','One hidden layer · hinges at 0, 1, and 2',
-  'Weights change slopes between the fixed hinges','The first new unit receives all three features',
-  'First-layer hinges stay fixed','The threshold changes only the second new unit’s bias',
-  'Two hidden layers · three units in each','Select an input on the curve or use the control',
+  '22 deep parameters · at least 31 shallow parameters','One hidden layer · one joint per ReLU',
+  'Slope +1, then −1, then +1 on 0 ≤ x ≤ 3','The middle interval runs backward',
+  'h₂,₂ = a[q − τ] · one threshold in the folded coordinate',
+  'Three downstream joints · each reused on three intervals',
+  'Two hidden layers · three units in each','Select an input or move the middle threshold',
 ];
 const notes=[
-  'Height is response y. The horizontal axis is the input x.',
-  'Each ramp has one hinge. Together they define four linear intervals.',
-  'Gray guides mark the first-layer hinges. Crossing zero does not change the slope.',
-  'Open rust circles mark zero crossings at 0.5, 1.5, and 2.5.',
-  'Rust dots are new bends; the faint dashed curve is the sum before ReLU.',
-  '', '', 'Gray guides remain at the first layer’s hinges.',
+  'Nine copied joints (rust) and one surviving turn of the fold (blue).',
+  'Each ramp changes slope once, at x = 0, 1, or 2.',
+  'The same q runs from 0 to 1 three times. The middle pass is reversed.',
+  'Vertical alignment means equal q. The rows separate the three input intervals; they are not a second input dimension.',
+  '',
+  'Each dashed threshold cuts all three passes: nine copied joint locations.',
+  '10 true joints · 22 dense parameters. A shallow network needs at least 10 units and 31 parameters for this curve.',
+  '',
 ];
-const state={scene:0,threshold:.3,x:.75,explorer:'combined'};
+const state={scene:0,threshold:DEFAULT_THRESHOLD,x:.25,explorer:'combined'};
 let navigationTarget=null,scrollFrame=0;
-
 const thresholdControls=$('#threshold-controls');
 const surfaceControls=$('#surface-controls');
 const probeControls=$('#probe-controls');
-const moveContent=$('#move-bends .step-content');
+const reuseContent=$('#reuse-joint .step-content');
+const foldContent=$('#fold-input .step-content');
 const exploreContent=$('#explore .step-prose');
-moveContent.append(thresholdControls);
+reuseContent.append(thresholdControls);
 exploreContent.prepend(surfaceControls,probeControls);
 thresholdControls.hidden=false;surfaceControls.hidden=false;probeControls.hidden=false;
-
 const dots=steps.map((step,index)=>{
   const button=document.createElement('button');
   button.type='button';button.setAttribute('aria-label','Frame '+(index+1)+': '+step.querySelector('h1,h2').textContent);
@@ -48,34 +50,40 @@ const dots=steps.map((step,index)=>{
   return button;
 });
 const figures=new LinkedFigures($('#surface'),$('#feature-plot'),x=>setPoint(x,true));
-
 function currentMode() {
-  return ['combined','h11','shallow','preactivation','unit1','unit2','combined',state.explorer][state.scene];
+  return ['combined','h11','fold','fold','unit2','combined','combined',state.explorer][state.scene];
 }
+function modeValue(mode,values) {return mode==='downstream'?foldedValue(values.fold,{threshold:state.threshold}):values[mode];}
 function updateFigures(animate=false) {
   const mode=currentMode();
+  $('.feature-view').hidden=state.scene<5 || (state.scene===7 && mode!=='combined');
   figures.update({scene:state.scene,mode,threshold:state.threshold,x:state.x,showProbe:state.scene!==0,cover:state.scene===0},{animate});
   const values=evaluateNetwork(state.x,{threshold:state.threshold});
   $('#input-values').textContent=number(state.x);
-  $('#first-values').textContent='('+values.h1.map(number).join(', ')+')';
-  $('#response-label').textContent=state.scene===1?'First feature h₁,₁':mode==='preactivation'?'Before ReLU q₁':'Response '+modeLabels[mode];
-  $('#response-value').textContent=number(values[mode]);
+  $('#fold-values').previousElementSibling.textContent=state.scene===1?'Activations h₁':'Folded q';
+  $('#fold-values').textContent=state.scene===1?'('+values.h1.map(number).join(', ')+')':number(values.fold);
+  $('#response-label').textContent=state.scene===1?'First feature h₁,₁':mode==='fold'?'Fold q(x)':'Response '+modeLabels[mode];
+  $('#response-value').textContent=number(modeValue(mode,values));
   renderNetwork($('#network'),{scene:state.scene,mode,threshold:state.threshold,x:state.x});
-  $('#probe-x').value=state.x;
-  $('#probe-x-value').textContent=number(state.x);
-  $('#threshold').value=state.threshold;
-  $('#threshold-value').textContent=number(state.threshold);
-  const geometry=curveGeometry(mode,{threshold:state.threshold});
+  $('#probe-x').value=state.x;$('#probe-x-value').textContent=number(state.x);
+  $('#threshold').value=state.threshold;$('#threshold-value').textContent=number(state.threshold);
   let note=notes[state.scene];
-  if(state.scene===5) note='New bends at '+geometry.secondPreactivationRoots[1].map(number).join(', ')+'. First-layer hinges have not moved.';
-  if(state.scene===6 || (state.scene===7 && mode==='combined')) note=geometry.bends.length+' bends · '+(geometry.bends.length+1)+' linear intervals in the displayed window.';
-  if(state.scene===7 && mode==='shallow') note='The threshold changes only the second hidden layer. This shallow readout stays fixed.';
+  if(state.scene===4) note='The joint at q = '+number(state.threshold)+' appears at x = '+[state.threshold,2-state.threshold,2+state.threshold].map(number).join(', ')+'. Move τ to move all three.';
+  if(state.scene===7) {
+    if(mode==='combined') note=curveGeometry(mode,{threshold:state.threshold}).bends.length+' true joints. Moving τ links three of them; the other thresholds and the fold stay fixed.';
+    else if(mode==='downstream') note=foldedCurveGeometry({threshold:state.threshold}).bends.length+' joints in g(q). The horizontal axis here is q; the input control still selects x.';
+    else if(mode==='fold') note='This fold stays fixed when τ moves. Its turns are at x = 1 and 2.';
+    else note='One threshold, three copied joints at x = '+[state.threshold,2-state.threshold,2+state.threshold].map(number).join(', ')+'.';
+  }
   $('#figure-note').textContent=note;
 }
 function setPoint(x,announce=false) {
   state.x=Math.max(INPUT_DOMAIN[0],Math.min(INPUT_DOMAIN[1],Math.round(x*100)/100));
   updateFigures();
-  if(announce) $('#interaction-status').textContent='Input '+number(state.x)+'. '+modeLabels[currentMode()]+' is '+number(surfaceValue(currentMode(),state.x,{threshold:state.threshold}))+'.';
+  if(announce) {
+    const values=evaluateNetwork(state.x,{threshold:state.threshold});
+    $('#interaction-status').textContent='Input '+number(state.x)+', folded coordinate '+number(values.fold)+'. '+modeLabels[currentMode()]+' is '+number(modeValue(currentMode(),values))+'.';
+  }
 }
 function setScene(scene,{animate=true}={}) {
   if(scene<0 || scene>=steps.length) return;
@@ -84,13 +92,18 @@ function setScene(scene,{animate=true}={}) {
   stage.classList.toggle('mode-cover',scene===0);
   stage.classList.toggle('mode-feature',scene===1);
   stage.classList.toggle('mode-combined',scene===6);
+  stage.classList.toggle('mode-fold',scene>=1&&scene<=3);
+  stage.classList.toggle('mode-foldmap',scene===3||scene===5);
+  $('#response-value').parentElement.hidden=scene>=1&&scene<=3;
+  $('#probe-x').min=scene===3?'0':String(INPUT_DOMAIN[0]);
+  $('#probe-x').max=scene===3?'3':String(INPUT_DOMAIN[1]);
+  if(scene===3||scene===5) state.x=Math.max(0,Math.min(3,state.x));
   $('#stage-title').textContent=names[scene];$('#stage-subtitle').textContent=subtitles[scene];
   $('#stage-count').textContent=(scene+1)+' / '+steps.length;
   $('#previous').disabled=scene===0;$('#next').disabled=scene===steps.length-1;
-  // The three supporting curves appear when the final output recombines them.
-  // Earlier frames concentrate on one curve and its crossings.
-  $('.feature-view').hidden=scene<6;
-  const destination=scene===7?exploreContent:moveContent;
+  const probeDestination=scene===7?exploreContent:foldContent;
+  if(probeControls.parentElement!==probeDestination) probeDestination.append(probeControls);
+  const destination=scene===7?exploreContent:reuseContent;
   if(thresholdControls.parentElement!==destination) {
     if(scene===7) destination.insertBefore(thresholdControls,probeControls);
     else destination.append(thresholdControls);
@@ -131,14 +144,11 @@ function inspectScroll() {
 function scheduleScroll() {if(!scrollFrame) scrollFrame=requestAnimationFrame(inspectScroll);}
 $('#previous').addEventListener('click',()=>goTo(state.scene-1));
 $('#next').addEventListener('click',()=>goTo(state.scene+1));
-$('#surface-select').addEventListener('change',event=>{
-  state.explorer=event.target.value;updateFigures(true);
-});
-$('#threshold').addEventListener('input',event=>{
-  state.threshold=Number(event.target.value);updateFigures();
-});
+$('#replay-fold').addEventListener('click',()=>figures.replayFold());
+$('#surface-select').addEventListener('change',event=>{state.explorer=event.target.value;updateFigures(true);});
+$('#threshold').addEventListener('input',event=>{state.threshold=Number(event.target.value);updateFigures();});
 $('#threshold').addEventListener('change',()=>{
-  $('#interaction-status').textContent='Threshold '+number(state.threshold)+'. The first layer has not changed.';
+  $('#interaction-status').textContent='Threshold '+number(state.threshold)+'. Copied joints at '+[state.threshold,2-state.threshold,2+state.threshold].map(number).join(', ')+'.';
 });
 $('#probe-x').addEventListener('input',event=>setPoint(Number(event.target.value)));
 $('#probe-x').addEventListener('change',()=>setPoint(state.x,true));

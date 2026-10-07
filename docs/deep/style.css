@@ -120,6 +120,16 @@ h2 { margin: 0 0 24px; font-size: clamp(33px, 2.85vw, 44px); letter-spacing: -.0
 .step .small, .control-note, .scroll-prompt { color: var(--muted); font: 13px/1.55 var(--sans); }
 .scroll-prompt { margin-top: 26px !important; }
 
+.parameter-table { width: 100%; max-width: 100%; margin: 27px 0; border-collapse: collapse; table-layout: fixed; font-size: 17px; line-height: 1.4; }
+.parameter-table caption { padding-bottom: 10px; color: var(--muted); text-align: left; font: 13px/1.5 var(--sans); }
+.parameter-table th, .parameter-table td { padding: 11px 0; border-bottom: 1px solid var(--light-rule); vertical-align: top; font-weight: normal; }
+.parameter-table th:first-child { width: 54%; padding-right: 12px; text-align: left; overflow-wrap: anywhere; }
+.parameter-table thead th { border-bottom-color: var(--rule); color: var(--muted); font: 12px/1.4 var(--sans); }
+.parameter-table thead th:last-child, .parameter-table td { text-align: right; }
+.parameter-table td { padding-left: 8px; font: 18px/1.4 'Course Math', math; font-variant-numeric: tabular-nums; }
+.parameter-table td strong { display: block; margin-top: 4px; color: var(--blue); font: normal 29px/1.2 'Course Math', math; }
+.parameter-table tbody tr:last-child > * { border-bottom-color: var(--rule); }
+
 .visual-stage {
   position: sticky;
   top: var(--masthead-height);
@@ -171,6 +181,7 @@ h2 { margin: 0 0 24px; font-size: clamp(33px, 2.85vw, 44px); letter-spacing: -.0
 
 .stage-readout { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; align-items: start; flex-shrink: 0; min-width: 0; padding: 11px 0 1px; border-top: 1px solid var(--light-rule); }
 .stage-readout > * { min-width: 0; }
+.mode-fold .stage-readout { grid-template-columns: 1fr 1fr; }
 .readout-label { display: block; margin: 0 0 4px; color: var(--muted); font: 11px/1.35 var(--sans); }
 .readout-value, .readout-values { display: block; min-width: 0; color: var(--ink); font: 22px/1.25 'Course Math', math; font-variant-numeric: tabular-nums; }
 .readout-value math, .readout-values math { font-size: 1em; }
@@ -235,6 +246,9 @@ h2 { margin: 0 0 24px; font-size: clamp(33px, 2.85vw, 44px); letter-spacing: -.0
 .control-row input { grid-column: 1 / -1; }
 .probe-controls { grid-template-columns: minmax(0, 1fr); gap: 15px 24px; }
 .probe-controls input { display: block; }
+.fold-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 25px 0 22px; }
+#replay-fold { min-height: 44px; max-width: 100%; padding: 9px 14px; color: var(--blue); border-color: var(--blue); }
+#replay-fold:hover { text-decoration: underline; text-underline-offset: .2em; }
 .mode-cover .surface-view { max-width: 780px; margin: auto; }
 .mode-cover .feature-view, .mode-cover .network-view, .mode-cover .stage-readout, .mode-cover .feature-controls { display: none; }
 .mode-combined .network-view svg { max-height: 155px; }
@@ -282,6 +296,10 @@ details p { margin: 17px 0 0 !important; font-size: 17px; }
   .step .cover-subtitle { margin: -7px 0 22px; font-size: 21px; }
   .step-prose p, .step p { margin-bottom: 18px; }
   .equation { margin: 22px 0; font-size: 20px; }
+  .parameter-table { margin: 22px 0; font-size: 16px; }
+  .parameter-table th:first-child { padding-right: 10px; }
+  .parameter-table td { padding-left: 5px; font-size: 16px; }
+  .parameter-table td strong { font-size: 27px; }
   .stage-title { font-size: 18px; line-height: 1.2; }
   .stage-subtitle { font-size: 11px; line-height: 1.35; margin-top: 0; }
   .stage-topline { gap: 10px; }
@@ -310,6 +328,7 @@ details p { margin: 17px 0 0 !important; font-size: 17px; }
 }
 
 @media (max-width: 600px) {
+  .mode-foldmap .feature-view { display: none; }
   .progress-dots { display: none; }
   .figure-note { display: none; }
 }
@@ -335,7 +354,7 @@ details p { margin: 17px 0 0 !important; font-size: 17px; }
 @media print {
   :root { --masthead-height: 0px; }
   body { font-size: 11pt; }
-  .masthead, .page-header, .visual-stage, .explorer-controls, .probe-controls, .scroll-prompt, .skip-link { display: none !important; }
+  .masthead, .page-header, .visual-stage, .explorer-controls, .probe-controls, .fold-controls, .scroll-prompt, .skip-link { display: none !important; }
   .story-layout { display: block; padding: 0; }
   .narrative { padding: 0; }
   .step { min-height: 0; padding: 22px 0; break-inside: avoid; }
