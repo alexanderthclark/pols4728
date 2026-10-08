@@ -28,6 +28,14 @@ calculation and checks against the SHAP package.
 
 GitHub Pages publishes the `docs/` site automatically after the checks pass on `main`. See the [hosting notes](docs/shapley/README.md#hosting) for the website addresses and manual deployment instructions.
 
+The [deep neural network story](docs/deep/README.md) folds three scalar-input
+intervals onto the same coordinate and reuses a downstream pattern. Two hidden
+layers of three ReLU units represent a ten-joint curve with 22 dense parameters;
+a shallow network needs at least 31 for that same curve. An animated fold, linked
+curves, and a network diagram follow Prince's notation and exact piecewise linear
+geometry. The input slider follows a value through the fixed fold and prediction,
+illustrating the repeated structure behind the parameter saving.
+
 ## Datasets
 
 The [clean regression choices](data/regression_choices/README.md) provide four
