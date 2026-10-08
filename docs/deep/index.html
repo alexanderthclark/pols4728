@@ -4,32 +4,31 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Fold three input intervals together and reuse one downstream pattern. A two-layer ReLU network represents a ten-joint curve with fewer parameters than a shallow network.">
-  <title>More joints, fewer parameters · POLS 4728</title>
+  <title>Deep networks · POLS 4728</title>
   <link rel="preload" href="../shapley/fonts/STIXTwoMath-Regular.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="stylesheet" href="style.css?v=origami-title">
-  <script type="module" src="story.js?v=origami-title"></script>
+  <link rel="stylesheet" href="style.css?v=deep-networks-title">
+  <script type="module" src="story.js?v=deep-networks-title"></script>
   <noscript><style>.visual-stage,.scroll-prompt,.fold-controls{display:none}.story-layout{display:block;max-width:48rem;margin:auto}.step{min-height:0;padding:2rem 0}</style></noscript>
 </head>
 <body>
   <a class="skip-link" href="#story">Skip to the explanation</a>
   <header class="masthead"><a href="../">POLS 4728 · ML &amp; AI</a><a href="#model-and-reference">Model &amp; reference</a></header>
   <main class="deep-story" id="story">
+    <section class="step title-page" id="more-joints" data-step="0" aria-labelledby="title" tabindex="-1">
+      <div class="title-page-content">
+        <p class="title-page-kicker">POLS 4728</p>
+        <h1 id="title">Deep networks</h1>
+        <figure class="title-page-art" id="cover-art"><img src="assets/origami-folding-character.png?v=standing-folds" width="1536" height="1024" alt="A gleeful round character stands beside a table, lifting an origami strip with repeating triangular folds overhead while its flat end rests on the tabletop." decoding="async" fetchpriority="high"></figure>
+        <a class="title-page-start" href="#shallow-joints">Start the explanation <span aria-hidden="true">↓</span></a>
+      </div>
+    </section>
     <div class="story-layout">
       <div class="narrative">
-        <section class="step" id="more-joints" data-step="0" aria-labelledby="title">
-          <div class="step-content">
-            <p class="step-kicker">1 / 8 · Deep neural networks</p>
-            <h1 id="title">More joints, fewer parameters</h1>
-            <p class="cover-subtitle">Fold the input. Reuse a pattern.</p>
-            <div class="step-prose"><p>One input, <var>x</var>. One prediction, <var>y</var>. We will build a curve with ten joints: ten places where its slope changes.</p><p>Counting every weight and bias, a dense deep network can represent it with 22 parameters. A dense shallow network needs at least 31 for the same curve. The saving comes from applying one pattern to input intervals folded together.</p></div>
-            <p class="scroll-prompt">Scroll to see the fold, or use Next.</p>
-          </div>
-        </section>
         <section class="step" id="shallow-joints" data-step="1" aria-labelledby="shallow-heading">
           <div class="step-content">
             <p class="step-kicker">2 / 8 · One hidden layer</p>
             <h2 id="shallow-heading">One unit buys one joint</h2>
-            <div class="step-prose"><p>A scalar-input ReLU unit has one hinge. With an affine output, a shallow network with <var>D</var> hidden units can therefore have at most <var>D</var> joints.</p><p>These three units provide familiar ramps:</p></div>
+            <div class="step-prose"><p>One input, <var>x</var>. One prediction, <var>y</var>. We will build a curve with ten joints: ten places where its slope changes.</p><p>A scalar-input ReLU unit has one hinge. With an affine output, a shallow network with <var>D</var> hidden units can therefore have at most <var>D</var> joints.</p><p>These three units provide familiar ramps:</p></div>
             <div class="equation">
               <math display="block" aria-label="h one comma one equals a of x"><mrow><msub><mi>h</mi><mrow><mn>1</mn><mo>,</mo><mn>1</mn></mrow></msub><mo>=</mo><mi>a</mi><mo>[</mo><mi>x</mi><mo>]</mo></mrow></math>
               <math display="block" aria-label="h one comma two equals a of x minus one"><mrow><msub><mi>h</mi><mrow><mn>1</mn><mo>,</mo><mn>2</mn></mrow></msub><mo>=</mo><mi>a</mi><mo>[</mo><mi>x</mi><mo>−</mo><mn>1</mn><mo>]</mo></mrow></math>
@@ -93,11 +92,10 @@
           </div>
         </section>
       </div>
-      <aside class="visual-stage mode-cover" aria-label="Title illustration and linked folding figures">
-        <div class="stage-topline"><span class="stage-title" id="stage-title">One ten-joint curve</span><span class="step-count" id="stage-count" aria-live="polite" aria-atomic="true">1 / 8</span></div>
+      <aside class="visual-stage mode-cover" aria-label="Linked folding figures">
+        <div class="stage-topline"><span class="stage-title" id="stage-title">Deep networks</span><span class="step-count" id="stage-count" aria-live="polite" aria-atomic="true">1 / 8</span></div>
         <p class="stage-subtitle" id="stage-subtitle">22 deep parameters · at least 31 shallow parameters</p>
         <div class="stage-figure">
-          <div class="cover-art" id="cover-art"><img src="assets/origami-folding-character.png?v=standing-folds" width="1536" height="1024" alt="A gleeful round character stands beside a table, lifting an origami strip with repeating triangular folds overhead while its flat end rests on the tabletop." decoding="async" fetchpriority="high"></div>
           <div class="surface-view" hidden><svg id="surface" role="img" aria-label="Response curve and folded input"></svg></div>
         </div>
         <div class="feature-view" hidden><svg id="feature-plot" role="img" aria-label="Downstream pattern in the folded coordinate q"></svg></div>

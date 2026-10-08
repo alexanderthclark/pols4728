@@ -1,4 +1,4 @@
-# More joints, fewer parameters
+# Deep networks
 
 A scrollytelling explanation of folding for readers who know shallow ReLU
 networks. Three fixed ramps form a folded input coordinate. The next hidden layer
@@ -15,9 +15,11 @@ The opening frame uses `assets/origami-folding-character.png`: a gleeful round
 character stands beside a table and lifts an origami strip overhead. Repeating
 diagonal creases form triangular folded facets in the paper itself. Its monochrome
 artwork is registered in `design/assets.json`, preserves its transparent
-background and full silhouette, and appears only on the title frame. The title
-and mathematical explanation remain real HTML text; frames 2–8 retain the
-precise SVG figures.
+background and full silhouette, and appears only on the title frame. Like the
+Shapley cover, the full-width white opening page centers its title above the
+artwork and a Start link. It remains frame 1 of 8; Start opens the first
+explanatory frame and Previous returns to the cover. The title and mathematical
+explanation remain real HTML text; frames 2–8 retain the precise SVG figures.
 
 ## Shared fold and network
 

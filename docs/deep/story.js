@@ -4,13 +4,14 @@ import { LinkedFigures, renderNetwork, modeLabels } from './views.js';
 
 const $=selector=>document.querySelector(selector);
 const steps=[...document.querySelectorAll('.step')];
+steps.forEach(step=>step.tabIndex=-1);
 const stage=$('.visual-stage');
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 const mobile=matchMedia('(max-width: 820px)');
 const formatter=new Intl.NumberFormat('en-US',{maximumFractionDigits:2});
 const number=value=>formatter.format(Math.abs(value)<1e-9?0:Math.sign(value)*Math.round((Math.abs(value)+1e-12)*100)/100).replace('-','−');
 const names=[
-  'One ten-joint curve','Three first-layer ramps','The fold q(x)',
+  'Deep networks','Three first-layer ramps','The fold q(x)',
   'Fold the input line','One joint, three locations','Reuse the whole pattern',
   'The same curve, fewer parameters','Follow an input through the network',
 ];
@@ -45,7 +46,7 @@ surfaceControls.hidden=false;probeControls.hidden=false;
 const dots=steps.map((step,index)=>{
   const button=document.createElement('button');
   button.type='button';button.setAttribute('aria-label','Frame '+(index+1)+': '+step.querySelector('h1,h2').textContent);
-  button.addEventListener('click',()=>goTo(index));
+  button.addEventListener('click',()=>goTo(index,{focus:true}));
   $('#progress-dots').append(button);
   return button;
 });
@@ -89,7 +90,6 @@ function setScene(scene,{animate=true}={}) {
   const changed=state.scene!==scene;
   state.scene=scene;
   stage.classList.toggle('mode-cover',scene===0);
-  $('#cover-art').hidden=scene!==0;
   $('.surface-view').hidden=scene===0;
   stage.classList.toggle('mode-feature',scene===1);
   stage.classList.toggle('mode-combined',scene===6);
@@ -115,17 +115,18 @@ function setScene(scene,{animate=true}={}) {
   steps.forEach((step,index)=>step.classList.toggle('is-active',index===scene));
   updateFigures(animate&&changed);
 }
-function readingOffset() {
+function readingOffset(scene=state.scene) {
   const mastheadBottom=$('.masthead').getBoundingClientRect().bottom;
-  return mobile.matches?mastheadBottom+stage.offsetHeight+12:mastheadBottom;
+  return mobile.matches&&scene!==0?mastheadBottom+stage.offsetHeight:mastheadBottom;
 }
-function goTo(scene,{animate=true,behavior=reducedMotion.matches?'instant':'smooth'}={}) {
+function goTo(scene,{animate=true,behavior=reducedMotion.matches?'instant':'smooth',focus=false}={}) {
   if(scene<0 || scene>=steps.length) return;
   setScene(scene,{animate});
   const top=Math.max(0,steps[scene].getBoundingClientRect().top+window.scrollY-readingOffset());
   navigationTarget={top,until:performance.now()+1400};
   history.replaceState(null,'','#'+steps[scene].id);
   window.scrollTo({top,behavior});
+  if(focus) steps[scene].focus({preventScroll:true});
 }
 function inspectScroll() {
   scrollFrame=0;
@@ -133,17 +134,22 @@ function inspectScroll() {
     if(Math.abs(window.scrollY-navigationTarget.top)<3 || performance.now()>navigationTarget.until) navigationTarget=null;
     else return;
   }
-  const offset=readingOffset(),line=offset+(window.innerHeight-offset)*.45;
-  const best=steps.map((step,index)=>{
+  if(steps[0].getBoundingClientRect().bottom>$('.masthead').getBoundingClientRect().bottom+1) {
+    if(state.scene!==0) setScene(0);
+    return;
+  }
+  const offset=readingOffset(1),line=offset+(window.innerHeight-offset)*.45;
+  const best=steps.slice(1).map((step,index)=>{
     const bounds=step.getBoundingClientRect();
     const distance=bounds.top<=line&&bounds.bottom>=line?0:Math.min(Math.abs(bounds.top-line),Math.abs(bounds.bottom-line));
-    return {index,distance};
+    return {index:index+1,distance};
   }).sort((a,b)=>a.distance-b.distance)[0].index;
   if(best!==state.scene) setScene(best);
 }
 function scheduleScroll() {if(!scrollFrame) scrollFrame=requestAnimationFrame(inspectScroll);}
-$('#previous').addEventListener('click',()=>goTo(state.scene-1));
-$('#next').addEventListener('click',()=>goTo(state.scene+1));
+$('#previous').addEventListener('click',()=>goTo(state.scene-1,{focus:true}));
+$('#next').addEventListener('click',()=>goTo(state.scene+1,{focus:true}));
+$('.title-page-start').addEventListener('click',event=>{event.preventDefault();goTo(1,{focus:true});});
 $('#replay-fold').addEventListener('click',()=>figures.replayFold());
 $('#surface-select').addEventListener('change',event=>{state.explorer=event.target.value;updateFigures(true);});
 $('#probe-x').addEventListener('input',event=>setPoint(Number(event.target.value)));
@@ -152,8 +158,8 @@ window.addEventListener('scroll',scheduleScroll,{passive:true});
 window.addEventListener('resize',()=>{updateFigures();scheduleScroll();},{passive:true});
 document.addEventListener('keydown',event=>{
   if(event.altKey||event.ctrlKey||event.metaKey||event.shiftKey||event.target.closest('input,select,textarea,summary')) return;
-  if(event.key==='ArrowRight') {event.preventDefault();goTo(state.scene+1);}
-  if(event.key==='ArrowLeft') {event.preventDefault();goTo(state.scene-1);}
+  if(event.key==='ArrowRight') {event.preventDefault();goTo(state.scene+1,{focus:true});}
+  if(event.key==='ArrowLeft') {event.preventDefault();goTo(state.scene-1,{focus:true});}
 });
 history.scrollRestoration='manual';
 setScene(0,{animate:false});
