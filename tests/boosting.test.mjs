@@ -110,3 +110,80 @@ test('path construction does not mutate input or alias residuals across rounds',
   path[1].correction[0] = 123;
   assert.deepEqual(path[1].tree.values, [1, 0, 0]);
 });
+
+test('an obtuse learner is sign-flipped through the origin, not folded upward', () => {
+  const result = math.orientedStepGeometry(120, 0.5, 2);
+  assert.equal(result.sign, -1);
+  assert.equal(result.effectiveAngle, 60);
+  close(result.originalStep[0], -0.5);
+  close(result.originalStep[1], Math.sqrt(3) / 2);
+  close(result.step[0], 0.5);
+  close(result.step[1], -Math.sqrt(3) / 2);
+  close(result.oppositeStep[0], result.originalStep[0]);
+  close(result.oppositeStep[1], result.originalStep[1]);
+  close(result.beforeLoss, 2);
+  close(result.afterLoss, 1.5);
+  close(result.improvement, 0.5);
+  assert.ok(math.dot([2, 0], result.step) > 0);
+  assert.ok(math.dot([2, 0], result.oppositeStep) < 0);
+  // The original directed API continues to represent an uphill obtuse step.
+  assert.ok(math.stepGeometry(120, 0.5, 2).improvement < 0);
+});
+
+test('acute and supplementary obtuse learners give reflected steps with equal losses', () => {
+  for (const angle of [0, 15, 30, 60, 80, 89]) {
+    for (const relativeStep of [0, 0.1, 0.5, 1, 2.5]) {
+      for (const length of [0.2, 1, 3]) {
+        const acute = math.orientedStepGeometry(angle, relativeStep, length);
+        const obtuse = math.orientedStepGeometry(180 - angle, relativeStep, length);
+        assert.equal(acute.sign, 1);
+        assert.equal(obtuse.sign, -1);
+        assert.equal(acute.effectiveAngle, obtuse.effectiveAngle);
+        close(acute.step[0], obtuse.step[0]);
+        close(acute.step[1], -obtuse.step[1]);
+        close(acute.afterLoss, obtuse.afterLoss);
+        close(acute.improvement, obtuse.improvement);
+        close(acute.maxRelativeStep, obtuse.maxRelativeStep);
+        for (const result of [acute, obtuse]) {
+          close(result.oppositeStep[0], -result.step[0]);
+          close(result.oppositeStep[1], -result.step[1]);
+        }
+      }
+    }
+  }
+});
+
+test('a perpendicular learner has no helpful orientation', () => {
+  for (const relativeStep of [0.1, 0.5, 2]) {
+    const result = math.orientedStepGeometry(90, relativeStep);
+    assert.equal(result.sign, 1);
+    assert.equal(result.effectiveAngle, 90);
+    assert.equal(result.maxRelativeStep, 0);
+    assert.equal(result.step[0], 0);
+    close(result.afterLoss, 0.5 + relativeStep ** 2 / 2);
+    close(math.loss([1, 0], result.oppositeStep), result.afterLoss);
+    assert.ok(result.improvement < 0);
+  }
+  close(math.orientedStepGeometry(90, 0).improvement, 0);
+});
+
+test('sign choice permits short steps but preserves the exact overshoot bound', () => {
+  for (const angle of [0, 30, 60, 89, 91, 120, 150, 180]) {
+    const boundary = 2 * Math.abs(Math.cos(angle * Math.PI / 180));
+    const inside = math.orientedStepGeometry(angle, boundary / 2, 3);
+    const endpoint = math.orientedStepGeometry(angle, boundary, 3);
+    const outside = math.orientedStepGeometry(angle, boundary * 1.1, 3);
+    close(inside.maxRelativeStep, boundary);
+    assert.ok(inside.improvement > 0);
+    close(endpoint.improvement, 0);
+    assert.ok(outside.improvement < 0);
+    close(inside.improvement,
+      9 * ((boundary / 2) * Math.abs(Math.cos(angle * Math.PI / 180)) - (boundary / 2) ** 2 / 2));
+  }
+});
+
+test('oriented geometry retains the directed geometry input validation', () => {
+  for (const args of [[-1, 0.5], [181, 0.5], [NaN, 0.5], [60, -1], [60, Infinity], [60, 0.5, 0], [60, 0.5, -1]]) {
+    assert.throws(() => math.orientedStepGeometry(...args), RangeError);
+  }
+});

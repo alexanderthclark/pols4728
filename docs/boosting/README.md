@@ -23,9 +23,14 @@ recompute all trees when the learning rate changes.
 The three-axis picture is an orthographic projection of prediction vectors.
 Axes correspond to training observations, not input features. Its apparent
 angles are not used to establish descent. A separate flat, equal-scale
-experiment demonstrates the exact step-length bound `0 < s < 2 cos(theta)`,
-where `s` is step length divided by remaining distance. Displayed training
-loss is always one half of the squared Euclidean error.
+experiment shows both orientations of a candidate learner's line and selects
+`h` or `-h` to align with the residual. The selected step is a true vector
+negation for obtuse input angles. It demonstrates the exact step-length bound
+`0 < s < 2 |cos(theta)|`, where `s` is step length divided by remaining distance
+and `theta` is the original angle of `h`. At 90 degrees neither sign improves
+loss. The fitted leaf-mean trees already satisfy `r·h = ||h||²`, so their
+nonzero prediction vectors need no sign correction. Displayed training loss
+is always one half of the squared Euclidean error.
 
 The XGBoost afterword describes second-order tree selection and the L2-only
 optimal leaf weight. It does not claim to implement XGBoost itself.

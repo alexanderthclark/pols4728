@@ -11,7 +11,7 @@
   const colors = { ink: '#242424', blue: '#234e70', rust: '#a54f32', teal: '#007f73', rule: '#767676', faint: '#dedede' };
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   const mobile = () => window.matchMedia('(max-width: 800px)').matches;
-  const topics = ['Three observations', 'Prediction coordinates', 'The target stays fixed', 'The first weak learner', 'Scale the correction', 'The remaining error', 'A local origin', 'A second weak learner', 'An additive model', 'The boosting path', 'When does a step help?', 'Descent in function space'];
+  const topics = ['Three observations', 'Prediction coordinates', 'The target stays fixed', 'The first weak learner', 'Scale the correction', 'The remaining error', 'A local origin', 'A second weak learner', 'An additive model', 'The boosting path', 'Choose h or −h', 'Descent in function space'];
   const captions = [
     'Each row contributes one coordinate to the prediction vector.',
     'Each axis measures a prediction for one observation.',
@@ -192,41 +192,65 @@
     if (scene === 6) label([12, height - 10], 'Local origin at F₁', { class: 'small-label' });
   }
   function drawAngle() {
-    const angle = Number($('angle').value), length = Number($('length').value);
-    const result = M.stepGeometry(angle, length);
+    const angle = Number($('direction-angle').value), length = Number($('length').value);
+    const result = M.orientedStepGeometry(angle, length);
+    const unit = M.orientedStepGeometry(angle, 1).step;
+    const orthogonal = angle === 90;
+    const chosen = result.sign === -1 ? '−h' : 'h';
+    const opposite = result.sign === -1 ? 'h' : '−h';
+    const stepColor = orthogonal ? colors.rule : colors.teal;
     const { width, height } = $('visual-area').getBoundingClientRect();
     const outcome = result.improvement > 1e-10 ? 'This step reduces loss.' : result.improvement < -1e-10 ? 'This step increases loss.' : 'This step leaves loss unchanged.';
-    resetPlot(width, height, `${angle} degree angle, relative step length ${length}. ${outcome} Loss changes from 0.5 to ${fmt(result.afterLoss, 4)}.`);
-    // Equal scales preserve angles and the improvement circle exactly.
-    const minX = Math.min(-0.2, result.step[0] - 0.25), maxX = Math.max(2.15, result.step[0] + 0.25);
-    const maxY = Math.max(1.15, result.step[1] + 0.3), minY = -1.15;
-    const margin = mobile() ? 24 : 38;
-    const s = Math.min((width - margin * 2) / (maxX - minX), (height - margin * 2) / (maxY - minY));
+    const orientation = orthogonal ? 'At 90°, neither sign offers descent.' : `Use ${chosen}: its angle to the residual is ${result.effectiveAngle}°.`;
+    resetPlot(width, height, `The candidate h has angle ${angle} degrees to the residual. ${orientation} Both orientations are shown. Relative step length ${length}. ${outcome} Loss changes from 0.5 to ${fmt(result.afterLoss, 4)}.`);
+    // Both orientations lie on the same line. Negating an obtuse candidate
+    // flips BOTH coordinates, so its selected step appears below the residual.
+    const extent = Math.max(0.65, length);
+    const positive = M.scale(unit, extent), negative = M.scale(positive, -1);
+    const minX = Math.min(-0.2, negative[0] - 0.2), maxX = Math.max(2.15, positive[0] + 0.2);
+    const maxY = Math.max(1.15, Math.abs(positive[1]) + 0.2), minY = -maxY;
+    const margin = mobile() ? 32 : 48;
+    const s = Math.max(1, Math.min((width - margin * 2) / (maxX - minX), (height - margin * 2) / (maxY - minY)));
     const ox = (width - (maxX - minX) * s) / 2 - minX * s;
     const oy = (height - (maxY - minY) * s) / 2 + maxY * s;
     const project = p => [ox + p[0] * s, oy - p[1] * s];
     const a = project([0, 0]), b = project([1, 0]), c = project(result.step);
+    const d = project(result.oppositeStep);
     node('circle', { cx: b[0], cy: b[1], r: s, fill: '#f8fafb', stroke: '#999', 'stroke-width': 1.2 });
     line(project([minX, 0]), project([maxX, 0]), '#ddd', 1);
+    line(project(negative), project(positive), '#b8b8b8', 1.2);
     arrow(a, b, colors.rust, { 'stroke-dasharray': '4 5', 'stroke-width': 2 });
     line(c, b, colors.rule, 1.5, { 'stroke-dasharray': '3 4' });
-    arrow(a, c, colors.teal, { 'stroke-width': 3 });
-    if (angle > 0 && length > 0) {
-      const radius = Math.min(s * 0.28, 32), radians = angle * Math.PI / 180;
+    arrow(a, d, colors.rule, { 'stroke-dasharray': '3 5', 'stroke-width': 1.8 });
+    arrow(a, c, stepColor, { 'stroke-width': 3 });
+    if (result.effectiveAngle > 0 && length > 0) {
+      const radius = Math.min(s * 0.28, 32);
+      const radians = Math.atan2(unit[1], unit[0]);
       const arcEnd = [a[0] + radius * Math.cos(radians), a[1] - radius * Math.sin(radians)];
-      node('path', { d: `M${a[0] + radius},${a[1]}A${radius},${radius},0,0,0,${arcEnd.join(',')}`, fill: 'none', stroke: colors.teal, 'stroke-width': 1.2 });
-      if (!mobile()) label([a[0] + (radius + 16) * Math.cos(radians / 2), a[1] - (radius + 16) * Math.sin(radians / 2)], `${angle}°`, { class: 'small-label point-label', 'text-anchor': 'middle' });
+      node('path', { d: `M${a[0] + radius},${a[1]}A${radius},${radius},0,0,${radians < 0 ? 1 : 0},${arcEnd.join(',')}`, fill: 'none', stroke: stepColor, 'stroke-width': 1.2 });
+      if (!mobile()) label([a[0] + (radius + 16) * Math.cos(radians / 2), a[1] - (radius + 16) * Math.sin(radians / 2)], `${result.effectiveAngle}°`, { class: 'small-label point-label', 'text-anchor': 'middle' });
     }
-    dot(a, colors.blue); diamond(b); dot(c, colors.teal);
+    dot(a, colors.blue); diamond(b);
+    if (length > 0) dot(c, stepColor);
     label([a[0] - 9, a[1] + 21], 'current F', { 'text-anchor': 'end' });
     label([b[0] + 9, b[1] + 21], 'target y');
-    if (length > 0.15) label([c[0] + 7, c[1] - 11], 'after step', { style: `fill:${colors.teal}` });
-    readout([['Loss before', '0.5'], ['Loss after', fmt(result.afterLoss, 4), result.improvement >= 0 ? colors.teal : colors.rust], ['Change', (result.afterLoss > 0.5 ? '+' : '') + fmt(result.afterLoss - 0.5, 4)]]);
+    const forwardTip = project(positive), reverseTip = project(negative);
+    label([forwardTip[0] + 8, forwardTip[1] + (unit[1] < 0 ? 18 : -10)], chosen, { class: 'math-label point-label', style: `fill:${stepColor}` });
+    label([reverseTip[0] - 8, reverseTip[1] + (unit[1] < 0 ? -10 : 18)], opposite, { class: 'math-label point-label', 'text-anchor': 'end', style: `fill:${colors.rule}` });
+    readout([
+      ['Descent orientation', orthogonal ? 'Neither' : chosen, stepColor],
+      ['Selected angle', `${result.effectiveAngle}°`],
+      ['Loss: before → after', `0.5 → ${fmt(result.afterLoss, 4)}`, result.improvement >= 0 ? colors.teal : colors.rust]
+    ]);
     $('angle-value').textContent = `${angle}°`;
+    $('direction-angle').setAttribute('aria-valuetext', `${angle} degrees. ${orientation}`);
     $('length-value').textContent = length.toFixed(2);
-    $('stage-caption').textContent = `${outcome} ${angle < 90 ? `Improving lengths: 0 < s < ${fmt(result.maxRelativeStep, 3)}.` : 'No positive step in this direction improves the fit.'}`;
+    $('stage-caption').textContent = `${orthogonal ? 'At 90°, neither sign offers descent. ' : ''}${outcome}${orthogonal ? '' : ` Improving lengths: 0 < s < ${fmt(result.maxRelativeStep, 3)}.`}`;
     svg.dataset.loss = result.afterLoss;
     svg.dataset.angle = angle;
+    svg.dataset.effectiveAngle = result.effectiveAngle;
+    svg.dataset.orientation = result.sign;
+    svg.dataset.step = JSON.stringify(result.step);
     svg.dataset.stepLength = length;
   }
   function render() {
@@ -299,7 +323,7 @@
     activePath = M.buildPath({ rate: Number($('rate').value) });
     displayed = destination(); updateNumbers(); render();
   });
-  ['angle', 'length'].forEach(id => $(id).addEventListener('input', drawAngle));
+  ['direction-angle', 'length'].forEach(id => $(id).addEventListener('input', drawAngle));
   window.addEventListener('scroll', () => {
     if (!scrollPending) { scrollPending = true; requestAnimationFrame(scrollUpdate); }
   }, { passive: true });

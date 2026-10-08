@@ -144,5 +144,28 @@
     };
   }
 
-  return { dot, add, sub, scale, norm, loss, fitStump, buildPath, angleDegrees, stepGeometry };
+  // A learner spans a line: h and -h are the two orientations. Choose the
+  // orientation with nonnegative alignment to the residual. An obtuse raw
+  // direction is reflected through the origin, including its y coordinate.
+  // At a right angle neither sign is useful; keep +h by convention.
+  function orientedStepGeometry(angle, relativeStep, residualLength) {
+    if (residualLength === undefined) residualLength = 1;
+    const raw = stepGeometry(angle, relativeStep, residualLength);
+    const sign = angle > 90 ? -1 : 1;
+    const step = scale(raw.step, sign);
+    const afterLoss = loss([residualLength, 0], step);
+    return {
+      step,
+      originalStep: raw.step,
+      oppositeStep: scale(step, -1),
+      sign,
+      effectiveAngle: Math.min(angle, 180 - angle),
+      beforeLoss: raw.beforeLoss,
+      afterLoss,
+      improvement: raw.beforeLoss - afterLoss,
+      maxRelativeStep: angle === 90 ? 0 : 2 * Math.abs(Math.cos(angle * Math.PI / 180))
+    };
+  }
+
+  return { dot, add, sub, scale, norm, loss, fitStump, buildPath, angleDegrees, stepGeometry, orientedStepGeometry };
 });

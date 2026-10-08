@@ -50,7 +50,7 @@
           <label class="rate-label" for="rate">Learning rate <select id="rate"><option value="0.25">0.25</option><option value="0.5" selected>0.50</option><option value="1">1.00</option></select></label>
         </div>
         <div class="controls angle-controls" id="angle-controls" hidden>
-          <div><label for="angle">Angle to the target <output id="angle-value" for="angle">60°</output></label><input id="angle" type="range" min="0" max="180" step="1" value="60"></div>
+          <div><label for="direction-angle">Angle of h to residual <output id="angle-value" for="direction-angle">120°</output></label><input id="direction-angle" type="range" min="0" max="180" step="1" value="120"></div>
           <div><label for="length">Relative step length <output id="length-value" for="length">0.50</output></label><input id="length" type="range" min="0" max="2.5" step="0.05" value="0.5"></div>
         </div>
         <p class="stage-caption" id="stage-caption" aria-live="polite"></p>
@@ -130,11 +130,11 @@
         </div></section>
 
         <section class="step" id="angle" data-step="10" aria-labelledby="heading-10"><div>
-          <p class="step-number">11 / 12</p><h2 id="heading-10">The direction can be imperfect</h2>
-          <p>Now look directly at the plane containing the remaining displacement and a proposed step. The angle is shown without perspective distortion.</p>
-          <p>An acute angle permits a sufficiently short step to move closer to the target. A large step can overshoot, even when the direction is useful.</p>
-          <p>Adjust the angle and step length. The circle marks the current distance from the target; landing inside it reduces squared-error loss.</p>
-          <p class="quiet">This direction is freely adjustable to isolate the geometry. The earlier arrows came from fitted trees.</p>
+          <p class="step-number">11 / 12</p><h2 id="heading-10">Choose the improving orientation</h2>
+          <p>A candidate tree gives us a line through the current prediction. Both <span class="math">h</span> and <span class="math">−h</span> are valid trees: negate every leaf prediction to reverse its direction.</p>
+          <p>If <span class="math">h</span> makes an obtuse angle with the residual, use <span class="math">−h</span>. Every nonorthogonal line has an orientation that permits a sufficiently short improving step. At exactly 90°, neither orientation helps.</p>
+          <p>Adjust the line and step length in this flat view. The solid arrow automatically uses the improving orientation when one exists; the dashed arrow shows its opposite. Landing inside the circle reduces loss. Even with the correct orientation, a long step can overshoot.</p>
+          <p class="quiet">The residual-fitted trees above already have the correct sign. Because their leaves predict mean residuals, <span class="math">r·h = ‖h‖² &gt; 0</span> whenever <span class="math">h ≠ 0</span>. This freely adjustable line isolates the geometry.</p>
         </div></section>
 
         <section class="step" id="gradient" data-step="11" aria-labelledby="heading-11"><div>
@@ -161,7 +161,8 @@
         <summary>Why an acute angle permits progress</summary>
         <p>Let <span class="math">r = y − F</span> and let <span class="math">h</span> be a proposed correction. The exact loss change is</p>
         <p class="equation math">L(F + αh) − L(F)<br>= −α r·h + ½α²‖h‖².</p>
-        <p>If <span class="math">r·h &gt; 0</span>, every step satisfying <span class="math">0 &lt; α &lt; 2(r·h)/‖h‖²</span> improves the fit. The first term favors alignment; the second penalizes an overly long step. If all available directions are orthogonal to the remaining displacement, this procedure cannot make further progress.</p>
+        <p>If <span class="math">r·h &gt; 0</span>, every step satisfying <span class="math">0 &lt; α &lt; 2(r·h)/‖h‖²</span> improves the fit. If <span class="math">r·h &lt; 0</span>, negate the tree to obtain an improving orientation. The first term favors alignment; the second penalizes an overly long step. If all available directions are orthogonal to the remaining displacement, neither sign can make progress.</p>
+        <p>For a tree fitted by predicting the mean residual in each leaf, <span class="math">h<sub>i</sub> = r̄<sub>j</sub></span> for observations in leaf <i>j</i>. Consequently, <span class="math">r·h = Σ<sub>j</sub> r̄<sub>j</sub> Σ<sub>i ∈ j</sub> r<sub>i</sub> = Σ<sub>j</sub> n<sub>j</sub> r̄<sub>j</sub>² = ‖h‖²</span>. A nonzero fitted tree therefore already points at an acute angle to the residual. The zero tree provides no step and has no defined angle.</p>
       </details>
       <details>
         <summary>What the picture does—and does not—represent</summary>
