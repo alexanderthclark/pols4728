@@ -12,7 +12,7 @@ Hosted path: <https://alexanderthclark.github.io/pols4728/deep/>.
 The page is a static ES-module site with no build step or external runtime.
 
 The opening frame uses `assets/origami-folding-character.png`: a gleeful round
-character stands beside a table and lifts an origami strip overhead. Repeating
+character stands beside a compact table and lifts an origami strip overhead. Repeating
 diagonal creases form triangular folded facets in the paper itself. Its monochrome
 artwork is registered in `design/assets.json`, preserves its transparent
 background and full silhouette, and appears only on the title frame. Like the

@@ -40,8 +40,8 @@
     {
       "path": "docs/deep/assets/origami-folding-character.png",
       "role": "deep-title-illustration",
-      "description": "One gleeful round body-and-face character with stick limbs and no separate torso stands beside a table. One hand holds a flat end of an origami strip on the tabletop while the other raises it overhead in a gentle arc. Repeating diagonal creases form triangular folded facets in the paper itself. Sparse black outlines, white interiors, restrained gray facet shading, and a transparent background match the course character family.",
-      "sha256": "4f569a51d783c4a4aaa34e8dbda94dbc138c49165258c86b4f667a24e36b4965",
+      "description": "One gleeful round body-and-face character with stick limbs and no separate torso stands beside a compact table. One hand holds a flat end of an origami strip on the tabletop while the other raises it overhead in a gentle arc. Repeating diagonal creases form triangular folded facets in the paper itself. Sparse black outlines, white interiors, restrained gray facet shading, and a transparent background match the course character family.",
+      "sha256": "635b559e0e23e510f7cd569b499e25e34c65456927afce0d287080ccb602a94c",
       "usage": "Opening title frame of the deep-network folding explainer. Preserve the full composition, transparency, proportions, and clear space. Keep the title and mathematical explanation as real HTML text; the illustration introduces folding without encoding quantitative geometry."
     }
   ]
