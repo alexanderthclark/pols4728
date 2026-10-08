@@ -6,8 +6,8 @@
   <meta name="description" content="Fold three input intervals together and reuse one downstream pattern. A two-layer ReLU network represents a ten-joint curve with fewer parameters than a shallow network.">
   <title>More joints, fewer parameters · POLS 4728</title>
   <link rel="preload" href="../shapley/fonts/STIXTwoMath-Regular.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="stylesheet" href="style.css">
-  <script type="module" src="story.js"></script>
+  <link rel="stylesheet" href="style.css?v=origami-title">
+  <script type="module" src="story.js?v=origami-title"></script>
   <noscript><style>.visual-stage,.scroll-prompt,.fold-controls{display:none}.story-layout{display:block;max-width:48rem;margin:auto}.step{min-height:0;padding:2rem 0}</style></noscript>
 </head>
 <body>
@@ -21,7 +21,7 @@
             <p class="step-kicker">1 / 8 · Deep neural networks</p>
             <h1 id="title">More joints, fewer parameters</h1>
             <p class="cover-subtitle">Fold the input. Reuse a pattern.</p>
-            <div class="step-prose"><p>One input, <var>x</var>. One prediction, <var>y</var>. This curve has ten joints: ten places where its slope changes.</p><p>Counting every weight and bias, a dense deep network can represent it with 22 parameters. A dense shallow network needs at least 31 for the same curve. The saving comes from applying one pattern to input intervals folded together.</p></div>
+            <div class="step-prose"><p>One input, <var>x</var>. One prediction, <var>y</var>. We will build a curve with ten joints: ten places where its slope changes.</p><p>Counting every weight and bias, a dense deep network can represent it with 22 parameters. A dense shallow network needs at least 31 for the same curve. The saving comes from applying one pattern to input intervals folded together.</p></div>
             <p class="scroll-prompt">Scroll to see the fold, or use Next.</p>
           </div>
         </section>
@@ -93,10 +93,13 @@
           </div>
         </section>
       </div>
-      <aside class="visual-stage mode-cover" aria-label="Linked folding and network figures">
+      <aside class="visual-stage mode-cover" aria-label="Title illustration and linked folding figures">
         <div class="stage-topline"><span class="stage-title" id="stage-title">One ten-joint curve</span><span class="step-count" id="stage-count" aria-live="polite" aria-atomic="true">1 / 8</span></div>
         <p class="stage-subtitle" id="stage-subtitle">22 deep parameters · at least 31 shallow parameters</p>
-        <div class="stage-figure"><div class="surface-view"><svg id="surface" role="img" aria-label="Response curve and folded input"></svg></div></div>
+        <div class="stage-figure">
+          <div class="cover-art" id="cover-art"><img src="assets/origami-folding-character.png" width="1536" height="1024" alt="A gleeful round cartoon character stands at a table, lifting one end of accordion-folded paper overhead in a gentle arc while its flat end rests on the tabletop." decoding="async" fetchpriority="high"></div>
+          <div class="surface-view" hidden><svg id="surface" role="img" aria-label="Response curve and folded input"></svg></div>
+        </div>
         <div class="feature-view" hidden><svg id="feature-plot" role="img" aria-label="Downstream pattern in the folded coordinate q"></svg></div>
         <p class="figure-note" id="figure-note">Nine copied joints, plus one surviving turn.</p>
         <div class="network-view"><svg id="network" role="img" aria-label="One input, two hidden layers of three units, one affine output"></svg></div>

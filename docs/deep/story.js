@@ -89,6 +89,8 @@ function setScene(scene,{animate=true}={}) {
   const changed=state.scene!==scene;
   state.scene=scene;
   stage.classList.toggle('mode-cover',scene===0);
+  $('#cover-art').hidden=scene!==0;
+  $('.surface-view').hidden=scene===0;
   stage.classList.toggle('mode-feature',scene===1);
   stage.classList.toggle('mode-combined',scene===6);
   stage.classList.toggle('mode-fold',scene>=1&&scene<=3);

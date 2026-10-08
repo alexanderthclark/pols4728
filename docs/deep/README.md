@@ -11,6 +11,13 @@ least ten hidden units and 31 dense parameters.
 Hosted path: <https://alexanderthclark.github.io/pols4728/deep/>.
 The page is a static ES-module site with no build step or external runtime.
 
+The opening frame uses `assets/origami-folding-character.png`: a gleeful round
+character lifts an accordion-folded paper strip from a table. Its monochrome
+artwork is registered in `design/assets.json`, preserves its transparent
+background and full silhouette, and appears only on the title frame. The title
+and mathematical explanation remain real HTML text; frames 2–8 retain the
+precise SVG figures.
+
 ## Shared fold and network
 
 The notation follows Simon J. D. Prince's *Understanding Deep Learning*, Chapter

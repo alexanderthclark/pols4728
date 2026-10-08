@@ -36,6 +36,13 @@
       "description": "Three equally sized round-faced characters with stick arms and legs and no separate torsos smile as they push three separate ballots into the single slot of one box labeled VOTE simultaneously.",
       "sha256": "ac984ebf5a6f636fa1c624d831488cfc0dba9fe1de9cae46e5852f8fdf6387a5",
       "usage": "Opening title screen of the Shapley-value explainer. Sparse monochrome artwork follows the SHAP Germany character anatomy. Preserve transparency, full composition, proportions, and clear space; keep titles and mathematical explanations as real HTML text."
+    },
+    {
+      "path": "docs/deep/assets/origami-folding-character.png",
+      "role": "deep-title-illustration",
+      "description": "One gleeful round body-and-face character with stick limbs and no separate torso stands at a table. One hand holds a flat end of accordion-folded paper on the tabletop while the other raises the pleated strip overhead in a gentle arc. Sparse black outlines, white interiors, and a transparent background match the course character family.",
+      "sha256": "985b0ddc15f7e396683c34e6d3daaa37bbcf57a2d3770f2c529e9aa1a87c4d0d",
+      "usage": "Opening title frame of the deep-network folding explainer. Preserve the full composition, transparency, proportions, and clear space. Keep the title and mathematical explanation as real HTML text; the illustration introduces folding without encoding quantitative geometry."
     }
   ]
 }
