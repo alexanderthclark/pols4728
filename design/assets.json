@@ -49,6 +49,13 @@
       "role": "boosting-title-illustration",
       "description": "An outlined XG ligature, visible behind the swing, pushes a joyful, round, torso-less stick figure wearing a propeller hat. Monochrome line artwork on a transparent field.",
       "sha256": "6a95e078f0128ba9a07e911ecb5eb267056dbdd15c1601c862bbe6c665db2e89",
+      "usage": "Earlier boosting title artwork, retained as an approved variant. The current title uses boosting-swing.png. Preserve proportions, transparency, full composition, and clear space."
+    },
+    {
+      "path": "docs/boosting/assets/boosting-swing.png",
+      "role": "boosting-title-illustration",
+      "description": "Two round, torso-less stick figures at a swing set: a figure wearing a plain dad hat pushes a joyful rider wearing a propeller beanie. Monochrome line artwork on a transparent field.",
+      "sha256": "16038a43940e2251cd38abc98ef7d71d1610516a0a2e0ae3b4d4301e7c2dbd82",
       "usage": "Opening title of the boosting explainer. Preserve proportions, transparency, full composition, and clear space; keep the title and explanatory text as HTML."
     }
   ]

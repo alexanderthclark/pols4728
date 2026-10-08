@@ -57,6 +57,6 @@ from approximately 3:20 onward:
 The page links Cornell's lecture notes and the official XGBoost model tutorial.
 It uses original prose and executable calculations, not lecture screenshots.
 
-`assets/xg-swing.png` is the approved transparent title artwork, registered with
+`assets/boosting-swing.png` is the approved transparent title artwork, registered with
 its hash and usage guidance in `design/assets.json`. No shared design rules
 were changed.
