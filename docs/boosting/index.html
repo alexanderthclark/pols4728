@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="See boosting as gradient descent in function space: predictions form a vector, weak learners supply corrections, and each small step changes what remains to be learned.">
+  <title>Boosting, one step at a time — POLS 4728</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="model.js" defer></script>
+  <script src="story.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#reading">Skip to the explanation</a>
+  <header class="masthead">
+    <a href="../">POLS 4728 <span>· ML &amp; AI</span></a>
+    <nav aria-label="Page navigation"><a href="#story">The geometry</a><a href="#xgboost">XGBoost</a></nav>
+  </header>
+  <div class="reading-progress" aria-hidden="true"><span id="progress"></span></div>
+
+  <main>
+    <section class="title-page" aria-labelledby="page-title">
+      <div class="title-content">
+        <p class="eyebrow">MACHINE LEARNING &amp; AI FOR THE SOCIAL SCIENCES</p>
+        <h1 id="page-title">Boosting,<br>one step at a time</h1>
+        <p class="title-subtitle">Gradient descent in function space</p>
+        <img src="assets/xg-swing.png" width="1692" height="930" alt="An XG letter character gives a smiling, torso-less stick figure a push on a swing." class="title-art">
+        <a class="start-link" href="#story">Begin the explanation</a>
+      </div>
+    </section>
+
+    <div class="story-layout" id="story">
+      <aside class="stage-shell" aria-label="Interactive prediction-space diagram">
+        <div class="stage-top"><span id="stage-topic">Three observations</span><span id="stage-count">01 / 12</span></div>
+        <div class="visual-area" id="visual-area">
+          <svg id="space" role="img" aria-labelledby="plot-title plot-description"></svg>
+          <div class="data-intro" id="data-intro">
+            <table>
+              <caption>A small regression problem</caption>
+              <thead><tr><th scope="col">Observation</th><th scope="col">Input <i>x</i></th><th scope="col">Outcome <i>y</i></th></tr></thead>
+              <tbody><tr><th scope="row">1</th><td>1</td><td>1</td></tr><tr><th scope="row">2</th><td>2</td><td>−1</td></tr><tr><th scope="row">3</th><td>3</td><td>1</td></tr></tbody>
+            </table>
+            <div class="vector-label">Three outcomes. One target vector.</div>
+            <div class="vector-values math">y = (1, −1, 1)</div>
+          </div>
+        </div>
+        <div id="vector-readout" class="vector-readout" aria-label="Current numerical values"></div>
+        <div class="controls" id="path-controls" hidden>
+          <label for="round">Trees added <output id="round-value" for="round">16</output></label>
+          <input id="round" type="range" min="0" max="24" step="1" value="16">
+          <label class="rate-label" for="rate">Learning rate <select id="rate"><option value="0.25">0.25</option><option value="0.5" selected>0.50</option><option value="1">1.00</option></select></label>
+        </div>
+        <div class="controls angle-controls" id="angle-controls" hidden>
+          <div><label for="angle">Angle to the target <output id="angle-value" for="angle">60°</output></label><input id="angle" type="range" min="0" max="180" step="1" value="60"></div>
+          <div><label for="length">Relative step length <output id="length-value" for="length">0.50</output></label><input id="length" type="range" min="0" max="2.5" step="0.05" value="0.5"></div>
+        </div>
+        <p class="stage-caption" id="stage-caption" aria-live="polite"></p>
+        <div class="stage-nav"><button id="previous" type="button" disabled>Previous</button><span>Scroll or use the buttons</span><button id="next" type="button">Next</button></div>
+      </aside>
+
+      <article class="narrative" id="reading">
+        <section class="step" id="observations" data-step="0" aria-labelledby="heading-0"><div>
+          <p class="step-number">01 / 12</p><h2 id="heading-0">Begin with three observations</h2>
+          <p>Suppose we want to predict these three outcomes from a single input <i>x</i>. Each model gives us three predictions: one for each observation.</p>
+          <p>To understand boosting, we will put those predictions into a new coordinate system.</p>
+          <p class="quiet">We treat the outcomes as numerical regression targets throughout this example.</p>
+        </div></section>
+
+        <section class="step" id="coordinates" data-step="1" aria-labelledby="heading-1"><div>
+          <p class="step-number">02 / 12</p><h2 id="heading-1">One observation, one axis</h2>
+          <p>The first coordinate records our prediction for observation 1. The second records our prediction for observation 2. The third records our prediction for observation 3.</p>
+          <p>These axes measure predictions. The input values <i>x</i> tell a model how to predict; they are not the axes of this picture.</p>
+          <p class="quiet">With <i>n</i> training observations, this space has <i>n</i> coordinates.</p>
+        </div></section>
+
+        <section class="step" id="target" data-step="2" aria-labelledby="heading-2"><div>
+          <p class="step-number">03 / 12</p><h2 id="heading-2">The outcomes give us a destination</h2>
+          <p>Place the observed outcomes at <span class="math">y = (1, −1, 1)</span>. A model that predicts all three outcomes exactly reaches this point.</p>
+          <p>For squared-error loss, getting closer to this target means reducing training error. The target stays in the same place throughout the story.</p>
+        </div></section>
+
+        <section class="step" id="weak-learner" data-step="3" aria-labelledby="heading-3"><div>
+          <p class="step-number">04 / 12</p><h2 id="heading-3">A simple tree points partway there</h2>
+          <p>Start with the zero function, <span class="math">F₀(x) = 0</span>. Fit a tree with just one split to the outcomes. This stump separates the first observation from the other two.</p>
+          <p>Its leaves predict their respective means: 1 on the left and 0 on the right. Its prediction vector is <span class="math">h₁ = (1, 0, 0)</span>.</p>
+          <p>That vector misses the target, but it supplies a useful direction.</p>
+          <p class="quiet">The zero baseline keeps the geometry simple. Squared-error boosting commonly starts at the outcome mean instead.</p>
+        </div></section>
+
+        <section class="step" id="small-step" data-step="4" aria-labelledby="heading-4"><div>
+          <p class="step-number">05 / 12</p><h2 id="heading-4">Take a small step</h2>
+          <p>Use a learning rate of <span class="math">α = ½</span>. Add half of the tree’s prediction to the current model.</p>
+          <p class="equation math">F₁ = F₀ + ½h₁</p>
+          <p>The tree supplies a direction and a proposed correction. The learning rate scales how much of that correction we use.</p>
+        </div></section>
+
+        <section class="step" id="remaining" data-step="5" aria-labelledby="heading-5"><div>
+          <p class="step-number">06 / 12</p><h2 id="heading-5">Look at what remains</h2>
+          <p>Our ensemble now predicts <span class="math">F₁ = (½, 0, 0)</span>. The outcomes have not moved.</p>
+          <p>The dashed arrow connects our new prediction to the target. Its coordinates are the errors still to be corrected:</p>
+          <p class="equation math">r₁ = y − F₁ = (½, −1, 1).</p>
+        </div></section>
+
+        <section class="step" id="recenter" data-step="6" aria-labelledby="heading-6"><div>
+          <p class="step-number">07 / 12</p><h2 id="heading-6">Make this the new origin</h2>
+          <p>Place a local coordinate system at <span class="math">F₁</span>. Seen from here, the target is the remaining displacement <span class="math">y − F₁</span>.</p>
+          <p>We give the next tree the same input values, but new targets: these residuals. It learns how to adjust the predictions we already have.</p>
+          <p class="quiet">This is a change of viewpoint. Neither the observed outcomes nor the original training inputs change.</p>
+        </div></section>
+
+        <section class="step" id="next-tree" data-step="7" aria-labelledby="heading-7"><div>
+          <p class="step-number">08 / 12</p><h2 id="heading-7">Fit the next correction</h2>
+          <p>The next stump chooses a different split. It groups the first two residuals together and leaves the third on its own.</p>
+          <p>Its leaf means give <span class="math">h₂ = (−¼, −¼, 1)</span>. We place this correction at the ensemble’s current position and again take half the proposed step.</p>
+          <p>The previous tree stays fixed. The new tree adds another function.</p>
+        </div></section>
+
+        <section class="step" id="add-functions" data-step="8" aria-labelledby="heading-8"><div>
+          <p class="step-number">09 / 12</p><h2 id="heading-8">The steps add up</h2>
+          <p>Two short steps give one ensemble:</p>
+          <p class="equation math">F₂ = ½h₁ + ½h₂.</p>
+          <p>Adding functions adds their prediction vectors coordinate by coordinate. The path in this picture is the accumulated contribution of the trees.</p>
+          <p>At a new input, we evaluate those same fitted trees and add their contributions there too.</p>
+        </div></section>
+
+        <section class="step" id="repeat" data-step="9" aria-labelledby="heading-9"><div>
+          <p class="step-number">10 / 12</p><h2 id="heading-9">Recompute. Refit. Repeat.</h2>
+          <p>After each step, recompute the residuals and fit a new stump. Move through the rounds to see the path approach the target.</p>
+          <p>A different learning rate changes the residuals left for the next tree, so it can also change which correction that tree learns.</p>
+          <p class="quiet">This plot shows training loss. Predictive performance still needs validation, and later rounds can fit noise.</p>
+        </div></section>
+
+        <section class="step" id="angle" data-step="10" aria-labelledby="heading-10"><div>
+          <p class="step-number">11 / 12</p><h2 id="heading-10">The direction can be imperfect</h2>
+          <p>Now look directly at the plane containing the remaining displacement and a proposed step. The angle is shown without perspective distortion.</p>
+          <p>An acute angle permits a sufficiently short step to move closer to the target. A large step can overshoot, even when the direction is useful.</p>
+          <p>Adjust the angle and step length. The circle marks the current distance from the target; landing inside it reduces squared-error loss.</p>
+          <p class="quiet">This direction is freely adjustable to isolate the geometry. The earlier arrows came from fitted trees.</p>
+        </div></section>
+
+        <section class="step" id="gradient" data-step="11" aria-labelledby="heading-11"><div>
+          <p class="step-number">12 / 12</p><h2 id="heading-11">That direction is the negative gradient</h2>
+          <p>For half-squared-error loss, the negative gradient points from our current prediction vector to the observed outcomes.</p>
+          <div class="equation"><math display="block" aria-label="L of F equals one half the squared norm of y minus F"><mi>L</mi><mo>(</mo><mi mathvariant="bold">F</mi><mo>)</mo><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><msup><mrow><mo>‖</mo><mi mathvariant="bold">y</mi><mo>−</mo><mi mathvariant="bold">F</mi><mo>‖</mo></mrow><mn>2</mn></msup></math></div>
+          <p class="equation math">−∇L(F) = y − F.</p>
+          <p>We fit a tree to approximate that desired correction, then add a scaled copy to the current function. This is gradient descent in function space, with directions supplied by our weak learners.</p>
+          <p><a href="#xgboost">Continue to XGBoost</a></p>
+        </div></section>
+      </article>
+    </div>
+
+    <section class="afterword" id="xgboost" aria-labelledby="xgboost-heading">
+      <p class="eyebrow">FROM THE GEOMETRY TO XGBOOST</p>
+      <h2 id="xgboost-heading">Choose the correction using curvature and a cost</h2>
+      <p>The geometric idea carries beyond squared error. For a differentiable loss, compute how changing each current prediction would change that observation’s loss. The negatives of these derivatives supply the targets for ordinary gradient boosting.</p>
+      <p>XGBoost also uses second derivatives to describe the local curvature of the loss. It chooses a tree using a quadratic approximation together with penalties on the tree’s leaf values and number of leaves. The new tree still adds a function to the ensemble.</p>
+      <div class="xgb-equation"><span class="math">w<sub>j</sub><sup>*</sup> = −G<sub>j</sub> / (H<sub>j</sub> + λ)</span><span class="equation-note">Optimal leaf correction for a fixed tree structure, with an L2 penalty and no L1 penalty.</span></div>
+      <p>Here <span class="math">G<sub>j</sub></span> sums the loss gradients in leaf <i>j</i>, and <span class="math">H<sub>j</sub></span> sums the second derivatives. For our half-squared-error loss, this becomes</p>
+      <div class="xgb-equation"><span class="math">w<sub>j</sub><sup>*</sup> = Σ<sub>i ∈ j</sub> r<sub>i</sub> / (n<sub>j</sub> + λ).</span></div>
+      <p>With <span class="math">λ = 0</span>, the leaf predicts its mean residual, just as in the story. Increasing <span class="math">λ</span> shrinks that correction toward zero. A separate penalty, <span class="math">γ</span>, makes an additional leaf worthwhile only if the improvement is large enough. The learning rate scales the chosen tree’s contribution afterward.</p>
+      <details>
+        <summary>Why an acute angle permits progress</summary>
+        <p>Let <span class="math">r = y − F</span> and let <span class="math">h</span> be a proposed correction. The exact loss change is</p>
+        <p class="equation math">L(F + αh) − L(F)<br>= −α r·h + ½α²‖h‖².</p>
+        <p>If <span class="math">r·h &gt; 0</span>, every step satisfying <span class="math">0 &lt; α &lt; 2(r·h)/‖h‖²</span> improves the fit. The first term favors alignment; the second penalizes an overly long step. If all available directions are orthogonal to the remaining displacement, this procedure cannot make further progress.</p>
+      </details>
+      <details>
+        <summary>What the picture does—and does not—represent</summary>
+        <p>The three-axis diagram is an orthographic view of an exact three-dimensional prediction space. Apparent lengths and angles depend on perspective; the flat angle experiment uses its own exact two-dimensional geometry. All displayed losses are calculated from the underlying vectors.</p>
+        <p>A function is represented here only by its values at the training observations. Two functions can occupy the same point while making different predictions elsewhere. Approaching the training target therefore does not establish generalization. Nor does a sequence of improving steps by itself guarantee that the target is reachable by the chosen learners.</p>
+        <p>The worked example begins at zero and fits deterministic least-squares stumps. It illustrates gradient boosting with squared loss, not all of XGBoost’s training machinery. For classification, the additive function often represents a score such as log odds; probability predictions require the corresponding link function.</p>
+      </details>
+      <div class="sources">
+        <h3>Sources and further reading</h3>
+        <p>The prediction-space construction follows Kilian Weinberger’s <a href="https://www.youtube.com/watch?v=dosOtgSdbnY&t=180s">Cornell boosting lecture, beginning around 3 minutes</a>. See also the <a href="https://courses.cs.cornell.edu/cs4780/2022fa/lectures/lecturenote19.html">Cornell lecture notes</a> and XGBoost’s <a href="https://xgboost.readthedocs.io/en/stable/tutorials/model.html">introduction to boosted trees</a>.</p>
+      </div>
+    </section>
+  </main>
+  <footer><a href="../">ML &amp; AI for the Social Sciences</a><a href="#page-title">Back to the beginning</a></footer>
+  <noscript><p class="no-script">The explanation above remains readable without JavaScript. Enable JavaScript to see the moving prediction vectors and use the controls.</p></noscript>
+</body>
+</html>
