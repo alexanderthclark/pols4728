@@ -82,7 +82,7 @@
       return `${equation} · training MSE = ${mseText(mse)}`;
     }
     const round=scene===2?1:2, amount=updateAmount(state), mse=D.mse(D.x.map(x=>D.predict(round,x,amount)));
-    return `F${sub(round)} = F${sub(round-1)} + ${fmt(amount)} × h${sub(round)} · MSE = ${fmt(mse)}${scene===4 && p>=3?' (was 3.75)':''}`;
+    return `F${sub(round)} = F${sub(round-1)} + ${fmt(amount)} × h${sub(round)} · training MSE = ${fmt(mse)}${scene===4 && p>=3?' (was 3.75)':''}`;
   }
   function render(scene,state={},compact=false) {
     const W=compact?420:780,H=compact?378:550;

@@ -20,6 +20,53 @@
   ];
   const topics = [...D.topics, ...partitionTopics.slice(1)];
   const captions = [...D.captions, ...partitionCaptions.slice(1)];
+  const sceneHeadings = [
+    'Predict delivery time', 'Fit a tree to the residuals', 'Add the first correction',
+    'Fit the new residuals', 'Add the second correction', 'Two trees, three intervals',
+    'Keep fitting the residuals', 'From a curve to an input map',
+    'Two splits: three regions or four', 'Add predictions at every input',
+    'One tree needs a third split', 'Four regions, constrained values',
+    'Add an interaction', 'From inputs to prediction vectors'
+  ];
+  const sceneEquations = [
+    'F₀(x) = ȳ = 12', 'h₁ ← fit(y − F₀)', 'F₁ = F₀ + h₁',
+    'h₂ ← fit(y − F₁)', 'F₂ = F₁ + h₂', 'F₂ = 12 + h₁ + h₂',
+    '', 'T₁(x₁, x₂) = 1{x₁ > 0}', '1 tree: 3 regions · 2 stumps: 4 regions',
+    'F(x₁, x₂) = T₁(x₁) + T₂(x₂)', '3 split nodes → 4 leaves',
+    'Upper right = lower right + upper left − lower left',
+    'U(x₁, x₂) = 2 · 1{x₁ > 0, x₂ > 0}',
+    'F ↦ (F(x⁽¹⁾), …, F(x⁽ⁿ⁾))'
+  ];
+  const sceneTakeaways = [
+    '', '', 'Add the same leaf value to every prediction in its interval.',
+    'The next tree fits new targets, so its best cut can change.',
+    'One leaf raises both right-hand intervals. Some errors grow while total squared error falls.',
+    'Two cutpoints on one input axis make three intervals.',
+    '', 'New illustrative example. Both map axes are inputs; numbers give predictions. More trees do not add predictors.',
+    'A recursive split divides one leaf. A separate stump cuts across the whole input space.',
+    'Every input passes through both trees. These illustrative trees show addition, not a new fitting round.',
+    'Same predictions: one tree uses three split nodes; two stumps use two.',
+    'Four regions do not imply four independently adjustable predictions—or an interaction.',
+    'A sum of stumps is additive in predictors. Deeper trees can introduce interactions.',
+    'The next explainer gives each training observation its own prediction axis.'
+  ];
+  function scenePresentation(scene, state={}) {
+    let equation=sceneEquations[scene],takeaway=sceneTakeaways[scene];
+    if(scene===0 && !(state.process>0))equation='';
+    if(scene===1 && state.process>=2)takeaway='Each leaf predicts the mean residual of the observations it contains.';
+    if(scene===6){
+      const current=D.continuationState(state.continuation),round=Math.max(3,current.round);
+      const sub=n=>String(n).split('').map(d=>'₀₁₂₃₄₅₆₇₈₉'[Number(d)]).join('');
+      equation=current.round===2 || current.amount===0?`h${sub(round)} ← fit(y − F${sub(round-1)})`:`F${sub(round)} = F${sub(round-1)} + h${sub(round)}`;
+      takeaway=state.continuation>=1
+        ?'This greedy sequence never reaches exact zero in finitely many rounds. Training fit alone does not establish accuracy on new data.'
+        :'Later trees revisit existing cuts, changing the heights without adding intervals.';
+    }
+    if(scene===12)takeaway=state.interaction
+      ?'With U, the x₁ effect is 3 above the boundary and 1 below: it depends on x₂.'
+      :'Add U to change only the upper-right prediction. These are numerical regression predictions.';
+    return {heading:sceneHeadings[scene],equation,takeaway};
+  }
   const fmt = n => Math.abs(n) < 1e-9 ? '0' : String(Number(n.toFixed(2))).replace('-', '−');
   const escape = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const text = (x, y, value, options = '') => `<text x="${x}" y="${y}" ${options}>${escape(value)}</text>`;
@@ -324,6 +371,7 @@
   function init(doc,win) {
     const get=id=>doc.getElementById(id);
     doc.documentElement.dataset.enhanced='true';
+    get('full-explanation').open=false;
     const state={x:.8,y:.8,addition:1,interaction:false,splitProgress:1,process:0,inspectX:6,candidateIndex:null,continuation:0};
     const steps=Array.from(doc.querySelectorAll('.step'));
     const diagram=get('diagram'), shell=diagram.closest('.stage-shell');
@@ -332,13 +380,18 @@
     let scene=0, frame=0, animation=0, targetScene=null, targetTimeout=0, processResumeTarget=null, scrollPosition=win.scrollY, scrollSyncPending=true;
     function render(transition=false) {
       shell.dataset.scene=String(scene);
-      shell.dataset.layout=scene<2?'visual':'explained';
+      shell.dataset.layout='visual';
       get('stage-topic').textContent=topics[scene];
-      get('stage-topic').hidden=scene<2;
-      get('visual-heading').hidden=scene>=2;
-      if(scene<2)get('visual-heading').textContent=get(`heading-${scene}`).textContent;
+      get('stage-topic').hidden=true;
+      const presentation=scenePresentation(scene,state);
+      get('visual-heading').hidden=false;
+      get('visual-heading').textContent=presentation.heading;
+      get('stage-equation').textContent=presentation.equation;
+      get('stage-equation').hidden=false;
       get('stage-count').textContent=`${String(scene+1).padStart(2,'0')} / ${steps.length}`;
-      get('stage-caption').textContent=captions[scene];
+      get('stage-caption').textContent=presentation.takeaway;
+      get('stage-caption').hidden=false;
+      get('continue-boosting').hidden=scene!==13;
       get('addition-controls').hidden=scene!==9;
       get('split-controls').hidden=scene!==8;
       get('interaction-controls').hidden=scene!==12;
@@ -413,11 +466,11 @@
     }
     function activate(index){
       if(index===scene) return;
-      stopAnimation(); closeCandidates(); scene=index; state.addition=1; state.process=0; state.continuation=0; state.splitProgress=1;if(scene===8){state.x=-1;state.y=1;}render(true);
+      stopAnimation(); closeCandidates(); scene=index; shell.scrollTop=0; state.addition=1; state.process=0; state.continuation=0; state.splitProgress=1;if(scene===8){state.x=-1;state.y=1;}render(true);
     }
     function readingLine(){
-      // Keep the mobile reading line fixed when a scene's controls change its height.
-      return compact.matches && win.innerHeight>560 ? Math.min(win.innerHeight-24,Math.max(520,win.innerHeight*.76)) : win.innerHeight*.46;
+      // One viewport-centered trigger for the full-width stage at every screen size.
+      return win.innerHeight*.46;
     }
     function onScroll(){
       if(frame) return;
@@ -459,7 +512,7 @@
     function go(index){
       index=Math.max(0,Math.min(steps.length-1,index));
       targetScene=index;win.clearTimeout(targetTimeout);activate(index);
-      const offset=compact.matches && win.innerHeight>560?shell.getBoundingClientRect().height+86:win.innerHeight*.18;
+      const offset=win.innerHeight*.18;
       const top=win.scrollY+steps[index].getBoundingClientRect().top-offset;
       win.scrollTo({top,behavior:reduced.matches?'instant':'smooth'});
       // Prevent an in-between section from replacing a button's target while scrolling.
@@ -545,15 +598,21 @@
     }
     diagram.addEventListener('click',chooseLeaf);
     diagram.addEventListener('keydown',chooseLeaf);
+    doc.addEventListener('click',event=>{
+      if(event.target.closest('a[href="#full-explanation"]'))get('full-explanation').open=true;
+    });
     doc.addEventListener('keydown',event=>{
-      if(event.target.closest('input,select,button,a,[role="button"]'))return;
+      if(event.target.closest('input,select,button,a,summary,details,[role="button"]'))return;
       if(event.key==='ArrowRight'){event.preventDefault();go(scene+1);}
       if(event.key==='ArrowLeft'){event.preventDefault();go(scene-1);}
     });
     win.addEventListener('scroll',onScroll,{passive:true});
     win.addEventListener('resize',()=>{scrollSyncPending=true;render();onScroll();},{passive:true});
+    let notesOpenBeforePrint=false;
+    win.addEventListener('beforeprint',()=>{notesOpenBeforePrint=get('full-explanation').open;get('full-explanation').open=true;});
+    win.addEventListener('afterprint',()=>{get('full-explanation').open=notesOpenBeforePrint;});
     reduced.addEventListener('change',()=>{stopAnimation();scrollSyncPending=true;render();onScroll();});
     render();onScroll();
   }
-  return {renderScene,readout,renderPartitionScene,partitionReadout,cuts,scaled,init};
+  return {renderScene,readout,renderPartitionScene,partitionReadout,scenePresentation,cuts,scaled,init};
 });

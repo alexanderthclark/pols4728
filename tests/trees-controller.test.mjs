@@ -71,8 +71,7 @@ function setup(reducedMotion = false) {
   const scroll = top => { win.scrollY = top; win.emit('scroll'); advance(0); };
   // Position the reading line at a chosen fraction through a narrative step.
   const scrollAt = (scene, fraction) => {
-    const readingLine = compact.matches && win.innerHeight > 560
-      ? Math.min(win.innerHeight - 24, Math.max(520, win.innerHeight * 0.76)) : win.innerHeight * 0.46;
+    const readingLine = win.innerHeight * 0.46;
     scroll(1000 + scene * 1000 - readingLine + fraction * 800);
   };
   const resize = height => { win.innerHeight = height; win.emit('resize'); advance(0); };
@@ -182,9 +181,39 @@ test('opening starts with observations and reveals the mean before entering resi
   assert.equal(processValue(ui), 0);
   assert.doesNotMatch(ui.get('diagram').innerHTML, /data-axis="Residual/);
   ui.scrollAt(2, 0.04);
-  assert.equal(ui.shell.dataset.layout, 'explained');
-  assert.equal(ui.get('visual-heading').hidden, true);
-  assert.equal(ui.get('stage-topic').hidden, false);
+  assert.equal(ui.shell.dataset.layout, 'visual');
+  assert.equal(ui.get('visual-heading').hidden, false);
+  assert.equal(ui.get('stage-topic').hidden, true);
+});
+
+test('all scenes keep the full-width presentation and the final onward link', () => {
+  const ui = setup(true);
+  assert.equal(ui.get('full-explanation').open, false);
+  assert.equal(ui.get('stage-equation').textContent, '');
+  ui.click('process-next');
+  assert.equal(ui.get('stage-equation').textContent, 'F₀(x) = ȳ = 12');
+  for(let scene=0;scene<14;scene++){
+    if(scene)ui.click('next');
+    assert.equal(ui.shell.dataset.layout, 'visual');
+    assert.equal(ui.get('visual-heading').hidden, false);
+    assert.ok(ui.get('visual-heading').textContent.length>0);
+    assert.equal(ui.get('stage-topic').hidden, true);
+    assert.equal(ui.get('continue-boosting').hidden, scene!==13);
+  }
+  ui.click('previous');
+  assert.equal(ui.get('continue-boosting').hidden, true);
+});
+
+test('later-round headings follow the fitted tree and keep the final training-fit qualification', () => {
+  const ui = setup(true);
+  for(let scene=0;scene<6;scene++)ui.click('next');
+  assert.equal(ui.get('stage-equation').textContent, 'h₃ ← fit(y − F₂)');
+  ui.click('continuation-next');
+  assert.equal(ui.get('stage-equation').textContent, 'F₃ = F₂ + h₃');
+  for(let round=4;round<=8;round++)ui.click('continuation-next');
+  assert.equal(ui.get('stage-equation').textContent, 'F₈ = F₇ + h₈');
+  assert.match(ui.get('stage-caption').textContent, /never reaches exact zero/);
+  assert.match(ui.get('stage-caption').textContent, /accuracy on new data/);
 });
 
 test('opening manual controls and reduced motion finish and reverse the mean reveal', () => {

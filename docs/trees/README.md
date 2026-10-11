@@ -6,9 +6,11 @@ both explainers link to one another.
 
 Fourteen scroll-linked scenes begin with observations from a synthetic delivery
 dataset, reveal the mean prediction, and then form residuals for the first tree.
-These first two scenes use a full-width diagram and a single heading; their
-equations and data remain available to screen readers, without JavaScript, and
-in print. Short mobile screens retain this content below the nonsticky diagram.
+All fourteen scenes use a full-width figure, a short heading and equation, and
+a concise takeaway. The arrangement inside the figure changes when a comparison
+needs side-by-side plots; there is no permanent prose column. The complete
+explanation and data are retained below the slides in an expandable reading
+section, open without JavaScript and available in print.
 The example fits two boosting updates, then continues through eight
 rounds. Aligned panels distinguish the current residual
 target and its fitted stump from the original observations and accumulated
@@ -27,8 +29,8 @@ above it before revealing the split and fitted leaf means.
 
 Scrolling through a delivery fitting or update scene advances its three-stage
 sequence; scrolling backward rewinds it. These sections hold their opening state
-for the first 8% of progress, completes the sequence over the next 77%, and
-holds the final state for the remainder. The delivery summary similarly moves
+for the first 8% of progress, complete the sequence over the next 77%, and
+hold the final state for the remainder. The delivery summary similarly moves
 the inspected distance from 0 to 13 km. Reduced motion advances fitting and
 update scenes through completed phases rather than continuous interpolation,
 and samples the contribution strips at 1, 6, and 12 km without sweeping.
@@ -38,7 +40,8 @@ action, Next action, Replay sequence, and the progress slider also control each
 sequence; an active replay can be paused and resumed. Manual choices stay in
 place until the scroll position changes. A new scroll cancels replay and closes
 the optional candidate explorer, returning control to the section's position.
-Navigation settling does not overwrite a manual action, while resizing
+All screen sizes use a reading line at 46% of viewport height, independent of
+the figure's controls. Navigation settling does not overwrite a manual action, while resizing
 resynchronizes the animation with the new geometry. Sliders retain their native
 arrow-key behavior. Reduced motion applies requested button actions immediately.
 
@@ -139,8 +142,9 @@ learning procedures and constraints differ.
   The opening process runs from 0 to 1; fitting and update processes run from 0
   to 3, with addition during process 1 to 2. Direct renders default to a
   completed sequence and retain the older `correction` input for inspection.
-- `story.js` routes all fourteen scenes, switches between the visual opening and
-  later split layout, and initializes controls and scrolling.
+- `story.js` routes all fourteen full-width scenes and initializes controls and
+  scrolling. `scenePresentation` supplies their headings, equations, and
+  takeaways; the later-round equation follows the currently fitted tree.
   It also exports the original partition renderer and readout as
   `renderPartitionScene` and `partitionReadout` for focused tests.
 - `index.html` contains the complete narrative and accessible controls.

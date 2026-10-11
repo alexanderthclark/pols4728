@@ -68,8 +68,8 @@ test('update readouts report MSE for the currently displayed partial prediction'
   assert.equal(view.readout(1), 'h₁: −3 if x ≤ 8; +5 if x > 8');
   assert.equal(view.readout(3), 'h₂: −3 if x ≤ 3.5; +1 if x > 3.5');
   for (const [correction, firstMSE, secondMSE] of [[0, 18.75, 3.75], [0.5, 7.5, 1.5], [1, 3.75, 0.75]]) {
-    assert.equal(view.readout(2, { correction }), `F₁ = F₀ + ${correction} × h₁ · MSE = ${firstMSE}`);
-    assert.equal(view.readout(4, { correction }), `F₂ = F₁ + ${correction} × h₂ · MSE = ${secondMSE} (was 3.75)`);
+    assert.equal(view.readout(2, { correction }), `F₁ = F₀ + ${correction} × h₁ · training MSE = ${firstMSE}`);
+    assert.equal(view.readout(4, { correction }), `F₂ = F₁ + ${correction} × h₂ · training MSE = ${secondMSE} (was 3.75)`);
   }
 });
 
