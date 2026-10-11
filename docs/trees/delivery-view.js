@@ -6,14 +6,13 @@
 })(typeof window !== 'undefined' ? window : globalThis, function (D) {
   'use strict';
   const C = { ink:'#242424', muted:'#606060', blue:'#234E70', rust:'#A54F32', teal:'#007F73', grid:'#e8e8e8' };
-  const topics = ['Predict delivery time', 'Fit the first correction', 'Add it to the prediction', 'Fit the remaining mistakes', 'Add a second correction', 'Every prediction is a sum', 'Keep correcting the remaining errors'];
+  const topics = ['Predict delivery time', 'Fit the first correction', 'Add it to the prediction', 'Fit the remaining mistakes', 'Add a second correction', 'Keep correcting the remaining errors'];
   const captions = [
     'Observed delivery times are plotted against distance. Reveal the mean to make the same initial prediction for every delivery.',
     'Measure the errors, form the residuals, split them, and then calculate each leaf’s mean.',
     'The fitted correction stays fixed above as it moves the prediction below. Observed outcomes do not move.',
     'Subtract the first correction from the old residuals before fitting the next tree.',
     'The second tree’s right leaf moves both existing plateaus together. Some errors grow while total squared error falls.',
-    'Move the guide across the three aligned plots. Each prediction adds the starting mean and both tree contributions.',
     'Continue the same delivery example through eight trees. Each orange stump fits fixed residual targets below and updates the prediction above.'
   ];
   const clamp=(n,lo=0,hi=1)=>Math.max(lo,Math.min(hi,n));
@@ -71,11 +70,6 @@
       return `h${sub(round)}: ${signed(r.left)} if x ≤ ${fmt(r.threshold)}; ${signed(r.right)} if x > ${fmt(r.threshold)}`;
     }
     if(scene===5){
-      const x=Number.isFinite(state.inspectX)?clamp(state.inspectX,0,13):6;
-      const [a,b]=D.rounds.slice(0,2).map(r=>x<=r.threshold?r.left:r.right);
-      return `At x = ${fmt(x)} km: 12 ${a<0?'−':'+'} ${fmt(Math.abs(a))} ${b<0?'−':'+'} ${fmt(Math.abs(b))} = ${fmt(D.predict(2,x))} min`;
-    }
-    if(scene===6){
       const {round,amount}=continuationState(state.continuation);
       const mse=D.mse(D.x.map(x=>D.predict(round,x,amount)));
       const equation=round===2 || amount===0?`F${sub(Math.max(3,round)-1)} · Inspect h${sub(Math.max(3,round))}, fitted to y − F${sub(Math.max(3,round)-1)}`:`F${sub(round)} = F${sub(round-1)} + ${precise(amount)} × h${sub(round)}`;
@@ -195,7 +189,7 @@
       }
       return wrap(out);
     }
-    if(scene===6){
+    if(scene===5){
       const continued=continuationState(state.continuation),count=continued.round,alpha=continued.amount;
       const shown=D.x.map(v=>D.predict(count,v,alpha)),mse=D.mse(shown);
       const observedPanel={...bottom,y:top.y},residualPanel={...top,y:bottom.y};
@@ -241,35 +235,10 @@
       out+=`<g data-continuation-round="${count}" data-continuation-amount="${alpha}" data-training-mse="${mse}"/>`;
       return wrap(out);
     }
-    if(scene===5){
-      const strips=[{y:compact?39:56,h:compact?66:104,min:-4,max:6},{y:compact?159:220,h:compact?66:104,min:-4,max:6},{y:compact?279:387,h:compact?62:118,min:0,max:20}];
-      const inspectX=Number.isFinite(state.inspectX)?clamp(state.inspectX,0,13):6;
-      const vals=D.rounds.slice(0,2).map(q=>inspectX<=q.threshold?q.left:q.right).concat(D.predict(2,inspectX));
-      out+=text(x,compact?19:29,'First tree h₁','class="panel-title"')+text(x+w,compact?19:29,`x = ${fmt(inspectX)} km`,'text-anchor="end" class="key"');
-      out+=text(x,compact?139:192,'Second tree h₂','class="panel-title"');
-      out+=text(x,compact?259:359,'Prediction F₂ = 12 + h₁ + h₂','class="panel-title"');
-      strips.forEach((b,i)=>{
-        out+=axis(b,i<2?[-3,0,5]:[0,10,20],i<2?'Correction (min)':'Time (min)',i===2,i===2);
-        for(const cut of [3.5,8])out+=line(X(cut),b.y,X(cut),b.y+b.h,'#999',1,'stroke-dasharray="3 5"');
-      });
-      out+=line(X(inspectX),strips[0].y,X(inspectX),strips[2].y+strips[2].h,C.blue,1.5,'stroke-dasharray="5 4" data-contribution-guide="true"');
-      D.rounds.slice(0,2).forEach((q,i)=>{
-        out+=step([q.left,q.right],[q.threshold],strips[i],i?C.teal:C.rust,i?'stroke-dasharray="7 4"':'',`h${i+1}`);
-        out+=labels([q.left,q.right],[q.threshold],strips[i],i?C.teal:C.rust);
-      });
-      out+=step([6,10,18],[3.5,8],strips[2],C.blue,'','prediction')+labels([6,10,18],[3.5,8],strips[2],C.blue,false);
-      for(const cut of [3.5,8])out+=text(X(cut)+4,strips[0].y+strips[0].h+17,`${fmt(cut)} km`,'class="cut-label"');
-      strips.forEach((b,i)=>{
-        out+=circle(X(inspectX),Y(vals[i],b),compact?5:6,C.blue,'stroke="white" stroke-width="2"');
-        out+=`<rect x="${x}" y="${b.y}" width="${w}" height="${b.h}" fill="transparent" data-contribution-plot="1" data-box="${x},${b.y},${w},${b.h}" style="cursor:crosshair"/>`;
-      });
-      out+=`<g data-contributions="${vals.join(',')}" data-inspect-x="${inspectX}"/>`;
-      return wrap(out);
-    }
     const transitFade=scene===1 && p>0 && p<1 && !trial?1-Math.min(clamp(p*8),clamp((1-p)*8)):1;
     const topTitle=scene===0?'Residuals from the starting prediction':scene===3 && p<1 && !trial?'Subtract the previous correction':`Residuals before update ${round}`;
     out+=text(x,compact?18:27,topTitle,'class="panel-title"');
-    out+=text(x,compact?207:288,scene===0?'Observed times and starting prediction':'Observed times and model predictions',`class="panel-title" opacity="${transitFade}"`);
+    out+=text(x,compact?207:288,scene===4 && p>=3?'Two cutpoints, three intervals':scene===0?'Observed times and starting prediction':'Observed times and model predictions',`class="panel-title" opacity="${transitFade}"`);
     out+=circle(x+3,compact?32:46,3.5,C.ink)+text(x+13,compact?36:50,'Residual y − F','class="key"');
     const meanReveal=trial?1:fitting?clamp(p-2):scene===0?0:1;
     if(meanReveal>0)out+=`<g opacity="${meanReveal}">`+line(x+(compact?141:186),compact?32:46,x+(compact?162:207),compact?32:46,C.rust,3)+text(x+(compact?169:214),compact?36:50,trial?'Candidate stump':`Correction h${sub(round)}`,'class="key"')+'</g>';

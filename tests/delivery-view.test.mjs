@@ -56,10 +56,12 @@ test('each correction is fitted to the shown residuals and added to the previous
       assert.deepEqual(curve(second, 'prediction'), { values: correction ? [6, 10, 18] : [9, 9, 17], cuts: [3.5, 8] });
     }
   }
-  const summary = view.render(5);
-  assert.deepEqual(curve(summary, 'h1'), { values: [-3, 5], cuts: [8] });
-  assert.deepEqual(curve(summary, 'h2'), { values: [-3, 1], cuts: [3.5] });
-  assert.deepEqual(curve(summary, 'prediction'), { values: [6, 10, 18], cuts: [3.5, 8] });
+  const finalSecond = view.render(4, { process: 3 });
+  assert.match(finalSecond, /Two cutpoints, three intervals/);
+  assert.deepEqual(curve(finalSecond, 'prediction'), { values: [6, 10, 18], cuts: [3.5, 8] });
+  const nextCorrection = view.render(5, { continuation: 0 });
+  assert.deepEqual(curve(nextCorrection, 'prediction'), curve(finalSecond, 'prediction'));
+  assert.deepEqual(curve(nextCorrection, 'h3'), { values: [.6, -1], cuts: [8] });
 });
 
 test('update readouts report MSE for the currently displayed partial prediction', () => {
@@ -126,32 +128,14 @@ test('candidate exploration changes the trial stump while preserving its residua
   }
 });
 
-test('three contribution strips share distance coordinates and obey threshold equality', () => {
-  for (const compact of [false, true]) {
-    for (const [inspectX, expected] of [[3.5, [-3, -3, 6]], [3.51, [-3, 1, 10]], [8, [-3, 1, 10]], [8.01, [5, 1, 18]]]) {
-      const svg = view.render(5, { inspectX }, compact);
-      assert.deepEqual(groups(svg).filter(group => group['data-axis']).map(group => ({
-        axis: group['data-axis'], x: group['data-x-domain'], y: group['data-y-domain']
-      })), [
-        { axis: 'Correction (min)', x: '0,13', y: '-4,6' },
-        { axis: 'Correction (min)', x: '0,13', y: '-4,6' },
-        { axis: 'Time (min)', x: '0,13', y: '0,20' }
-      ]);
-      const contributionTag = svg.match(/<g\b[^>]*data-contributions="[^"]*"[^>]*\/>/)[0];
-      assert.deepEqual(numbers(attributes(contributionTag)['data-contributions']), expected);
-      assert.match(view.readout(5, { inspectX }), new RegExp(`= ${expected[2]} min$`));
-    }
-  }
-});
-
-test('all fourteen integrated scenes render and route to the correct numerical sequence', () => {
+test('all thirteen integrated scenes render and route to the correct numerical sequence', () => {
   const state = { x: 0.8, y: 0.8, addition: 1, interaction: false, splitProgress: 1, correction: 1 };
   for (const compact of [false, true]) {
-    for (let scene = 0; scene < 14; scene++) {
+    for (let scene = 0; scene < 13; scene++) {
       const svg = story.renderScene(scene, state, compact);
-      const expected = scene < 7 ? view.render(scene, state, compact) : story.renderPartitionScene(scene - 6, state, compact);
+      const expected = scene < 6 ? view.render(scene, state, compact) : story.renderPartitionScene(scene - 5, state, compact);
       assert.equal(svg, expected);
-      assert.equal(story.readout(scene, state), scene < 7 ? view.readout(scene, state) : story.partitionReadout(scene - 6, state));
+      assert.equal(story.readout(scene, state), scene < 6 ? view.readout(scene, state) : story.partitionReadout(scene - 5, state));
       assert.doesNotMatch(svg, /NaN|Infinity|undefined/);
       assert.match(svg, /<title\b[^>]*>[^<]+<\/title>/);
       assert.match(svg, /<desc\b[^>]*>[^<]+<\/desc>/);
@@ -184,7 +168,7 @@ test('continuation spends time on the third correction before completing rounds 
 test('continuation keeps observed outcomes above residuals on the original scales', () => {
   for (const compact of [false, true]) {
     for (const continuation of [0, .2, .45, .55, .7, 1]) {
-      const svg = view.render(6, { continuation }, compact);
+      const svg = view.render(5, { continuation }, compact);
       const panels = groups(svg);
       const axes = panels.filter(group => group['data-axis']);
       assert.deepEqual(axes.map(group => ({ axis: group['data-axis'], x: group['data-x-domain'], y: group['data-y-domain'] })), [
@@ -208,20 +192,20 @@ test('continuation keeps observed outcomes above residuals on the original scale
 });
 
 test('third update repairs the overshoot and later displayed MSE remains strictly positive', () => {
-  const third = curve(view.render(6, { continuation: .45 }), 'prediction');
+  const third = curve(view.render(5, { continuation: .45 }), 'prediction');
   third.values.forEach((value, i) => assert.ok(Math.abs(value - [6.6, 10.6, 17][i]) < 1e-12));
-  assert.match(view.readout(6, { continuation: .45 }), /training MSE = 0\.15$/);
-  assert.match(view.render(6, { continuation: .45 }), /h₃: \+0\.6 at x ≤ 8; −1 at x &gt; 8/);
-  assert.match(view.readout(6), /training MSE = 0\.000048$/);
+  assert.match(view.readout(5, { continuation: .45 }), /training MSE = 0\.15$/);
+  assert.match(view.render(5, { continuation: .45 }), /h₃: \+0\.6 at x ≤ 8; −1 at x &gt; 8/);
+  assert.match(view.readout(5), /training MSE = 0\.000048$/);
   let lastMSE = Infinity;
   for (let tick = 0; tick <= 100; tick++) {
     const progress = tick / 100;
-    const svg = view.render(6, { continuation: progress });
+    const svg = view.render(5, { continuation: progress });
     const stateTag = svg.match(/<g\b[^>]*data-continuation-round="[^"]*"[^>]*\/>/)[0];
     const mse = Number(attributes(stateTag)['data-training-mse']);
     assert.ok(mse > 0);
     assert.ok(mse <= lastMSE + 1e-12, `Training error increases at progress ${progress}`);
-    assert.doesNotMatch(view.readout(6, { continuation: progress }), /training MSE = 0$/);
+    assert.doesNotMatch(view.readout(5, { continuation: progress }), /training MSE = 0$/);
     lastMSE = mse;
   }
 });
@@ -240,7 +224,7 @@ test('each continued update visibly fits a fixed dark orange stump and labels it
     for (const { round, progress } of checkpoints) {
       const fitted = model.rounds[round - 1];
       for (const continuation of progress) {
-        const svg = view.render(6, { continuation }, compact);
+        const svg = view.render(5, { continuation }, compact);
         assert.deepEqual(curve(svg, `h${round}`), { values: [fitted.left, fitted.right], cuts: [fitted.threshold] });
         const panels = groups(svg);
         const target = panels.find(group => group['data-points'] === 'residuals');

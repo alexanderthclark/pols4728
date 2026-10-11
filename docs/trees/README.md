@@ -4,9 +4,9 @@ A static companion to the boosting story, served at `/trees/`. No build step or
 external JavaScript dependencies. The course home lists this page before boosting;
 both explainers link to one another.
 
-Fourteen scroll-linked scenes begin with observations from a synthetic delivery
+Thirteen scroll-linked scenes begin with observations from a synthetic delivery
 dataset, reveal the mean prediction, and then form residuals for the first tree.
-All fourteen scenes use a full-width figure, a short heading and equation, and
+All thirteen scenes use a full-width figure, a short heading and equation, and
 a concise takeaway. The arrangement inside the figure changes when a comparison
 needs side-by-side plots; there is no permanent prose column. The complete
 explanation and data are retained below the slides in an expandable reading
@@ -30,10 +30,8 @@ above it before revealing the split and fitted leaf means.
 Scrolling through a delivery fitting or update scene advances its three-stage
 sequence; scrolling backward rewinds it. These sections hold their opening state
 for the first 8% of progress, complete the sequence over the next 77%, and
-hold the final state for the remainder. The delivery summary similarly moves
-the inspected distance from 0 to 13 km. Reduced motion advances fitting and
-update scenes through completed phases rather than continuous interpolation,
-and samples the contribution strips at 1, 6, and 12 km without sweeping.
+hold the final state for the remainder. Reduced motion advances fitting and
+update scenes through completed phases rather than continuous interpolation.
 
 Previous/Next buttons and left/right keys navigate the explanation. Previous
 action, Next action, Replay sequence, and the progress slider also control each
@@ -54,10 +52,10 @@ Closing it restores the fitted winner. Update scenes attach a fixed correction,
 add it to the previous function, and inspect the remaining errors. The targets
 and correction above stay fixed while the prediction below changes.
 
-The delivery summary uses three aligned strips for h₁, h₂, and their sum plus
-the starting mean. Inspect distance, pointer probing, and Trace the sum reveal
-the contributions at one shared input. In the later partition scenes, pointer
-probing and focusable region buttons select the same input across the diagrams.
+The completed F₂ plot labels its two cutpoints and three intervals. The story
+then moves directly to the third fitted correction, without a separate
+contribution-strip recap. In the later partition scenes, pointer probing and
+focusable region buttons select the same input across the diagrams.
 Separate replays animate a stump's contribution and compare the second split
 in the recursive and ensemble constructions.
 
@@ -71,6 +69,15 @@ The transition to two predictors changes the coordinate roles:
 delivery plots use distance horizontally and a response or residual vertically;
 partition maps use both axes for inputs, with predictions written inside cells.
 Adding more trees does not add input dimensions.
+
+The constrained-values scene and generalization afterword distinguish fitting
+error, representation size, and statistical flexibility. At fixed crossing
+cutpoints, the sum of two stumps has three free prediction parameters, while
+a four-leaf tree permits a fourth interaction parameter. That restriction can
+help when the target is additive, but does not guarantee smaller test error.
+Selecting cutpoints adds complexity; training interpolation alone proves neither
+generalization nor its failure. Identical prediction functions have identical
+test errors, regardless of how they are represented.
 
 ## Numerical examples
 
@@ -137,12 +144,12 @@ learning procedures and constraints differ.
   MSE calculation, partial-update predictions, and frozen candidate rows through
   `candidates(round)`. Candidate values are residual predictions. It uses
   `BoostingMath` in the browser and the same module through CommonJS in tests.
-- `delivery-view.js` renders the first seven scenes with shared axes and exports
+- `delivery-view.js` renders the first six scenes with shared axes and exports
   their topics, captions, process labels, process maxima, and numerical readouts.
   The opening process runs from 0 to 1; fitting and update processes run from 0
   to 3, with addition during process 1 to 2. Direct renders default to a
   completed sequence and retain the older `correction` input for inspection.
-- `story.js` routes all fourteen full-width scenes and initializes controls and
+- `story.js` routes all thirteen full-width scenes and initializes controls and
   scrolling. `scenePresentation` supplies their headings, equations, and
   takeaways; the later-round equation follows the currently fitted tree.
   It also exports the original partition renderer and readout as
@@ -154,10 +161,10 @@ learning procedures and constraints differ.
 Run the JavaScript syntax checks in `.github/workflows/pages.yml` and
 `node --test tests/*.test.mjs`. Browser loading order is `../boosting/model.js`,
 `delivery.js`, `delivery-view.js`, `model.js`, then `story.js`.
-For browser review, inspect all fourteen scenes at desktop and mobile widths,
+For browser review, inspect all thirteen scenes at desktop and mobile widths,
 scroll forward and backward through each delivery sequence, jump between
 sections, step through each action, pause and resume a replay, scrub backward,
-compare candidate cuts, trace contributions across both thresholds, and follow
+compare candidate cuts, move directly from F₂ to h₃ and back, and follow
 the continuation while checking that its nonzero MSE remains visible. Then
 probe the partition maps, activate regions with Enter/Space, replay
 addition, toggle U, and navigate both directions. Check reduced motion and links

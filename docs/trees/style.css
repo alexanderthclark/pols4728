@@ -96,13 +96,11 @@ html[data-enhanced='true'] .scroll-track { display: block; }
 .candidate-label output { color: var(--blue); font-variant-numeric: tabular-nums; }
 .candidate-panel input[type='range'] { display: block; width: 100%; min-height: 32px; margin: 0; accent-color: var(--rust); }
 .candidate-panel p { margin: 4px 0 0; font-size: 12px; line-height: 1.5; }
-.contribution-controls, .addition-controls { display: grid; flex: 0 0 auto; grid-template-columns: auto minmax(70px, 1fr) auto; align-items: center; gap: 13px; padding: 4px 0; font: 12px/1.4 var(--sans); }
-.contribution-controls { border-top: 1px solid var(--light-rule); }
-.contribution-controls label, .addition-controls label { white-space: nowrap; }
-.contribution-controls output, .addition-controls output { margin-left: 6px; color: var(--blue); font-variant-numeric: tabular-nums; }
-.contribution-controls input[type='range'], .addition-controls input[type='range'] { width: 100%; min-height: 28px; margin: 0; accent-color: var(--blue); }
-.addition-controls input[type='range'] { accent-color: var(--rust); }
-.contribution-controls button, .addition-controls button { min-height: 30px; padding: 3px 8px; font-size: 11px; }
+.addition-controls { display: grid; flex: 0 0 auto; grid-template-columns: auto minmax(70px, 1fr) auto; align-items: center; gap: 13px; padding: 4px 0; font: 12px/1.4 var(--sans); }
+.addition-controls label { white-space: nowrap; }
+.addition-controls output { margin-left: 6px; color: var(--blue); font-variant-numeric: tabular-nums; }
+.addition-controls input[type='range'] { width: 100%; min-height: 28px; margin: 0; accent-color: var(--rust); }
+.addition-controls button { min-height: 30px; padding: 3px 8px; font-size: 11px; }
 .continuation-controls { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0; border-top: 1px solid var(--light-rule); font: 12px/1.4 var(--sans); }
 .continuation-controls button { min-height: 30px; padding: 3px 9px; font: inherit; }
 .continuation-controls span { color: var(--blue); text-align: center; }
@@ -133,6 +131,18 @@ html[data-enhanced='true'] .scroll-track { display: block; }
 .afterword details { margin: 30px 0; padding: 18px 0; border-top: 1px solid var(--light-rule); border-bottom: 1px solid var(--light-rule); }
 .afterword summary { cursor: pointer; font-size: 20px; }
 .afterword details[open] summary { margin-bottom: 20px; }
+#generalization { margin: 40px 0 35px; }
+#generalization h3 { margin: 0 0 20px; font-size: 28px; }
+.model-comparison { width: 100%; margin: 24px 0; border-collapse: collapse; table-layout: fixed; font: 14px/1.5 var(--sans); }
+.model-comparison caption { padding-bottom: 10px; text-align: left; color: var(--muted); font-size: 12px; }
+.model-comparison .model-column { width: 25%; }
+.model-comparison .function-column { width: 59%; }
+.model-comparison .count-column { width: 16%; }
+.model-comparison th, .model-comparison td { padding: 12px 8px; border-bottom: 1px solid var(--light-rule); text-align: left; vertical-align: top; font-weight: 400; }
+.model-comparison thead th { border-bottom: 1px solid var(--rule); color: var(--muted); font-size: 12px; }
+.model-comparison th:first-child { padding-left: 0; }
+.model-comparison td:last-child, .model-comparison th:last-child { padding-right: 0; text-align: right; }
+.model-comparison .math { font-size: 18px; }
 .sources { margin-top: 34px; }
 .sources h3 { margin: 0 0 18px; font-size: 24px; }
 .sources p { font-size: 16px; }
@@ -166,9 +176,9 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20
   .candidate-controls { font-size: 11px; }
   .candidate-controls summary { min-height: 22px; }
   .candidate-panel { padding: 10px 12px; }
-  .contribution-controls, .addition-controls { grid-template-columns: auto minmax(38px, 1fr) auto; gap: 7px; padding: 3px 0; font-size: 10px; }
-  .contribution-controls output, .addition-controls output { margin-left: 3px; }
-  .contribution-controls button, .addition-controls button { min-height: 30px; padding: 3px 6px; font-size: 10px; }
+  .addition-controls { grid-template-columns: auto minmax(38px, 1fr) auto; gap: 7px; padding: 3px 0; font-size: 10px; }
+  .addition-controls output { margin-left: 3px; }
+  .addition-controls button { min-height: 30px; padding: 3px 6px; font-size: 10px; }
   .continuation-controls { font-size: 11px; }
   .stage-nav { margin-top: 3px; padding-top: 4px; }
   .stage-nav button { min-height: 34px; min-width: 74px; padding: 4px 10px; font-size: 12px; }
@@ -183,6 +193,9 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20
   .example-data { max-width: 440px; font-size: 13px; }
   .example-data th, .example-data td { padding-top: 4px; padding-bottom: 4px; }
   .afterword { padding: 45px 22px 60px; }
+  .model-comparison { font-size: 12px; }
+  .model-comparison th, .model-comparison td { padding-right: 6px; padding-left: 6px; }
+  .model-comparison .math { font-size: 16px; }
   footer { padding: 22px; font-size: 13px; }
 }
 

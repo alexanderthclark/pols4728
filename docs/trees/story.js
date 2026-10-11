@@ -22,7 +22,7 @@
   const captions = [...D.captions, ...partitionCaptions.slice(1)];
   const sceneHeadings = [
     'Predict delivery time', 'Fit a tree to the residuals', 'Add the first correction',
-    'Fit the new residuals', 'Add the second correction', 'Two trees, three intervals',
+    'Fit the new residuals', 'Add the second correction',
     'Keep fitting the residuals', 'From a curve to an input map',
     'Two splits: three regions or four', 'Add predictions at every input',
     'One tree needs a third split', 'Four regions, constrained values',
@@ -30,7 +30,7 @@
   ];
   const sceneEquations = [
     'F₀(x) = ȳ = 12', 'h₁ ← fit(y − F₀)', 'F₁ = F₀ + h₁',
-    'h₂ ← fit(y − F₁)', 'F₂ = F₁ + h₂', 'F₂ = 12 + h₁ + h₂',
+    'h₂ ← fit(y − F₁)', 'F₂ = F₁ + h₂',
     '', 'T₁(x₁, x₂) = 1{x₁ > 0}', '1 tree: 3 regions · 2 stumps: 4 regions',
     'F(x₁, x₂) = T₁(x₁) + T₂(x₂)', '3 split nodes → 4 leaves',
     'Upper right = lower right + upper left − lower left',
@@ -41,20 +41,20 @@
     '', '', 'Add the same leaf value to every prediction in its interval.',
     'The next tree fits new targets, so its best cut can change.',
     'One leaf raises both right-hand intervals. Some errors grow while total squared error falls.',
-    'Two cutpoints on one input axis make three intervals.',
     '', 'New illustrative example. Both map axes are inputs; numbers give predictions. More trees do not add predictors.',
     'A recursive split divides one leaf. A separate stump cuts across the whole input space.',
     'Every input passes through both trees. These illustrative trees show addition, not a new fitting round.',
     'Same predictions: one tree uses three split nodes; two stumps use two.',
-    'Four regions do not imply four independently adjustable predictions—or an interaction.',
+    'At fixed cuts: 3 free prediction parameters versus 4. This restriction can help generalization; it does not guarantee it.',
     'A sum of stumps is additive in predictors. Deeper trees can introduce interactions.',
     'The next explainer gives each training observation its own prediction axis.'
   ];
   function scenePresentation(scene, state={}) {
     let equation=sceneEquations[scene],takeaway=sceneTakeaways[scene];
     if(scene===0 && !(state.process>0))equation='';
+    if(scene===4 && state.process>=3)takeaway='Two cutpoints make three intervals. The heights still leave errors to correct.';
     if(scene===1 && state.process>=2)takeaway='Each leaf predicts the mean residual of the observations it contains.';
-    if(scene===6){
+    if(scene===5){
       const current=D.continuationState(state.continuation),round=Math.max(3,current.round);
       const sub=n=>String(n).split('').map(d=>'₀₁₂₃₄₅₆₇₈₉'[Number(d)]).join('');
       equation=current.round===2 || current.amount===0?`h${sub(round)} ← fit(y − F${sub(round-1)})`:`F${sub(round)} = F${sub(round-1)} + h${sub(round)}`;
@@ -62,7 +62,7 @@
         ?'This greedy sequence never reaches exact zero in finitely many rounds. Training fit alone does not establish accuracy on new data.'
         :'Later trees revisit existing cuts, changing the heights without adding intervals.';
     }
-    if(scene===12)takeaway=state.interaction
+    if(scene===11)takeaway=state.interaction
       ?'With U, the x₁ effect is 3 above the boundary and 1 below: it depends on x₂.'
       :'Add U to change only the upper-right prediction. These are numerical regression predictions.';
     return {heading:sceneHeadings[scene],equation,takeaway};
@@ -362,17 +362,17 @@
   }
 
   function renderScene(scene, state = {}, compact = false) {
-    return scene < 7 ? D.render(scene, state, compact) : renderPartitionScene(scene - 6, state, compact);
+    return scene < 6 ? D.render(scene, state, compact) : renderPartitionScene(scene - 5, state, compact);
   }
   function readout(scene, state = {}) {
-    return scene < 7 ? D.readout(scene, state) : partitionReadout(scene - 6, state);
+    return scene < 6 ? D.readout(scene, state) : partitionReadout(scene - 5, state);
   }
 
   function init(doc,win) {
     const get=id=>doc.getElementById(id);
     doc.documentElement.dataset.enhanced='true';
     get('full-explanation').open=false;
-    const state={x:.8,y:.8,addition:1,interaction:false,splitProgress:1,process:0,inspectX:6,candidateIndex:null,continuation:0};
+    const state={x:.8,y:.8,addition:1,interaction:false,splitProgress:1,process:0,candidateIndex:null,continuation:0};
     const steps=Array.from(doc.querySelectorAll('.step'));
     const diagram=get('diagram'), shell=diagram.closest('.stage-shell');
     const reduced=win.matchMedia('(prefers-reduced-motion: reduce)');
@@ -391,16 +391,15 @@
       get('stage-count').textContent=`${String(scene+1).padStart(2,'0')} / ${steps.length}`;
       get('stage-caption').textContent=presentation.takeaway;
       get('stage-caption').hidden=false;
-      get('continue-boosting').hidden=scene!==13;
-      get('addition-controls').hidden=scene!==9;
-      get('split-controls').hidden=scene!==8;
-      get('interaction-controls').hidden=scene!==12;
+      get('continue-boosting').hidden=scene!==12;
+      get('addition-controls').hidden=scene!==8;
+      get('split-controls').hidden=scene!==7;
+      get('interaction-controls').hidden=scene!==11;
       const processScene=scene>=0 && scene<=4, fitScene=scene===1 || scene===3;
       get('process-controls').hidden=!processScene;
       get('candidate-controls').hidden=!fitScene;
-      get('contribution-controls').hidden=scene!==5;
-      get('continuation-controls').hidden=scene!==6;
-      if(scene===6){
+      get('continuation-controls').hidden=scene!==5;
+      if(scene===5){
         const current=D.continuationState(state.continuation),complete=current.amount>=1;
         const round=complete?current.round:current.round-1;
         get('continuation-label').textContent=complete || current.amount===0?`After ${round} trees`:`Adding tree ${current.round}`;
@@ -425,8 +424,6 @@
         get('candidate-value').textContent=`${fmt(row.threshold)} km`;
         get('candidate-description').textContent=`Leaf means: ${fmt(row.left)}, ${fmt(row.right)} min. Residual SSE: ${fmt(row.sse)} min². ${index===winner?'Lowest among the seven candidate splits.':`Best split: ${fmt(candidates[winner].threshold)} km, SSE ${fmt(candidates[winner].sse)} min².`}`;
       }
-      get('contribution-x').value=state.inspectX;
-      get('contribution-x-value').textContent=`${fmt(state.inspectX)} km`;
       get('addition-value').textContent=fmt(state.addition);
       get('addition').value=state.addition;
       get('calculation').textContent=readout(scene,state);
@@ -440,7 +437,6 @@
       win.cancelAnimationFrame(animation);animation=0;
       if(!keepProcessPosition)processResumeTarget=null;
       get('process-replay').textContent=processResumeTarget===null?'Replay sequence':'Resume sequence';
-      get('replay-contributions').textContent='Trace the sum';
       get('replay-addition').textContent='Replay addition';
       get('replay-splits').textContent='Replay the second split';
       get('calculation').setAttribute('aria-live','polite');
@@ -466,7 +462,7 @@
     }
     function activate(index){
       if(index===scene) return;
-      stopAnimation(); closeCandidates(); scene=index; shell.scrollTop=0; state.addition=1; state.process=0; state.continuation=0; state.splitProgress=1;if(scene===8){state.x=-1;state.y=1;}render(true);
+      stopAnimation(); closeCandidates(); scene=index; shell.scrollTop=0; state.addition=1; state.process=0; state.continuation=0; state.splitProgress=1;if(scene===7){state.x=-1;state.y=1;}render(true);
     }
     function readingLine(){
       // One viewport-centered trigger for the full-width stage at every screen size.
@@ -485,21 +481,18 @@
         steps.forEach((s,i)=>{if(s.getBoundingClientRect().top<=line) nearest=i;});
         const changed=nearest!==scene;
         activate(nearest);
-        if((moved || changed || force) && scene>=0 && scene<=6){
+        if((moved || changed || force) && scene>=0 && scene<=5){
           stopAnimation();closeCandidates();
           const box=steps[scene].getBoundingClientRect();
           // Give the initial scatterplot time to arrive before revealing the mean.
           const hold=scene===0?.4:.08,duration=scene===0?.5:.77;
           const fraction=Math.max(0,Math.min(1,((line-box.top)/Math.max(1,box.height)-hold)/duration));
-          if(scene===6){
+          if(scene===5){
             state.continuation=fraction;
             if(reduced.matches){
               const current=D.continuationState(fraction);
               state.continuation=D.continuationProgress(current.round-(current.amount>=1?0:1));
             }
-          }else if(scene===5){
-            // Reduced motion still samples all three intervals without sweeping.
-            state.inspectX=reduced.matches?[1,6,12][Math.min(2,Math.floor(fraction*3))]:Math.round(fraction*1300)/100;
           }else {
             const maximum=D.processMax(scene),process=Math.min(maximum,Math.round(fraction*maximum*1000)/1000);
             state.process=reduced.matches?Math.floor(process):process;
@@ -559,28 +552,13 @@
       render();
     });
     get('candidate-cut').addEventListener('input',event=>{stopAnimation();state.candidateIndex=Number(event.target.value);render();});
-    get('contribution-x').addEventListener('input',event=>{stopAnimation();state.inspectX=Number(event.target.value);render();});
-    get('replay-contributions').addEventListener('click',()=>{
-      if(animation){stopAnimation();render();return;}
-      if(reduced.matches){state.inspectX=12;render();return;}
-      const start=win.performance.now();state.inspectX=0;
-      get('replay-contributions').textContent='Pause';
-      get('calculation').setAttribute('aria-live','off');
-      function tick(now){
-        const t=Math.min(1,(now-start)/5000);state.inspectX=Math.round(t*1300)/100;
-        render();if(t<1)animation=win.requestAnimationFrame(tick);else{stopAnimation();render();}
-      }
-      render();animation=win.requestAnimationFrame(tick);
-    });
     function probe(event){
-      const contribution=event.target.closest('[data-contribution-plot]');
-      const plot=contribution || event.target.closest('[data-plot]');
+      const plot=event.target.closest('[data-plot]');
       if(!plot || (event.type==='pointermove' && event.pointerType!=='mouse'))return;
       const svg=diagram.querySelector('svg');
       const point=svg.createSVGPoint();point.x=event.clientX;point.y=event.clientY;
       const local=point.matrixTransform(svg.getScreenCTM().inverse());
       const [x,y,w,h]=plot.dataset.box.split(',').map(Number);
-      if(contribution){stopAnimation();state.inspectX=Math.max(0,Math.min(13,Math.round((local.x-x)/w*1300)/100));render();return;}
       state.x=Math.max(-2,Math.min(2,Math.round(((local.x-x)/w*4-2)*100)/100));
       if(plot.dataset.plot==='2')state.y=Math.max(-2,Math.min(2,Math.round((2-(local.y-y)/h*4)*100)/100));
       render();

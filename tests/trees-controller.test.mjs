@@ -140,23 +140,7 @@ test('candidate selection resets to the winning split for each new residual targ
   assert.match(ui.get('candidate-description').textContent, /Residual SSE: 6 min²/);
 });
 
-test('the contribution scanner follows both cutpoints and pauses without changing the inspected input', () => {
-  const ui = setup();
-  for (let i = 0; i < 5; i++) ui.click('next');
-  assert.equal(ui.get('contribution-controls').hidden, false);
-  for (const [input, expected] of [[3.5, 6], [3.51, 10], [8, 10], [8.01, 18]]) {
-    ui.input('contribution-x', input);
-    assert.match(ui.get('calculation').textContent, new RegExp(`= ${expected} min$`));
-  }
-  ui.click('replay-contributions'); ui.advance(2500);
-  assert.equal(ui.get('contribution-x-value').textContent, '6.5 km');
-  ui.click('replay-contributions'); ui.advance(3000);
-  assert.equal(ui.get('contribution-x-value').textContent, '6.5 km');
-  ui.reduced.matches = true;
-  ui.click('replay-contributions');
-  assert.equal(ui.get('contribution-x-value').textContent, '12 km');
-  assert.match(ui.get('calculation').textContent, /= 18 min$/);
-});
+
 
 const processValue = ui => Number(ui.get('process-progress').value);
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) <= 0.0011, `${actual} should equal ${expected}`);
@@ -192,13 +176,14 @@ test('all scenes keep the full-width presentation and the final onward link', ()
   assert.equal(ui.get('stage-equation').textContent, '');
   ui.click('process-next');
   assert.equal(ui.get('stage-equation').textContent, 'F₀(x) = ȳ = 12');
-  for(let scene=0;scene<14;scene++){
+  for(let scene=0;scene<13;scene++){
     if(scene)ui.click('next');
+    assert.equal(ui.get('stage-count').textContent, `${String(scene+1).padStart(2,'0')} / 13`);
     assert.equal(ui.shell.dataset.layout, 'visual');
     assert.equal(ui.get('visual-heading').hidden, false);
     assert.ok(ui.get('visual-heading').textContent.length>0);
     assert.equal(ui.get('stage-topic').hidden, true);
-    assert.equal(ui.get('continue-boosting').hidden, scene!==13);
+    assert.equal(ui.get('continue-boosting').hidden, scene!==12);
   }
   ui.click('previous');
   assert.equal(ui.get('continue-boosting').hidden, true);
@@ -206,7 +191,8 @@ test('all scenes keep the full-width presentation and the final onward link', ()
 
 test('later-round headings follow the fitted tree and keep the final training-fit qualification', () => {
   const ui = setup(true);
-  for(let scene=0;scene<6;scene++)ui.click('next');
+  for(let scene=0;scene<5;scene++)ui.click('next');
+  assert.equal(ui.get('stage-count').textContent, '06 / 13');
   assert.equal(ui.get('stage-equation').textContent, 'h₃ ← fit(y − F₂)');
   ui.click('continuation-next');
   assert.equal(ui.get('stage-equation').textContent, 'F₃ = F₂ + h₃');
@@ -289,10 +275,6 @@ test('reduced-motion scrolling advances in completed process phases and rewinds 
     ui.scrollAt(3, 0.08 + 0.77 * normalized);
     assert.equal(processValue(ui), expected);
   }
-  for (const [normalized, distance] of [[0.1, 1], [0.5, 6], [0.9, 12], [0.1, 1]]) {
-    ui.scrollAt(5, 0.08 + 0.77 * normalized);
-    assert.equal(Number(ui.get('contribution-x').value), distance);
-  }
 });
 
 test('compact scroll progress stays stable when the stage controls change height', () => {
@@ -311,19 +293,11 @@ test('compact scroll progress stays stable when the stage controls change height
   close(processValue(ui), 0.75);
 });
 
-test('scrolling the contribution scene traces distance and reverses across the complete domain', () => {
-  const ui = setup();
-  for (const [fraction, distance] of [[0.08, 0], [0.465, 6.5], [0.9, 13], [0.2725, 3.25]]) {
-    ui.scrollAt(5, fraction);
-    assert.equal(ui.shell.dataset.scene, '5');
-    assert.equal(Number(ui.get('contribution-x').value), distance);
-  }
-  assert.match(ui.get('calculation').textContent, /= 6 min$/);
-});
+
 
 test('later rounds follow scroll, preserve a manual choice, and rewind to F2', () => {
   const ui = setup();
-  const at = progress => ui.scrollAt(6, 0.08 + 0.77 * progress);
+  const at = progress => ui.scrollAt(5, 0.08 + 0.77 * progress);
   at(0.45);
   assert.equal(ui.get('continuation-controls').hidden, false);
   assert.equal(ui.get('continuation-label').textContent, 'After 3 trees');
@@ -343,18 +317,18 @@ test('later rounds follow scroll, preserve a manual choice, and rewind to F2', (
 test('reduced-motion continuation uses completed fits and the shifted partition controls stay aligned', () => {
   const ui = setup(true);
   for (const [progress, round] of [[0.2, 2], [0.45, 3], [0.65, 4], [1, 8], [0.45, 3]]) {
-    ui.scrollAt(6, 0.08 + 0.77 * progress);
+    ui.scrollAt(5, 0.08 + 0.77 * progress);
     assert.equal(ui.get('continuation-label').textContent, `After ${round} trees`);
   }
-  ui.scrollAt(7, 0.4);
+  ui.scrollAt(6, 0.4);
   assert.equal(ui.get('continuation-controls').hidden, true);
   assert.match(ui.get('diagram').innerHTML, /data-axis-role="second-predictor"/);
-  ui.scrollAt(8, 0.4);
+  ui.scrollAt(7, 0.4);
   assert.equal(ui.get('split-controls').hidden, false);
   assert.equal(ui.get('addition-controls').hidden, true);
-  ui.scrollAt(9, 0.4);
+  ui.scrollAt(8, 0.4);
   assert.equal(ui.get('split-controls').hidden, true);
   assert.equal(ui.get('addition-controls').hidden, false);
-  ui.scrollAt(12, 0.4);
+  ui.scrollAt(11, 0.4);
   assert.equal(ui.get('interaction-controls').hidden, false);
 });
