@@ -64,12 +64,6 @@ sub, sup { line-height: 0; }
 .diagram .muted, .diagram .axis-label { fill: var(--muted); }
 .diagram .diagram-title { font-family: var(--serif); }
 .diagram .point-label { paint-order: stroke; stroke: #fff; stroke-width: 4px; stroke-linejoin: round; }
-.probe-controls { display: grid; flex: 0 0 auto; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 25px; padding: 9px 0 2px; border-top: 1px solid var(--light-rule); font: 13px/1.4 var(--sans); }
-.probe-controls:has(#probe-y-control[hidden]) { grid-template-columns: 1fr; }
-.probe-control label { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.probe-control output { color: var(--blue); font-variant-numeric: tabular-nums; }
-.probe-control input[type='range'] { display: block; width: 100%; min-height: 30px; margin: 0; accent-color: var(--blue); cursor: pointer; }
-.stage-shell[data-scene='0'] .two-dimensional-label { display: none; }
 .split-controls { flex: 0 0 auto; padding: 3px 0 5px; }
 .split-controls button { min-height: 32px; padding: 4px 10px; font: 12px/1.4 var(--sans); }
 .afterword details { margin: 30px 0; padding: 18px 0; border-top: 1px solid var(--light-rule); border-bottom: 1px solid var(--light-rule); }
@@ -154,7 +148,6 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20
 @media (min-width: 801px) and (max-height: 720px) {
   .stage-shell { padding-top: 12px; padding-bottom: 10px; }
   .stage-top { padding-bottom: 7px; }
-  .probe-controls { padding-top: 5px; }
   .stage-caption { margin-bottom: 6px; min-height: 32px; font-size: 12px; }
   .stage-nav { padding-top: 6px; }
 }
@@ -173,8 +166,6 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20
   .stage-shell { z-index: 20; height: var(--mobile-stage-height); min-height: 400px; max-height: 570px; padding: 10px 0 8px; border-bottom: 1px solid var(--rule); }
   .stage-top { gap: 8px; padding-bottom: 5px; font-size: 11px; }
   .diagram { min-height: 85px; }
-  .probe-controls { gap: 18px; padding-top: 5px; font-size: 12px; }
-  .probe-control input[type='range'] { min-height: 28px; }
   .interaction-controls { padding: 0 0 2px; font-size: 12px; }
   .interaction-controls label { min-height: 25px; }
   .addition-controls { grid-template-columns: auto minmax(38px, 1fr) auto; gap: 7px; padding: 0 0 2px; font-size: 10px; }

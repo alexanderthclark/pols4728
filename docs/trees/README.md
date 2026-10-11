@@ -41,8 +41,8 @@ and correction above stay fixed while the prediction below changes.
 
 The delivery summary uses three aligned strips for h₁, h₂, and their sum plus
 the starting mean. Inspect distance, pointer probing, and Trace the sum reveal
-the contributions at one shared input. In the later partition scenes, input
-sliders and focusable leaf buttons select the same input across the diagrams.
+the contributions at one shared input. In the later partition scenes, pointer
+probing and focusable leaf buttons select the same input across the diagrams.
 Separate replays animate a stump's contribution and compare the second split
 in the recursive and ensemble constructions.
 
@@ -119,7 +119,7 @@ For browser review, inspect all thirteen scenes at desktop and mobile widths,
 scroll forward and backward through each delivery sequence, jump between
 sections, step through each action, pause and resume a replay, scrub backward,
 compare candidate cuts, and trace contributions across both thresholds. Then
-drag both partition input sliders, activate leaves with Enter/Space, replay
+probe the partition maps, activate leaves with Enter/Space, replay
 addition, toggle U, and navigate both directions. Check reduced motion and links
 between the companion, boosting, and course home. Renderer tests verify fixed
 coordinates and numerical states; a headless event/clock harness covers scroll

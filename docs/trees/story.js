@@ -309,8 +309,6 @@
       get('stage-topic').textContent=topics[scene];
       get('stage-count').textContent=`${String(scene+1).padStart(2,'0')} / ${steps.length}`;
       get('stage-caption').textContent=captions[scene];
-      get('probe-controls').hidden=scene<6 || scene===10 || scene===12;
-      get('probe-y-control').hidden=scene<6;
       get('addition-controls').hidden=scene!==8;
       get('split-controls').hidden=scene!==7;
       get('interaction-controls').hidden=scene!==11;
@@ -337,11 +335,7 @@
       }
       get('contribution-x').value=state.inspectX;
       get('contribution-x-value').textContent=`${fmt(state.inspectX)} km`;
-      get('probe-x-value').textContent=fmt(state.x);
-      get('probe-y-value').textContent=fmt(state.y);
       get('addition-value').textContent=fmt(state.addition);
-      get('probe-x').value=state.x;
-      get('probe-y').value=state.y;
       get('addition').value=state.addition;
       get('calculation').textContent=readout(scene,state);
       get('previous').disabled=scene===0;
@@ -427,7 +421,7 @@
     }
     get('previous').addEventListener('click',()=>go(scene-1));
     get('next').addEventListener('click',()=>go(scene+1));
-    for(const [id,key] of [['probe-x','x'],['probe-y','y'],['addition','addition']]) get(id).addEventListener('input',e=>{if(key==='addition')stopAnimation();state[key]=Number(e.target.value);render();});
+    get('addition').addEventListener('input',e=>{stopAnimation();state.addition=Number(e.target.value);render();});
     get('include-interaction').addEventListener('change',e=>{state.interaction=e.target.checked;render(true);});
     get('replay-splits').addEventListener('click',()=>{
       if(animation || reduced.matches){stopAnimation();state.splitProgress=1;render();return;}
