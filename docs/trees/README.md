@@ -4,17 +4,20 @@ A static companion to the boosting story, served at `/trees/`. No build step or
 external JavaScript dependencies. The course home lists this page before boosting;
 both explainers link to one another.
 
-Nine scroll-linked scenes begin with observations from a synthetic delivery
+Ten scroll-linked scenes begin with observations from a synthetic delivery
 dataset, reveal the mean prediction, and then form residuals for the first tree.
-All nine scenes use a full-width figure, a short heading and equation, and
+All ten scenes use a full-width figure, a short heading and equation, and
 a concise takeaway. The arrangement inside the figure changes when a comparison
-needs side-by-side plots; there is no permanent prose column. The complete
-explanation and data are retained below the slides in an expandable reading
-section, open without JavaScript and available in print.
+needs side-by-side plots; there is no permanent prose column. The page ends with only two further-reading references: Athey–Imbens (2019)
+and Chapter 10 of The Elements of Statistical Learning. Supplemental prose
+and expandable reading notes have been removed at the instructor’s request.
 The example fits two boosting updates, then continues through eight
 rounds. Aligned panels distinguish the current residual
 target and its fitted stump from the original observations and accumulated
-prediction. The last three frames use a new sixteen-observation dataset with two predictors.
+prediction. A dedicated transition introduces a new sixteen-observation dataset
+with two predictors, showing the same deliveries in an x₁–y plot and an x₁–x₂
+input map. Observed times move from vertical position to a labeled color scale.
+The last three frames fit this shared dataset.
 One frame grows a single decision tree and its input map; the next fits four
 residual stumps and builds their summed map. The final frame compares the maps,
 training MSE, split-node counts, and region counts at the same four-split budget.
@@ -68,15 +71,11 @@ fitted orange stump below the moving prediction; these targets are distinct
 from the current training MSE reported for the upper plot.
 The transition to two predictors changes the coordinate roles:
 delivery plots use distance horizontally and a response or residual vertically;
-partition maps use both axes for inputs, with predictions written inside cells.
+partition maps use both axes for inputs, with times encoded by color and direct
+numerical labels. A fixed light-to-dark blue scale spans 8–24 minutes: observed
+y on the transition, predicted F in the fitted maps. The scale is common to
+both models and every fitting stage, and legends name the displayed quantity.
 Adding more trees does not add input dimensions.
-
-The generalization afterword distinguishes fitting error, representation size,
-and statistical flexibility. Stump sums are additive in predictors; this can
-help when the signal is additive but introduces bias for interactions. More
-regions do not imply independent region values, and training MSE does not
-establish test accuracy. The two fitted maps here are different functions.
-The separate one-predictor example still permits identical representations.
 
 ## Numerical examples
 
@@ -169,20 +168,23 @@ All fixed observations remain in the map; no pointer interaction is required.
   completed sequence and retain the older `correction` input for inspection.
 - `growth.js` computes the recursive tree and residual-stump stages on the same
   two-predictor observations, with immutable stage snapshots and exact MSE.
-- `growth-view.js` renders the two growth animations and final comparison.
-- `story.js` routes all nine full-width scenes and initializes controls and
+- `growth-view.js` renders the coordinate transition, two growth animations,
+  and final comparison, with a shared quantitative color scale.
+- `story.js` routes all ten full-width scenes and initializes controls and
   scrolling. `scenePresentation` supplies their headings, equations, and
   takeaways; the later-round equation follows the currently fitted tree.
-  Scenes 0–5 delegate to `delivery-view.js`; scenes 6–8 delegate to `growth-view.js`.
-- `index.html` contains the complete narrative and accessible controls.
+  Scenes 0–5 delegate to `delivery-view.js`; scene 6 uses the transition API;
+  scenes 7–9 delegate to the three fitting views in `growth-view.js`.
+- `index.html` contains the ten scroll markers, accessible controls, and the
+  two further-reading references. Numerical documentation remains in this README.
 - `style.css` follows the course design guide, with a compact mobile stage,
-  reduced motion, keyboard focus styling, and print prose.
+  reduced motion, keyboard focus styling, and print references.
 
 Run the JavaScript syntax checks in `.github/workflows/pages.yml` and
 `node --test tests/*.test.mjs`. Browser loading order is `../boosting/model.js`,
 `delivery.js`, `delivery-view.js`, `model.js`, `growth.js`, `growth-view.js`, then
 `story.js`.
-For browser review, inspect all nine scenes at desktop and mobile widths,
+For browser review, inspect all ten scenes at desktop and mobile widths,
 scroll forward and backward through each delivery sequence, jump between
 sections, step through each action, pause and resume a replay, scrub backward,
 compare candidate cuts, move directly from F₂ to h₃ and back, and follow
@@ -194,5 +196,4 @@ between the companion, boosting, and course home. Renderer tests verify fixed
 coordinates and numerical states; a headless event/clock harness covers scroll
 scrubbing, manual-control transitions, reduced motion, geometry changes, and
 asynchronous candidate-panel closure. Browser review remains
-necessary for layout and visual animation quality. The full prose remains
-available without JavaScript.
+necessary for layout and visual animation quality. The reading references remain available without JavaScript.

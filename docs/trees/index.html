@@ -15,7 +15,7 @@
   <script src="story.js" defer></script>
 </head>
 <body>
-  <a class="skip-link" href="#full-explanation">Skip to the explanation</a>
+  <a class="skip-link" href="#story">Skip to the explanation</a>
   <header class="masthead">
     <a href="../">POLS 4728 <span>· ML &amp; AI</span></a>
     <nav aria-label="Page navigation"><a href="#story">Trees &amp; corrections</a><a href="../boosting/">Boosting →</a></nav>
@@ -40,7 +40,7 @@
 
     <div class="story-layout" id="story">
       <aside class="stage-shell" aria-label="Interactive tree and partition diagrams" data-scene="0">
-        <div class="stage-top"><span id="stage-topic">Predict delivery time</span><span id="stage-count">01 / 09</span></div>
+        <div class="stage-top"><span id="stage-topic">Predict delivery time</span><span id="stage-count">01 / 10</span></div>
         <h2 id="visual-heading" class="visual-heading" hidden>Predict delivery time</h2>
         <p id="stage-equation" class="stage-equation math" hidden></p>
         <div id="diagram" class="diagram" aria-label="Current tree and its predictions"></div>
@@ -75,154 +75,30 @@
         </div>
         <div id="calculation" class="calculation" role="status" aria-live="polite" aria-atomic="true"></div>
         <a id="continue-boosting" class="stage-continue" href="../boosting/" hidden>Continue to Boosting →</a>
-        <nav class="stage-nav" aria-label="Explanation steps"><button id="previous" type="button" disabled>Previous</button><a class="notes-link" href="#full-explanation">Read explanation</a><button id="next" type="button">Next</button></nav>
+        <nav class="stage-nav" aria-label="Explanation steps"><button id="previous" type="button" disabled>Previous</button><a class="notes-link" href="#further-reading">Further reading</a><button id="next" type="button">Next</button></nav>
       </aside>
 
       <div class="scroll-track" aria-hidden="true">
-        <section class="step" id="delivery-baseline" data-step="0" aria-labelledby="heading-0"></section>
-        <section class="step" id="fit-first-correction" data-step="1" aria-labelledby="heading-1"></section>
-        <section class="step" id="add-first-correction" data-step="2" aria-labelledby="heading-2"></section>
-        <section class="step" id="fit-second-correction" data-step="3" aria-labelledby="heading-3"></section>
-        <section class="step" id="add-second-correction" data-step="4" aria-labelledby="heading-4"></section>
-        <section class="step" id="keep-fitting" data-step="5" aria-labelledby="heading-5"></section>
-        <section class="step" id="grow-one-tree" data-step="6" aria-labelledby="heading-6"></section>
-        <section class="step" id="add-stumps" data-step="7" aria-labelledby="heading-7"></section>
-        <section class="step" id="compare-models" data-step="8" aria-labelledby="heading-8"></section>
+        <section class="step" id="delivery-baseline" data-step="0"></section>
+        <section class="step" id="fit-first-correction" data-step="1"></section>
+        <section class="step" id="add-first-correction" data-step="2"></section>
+        <section class="step" id="fit-second-correction" data-step="3"></section>
+        <section class="step" id="add-second-correction" data-step="4"></section>
+        <section class="step" id="keep-fitting" data-step="5"></section>
+        <section class="step" id="two-predictors" data-step="6"></section>
+        <section class="step" id="grow-one-tree" data-step="7"></section>
+        <section class="step" id="add-stumps" data-step="8"></section>
+        <section class="step" id="compare-models" data-step="9"></section>
       </div>
     </div>
 
-    <details id="full-explanation" class="full-explanation" open>
-      <summary>Read the full explanation</summary>
-      <article id="reading" class="narrative full-narrative">
-        <section class="explanation-section" aria-labelledby="heading-0"><div>
-          <h2 id="heading-0">Predict delivery time</h2>
-          <table class="example-data">
-            <caption>Eight fictional deliveries</caption>
-            <thead><tr><th scope="col">Distance (km)</th><th scope="col">Time (minutes)</th></tr></thead>
-            <tbody><tr><td>1</td><td>6</td></tr><tr><td>3</td><td>6</td></tr><tr><td>4</td><td>11</td></tr><tr><td>6</td><td>11</td></tr><tr><td>7</td><td>11</td></tr><tr><td>9</td><td>17</td></tr><tr><td>10</td><td>17</td></tr><tr><td>12</td><td>17</td></tr></tbody>
-          </table>
-          <div class="equation"><math display="block" aria-label="F zero of x equals y bar equals twelve"><msub><mi>F</mi><mn>0</mn></msub><mo>(</mo><mi>x</mi><mo>)</mo><mo>=</mo><mover><mi>y</mi><mo>¯</mo></mover><mo>=</mo><mn>12</mn></math></div>
-        </div></section>
-
-        <section class="explanation-section" aria-labelledby="heading-1"><div>
-          <h2 id="heading-1">Fit a tree to the residuals</h2>
-          <div class="equation"><math display="block" aria-label="Fit the first tree to y minus F zero"><msub><mi>h</mi><mn>1</mn></msub><mo>←</mo><mtext>fit tree to</mtext><mspace width="0.4em"/><mi>y</mi><mo>−</mo><msub><mi>F</mi><mn>0</mn></msub></math></div>
-        </div></section>
-
-        <section class="explanation-section" aria-labelledby="heading-2"><div>
-          <p class="step-number">03 / 09 · ADD THE FIRST TREE</p>
-          <h2 id="heading-2">Add the correction to the current prediction</h2>
-          <p>The first tree, <span class="math">h₁</span>, predicts a change in minutes. Add that change to the 12-minute baseline:</p>
-          <p class="equation math">F₁(x) = 12 + h₁(x).</p>
-          <p>As you scroll, the correction attaches to the old prediction, moves it, and reveals the remaining errors. The left level moves down 3 minutes while the right level moves up 5.</p>
-          <p>The result is <span class="math">12 − 3 = 9</span> minutes up to 8 km and <span class="math">12 + 5 = 17</span> above it. Training mean squared error falls from 18.75 to 3.75. The longer deliveries are fitted exactly; the shorter ones still leave errors to correct.</p>
-        </div></section>
-
-        <section class="explanation-section" aria-labelledby="heading-3"><div>
-          <p class="step-number">04 / 09 · FIT WHAT REMAINS</p>
-          <h2 id="heading-3">Recompute the residuals, then fit again</h2>
-          <p>Subtract the new prediction from each observed time. The residuals are now −3, −3, 2, 2, 2, 0, 0, and 0 minutes. These are the targets for the next tree.</p>
-          <p>The best stump now splits at 3.5 km. Its left leaf predicts −3. Its right leaf predicts +1, the mean of the six residuals to the right.</p>
-          <p>Follow the residuals changing in the upper plot while the current prediction stays fixed below. Then split and fit the new residuals. The second tree, <span class="math">h₂</span>, chooses a different cutpoint because what remains to be learned has changed.</p>
-        </div></section>
-
-        <section class="explanation-section" aria-labelledby="heading-4"><div>
-          <p class="step-number">05 / 09 · ADD THE SECOND TREE</p>
-          <h2 id="heading-4">Keep the first tree and add the second</h2>
-          <p>Add <span class="math">h₂</span> to the current prediction at every distance:</p>
-          <p class="equation math">F₂(x) = 12 + h₁(x) + h₂(x).</p>
-          <p>The shortest deliveries move from 9 to 6 minutes. Both intervals to the right of 3.5 km rise together by 1: from 9 to 10 in the middle, and from 17 to 18 above 8 km. They share the second tree’s right leaf even though the first tree gave them different predictions.</p>
-          <p>With one predictor, the two cutpoints, 3.5 and 8 km, create three intervals with predictions 6, 10, and 18 minutes. For example, at 6 km the baseline and the two leaf values add to <span class="math">12 − 3 + 1 = 10</span>. Further trees can revisit these boundaries to improve the heights.</p>
-          <p>In the final action, inspect the remaining errors. The middle group improves, but the long deliveries now overshoot by 1 minute. Together with the improvement on the left, the changes reduce training mean squared error from 3.75 to 0.75.</p>
-        </div></section>
-
-        <section class="explanation-section" aria-labelledby="heading-5"><div>
-          <p class="step-number">06 / 09 · KEEP FITTING THE RESIDUALS</p>
-          <h2 id="heading-5">A third tree brings us closer</h2>
-          <p>After <span class="math">F₂</span>, the residuals in the three intervals are 0, +1, and −1 minutes. The lower plot shows these residuals as black dots and the fitted third stump <span class="math">h₃</span> in dark orange. Its split is at 8 km: the five residuals on the left average +0.6, and the three on the right average −1.</p>
-          <p class="equation math">F₃(x) = F₂(x) + h₃(x).</p>
-          <p>As you scroll, the orange correction stays fixed while it moves the blue prediction in the upper plot. The three predictions become 6.6, 10.6, and 17 minutes; training MSE falls from 0.75 to 0.15. There are still only three intervals. An additional tree can change their heights without adding a new boundary.</p>
-          <p>Keep scrolling to see the next residual targets and their fitted corrections. The fourth stump splits at 3.5 km; subsequent stumps alternate between 8 and 3.5 km, dividing training MSE by 5 each round. By <span class="math">F₈</span>, it is 0.000048: visually almost exact, but still positive. This greedy sequence approaches an exact fit without attaining it in finitely many rounds. The model class itself can represent an exact fit.</p>
-          <p class="quiet">This completes our one-predictor example. Near-zero training error does not establish accuracy on new deliveries; choosing when to stop requires out-of-sample evaluation.</p>
-        </div></section>
-
-        <section class="explanation-section" aria-labelledby="heading-6"><div>
-          <p class="step-number">07 / 09 · GROWING ONE TREE</p>
-          <h2 id="heading-6">Grow one decision tree</h2>
-          <p>Begin a new illustrative dataset with two predictors: distance and number of stops. Both map axes now describe inputs. Each dot is an observed delivery; its number, when shown, is the observed time in minutes. The labels inside regions give predictions.</p>
-          <table class="example-data growth-data">
-            <caption>Observed minutes for 16 fictional deliveries</caption>
-            <thead><tr><th scope="col">Stops / distance</th><th scope="col">2 km</th><th scope="col">4 km</th><th scope="col">8 km</th><th scope="col">10 km</th></tr></thead>
-            <tbody><tr><th scope="row">0 stops</th><td>8</td><td>10</td><td>13</td><td>16</td></tr><tr><th scope="row">1 stop</th><td>10</td><td>11</td><td>15</td><td>16</td></tr><tr><th scope="row">3 stops</th><td>12</td><td>14</td><td>18</td><td>21</td></tr><tr><th scope="row">4 stops</th><td>13</td><td>16</td><td>20</td><td>24</td></tr></tbody>
-          </table>
-          <p>Start at the mean, 14.8125 minutes, and allow four split nodes. The first split, at 6 km, divides the whole plane. The next two split at 2 stops, first within the right leaf and then within the left. The fourth splits only the upper-right leaf at 9 km.</p>
-          <p>Every split acts inside one existing leaf. Training MSE falls to 8.523, 4.391, 2.391, and finally 1.625. Four split nodes create five leaf regions. We stop because the split budget is exhausted, with some prediction errors remaining.</p>
-        </div></section>
-
-        <section class="explanation-section" aria-labelledby="heading-7"><div>
-          <p class="step-number">08 / 09 · ADDING FITTED STUMPS</p>
-          <h2 id="heading-7">Add fitted stumps</h2>
-          <p>Use the same observations, the same starting mean, and the same budget of four split nodes. This time, fit one stump to the current residuals at each round and add its correction with learning rate 1.</p>
-          <p>The fitted cutpoints are distance at 6 km, stops at 2, distance at 9 km, and stops at 3.5. Each new stump is evaluated across the entire input plane, so its boundary can cross earlier boundaries. The sum grows from two regions to four, six, and nine.</p>
-          <p>Training MSE falls to 8.523, 2.582, 1.952, and 1.618. Each correction changes all predictions in one of the stump’s two leaves, including predictions in several regions of the accumulated model.</p>
-        </div></section>
-
-        <section class="explanation-section" aria-labelledby="heading-8"><div>
-          <p class="step-number">09 / 09 · THE SAME SPLIT BUDGET</p>
-          <h2 id="heading-8">Compare the completed fits</h2>
-          <p>Both models use four split nodes. The single tree has five regions and training MSE 1.625; the four-stump sum has nine regions and training MSE about 1.618. Neither fits every observation exactly.</p>
-          <p>The tree repeats the stops split in two separate branches because each question applies only within its parent region. A stump’s split acts across the whole plane. Its contribution is shared across the regions it crosses, so nine regions do not imply nine freely chosen prediction values.</p>
-          <p>These models make different predictions, and the sum has slightly lower training error in this example. This does not establish which will predict new deliveries better. <a href="#generalization">Generalization depends on the restrictions, the fitting procedure, and the prediction problem.</a></p>
-          <p>The next explainer changes coordinates: each axis represents a model’s prediction for one training observation. <a class="continue-link" href="../boosting/">Continue to Boosting, one step at a time →</a></p>
-        </div></section>
-      </article>
-    </details>
-
     <section class="afterword" id="further-reading" aria-labelledby="reading-heading">
-      <h2 id="reading-heading">The construction and the function</h2>
-      <p>More generally, an ensemble overlays its trees’ leaf regions. The resulting partition contains all their nonempty intersections. Local boundaries stay local, and the prediction is constant within each intersection. Adjacent regions can share a prediction; jumps from different trees can also cancel.</p>
-      <p>A finite sum of constant-leaf, axis-aligned trees can be represented by a larger single tree. Fitting that tree and sequentially fitting many small trees remain different learning procedures, with different constraints.</p>
-      <details>
-        <summary>What changes with just one predictor?</summary>
-        <p>On a line, two distinct cutpoints make three intervals in either construction. For the one-predictor delivery example, a single tree can split at 8 km and then split its left leaf at 3.5 km, assigning predictions 6, 10, and 18.</p>
-        <p>Our first two fitted stumps produce those same predictions when their leaf values are added to the 12-minute baseline. Two different constructions can therefore represent the same function <span class="math">F₂</span>.</p>
-        <p>The later comparison uses two predictors because a split on a different predictor can cross the first boundary. A second cutpoint on the same line cannot create that crossing.</p>
-      </details>
-      <details id="exact-training-fit">
-        <summary>Why does this sequence approach zero without reaching it?</summary>
-        <p>With squared-error loss, greedy stumps, and learning rate 1, the one-predictor delivery example has training MSE <span class="math">18.75 / 5<sup>m</sup></span> after <span class="math">m</span> updates. From <span class="math">F₁</span> onward, every pair of additional updates makes each residual one fifth of its earlier value. Squared error therefore falls by a factor of 25 over each pair. It remains strictly positive at every finite round in exact arithmetic.</p>
-        <p>This is a property of the fitting sequence, not a lack of expressive power. Two appropriately chosen stumps and a constant can fit all eight observations exactly:</p>
-        <p class="equation math">F*(x) = 6 + 5 · 1{x &gt; 3.5} + 6 · 1{x &gt; 8}.</p>
-        <p>Our sequential updates approach this function. A different procedure, such as jointly fitting the coefficients on these two split indicators, could reach the exact fit directly. A tree with three leaves could also fit the remaining residuals exactly in one update.</p>
-      </details>
-      <section id="generalization" aria-labelledby="generalization-heading">
-        <h3 id="generalization-heading">Does the sum generalize better?</h3>
-        <p>Hold the cuts in the new comparison fixed. The four-stump sum has five free prediction parameters: an intercept and one jump for each stump. The single tree also has five, one prediction per leaf. Nine map regions therefore do not imply nine independently chosen predictions.</p>
-        <table class="model-comparison">
-          <caption>Free prediction parameters with fixed partitions</caption>
-          <colgroup><col class="model-column"><col class="function-column"><col class="count-column"></colgroup>
-          <thead><tr><th scope="col">Model</th><th scope="col">Prediction parameters</th><th scope="col">Number</th></tr></thead>
-          <tbody>
-            <tr><th scope="row">Four stumps</th><td>One intercept and four jumps</td><td>5</td></tr>
-            <tr><th scope="row">Four-split tree</th><td>One prediction in each of five leaves</td><td>5</td></tr>
-          </tbody>
-        </table>
-        <p>Additivity can help when it matches the signal and can miss important interactions. Equal parameter counts do not make these model classes or fitting procedures equivalent. Searching the data for cutpoints adds complexity beyond these fixed-partition counts. There is no guarantee of less overfitting: with enough cutpoints, even a sum of one-predictor stumps can fit noise.</p>
-        <p>Our one-predictor function can be represented by a three-leaf tree or suitably chosen stumps. Identical predictions have identical risk on the same test distribution. The new two-predictor comparison produces different functions, but a small difference in training error still does not establish a generalization benefit. Zero training error is possible in a restricted class only when the data allow it. In the one-predictor example, the class permits an exact fit, but the particular greedy sequence approaches it without reaching it in finitely many rounds.</p>
-      </section>
-      <h3>Step size</h3>
-      <p>A learning rate <span class="math">ν</span> scales each new tree’s contribution:</p>
-      <div class="equation"><math display="block" aria-label="F m equals F m minus one plus nu times h m"><msub><mi>F</mi><mi>m</mi></msub><mo>=</mo><msub><mi>F</mi><mrow><mi>m</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><mi>ν</mi><msub><mi>h</mi><mi>m</mi></msub></math></div>
-      <p>Both delivery examples use squared-error loss and <span class="math">ν = 1</span>, so each fitted correction is added in full. A smaller <span class="math">ν</span> shrinks each update and changes the residuals used to fit subsequent trees.</p>
-      <div class="sources">
-        <h3>Further reading</h3>
-        <p>Jerome H. Friedman (1999), <a href="https://www.cse.iitb.ac.in/~soumen/readings/papers/Friedman1999GreedyFuncApprox.pdf">“Greedy Function Approximation: A Gradient Boosting Machine”</a>. Section 7 discusses how component-tree size controls interaction order.</p>
-        <p>He He (2021), <a href="https://nyu-ds1003.github.io/mlcourse/2021/lectures/lec11/11b.gradient-boosting-annotated.pdf">“Forward Stagewise Additive Modeling”</a>, NYU. Shows how squared-error fitting at each stage becomes fitting a new learner to the current residuals.</p>
-        <p>Susan Athey and Guido W. Imbens (2019), <a href="https://arxiv.org/pdf/1903.10075">“Machine Learning Methods That Economists Should Know About”</a>. Section 3.4 discusses boosting and how the number of splits in each component tree constrains the interactions the ensemble can represent.</p>
-      </div>
+      <h2 id="reading-heading">Further reading</h2>
+      <p>Susan Athey and Guido W. Imbens (2019), <a href="https://arxiv.org/abs/1903.10075">“Machine Learning Methods Economists Should Know About”</a>.</p>
+      <p>Trevor Hastie, Robert Tibshirani, and Jerome Friedman (2009), <a href="https://hastie.su.domains/ElemStatLearn/">The Elements of Statistical Learning</a>, 2nd edition, Chapter 10: “Boosting and Additive Trees.”</p>
     </section>
   </main>
   <footer><a href="../">ML &amp; AI for the Social Sciences</a><a href="../boosting/">Next: Boosting →</a><a href="#page-title">Back to the beginning</a></footer>
-  <noscript><p class="no-script">The full explanation above is readable without JavaScript. Enable JavaScript to explore the linked tree diagrams, step functions, and partition maps.</p></noscript>
+  <noscript><p class="no-script">Enable JavaScript to explore the tree diagrams, step functions, and partition maps. The further reading links are available above.</p></noscript>
 </body>
 </html>

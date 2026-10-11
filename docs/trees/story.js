@@ -19,7 +19,8 @@
     'One leaf raises both right-hand intervals. Some errors grow while total squared error falls.', ''
   ];
   function scenePresentation(scene, state={}) {
-    if(scene>=6)return G.presentation(scene-6,state);
+    if(scene===6)return G.transitionPresentation();
+    if(scene>=7)return G.presentation(scene-7,state);
     let equation=sceneEquations[scene],takeaway=sceneTakeaways[scene];
     if(scene===0 && !(state.process>0))equation='';
     if(scene===4 && state.process>=3)takeaway='Two cutpoints make three intervals. The heights still leave errors to correct.';
@@ -36,16 +37,15 @@
   }
   const fmt = n => Math.abs(n) < 1e-9 ? '0' : String(Number(n.toFixed(2))).replace('-', '−');
   function renderScene(scene, state = {}, compact = false) {
-    return scene < 6 ? D.render(scene, state, compact) : G.render(scene-6,state,compact);
+    return scene < 6 ? D.render(scene, state, compact) : scene === 6 ? G.renderTransition(compact) : G.render(scene-7,state,compact);
   }
   function readout(scene, state = {}) {
-    return scene < 6 ? D.readout(scene, state) : G.readout(scene-6,state);
+    return scene < 6 ? D.readout(scene, state) : scene === 6 ? G.transitionReadout() : G.readout(scene-7,state);
   }
 
   function init(doc,win) {
     const get=id=>doc.getElementById(id);
     doc.documentElement.dataset.enhanced='true';
-    get('full-explanation').open=false;
     const state={process:0,candidateIndex:null,continuation:0,growth:0};
     const steps=Array.from(doc.querySelectorAll('.step'));
     const diagram=get('diagram'), shell=diagram.closest('.stage-shell');
@@ -65,11 +65,11 @@
       get('stage-count').textContent=`${String(scene+1).padStart(2,'0')} / ${String(steps.length).padStart(2,'0')}`;
       get('stage-caption').textContent=presentation.takeaway;
       get('stage-caption').hidden=false;
-      get('continue-boosting').hidden=scene!==8;
-      const growthScene=scene===6 || scene===7;
+      get('continue-boosting').hidden=scene!==9;
+      const growthScene=scene===7 || scene===8;
       get('growth-controls').hidden=!growthScene;
       if(growthScene){
-        const maximum=G.max(scene-6), complete=Math.floor(state.growth+1e-8), unit=scene===6?'split':'stump';
+        const maximum=G.max(scene-7), complete=Math.floor(state.growth+1e-8), unit=scene===7?'split':'stump';
         get('growth-label').textContent=state.growth>complete+1e-8
           ?`Drawing ${unit} ${complete+1} of ${maximum}`:`${complete} / ${maximum} ${unit}s`;
         get('growth-back').textContent=`Previous ${unit}`;
@@ -160,14 +160,14 @@
         steps.forEach((s,i)=>{if(s.getBoundingClientRect().top<=line) nearest=i;});
         const changed=nearest!==scene;
         activate(nearest);
-        if((moved || changed || force) && scene>=0 && scene<=7){
+        if((moved || changed || force) && scene>=0 && scene<=8 && scene!==6){
           stopAnimation();closeCandidates();
           const box=steps[scene].getBoundingClientRect();
           // Give the initial scatterplot time to arrive before revealing the mean.
           const hold=scene===0?.4:.08,duration=scene===0?.5:.77;
           const fraction=Math.max(0,Math.min(1,((line-box.top)/Math.max(1,box.height)-hold)/duration));
-          if(scene>=6){
-            const progress=Math.round(fraction*G.max(scene-6)*1000)/1000;
+          if(scene>=7){
+            const progress=Math.round(fraction*G.max(scene-7)*1000)/1000;
             state.growth=reduced.matches?Math.floor(progress):progress;
           }else if(scene===5){
             state.continuation=fraction;
@@ -220,12 +220,12 @@
       }
       render();animation=win.requestAnimationFrame(tick);
     }
-    get('growth-next').addEventListener('click',()=>animateGrowth(Math.min(G.max(scene-6),Math.floor(state.growth+1e-6)+1)));
+    get('growth-next').addEventListener('click',()=>animateGrowth(Math.min(G.max(scene-7),Math.floor(state.growth+1e-6)+1)));
     get('growth-back').addEventListener('click',()=>animateGrowth(Math.max(0,Math.ceil(state.growth-1e-6)-1)));
     get('growth-replay').addEventListener('click',()=>{
       if(animation){stopAnimation(true);render();}
       else if(growthResumeTarget!==null)animateGrowth(growthResumeTarget);
-      else animateGrowth(G.max(scene-6),true);
+      else animateGrowth(G.max(scene-7),true);
     });
     get('process-next').addEventListener('click',()=>animateProcess(Math.min(D.processMax(scene),Math.floor(state.process+1e-6)+1)));
     get('process-back').addEventListener('click',()=>animateProcess(Math.max(0,Math.ceil(state.process-1e-6)-1)));
@@ -242,9 +242,6 @@
       render();
     });
     get('candidate-cut').addEventListener('input',event=>{stopAnimation();state.candidateIndex=Number(event.target.value);render();});
-    doc.addEventListener('click',event=>{
-      if(event.target.closest('a[href="#full-explanation"]'))get('full-explanation').open=true;
-    });
     doc.addEventListener('keydown',event=>{
       if(event.target.closest('input,select,button,a,summary,details,[role="button"]'))return;
       if(event.key==='ArrowRight'){event.preventDefault();go(scene+1);}
@@ -252,9 +249,6 @@
     });
     win.addEventListener('scroll',onScroll,{passive:true});
     win.addEventListener('resize',()=>{scrollSyncPending=true;render();onScroll();},{passive:true});
-    let notesOpenBeforePrint=false;
-    win.addEventListener('beforeprint',()=>{notesOpenBeforePrint=get('full-explanation').open;get('full-explanation').open=true;});
-    win.addEventListener('afterprint',()=>{get('full-explanation').open=notesOpenBeforePrint;});
     reduced.addEventListener('change',()=>{stopAnimation();scrollSyncPending=true;render();onScroll();});
     render();onScroll();
   }

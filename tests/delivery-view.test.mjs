@@ -129,14 +129,14 @@ test('candidate exploration changes the trial stump while preserving its residua
   }
 });
 
-test('all nine integrated scenes render and route to the correct numerical sequence', () => {
+test('all ten integrated scenes render and route to the correct numerical sequence', () => {
   const state = { correction: 1, growth: 4 };
   for (const compact of [false, true]) {
-    for (let scene = 0; scene < 9; scene++) {
+    for (let scene = 0; scene < 10; scene++) {
       const svg = story.renderScene(scene, state, compact);
-      const expected = scene < 6 ? view.render(scene, state, compact) : growth.render(scene - 6, state, compact);
+      const expected = scene < 6 ? view.render(scene, state, compact) : scene === 6 ? growth.renderTransition(compact) : growth.render(scene - 7, state, compact);
       assert.equal(svg, expected);
-      assert.equal(story.readout(scene, state), scene < 6 ? view.readout(scene, state) : growth.readout(scene - 6, state));
+      assert.equal(story.readout(scene, state), scene < 6 ? view.readout(scene, state) : scene === 6 ? growth.transitionReadout() : growth.readout(scene - 7, state));
       assert.doesNotMatch(svg, /NaN|Infinity|undefined/);
       assert.match(svg, /<title\b[^>]*>[^<]+<\/title>/);
       assert.match(svg, /<desc\b[^>]*>[^<]+<\/desc>/);

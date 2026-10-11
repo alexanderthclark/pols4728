@@ -34,8 +34,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 [hidden] { display: none !important; }
 sub, sup { line-height: 0; }
 .math, math { font-family: 'Course Math', 'Cambria Math', math; }
-.quiet { color: var(--muted); font-size: 1rem; }
-.equation { margin: 1.1em 0; font-size: 1.4rem; line-height: 1.5; }
 .skip-link { position: fixed; z-index: 100; top: -100px; left: 12px; padding: 10px; background: white; }
 .skip-link:focus { top: 8px; }
 
@@ -105,44 +103,11 @@ html[data-enhanced='true'] .scroll-track { display: block; }
 #growth-label { min-width: 0; color: var(--blue); }
 .growth-actions { display: flex; flex: 0 0 auto; gap: 7px; }
 .growth-actions button { min-height: 32px; padding: 3px 9px; font: inherit; }
-.example-data.growth-data { max-width: 520px; }
 
-/* The complete prose remains a normal document, outside the scroll track. */
-.full-explanation { max-width: 810px; margin: 34px auto 25px; padding: 0 28px; }
-.full-explanation > summary { padding: 20px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--light-rule); cursor: pointer; font-size: 25px; line-height: 1.3; }
-.narrative { min-width: 0; padding: 8px 0 25px; }
-.explanation-section { padding: 30px 0; }
-.explanation-section h2 { margin: 0 0 22px; font-size: clamp(29px, 3.5vw, 38px); }
-.explanation-section p { line-height: 1.65; }
-.step-number { margin-bottom: 15px; color: var(--blue); font: 11px/1.5 var(--sans); letter-spacing: .075em; }
-.continue-link { display: inline-block; padding: 6px 0; line-height: 1.5; }
-.example-data { width: 100%; max-width: 390px; margin: 20px 0 24px; border-collapse: collapse; font: 14px/1.4 var(--sans); font-variant-numeric: tabular-nums; }
-.example-data caption { padding-bottom: 9px; text-align: left; color: var(--muted); font-size: 12px; }
-.example-data th, .example-data td { padding: 5px 12px; text-align: right; border-bottom: 1px solid var(--light-rule); font-weight: 400; }
-.example-data thead th { padding-top: 0; padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
-.example-data th:first-child, .example-data td:first-child { padding-left: 0; text-align: left; }
-.example-data th:last-child, .example-data td:last-child { padding-right: 0; }
+/* References follow the final frame. */
 .afterword { max-width: 810px; margin: 20px auto 0; padding: 55px 28px 75px; border-top: 1px solid var(--rule); }
-.afterword h2 { max-width: 24ch; margin: 0 0 27px; font-size: clamp(31px, 4vw, 42px); }
+.afterword h2 { margin: 0 0 27px; font-size: clamp(31px, 4vw, 42px); }
 .afterword p { margin-bottom: 23px; }
-.afterword details { margin: 30px 0; padding: 18px 0; border-top: 1px solid var(--light-rule); border-bottom: 1px solid var(--light-rule); }
-.afterword summary { cursor: pointer; font-size: 20px; }
-.afterword details[open] summary { margin-bottom: 20px; }
-#generalization { margin: 40px 0 35px; }
-#generalization h3 { margin: 0 0 20px; font-size: 28px; }
-.model-comparison { width: 100%; margin: 24px 0; border-collapse: collapse; table-layout: fixed; font: 14px/1.5 var(--sans); }
-.model-comparison caption { padding-bottom: 10px; text-align: left; color: var(--muted); font-size: 12px; }
-.model-comparison .model-column { width: 25%; }
-.model-comparison .function-column { width: 59%; }
-.model-comparison .count-column { width: 16%; }
-.model-comparison th, .model-comparison td { padding: 12px 8px; border-bottom: 1px solid var(--light-rule); text-align: left; vertical-align: top; font-weight: 400; }
-.model-comparison thead th { border-bottom: 1px solid var(--rule); color: var(--muted); font-size: 12px; }
-.model-comparison th:first-child { padding-left: 0; }
-.model-comparison td:last-child, .model-comparison th:last-child { padding-right: 0; text-align: right; }
-.model-comparison .math { font-size: 18px; }
-.sources { margin-top: 34px; }
-.sources h3 { margin: 0 0 18px; font-size: 24px; }
-.sources p { font-size: 16px; }
 footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px; padding: 25px 4vw; border-top: 1px solid var(--light-rule); font: 14px/1.5 var(--sans); }
 .no-script { max-width: 800px; margin: auto; padding: 24px; }
 
@@ -180,19 +145,7 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20
   .stage-nav { margin-top: 3px; padding-top: 4px; }
   .stage-nav button { min-height: 34px; min-width: 74px; padding: 4px 10px; font-size: 12px; }
   .notes-link { font-size: 11px; }
-  .full-explanation { margin-top: 25px; padding: 0 22px; }
-  .full-explanation > summary { font-size: 23px; }
-  .explanation-section { padding: 26px 0; }
-  .explanation-section h2 { font-size: 30px; }
-  .explanation-section p { font-size: 17px; line-height: 1.6; }
-  .explanation-section .quiet { font-size: 15px; }
-  .explanation-section .equation { font-size: 22px; }
-  .example-data { max-width: 440px; font-size: 13px; }
-  .example-data th, .example-data td { padding-top: 4px; padding-bottom: 4px; }
   .afterword { padding: 45px 22px 60px; }
-  .model-comparison { font-size: 12px; }
-  .model-comparison th, .model-comparison td { padding-right: 6px; padding-left: 6px; }
-  .model-comparison .math { font-size: 16px; }
   footer { padding: 22px; font-size: 13px; }
 }
 
@@ -224,13 +177,6 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20
   .title-page { min-height: 0; padding: 20px; }
   .title-page h1 { font-size: 38px; }
   .title-art { width: 450px; }
-  .full-explanation { max-width: 760px; margin: 10px auto; padding: 0 24px; }
-  .full-explanation > summary { display: none; }
-  .full-explanation > article { display: block !important; }
-  .full-explanation::details-content { display: block !important; content-visibility: visible !important; height: auto !important; overflow: visible !important; }
-  .narrative { padding: 0; }
-  .explanation-section { padding: 22px 0; break-inside: avoid; }
-  .explanation-section h2 { font-size: 26px; }
   .afterword { padding-top: 36px; }
   footer { font-size: 12px; }
 }

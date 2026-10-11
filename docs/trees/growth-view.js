@@ -19,6 +19,33 @@
   const stages = scene => scene === 0 ? G.treeStages : G.boostStages;
   const max = scene => scene === 2 ? 0 : stages(scene).length - 1;
 
+  // One quantitative scale is shared by observed outcomes and fitted surfaces.
+  // It is fixed across all stages so a color never changes its numerical meaning.
+  const timeDomain = Object.freeze([8, 24]);
+  function timeRGB(value) {
+    const t = clamp((value - timeDomain[0]) / (timeDomain[1] - timeDomain[0]));
+    return [237, 244, 250].map((v, i) => Math.round(v + ([35, 78, 112][i] - v) * t));
+  }
+  const timeColor = value => `rgb(${timeRGB(value).join(',')})`;
+  function valueInk(value) {
+    const linear = timeRGB(value).map(v => v / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4);
+    const luminance = linear[0] * .2126 + linear[1] * .7152 + linear[2] * .0722;
+    return luminance < .179 ? 'white' : '#000000';
+  }
+  function colorLegend(x, y, width, label, compact) {
+    const h = compact ? 10 : 12;
+    let out = `<g data-color-scale="8,24" data-color-quantity="${label.startsWith('Observed') ? 'observed-y' : 'predicted-F'}">`;
+    out += text(x + width / 2, y - (compact ? 7 : 9), label, 'class="legend" text-anchor="middle"');
+    // Solid adjacent strips also render consistently in exported SVG/PNG figures.
+    for (let i = 0; i < 64; i++) out += `<rect x="${x + width * i / 64}" y="${y}" width="${width / 64 + .2}" height="${h}" fill="${timeColor(8 + 16 * (i + .5) / 64)}"/>`;
+    for (const value of [8, 12, 16, 20, 24]) {
+      const px = x + width * (value - 8) / 16;
+      out += line(px, y + h, px, y + h + 3);
+      out += text(px, y + h + (compact ? 15 : 19), value, 'class="legend" text-anchor="middle"');
+    }
+    return out + '</g>';
+  }
+
   function current(scene, state) {
     const limit = max(scene);
     const progress = Number.isFinite(state.growth) ? clamp(state.growth, 0, limit) : limit;
@@ -68,18 +95,12 @@
 
   function render(scene, state = {}, compact = false) {
     const comparison = scene === 2, W = compact ? 420 : 780;
-    const H = compact ? comparison ? 362 : 420 : 510;
+    const H = compact ? comparison ? 413 : 460 : 540;
     const s = comparison ? null : current(scene, state);
     const p = presentation(scene, state);
     const kind = ['tree', 'boost', 'compare'][scene];
     const nodeSize = compact ? 13 : 17;
     let body = '';
-
-    function fill(value) {
-      const rgb = value < G.baseline ? [35, 78, 112] : [0, 127, 115];
-      const alpha = .035 + Math.min(.14, Math.abs(value - G.baseline) / 55);
-      return `rgb(${rgb.map(v => Math.round(255 + (v - 255) * alpha)).join(',')})`;
-    }
 
     function allCuts(tree, box = G.bounds) {
       if ('value' in tree) return [];
@@ -89,21 +110,21 @@
       return [{ feature: tree.feature, threshold: tree.threshold, bounds: box, parentId: tree.id }, ...allCuts(tree.left, left), ...allCuts(tree.right, right)];
     }
 
-    function map(model, box, id, pending, amount, showOutcomes = false) {
+    function map(model, box, id, pending, amount) {
       const X = x => box.x + (x - G.bounds[0][0]) / (G.bounds[0][1] - G.bounds[0][0]) * box.w;
       const Y = y => box.y + box.h - (y - G.bounds[1][0]) / (G.bounds[1][1] - G.bounds[1][0]) * box.h;
       const cells = P.refinement(model.trees, G.bounds);
       let out = `<g data-map="${id}" data-mse="${model.mse}" data-split-count="${model.splitCount}" data-region-count="${model.regionCount}" data-predictions="${model.predictions.join(',')}">`;
       for (const cell of cells) {
         const [[lo, hi], [bottom, top]] = cell.bounds;
-        out += `<rect x="${X(lo)}" y="${Y(top)}" width="${X(hi) - X(lo)}" height="${Y(bottom) - Y(top)}" fill="${fill(cell.value)}" data-region="${esc(cell.leafId)}" data-bounds="${cell.bounds.flat().join(',')}" data-value="${cell.value}"/>`;
+        out += `<rect x="${X(lo)}" y="${Y(top)}" width="${X(hi) - X(lo)}" height="${Y(bottom) - Y(top)}" fill="${timeColor(cell.value)}" data-region="${esc(cell.leafId)}" data-bounds="${cell.bounds.flat().join(',')}" data-value="${cell.value}"/>`;
       }
       const cut = (q, color, fraction, active) => {
         const [[lo, hi], [bottom, top]] = q.bounds;
         const feature = q.feature;
         const x1 = feature === 0 ? X(q.threshold) : X(lo), y1 = feature === 0 ? Y(bottom) : Y(q.threshold);
         const x2 = feature === 0 ? x1 : X(lo + (hi - lo) * fraction), y2 = feature === 0 ? Y(bottom + (top - bottom) * fraction) : y1;
-        return line(x1, y1, x2, y2, color, active ? 3 : 1.6, `data-cut-feature="${feature}" data-cut-threshold="${q.threshold}" data-cut-bounds="${q.bounds.flat().join(',')}" data-pending="${active}" stroke-linecap="round"`);
+        return (active ? line(x1, y1, x2, y2, 'white', 6, 'stroke-linecap="round"') : '') + line(x1, y1, x2, y2, color, active ? 3 : 1.6, `data-cut-feature="${feature}" data-cut-threshold="${q.threshold}" data-cut-bounds="${q.bounds.flat().join(',')}" data-pending="${active}" stroke-linecap="round"`);
       };
       for (const tree of model.trees) for (const q of allCuts(tree)) out += cut(q, C.blue, 1, false);
       if (pending) out += cut(pending, C.rust, clamp(amount / .82), true);
@@ -122,7 +143,6 @@
       for (const observation of G.observations) {
         const px = X(observation.x[0]), py = Y(observation.x[1]);
         out += `<circle cx="${px}" cy="${py}" r="${compact && comparison ? 2.1 : compact ? 2.7 : 3.7}" fill="${C.ink}" stroke="white" stroke-width="1" data-observation="${observation.id}" data-x="${observation.x.join(',')}" data-y="${observation.y}"/>`;
-        if (showOutcomes) out += text(px + (compact ? 5 : 7), py - (compact ? 5 : 6), observation.y, 'class="observation-value"');
       }
       for (const cell of cells) {
         const [[lo, hi], [bottom, top]] = cell.bounds;
@@ -134,8 +154,11 @@
         else if (bottom < 0 && top === 3.5) labelY = 2.03;
         else if (bottom === 3.5) labelY = 4.28;
         else if (bottom < 0 && top === 4.5) labelY = 2.1;
+        let labelX = (lo + hi) / 2;
+        if (pending && pending.feature === 0 && Math.abs(X(labelX) - X(pending.threshold)) < (compact ? 22 : 31) && pending.bounds[1][0] <= labelY && labelY <= pending.bounds[1][1]) labelX = (lo + pending.threshold) / 2;
+        if (pending && pending.feature === 1 && Math.abs(Y(labelY) - Y(pending.threshold)) < (compact ? 13 : 20) && pending.bounds[0][0] <= labelX && labelX <= pending.bounds[0][1]) labelY = (pending.threshold + top) / 2;
         const tightTopStrip = compact && !comparison && bottom === 3.5;
-        out += text(X((lo + hi) / 2), Y(labelY) + (compact ? 4 : 6), fmt(cell.value), `class="prediction" text-anchor="middle"${tightTopStrip ? ' style="font-size:12px"' : ''}`);
+        out += text(X(labelX), Y(labelY) + (compact ? 4 : 6), fmt(cell.value), `class="prediction" fill="${valueInk(cell.value)}" text-anchor="middle"${tightTopStrip ? ' style="font-size:12px"' : ''}`);
       }
       return out + '</g>';
     }
@@ -226,18 +249,95 @@
       const box = compact ? { x: 65, y: 180, w: 331, h: 157 } : { x: 434, y: 65, w: 315, h: 317 };
       const pending = s.next ? scene === 0 ? s.next.split : { ...s.next.stump, bounds: G.bounds } : null;
       body += scene === 0 ? treeDiagram(s.model, s.next, s.amount) : stumpDiagrams(s.model, s.next, s.amount);
-      body += text(box.x, compact ? 171 : 28, 'Input map', 'class="panel-title"');
-      body += map(s.model, box, kind, pending, s.amount, s.index === 0);
+      body += text(box.x, compact ? 171 : 28, 'Predicted time F(x₁, x₂)', 'class="panel-title"');
+      body += map(s.model, box, kind, pending, s.amount);
       body += metrics(s.model, box.x + box.w / 2, compact ? 395 : 453);
     }
-    const legendY = compact ? H - 4 : 494;
-    const legendX = compact ? 28 : 140;
-    body += `<circle cx="${legendX}" cy="${legendY - 4}" r="${compact ? 2.7 : 3.7}" fill="${C.ink}"/>`;
-    body += text(legendX + 9, legendY, compact ? 'Delivery' : 'Observed delivery', 'class="legend"');
-    body += text(compact ? 116 : 306, legendY, compact ? 'Region numbers = predicted minutes (rounded)' : 'Region numbers = predicted minutes, rounded to one decimal', 'class="legend"');
-    if (!comparison && s.index === 0) body += text(compact ? 239 : 591, compact ? 173 : 48, 'Dot labels = observed minutes', 'class="observation-key" text-anchor="middle"');
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="${C.ink}" role="img" aria-labelledby="growth-title growth-description" data-kind="${kind}"${s ? ` data-stage="${s.index}" data-progress="${s.progress}" data-mse="${s.model.mse}" data-split-count="${s.model.splitCount}"` : ''}><title id="growth-title">${esc(p.heading)}</title><desc id="growth-description">${esc(p.takeaway + ' ' + readout(scene, state))} Filled regions show model predictions. Fixed dots show the input locations of sixteen observed deliveries.</desc><style>text{font-family:Georgia,serif;font-size:${nodeSize}px}.panel-title{font-size:${compact ? 14 : 21}px}.node,.leaf,.correction,.prediction{paint-order:stroke;stroke:white;stroke-width:${compact ? 3 : 5}px;stroke-linejoin:round}.prediction{fill:${C.blue};font-size:${compact && comparison ? 12 : compact ? 14 : 20}px}.leaf,.correction{font-size:${compact ? 13 : 18}px}.correction{fill:${C.rust}}.tick,.axis,.legend,.small-note,.pending-note,.observation-key,.stump-title,.branch{font-family:Arial,sans-serif;font-size:${compact ? 11 : 14}px}.tick,.axis,.legend,.small-note,.observation-key{fill:${C.muted}}.pending-note{fill:${C.rust}}.metric{font-family:Arial,sans-serif;font-size:${compact ? 13 : 18}px}.observation-value{font-family:Arial,sans-serif;font-size:${compact ? 10 : 13}px;paint-order:stroke;stroke:white;stroke-width:3px}.observation-key{font-size:${compact ? 10 : 13}px}.legend{font-size:${compact ? 10.5 : 13}px}.sum{font-size:20px}</style><rect width="${W}" height="${H}" fill="white"/>${body}</svg>`;
+    const legendY = compact ? comparison ? 374 : 421 : 496;
+    const legendX = compact ? 100 : 416;
+    body += colorLegend(legendX, legendY, compact ? 244 : 280, 'Predicted F (minutes)', compact);
+    const dotY = compact ? legendY + 4 : 504;
+    body += `<circle cx="${compact ? 21 : 36}" cy="${dotY}" r="${compact ? 2.7 : 3.7}" fill="${C.ink}"/>`;
+    body += text(compact ? 29 : 49, dotY + 4, compact ? 'Delivery' : 'Observed delivery location', 'class="legend"');
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="${C.ink}" role="img" aria-labelledby="growth-title growth-description" data-kind="${kind}"${s ? ` data-stage="${s.index}" data-progress="${s.progress}" data-mse="${s.model.mse}" data-split-count="${s.model.splitCount}"` : ''}><title id="growth-title">${esc(p.heading)}</title><desc id="growth-description">${esc(p.takeaway + ' ' + readout(scene, state))} Region color and numbers show predicted time F on a fixed 8 to 24 minute scale. Fixed dots show the input locations of sixteen observed deliveries.</desc><style>text{font-family:Georgia,serif;font-size:${nodeSize}px}.panel-title{font-size:${compact ? 14 : 21}px}.node,.leaf,.correction{paint-order:stroke;stroke:white;stroke-width:${compact ? 3 : 5}px;stroke-linejoin:round}.prediction{font-size:${compact && comparison ? 12 : compact ? 14 : 20}px}.leaf,.correction{font-size:${compact ? 13 : 18}px}.correction{fill:${C.rust}}.tick,.axis,.legend,.small-note,.pending-note,.observation-key,.stump-title,.branch{font-family:Arial,sans-serif;font-size:${compact ? 11 : 14}px}.tick,.axis,.legend,.small-note,.observation-key{fill:${C.muted}}.pending-note{fill:${C.rust}}.metric{font-family:Arial,sans-serif;font-size:${compact ? 13 : 18}px}.observation-value{font-family:Arial,sans-serif;font-size:${compact ? 10 : 13}px;paint-order:stroke;stroke:white;stroke-width:3px}.observation-key{font-size:${compact ? 10 : 13}px}.legend{font-size:${compact ? 10.5 : 13}px}.sum{font-size:20px}</style><rect width="${W}" height="${H}" fill="white"/>${body}</svg>`;
   }
 
-  return { render, readout, presentation, max };
+  function transitionPresentation() {
+    return {
+      heading: 'Two predictors, one outcome',
+      equation: 'x₁ = distance · x₂ = stops · y = delivery time',
+      takeaway: 'A new example with 16 deliveries. The input map uses both axes for predictors; color and numbers show observed time.'
+    };
+  }
+
+  function transitionReadout() {
+    return 'New dataset: 16 deliveries · observed y = 8–24 minutes · darker blue means a longer delivery time';
+  }
+
+  function renderTransition(compact = false) {
+    const W = compact ? 420 : 780, H = compact ? 460 : 510;
+    const scatter = compact ? { x: 55, y: 29, w: 338, h: 125 } : { x: 62, y: 68, w: 275, h: 292 };
+    const input = compact ? { x: 55, y: 228, w: 338, h: 132 } : { x: 461, y: 68, w: 285, h: 292 };
+    let body = '';
+    function axes(box, outcome) {
+      const X = value => box.x + value / 12 * box.w;
+      const Y = value => box.y + box.h - (outcome ? (value - 6) / 20 : (value + .5) / 5) * box.h;
+      let out = `<g data-observation-panel="${outcome ? 'outcome' : 'input'}">`;
+      out += text(box.x + box.w / 2, box.y - (compact ? 14 : 29), outcome ? 'Distance and observed time' : 'Two predictors: the input map', 'class="panel-title" text-anchor="middle"');
+      out += line(box.x, box.y, box.x, box.y + box.h);
+      out += line(box.x, box.y + box.h, box.x + box.w, box.y + box.h);
+      for (const value of [0, 6, 12]) {
+        out += line(X(value), box.y + box.h, X(value), box.y + box.h + 4);
+        out += text(X(value), box.y + box.h + (compact ? 15 : 21), value, 'class="tick" text-anchor="middle"');
+      }
+      for (const value of outcome ? [8, 16, 24] : [0, 2, 4]) {
+        out += line(box.x - 4, Y(value), box.x, Y(value));
+        out += text(box.x - 8, Y(value) + 4, value, 'class="tick" text-anchor="end"');
+      }
+      const ax = box.x - (compact ? 37 : 40), ay = box.y + box.h / 2;
+      out += text(ax, ay, outcome ? 'Time y (min)' : 'Stops x₂', `class="axis" text-anchor="middle" transform="rotate(-90 ${ax} ${ay})"`);
+      out += text(box.x + box.w / 2, box.y + box.h + (compact ? 33 : 46), 'Distance x₁ (km)', 'class="axis" text-anchor="middle"');
+      for (const observation of G.observations) {
+        const px = X(observation.x[0]), py = Y(outcome ? observation.y : observation.x[1]);
+        const metadata = `data-observation="${observation.id}" data-x="${observation.x.join(',')}" data-y="${observation.y}"`;
+        if (outcome) {
+          out += `<circle cx="${px}" cy="${py}" r="${compact ? 3.5 : 6}" fill="${timeColor(observation.y)}" stroke="${C.blue}" stroke-width=".8" ${metadata}/>`;
+        } else {
+          const w = compact ? 32 : 38, h = compact ? 21 : 30;
+          // Discrete swatches mark only observed input locations, not fitted regions.
+          out += `<rect x="${px - w / 2}" y="${py - h / 2}" width="${w}" height="${h}" rx="2" fill="${timeColor(observation.y)}" stroke="${C.blue}" stroke-width=".6" ${metadata}/>`;
+          out += text(px, py + (compact ? 4 : 5), observation.y, `class="outcome-number" fill="${valueInk(observation.y)}" text-anchor="middle"`);
+        }
+      }
+      if (outcome) {
+        const groups = new Map();
+        for (const observation of G.observations) {
+          const key = `${observation.x[0]},${observation.y}`;
+          if (!groups.has(key)) groups.set(key, []);
+          groups.get(key).push(observation);
+        }
+        const atX = new Map();
+        for (const group of groups.values()) {
+          const observation = group[0], x = observation.x[0];
+          const rank = atX.get(x) || 0;
+          atX.set(x, rank + 1);
+          const right = (rank + (x === 4 ? 1 : 0)) % 2 === 1 || group.length > 1;
+          const label = `${observation.y}${group.length > 1 ? ` ×${group.length}` : ''}`;
+          out += text(X(x) + (right ? 1 : -1) * (compact ? 8 : 11), Y(observation.y) + (compact ? 3.5 : 4), label, `class="scatter-number" text-anchor="${right ? 'start' : 'end'}"${group.length > 1 ? ` data-overlap-count="${group.length}"` : ''}`);
+        }
+      }
+      return out + '</g>';
+    }
+    body += axes(scatter, true) + axes(input, false);
+    if (!compact) {
+      body += text(377, 212, '→', 'class="bridge" text-anchor="middle"');
+      body += text(377, 242, 'add x₂', 'class="axis" text-anchor="middle"');
+      body += text(390, 434, 'The same 16 deliveries in both views. ×2 marks two overlapping points.', 'class="legend" text-anchor="middle"');
+    }
+    body += colorLegend(compact ? 100 : 220, compact ? 421 : 468, compact ? 244 : 340, 'Observed y (minutes)', compact);
+    const p = transitionPresentation();
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="${C.ink}" role="img" aria-labelledby="transition-title transition-description" data-kind="transition"><title id="transition-title">${esc(p.heading)}</title><desc id="transition-description">${esc(p.takeaway)} The same sixteen deliveries appear in both panels. Two deliveries share distance 10 km and time 16 minutes and overlap in the first panel; their label is 16 ×2. The input map marks only observed locations; it does not show a fitted model.</desc><style>text{font-family:Georgia,serif;font-size:${compact ? 13 : 17}px}.panel-title{font-size:${compact ? 14 : 20}px}.tick,.axis,.legend,.scatter-number,.outcome-number{font-family:Arial,sans-serif;font-size:${compact ? 11 : 14}px}.tick,.axis,.legend{fill:${C.muted}}.outcome-number{font-size:${compact ? 12 : 16}px}.scatter-number{font-size:${compact ? 11 : 14}px;paint-order:stroke;stroke:white;stroke-width:2px}.bridge{font-size:35px;fill:${C.muted}}</style><rect width="${W}" height="${H}" fill="white"/>${body}</svg>`;
+  }
+
+  return { render, readout, presentation, max, renderTransition, transitionPresentation, transitionReadout, timeColor, timeDomain };
 });
