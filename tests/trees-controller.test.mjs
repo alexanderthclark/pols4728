@@ -170,7 +170,7 @@ test('opening starts with observations and reveals the mean before entering resi
   assert.equal(ui.get('stage-topic').hidden, true);
 });
 
-test('all scenes keep the full-width presentation and the final onward link', () => {
+test('all scenes keep the full-width presentation without a link to the unpublished chapter', () => {
   const ui = setup(true);
   assert.equal(ui.get('full-explanation'), undefined);
   assert.ok(ui.get('further-reading'));
@@ -184,13 +184,13 @@ test('all scenes keep the full-width presentation and the final onward link', ()
     assert.equal(ui.get('visual-heading').hidden, false);
     assert.ok(ui.get('visual-heading').textContent.length>0);
     assert.equal(ui.get('stage-topic').hidden, true);
-    assert.equal(ui.get('continue-boosting').hidden, scene!==9);
+    assert.equal(ui.get('continue-boosting'), undefined);
     assert.equal(ui.get('stage-equation').hidden, scene===6);
     assert.equal(ui.get('stage-caption').hidden, scene===6);
     assert.equal(ui.get('calculation').hidden, scene===6);
   }
   ui.click('previous');
-  assert.equal(ui.get('continue-boosting').hidden, true);
+  assert.equal(ui.get('continue-boosting'), undefined);
 });
 
 test('later-round headings follow the fitted tree and keep the final training-fit qualification', () => {
@@ -338,7 +338,7 @@ test('reduced-motion continuation uses completed fits before the new growth fram
   assert.equal(ui.get('growth-next').textContent, 'Next stump');
   ui.scrollAt(9, 0);
   assert.equal(ui.get('growth-controls').hidden, true);
-  assert.equal(ui.get('continue-boosting').hidden, false);
+  assert.equal(ui.get('continue-boosting'), undefined);
 });
 
 test('both growth frames follow and reverse scrolling, preserving manual choices until movement', () => {

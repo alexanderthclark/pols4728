@@ -5,12 +5,14 @@ on:
     paths:
       - 'docs/**'
       - 'tests/**'
+      - 'unpublished/boosting/**'
       - '.github/workflows/pages.yml'
   pull_request:
     branches: [main]
     paths:
       - 'docs/**'
       - 'tests/**'
+      - 'unpublished/boosting/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -44,15 +46,15 @@ jobs:
           node --check docs/shap/waterfall.js
           node --check docs/shap/formula.js
           node --check docs/shap/bread-peace.js
-          node --check docs/boosting/model.js
-          node --check docs/boosting/story.js
+          node --check docs/shared/boosting-math.js
+          node --check unpublished/boosting/story.js
           node --check docs/trees/model.js
           node --check docs/trees/delivery.js
           node --check docs/trees/delivery-view.js
           node --check docs/trees/growth.js
           node --check docs/trees/growth-view.js
           node --check docs/trees/story.js
-      - name: Check explainer calculations
+      - name: Check Shapley, SHAP, trees, and boosting calculations
         run: node --test tests/*.test.mjs
 
   deploy:

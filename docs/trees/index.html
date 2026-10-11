@@ -6,7 +6,7 @@
   <meta name="description" content="Fit trees to delivery-time residuals, follow boosting toward near-zero training error, and see how prediction curves become partition maps with two predictors.">
   <title>Forward stagewise additive modeling — POLS 4728</title>
   <link rel="stylesheet" href="style.css">
-  <script src="../boosting/model.js" defer></script>
+  <script src="../shared/boosting-math.js" defer></script>
   <script src="delivery.js" defer></script>
   <script src="delivery-view.js" defer></script>
   <script src="model.js" defer></script>
@@ -18,7 +18,7 @@
   <a class="skip-link" href="#story">Skip to the explanation</a>
   <header class="masthead">
     <a href="../">POLS 4728 <span>· ML &amp; AI</span></a>
-    <nav aria-label="Page navigation"><a href="#story">Trees &amp; corrections</a><a href="../boosting/">Boosting →</a></nav>
+    <nav aria-label="Page navigation"><a href="#story">Trees &amp; corrections</a><a href="#further-reading">Further reading</a></nav>
   </header>
   <div class="reading-progress" aria-hidden="true"><span id="progress"></span></div>
 
@@ -74,7 +74,6 @@
           <div class="growth-actions"><button id="growth-back" type="button" disabled>Previous split</button><button id="growth-next" type="button">Next split</button><button id="growth-replay" type="button">Replay</button></div>
         </div>
         <div id="calculation" class="calculation" role="status" aria-live="polite" aria-atomic="true"></div>
-        <a id="continue-boosting" class="stage-continue" href="../boosting/" hidden>Continue to Boosting →</a>
         <nav class="stage-nav" aria-label="Explanation steps"><button id="previous" type="button" disabled>Previous</button><a class="notes-link" href="#further-reading">Further reading</a><button id="next" type="button">Next</button></nav>
       </aside>
 
@@ -98,7 +97,7 @@
       <p>Trevor Hastie, Robert Tibshirani, and Jerome Friedman (2009), <a href="https://hastie.su.domains/ElemStatLearn/">The Elements of Statistical Learning</a>, 2nd edition, Chapter 10: “Boosting and Additive Trees.”</p>
     </section>
   </main>
-  <footer><a href="../">ML &amp; AI for the Social Sciences</a><a href="../boosting/">Next: Boosting →</a><a href="#page-title">Back to the beginning</a></footer>
+  <footer><a href="../">ML &amp; AI for the Social Sciences</a><a href="#page-title">Back to the beginning</a></footer>
   <noscript><p class="no-script">Enable JavaScript to explore the tree diagrams, step functions, and partition maps. The further reading links are available above.</p></noscript>
 </body>
 </html>

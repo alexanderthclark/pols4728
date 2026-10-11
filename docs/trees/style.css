@@ -81,7 +81,6 @@ html[data-enhanced='true'] .scroll-track { display: block; }
 .stage-caption { flex: 0 0 auto; max-width: 90ch; min-height: 2.8em; margin: 3px auto 5px; color: var(--muted); text-align: center; font: 13px/1.4 var(--sans); }
 .calculation { flex: 0 0 auto; min-height: 26px; margin: 0; padding: 2px 0; color: var(--ink); text-align: center; font: 16px/1.35 'Course Math', 'Cambria Math', math; font-variant-numeric: tabular-nums; }
 .calculation .readout-label { color: var(--muted); font: 11px/1.4 var(--sans); }
-.stage-continue { flex: 0 0 auto; align-self: center; margin: 4px 0 8px; font: 15px/1.5 var(--sans); }
 .stage-nav { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; padding-top: 5px; border-top: 1px solid var(--light-rule); font: 12px/1.4 var(--sans); }
 .stage-nav button { min-width: 83px; font: 13px/1.4 var(--sans); }
 .notes-link { text-align: center; font-size: 12px; }

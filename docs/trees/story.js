@@ -65,7 +65,6 @@
       get('stage-count').textContent=`${String(scene+1).padStart(2,'0')} / ${String(steps.length).padStart(2,'0')}`;
       get('stage-caption').textContent=presentation.takeaway;
       get('stage-caption').hidden=scene===6;
-      get('continue-boosting').hidden=scene!==9;
       const growthScene=scene===7 || scene===8;
       get('growth-controls').hidden=!growthScene;
       if(growthScene){

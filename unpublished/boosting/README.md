@@ -1,14 +1,18 @@
 # Boosting, one step at a time
 
-A static scrollytelling draft about gradient descent in function space. Open
-`/boosting/` from the course site, or serve the repository's `docs` directory
-with a static HTTP server. No build step or external JavaScript dependencies.
+An unpublished static scrollytelling draft about gradient descent in function
+space. This chapter is kept outside the `docs` directory published by GitHub
+Pages. To preview it locally, serve the repository root with a static HTTP
+server and open `/unpublished/boosting/`. No build step or external JavaScript
+dependencies.
 
 ## Construction
 
 - `index.html` contains the full explanation, MathML, references and controls.
-- `model.js` fits least-squares regression stumps and calculates exact vectors
-  and losses. It supports both the browser and Node.js tests.
+- `../../docs/shared/boosting-math.js` is the canonical shared math module. It
+  fits least-squares regression stumps and calculates exact vectors and losses
+  for this draft and the public tree explainer. It supports both the browser
+  and Node.js tests.
 - `story.js` renders SVG scenes, follows the narrative while scrolling, and
   handles the experiment controls. Previous/Next buttons also navigate scenes;
   left/right arrow keys work when focus is outside an interactive control.
@@ -37,9 +41,11 @@ optimal leaf weight. It does not claim to implement XGBoost itself.
 
 ## Checks
 
+Run these commands from the repository root:
+
 ```sh
-node --check docs/boosting/model.js
-node --check docs/boosting/story.js
+node --check docs/shared/boosting-math.js
+node --check unpublished/boosting/story.js
 node --test tests/*.test.mjs
 ```
 
@@ -58,5 +64,5 @@ The page links Cornell's lecture notes and the official XGBoost model tutorial.
 It uses original prose and executable calculations, not lecture screenshots.
 
 `assets/boosting-swing.png` is the approved transparent title artwork, registered with
-its hash and usage guidance in `design/assets.json`. No shared design rules
+its hash and usage guidance in `../../design/assets.json`. No shared design rules
 were changed.

@@ -1,8 +1,8 @@
 # Forward stagewise additive modeling
 
-A static companion to the boosting story, served at `/trees/`. No build step or
-external JavaScript dependencies. The course home lists this page before boosting;
-both explainers link to one another.
+A static explainer of forward stagewise additive modeling, served at `/trees/`.
+No build step or external JavaScript dependencies. The course homepage links
+directly to this chapter.
 
 Ten scroll-linked scenes begin with observations from a synthetic delivery
 dataset, reveal the mean prediction, and then form residuals for the first tree.
@@ -88,7 +88,7 @@ comparison claims a generalization advantage from the training scores.
 The synthetic delivery distances are `[1, 3, 4, 6, 7, 9, 10, 12]` km, with times
 `[6, 6, 11, 11, 11, 17, 17, 17]` minutes. The initial prediction is their mean,
 12 minutes. Each stump is fitted programmatically to the current residuals using
-the squared-error fitter in `../boosting/model.js`, with learning rate 1.
+the squared-error fitter in `../shared/boosting-math.js`, with learning rate 1.
 
 | Stage | Fitted correction | Accumulated predictions | Training MSE |
 | --- | --- | --- | --- |
@@ -185,7 +185,7 @@ cut is being drawn. Keyboard focus exposes the same observation details.
   reduced motion, keyboard focus styling, and print references.
 
 Run the JavaScript syntax checks in `.github/workflows/pages.yml` and
-`node --test tests/*.test.mjs`. Browser loading order is `../boosting/model.js`,
+`node --test tests/*.test.mjs`. Browser loading order is `../shared/boosting-math.js`,
 `delivery.js`, `delivery-view.js`, `model.js`, `growth.js`, `growth-view.js`, then
 `story.js`.
 For browser review, inspect all ten scenes at desktop and mobile widths,
@@ -196,8 +196,7 @@ the continuation while checking that its nonzero MSE remains visible. Then
 grow both two-predictor models, replay and reverse their stages, and inspect the
 final four-split comparison. Verify training scores and fixed map scales, then
 hover or focus dots in both models to compare observed values and residuals.
-Check reduced motion and links
-between the companion, boosting, and course home. Renderer tests verify fixed
+Check reduced motion and the link back to the course home. Renderer tests verify fixed
 coordinates and numerical states; a headless event/clock harness covers scroll
 scrubbing, manual-control transitions, reduced motion, geometry changes, and
 asynchronous candidate-panel closure. Browser review remains

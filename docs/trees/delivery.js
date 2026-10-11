@@ -1,6 +1,6 @@
 (function (root, factory) {
   'use strict';
-  const math = root && root.BoostingMath || (typeof require === 'function' ? require('../boosting/model.js') : null);
+  const math = root && root.BoostingMath || (typeof require === 'function' ? require('../shared/boosting-math.js') : null);
   const api = factory(math);
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root) root.DeliveryExample = api;

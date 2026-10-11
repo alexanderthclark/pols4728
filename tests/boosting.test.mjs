@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import test from 'node:test';
 
 const require = createRequire(import.meta.url);
-const math = require('../docs/boosting/model.js');
+const math = require('../docs/shared/boosting-math.js');
 const close = (actual, expected, tolerance = 1e-11) => {
   assert.ok(Number.isFinite(actual), `Expected finite value; received ${actual}`);
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} should equal ${expected}`);
