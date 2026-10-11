@@ -323,6 +323,7 @@
 
   function init(doc,win) {
     const get=id=>doc.getElementById(id);
+    doc.documentElement.dataset.enhanced='true';
     const state={x:.8,y:.8,addition:1,interaction:false,splitProgress:1,process:0,inspectX:6,candidateIndex:null,continuation:0};
     const steps=Array.from(doc.querySelectorAll('.step'));
     const diagram=get('diagram'), shell=diagram.closest('.stage-shell');
@@ -331,13 +332,17 @@
     let scene=0, frame=0, animation=0, targetScene=null, targetTimeout=0, processResumeTarget=null, scrollPosition=win.scrollY, scrollSyncPending=true;
     function render(transition=false) {
       shell.dataset.scene=String(scene);
+      shell.dataset.layout=scene<2?'visual':'explained';
       get('stage-topic').textContent=topics[scene];
+      get('stage-topic').hidden=scene<2;
+      get('visual-heading').hidden=scene>=2;
+      if(scene<2)get('visual-heading').textContent=get(`heading-${scene}`).textContent;
       get('stage-count').textContent=`${String(scene+1).padStart(2,'0')} / ${steps.length}`;
       get('stage-caption').textContent=captions[scene];
       get('addition-controls').hidden=scene!==9;
       get('split-controls').hidden=scene!==8;
       get('interaction-controls').hidden=scene!==12;
-      const processScene=scene>=1 && scene<=4, fitScene=scene===1 || scene===3;
+      const processScene=scene>=0 && scene<=4, fitScene=scene===1 || scene===3;
       get('process-controls').hidden=!processScene;
       get('candidate-controls').hidden=!fitScene;
       get('contribution-controls').hidden=scene!==5;
@@ -350,13 +355,14 @@
         get('continuation-next').disabled=state.continuation>=1;
       }
       if(processScene){
-        const labels=D.processLabels(scene), stage=Math.min(3,Math.ceil(state.process));
-        const label=`${stage} / 3 · ${labels[stage]}`;
+        const maximum=D.processMax(scene),labels=D.processLabels(scene), stage=Math.min(maximum,Math.ceil(state.process));
+        const label=`${stage} / ${maximum} · ${labels[stage]}`;
         if(get('process-label').textContent!==label)get('process-label').textContent=label;
         get('process-progress').value=state.process;
+        get('process-progress').max=maximum;
         get('process-progress').setAttribute('aria-valuetext',labels[stage]);
         get('process-back').disabled=state.process<=0;
-        get('process-next').disabled=state.process>=3;
+        get('process-next').disabled=state.process>=maximum;
       }
       if(fitScene){
         const round=scene===1?1:2,candidates=B.candidates(round);
@@ -375,7 +381,7 @@
       get('next').disabled=scene===steps.length-1;
       steps.forEach((s,i)=>s.classList.toggle('active',i===scene));
       diagram.innerHTML=renderScene(scene,state,compact.matches);
-      if(transition && !reduced.matches && diagram.animate) diagram.animate([{opacity:.25},{opacity:1}],{duration:280,easing:'ease-out'});
+      if(transition && scene>1 && !reduced.matches && diagram.animate) diagram.animate([{opacity:.25},{opacity:1}],{duration:280,easing:'ease-out'});
     }
     function stopAnimation(keepProcessPosition=false){
       win.cancelAnimationFrame(animation);animation=0;
@@ -426,11 +432,12 @@
         steps.forEach((s,i)=>{if(s.getBoundingClientRect().top<=line) nearest=i;});
         const changed=nearest!==scene;
         activate(nearest);
-        if((moved || changed || force) && scene>=1 && scene<=6){
+        if((moved || changed || force) && scene>=0 && scene<=6){
           stopAnimation();closeCandidates();
           const box=steps[scene].getBoundingClientRect();
-          // Hold the opening briefly, then finish before the next section enters.
-          const fraction=Math.max(0,Math.min(1,((line-box.top)/Math.max(1,box.height)-.08)/.77));
+          // Give the initial scatterplot time to arrive before revealing the mean.
+          const hold=scene===0?.4:.08,duration=scene===0?.5:.77;
+          const fraction=Math.max(0,Math.min(1,((line-box.top)/Math.max(1,box.height)-hold)/duration));
           if(scene===6){
             state.continuation=fraction;
             if(reduced.matches){
@@ -441,7 +448,7 @@
             // Reduced motion still samples all three intervals without sweeping.
             state.inspectX=reduced.matches?[1,6,12][Math.min(2,Math.floor(fraction*3))]:Math.round(fraction*1300)/100;
           }else {
-            const process=Math.min(3,Math.round(fraction*3000)/1000);
+            const maximum=D.processMax(scene),process=Math.min(maximum,Math.round(fraction*maximum*1000)/1000);
             state.process=reduced.matches?Math.floor(process):process;
           }
           get('calculation').setAttribute('aria-live','off');
@@ -484,9 +491,9 @@
       function tick(now){state.addition=Math.min(1,Math.round((now-start)/1800*100)/100);render();if(state.addition<1)animation=win.requestAnimationFrame(tick);else stopAnimation();}
       animation=win.requestAnimationFrame(tick);
     });
-    get('process-next').addEventListener('click',()=>animateProcess(Math.min(3,Math.floor(state.process+1e-6)+1)));
+    get('process-next').addEventListener('click',()=>animateProcess(Math.min(D.processMax(scene),Math.floor(state.process+1e-6)+1)));
     get('process-back').addEventListener('click',()=>animateProcess(Math.max(0,Math.ceil(state.process-1e-6)-1)));
-    get('process-replay').addEventListener('click',()=>{if(animation){stopAnimation(true);render();}else if(processResumeTarget!==null)animateProcess(processResumeTarget);else animateProcess(3,true);});
+    get('process-replay').addEventListener('click',()=>{if(animation){stopAnimation(true);render();}else if(processResumeTarget!==null)animateProcess(processResumeTarget);else animateProcess(D.processMax(scene),true);});
     get('process-progress').addEventListener('input',event=>{stopAnimation();closeCandidates();state.process=Number(event.target.value);render();});
     get('candidate-details').addEventListener('toggle',()=>{
       if(scene!==1 && scene!==3)return;

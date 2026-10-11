@@ -53,7 +53,7 @@ function setup(reducedMotion = false) {
   const doc = new Element();
   doc.getElementById = id => nodes.get(id);
   doc.querySelectorAll = selector => selector === '.step' ? steps : [];
-  doc.documentElement = { scrollHeight: 15000 };
+  doc.documentElement = { scrollHeight: 15000, dataset: {} };
   const flushDom = () => { while (domTasks.length) domTasks.shift()(); };
   const advance = elapsed => {
     time += elapsed;
@@ -161,6 +161,46 @@ test('the contribution scanner follows both cutpoints and pauses without changin
 
 const processValue = ui => Number(ui.get('process-progress').value);
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) <= 0.0011, `${actual} should equal ${expected}`);
+
+test('opening starts with observations and reveals the mean before entering residual fitting', () => {
+  const ui = setup();
+  assert.equal(ui.shell.dataset.layout, 'visual');
+  assert.equal(ui.get('stage-topic').hidden, true);
+  assert.equal(ui.get('visual-heading').hidden, false);
+  assert.equal(Number(ui.get('process-progress').max), 1);
+  assert.doesNotMatch(ui.get('diagram').innerHTML, /data-axis="Residual/);
+  assert.doesNotMatch(ui.get('diagram').innerHTML, /data-curve="prediction"/);
+  ui.scrollAt(0, 0.35);
+  assert.equal(processValue(ui), 0);
+  ui.scrollAt(0, 0.65);
+  close(processValue(ui), 0.5);
+  ui.scrollAt(0, 0.95);
+  assert.equal(processValue(ui), 1);
+  assert.equal(ui.get('process-next').disabled, true);
+  ui.scrollAt(1, 0.04);
+  assert.equal(Number(ui.get('process-progress').max), 3);
+  assert.equal(processValue(ui), 0);
+  assert.doesNotMatch(ui.get('diagram').innerHTML, /data-axis="Residual/);
+  ui.scrollAt(2, 0.04);
+  assert.equal(ui.shell.dataset.layout, 'explained');
+  assert.equal(ui.get('visual-heading').hidden, true);
+  assert.equal(ui.get('stage-topic').hidden, false);
+});
+
+test('opening manual controls and reduced motion finish and reverse the mean reveal', () => {
+  const ui = setup(true);
+  ui.click('process-next');
+  assert.equal(processValue(ui), 1);
+  assert.match(ui.get('calculation').textContent, /F₀.*12/);
+  ui.click('process-back');
+  assert.equal(processValue(ui), 0);
+  ui.click('process-replay');
+  assert.equal(processValue(ui), 1);
+  ui.scrollAt(0, 0.65);
+  assert.equal(processValue(ui), 0);
+  ui.scrollAt(0, 0.95);
+  assert.equal(processValue(ui), 1);
+});
 
 test('scroll position advances and rewinds the delivery process, including direct scene jumps', () => {
   const ui = setup();

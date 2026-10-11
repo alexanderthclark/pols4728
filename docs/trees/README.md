@@ -1,11 +1,16 @@
-# Fit a correction. Add a tree.
+# Forward stagewise additive modeling
 
 A static companion to the boosting story, served at `/trees/`. No build step or
 external JavaScript dependencies. The course home lists this page before boosting;
 both explainers link to one another.
 
-Fourteen scroll-linked scenes begin with two fitted boosting updates on a
-synthetic delivery dataset, then continue through eight rounds. Aligned panels distinguish the current residual
+Fourteen scroll-linked scenes begin with observations from a synthetic delivery
+dataset, reveal the mean prediction, and then form residuals for the first tree.
+These first two scenes use a full-width diagram and a single heading; their
+equations and data remain available to screen readers, without JavaScript, and
+in print. Short mobile screens retain this content below the nonsticky diagram.
+The example fits two boosting updates, then continues through eight
+rounds. Aligned panels distinguish the current residual
 target and its fitted stump from the original observations and accumulated
 prediction. The sequence then moves to two predictors, comparing two split nodes
 in one tree (three regions) with two crossing stumps (four regions). A later
@@ -13,8 +18,15 @@ comparison shows the third split a single tree needs to match the four-region
 prediction function, before distinguishing region counts from freedom in the
 leaf values.
 
+Scrolling through the opening reveals the mean prediction after a hold on the
+observations alone. This first scene holds for 40% of its progress, reveals the
+mean over the next 50%, and holds the final state for the remainder. Its plot
+has no residual panel. The next scene starts with exactly the same coordinates,
+then moves the observation plot down and copies its points into a residual plot
+above it before revealing the split and fitted leaf means.
+
 Scrolling through a delivery fitting or update scene advances its three-stage
-sequence; scrolling backward rewinds it. Each section holds its opening state
+sequence; scrolling backward rewinds it. These sections hold their opening state
 for the first 8% of progress, completes the sequence over the next 77%, and
 holds the final state for the remainder. The delivery summary similarly moves
 the inspected distance from 0 to 13 km. Reduced motion advances fitting and
@@ -123,10 +135,12 @@ learning procedures and constraints differ.
   `candidates(round)`. Candidate values are residual predictions. It uses
   `BoostingMath` in the browser and the same module through CommonJS in tests.
 - `delivery-view.js` renders the first seven scenes with shared axes and exports
-  their topics, captions, process labels, and numerical readouts. Process runs
-  from 0 to 3; addition runs during process 1 to 2. Direct renders default to a
+  their topics, captions, process labels, process maxima, and numerical readouts.
+  The opening process runs from 0 to 1; fitting and update processes run from 0
+  to 3, with addition during process 1 to 2. Direct renders default to a
   completed sequence and retain the older `correction` input for inspection.
-- `story.js` routes all fourteen scenes and initializes controls and scrolling.
+- `story.js` routes all fourteen scenes, switches between the visual opening and
+  later split layout, and initializes controls and scrolling.
   It also exports the original partition renderer and readout as
   `renderPartitionScene` and `partitionReadout` for focused tests.
 - `index.html` contains the complete narrative and accessible controls.

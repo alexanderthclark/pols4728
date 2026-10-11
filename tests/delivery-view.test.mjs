@@ -17,14 +17,13 @@ const curve = (svg, name) => {
 
 test('the residual fitting and update scenes keep fixed axes and aligned observation distances', () => {
   for (const compact of [false, true]) {
-    for (let scene = 0; scene < 5; scene++) {
+    for (let scene = 1; scene < 5; scene++) {
       const svg = view.render(scene, {}, compact);
       const panels = groups(svg);
       const expectedAxes = [
         { axis: 'Residual (min)', x: '0,13', y: '-7,6' },
         { axis: 'Time (min)', x: '0,13', y: '0,20' }
       ];
-      if (scene === 0) expectedAxes.reverse();
       assert.deepEqual(panels.filter(group => group['data-axis']).map(group => ({
         axis: group['data-axis'], x: group['data-x-domain'], y: group['data-y-domain']
       })), expectedAxes);
@@ -64,7 +63,8 @@ test('each correction is fitted to the shown residuals and added to the previous
 });
 
 test('update readouts report MSE for the currently displayed partial prediction', () => {
-  assert.equal(view.readout(0), 'F₀ = mean(y) = 12 min · MSE = 18.75');
+  assert.equal(view.readout(0), 'F₀(x) = ȳ = 12');
+  assert.equal(view.readout(0, { process: 0 }), 'Delivery time vs distance');
   assert.equal(view.readout(1), 'h₁: −3 if x ≤ 8; +5 if x > 8');
   assert.equal(view.readout(3), 'h₂: −3 if x ≤ 3.5; +1 if x > 3.5');
   for (const [correction, firstMSE, secondMSE] of [[0, 18.75, 3.75], [0.5, 7.5, 1.5], [1, 3.75, 0.75]]) {
@@ -253,5 +253,48 @@ test('each continued update visibly fits a fixed dark orange stump and labels it
         assert.match(selectedCut.contents, new RegExp(`Split at ${fitted.threshold} km`));
       }
     }
+  }
+});
+
+
+test('the opening reveals the mean on a single observed-outcome plot without residuals', () => {
+  assert.equal(view.topics[0], 'Predict delivery time');
+  assert.equal(view.processMax(0), 1);
+  assert.equal(view.processMax(1), 3);
+  assert.deepEqual(view.processLabels(0), ['Observed deliveries', 'F₀(x) = ȳ = 12']);
+  for (const compact of [false, true]) {
+    for (const process of [0, .5, 1]) {
+      const svg = view.render(0, { process }, compact);
+      const panels = groups(svg);
+      assert.equal(panels.filter(group => group['data-axis']).length, 1);
+      assert.equal(panels.find(group => group['data-axis'])['data-axis'], 'Time (min)');
+      assert.doesNotMatch(svg, /data-points="residuals"|data-axis="Residual|MSE/);
+      assert.deepEqual(numbers(panels.find(group => group['data-points'] === 'observations')['data-values']), model.y);
+      assert.equal(panels.some(group => group['data-curve'] === 'prediction'), process > 0);
+      if (process > 0) assert.deepEqual(curve(svg, 'prediction'), { values: [12], cuts: [] });
+    }
+  }
+});
+
+test('the completed opening and start of residual formation share exact observed and mean coordinates', () => {
+  const geometry = (svg, kind, name) => groups(svg).find(group => group[kind] === name).contents;
+  const coordinates = contents => [...contents.matchAll(/<(?:line|circle)\b[^>]*>/g)].map(match => {
+    const fields = attributes(match[0]);
+    return Object.fromEntries(['x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r'].filter(key => key in fields).map(key => [key, fields[key]]));
+  });
+  for (const compact of [false, true]) {
+    const first = view.render(0, { process: 1 }, compact);
+    const next = view.render(1, { process: 0 }, compact);
+    assert.deepEqual(coordinates(geometry(first, 'data-points', 'observations')), coordinates(geometry(next, 'data-points', 'observations')));
+    assert.deepEqual(coordinates(geometry(first, 'data-curve', 'prediction')), coordinates(geometry(next, 'data-curve', 'previous')));
+    assert.doesNotMatch(next, /data-axis="Residual|data-residual-transfer/);
+    const moving = view.render(1, { process: .15 }, compact);
+    assert.doesNotMatch(moving, /data-axis="Residual|data-residual-transfer/);
+    const formed = view.render(1, { process: .6 }, compact);
+    assert.match(formed, /data-axis="Residual \(min\)"/);
+    assert.match(formed, /data-residual-transfer="true"/);
+    assert.doesNotMatch(formed, /data-curve="h1"/);
+    const settled = view.render(1, { process: 1 }, compact);
+    assert.deepEqual(coordinates(geometry(formed, 'data-points', 'observations')), coordinates(geometry(settled, 'data-points', 'observations')));
   }
 });
