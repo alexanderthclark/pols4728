@@ -185,6 +185,9 @@ test('all scenes keep the full-width presentation and the final onward link', ()
     assert.ok(ui.get('visual-heading').textContent.length>0);
     assert.equal(ui.get('stage-topic').hidden, true);
     assert.equal(ui.get('continue-boosting').hidden, scene!==9);
+    assert.equal(ui.get('stage-equation').hidden, scene===6);
+    assert.equal(ui.get('stage-caption').hidden, scene===6);
+    assert.equal(ui.get('calculation').hidden, scene===6);
   }
   ui.click('previous');
   assert.equal(ui.get('continue-boosting').hidden, true);

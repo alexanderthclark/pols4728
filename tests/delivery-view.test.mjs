@@ -138,8 +138,10 @@ test('all ten integrated scenes render and route to the correct numerical sequen
       assert.equal(svg, expected);
       assert.equal(story.readout(scene, state), scene < 6 ? view.readout(scene, state) : scene === 6 ? growth.transitionReadout() : growth.readout(scene - 7, state));
       assert.doesNotMatch(svg, /NaN|Infinity|undefined/);
-      assert.match(svg, /<title\b[^>]*>[^<]+<\/title>/);
-      assert.match(svg, /<desc\b[^>]*>[^<]+<\/desc>/);
+      if (scene !== 6) {
+        assert.match(svg, /<title\b[^>]*>[^<]+<\/title>/);
+        assert.match(svg, /<desc\b[^>]*>[^<]+<\/desc>/);
+      }
       for (const [, value] of svg.matchAll(/\s(?:x|y|x1|y1|x2|y2|cx|cy|width|height|r)="([^"]+)"/g)) {
         assert.ok(Number.isFinite(Number(value)), `Scene ${scene} contains invalid geometry: ${value}`);
       }

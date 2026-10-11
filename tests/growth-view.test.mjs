@@ -17,7 +17,7 @@ test('growth figures keep displayed predictions, scores and counts at the commit
     assert.ok(Math.abs(Number(panel['data-mse'])-independentMSE)<1e-10);
     assert.equal(Number(panel['data-split-count']),stage);
     assert.equal(Number(panel['data-region-count']),expected.regionCount);
-    assert.doesNotMatch(svg,/NaN|Infinity|undefined|data-probe|tabindex|role="button"/);
+    assert.doesNotMatch(svg,/NaN|Infinity|undefined|data-probe|role="button"/);
     assert.equal((svg.match(/data-observation="/g)||[]).length,16);
     for(const [,value] of svg.matchAll(/\s(?:x|y|x1|y1|x2|y2|cx|cy|width|height|r)="([^"]+)"/g))assert.ok(Number.isFinite(Number(value)));
     const pending=[...svg.matchAll(/<line\b[^>]*data-pending="true"[^>]*>/g)].map(m=>attrs(m[0]));
@@ -46,7 +46,7 @@ test('final comparison uses equal split budgets and the two distinct computed fi
 const luminance=rgb=>rgb.map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
 const rgb=fill=>fill==='white'?[255,255,255]:fill==='#000000'?[0,0,0]:fill.match(/\d+/g).map(Number);
 
-test('observed and fitted colors use one fixed quantitative scale with readable labels',()=>{
+test('fitted maps use one fixed quantitative scale with readable labels',()=>{
   assert.deepEqual(view.timeDomain,[8,24]);
   assert.equal(view.timeColor(8),'rgb(237,244,250)');
   assert.equal(view.timeColor(24),'rgb(35,78,112)');
@@ -54,8 +54,8 @@ test('observed and fitted colors use one fixed quantitative scale with readable 
   const seenColors=new Map();
   for(const compact of [false,true])for(const scene of [0,1,2])for(const growth of [0,1,2,3,4]){
     const svg=view.render(scene,{growth},compact);
-    assert.match(svg,/data-color-scale="8,24" data-color-quantity="predicted-F"/);
-    assert.match(svg,/Predicted F \(minutes\)/);
+    assert.match(svg,/data-color-scale="8,24" data-color-quantity="observed-y,predicted-F"/);
+    assert.match(svg,/Minutes: points y · regions F/);
     const cells=[...svg.matchAll(/<rect\b[^>]*data-region="[^>]*>/g)].map(m=>attrs(m[0]));
     const labels=[...svg.matchAll(/<text\b[^>]*class="prediction"[^>]*>/g)].map(m=>attrs(m[0]));
     assert.equal(cells.length,labels.length);
@@ -70,26 +70,55 @@ test('observed and fitted colors use one fixed quantitative scale with readable 
   }
 });
 
-test('transition shows the same 16 observed deliveries in outcome and predictor coordinates',()=>{
+test('transition contains only brief text introducing the two-predictor comparison',()=>{
   for(const compact of [false,true]){
-    const svg=view.renderTransition(compact);
-    assert.match(svg,/New|new example/);
-    assert.match(svg,/data-color-scale="8,24" data-color-quantity="observed-y"/);
-    assert.match(svg,/Observed y \(minutes\)/);
-    assert.match(svg,/16 ×2/);
-    assert.match(svg,/data-overlap-count="2"/);
-    assert.doesNotMatch(svg,/data-region=|NaN|Infinity|undefined|tabindex/);
-    for(const kind of ['outcome','input']){
-      const panel=svg.match(new RegExp(`<g data-observation-panel="${kind}">([\\s\\S]*?)<\\/g>`))[1];
-      const marks=[...panel.matchAll(/<(?:circle|rect)\b[^>]*data-observation="[^>]*>/g)].map(m=>attrs(m[0]));
-      assert.equal(marks.length,16);
-      assert.deepEqual(marks.map(m=>m['data-observation']),model.observations.map(o=>o.id));
-      marks.forEach((mark,i)=>{
-        const observation=model.observations[i];
-        assert.deepEqual(mark['data-x'].split(',').map(Number),observation.x);
-        assert.equal(Number(mark['data-y']),observation.y);
-        assert.equal(mark.fill,view.timeColor(observation.y));
+    const html=view.renderTransition(compact);
+    assert.match(html,/distance and number of stops/);
+    assert.match(html,/16 new deliveries/);
+    assert.match(html,/one tree and a sum of stumps/);
+    assert.doesNotMatch(html,/<svg|<canvas|<img|data-color-scale|data-observation|<button|<input/);
+    assert.equal(view.transitionPresentation().equation,'');
+    assert.equal(view.transitionPresentation().takeaway,'');
+    assert.equal(view.transitionReadout(),'');
+  }
+});
+
+
+test('colored delivery markers and accessible tooltips use committed y, F, and residual values',()=>{
+  for(const compact of [false,true])for(const scene of [0,1,2])for(const growth of [0,.5,1,1.75,2,2.9,3,3.5,4]){
+    const svg=view.render(scene,{growth},compact);
+    const displayed=scene===2?[model.treeStages[4],model.boostStages[4]]:[(scene===0?model.treeStages:model.boostStages)[Math.floor(growth)]];
+    const maps=[...svg.matchAll(/<g data-map="[^"]+"[^>]*>([\s\S]*?)<\/g>/g)];
+    const overlays=[...svg.matchAll(/<g class="growth-observation"[^>]*>([\s\S]*?)<\/g><\/g>/g)];
+    assert.equal(maps.length,displayed.length);
+    assert.equal(overlays.length,displayed.length*16);
+    assert.match(svg,/\.observation-tooltip\{visibility:hidden;pointer-events:none\}/);
+    assert.match(svg,/\.growth-observation:hover \.observation-tooltip,\.growth-observation:focus \.observation-tooltip\{visibility:visible\}/);
+    assert.ok(svg.indexOf('class="growth-observation"')>svg.lastIndexOf('class="prediction"'));
+    maps.forEach((map,k)=>{
+      const points=[...map[1].matchAll(/<circle[^>]*data-observation="[^>]*>/g)].map(m=>attrs(m[0]));
+      assert.equal(points.length,16);
+      points.forEach((point,i)=>{
+        const observed=model.observations[i],prediction=displayed[k].predictions[i],residual=observed.y-prediction;
+        assert.equal(Number(point['data-y']),observed.y);
+        assert.equal(Number(point['data-prediction']),prediction);
+        assert.equal(Number(point['data-residual']),residual);
+        assert.equal(point.fill,view.timeColor(observed.y));
+        assert.ok(Number(point.r)>=3.3);
+        const overlay=overlays[k*16+i][0],target=attrs(overlay.match(/^<g[^>]*>/)[0]);
+        assert.equal(target.tabindex,'0');assert.equal(target.role,'img');
+        assert.match(target['aria-label'],new RegExp(`Observed y ${observed.y} minutes`));
+        assert.match(target['aria-label'],/Prediction F .* Residual y minus F/);
+        const display=value=>String(Number(value.toFixed(2))).replace('-', '−');
+        const residualDisplay=`${residual>0?'+':''}${display(residual)}`;
+        assert.ok(overlay.includes(`Observed y = ${observed.y} min`));
+        assert.ok(overlay.includes(`Prediction F = ${display(prediction)} min`));
+        assert.ok(overlay.includes(`y − F = ${residualDisplay} min`));
+        const tooltip=attrs(overlay.match(/<rect[^>]*>/)[0]);
+        const [width,height]=svg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/).slice(1).map(Number);
+        assert.ok(Number(tooltip.x)>=0 && Number(tooltip.x)+Number(tooltip.width)<=width);
+        assert.ok(Number(tooltip.y)>=0 && Number(tooltip.y)+Number(tooltip.height)<=height);
       });
-    }
+    });
   }
 });

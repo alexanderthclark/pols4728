@@ -68,6 +68,12 @@ html[data-enhanced='true'] .scroll-track { display: block; }
 .stage-equation { flex: 0 0 auto; min-height: 1.35em; margin: 0 0 3px; text-align: center; font-size: 21px; line-height: 1.35; }
 .diagram { position: relative; display: flex; flex: 1 1 auto; align-items: center; justify-content: center; width: 100%; min-height: 200px; isolation: isolate; }
 .diagram svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.transition-copy { width: min(100%, 650px); margin: 0 auto; text-align: center; font-size: clamp(20px, 2.3vw, 27px); line-height: 1.55; }
+.transition-copy p { margin: 0 0 1.1em; }
+.transition-copy p:last-child { margin-bottom: 0; }
+.stage-shell[data-scene='6'] .visual-heading { margin-top: auto; margin-bottom: 30px; min-height: 0; }
+.stage-shell[data-scene='6'] .diagram { flex: 0 0 auto; min-height: 0; padding: 0 16px 30px; }
+.stage-shell[data-scene='6'] .stage-nav { margin-top: auto; }
 .diagram .math-label { font-family: 'Course Math', 'Cambria Math', math; }
 .diagram .muted, .diagram .axis-label { fill: var(--muted); }
 .diagram .diagram-title { font-family: var(--serif); }

@@ -61,10 +61,10 @@
       get('visual-heading').hidden=false;
       get('visual-heading').textContent=presentation.heading;
       get('stage-equation').textContent=presentation.equation;
-      get('stage-equation').hidden=false;
+      get('stage-equation').hidden=scene===6;
       get('stage-count').textContent=`${String(scene+1).padStart(2,'0')} / ${String(steps.length).padStart(2,'0')}`;
       get('stage-caption').textContent=presentation.takeaway;
-      get('stage-caption').hidden=false;
+      get('stage-caption').hidden=scene===6;
       get('continue-boosting').hidden=scene!==9;
       const growthScene=scene===7 || scene===8;
       get('growth-controls').hidden=!growthScene;
@@ -107,9 +107,11 @@
         get('candidate-description').textContent=`Leaf means: ${fmt(row.left)}, ${fmt(row.right)} min. Residual SSE: ${fmt(row.sse)} min². ${index===winner?'Lowest among the seven candidate splits.':`Best split: ${fmt(candidates[winner].threshold)} km, SSE ${fmt(candidates[winner].sse)} min².`}`;
       }
       get('calculation').textContent=readout(scene,state);
+      get('calculation').hidden=scene===6;
       get('previous').disabled=scene===0;
       get('next').disabled=scene===steps.length-1;
       steps.forEach((s,i)=>s.classList.toggle('active',i===scene));
+      diagram.setAttribute('aria-label',scene===6?'Transition to two predictors':'Current tree and its predictions');
       diagram.innerHTML=renderScene(scene,state,compact.matches);
       if(transition && scene>1 && !reduced.matches && diagram.animate) diagram.animate([{opacity:.25},{opacity:1}],{duration:280,easing:'ease-out'});
     }

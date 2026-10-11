@@ -19,7 +19,7 @@
   const stages = scene => scene === 0 ? G.treeStages : G.boostStages;
   const max = scene => scene === 2 ? 0 : stages(scene).length - 1;
 
-  // One quantitative scale is shared by observed outcomes and fitted surfaces.
+  // One quantitative scale is shared by both fitted surfaces.
   // It is fixed across all stages so a color never changes its numerical meaning.
   const timeDomain = Object.freeze([8, 24]);
   function timeRGB(value) {
@@ -32,9 +32,9 @@
     const luminance = linear[0] * .2126 + linear[1] * .7152 + linear[2] * .0722;
     return luminance < .179 ? 'white' : '#000000';
   }
-  function colorLegend(x, y, width, label, compact) {
+  function colorLegend(x, y, width, label, compact, quantity = 'predicted-F') {
     const h = compact ? 10 : 12;
-    let out = `<g data-color-scale="8,24" data-color-quantity="${label.startsWith('Observed') ? 'observed-y' : 'predicted-F'}">`;
+    let out = `<g data-color-scale="8,24" data-color-quantity="${quantity}">`;
     out += text(x + width / 2, y - (compact ? 7 : 9), label, 'class="legend" text-anchor="middle"');
     // Solid adjacent strips also render consistently in exported SVG/PNG figures.
     for (let i = 0; i < 64; i++) out += `<rect x="${x + width * i / 64}" y="${y}" width="${width / 64 + .2}" height="${h}" fill="${timeColor(8 + 16 * (i + .5) / 64)}"/>`;
@@ -101,6 +101,7 @@
     const kind = ['tree', 'boost', 'compare'][scene];
     const nodeSize = compact ? 13 : 17;
     let body = '';
+    const pointOverlays = [];
 
     function allCuts(tree, box = G.bounds) {
       if ('value' in tree) return [];
@@ -140,10 +141,25 @@
       out += text(box.x + box.w / 2, box.y + box.h + (compact ? 34 : 47), compact ? 'Distance x₁ (km)' : 'Distance x₁ (km)', 'class="axis" text-anchor="middle"');
       const ax = box.x - (compact ? 29 : 37), ay = box.y + box.h / 2;
       out += text(ax, ay, 'Stops x₂', `class="axis" text-anchor="middle" transform="rotate(-90 ${ax} ${ay})"`);
-      for (const observation of G.observations) {
+      G.observations.forEach((observation, i) => {
         const px = X(observation.x[0]), py = Y(observation.x[1]);
-        out += `<circle cx="${px}" cy="${py}" r="${compact && comparison ? 2.1 : compact ? 2.7 : 3.7}" fill="${C.ink}" stroke="white" stroke-width="1" data-observation="${observation.id}" data-x="${observation.x.join(',')}" data-y="${observation.y}"/>`;
-      }
+        const prediction = model.predictions[i], residual = observation.y - prediction;
+        const radius = compact ? comparison ? 3.3 : 3.8 : 5;
+        out += `<circle cx="${px}" cy="${py}" r="${radius + 1.2}" fill="white" stroke="${C.blue}" stroke-width=".5"/>`;
+        out += `<circle cx="${px}" cy="${py}" r="${radius}" fill="${timeColor(observation.y)}" stroke="${C.blue}" stroke-width=".5" data-observation="${observation.id}" data-x="${observation.x.join(',')}" data-y="${observation.y}" data-prediction="${prediction}" data-residual="${residual}"/>`;
+        const tooltipWidth = compact ? comparison ? 149 : 167 : 216;
+        const tooltipHeight = compact ? 61 : 77, padding = compact ? 8 : 11, lineHeight = compact ? 16 : 21;
+        const tooltipX = clamp(px + 11, box.x + 3, box.x + box.w - tooltipWidth - 3);
+        const tooltipY = py - tooltipHeight - 10 >= box.y ? py - tooltipHeight - 10 : py + 10;
+        const label = `Delivery ${observation.id}: distance ${observation.x[0]} km, ${observation.x[1]} stops. Observed y ${observation.y} minutes. Prediction F ${fmt(prediction, 2)} minutes. Residual y minus F ${signed(residual)} minutes.`;
+        // All transparent hit targets and tooltips are appended after the plots,
+        // so a tooltip cannot be obscured by a later marker or comparison map.
+        pointOverlays.push(`<g class="growth-observation" tabindex="0" role="img" aria-label="${esc(label)}" data-hover-observation="${id}-${observation.id}"><circle class="observation-hit" cx="${px}" cy="${py}" r="${compact ? 9 : 11}" fill="transparent"/><g class="observation-tooltip" aria-hidden="true"><rect x="${tooltipX}" y="${tooltipY}" width="${tooltipWidth}" height="${tooltipHeight}" rx="3" fill="white" stroke="${C.blue}" stroke-width="1"/>${[
+          `Observed y = ${observation.y} min`,
+          `Prediction F = ${fmt(prediction, 2)} min`,
+          `y − F = ${signed(residual)} min`
+        ].map((value, row) => text(tooltipX + padding, tooltipY + padding + (compact ? 10 : 13) + row * lineHeight, value, 'class="tooltip-value"')).join('')}</g></g>`);
+      });
       for (const cell of cells) {
         const [[lo, hi], [bottom, top]] = cell.bounds;
         // Put predictions in the open space between the observed rows. The
@@ -255,88 +271,22 @@
     }
     const legendY = compact ? comparison ? 374 : 421 : 496;
     const legendX = compact ? 100 : 416;
-    body += colorLegend(legendX, legendY, compact ? 244 : 280, 'Predicted F (minutes)', compact);
+    body += colorLegend(legendX, legendY, compact ? 244 : 280, 'Minutes: points y · regions F', compact, 'observed-y,predicted-F');
     const dotY = compact ? legendY + 4 : 504;
-    body += `<circle cx="${compact ? 21 : 36}" cy="${dotY}" r="${compact ? 2.7 : 3.7}" fill="${C.ink}"/>`;
-    body += text(compact ? 29 : 49, dotY + 4, compact ? 'Delivery' : 'Observed delivery location', 'class="legend"');
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="${C.ink}" role="img" aria-labelledby="growth-title growth-description" data-kind="${kind}"${s ? ` data-stage="${s.index}" data-progress="${s.progress}" data-mse="${s.model.mse}" data-split-count="${s.model.splitCount}"` : ''}><title id="growth-title">${esc(p.heading)}</title><desc id="growth-description">${esc(p.takeaway + ' ' + readout(scene, state))} Region color and numbers show predicted time F on a fixed 8 to 24 minute scale. Fixed dots show the input locations of sixteen observed deliveries.</desc><style>text{font-family:Georgia,serif;font-size:${nodeSize}px}.panel-title{font-size:${compact ? 14 : 21}px}.node,.leaf,.correction{paint-order:stroke;stroke:white;stroke-width:${compact ? 3 : 5}px;stroke-linejoin:round}.prediction{font-size:${compact && comparison ? 12 : compact ? 14 : 20}px}.leaf,.correction{font-size:${compact ? 13 : 18}px}.correction{fill:${C.rust}}.tick,.axis,.legend,.small-note,.pending-note,.observation-key,.stump-title,.branch{font-family:Arial,sans-serif;font-size:${compact ? 11 : 14}px}.tick,.axis,.legend,.small-note,.observation-key{fill:${C.muted}}.pending-note{fill:${C.rust}}.metric{font-family:Arial,sans-serif;font-size:${compact ? 13 : 18}px}.observation-value{font-family:Arial,sans-serif;font-size:${compact ? 10 : 13}px;paint-order:stroke;stroke:white;stroke-width:3px}.observation-key{font-size:${compact ? 10 : 13}px}.legend{font-size:${compact ? 10.5 : 13}px}.sum{font-size:20px}</style><rect width="${W}" height="${H}" fill="white"/>${body}</svg>`;
+    body += `<circle cx="${compact ? 21 : 36}" cy="${dotY}" r="${compact ? 3.8 : 5}" fill="${timeColor(16)}" stroke="${C.blue}" stroke-width=".6"/>`;
+    body += text(compact ? 29 : 49, dotY + 4, compact ? 'Hover / focus' : 'Hover or focus a delivery for y, F, and y − F', 'class="legend"');
+    body += pointOverlays.join('');
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="${C.ink}" role="img" aria-labelledby="growth-title growth-description" data-kind="${kind}"${s ? ` data-stage="${s.index}" data-progress="${s.progress}" data-mse="${s.model.mse}" data-split-count="${s.model.splitCount}"` : ''}><title id="growth-title">${esc(p.heading)}</title><desc id="growth-description">${esc(p.takeaway + ' ' + readout(scene, state))} Region color and numbers show predicted time F on a fixed 8 to 24 minute scale. Dots show observed time y on the same color scale. Hover or focus a dot to read observed time, predicted time, and residual y minus F; tooltip values are rounded to two decimals.</desc><style>text{font-family:Georgia,serif;font-size:${nodeSize}px}.panel-title{font-size:${compact ? 14 : 21}px}.node,.leaf,.correction{paint-order:stroke;stroke:white;stroke-width:${compact ? 3 : 5}px;stroke-linejoin:round}.prediction{font-size:${compact && comparison ? 12 : compact ? 14 : 20}px}.leaf,.correction{font-size:${compact ? 13 : 18}px}.correction{fill:${C.rust}}.tick,.axis,.legend,.small-note,.pending-note,.observation-key,.stump-title,.branch{font-family:Arial,sans-serif;font-size:${compact ? 11 : 14}px}.tick,.axis,.legend,.small-note,.observation-key{fill:${C.muted}}.pending-note{fill:${C.rust}}.metric{font-family:Arial,sans-serif;font-size:${compact ? 13 : 18}px}.observation-value{font-family:Arial,sans-serif;font-size:${compact ? 10 : 13}px;paint-order:stroke;stroke:white;stroke-width:3px}.observation-key{font-size:${compact ? 10 : 13}px}.legend{font-size:${compact ? 10.5 : 13}px}.sum{font-size:20px}.growth-observation{outline:none;pointer-events:none}.observation-hit{pointer-events:all;cursor:help;stroke:none}.growth-observation:focus .observation-hit{stroke:white;stroke-width:2;stroke-dasharray:2 2}.observation-tooltip{visibility:hidden;pointer-events:none}.growth-observation:hover .observation-tooltip,.growth-observation:focus .observation-tooltip{visibility:visible}.tooltip-value{font-family:Arial,sans-serif;font-size:${compact ? 10.5 : 13}px;fill:${C.ink}}</style><rect width="${W}" height="${H}" fill="white"/>${body}</svg>`;
   }
 
   function transitionPresentation() {
-    return {
-      heading: 'Two predictors, one outcome',
-      equation: 'x₁ = distance · x₂ = stops · y = delivery time',
-      takeaway: 'A new example with 16 deliveries. The input map uses both axes for predictors; color and numbers show observed time.'
-    };
+    return { heading: 'Two predictors, one outcome', equation: '', takeaway: '' };
   }
 
-  function transitionReadout() {
-    return 'New dataset: 16 deliveries · observed y = 8–24 minutes · darker blue means a longer delivery time';
-  }
+  function transitionReadout() { return ''; }
 
-  function renderTransition(compact = false) {
-    const W = compact ? 420 : 780, H = compact ? 460 : 510;
-    const scatter = compact ? { x: 55, y: 29, w: 338, h: 125 } : { x: 62, y: 68, w: 275, h: 292 };
-    const input = compact ? { x: 55, y: 228, w: 338, h: 132 } : { x: 461, y: 68, w: 285, h: 292 };
-    let body = '';
-    function axes(box, outcome) {
-      const X = value => box.x + value / 12 * box.w;
-      const Y = value => box.y + box.h - (outcome ? (value - 6) / 20 : (value + .5) / 5) * box.h;
-      let out = `<g data-observation-panel="${outcome ? 'outcome' : 'input'}">`;
-      out += text(box.x + box.w / 2, box.y - (compact ? 14 : 29), outcome ? 'Distance and observed time' : 'Two predictors: the input map', 'class="panel-title" text-anchor="middle"');
-      out += line(box.x, box.y, box.x, box.y + box.h);
-      out += line(box.x, box.y + box.h, box.x + box.w, box.y + box.h);
-      for (const value of [0, 6, 12]) {
-        out += line(X(value), box.y + box.h, X(value), box.y + box.h + 4);
-        out += text(X(value), box.y + box.h + (compact ? 15 : 21), value, 'class="tick" text-anchor="middle"');
-      }
-      for (const value of outcome ? [8, 16, 24] : [0, 2, 4]) {
-        out += line(box.x - 4, Y(value), box.x, Y(value));
-        out += text(box.x - 8, Y(value) + 4, value, 'class="tick" text-anchor="end"');
-      }
-      const ax = box.x - (compact ? 37 : 40), ay = box.y + box.h / 2;
-      out += text(ax, ay, outcome ? 'Time y (min)' : 'Stops x₂', `class="axis" text-anchor="middle" transform="rotate(-90 ${ax} ${ay})"`);
-      out += text(box.x + box.w / 2, box.y + box.h + (compact ? 33 : 46), 'Distance x₁ (km)', 'class="axis" text-anchor="middle"');
-      for (const observation of G.observations) {
-        const px = X(observation.x[0]), py = Y(outcome ? observation.y : observation.x[1]);
-        const metadata = `data-observation="${observation.id}" data-x="${observation.x.join(',')}" data-y="${observation.y}"`;
-        if (outcome) {
-          out += `<circle cx="${px}" cy="${py}" r="${compact ? 3.5 : 6}" fill="${timeColor(observation.y)}" stroke="${C.blue}" stroke-width=".8" ${metadata}/>`;
-        } else {
-          const w = compact ? 32 : 38, h = compact ? 21 : 30;
-          // Discrete swatches mark only observed input locations, not fitted regions.
-          out += `<rect x="${px - w / 2}" y="${py - h / 2}" width="${w}" height="${h}" rx="2" fill="${timeColor(observation.y)}" stroke="${C.blue}" stroke-width=".6" ${metadata}/>`;
-          out += text(px, py + (compact ? 4 : 5), observation.y, `class="outcome-number" fill="${valueInk(observation.y)}" text-anchor="middle"`);
-        }
-      }
-      if (outcome) {
-        const groups = new Map();
-        for (const observation of G.observations) {
-          const key = `${observation.x[0]},${observation.y}`;
-          if (!groups.has(key)) groups.set(key, []);
-          groups.get(key).push(observation);
-        }
-        const atX = new Map();
-        for (const group of groups.values()) {
-          const observation = group[0], x = observation.x[0];
-          const rank = atX.get(x) || 0;
-          atX.set(x, rank + 1);
-          const right = (rank + (x === 4 ? 1 : 0)) % 2 === 1 || group.length > 1;
-          const label = `${observation.y}${group.length > 1 ? ` ×${group.length}` : ''}`;
-          out += text(X(x) + (right ? 1 : -1) * (compact ? 8 : 11), Y(observation.y) + (compact ? 3.5 : 4), label, `class="scatter-number" text-anchor="${right ? 'start' : 'end'}"${group.length > 1 ? ` data-overlap-count="${group.length}"` : ''}`);
-        }
-      }
-      return out + '</g>';
-    }
-    body += axes(scatter, true) + axes(input, false);
-    if (!compact) {
-      body += text(377, 212, '→', 'class="bridge" text-anchor="middle"');
-      body += text(377, 242, 'add x₂', 'class="axis" text-anchor="middle"');
-      body += text(390, 434, 'The same 16 deliveries in both views. ×2 marks two overlapping points.', 'class="legend" text-anchor="middle"');
-    }
-    body += colorLegend(compact ? 100 : 220, compact ? 421 : 468, compact ? 244 : 340, 'Observed y (minutes)', compact);
-    const p = transitionPresentation();
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="${C.ink}" role="img" aria-labelledby="transition-title transition-description" data-kind="transition"><title id="transition-title">${esc(p.heading)}</title><desc id="transition-description">${esc(p.takeaway)} The same sixteen deliveries appear in both panels. Two deliveries share distance 10 km and time 16 minutes and overlap in the first panel; their label is 16 ×2. The input map marks only observed locations; it does not show a fitted model.</desc><style>text{font-family:Georgia,serif;font-size:${compact ? 13 : 17}px}.panel-title{font-size:${compact ? 14 : 20}px}.tick,.axis,.legend,.scatter-number,.outcome-number{font-family:Arial,sans-serif;font-size:${compact ? 11 : 14}px}.tick,.axis,.legend{fill:${C.muted}}.outcome-number{font-size:${compact ? 12 : 16}px}.scatter-number{font-size:${compact ? 11 : 14}px;paint-order:stroke;stroke:white;stroke-width:2px}.bridge{font-size:35px;fill:${C.muted}}</style><rect width="${W}" height="${H}" fill="white"/>${body}</svg>`;
+  function renderTransition() {
+    return '<div class="transition-copy"><p>Now predict delivery time using two inputs: distance and number of stops.</p><p>Using 16 new deliveries, compare how one tree and a sum of stumps partition the input space.</p></div>';
   }
 
   return { render, readout, presentation, max, renderTransition, transitionPresentation, transitionReadout, timeColor, timeDomain };

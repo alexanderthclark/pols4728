@@ -6,8 +6,8 @@ both explainers link to one another.
 
 Ten scroll-linked scenes begin with observations from a synthetic delivery
 dataset, reveal the mean prediction, and then form residuals for the first tree.
-All ten scenes use a full-width figure, a short heading and equation, and
-a concise takeaway. The arrangement inside the figure changes when a comparison
+The figure scenes use a full-width figure, a short heading and equation, and
+a concise takeaway; the transition uses only a heading and two short paragraphs. The arrangement inside the figure changes when a comparison
 needs side-by-side plots; there is no permanent prose column. The page ends with only two further-reading references: Athey–Imbens (2019)
 and Chapter 10 of The Elements of Statistical Learning. Supplemental prose
 and expandable reading notes have been removed at the instructor’s request.
@@ -15,8 +15,8 @@ The example fits two boosting updates, then continues through eight
 rounds. Aligned panels distinguish the current residual
 target and its fitted stump from the original observations and accumulated
 prediction. A dedicated transition introduces a new sixteen-observation dataset
-with two predictors, showing the same deliveries in an x₁–y plot and an x₁–x₂
-input map. Observed times move from vertical position to a labeled color scale.
+with two predictors through a spare, text-only transition. It names the inputs
+and introduces the comparison, without plots, an equation, a caption, or a score.
 The last three frames fit this shared dataset.
 One frame grows a single decision tree and its input map; the next fits four
 residual stumps and builds their summed map. The final frame compares the maps,
@@ -57,8 +57,10 @@ and correction above stay fixed while the prediction below changes.
 
 The completed F₂ plot labels its two cutpoints and three intervals. The story
 then moves directly to the third fitted correction, without a separate
-contribution-strip recap. The later partition diagrams keep prediction labels fixed in their regions,
-without hover markers or coordinate inspection. Scrolling grows each model,
+contribution-strip recap. The later partition diagrams keep prediction labels fixed
+in their regions. Slightly larger fixed dots encode observed y on the same scale
+as the fitted surface; hovering or focusing a dot reports its observed time,
+prediction, and signed residual y − F. Scrolling grows each model,
 and Previous/Next split or stump buttons and Replay provide manual control.
 New tree boundaries stop at their parent region; new stump boundaries cross
 the whole input map. Reduced motion commits completed stages.
@@ -72,9 +74,9 @@ from the current training MSE reported for the upper plot.
 The transition to two predictors changes the coordinate roles:
 delivery plots use distance horizontally and a response or residual vertically;
 partition maps use both axes for inputs, with times encoded by color and direct
-numerical labels. A fixed light-to-dark blue scale spans 8–24 minutes: observed
-y on the transition, predicted F in the fitted maps. The scale is common to
-both models and every fitting stage, and legends name the displayed quantity.
+numerical labels. A fixed light-to-dark blue scale spans 8–24 minutes for both
+observed y on the dots and predicted F in the regions. The scale is common to
+both models and every fitting stage, and legends distinguish dots from regions.
 Adding more trees does not add input dimensions.
 
 ## Numerical examples
@@ -151,7 +153,9 @@ leaves after four splits. Region values in the sum remain constrained.
 
 The color scale and axes are shared across maps. Diagram updates reveal the
 chosen cut before committing the new predictions and corresponding MSE/counts.
-All fixed observations remain in the map; no pointer interaction is required.
+All fixed observations remain in the map. Hover details always use the same
+committed prediction as the displayed surface and score, including while a new
+cut is being drawn. Keyboard focus exposes the same observation details.
 
 ## Files and checks
 
@@ -168,7 +172,7 @@ All fixed observations remain in the map; no pointer interaction is required.
   completed sequence and retain the older `correction` input for inspection.
 - `growth.js` computes the recursive tree and residual-stump stages on the same
   two-predictor observations, with immutable stage snapshots and exact MSE.
-- `growth-view.js` renders the coordinate transition, two growth animations,
+- `growth-view.js` renders the text-only transition, two growth animations,
   and final comparison, with a shared quantitative color scale.
 - `story.js` routes all ten full-width scenes and initializes controls and
   scrolling. `scenePresentation` supplies their headings, equations, and
@@ -190,7 +194,8 @@ sections, step through each action, pause and resume a replay, scrub backward,
 compare candidate cuts, move directly from F₂ to h₃ and back, and follow
 the continuation while checking that its nonzero MSE remains visible. Then
 grow both two-predictor models, replay and reverse their stages, and inspect the
-final four-split comparison. Verify training scores and fixed map scales.
+final four-split comparison. Verify training scores and fixed map scales, then
+hover or focus dots in both models to compare observed values and residuals.
 Check reduced motion and links
 between the companion, boosting, and course home. Renderer tests verify fixed
 coordinates and numerical states; a headless event/clock harness covers scroll
