@@ -1,14 +1,14 @@
 (function (root, factory) {
   'use strict';
-  const api = factory(root.TreePartitions || (typeof require === 'function' ? require('./model.js') : null));
+  const api = factory(root.TreePartitions || (typeof require === 'function' ? require('./model.js') : null), root.DeliveryView || (typeof require === 'function' ? require('./delivery-view.js') : null));
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root.document) api.init(root.document, root);
-})(typeof window !== 'undefined' ? window : globalThis, function (M) {
+})(typeof window !== 'undefined' ? window : globalThis, function (M, D) {
   'use strict';
   const E = M.examples;
   const C = { ink: '#242424', muted: '#606060', rule: '#b9b9b9', blue: '#234E70', rust: '#A54F32', teal: '#007F73' };
-  const topics = ['A split is a rule', 'The same idea in two dimensions', 'Two splits: three regions or four', 'The new stump acts everywhere', 'Matching four regions takes three splits', 'Four regions, constrained values', 'Where interactions enter', 'From inputs to predictions'];
-  const captions = [
+  const partitionTopics = ['A split is a rule', 'The same idea in two dimensions', 'Two splits: three regions or four', 'The new stump acts everywhere', 'Matching four regions takes three splits', 'Four regions, constrained values', 'Where interactions enter', 'From inputs to predictions'];
+  const partitionCaptions = [
     'The highlighted leaf and horizontal segment give the same prediction.',
     'The axes now locate inputs. The numbers inside the rectangles are predictions.',
     'Same two split nodes: one tree cuts one existing leaf; the second stump cuts across both.',
@@ -18,6 +18,8 @@
     'Compare the x₁ jump below and above x₂ = 0. Does that jump depend on x₂?',
     'The input plane locates observations; the vector records their predictions.'
   ];
+  const topics = [...D.topics, ...partitionTopics.slice(1)];
+  const captions = [...D.captions, ...partitionCaptions.slice(1)];
   const fmt = n => Math.abs(n) < 1e-9 ? '0' : String(Number(n.toFixed(2))).replace('-', '−');
   const escape = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const text = (x, y, value, options = '') => `<text x="${x}" y="${y}" ${options}>${escape(value)}</text>`;
@@ -181,7 +183,7 @@
     return out;
   }
 
-  function readout(scene,state) {
+  function partitionReadout(scene,state) {
     const p = [state.x,state.y], a = state.addition;
     if (scene === 0) return `x = ${fmt(p[0])}  →  prediction = ${fmt(M.evaluate(E.stump1D,p))}`;
     if (scene === 1) return `(x₁, x₂) = (${fmt(p[0])}, ${fmt(p[1])})  →  T₁(x) = ${fmt(M.evaluate(E.stumpX,p))}`;
@@ -203,7 +205,7 @@
     return 'Three fixed observations → three prediction coordinates.';
   }
 
-  function renderScene(scene, provided = {}, compact = false) {
+  function renderPartitionScene(scene, provided = {}, compact = false) {
     const state = {x:.8,y:.8,addition:1,interaction:false,splitProgress:1,...provided};
     const p = [state.x,state.y], W=compact?420:780, H=compact?280:510;
     let out = '';
@@ -284,12 +286,19 @@
       });
       out += text(W/2,compact?259:459,'Next: choose a tree by the correction it makes.','text-anchor="middle" class="figure-note"');
     }
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="${C.ink}" role="group" aria-labelledby="scene-title scene-description"><title id="scene-title">${escape(topics[scene])}</title><desc id="scene-description">${escape(captions[scene]+' '+readout(scene,state))}</desc><style>text{font-family:Georgia,serif;font-size:${compact?14:18}px}.tick,.branch-label{font-family:Arial,sans-serif;font-size:${compact?12:13}px}.plot-heading{font-size:${compact?15:20}px}.figure-note,.legend-label{font-size:${compact?13:16}px}.legend-label{font-family:Arial,sans-serif}.cell-value{font-size:${compact?18:27}px}.region-count{font-size:${compact?25:30}px;fill:${C.blue}}.operator{font-size:${compact?20:28}px}.vector-value{font-size:${compact?25:35}px}.axis-label{font-style:italic}.leaf-button,.plot-hit{cursor:crosshair}.leaf-button:focus{outline:none}.leaf-button:focus rect{stroke:#242424;stroke-width:4}.partition-cut{vector-effect:non-scaling-stroke}</style>${out}</svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="${C.ink}" role="group" aria-labelledby="scene-title scene-description"><title id="scene-title">${escape(partitionTopics[scene])}</title><desc id="scene-description">${escape(partitionCaptions[scene]+' '+partitionReadout(scene,state))}</desc><style>text{font-family:Georgia,serif;font-size:${compact?14:18}px}.tick,.branch-label{font-family:Arial,sans-serif;font-size:${compact?12:13}px}.plot-heading{font-size:${compact?15:20}px}.figure-note,.legend-label{font-size:${compact?13:16}px}.legend-label{font-family:Arial,sans-serif}.cell-value{font-size:${compact?18:27}px}.region-count{font-size:${compact?25:30}px;fill:${C.blue}}.operator{font-size:${compact?20:28}px}.vector-value{font-size:${compact?25:35}px}.axis-label{font-style:italic}.leaf-button,.plot-hit{cursor:crosshair}.leaf-button:focus{outline:none}.leaf-button:focus rect{stroke:#242424;stroke-width:4}.partition-cut{vector-effect:non-scaling-stroke}</style>${out}</svg>`;
+  }
+
+  function renderScene(scene, state = {}, compact = false) {
+    return scene < 6 ? D.render(scene, state, compact) : renderPartitionScene(scene - 5, state, compact);
+  }
+  function readout(scene, state = {}) {
+    return scene < 6 ? D.readout(scene, state) : partitionReadout(scene - 5, state);
   }
 
   function init(doc,win) {
     const get=id=>doc.getElementById(id);
-    const state={x:.8,y:.8,addition:1,interaction:false,splitProgress:1};
+    const state={x:.8,y:.8,addition:1,interaction:false,splitProgress:1,correction:1};
     const steps=Array.from(doc.querySelectorAll('.step'));
     const diagram=get('diagram'), shell=diagram.closest('.stage-shell');
     const reduced=win.matchMedia('(prefers-reduced-motion: reduce)');
@@ -298,13 +307,16 @@
     function render(transition=false) {
       shell.dataset.scene=String(scene);
       get('stage-topic').textContent=topics[scene];
-      get('stage-count').textContent=`${String(scene+1).padStart(2,'0')} / 08`;
+      get('stage-count').textContent=`${String(scene+1).padStart(2,'0')} / ${steps.length}`;
       get('stage-caption').textContent=captions[scene];
-      get('probe-controls').hidden=scene===5 || scene===7;
-      get('probe-y-control').hidden=scene===0;
-      get('addition-controls').hidden=scene!==3;
-      get('split-controls').hidden=scene!==2;
-      get('interaction-controls').hidden=scene!==6;
+      get('probe-controls').hidden=scene<6 || scene===10 || scene===12;
+      get('probe-y-control').hidden=scene<6;
+      get('addition-controls').hidden=scene!==8;
+      get('split-controls').hidden=scene!==7;
+      get('interaction-controls').hidden=scene!==11;
+      get('correction-controls').hidden=scene!==2 && scene!==4;
+      get('correction-progress').value=state.correction;
+      get('correction-value').textContent=fmt(state.correction);
       get('probe-x-value').textContent=fmt(state.x);
       get('probe-y-value').textContent=fmt(state.y);
       get('addition-value').textContent=fmt(state.addition);
@@ -313,15 +325,15 @@
       get('addition').value=state.addition;
       get('calculation').textContent=readout(scene,state);
       get('previous').disabled=scene===0;
-      get('next').disabled=scene===7;
+      get('next').disabled=scene===steps.length-1;
       steps.forEach((s,i)=>s.classList.toggle('active',i===scene));
       diagram.innerHTML=renderScene(scene,state,compact.matches);
       if(transition && !reduced.matches && diagram.animate) diagram.animate([{opacity:.25},{opacity:1}],{duration:280,easing:'ease-out'});
     }
-    function stopAnimation(){win.cancelAnimationFrame(animation);animation=0;get('replay-addition').textContent='Replay addition';get('replay-splits').textContent='Replay the second split';}
+    function stopAnimation(){win.cancelAnimationFrame(animation);animation=0;get('replay-correction').textContent='Replay correction';get('replay-addition').textContent='Replay addition';get('replay-splits').textContent='Replay the second split';}
     function activate(index){
       if(index===scene) return;
-      stopAnimation(); scene=index; state.addition=1; state.splitProgress=1;if(scene===2){state.x=-1;state.y=1;}render(true);
+      stopAnimation(); scene=index; state.addition=1; state.correction=1; state.splitProgress=1;if(scene===7){state.x=-1;state.y=1;}render(true);
     }
     function readingLine(){
       return compact.matches && win.innerHeight>560 ? shell.getBoundingClientRect().bottom+35 : win.innerHeight*.46;
@@ -349,7 +361,7 @@
     }
     get('previous').addEventListener('click',()=>go(scene-1));
     get('next').addEventListener('click',()=>go(scene+1));
-    for(const [id,key] of [['probe-x','x'],['probe-y','y'],['addition','addition']]) get(id).addEventListener('input',e=>{if(key==='addition')stopAnimation();state[key]=Number(e.target.value);render();});
+    for(const [id,key] of [['probe-x','x'],['probe-y','y'],['addition','addition'],['correction-progress','correction']]) get(id).addEventListener('input',e=>{if(key==='addition' || key==='correction')stopAnimation();state[key]=Number(e.target.value);render();});
     get('include-interaction').addEventListener('change',e=>{state.interaction=e.target.checked;render(true);});
     get('replay-splits').addEventListener('click',()=>{
       if(animation || reduced.matches){stopAnimation();state.splitProgress=1;render();return;}
@@ -363,6 +375,13 @@
       if(reduced.matches){state.addition=1;render();return;}
       const start=win.performance.now();state.addition=0;get('replay-addition').textContent='Pause';
       function tick(now){state.addition=Math.min(1,Math.round((now-start)/1800*100)/100);render();if(state.addition<1)animation=win.requestAnimationFrame(tick);else stopAnimation();}
+      animation=win.requestAnimationFrame(tick);
+    });
+    get('replay-correction').addEventListener('click',()=>{
+      if(animation){stopAnimation();return;}
+      if(reduced.matches){state.correction=1;render();return;}
+      const start=win.performance.now();state.correction=0;render();get('replay-correction').textContent='Pause';
+      function tick(now){state.correction=Math.min(1,Math.round((now-start)/1800*100)/100);render();if(state.correction<1)animation=win.requestAnimationFrame(tick);else stopAnimation();}
       animation=win.requestAnimationFrame(tick);
     });
     function probe(event){
@@ -399,5 +418,5 @@
     reduced.addEventListener('change',()=>{stopAnimation();render();});
     render();onScroll();
   }
-  return {renderScene,readout,cuts,scaled,init};
+  return {renderScene,readout,renderPartitionScene,partitionReadout,cuts,scaled,init};
 });

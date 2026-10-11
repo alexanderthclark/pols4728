@@ -1,16 +1,19 @@
-# Trees, one partition at a time
+# Fit a correction. Add a tree.
 
 A static companion to the boosting story, served at `/trees/`. No build step or
 external JavaScript dependencies. The course home lists this page before boosting;
 both explainers link to one another.
 
-Eight scroll-linked scenes connect a decision tree to its step function and then
-compare two split nodes in one tree (three regions) with two crossing stumps
-(four regions). Slide 03 makes that comparison side by side; slide 05 shows the
-third split a single tree needs to match the same four-region prediction function.
-The next scene distinguishes region counts from freedom in the leaf values.
-The input
-sliders, pointer probing, and focusable leaf buttons select the same input across
+Thirteen scroll-linked scenes begin with two fitted boosting updates on a
+synthetic delivery dataset. Aligned panels distinguish the current residual
+target and its fitted stump from the original observations and accumulated
+prediction. The sequence then moves to two predictors, comparing two split nodes
+in one tree (three regions) with two crossing stumps (four regions). A later
+comparison shows the third split a single tree needs to match the four-region
+prediction function, before distinguishing region counts from freedom in the
+leaf values.
+
+The input sliders, pointer probing, and focusable leaf buttons select the same input across
 the diagrams. Previous/Next buttons and left/right keys navigate the explanation.
 Sliders retain their native arrow-key behavior. The addition control scales a
 second tree; Replay animates its coefficient from zero to one. A separate replay
@@ -19,8 +22,26 @@ uses the completed comparison and immediate navigation.
 
 ## Numerical examples
 
-The leaf values are illustrative, not estimated from data. All predictions are on
-the regression scale, with exact `<=` left-branch semantics.
+All predictions are on the regression scale, with exact `<=` left-branch
+semantics. The delivery example fits its leaf values; the two-dimensional
+partition examples use illustrative values.
+
+The synthetic delivery distances are `[1, 3, 4, 6, 7, 9, 10, 12]` km, with times
+`[6, 6, 11, 11, 11, 17, 17, 17]` minutes. The initial prediction is their mean,
+12 minutes. Each stump is fitted programmatically to the current residuals using
+the squared-error fitter in `../boosting/model.js`, with learning rate 1.
+
+| Stage | Fitted correction | Accumulated predictions | Training MSE |
+| --- | --- | --- | --- |
+| Initial | None | All 12 | 18.75 |
+| Round 1 | −3 for x ≤ 8; +5 otherwise | First five 9; last three 17 | 3.75 |
+| Round 2 | −3 for x ≤ 3.5; +1 otherwise | 6, 6, 10, 10, 10, 18, 18, 18 | 0.75 |
+
+Both fitted partitions uniquely minimize SSE among the seven possible adjacent
+data partitions. Midpoints label the thresholds; other thresholds between the
+same adjacent observations produce the same training partition. The first stump
+is fitted to `[-6, -6, -1, -1, -1, 5, 5, 5]`, and the second to
+`[-3, -3, 2, 2, 2, 0, 0, 0]`. The error reductions describe training fit.
 
 - The main comparison uses one tree that splits x1 at zero and then only its
   right child at x2 = 0, with leaf predictions 0, 1, and 3. The two-stump sum has
@@ -46,14 +67,23 @@ learning procedures and constraints differ.
 
 - `model.js` supplies evaluation, branch paths, rectangular regions and common
   refinement; it is shared by the renderer and Node tests.
-- `story.js` exports pure SVG renderers for inspection, then initializes controls
-  and scrolling in the browser.
+- `delivery.js` fits the two residual stumps and exports observations, rounds,
+  MSE calculation, and partial-update predictions. It uses `BoostingMath` in the
+  browser and the same module through CommonJS in tests.
+- `delivery-view.js` renders the first six scenes with shared axes and exports
+  their topics, captions, and numerical readouts.
+- `story.js` routes all thirteen scenes and initializes controls and scrolling.
+  It also exports the original partition renderer and readout as
+  `renderPartitionScene` and `partitionReadout` for focused tests.
 - `index.html` contains the complete narrative and accessible controls.
 - `style.css` follows the course design guide, with a compact mobile stage,
   reduced motion, keyboard focus styling, and print prose.
 
-Run `node --check docs/trees/story.js` and `node --test tests/*.test.mjs`.
-For browser review, inspect all eight scenes at desktop and mobile widths, drag
+Run the JavaScript syntax checks in `.github/workflows/pages.yml` and
+`node --test tests/*.test.mjs`. Browser loading order is `../boosting/model.js`,
+`delivery.js`, `delivery-view.js`, `model.js`, then `story.js`.
+For browser review, inspect all thirteen scenes at desktop and mobile widths,
+replay the fitted residual corrections, compare both aligned rows, and drag
 both input sliders, probe the plots, activate leaves with Enter/Space, replay and
 pause addition, toggle U, and navigate both directions. Check reduced motion and
 links between the companion, boosting, and course home. The full prose remains

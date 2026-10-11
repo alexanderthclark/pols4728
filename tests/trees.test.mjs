@@ -4,7 +4,12 @@ import test from 'node:test';
 
 const require = createRequire(import.meta.url);
 const math = require('../docs/trees/model.js');
-const story = require('../docs/trees/story.js');
+const storyModule = require('../docs/trees/story.js');
+const story = {
+  renderScene: storyModule.renderPartitionScene,
+  readout: storyModule.partitionReadout,
+  cuts: storyModule.cuts
+};
 const { stump1D, grown1D, second1D, stumpX, stumpY, recursive2D, matched2D, conditional } = math.examples;
 const intervalValues = segments => segments.map(({ lo, hi, value }) => [lo, hi, value]);
 const area = cell => cell.bounds.reduce((size, [lo, hi]) => size * (hi - lo), 1);
