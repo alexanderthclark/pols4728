@@ -165,7 +165,9 @@ test('all fourteen integrated scenes render and route to the correct numerical s
 
 test('continuation spends time on the third correction before completing rounds four through eight', () => {
   assert.deepEqual(view.continuationState(0), { round: 2, amount: 1 });
-  assert.deepEqual(view.continuationState(0.2), { round: 3, amount: 0.5 });
+  for (const progress of [.01, .1, .15]) assert.deepEqual(view.continuationState(progress), { round: 3, amount: 0 });
+  assert.equal(view.continuationState(.275).round, 3);
+  assert.ok(Math.abs(view.continuationState(.275).amount-.5)<1e-12);
   for (const progress of [.4, .45, .5]) assert.deepEqual(view.continuationState(progress), { round: 3, amount: 1 });
   for (let round = 2; round <= 8; round++) {
     const state = view.continuationState(view.continuationProgress(round));
@@ -195,7 +197,8 @@ test('continuation keeps observed outcomes above residuals on the original scale
       assert.deepEqual(numbers(observed['data-values']), model.y);
       const { round, amount } = view.continuationState(continuation);
       const predictions = model.x.map(x => model.predict(round, x, amount));
-      assert.deepEqual(numbers(residuals['data-values']), model.y.map((y, i) => y - predictions[i]));
+      assert.deepEqual(numbers(residuals['data-values']), model.rounds[Math.max(3, round)-1].residual);
+      assert.doesNotMatch(svg, /data-residual-reference|data-residual-stems/);
       assert.deepEqual(curve(svg, 'reference'), { values: [6, 10, 18], cuts: [3.5, 8] });
       const current = curve(svg, 'prediction');
       assert.deepEqual(current.cuts, [3.5, 8]);
@@ -220,5 +223,35 @@ test('third update repairs the overshoot and later displayed MSE remains strictl
     assert.ok(mse <= lastMSE + 1e-12, `Training error increases at progress ${progress}`);
     assert.doesNotMatch(view.readout(6, { continuation: progress }), /training MSE = 0$/);
     lastMSE = mse;
+  }
+});
+
+
+test('each continued update visibly fits a fixed dark orange stump and labels its selected split', () => {
+  const checkpoints = [
+    { round: 3, progress: [.1, .2, .275, .45] },
+    { round: 4, progress: [.51, .55, .6] },
+    { round: 5, progress: [.61, .65, .7] },
+    { round: 6, progress: [.71, .75, .8] },
+    { round: 7, progress: [.81, .85, .9] },
+    { round: 8, progress: [.91, .95, 1] }
+  ];
+  for (const compact of [false, true]) {
+    for (const { round, progress } of checkpoints) {
+      const fitted = model.rounds[round - 1];
+      for (const continuation of progress) {
+        const svg = view.render(6, { continuation }, compact);
+        assert.deepEqual(curve(svg, `h${round}`), { values: [fitted.left, fitted.right], cuts: [fitted.threshold] });
+        const panels = groups(svg);
+        const target = panels.find(group => group['data-points'] === 'residuals');
+        assert.deepEqual(numbers(target['data-values']), fitted.residual);
+        const fittedCurve = panels.find(group => group['data-curve'] === `h${round}`);
+        assert.match(fittedCurve.contents, /stroke="#A54F32"/);
+        const selectedCut = panels.find(group => group['data-selected-split']);
+        assert.equal(Number(selectedCut['data-selected-split']), fitted.threshold);
+        assert.match(selectedCut.contents, /stroke="#A54F32"/);
+        assert.match(selectedCut.contents, new RegExp(`Split at ${fitted.threshold} km`));
+      }
+    }
   }
 });

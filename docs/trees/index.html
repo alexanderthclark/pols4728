@@ -147,10 +147,10 @@
         <section class="step" id="keep-fitting" data-step="6" aria-labelledby="heading-6"><div>
           <p class="step-number">07 / 14 · KEEP FITTING THE RESIDUALS</p>
           <h2 id="heading-6">A third tree brings us closer</h2>
-          <p>After <span class="math">F₂</span>, the residuals in the three intervals are 0, +1, and −1 minutes. Fit another stump to those residuals. It chooses 8 km again, adding +0.6 at or below that cut and −1 above it.</p>
+          <p>After <span class="math">F₂</span>, the residuals in the three intervals are 0, +1, and −1 minutes. The lower plot shows these residuals as black dots and the fitted third stump <span class="math">h₃</span> in dark orange. Its split is at 8 km: the five residuals on the left average +0.6, and the three on the right average −1.</p>
           <p class="equation math">F₃(x) = F₂(x) + h₃(x).</p>
-          <p>The three predictions become 6.6, 10.6, and 17 minutes; training MSE falls from 0.75 to 0.15. There are still only three intervals. An additional tree can change their heights without adding a new boundary.</p>
-          <p>Keep scrolling to add trees 4 through 8. In this example, the fitted stumps alternate between the same two cutpoints, dividing training MSE by 5 each round. By <span class="math">F₈</span>, it is 0.000048: visually almost exact, but still positive. This greedy sequence approaches an exact fit without attaining it in finitely many rounds. The model class itself can represent an exact fit.</p>
+          <p>As you scroll, the orange correction stays fixed while it moves the blue prediction in the upper plot. The three predictions become 6.6, 10.6, and 17 minutes; training MSE falls from 0.75 to 0.15. There are still only three intervals. An additional tree can change their heights without adding a new boundary.</p>
+          <p>Keep scrolling to see the next residual targets and their fitted corrections. The fourth stump splits at 3.5 km; subsequent stumps alternate between 8 and 3.5 km, dividing training MSE by 5 each round. By <span class="math">F₈</span>, it is 0.000048: visually almost exact, but still positive. This greedy sequence approaches an exact fit without attaining it in finitely many rounds. The model class itself can represent an exact fit.</p>
           <p class="quiet">This completes our one-predictor example. Near-zero training error does not establish accuracy on new deliveries; choosing when to stop requires out-of-sample evaluation.</p>
         </div></section>
 

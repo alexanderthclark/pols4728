@@ -46,8 +46,13 @@ probing and focusable region buttons select the same input across the diagrams.
 Separate replays animate a stump's contribution and compare the second split
 in the recursive and ensemble constructions.
 
-The continuation shows F₂ becoming F₃, then follows the smaller corrections
-through F₈. The transition to two predictors changes the coordinate roles:
+The continuation first holds F₂ while showing the third stump in dark orange
+against its residual targets, with its selected 8 km split and +0.6/−1 leaf
+values labeled. It then adds h₃ and follows the smaller corrections through F₈.
+Each update shows its own selected cut, fixed pre-update residual targets, and
+fitted orange stump below the moving prediction; these targets are distinct
+from the current training MSE reported for the upper plot.
+The transition to two predictors changes the coordinate roles:
 delivery plots use distance horizontally and a response or residual vertically;
 partition maps use both axes for inputs, with predictions written inside cells.
 Adding more trees does not add input dimensions.

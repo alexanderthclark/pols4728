@@ -14,7 +14,7 @@
     'Subtract the first correction from the old residuals before fitting the next tree.',
     'The second tree’s right leaf moves both existing plateaus together. Some errors grow while total squared error falls.',
     'Move the guide across the three aligned plots. Each prediction adds the starting mean and both tree contributions.',
-    'Continue the same delivery example through eight trees. Predictions move toward the observed times while residuals shrink on unchanged axes.'
+    'Continue the same delivery example through eight trees. Each orange stump fits fixed residual targets below and updates the prediction above.'
   ];
   const clamp=(n,lo=0,hi=1)=>Math.max(lo,Math.min(hi,n));
   const fmt=n=>Math.abs(n)<1e-9?'0':String(Number(n.toFixed(2))).replace('-', '−');
@@ -32,7 +32,8 @@
   function continuationState(progress=1) {
     const p=clamp(Number.isFinite(progress)?progress:1);
     if(p===0)return {round:2,amount:1};
-    if(p<.4)return {round:3,amount:smoothstep(p/.4)};
+    if(p<=.15)return {round:3,amount:0};
+    if(p<.4)return {round:3,amount:smoothstep((p-.15)/.25)};
     if(p<=.5)return {round:3,amount:1};
     const elapsed=(p-.5)*10;
     const round=3+clamp(Math.ceil(elapsed-1e-9),1,5);
@@ -75,7 +76,7 @@
     if(scene===6){
       const {round,amount}=continuationState(state.continuation);
       const mse=D.mse(D.x.map(x=>D.predict(round,x,amount)));
-      const equation=round===2?'F₂':`F${sub(round)} = F${sub(round-1)} + ${precise(amount)} × h${sub(round)}`;
+      const equation=round===2 || amount===0?`F${sub(Math.max(3,round)-1)} · Inspect h${sub(Math.max(3,round))}, fitted to y − F${sub(Math.max(3,round)-1)}`:`F${sub(round)} = F${sub(round-1)} + ${precise(amount)} × h${sub(round)}`;
       return `${equation} · training MSE = ${mseText(mse)}`;
     }
     const round=scene===2?1:2, amount=updateAmount(state), mse=D.mse(D.x.map(x=>D.predict(round,x,amount)));
@@ -156,7 +157,7 @@
     }
     if(scene===6){
       const continued=continuationState(state.continuation),count=continued.round,alpha=continued.amount;
-      const shown=D.x.map(v=>D.predict(count,v,alpha)),residuals=D.y.map((v,i)=>v-shown[i]),mse=D.mse(shown);
+      const shown=D.x.map(v=>D.predict(count,v,alpha)),mse=D.mse(shown);
       const observedPanel={...bottom,y:top.y},residualPanel={...top,y:bottom.y};
       const cuts=[...new Set(D.rounds.slice(0,count).map(q=>q.threshold))].sort((a,b)=>a-b);
       const bounds=[0,...cuts,13],values=bounds.slice(0,-1).map((lo,i)=>D.predict(count,(lo+bounds[i+1])/2,alpha));
@@ -167,10 +168,10 @@
       const oldX=x+(compact?105:160),keyY=compact?32:46,newX=x+(compact?235:350);
       out+=line(oldX,keyY,oldX+20,keyY,C.muted,2,'stroke-dasharray="6 5"')+text(oldX+27,keyY+4,'Earlier F₂','class="key"');
       out+=line(newX,keyY,newX+20,keyY,C.blue,3)+text(newX+27,keyY+4,`Current F${sub(count)}`,'class="key"');
-      out+=text(x,compact?207:288,'The remaining residuals','class="panel-title"');
-      out+=text(x,compact?229:320,`Training MSE = ${mseText(mse)}`,'class="key"');
-      const ghostX=x+(compact?230:350),ghostY=compact?225:316;
-      out+=circle(ghostX,ghostY,3.5,'white','stroke="#999" stroke-width="1.2"')+text(ghostX+12,ghostY+4,'Earlier F₂','class="key"');
+      out+=text(x,compact?207:288,`Fit h${sub(q.number)} to y − F${sub(q.number-1)}`,'class="panel-title"');
+      const lowerKeyY=compact?225:316,correctionKeyX=x+(compact?141:186);
+      out+=circle(x+3,lowerKeyY,3.5,C.ink)+text(x+13,lowerKeyY+4,'Residual target','class="key"');
+      out+=line(correctionKeyX,lowerKeyY,correctionKeyX+21,lowerKeyY,C.rust,3)+text(correctionKeyX+28,lowerKeyY+4,`Correction h${sub(q.number)}`,'class="key"');
       out+=axis(observedPanel,[0,5,10,15,20],'Time (min)',false)+axis(residualPanel,[-6,-3,0,3,6],'Residual (min)');
       for(const cut of cuts){
         for(const panel of [observedPanel,residualPanel])out+=line(X(cut),panel.y,X(cut),panel.y+panel.h,'#aaa',1,'stroke-dasharray="3 5"');
@@ -183,15 +184,20 @@
       values.forEach((v,i)=>{out+=text(X((bounds[i]+bounds[i+1])/2),Y(v,observedPanel)-10,precise(v),`class="value" fill="${C.blue}" text-anchor="middle"`);});
       out+=points(D.y,observedPanel,'observations');
       out+=text(x+w/2,compact?184:267,`h${sub(q.number)}: ${preciseSigned(q.left)} at x ≤ ${fmt(q.threshold)}; ${preciseSigned(q.right)} at x > ${fmt(q.threshold)}`,'text-anchor="middle" class="annotation"');
-      // The original F₂ residuals remain as small open markers; the active
-      // residuals are measured on the same scale as all earlier rounds.
-      out+='<g data-residual-reference="2">';
-      D.x.forEach((v,i)=>{out+=circle(X(v),Y(D.y[i]-D.predict(2,v),residualPanel),compact?3.3:4,'white','stroke="#aaa" stroke-width="1.2"');});
+      // Keep the fitting target fixed while the accumulated prediction moves.
+      // The selected tree and its target change only when the next round starts.
+      out+=`<g data-selected-split="${q.threshold}" data-correction-round="${q.number}">`;
+      out+=line(X(q.threshold),residualPanel.y,X(q.threshold),residualPanel.y+residualPanel.h,C.rust,1.8,'stroke-dasharray="5 4"');
+      out+=text(X(q.threshold)+6,residualPanel.y+17,`Split at ${fmt(q.threshold)} km`,`class="cut-label" fill="${C.rust}"`);
       out+='</g>';
-      out+='<g data-residual-stems="true">';
-      D.x.forEach((v,i)=>{out+=line(X(v),Y(0,residualPanel),X(v),Y(residuals[i],residualPanel),C.blue,1.7);});
-      out+='</g>';
-      out+=points(residuals,residualPanel,'residuals');
+      out+=step([q.left,q.right],[q.threshold],residualPanel,C.rust,'',`h${q.number}`);
+      out+=points(q.residual,residualPanel,'residuals');
+      const leafBounds=[0,q.threshold,13];
+      [q.left,q.right].forEach((v,i)=>{
+        const labelX=i===0?leafBounds[i]+.35*(leafBounds[i+1]-leafBounds[i]):(leafBounds[i]+leafBounds[i+1])/2;
+        const labelY=Y(v,residualPanel)+(v<0?(compact?17:24):-(compact?7:10));
+        out+=text(X(labelX),labelY,preciseSigned(v),`class="value" fill="${C.rust}" text-anchor="middle"`);
+      });
       out+=`<g data-continuation-round="${count}" data-continuation-amount="${alpha}" data-training-mse="${mse}"/>`;
       return wrap(out);
     }
