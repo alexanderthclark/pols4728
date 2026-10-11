@@ -10,7 +10,7 @@ const html = readFileSync(new URL('../docs/trees/index.html', import.meta.url), 
 // A small event/clock harness exercises the real controller without pretending
 // to check browser layout. Native details toggles are queued, not synchronous.
 function setup(reducedMotion = false) {
-  let time = 0, nextId = 1;
+  let time = 0, nextId = 1, stageHeight = 736;
   const frames = new Map(), timers = new Map(), domTasks = [];
   class Element {
     constructor(id = '') {
@@ -28,7 +28,7 @@ function setup(reducedMotion = false) {
       if (this._open !== Boolean(value)) { this._open = Boolean(value); domTasks.push(() => this.emit('toggle')); }
     }
     closest(selector) { return selector === '.stage-shell' ? shell : null; }
-    getBoundingClientRect() { return { top: 64, bottom: 800, height: 736 }; }
+    getBoundingClientRect() { return { top: 64, bottom: 64 + stageHeight, height: stageHeight }; }
   }
   const nodes = new Map(Array.from(html.matchAll(/\bid="([^"]+)"/g), match => [match[1], new Element(match[1])]));
   const shell = new Element('stage-shell');
@@ -58,17 +58,31 @@ function setup(reducedMotion = false) {
   const advance = elapsed => {
     time += elapsed;
     for (const [id, timer] of Array.from(timers)) if (timer.at <= time) { timers.delete(id); timer.callback(); }
-    const batch = Array.from(frames.values()); frames.clear();
-    for (const callback of batch) callback(time);
+    for (const id of Array.from(frames.keys())) {
+      const callback = frames.get(id); frames.delete(id);
+      if (callback) callback(time);
+    }
     flushDom();
   };
   const get = id => nodes.get(id);
   const click = id => { assert.equal(get(id).disabled, false, `${id} is disabled`); get(id).emit('click'); flushDom(); };
   const input = (id, value) => { get(id).value = value; get(id).emit('input'); flushDom(); };
   const toggle = open => { get('candidate-details').open = open; flushDom(); };
+  const scroll = top => { win.scrollY = top; win.emit('scroll'); advance(0); };
+  // Position the reading line at a chosen fraction through a narrative step.
+  const scrollAt = (scene, fraction) => {
+    const readingLine = compact.matches && win.innerHeight > 560
+      ? Math.min(win.innerHeight - 24, Math.max(520, win.innerHeight * 0.76)) : win.innerHeight * 0.46;
+    scroll(1000 + scene * 1000 - readingLine + fraction * 800);
+  };
+  const resize = height => { win.innerHeight = height; win.emit('resize'); advance(0); };
   story.init(doc, win);
   advance(0);
-  return { get, click, input, toggle, advance, shell, reduced };
+  return {
+    get, click, input, toggle, advance, shell, reduced, scrollAt, resize, sameScroll: () => scroll(win.scrollY),
+    setCompact: (height = 900) => { compact.matches = true; win.innerWidth = 600; win.innerHeight = height; },
+    setStageHeight: height => { stageHeight = height; }
+  };
 }
 
 test('process actions step forward and backward, and reduced motion applies completed states immediately', () => {
@@ -143,4 +157,97 @@ test('the contribution scanner follows both cutpoints and pauses without changin
   ui.click('replay-contributions');
   assert.equal(ui.get('contribution-x-value').textContent, '12 km');
   assert.match(ui.get('calculation').textContent, /= 18 min$/);
+});
+
+const processValue = ui => Number(ui.get('process-progress').value);
+const close = (actual, expected) => assert.ok(Math.abs(actual - expected) <= 0.0011, `${actual} should equal ${expected}`);
+
+test('scroll position advances and rewinds the delivery process, including direct scene jumps', () => {
+  const ui = setup();
+  ui.scrollAt(1, 0.04);
+  assert.equal(ui.shell.dataset.scene, '1');
+  assert.equal(processValue(ui), 0);
+  ui.scrollAt(1, 0.465); close(processValue(ui), 1.5);
+  ui.scrollAt(1, 0.9); assert.equal(processValue(ui), 3);
+  ui.scrollAt(1, 0.2725); close(processValue(ui), 0.75);
+  ui.scrollAt(4, 0.85);
+  assert.equal(ui.shell.dataset.scene, '4');
+  assert.equal(processValue(ui), 3);
+  assert.match(ui.get('calculation').textContent, /MSE = 0\.75/);
+  ui.scrollAt(2, 0.465);
+  assert.equal(ui.shell.dataset.scene, '2');
+  close(processValue(ui), 1.5);
+  assert.match(ui.get('calculation').textContent, /MSE = 7\.5/);
+});
+
+test('manual controls hold until the scroll position changes, which closes candidates and cancels replay', () => {
+  const ui = setup();
+  ui.scrollAt(1, 0.465);
+  ui.input('process-progress', 2.25);
+  ui.sameScroll(); ui.advance(1000);
+  assert.equal(processValue(ui), 2.25);
+  ui.toggle(true); ui.input('candidate-cut', 0);
+  ui.sameScroll();
+  assert.equal(ui.get('candidate-details').open, true);
+  ui.scrollAt(1, 0.388);
+  assert.equal(ui.get('candidate-details').open, false);
+  close(processValue(ui), 1.2);
+  ui.click('process-replay'); ui.advance(725);
+  close(processValue(ui), 0.5);
+  ui.scrollAt(1, 0.6575);
+  close(processValue(ui), 2.25);
+  assert.equal(ui.get('process-replay').textContent, 'Replay sequence');
+  ui.advance(5000);
+  close(processValue(ui), 2.25);
+});
+
+test('settling a navigation scroll preserves a manual action and resize resynchronizes geometry', () => {
+  const ui = setup();
+  ui.click('next'); ui.input('process-progress', 1.25);
+  ui.advance(1000); ui.sameScroll();
+  assert.equal(ui.shell.dataset.scene, '1');
+  assert.equal(processValue(ui), 1.25);
+  ui.scrollAt(1, 0.465); close(processValue(ui), 1.5);
+  ui.input('process-progress', 2.7);
+  ui.resize(1000);
+  // Raising the reading line by 92 px advances it 92/800 through the step.
+  close(processValue(ui), (0.465 + 92 / 800 - 0.08) / 0.77 * 3);
+});
+
+test('reduced-motion scrolling advances in completed process phases and rewinds discretely', () => {
+  const ui = setup(true);
+  for (const [normalized, expected] of [[0.2, 0], [0.4, 1], [0.8, 2], [1, 3], [0.4, 1]]) {
+    ui.scrollAt(3, 0.08 + 0.77 * normalized);
+    assert.equal(processValue(ui), expected);
+  }
+  for (const [normalized, distance] of [[0.1, 1], [0.5, 6], [0.9, 12], [0.1, 1]]) {
+    ui.scrollAt(5, 0.08 + 0.77 * normalized);
+    assert.equal(Number(ui.get('contribution-x').value), distance);
+  }
+});
+
+test('compact scroll progress stays stable when the stage controls change height', () => {
+  const ui = setup();
+  ui.setCompact(900); ui.setStageHeight(400);
+  ui.scrollAt(2, 0.465);
+  close(processValue(ui), 1.5);
+  // Force a geometry refresh at the same scroll position after controls grow.
+  // Their changing height must not move the viewport's reading line.
+  ui.setStageHeight(550); ui.resize(900);
+  assert.equal(ui.shell.dataset.scene, '2');
+  close(processValue(ui), 1.5);
+  ui.setStageHeight(350); ui.resize(900);
+  close(processValue(ui), 1.5);
+  ui.scrollAt(2, 0.2725);
+  close(processValue(ui), 0.75);
+});
+
+test('scrolling the contribution scene traces distance and reverses across the complete domain', () => {
+  const ui = setup();
+  for (const [fraction, distance] of [[0.08, 0], [0.465, 6.5], [0.9, 13], [0.2725, 3.25]]) {
+    ui.scrollAt(5, fraction);
+    assert.equal(ui.shell.dataset.scene, '5');
+    assert.equal(Number(ui.get('contribution-x').value), distance);
+  }
+  assert.match(ui.get('calculation').textContent, /= 6 min$/);
 });

@@ -59,7 +59,7 @@
             <button id="process-next" type="button">Next action</button>
             <button id="process-replay" type="button">Replay sequence</button>
           </div>
-          <div class="process-timeline"><label for="process-progress">Sequence progress</label><input id="process-progress" type="range" min="0" max="3" step="0.01" value="0"></div>
+          <div class="process-timeline"><label for="process-progress">Animation progress</label><input id="process-progress" type="range" min="0" max="3" step="0.01" value="0"></div>
         </div>
         <div id="candidate-controls" class="candidate-controls" hidden>
           <details id="candidate-details">
@@ -111,7 +111,7 @@
           <h2 id="heading-1">Fit a tree to the residuals</h2>
           <p>A <em>residual</em> is the observed time minus the current prediction. From our 12-minute starting point, the residuals are −6, −6, −1, −1, −1, 5, 5, and 5 minutes.</p>
           <p>Fit a one-split regression tree—a <em>stump</em>—to those residuals. The best split among the midpoints between observed distances is 8 km. Each leaf predicts its mean residual: −3 minutes on the left and +5 on the right.</p>
-          <p>Use “Next action” to measure the errors, form the residuals, split them, and fit the two leaf means. Open the split comparison to see why 8 km gives the lowest fitting error.</p>
+          <p>Scroll to measure the errors, form the residuals, split them, and fit the two leaf means. Scrolling back reverses the sequence; the controls let you inspect or replay an action. Open the split comparison to see why 8 km gives the lowest fitting error.</p>
           <p class="quiet">The upper plot shows residuals and their fitted correction. The lower plot shows original delivery times and the accumulated prediction. Each plot keeps its axes fixed across rounds.</p>
         </div></section>
 
@@ -120,7 +120,7 @@
           <h2 id="heading-2">Add the correction to the current prediction</h2>
           <p>The first tree, <span class="math">h₁</span>, predicts a change in minutes. Add that change to the 12-minute baseline:</p>
           <p class="equation math">F₁(x) = 12 + h₁(x).</p>
-          <p>Advance through the actions to attach the correction to the old prediction, add it, and inspect the remaining errors. The left level moves down 3 minutes while the right level moves up 5.</p>
+          <p>As you scroll, the correction attaches to the old prediction, moves it, and reveals the remaining errors. The left level moves down 3 minutes while the right level moves up 5.</p>
           <p>The result is <span class="math">12 − 3 = 9</span> minutes up to 8 km and <span class="math">12 + 5 = 17</span> above it. Training mean squared error falls from 18.75 to 3.75. The longer deliveries are fitted exactly; the shorter ones still leave errors to correct.</p>
         </div></section>
 
@@ -145,7 +145,7 @@
           <p class="step-number">06 / 13 · TWO TREES, ONE FUNCTION</p>
           <h2 id="heading-5">Two stumps, three plateaus</h2>
           <p>Each fitted tree has just one cutpoint and two leaves. Their sum keeps both cutpoints, 3.5 and 8 km, so it has three intervals with predictions 6, 10, and 18 minutes.</p>
-          <p>Move “Inspect distance” or choose “Trace the sum” to follow one input through both trees. At 6 km, the two contributions are −3 and +1, giving <span class="math">12 − 3 + 1 = 10</span> minutes. Watch which contribution changes when the cursor crosses each cutpoint.</p>
+          <p>As you scroll, the guide follows one input through both trees. Use “Inspect distance” to examine a particular input, or “Trace the sum” to replay the sweep. At 6 km, the two contributions are −3 and +1, giving <span class="math">12 − 3 + 1 = 10</span> minutes. Watch which contribution changes when the cursor crosses each cutpoint.</p>
           <p>With one predictor, two distinct cutpoints make three intervals. With two predictors, a new split can cross an earlier boundary. That changes the comparison between growing one tree and adding another.</p>
           <p class="quiet">These are training errors for a small illustrative dataset. Better predictions on new deliveries would need to be checked separately.</p>
         </div></section>

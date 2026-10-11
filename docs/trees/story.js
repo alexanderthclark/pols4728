@@ -303,7 +303,7 @@
     const diagram=get('diagram'), shell=diagram.closest('.stage-shell');
     const reduced=win.matchMedia('(prefers-reduced-motion: reduce)');
     const compact=win.matchMedia('(max-width: 800px)');
-    let scene=0, frame=0, animation=0, targetScene=null, targetTimeout=0, processResumeTarget=null;
+    let scene=0, frame=0, animation=0, targetScene=null, targetTimeout=0, processResumeTarget=null, scrollPosition=win.scrollY, scrollSyncPending=true;
     function render(transition=false) {
       shell.dataset.scene=String(scene);
       get('stage-topic').textContent=topics[scene];
@@ -320,7 +320,8 @@
       get('contribution-controls').hidden=scene!==5;
       if(processScene){
         const labels=D.processLabels(scene), stage=Math.min(3,Math.ceil(state.process));
-        get('process-label').textContent=`${stage} / 3 · ${labels[stage]}`;
+        const label=`${stage} / 3 · ${labels[stage]}`;
+        if(get('process-label').textContent!==label)get('process-label').textContent=label;
         get('process-progress').value=state.process;
         get('process-progress').setAttribute('aria-valuetext',labels[stage]);
         get('process-back').disabled=state.process<=0;
@@ -382,7 +383,8 @@
       stopAnimation(); closeCandidates(); scene=index; state.addition=1; state.process=0; state.splitProgress=1;if(scene===7){state.x=-1;state.y=1;}render(true);
     }
     function readingLine(){
-      return compact.matches && win.innerHeight>560 ? shell.getBoundingClientRect().bottom+35 : win.innerHeight*.46;
+      // Keep the mobile reading line fixed when a scene's controls change its height.
+      return compact.matches && win.innerHeight>560 ? Math.min(win.innerHeight-24,Math.max(520,win.innerHeight*.76)) : win.innerHeight*.46;
     }
     function onScroll(){
       if(frame) return;
@@ -390,10 +392,28 @@
         frame=0;
         get('progress').style.width=`${100*Math.min(1,Math.max(0,win.scrollY/(doc.documentElement.scrollHeight-win.innerHeight||1)))}%`;
         if(targetScene!==null) return;
+        const moved=Math.abs(win.scrollY-scrollPosition)>.1, force=scrollSyncPending;
+        scrollPosition=win.scrollY;scrollSyncPending=false;
         const line=readingLine();
         let nearest=0;
         steps.forEach((s,i)=>{if(s.getBoundingClientRect().top<=line) nearest=i;});
+        const changed=nearest!==scene;
         activate(nearest);
+        if((moved || changed || force) && scene>=1 && scene<=5){
+          stopAnimation();closeCandidates();
+          const box=steps[scene].getBoundingClientRect();
+          // Hold the opening briefly, then finish before the next section enters.
+          const fraction=Math.max(0,Math.min(1,((line-box.top)/Math.max(1,box.height)-.08)/.77));
+          if(scene===5){
+            // Reduced motion still samples all three intervals without sweeping.
+            state.inspectX=reduced.matches?[1,6,12][Math.min(2,Math.floor(fraction*3))]:Math.round(fraction*1300)/100;
+          }else {
+            const process=Math.min(3,Math.round(fraction*3000)/1000);
+            state.process=reduced.matches?Math.floor(process):process;
+          }
+          get('calculation').setAttribute('aria-live','off');
+          render();
+        }
       });
     }
     function go(index){
@@ -403,7 +423,7 @@
       const top=win.scrollY+steps[index].getBoundingClientRect().top-offset;
       win.scrollTo({top,behavior:reduced.matches?'instant':'smooth'});
       // Prevent an in-between section from replacing a button's target while scrolling.
-      targetTimeout=win.setTimeout(()=>{targetScene=null;onScroll();},reduced.matches?40:900);
+      targetTimeout=win.setTimeout(()=>{targetScene=null;scrollPosition=win.scrollY;scrollSyncPending=false;onScroll();},reduced.matches?40:900);
     }
     get('previous').addEventListener('click',()=>go(scene-1));
     get('next').addEventListener('click',()=>go(scene+1));
@@ -483,8 +503,8 @@
       if(event.key==='ArrowLeft'){event.preventDefault();go(scene-1);}
     });
     win.addEventListener('scroll',onScroll,{passive:true});
-    win.addEventListener('resize',()=>{render();onScroll();},{passive:true});
-    reduced.addEventListener('change',()=>{stopAnimation();render();});
+    win.addEventListener('resize',()=>{scrollSyncPending=true;render();onScroll();},{passive:true});
+    reduced.addEventListener('change',()=>{stopAnimation();scrollSyncPending=true;render();onScroll();});
     render();onScroll();
   }
   return {renderScene,readout,renderPartitionScene,partitionReadout,cuts,scaled,init};

@@ -13,11 +13,22 @@ comparison shows the third split a single tree needs to match the four-region
 prediction function, before distinguishing region counts from freedom in the
 leaf values.
 
-Previous/Next buttons and left/right keys navigate the explanation. Entering a
-delivery fitting or update scene starts its sequence paused. Previous action,
-Next action, Replay sequence, and the progress slider control its three stages;
-an active replay can be paused and resumed. Sliders retain their native arrow-key
-behavior. Reduced motion applies each requested action immediately.
+Scrolling through a delivery fitting or update scene advances its three-stage
+sequence; scrolling backward rewinds it. Each section holds its opening state
+for the first 8% of progress, completes the sequence over the next 77%, and
+holds the final state for the remainder. The delivery summary similarly moves
+the inspected distance from 0 to 13 km. Reduced motion advances fitting and
+update scenes through completed phases rather than continuous interpolation,
+and samples the contribution strips at 1, 6, and 12 km without sweeping.
+
+Previous/Next buttons and left/right keys navigate the explanation. Previous
+action, Next action, Replay sequence, and the progress slider also control each
+sequence; an active replay can be paused and resumed. Manual choices stay in
+place until the scroll position changes. A new scroll cancels replay and closes
+the optional candidate explorer, returning control to the section's position.
+Navigation settling does not overwrite a manual action, while resizing
+resynchronizes the animation with the new geometry. Sliders retain their native
+arrow-key behavior. Reduced motion applies requested button actions immediately.
 
 Fitting first forms the residual targets, then separates the observations at the
 chosen threshold, and finally reveals the leaf means. The second fitting scene
@@ -105,12 +116,14 @@ Run the JavaScript syntax checks in `.github/workflows/pages.yml` and
 `node --test tests/*.test.mjs`. Browser loading order is `../boosting/model.js`,
 `delivery.js`, `delivery-view.js`, `model.js`, then `story.js`.
 For browser review, inspect all thirteen scenes at desktop and mobile widths,
-step through each delivery action, pause and resume a replay, scrub backward,
+scroll forward and backward through each delivery sequence, jump between
+sections, step through each action, pause and resume a replay, scrub backward,
 compare candidate cuts, and trace contributions across both thresholds. Then
 drag both partition input sliders, activate leaves with Enter/Space, replay
 addition, toggle U, and navigate both directions. Check reduced motion and links
 between the companion, boosting, and course home. Renderer tests verify fixed
-coordinates and numerical states; a headless event/clock harness covers control
-transitions and asynchronous candidate-panel closure. Browser review remains
+coordinates and numerical states; a headless event/clock harness covers scroll
+scrubbing, manual-control transitions, reduced motion, geometry changes, and
+asynchronous candidate-panel closure. Browser review remains
 necessary for layout and visual animation quality. The full prose remains
 available without JavaScript.
