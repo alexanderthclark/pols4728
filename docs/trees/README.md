@@ -54,10 +54,11 @@ and correction above stay fixed while the prediction below changes.
 
 The completed F₂ plot labels its two cutpoints and three intervals. The story
 then moves directly to the third fitted correction, without a separate
-contribution-strip recap. In the later partition scenes, pointer probing and
-focusable region buttons select the same input across the diagrams.
+contribution-strip recap. The later partition diagrams keep prediction labels
+fixed in their regions, without hover markers or coordinate inspection.
 Separate replays animate a stump's contribution and compare the second split
-in the recursive and ensemble constructions.
+in the recursive and ensemble constructions; the interaction toggle changes
+the upper-right prediction.
 
 The continuation first holds F₂ while showing the third stump in dark orange
 against its residual targets, with its selected 8 km split and +0.6/−1 leaf
@@ -166,8 +167,8 @@ scroll forward and backward through each delivery sequence, jump between
 sections, step through each action, pause and resume a replay, scrub backward,
 compare candidate cuts, move directly from F₂ to h₃ and back, and follow
 the continuation while checking that its nonzero MSE remains visible. Then
-probe the partition maps, activate regions with Enter/Space, replay
-addition, toggle U, and navigate both directions. Check reduced motion and links
+replay the second split and addition, toggle U, and navigate both directions.
+Check reduced motion and links
 between the companion, boosting, and course home. Renderer tests verify fixed
 coordinates and numerical states; a headless event/clock harness covers scroll
 scrubbing, manual-control transitions, reduced motion, geometry changes, and

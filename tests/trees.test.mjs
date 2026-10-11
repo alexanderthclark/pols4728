@@ -148,11 +148,11 @@ const displayedCellValues = svg => Array.from(
 
 test('all eight scenes render finite geometry at both layouts and interaction limits', () => {
   const states = [
-    { x: -2, y: -2, addition: 0, interaction: false, splitProgress: 0 },
-    { x: 2, y: 2, addition: 1, interaction: true },
-    { x: -0.5, y: 0, addition: 0.35, interaction: false },
-    { x: 0.75, y: 0, addition: 0, interaction: true },
-    { x: 0, y: 0, addition: 1, interaction: false }
+    { addition: 0, interaction: false, splitProgress: 0 },
+    { addition: 1, interaction: true },
+    { addition: 0.35, interaction: false },
+    { addition: 0, interaction: true },
+    { addition: 1, interaction: false }
   ];
   for (const compact of [false, true]) {
     for (let scene = 0; scene < 8; scene++) {
@@ -162,6 +162,9 @@ test('all eight scenes render finite geometry at both layouts and interaction li
         assert.match(svg, compact ? /viewBox="0 0 420 280"/ : /viewBox="0 0 780 510"/);
         assert.match(svg, /<title id="scene-title">[^<]+<\/title>/);
         assert.match(svg, /<desc id="scene-description">[^<]+<\/desc>/);
+        assert.match(svg, /<svg\b[^>]*role="img"/);
+        assert.doesNotMatch(svg, /data-probe|data-plot|tabindex|role="button"|leaf-button|plot-hit/);
+        if (scene >= 2) assert.equal((svg.match(/<circle\b/g) || []).length, scene === 7 ? 3 : 0);
         for (const [, value] of svg.matchAll(/\b(?:x|y|x1|y1|x2|y2|cx|cy|width|height|r)="([^"]+)"/g)) {
           assert.ok(Number.isFinite(Number(value)), `Scene ${scene} contains invalid geometry: ${value}`);
         }
@@ -189,9 +192,9 @@ test('the rendered conditional boundary ends at its parent split in both layouts
     const horizontal = cuts.find(attr => attr.y1 === attr.y2);
     assert.ok(horizontal);
     const plot = (svg.match(/<rect\b[^>]*>/g) || []).map(attributes)
-      .find(attr => attr['data-plot'] === '2');
+      .find(attr => attr.fill === 'none' && attr['stroke-width'] === '1');
     assert.ok(plot);
-    const [x, y, width, height] = plot['data-box'].split(',').map(Number);
+    const [x, y, width, height] = ['x', 'y', 'width', 'height'].map(key => Number(plot[key]));
     assert.deepEqual([horizontal.x1, horizontal.y1, horizontal.x2, horizontal.y2].map(Number),
       [x + width / 2, y + height / 2, x + width, y + height / 2]);
   }
@@ -221,19 +224,20 @@ test('the central comparison shows the same split budget but three versus four c
   }
 });
 
-test('readouts honor threshold membership, weighted addition, and conditional interactions', () => {
-  const base = { x: 1, y: 1, addition: 0.25, interaction: false };
-  assert.equal(story.readout(0, { ...base, x: -0.5 }), 'x = −0.5  →  prediction = 0');
-  assert.equal(story.readout(1, { ...base, x: 0 }), '(x₁, x₂) = (0, 1)  →  T₁(x) = 0');
+test('readouts summarize the regions, weighted addition, and conditional interactions', () => {
+  const base = { addition: 0.25, interaction: false };
+  assert.equal(story.readout(0), 'Prediction: 0 if x ≤ −0.5; 1 if x > −0.5.');
+  assert.equal(story.readout(1), 'T₁ changes with x₁; its prediction is constant across x₂.');
   assert.equal(story.readout(2, { ...base, splitProgress: 0 }), 'First split: 2 regions in each picture.');
-  assert.equal(story.readout(2, { ...base, x: -1 }), 'One tree: 0 · Two stumps: 2');
-  assert.equal(story.readout(3, base), 'T₁ + λT₂ = 1 + 0.25 × 2 = 1.5');
-  assert.equal(story.readout(3, { ...base, y: 0 }), 'T₁ + λT₂ = 1 + 0.25 × 0 = 1');
-  assert.equal(story.readout(4, { ...base, y: 0 }), 'Same prediction: 1 · One tree: 3 splits · Two stumps: 2 splits');
+  assert.equal(story.readout(2), 'One tree: 3 regions · Two stumps: 4 regions · 2 splits each');
+  assert.equal(story.readout(3, base), 'λ = 0.25 · Add 0.5 where x₂ > 0; add 0 where x₂ ≤ 0.');
+  assert.equal(story.readout(3, { addition: 0 }), 'λ = 0 · Add 0 where x₂ > 0; add 0 where x₂ ≤ 0.');
+  assert.equal(story.readout(3), 'λ = 1 · Add 2 where x₂ > 0; add 0 where x₂ ≤ 0.');
+  assert.equal(story.readout(4), 'Same four predictions: 0, 1, 2, 3 · One tree: 3 splits · Two stumps: 2 splits');
   assert.equal(story.readout(5, base), 'Upper-right = lower-right + upper-left − lower-left: 3 = 1 + 2 − 0');
-  assert.equal(story.readout(6, base), '1 + 2 = 3 · x₁ jump: 1 below, 1 above');
-  assert.equal(story.readout(6, { ...base, interaction: true }), '1 + 2 + 2 = 5 · x₁ jump: 1 below, 3 above');
-  assert.equal(story.readout(6, { ...base, y: 0, interaction: true }), '1 + 0 + 0 = 1 · x₁ jump: 1 below, 3 above');
+  assert.equal(story.readout(6, base), 'Upper-right prediction: 3 · x₁ jump: 1 below, 1 above');
+  assert.equal(story.readout(6, { ...base, interaction: true }), 'Upper-right prediction: 5 · x₁ jump: 1 below, 3 above');
+  assert.equal(story.readout(7), 'Three fixed observations → three prediction coordinates.');
 });
 
 test('the interaction toggle raises only the upper-right ensemble prediction', () => {
