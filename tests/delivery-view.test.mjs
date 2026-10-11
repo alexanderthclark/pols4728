@@ -20,12 +20,14 @@ test('the residual fitting and update scenes keep fixed axes and aligned observa
     for (let scene = 0; scene < 5; scene++) {
       const svg = view.render(scene, {}, compact);
       const panels = groups(svg);
-      assert.deepEqual(panels.filter(group => group['data-axis']).map(group => ({
-        axis: group['data-axis'], x: group['data-x-domain'], y: group['data-y-domain']
-      })), [
+      const expectedAxes = [
         { axis: 'Residual (min)', x: '0,13', y: '-7,6' },
         { axis: 'Time (min)', x: '0,13', y: '0,20' }
-      ]);
+      ];
+      if (scene === 0) expectedAxes.reverse();
+      assert.deepEqual(panels.filter(group => group['data-axis']).map(group => ({
+        axis: group['data-axis'], x: group['data-x-domain'], y: group['data-y-domain']
+      })), expectedAxes);
       const observations = panels.find(group => group['data-points'] === 'observations');
       assert.deepEqual(numbers(observations['data-values']), model.y);
       const residuals = panels.find(group => group['data-points'] === 'residuals');

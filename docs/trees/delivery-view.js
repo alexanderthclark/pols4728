@@ -8,7 +8,7 @@
   const C = { ink:'#242424', muted:'#606060', blue:'#234E70', rust:'#A54F32', teal:'#007F73', grid:'#e8e8e8' };
   const topics = ['Start with one prediction', 'Fit the first correction', 'Add it to the prediction', 'Fit the remaining mistakes', 'Add a second correction', 'Every prediction is a sum'];
   const captions = [
-    'The same eight deliveries appear in both panels. A residual is observed time minus predicted time.',
+    'Observed delivery times and the starting prediction appear above; their residuals appear below.',
     'Measure the errors, form the residuals, split them, and then calculate each leaf’s mean.',
     'The fitted correction stays fixed above as it moves the prediction below. Observed outcomes do not move.',
     'Subtract the first correction from the old residuals before fitting the next tree.',
@@ -111,6 +111,24 @@
     }
     function wrap(body) {
       return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="${C.ink}" role="img" aria-labelledby="delivery-title delivery-description" data-process="${p}"><title id="delivery-title">${esc(topics[scene])}</title><desc id="delivery-description">${esc(captions[scene]+' '+readout(scene,state))}</desc><style>text{font-family:Georgia,serif;font-size:${compact?14:18}px}.panel-title{font-size:${compact?16:21}px}.tick,.key,.cut-label,.axis-label,.arrow-label,.arithmetic{font-family:Arial,sans-serif;font-size:${compact?12:14}px}.tick,.axis-label,.key{fill:${C.muted}}.cut-label,.value,.arrow-label,.arithmetic{paint-order:stroke;stroke:white;stroke-width:5px;stroke-linejoin:round}.value{font-size:${compact?15:20}px}.arrow-label{fill:${C.rust}}.annotation{font-size:${compact?13:17}px}</style>${body}</svg>`;
+    }
+    if(scene===0){
+      const observedPanel={...bottom,y:top.y},residualPanel={...top,y:bottom.y};
+      out+=text(x,compact?18:27,'Observed times and starting prediction','class="panel-title"');
+      out+=circle(x+3,compact?32:46,3.5,C.ink)+text(x+13,compact?36:50,'Observed y','class="key"');
+      const keyX=x+(compact?145:220),keyY=compact?32:46;
+      out+=line(keyX,keyY,keyX+22,keyY,C.blue,3)+text(keyX+30,keyY+4,'Mean F₀ = 12','class="key"');
+      out+=text(x,compact?207:288,'Residuals from the starting prediction','class="panel-title"');
+      out+=circle(x+3,compact?225:316,3.5,C.ink)+text(x+13,compact?229:320,'Residual y − 12','class="key"');
+      out+=axis(observedPanel,[0,5,10,15,20],'Time (min)',false)+axis(residualPanel,[-6,-3,0,3,6],'Residual (min)');
+      out+=`<g data-errors="remaining" data-predictions="${D.y.map(()=>D.baseline).join(',')}">`;
+      D.x.forEach((v,i)=>{out+=line(X(v),Y(D.y[i],observedPanel),X(v),Y(D.baseline,observedPanel),'#b0b0b0',1.6);});
+      out+='</g>';
+      out+=step([D.baseline],[],observedPanel,C.blue,'','prediction');
+      out+=points(D.y,observedPanel,'observations');
+      out+=points(D.rounds[0].residual,residualPanel,'residuals');
+      out+=text(X(11),Y(D.baseline,observedPanel)-10,fmt(D.baseline),`class="value" fill="${C.blue}" text-anchor="middle"`);
+      return wrap(out);
     }
     if(scene===5){
       const strips=[{y:compact?39:56,h:compact?66:104,min:-4,max:6},{y:compact?159:220,h:compact?66:104,min:-4,max:6},{y:compact?279:387,h:compact?62:118,min:0,max:20}];
