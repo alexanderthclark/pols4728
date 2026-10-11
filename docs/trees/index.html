@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Fit two trees to the residuals of eight fictional deliveries, add their corrections, and see how sums of trees partition one- and two-dimensional input spaces.">
+  <meta name="description" content="Fit trees to delivery-time residuals, follow boosting toward near-zero training error, and see how prediction curves become partition maps with two predictors.">
   <title>Fit a correction. Add a tree. — POLS 4728</title>
   <link rel="stylesheet" href="style.css">
   <script src="../boosting/model.js" defer></script>
@@ -40,7 +40,7 @@
 
     <div class="story-layout" id="story">
       <aside class="stage-shell" aria-label="Interactive tree and partition diagrams" data-scene="0">
-        <div class="stage-top"><span id="stage-topic">Begin with one prediction</span><span id="stage-count">01 / 13</span></div>
+        <div class="stage-top"><span id="stage-topic">Begin with one prediction</span><span id="stage-count">01 / 14</span></div>
         <div id="diagram" class="diagram" aria-label="Current tree and its predictions"></div>
         <div id="process-controls" class="process-controls" aria-label="Work through the correction" hidden>
           <div class="process-status"><span id="process-label" role="status" aria-live="polite">Measure the errors</span></div>
@@ -71,6 +71,11 @@
           <input id="addition" type="range" min="0" max="1" step="0.01" value="1">
           <button id="replay-addition" type="button">Replay addition</button>
         </div>
+        <div id="continuation-controls" class="continuation-controls" aria-label="Inspect later boosting rounds" hidden>
+          <button id="continuation-back" type="button" disabled>Previous round</button>
+          <span id="continuation-label">After 2 trees</span>
+          <button id="continuation-next" type="button">Next round</button>
+        </div>
         <div id="split-controls" class="split-controls" hidden>
           <button id="replay-splits" type="button">Replay the second split</button>
         </div>
@@ -84,9 +89,9 @@
 
       <article id="reading" class="narrative">
         <section class="step" id="delivery-baseline" data-step="0" aria-labelledby="heading-0"><div>
-          <p class="step-number">01 / 13 · A SMALL REGRESSION PROBLEM</p>
+          <p class="step-number">01 / 14 · A SMALL REGRESSION PROBLEM</p>
           <h2 id="heading-0">Begin with one prediction</h2>
-          <p>Suppose we want to predict delivery time from distance. These eight fictional deliveries give us a small dataset we can follow through two rounds of boosting.</p>
+          <p>Suppose we want to predict delivery time from distance. These eight fictional deliveries give us a small dataset we can follow through the first two rounds of boosting in detail, then continue fitting.</p>
           <table class="example-data">
             <caption>Eight fictional deliveries</caption>
             <thead><tr><th scope="col">Distance (km)</th><th scope="col">Time (minutes)</th></tr></thead>
@@ -97,7 +102,7 @@
         </div></section>
 
         <section class="step" id="fit-first-correction" data-step="1" aria-labelledby="heading-1"><div>
-          <p class="step-number">02 / 13 · FIT THE FIRST CORRECTION</p>
+          <p class="step-number">02 / 14 · FIT THE FIRST CORRECTION</p>
           <h2 id="heading-1">Fit a tree to the residuals</h2>
           <p>A <em>residual</em> is the observed time minus the current prediction. From our 12-minute starting point, the residuals are −6, −6, −1, −1, −1, 5, 5, and 5 minutes.</p>
           <p>Fit a one-split regression tree—a <em>stump</em>—to those residuals. The best split among the midpoints between observed distances is 8 km. Each leaf predicts its mean residual: −3 minutes on the left and +5 on the right.</p>
@@ -106,7 +111,7 @@
         </div></section>
 
         <section class="step" id="add-first-correction" data-step="2" aria-labelledby="heading-2"><div>
-          <p class="step-number">03 / 13 · ADD THE FIRST TREE</p>
+          <p class="step-number">03 / 14 · ADD THE FIRST TREE</p>
           <h2 id="heading-2">Add the correction to the current prediction</h2>
           <p>The first tree, <span class="math">h₁</span>, predicts a change in minutes. Add that change to the 12-minute baseline:</p>
           <p class="equation math">F₁(x) = 12 + h₁(x).</p>
@@ -115,7 +120,7 @@
         </div></section>
 
         <section class="step" id="fit-second-correction" data-step="3" aria-labelledby="heading-3"><div>
-          <p class="step-number">04 / 13 · FIT WHAT REMAINS</p>
+          <p class="step-number">04 / 14 · FIT WHAT REMAINS</p>
           <h2 id="heading-3">Recompute the residuals, then fit again</h2>
           <p>Subtract the new prediction from each observed time. The residuals are now −3, −3, 2, 2, 2, 0, 0, and 0 minutes. These are the targets for the next tree.</p>
           <p>The best stump now splits at 3.5 km. Its left leaf predicts −3. Its right leaf predicts +1, the mean of the six residuals to the right.</p>
@@ -123,7 +128,7 @@
         </div></section>
 
         <section class="step" id="add-second-correction" data-step="4" aria-labelledby="heading-4"><div>
-          <p class="step-number">05 / 13 · ADD THE SECOND TREE</p>
+          <p class="step-number">05 / 14 · ADD THE SECOND TREE</p>
           <h2 id="heading-4">Keep the first tree and add the second</h2>
           <p>Add <span class="math">h₂</span> to the current prediction at every distance:</p>
           <p class="equation math">F₂(x) = 12 + h₁(x) + h₂(x).</p>
@@ -132,34 +137,45 @@
         </div></section>
 
         <section class="step" id="three-plateaus" data-step="5" aria-labelledby="heading-5"><div>
-          <p class="step-number">06 / 13 · TWO TREES, ONE FUNCTION</p>
+          <p class="step-number">06 / 14 · TWO TREES, ONE FUNCTION</p>
           <h2 id="heading-5">Two stumps, three plateaus</h2>
           <p>Each fitted tree has just one cutpoint and two leaves. Their sum keeps both cutpoints, 3.5 and 8 km, so it has three intervals with predictions 6, 10, and 18 minutes.</p>
           <p>As you scroll, the guide follows one input through both trees. Use “Inspect distance” to examine a particular input, or “Trace the sum” to replay the sweep. At 6 km, the two contributions are −3 and +1, giving <span class="math">12 − 3 + 1 = 10</span> minutes. Watch which contribution changes when the cursor crosses each cutpoint.</p>
-          <p>With one predictor, two distinct cutpoints make three intervals. With two predictors, a new split can cross an earlier boundary. That changes the comparison between growing one tree and adding another.</p>
-          <p class="quiet">These are training errors for a small illustrative dataset. Better predictions on new deliveries would need to be checked separately.</p>
+          <p>With one predictor, two distinct cutpoints make three intervals. We now have the right boundaries, but the heights are still imperfect. Boosting can revisit those boundaries to improve the predictions.</p>
         </div></section>
 
-        <section class="step" id="two-predictors" data-step="6" aria-labelledby="heading-6"><div>
-          <p class="step-number">07 / 13 · TWO PREDICTORS</p>
-          <h2 id="heading-6">Put the inputs in a plane</h2>
-          <p>Now set the delivery example aside and examine the geometry with two predictors. Each input is a point <span class="math">(x₁, x₂)</span>. The horizontal axis is <span class="math">x₁</span> and the vertical axis is <span class="math">x₂</span>. The number in each region is its prediction.</p>
-          <p>Our first split asks whether <span class="math">x₁ ≤ 0</span>. It divides the entire plane into two regions: the left leaf predicts 0 and the right leaf predicts 1.</p>
-          <p>We choose these leaf values to isolate the geometry. Suppose we have a budget of one more split. Where can that split go?</p>
+        <section class="step" id="keep-fitting" data-step="6" aria-labelledby="heading-6"><div>
+          <p class="step-number">07 / 14 · KEEP FITTING THE RESIDUALS</p>
+          <h2 id="heading-6">A third tree brings us closer</h2>
+          <p>After <span class="math">F₂</span>, the residuals in the three intervals are 0, +1, and −1 minutes. Fit another stump to those residuals. It chooses 8 km again, adding +0.6 at or below that cut and −1 above it.</p>
+          <p class="equation math">F₃(x) = F₂(x) + h₃(x).</p>
+          <p>The three predictions become 6.6, 10.6, and 17 minutes; training MSE falls from 0.75 to 0.15. There are still only three intervals. An additional tree can change their heights without adding a new boundary.</p>
+          <p>Keep scrolling to add trees 4 through 8. In this example, the fitted stumps alternate between the same two cutpoints, dividing training MSE by 5 each round. By <span class="math">F₈</span>, it is 0.000048: visually almost exact, but still positive. This greedy sequence approaches an exact fit without attaining it in finitely many rounds. The model class itself can represent an exact fit.</p>
+          <p class="quiet">This completes our one-predictor example. Near-zero training error does not establish accuracy on new deliveries; choosing when to stop requires out-of-sample evaluation.</p>
         </div></section>
 
-        <section class="step" id="three-or-four" data-step="7" aria-labelledby="heading-7"><div>
-          <p class="step-number">08 / 13 · THE SAME TWO SPLITS</p>
-          <h2 id="heading-7">Two splits: three regions or four</h2>
+        <section class="step" id="two-predictors" data-step="7" aria-labelledby="heading-7"><div>
+          <p class="step-number">08 / 14 · TWO PREDICTORS</p>
+          <h2 id="heading-7">From a prediction curve to an input map</h2>
+          <p>The delivery example used one predictor: distance. Its horizontal axis located the input; its vertical axis showed the outcome or prediction. With two predictors, each input instead needs two coordinates, <span class="math">(x₁, x₂)</span>.</p>
+          <p>Begin a new, simpler illustration: a stump predicts 0 when <span class="math">x₁ ≤ 0</span> and 1 otherwise. On the left, its prediction is a height. On the right, the vertical axis is the second predictor <span class="math">x₂</span>; the numbers inside the regions give the prediction.</p>
+          <p>The same rule now makes two strips in the input plane. Because this first stump only uses <span class="math">x₁</span>, moving up or down in <span class="math">x₂</span> does not change its prediction.</p>
+          <p>A split on <span class="math">x₂</span> would run horizontally. Can it cross the first boundary, or must it stop there? That is the distinction between adding a new tree and splitting a leaf of the existing tree.</p>
+          <p class="quiet">The values 0 and 1 are chosen to isolate this geometry. They are not additional fitted values from the delivery example.</p>
+        </div></section>
+
+        <section class="step" id="three-or-four" data-step="8" aria-labelledby="heading-8"><div>
+          <p class="step-number">09 / 14 · THE SAME TWO SPLITS</p>
+          <h2 id="heading-8">Two splits: three regions or four</h2>
           <p>In one tree, the second split must divide an existing leaf. Split its right leaf at <span class="math">x₂ = 0</span>, and there are three regions. The horizontal boundary stops at the first split; the whole left half still predicts 0.</p>
           <p>With two stumps, the second split starts a separate tree. That tree splits on <span class="math">x₂</span> across the entire plane. Add its predictions to the first stump, and the crossing boundaries create four regions.</p>
           <p>Both constructions use two split nodes in total. The difference is where the second split acts: inside one leaf, or in a new tree evaluated throughout the input space.</p>
           <p class="quiet">Watch the upper-left region. It stays joined to the lower-left region in the single tree, but receives a different prediction in the sum.</p>
         </div></section>
 
-        <section class="step" id="crossing-partitions" data-step="8" aria-labelledby="heading-8"><div>
-          <p class="step-number">09 / 13 · ADDING PREDICTIONS</p>
-          <h2 id="heading-8">Why does adding a stump cross the first split?</h2>
+        <section class="step" id="crossing-partitions" data-step="9" aria-labelledby="heading-9"><div>
+          <p class="step-number">10 / 14 · ADDING PREDICTIONS</p>
+          <h2 id="heading-9">Why does adding a stump cross the first split?</h2>
           <p>The first stump, <span class="math">T₁</span>, contributes 1 when <span class="math">x₁ &gt; 0</span>. The second, <span class="math">T₂</span>, contributes 2 when <span class="math">x₂ &gt; 0</span>. Otherwise each contributes 0.</p>
           <p class="equation math">F(x₁, x₂) = T₁(x₁) + T₂(x₂).</p>
           <p>Every input passes through both trees. The second stump therefore adds 2 to the upper half on both sides of the first boundary. It is a separate function, not a new branch appended to the first tree.</p>
@@ -167,35 +183,35 @@
           <p class="quiet">This is the geometry of the sums of trees used in additive boosting. We have chosen the trees to illustrate it; this is not a particular boosting fitting step.</p>
         </div></section>
 
-        <section class="step" id="third-split" data-step="9" aria-labelledby="heading-9"><div>
-          <p class="step-number">10 / 13 · MATCHING THE PARTITION</p>
-          <h2 id="heading-9">One tree needs a third split</h2>
+        <section class="step" id="third-split" data-step="10" aria-labelledby="heading-10"><div>
+          <p class="step-number">11 / 14 · MATCHING THE PARTITION</p>
+          <h2 id="heading-10">One tree needs a third split</h2>
           <p>A single tree can reproduce all four regions. After splitting on <span class="math">x₁</span>, split both children on <span class="math">x₂</span>.</p>
           <p>There are now three split nodes: the first question, the question inside its left child, and the question inside its right child. The repeated test <span class="math">x₂ ≤ 0</span> counts twice because it appears at two different nodes.</p>
           <p>Assign the leaves 0, 1, 2, and 3, and this larger tree makes exactly the same predictions as the two stumps. The sum does not require a fundamentally new kind of function; it constructs this partition using fewer split nodes.</p>
         </div></section>
 
-        <section class="step" id="constrained-values" data-step="10" aria-labelledby="heading-10"><div>
-          <p class="step-number">11 / 13 · WHAT THE FOUR VALUES CAN DO</p>
-          <h2 id="heading-10">Four regions, but not four free values</h2>
+        <section class="step" id="constrained-values" data-step="11" aria-labelledby="heading-11"><div>
+          <p class="step-number">12 / 14 · WHAT THE FOUR VALUES CAN DO</p>
+          <h2 id="heading-11">Four regions, but not four free values</h2>
           <p>The larger single tree can assign its four leaf predictions independently. The sum of the two stumps cannot: the same contribution from <span class="math">x₁</span> applies above and below the horizontal boundary.</p>
           <p>Crossing <span class="math">x₁ = 0</span> adds 1 at either height. Its effect does not depend on <span class="math">x₂</span>, so these four regions do not imply an interaction.</p>
           <p>The upper-right value is fixed by the other three: lower right + upper left − lower left. Here that is <span class="math">1 + 2 − 0 = 3</span>.</p>
           <p class="quiet">More regions and more freedom in their predictions are different things. The crossing partition is richer than either stump’s partition, while the sum still obeys an additive constraint.</p>
         </div></section>
 
-        <section class="step" id="interactions" data-step="11" aria-labelledby="heading-11"><div>
-          <p class="step-number">12 / 13 · WHAT DEPTH ADDS</p>
-          <h2 id="heading-11">A conditional split can add an interaction</h2>
+        <section class="step" id="interactions" data-step="12" aria-labelledby="heading-12"><div>
+          <p class="step-number">13 / 14 · WHAT DEPTH ADDS</p>
+          <h2 id="heading-12">A conditional split can add an interaction</h2>
           <p>Consider a tree <span class="math">U</span> that first splits on <span class="math">x₁</span>, then splits only the right child on <span class="math">x₂</span>. Set its upper-right leaf to 2 and its other leaves to 0. It contributes 2 only when both predictors are positive.</p>
           <p>Add <span class="math">U</span> to our two stumps. Only the upper-right prediction rises, from 3 to 5. Crossing <span class="math">x₁ = 0</span> then adds 3 above the horizontal boundary and 1 below it. The effect of one predictor depends on the other.</p>
           <p>A sum of stumps is additive in predictors: <span class="math">c + ∑<sub>j</sub> g<sub>j</sub>(x<sub>j</sub>)</span>. A sum of deeper trees can include interactions. Both are additive in trees.</p>
           <p class="quiet">We are discussing numerical regression predictions. A nonlinear transformation, such as converting a classification score to a probability, changes the scale on which additivity holds.</p>
         </div></section>
 
-        <section class="step" id="toward-boosting" data-step="12" aria-labelledby="heading-12"><div>
-          <p class="step-number">13 / 13 · FROM TREES TO BOOSTING</p>
-          <h2 id="heading-12">How should we choose the next tree?</h2>
+        <section class="step" id="toward-boosting" data-step="13" aria-labelledby="heading-13"><div>
+          <p class="step-number">14 / 14 · FROM TREES TO BOOSTING</p>
+          <h2 id="heading-13">How should we choose the next tree?</h2>
           <p>A single tree refines its own partition. An ensemble combines the partitions of its constituent trees, adding their predictions at every input.</p>
           <p>We have seen how adding small trees builds a function. Boosting supplies a way to choose each new tree using what the current ensemble has left to learn.</p>
           <p>The next explainer changes coordinate systems. Here, the axes described <em>inputs</em>. In the boosting story, each axis will represent a model’s prediction for one training observation.</p>
@@ -211,8 +227,15 @@
       <details>
         <summary>What changes with just one predictor?</summary>
         <p>On a line, two distinct cutpoints make three intervals in either construction. For the delivery example, a single tree can split at 8 km and then split its left leaf at 3.5 km, assigning predictions 6, 10, and 18.</p>
-        <p>Our two fitted stumps produce those same predictions when their leaf values are added to the 12-minute baseline. Two different constructions can therefore represent the same final function.</p>
+        <p>Our first two fitted stumps produce those same predictions when their leaf values are added to the 12-minute baseline. Two different constructions can therefore represent the same function <span class="math">F₂</span>.</p>
         <p>The later comparison uses two predictors because a split on a different predictor can cross the first boundary. A second cutpoint on the same line cannot create that crossing.</p>
+      </details>
+      <details id="exact-training-fit">
+        <summary>Why does this sequence approach zero without reaching it?</summary>
+        <p>With squared-error loss, greedy stumps, and learning rate 1, the delivery example has training MSE <span class="math">18.75 / 5<sup>m</sup></span> after <span class="math">m</span> updates. From <span class="math">F₁</span> onward, every pair of additional updates makes each residual one fifth of its earlier value. Squared error therefore falls by a factor of 25 over each pair. It remains strictly positive at every finite round in exact arithmetic.</p>
+        <p>This is a property of the fitting sequence, not a lack of expressive power. Two appropriately chosen stumps and a constant can fit all eight observations exactly:</p>
+        <p class="equation math">F*(x) = 6 + 5 · 1{x &gt; 3.5} + 6 · 1{x &gt; 8}.</p>
+        <p>Our sequential updates approach this function. A different procedure, such as jointly fitting the coefficients on these two split indicators, could reach the exact fit directly. A tree with three leaves could also fit the remaining residuals exactly in one update.</p>
       </details>
       <div class="sources">
         <h3>Further reading</h3>

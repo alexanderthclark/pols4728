@@ -144,14 +144,14 @@ test('three contribution strips share distance coordinates and obey threshold eq
   }
 });
 
-test('all thirteen integrated scenes render and route to the correct numerical sequence', () => {
+test('all fourteen integrated scenes render and route to the correct numerical sequence', () => {
   const state = { x: 0.8, y: 0.8, addition: 1, interaction: false, splitProgress: 1, correction: 1 };
   for (const compact of [false, true]) {
-    for (let scene = 0; scene < 13; scene++) {
+    for (let scene = 0; scene < 14; scene++) {
       const svg = story.renderScene(scene, state, compact);
-      const expected = scene < 6 ? view.render(scene, state, compact) : story.renderPartitionScene(scene - 5, state, compact);
+      const expected = scene < 7 ? view.render(scene, state, compact) : story.renderPartitionScene(scene - 6, state, compact);
       assert.equal(svg, expected);
-      assert.equal(story.readout(scene, state), scene < 6 ? view.readout(scene, state) : story.partitionReadout(scene - 5, state));
+      assert.equal(story.readout(scene, state), scene < 7 ? view.readout(scene, state) : story.partitionReadout(scene - 6, state));
       assert.doesNotMatch(svg, /NaN|Infinity|undefined/);
       assert.match(svg, /<title\b[^>]*>[^<]+<\/title>/);
       assert.match(svg, /<desc\b[^>]*>[^<]+<\/desc>/);
@@ -159,5 +159,66 @@ test('all thirteen integrated scenes render and route to the correct numerical s
         assert.ok(Number.isFinite(Number(value)), `Scene ${scene} contains invalid geometry: ${value}`);
       }
     }
+  }
+});
+
+
+test('continuation spends time on the third correction before completing rounds four through eight', () => {
+  assert.deepEqual(view.continuationState(0), { round: 2, amount: 1 });
+  assert.deepEqual(view.continuationState(0.2), { round: 3, amount: 0.5 });
+  for (const progress of [.4, .45, .5]) assert.deepEqual(view.continuationState(progress), { round: 3, amount: 1 });
+  for (let round = 2; round <= 8; round++) {
+    const state = view.continuationState(view.continuationProgress(round));
+    assert.deepEqual(state, { round, amount: 1 });
+  }
+  assert.deepEqual(view.continuationState(-1), { round: 2, amount: 1 });
+  assert.deepEqual(view.continuationState(2), { round: 8, amount: 1 });
+  assert.deepEqual(view.continuationState(.5999999999999999), { round: 4, amount: 1 });
+  assert.deepEqual(view.continuationState(), { round: 8, amount: 1 });
+  assert.throws(() => view.continuationProgress(1), RangeError);
+  assert.throws(() => view.continuationProgress(9), RangeError);
+});
+
+test('continuation keeps observed outcomes above residuals on the original scales', () => {
+  for (const compact of [false, true]) {
+    for (const continuation of [0, .2, .45, .55, .7, 1]) {
+      const svg = view.render(6, { continuation }, compact);
+      const panels = groups(svg);
+      const axes = panels.filter(group => group['data-axis']);
+      assert.deepEqual(axes.map(group => ({ axis: group['data-axis'], x: group['data-x-domain'], y: group['data-y-domain'] })), [
+        { axis: 'Time (min)', x: '0,13', y: '0,20' },
+        { axis: 'Residual (min)', x: '0,13', y: '-7,6' }
+      ]);
+      assert.ok(numbers(axes[0]['data-panel'])[1] < numbers(axes[1]['data-panel'])[1]);
+      const observed = panels.find(group => group['data-points'] === 'observations');
+      const residuals = panels.find(group => group['data-points'] === 'residuals');
+      assert.deepEqual(numbers(observed['data-values']), model.y);
+      const { round, amount } = view.continuationState(continuation);
+      const predictions = model.x.map(x => model.predict(round, x, amount));
+      assert.deepEqual(numbers(residuals['data-values']), model.y.map((y, i) => y - predictions[i]));
+      assert.deepEqual(curve(svg, 'reference'), { values: [6, 10, 18], cuts: [3.5, 8] });
+      const current = curve(svg, 'prediction');
+      assert.deepEqual(current.cuts, [3.5, 8]);
+      assert.deepEqual(current.values, [1.75, 5.75, 10.5].map(x => model.predict(round, x, amount)));
+    }
+  }
+});
+
+test('third update repairs the overshoot and later displayed MSE remains strictly positive', () => {
+  const third = curve(view.render(6, { continuation: .45 }), 'prediction');
+  third.values.forEach((value, i) => assert.ok(Math.abs(value - [6.6, 10.6, 17][i]) < 1e-12));
+  assert.match(view.readout(6, { continuation: .45 }), /training MSE = 0\.15$/);
+  assert.match(view.render(6, { continuation: .45 }), /h₃: \+0\.6 at x ≤ 8; −1 at x &gt; 8/);
+  assert.match(view.readout(6), /training MSE = 0\.000048$/);
+  let lastMSE = Infinity;
+  for (let tick = 0; tick <= 100; tick++) {
+    const progress = tick / 100;
+    const svg = view.render(6, { continuation: progress });
+    const stateTag = svg.match(/<g\b[^>]*data-continuation-round="[^"]*"[^>]*\/>/)[0];
+    const mse = Number(attributes(stateTag)['data-training-mse']);
+    assert.ok(mse > 0);
+    assert.ok(mse <= lastMSE + 1e-12, `Training error increases at progress ${progress}`);
+    assert.doesNotMatch(view.readout(6, { continuation: progress }), /training MSE = 0$/);
+    lastMSE = mse;
   }
 });

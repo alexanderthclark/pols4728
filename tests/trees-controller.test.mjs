@@ -251,3 +251,41 @@ test('scrolling the contribution scene traces distance and reverses across the c
   }
   assert.match(ui.get('calculation').textContent, /= 6 min$/);
 });
+
+test('later rounds follow scroll, preserve a manual choice, and rewind to F2', () => {
+  const ui = setup();
+  const at = progress => ui.scrollAt(6, 0.08 + 0.77 * progress);
+  at(0.45);
+  assert.equal(ui.get('continuation-controls').hidden, false);
+  assert.equal(ui.get('continuation-label').textContent, 'After 3 trees');
+  assert.match(ui.get('calculation').textContent, /F₃.*MSE = 0\.15$/);
+  ui.click('continuation-next');
+  assert.equal(ui.get('continuation-label').textContent, 'After 4 trees');
+  ui.sameScroll();
+  assert.equal(ui.get('continuation-label').textContent, 'After 4 trees');
+  at(1);
+  assert.match(ui.get('calculation').textContent, /F₈.*MSE = 0\.000048$/);
+  assert.equal(ui.get('continuation-next').disabled, true);
+  at(0);
+  assert.match(ui.get('calculation').textContent, /^F₂.*MSE = 0\.75$/);
+  assert.equal(ui.get('continuation-back').disabled, true);
+});
+
+test('reduced-motion continuation uses completed fits and the shifted partition controls stay aligned', () => {
+  const ui = setup(true);
+  for (const [progress, round] of [[0.2, 2], [0.45, 3], [0.65, 4], [1, 8], [0.45, 3]]) {
+    ui.scrollAt(6, 0.08 + 0.77 * progress);
+    assert.equal(ui.get('continuation-label').textContent, `After ${round} trees`);
+  }
+  ui.scrollAt(7, 0.4);
+  assert.equal(ui.get('continuation-controls').hidden, true);
+  assert.match(ui.get('diagram').innerHTML, /data-axis-role="second-predictor"/);
+  ui.scrollAt(8, 0.4);
+  assert.equal(ui.get('split-controls').hidden, false);
+  assert.equal(ui.get('addition-controls').hidden, true);
+  ui.scrollAt(9, 0.4);
+  assert.equal(ui.get('split-controls').hidden, true);
+  assert.equal(ui.get('addition-controls').hidden, false);
+  ui.scrollAt(12, 0.4);
+  assert.equal(ui.get('interaction-controls').hidden, false);
+});

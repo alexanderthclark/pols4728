@@ -4,8 +4,8 @@ A static companion to the boosting story, served at `/trees/`. No build step or
 external JavaScript dependencies. The course home lists this page before boosting;
 both explainers link to one another.
 
-Thirteen scroll-linked scenes begin with two fitted boosting updates on a
-synthetic delivery dataset. Aligned panels distinguish the current residual
+Fourteen scroll-linked scenes begin with two fitted boosting updates on a
+synthetic delivery dataset, then continue through eight rounds. Aligned panels distinguish the current residual
 target and its fitted stump from the original observations and accumulated
 prediction. The sequence then moves to two predictors, comparing two split nodes
 in one tree (three regions) with two crossing stumps (four regions). A later
@@ -42,9 +42,15 @@ and correction above stay fixed while the prediction below changes.
 The delivery summary uses three aligned strips for h₁, h₂, and their sum plus
 the starting mean. Inspect distance, pointer probing, and Trace the sum reveal
 the contributions at one shared input. In the later partition scenes, pointer
-probing and focusable leaf buttons select the same input across the diagrams.
+probing and focusable region buttons select the same input across the diagrams.
 Separate replays animate a stump's contribution and compare the second split
 in the recursive and ensemble constructions.
+
+The continuation shows F₂ becoming F₃, then follows the smaller corrections
+through F₈. The transition to two predictors changes the coordinate roles:
+delivery plots use distance horizontally and a response or residual vertically;
+partition maps use both axes for inputs, with predictions written inside cells.
+Adding more trees does not add input dimensions.
 
 ## Numerical examples
 
@@ -62,8 +68,10 @@ the squared-error fitter in `../boosting/model.js`, with learning rate 1.
 | Initial | None | All 12 | 18.75 |
 | Round 1 | −3 for x ≤ 8; +5 otherwise | First five 9; last three 17 | 3.75 |
 | Round 2 | −3 for x ≤ 3.5; +1 otherwise | 6, 6, 10, 10, 10, 18, 18, 18 | 0.75 |
+| Round 3 | +0.6 for x ≤ 8; −1 otherwise | 6.6, 6.6, 10.6, 10.6, 10.6, 17, 17, 17 | 0.15 |
+| Round 8 | −0.024 for x ≤ 3.5; +0.008 otherwise | 6, 6, 10.992, 10.992, 10.992, 17.008, 17.008, 17.008 | 0.000048 |
 
-Both fitted partitions uniquely minimize SSE among the seven possible adjacent
+Each fitted partition uniquely minimizes SSE among the seven possible adjacent
 data partitions. Midpoints label the thresholds; other thresholds between the
 same adjacent observations produce the same training partition. The first stump
 is fitted to `[-6, -6, -1, -1, -1, 5, 5, 5]`, and the second to
@@ -72,6 +80,14 @@ During the second update, the three longest-distance predictions rise from 17
 to 18 even though their observations equal 17. Those individual errors grow
 while aggregate training MSE falls. Animation progress interpolates the chosen
 update; it does not refit the displayed stump to changing residual targets.
+
+Later rounds alternate the same two thresholds, 8 and 3.5 km. In this particular
+greedy sequence, every two further updates multiply the residual vector by 1/5,
+and each update divides MSE by 5: after m rounds, training MSE is 18.75 / 5^m.
+Thus the errors approach zero without reaching exact zero in a finite number of
+rounds in exact arithmetic. F₈ is a near-zero training fit, not a perfect one.
+The three-level target itself has an exact three-leaf tree representation;
+the remaining error is a property of this sequence of fitted stump updates.
 
 - The main comparison uses one tree that splits x1 at zero and then only its
   right child at x2 = 0, with leaf predictions 0, 1, and 3. The two-stump sum has
@@ -97,15 +113,15 @@ learning procedures and constraints differ.
 
 - `model.js` supplies evaluation, branch paths, rectangular regions and common
   refinement; it is shared by the renderer and Node tests.
-- `delivery.js` fits the two residual stumps and exports observations, rounds,
+- `delivery.js` fits eight residual stumps and exports observations, rounds,
   MSE calculation, partial-update predictions, and frozen candidate rows through
   `candidates(round)`. Candidate values are residual predictions. It uses
   `BoostingMath` in the browser and the same module through CommonJS in tests.
-- `delivery-view.js` renders the first six scenes with shared axes and exports
+- `delivery-view.js` renders the first seven scenes with shared axes and exports
   their topics, captions, process labels, and numerical readouts. Process runs
   from 0 to 3; addition runs during process 1 to 2. Direct renders default to a
   completed sequence and retain the older `correction` input for inspection.
-- `story.js` routes all thirteen scenes and initializes controls and scrolling.
+- `story.js` routes all fourteen scenes and initializes controls and scrolling.
   It also exports the original partition renderer and readout as
   `renderPartitionScene` and `partitionReadout` for focused tests.
 - `index.html` contains the complete narrative and accessible controls.
@@ -115,11 +131,12 @@ learning procedures and constraints differ.
 Run the JavaScript syntax checks in `.github/workflows/pages.yml` and
 `node --test tests/*.test.mjs`. Browser loading order is `../boosting/model.js`,
 `delivery.js`, `delivery-view.js`, `model.js`, then `story.js`.
-For browser review, inspect all thirteen scenes at desktop and mobile widths,
+For browser review, inspect all fourteen scenes at desktop and mobile widths,
 scroll forward and backward through each delivery sequence, jump between
 sections, step through each action, pause and resume a replay, scrub backward,
-compare candidate cuts, and trace contributions across both thresholds. Then
-probe the partition maps, activate leaves with Enter/Space, replay
+compare candidate cuts, trace contributions across both thresholds, and follow
+the continuation while checking that its nonzero MSE remains visible. Then
+probe the partition maps, activate regions with Enter/Space, replay
 addition, toggle U, and navigate both directions. Check reduced motion and links
 between the companion, boosting, and course home. Renderer tests verify fixed
 coordinates and numerical states; a headless event/clock harness covers scroll

@@ -66,6 +66,10 @@ sub, sup { line-height: 0; }
 .diagram .point-label { paint-order: stroke; stroke: #fff; stroke-width: 4px; stroke-linejoin: round; }
 .split-controls { flex: 0 0 auto; padding: 3px 0 5px; }
 .split-controls button { min-height: 32px; padding: 4px 10px; font: 12px/1.4 var(--sans); }
+.continuation-controls { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 10px; padding: 5px 0; border-top: 1px solid var(--light-rule); font: 12px/1.4 var(--sans); }
+.continuation-controls button { min-height: 32px; padding: 4px 9px; font: inherit; }
+.continuation-controls span { color: var(--blue); text-align: center; }
+#keep-fitting { min-height: calc(165svh - var(--header-height)); }
 .afterword details { margin: 30px 0; padding: 18px 0; border-top: 1px solid var(--light-rule); border-bottom: 1px solid var(--light-rule); }
 .afterword summary { cursor: pointer; font-size: 20px; }
 .afterword details[open] summary { margin-bottom: 20px; }

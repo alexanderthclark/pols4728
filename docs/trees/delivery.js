@@ -20,7 +20,7 @@
 
   const rounds = [];
   let current = y.map(() => baseline);
-  for (let number = 1; number <= 2; number++) {
+  for (let number = 1; number <= 8; number++) {
     const previous = current.slice();
     const residual = math.sub(y, previous);
     const fitted = math.fitStump(x, residual);
@@ -58,7 +58,7 @@
 
   function candidates(round) {
     if (!Number.isInteger(round) || round < 1 || round > rounds.length) {
-      throw new RangeError('Candidate round must be 1 or 2.');
+      throw new RangeError(`Candidate round must be an integer from 1 to ${rounds.length}.`);
     }
     return candidateRows[round - 1];
   }
@@ -68,7 +68,7 @@
   // follow the same threshold rules; this is not a generalization claim.
   function predict(round, input, progress = 1) {
     if (!Number.isInteger(round) || round < 0 || round > rounds.length) {
-      throw new RangeError('Round must be 0, 1, or 2.');
+      throw new RangeError(`Round must be an integer from 0 to ${rounds.length}.`);
     }
     if (!Number.isFinite(input)) throw new TypeError('The input must be finite.');
     if (!Number.isFinite(progress) || progress < 0 || progress > 1) {
