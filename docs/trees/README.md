@@ -4,9 +4,9 @@ A static companion to the boosting story, served at `/trees/`. No build step or
 external JavaScript dependencies. The course home lists this page before boosting;
 both explainers link to one another.
 
-Thirteen scroll-linked scenes begin with observations from a synthetic delivery
+Nine scroll-linked scenes begin with observations from a synthetic delivery
 dataset, reveal the mean prediction, and then form residuals for the first tree.
-All thirteen scenes use a full-width figure, a short heading and equation, and
+All nine scenes use a full-width figure, a short heading and equation, and
 a concise takeaway. The arrangement inside the figure changes when a comparison
 needs side-by-side plots; there is no permanent prose column. The complete
 explanation and data are retained below the slides in an expandable reading
@@ -14,16 +14,16 @@ section, open without JavaScript and available in print.
 The example fits two boosting updates, then continues through eight
 rounds. Aligned panels distinguish the current residual
 target and its fitted stump from the original observations and accumulated
-prediction. The sequence then moves to two predictors, comparing two split nodes
-in one tree (three regions) with two crossing stumps (four regions). A later
-comparison shows the third split a single tree needs to match the four-region
-prediction function, before distinguishing region counts from freedom in the
-leaf values.
+prediction. The last three frames use a new sixteen-observation dataset with two predictors.
+One frame grows a single decision tree and its input map; the next fits four
+residual stumps and builds their summed map. The final frame compares the maps,
+training MSE, split-node counts, and region counts at the same four-split budget.
 
 Scrolling through the opening reveals the mean prediction after a hold on the
 observations alone. This first scene holds for 40% of its progress, reveals the
 mean over the next 50%, and holds the final state for the remainder. Its plot
-has no residual panel. The next scene starts with exactly the same coordinates,
+has no residual panel. Its observed dots expose exact y values on hover or
+keyboard focus; the caption identifies the three distinct outcomes. The next scene starts with exactly the same coordinates,
 then moves the observation plot down and copies its points into a residual plot
 above it before revealing the split and fitted leaf means.
 
@@ -54,11 +54,11 @@ and correction above stay fixed while the prediction below changes.
 
 The completed F₂ plot labels its two cutpoints and three intervals. The story
 then moves directly to the third fitted correction, without a separate
-contribution-strip recap. The later partition diagrams keep prediction labels
-fixed in their regions, without hover markers or coordinate inspection.
-Separate replays animate a stump's contribution and compare the second split
-in the recursive and ensemble constructions; the interaction toggle changes
-the upper-right prediction.
+contribution-strip recap. The later partition diagrams keep prediction labels fixed in their regions,
+without hover markers or coordinate inspection. Scrolling grows each model,
+and Previous/Next split or stump buttons and Replay provide manual control.
+New tree boundaries stop at their parent region; new stump boundaries cross
+the whole input map. Reduced motion commits completed stages.
 
 The continuation first holds F₂ while showing the third stump in dark orange
 against its residual targets, with its selected 8 km split and +0.6/−1 leaf
@@ -71,20 +71,18 @@ delivery plots use distance horizontally and a response or residual vertically;
 partition maps use both axes for inputs, with predictions written inside cells.
 Adding more trees does not add input dimensions.
 
-The constrained-values scene and generalization afterword distinguish fitting
-error, representation size, and statistical flexibility. At fixed crossing
-cutpoints, the sum of two stumps has three free prediction parameters, while
-a four-leaf tree permits a fourth interaction parameter. That restriction can
-help when the target is additive, but does not guarantee smaller test error.
-Selecting cutpoints adds complexity; training interpolation alone proves neither
-generalization nor its failure. Identical prediction functions have identical
-test errors, regardless of how they are represented.
+The generalization afterword distinguishes fitting error, representation size,
+and statistical flexibility. Stump sums are additive in predictors; this can
+help when the signal is additive but introduces bias for interactions. More
+regions do not imply independent region values, and training MSE does not
+establish test accuracy. The two fitted maps here are different functions.
+The separate one-predictor example still permits identical representations.
 
 ## Numerical examples
 
 All predictions are on the regression scale, with exact `<=` left-branch
-semantics. The delivery example fits its leaf values; the two-dimensional
-partition examples use illustrative values.
+semantics. Both datasets fit their leaf values and splits programmatically. Neither
+comparison claims a generalization advantage from the training scores.
 
 The synthetic delivery distances are `[1, 3, 4, 6, 7, 9, 10, 12]` km, with times
 `[6, 6, 11, 11, 11, 17, 17, 17]` minutes. The initial prediction is their mean,
@@ -117,25 +115,44 @@ rounds in exact arithmetic. F₈ is a near-zero training fit, not a perfect one.
 The three-level target itself has an exact three-leaf tree representation;
 the remaining error is a property of this sequence of fitted stump updates.
 
-- The main comparison uses one tree that splits x1 at zero and then only its
-  right child at x2 = 0, with leaf predictions 0, 1, and 3. The two-stump sum has
-  an additional upper-left region predicting 2. Both constructions use two split
-  nodes; their boundaries differ in where the second cut applies.
-- A single tree that tests x2 in both children matches the sum with three split
-  nodes. Its four leaf predictions are unrestricted, while the stump sum obeys
-  the zero-interaction constraint: upper right = lower right + upper left − lower left.
-- The one-dimensional two-cut example is retained in an afterword note. Both
-  constructions yield three intervals there; it cannot demonstrate crossing cuts.
-- In two dimensions, `T1 = 1{x1 > 0}` and `T2 = 2·1{x2 > 0}`. Their common refinement
-  has predictions 0, 1, 2, and 3. A single 0–5 prediction color scale is shared by
-  all the maps. Numbers, line styles, and leaf outlines supplement color.
-- The conditional tree `U = 2·1{x1 > 0, x2 > 0}` has a horizontal split only in
-  the right half-plane. Adding it changes the upper-right prediction to 5, so the
-  x1 contrast is 1 below the horizontal boundary and 3 above it.
+### Two predictors, one split budget
 
-The structural overlay can retain boundaries whose jumps cancel. The page also
-explains that a finite sum of these trees has a single-tree representation; the
-learning procedures and constraints differ.
+The new synthetic observations have distances `[2, 4, 8, 10]` km and prior stops
+`[0, 1, 3, 4]`. Each combination occurs once. The observed minutes are:
+
+| Stops / distance | 2 | 4 | 8 | 10 |
+| --- | --- | --- | --- | --- |
+| 0 | 8 | 10 | 13 | 16 |
+| 1 | 10 | 11 | 15 | 16 |
+| 3 | 12 | 14 | 18 | 21 |
+| 4 | 13 | 16 | 20 | 24 |
+
+Both models start at the mean, 14.8125. The comparison gives each model the
+same four-split budget.
+The tree chooses the largest reduction in training SSE over every candidate
+split in every current leaf, then replaces only that leaf. Boosting fits one
+stump to current residuals per round and adds it with learning rate 1.
+Midpoints define cutpoints; ties follow leftmost leaf, feature, then threshold.
+
+| Split nodes | Tree MSE | Tree regions | Stump-sum MSE | Stump-sum regions |
+| --- | --- | --- | --- | --- |
+| 0 | 17.902344 | 1 | 17.902344 | 1 |
+| 1 | 8.523438 | 2 | 8.523438 | 2 |
+| 2 | 4.390625 | 3 | 2.582031 | 4 |
+| 3 | 2.390625 | 4 | 1.951823 | 6 |
+| 4 | 1.625000 | 5 | 1.618490 | 9 |
+
+The tree first cuts distance at 6, then stops at 2 separately in its right and
+left children, then distance at 9 in the upper-right leaf. Stumps cut distance
+at 6, stops at 2, distance at 9, and stops at 3.5 across the full domain. Their
+signed leaf corrections are −3.0625/+3.0625, −2.4375/+2.4375, −11/24/+1.375,
+and −1/3/+1. The final scores are similar and both positive. The stump sum uses
+crossing cuts to form nine regions from four split nodes; one tree has five
+leaves after four splits. Region values in the sum remain constrained.
+
+The color scale and axes are shared across maps. Diagram updates reveal the
+chosen cut before committing the new predictions and corresponding MSE/counts.
+All fixed observations remain in the map; no pointer interaction is required.
 
 ## Files and checks
 
@@ -150,24 +167,28 @@ learning procedures and constraints differ.
   The opening process runs from 0 to 1; fitting and update processes run from 0
   to 3, with addition during process 1 to 2. Direct renders default to a
   completed sequence and retain the older `correction` input for inspection.
-- `story.js` routes all thirteen full-width scenes and initializes controls and
+- `growth.js` computes the recursive tree and residual-stump stages on the same
+  two-predictor observations, with immutable stage snapshots and exact MSE.
+- `growth-view.js` renders the two growth animations and final comparison.
+- `story.js` routes all nine full-width scenes and initializes controls and
   scrolling. `scenePresentation` supplies their headings, equations, and
   takeaways; the later-round equation follows the currently fitted tree.
-  It also exports the original partition renderer and readout as
-  `renderPartitionScene` and `partitionReadout` for focused tests.
+  Scenes 0–5 delegate to `delivery-view.js`; scenes 6–8 delegate to `growth-view.js`.
 - `index.html` contains the complete narrative and accessible controls.
 - `style.css` follows the course design guide, with a compact mobile stage,
   reduced motion, keyboard focus styling, and print prose.
 
 Run the JavaScript syntax checks in `.github/workflows/pages.yml` and
 `node --test tests/*.test.mjs`. Browser loading order is `../boosting/model.js`,
-`delivery.js`, `delivery-view.js`, `model.js`, then `story.js`.
-For browser review, inspect all thirteen scenes at desktop and mobile widths,
+`delivery.js`, `delivery-view.js`, `model.js`, `growth.js`, `growth-view.js`, then
+`story.js`.
+For browser review, inspect all nine scenes at desktop and mobile widths,
 scroll forward and backward through each delivery sequence, jump between
 sections, step through each action, pause and resume a replay, scrub backward,
 compare candidate cuts, move directly from F₂ to h₃ and back, and follow
 the continuation while checking that its nonzero MSE remains visible. Then
-replay the second split and addition, toggle U, and navigate both directions.
+grow both two-predictor models, replay and reverse their stages, and inspect the
+final four-split comparison. Verify training scores and fixed map scales.
 Check reduced motion and links
 between the companion, boosting, and course home. Renderer tests verify fixed
 coordinates and numerical states; a headless event/clock harness covers scroll

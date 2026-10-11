@@ -6,6 +6,7 @@ const require = createRequire(import.meta.url);
 const model = require('../docs/trees/delivery.js');
 const view = require('../docs/trees/delivery-view.js');
 const story = require('../docs/trees/story.js');
+const growth = require('../docs/trees/growth-view.js');
 const attributes = tag => Object.fromEntries(Array.from(tag.matchAll(/([\w-]+)="([^"]*)"/g), match => [match[1], match[2]]));
 const groups = svg => Array.from(svg.matchAll(/<g\b([^>]*)>([\s\S]*?)<\/g>/g), match => ({ ...attributes(match[1]), contents: match[2] }));
 const numbers = value => value === '' ? [] : value.split(',').map(Number);
@@ -128,18 +129,18 @@ test('candidate exploration changes the trial stump while preserving its residua
   }
 });
 
-test('all thirteen integrated scenes render and route to the correct numerical sequence', () => {
-  const state = { x: 0.8, y: 0.8, addition: 1, interaction: false, splitProgress: 1, correction: 1 };
+test('all nine integrated scenes render and route to the correct numerical sequence', () => {
+  const state = { correction: 1, growth: 4 };
   for (const compact of [false, true]) {
-    for (let scene = 0; scene < 13; scene++) {
+    for (let scene = 0; scene < 9; scene++) {
       const svg = story.renderScene(scene, state, compact);
-      const expected = scene < 6 ? view.render(scene, state, compact) : story.renderPartitionScene(scene - 5, state, compact);
+      const expected = scene < 6 ? view.render(scene, state, compact) : growth.render(scene - 6, state, compact);
       assert.equal(svg, expected);
-      assert.equal(story.readout(scene, state), scene < 6 ? view.readout(scene, state) : story.partitionReadout(scene - 5, state));
+      assert.equal(story.readout(scene, state), scene < 6 ? view.readout(scene, state) : growth.readout(scene - 6, state));
       assert.doesNotMatch(svg, /NaN|Infinity|undefined/);
       assert.match(svg, /<title\b[^>]*>[^<]+<\/title>/);
       assert.match(svg, /<desc\b[^>]*>[^<]+<\/desc>/);
-      for (const [, value] of svg.matchAll(/\b(?:x|y|x1|y1|x2|y2|cx|cy|width|height|r)="([^"]+)"/g)) {
+      for (const [, value] of svg.matchAll(/\s(?:x|y|x1|y1|x2|y2|cx|cy|width|height|r)="([^"]+)"/g)) {
         assert.ok(Number.isFinite(Number(value)), `Scene ${scene} contains invalid geometry: ${value}`);
       }
     }

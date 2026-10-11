@@ -176,14 +176,14 @@ test('all scenes keep the full-width presentation and the final onward link', ()
   assert.equal(ui.get('stage-equation').textContent, '');
   ui.click('process-next');
   assert.equal(ui.get('stage-equation').textContent, 'F₀(x) = ȳ = 12');
-  for(let scene=0;scene<13;scene++){
+  for(let scene=0;scene<9;scene++){
     if(scene)ui.click('next');
-    assert.equal(ui.get('stage-count').textContent, `${String(scene+1).padStart(2,'0')} / 13`);
+    assert.equal(ui.get('stage-count').textContent, `${String(scene+1).padStart(2,'0')} / 09`);
     assert.equal(ui.shell.dataset.layout, 'visual');
     assert.equal(ui.get('visual-heading').hidden, false);
     assert.ok(ui.get('visual-heading').textContent.length>0);
     assert.equal(ui.get('stage-topic').hidden, true);
-    assert.equal(ui.get('continue-boosting').hidden, scene!==12);
+    assert.equal(ui.get('continue-boosting').hidden, scene!==8);
   }
   ui.click('previous');
   assert.equal(ui.get('continue-boosting').hidden, true);
@@ -192,7 +192,7 @@ test('all scenes keep the full-width presentation and the final onward link', ()
 test('later-round headings follow the fitted tree and keep the final training-fit qualification', () => {
   const ui = setup(true);
   for(let scene=0;scene<5;scene++)ui.click('next');
-  assert.equal(ui.get('stage-count').textContent, '06 / 13');
+  assert.equal(ui.get('stage-count').textContent, '06 / 09');
   assert.equal(ui.get('stage-equation').textContent, 'h₃ ← fit(y − F₂)');
   ui.click('continuation-next');
   assert.equal(ui.get('stage-equation').textContent, 'F₃ = F₂ + h₃');
@@ -314,21 +314,63 @@ test('later rounds follow scroll, preserve a manual choice, and rewind to F2', (
   assert.equal(ui.get('continuation-back').disabled, true);
 });
 
-test('reduced-motion continuation uses completed fits and the shifted partition controls stay aligned', () => {
+test('reduced-motion continuation uses completed fits before the new growth frames', () => {
   const ui = setup(true);
   for (const [progress, round] of [[0.2, 2], [0.45, 3], [0.65, 4], [1, 8], [0.45, 3]]) {
     ui.scrollAt(5, 0.08 + 0.77 * progress);
     assert.equal(ui.get('continuation-label').textContent, `After ${round} trees`);
   }
-  ui.scrollAt(6, 0.4);
+  ui.scrollAt(6, 0);
   assert.equal(ui.get('continuation-controls').hidden, true);
-  assert.match(ui.get('diagram').innerHTML, /data-axis-role="second-predictor"/);
-  ui.scrollAt(7, 0.4);
-  assert.equal(ui.get('split-controls').hidden, false);
-  assert.equal(ui.get('addition-controls').hidden, true);
-  ui.scrollAt(8, 0.4);
-  assert.equal(ui.get('split-controls').hidden, true);
-  assert.equal(ui.get('addition-controls').hidden, false);
-  ui.scrollAt(11, 0.4);
-  assert.equal(ui.get('interaction-controls').hidden, false);
+  assert.equal(ui.get('growth-controls').hidden, false);
+  assert.equal(ui.get('growth-next').textContent, 'Next split');
+  ui.scrollAt(7, 0);
+  assert.equal(ui.get('growth-next').textContent, 'Next stump');
+  ui.scrollAt(8, 0);
+  assert.equal(ui.get('growth-controls').hidden, true);
+  assert.equal(ui.get('continue-boosting').hidden, false);
+});
+
+test('both growth frames follow and reverse scrolling, preserving manual choices until movement', () => {
+  const ui = setup(true);
+  for (const scene of [6, 7]) {
+    const unit=scene===6?'split':'stump';
+    ui.scrollAt(scene, 0);
+    assert.equal(ui.get('growth-label').textContent, `0 / 4 ${unit}s`);
+    ui.scrollAt(scene, 0.08+0.77*0.625);
+    assert.equal(ui.get('growth-label').textContent, `2 / 4 ${unit}s`);
+    ui.click('growth-next');
+    assert.equal(ui.get('growth-label').textContent, `3 / 4 ${unit}s`);
+    ui.sameScroll();
+    assert.equal(ui.get('growth-label').textContent, `3 / 4 ${unit}s`);
+    ui.scrollAt(scene, 0.9);
+    assert.equal(ui.get('growth-label').textContent, `4 / 4 ${unit}s`);
+    assert.equal(ui.get('growth-next').disabled, true);
+    ui.scrollAt(scene, 0.08+0.77*0.25);
+    assert.equal(ui.get('growth-label').textContent, `1 / 4 ${unit}s`);
+    ui.click('growth-back');
+    assert.equal(ui.get('growth-back').disabled, true);
+  }
+});
+
+test('growth replay pauses, resumes and yields to scrolling or a different frame', () => {
+  const ui=setup();
+  ui.scrollAt(6,0);
+  ui.click('growth-next'); ui.advance(1100);
+  assert.equal(ui.get('growth-label').textContent,'Drawing split 1 of 4');
+  ui.click('growth-replay');
+  assert.equal(ui.get('growth-replay').textContent,'Resume');
+  const paused=ui.get('diagram').innerHTML;
+  ui.advance(5000); assert.equal(ui.get('diagram').innerHTML,paused);
+  ui.click('growth-replay'); ui.advance(1100);
+  assert.equal(ui.get('growth-label').textContent,'1 / 4 splits');
+  ui.click('growth-replay'); ui.advance(1100);
+  assert.equal(ui.get('growth-replay').textContent,'Pause');
+  ui.scrollAt(6,0.9); ui.advance(10000);
+  assert.equal(ui.get('growth-label').textContent,'4 / 4 splits');
+  assert.equal(ui.get('growth-replay').textContent,'Replay');
+  ui.click('growth-replay'); ui.advance(1100);
+  ui.scrollAt(7,0); ui.advance(10000);
+  assert.equal(ui.get('growth-label').textContent,'0 / 4 stumps');
+  assert.equal(ui.get('growth-replay').textContent,'Replay');
 });

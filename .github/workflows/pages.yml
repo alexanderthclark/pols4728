@@ -49,6 +49,8 @@ jobs:
           node --check docs/trees/model.js
           node --check docs/trees/delivery.js
           node --check docs/trees/delivery-view.js
+          node --check docs/trees/growth.js
+          node --check docs/trees/growth-view.js
           node --check docs/trees/story.js
       - name: Check explainer calculations
         run: node --test tests/*.test.mjs

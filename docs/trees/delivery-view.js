@@ -116,6 +116,14 @@
     function points(values,b,kind,extra='') {
       return `<g data-points="${kind}" data-values="${values.join(',')}" ${extra}>`+D.x.map((v,i)=>circle(X(v),Y(values[i],b),compact?3.8:4.5,C.ink,'stroke="white" stroke-width="1.2"')).join('')+'</g>';
     }
+    function observationTooltips(b) {
+      const width=compact?88:102,height=compact?26:30;
+      return D.x.map((distance,i)=>{
+        const cx=X(distance),cy=Y(D.y[i],b),tx=cx+10+width>x+w?cx-width-10:cx+10,ty=cy-height-8;
+        const label=`Distance ${distance} km; y = ${D.y[i]} minutes`;
+        return `<g class="observation-hover" tabindex="0" role="img" aria-label="${esc(label)}" data-observation-y="${D.y[i]}"><rect x="${cx-11}" y="${cy-11}" width="22" height="22" fill="transparent" class="observation-target"/><g class="point-tooltip" pointer-events="none"><rect x="${tx}" y="${ty}" width="${width}" height="${height}" rx="3" fill="white" stroke="${C.blue}"/>${text(tx+width/2,ty+height/2+4,`y = ${D.y[i]} min`,'text-anchor="middle" class="tooltip-label"')}</g></g>`;
+      }).join('');
+    }
     function bracket(lo,hi,y,label,opacity=1) {
       return `<g opacity="${opacity}" data-group="${lo},${hi}">`+line(X(lo)+3,y,X(hi)-3,y,C.muted)+line(X(lo)+3,y-4,X(lo)+3,y,C.muted)+line(X(hi)-3,y-4,X(hi)-3,y,C.muted)+text(X((lo+hi)/2),y+(compact?15:20),label,'text-anchor="middle" class="arithmetic"')+'</g>';
     }
@@ -131,7 +139,7 @@
       return `<g data-errors="remaining" data-predictions="${predictions.join(',')}">`+D.x.map((v,i)=>line(X(v),Y(D.y[i],bottom),X(v),Y(predictions[i],bottom),scene===4 && i>=5 && emphasis>0?C.rust:'#b0b0b0',scene===4 && i>=5 && emphasis>0?2.8:1.6)).join('')+'</g>';
     }
     function wrap(body) {
-      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="${C.ink}" role="img" aria-labelledby="delivery-title delivery-description" data-process="${p}"><title id="delivery-title">${esc(topics[scene])}</title><desc id="delivery-description">${esc(captions[scene]+' '+readout(scene,state))}</desc><style>text{font-family:Georgia,serif;font-size:${compact?14:18}px}.panel-title{font-size:${compact?16:21}px}.tick,.key,.cut-label,.axis-label,.arrow-label,.arithmetic{font-family:Arial,sans-serif;font-size:${compact?12:14}px}.tick,.axis-label,.key{fill:${C.muted}}.cut-label,.value,.arrow-label,.arithmetic{paint-order:stroke;stroke:white;stroke-width:5px;stroke-linejoin:round}.value{font-size:${compact?15:20}px}.arrow-label{fill:${C.rust}}.annotation{font-size:${compact?13:17}px}</style>${body}</svg>`;
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="${C.ink}" role="img" aria-labelledby="delivery-title delivery-description" data-process="${p}"><title id="delivery-title">${esc(topics[scene])}</title><desc id="delivery-description">${esc(captions[scene]+' '+readout(scene,state))}</desc><style>text{font-family:Georgia,serif;font-size:${compact?14:18}px}.panel-title{font-size:${compact?16:21}px}.tick,.key,.cut-label,.axis-label,.arrow-label,.arithmetic{font-family:Arial,sans-serif;font-size:${compact?12:14}px}.tick,.axis-label,.key{fill:${C.muted}}.cut-label,.value,.arrow-label,.arithmetic{paint-order:stroke;stroke:white;stroke-width:5px;stroke-linejoin:round}.value{font-size:${compact?15:20}px}.arrow-label{fill:${C.rust}}.annotation{font-size:${compact?13:17}px}.point-tooltip{visibility:hidden}.observation-hover{outline:none}.observation-hover:hover .point-tooltip,.observation-hover:focus .point-tooltip{visibility:visible}.observation-hover:focus .observation-target{stroke:${C.blue};stroke-width:1.5}.tooltip-label{font-family:Arial,sans-serif;font-size:${compact?12:14}px;fill:${C.ink}}</style>${body}</svg>`;
     }
     const openingPanel={...bottom,y:top.y,h:bottom.y+bottom.h-top.y};
     if(scene===0){
@@ -145,6 +153,7 @@
         out+=text(X(11),Y(D.baseline,openingPanel)-10,fmt(D.baseline),`class="value" fill="${C.blue}" text-anchor="middle" opacity="${p}"`);
       }
       out+=points(D.y,openingPanel,'observations');
+      out+=observationTooltips(openingPanel);
       return wrap(out);
     }
     if(scene===1 && p<1 && !trial){

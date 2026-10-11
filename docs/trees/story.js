@@ -1,55 +1,25 @@
 (function (root, factory) {
   'use strict';
-  const api = factory(root.TreePartitions || (typeof require === 'function' ? require('./model.js') : null), root.DeliveryView || (typeof require === 'function' ? require('./delivery-view.js') : null), root.DeliveryExample || (typeof require === 'function' ? require('./delivery.js') : null));
+  const api = factory(root.DeliveryView || (typeof require === 'function' ? require('./delivery-view.js') : null), root.DeliveryExample || (typeof require === 'function' ? require('./delivery.js') : null), root.GrowthView || (typeof require === 'function' ? require('./growth-view.js') : null));
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root.document) api.init(root.document, root);
-})(typeof window !== 'undefined' ? window : globalThis, function (M, D, B) {
+})(typeof window !== 'undefined' ? window : globalThis, function (D, B, G) {
   'use strict';
-  const E = M.examples;
-  const C = { ink: '#242424', muted: '#606060', rule: '#b9b9b9', blue: '#234E70', rust: '#A54F32', teal: '#007F73' };
-  const partitionTopics = ['A split is a rule', 'From prediction height to an input map', 'Two splits: three regions or four', 'The new stump acts everywhere', 'Matching four regions takes three splits', 'Four regions, constrained values', 'Where interactions enter', 'From inputs to predictions'];
-  const partitionCaptions = [
-    'Each leaf value gives the height of its corresponding prediction segment.',
-    'A new illustrative rule, shown twice. On the left, height is the prediction; on the right, both axes are inputs and region labels are predictions.',
-    'Same two split nodes: one tree cuts one existing leaf; the second stump cuts across both.',
-    'T₂ contributes 2 above x₂ = 0, on both sides of the first tree’s boundary.',
-    'A single tree must ask about x₂ separately in its left and right branches.',
-    'Crossing x₁ = 0 adds 1 at either height. Four regions do not imply an interaction.',
-    'Compare the x₁ jump below and above x₂ = 0. Does that jump depend on x₂?',
-    'The input plane locates observations; the vector records their predictions.'
-  ];
-  const topics = [...D.topics, ...partitionTopics.slice(1)];
-  const captions = [...D.captions, ...partitionCaptions.slice(1)];
   const sceneHeadings = [
     'Predict delivery time', 'Fit a tree to the residuals', 'Add the first correction',
-    'Fit the new residuals', 'Add the second correction',
-    'Keep fitting the residuals', 'From a curve to an input map',
-    'Two splits: three regions or four', 'Add predictions at every input',
-    'One tree needs a third split', 'Four regions, constrained values',
-    'Add an interaction', 'From inputs to prediction vectors'
+    'Fit the new residuals', 'Add the second correction', 'Keep fitting the residuals'
   ];
   const sceneEquations = [
     'F₀(x) = ȳ = 12', 'h₁ ← fit(y − F₀)', 'F₁ = F₀ + h₁',
-    'h₂ ← fit(y − F₁)', 'F₂ = F₁ + h₂',
-    '', 'T₁(x₁, x₂) = 1{x₁ > 0}', '1 tree: 3 regions · 2 stumps: 4 regions',
-    'F(x₁, x₂) = T₁(x₁) + T₂(x₂)', '3 split nodes → 4 leaves',
-    'Upper right = lower right + upper left − lower left',
-    'U(x₁, x₂) = 2 · 1{x₁ > 0, x₂ > 0}',
-    'F ↦ (F(x⁽¹⁾), …, F(x⁽ⁿ⁾))'
+    'h₂ ← fit(y − F₁)', 'F₂ = F₁ + h₂', ''
   ];
   const sceneTakeaways = [
-    '', '', 'Add the same leaf value to every prediction in its interval.',
+    'Observed times are 6, 11, or 17 minutes. Hover a point for its exact value.', '', 'Add the same leaf value to every prediction in its interval.',
     'The next tree fits new targets, so its best cut can change.',
-    'One leaf raises both right-hand intervals. Some errors grow while total squared error falls.',
-    '', 'New illustrative example. Both map axes are inputs; numbers give predictions. More trees do not add predictors.',
-    'A recursive split divides one leaf. A separate stump cuts across the whole input space.',
-    'Every input passes through both trees. These illustrative trees show addition, not a new fitting round.',
-    'Same predictions: one tree uses three split nodes; two stumps use two.',
-    'At fixed cuts: 3 free prediction parameters versus 4. This restriction can help generalization; it does not guarantee it.',
-    'A sum of stumps is additive in predictors. Deeper trees can introduce interactions.',
-    'The next explainer gives each training observation its own prediction axis.'
+    'One leaf raises both right-hand intervals. Some errors grow while total squared error falls.', ''
   ];
   function scenePresentation(scene, state={}) {
+    if(scene>=6)return G.presentation(scene-6,state);
     let equation=sceneEquations[scene],takeaway=sceneTakeaways[scene];
     if(scene===0 && !(state.process>0))equation='';
     if(scene===4 && state.process>=3)takeaway='Two cutpoints make three intervals. The heights still leave errors to correct.';
@@ -62,302 +32,51 @@
         ?'This greedy sequence never reaches exact zero in finitely many rounds. Training fit alone does not establish accuracy on new data.'
         :'Later trees revisit existing cuts, changing the heights without adding intervals.';
     }
-    if(scene===11)takeaway=state.interaction
-      ?'With U, the x₁ effect is 3 above the boundary and 1 below: it depends on x₂.'
-      :'Add U to change only the upper-right prediction. These are numerical regression predictions.';
     return {heading:sceneHeadings[scene],equation,takeaway};
   }
   const fmt = n => Math.abs(n) < 1e-9 ? '0' : String(Number(n.toFixed(2))).replace('-', '−');
-  const escape = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const text = (x, y, value, options = '') => `<text x="${x}" y="${y}" ${options}>${escape(value)}</text>`;
-  const line = (x1, y1, x2, y2, color = C.rule, width = 1.2, extra = '') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" ${extra}/>`;
-  const rect = (x, y, w, h, fill, extra = '') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" ${extra}/>`;
-  const circle = (x, y, r, fill, extra = '') => `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" ${extra}/>`;
-  const leaf = n => Object.prototype.hasOwnProperty.call(n, 'value');
-  const scaled = (tree, weight) => leaf(tree) ? {...tree, value: tree.value * weight} : {...tree, left: scaled(tree.left, weight), right: scaled(tree.right, weight)};
-  const color = v => {
-    const a = Math.max(0, Math.min(1, v / 5));
-    return `rgb(${[255,255,255].map((start,i) => Math.round(start + ([35,78,112][i] - start)*a)).join(',')})`;
-  };
-
-  function treeDiagram(tree, box, oneD = false) {
-    const { x, y, w, h } = box;
-    const leaves = [];
-    function collect(node) { if (leaf(node)) leaves.push(node); else { collect(node.left); collect(node.right); } }
-    collect(tree);
-    const maxDepth = node => leaf(node) ? 0 : 1 + Math.max(maxDepth(node.left), maxDepth(node.right));
-    const depth = maxDepth(tree);
-    const positions = new Map();
-    const step = w / leaves.length;
-    let ordinal = 0;
-    function place(node, level) {
-      const px = leaf(node) ? x + step * (ordinal++ + .5) : (place(node.left, level + 1) + place(node.right, level + 1))/2;
-      positions.set(node.id, [px, y + level * h / Math.max(1, depth)]);
-      return px;
-    }
-    place(tree, 0);
-    let out = '';
-    function draw(node) {
-      const [px,py] = positions.get(node.id);
-      if (!leaf(node)) {
-        for (const [child, branch] of [[node.left,'yes'],[node.right,'no']]) {
-          const [cx,cy] = positions.get(child.id);
-          out += line(px,py + 11,cx,cy - 17,C.rule,1.2);
-          out += text((px+cx)/2 + (cx<px?-10:10),(py+cy)/2,branch,`text-anchor="middle" class="branch-label" fill="${C.muted}"`);
-        }
-        const label = `${oneD?'x':node.feature === 0?'x₁':'x₂'} ≤ ${fmt(node.threshold)}?`;
-        out += rect(px-49,py-15,98,28,'white');
-        out += text(px,py+5,label,`text-anchor="middle" fill="${C.ink}"`);
-        draw(node.left); draw(node.right);
-      } else {
-        out += rect(px-22,py-16,44,32,'white',`rx="2" stroke="${C.rule}" stroke-width="1.5"`);
-        out += text(px,py+6,fmt(node.value),`text-anchor="middle" fill="${C.ink}"`);
-      }
-    }
-    draw(tree);
-    return out;
-  }
-
-  function stepPlot(trees, box, options = {}) {
-    const {x,y,w,h} = box;
-    const segments = M.sumSegments1D(trees);
-    const X = value => x + (value+2)/4*w;
-    const Y = value => y+h - value/3.5*h;
-    const accent = options.accent || C.blue;
-    let out = '';
-    if (options.label) out += text(x-32,y+h/2+5,options.label,'text-anchor="end" class="plot-heading"');
-    for (const v of [0,1,2,3]) {
-      out += line(x,Y(v),x+w,Y(v),v===0?C.muted:'#ededed',v===0?1.2:1);
-      out += text(x-9,Y(v)+5,fmt(v),'text-anchor="end" class="tick"');
-    }
-    for (const [i,s] of segments.entries()) {
-      if (i) out += line(X(s.lo),y,X(s.lo),y+h,C.rule,1,'stroke-dasharray="3 4"');
-      out += line(X(s.lo),Y(s.value),X(s.hi),Y(s.value),accent,2.5);
-      if (i > 0 && segments[i-1].value !== s.value) out += circle(X(s.lo),Y(s.value),3.6,'white',`stroke="${accent}" stroke-width="1.5"`);
-      out += circle(X(s.hi),Y(s.value),3,accent);
-    }
-    for (const v of [-2,-.5,.75,2]) {
-      const isCut = v === -.5 || v === .75;
-      if (isCut && !segments.some(s => s.lo === v)) continue;
-      out += line(X(v),y+h,X(v),y+h+5,C.muted,1);
-      out += text(X(v),y+h+21,fmt(v),'text-anchor="middle" class="tick"');
-    }
-    out += text(x+w+9,y+h+5,'x','class="axis-label"');
-    return out;
-  }
-
-  function cuts(tree, bounds = [[-2,2],[-2,2]], depth = 0) {
-    if (leaf(tree)) return [];
-    const [lo,hi] = bounds[tree.feature];
-    const result = [];
-    if (tree.threshold > lo && tree.threshold < hi) result.push({feature:tree.feature,threshold:tree.threshold,bounds,depth});
-    const l = bounds.map(a=>a.slice()), r = bounds.map(a=>a.slice());
-    l[tree.feature][1] = Math.min(hi,tree.threshold);
-    r[tree.feature][0] = Math.max(lo,tree.threshold);
-    if (l[tree.feature][0] < l[tree.feature][1]) result.push(...cuts(tree.left,l,depth+1));
-    if (r[tree.feature][0] < r[tree.feature][1]) result.push(...cuts(tree.right,r,depth+1));
-    return result;
-  }
-
-  function partitionMap(trees, box, options = {}) {
-    const {x,y,w,h} = box;
-    const X = v => x+(v+2)/4*w, Y = v => y+h-(v+2)/4*h;
-    const cells = M.refinement(trees);
-    let out = '';
-    if (options.label) out += text(x+w/2,y-22,options.label,'text-anchor="middle" class="plot-heading"');
-    for (const cell of cells) {
-      const [[x0,x1],[y0,y1]] = cell.bounds;
-      out += rect(X(x0),Y(y1),X(x1)-X(x0),Y(y0)-Y(y1),color(cell.value));
-      const cx=(X(x0)+X(x1))/2, cy=(Y(y0)+Y(y1))/2;
-      out += text(cx,cy+6,fmt(cell.value),`text-anchor="middle" class="cell-value" fill="${cell.value>=3.5?'white':C.ink}"`);
-    }
-    for (const [i,tree] of trees.entries()) {
-      for (const cut of cuts(tree)) {
-        const attrs = `class="partition-cut cut-${cut.depth}" ${i===1?'stroke-dasharray="6 4"':''}`;
-        out += cut.feature === 0
-          ? line(X(cut.threshold),Y(cut.bounds[1][0]),X(cut.threshold),Y(cut.bounds[1][1]),i===1?C.rust:C.blue,2,attrs)
-          : line(X(cut.bounds[0][0]),Y(cut.threshold),X(cut.bounds[0][1]),Y(cut.threshold),C.rust,2,attrs);
-      }
-    }
-    out += rect(x,y,w,h,'none',`stroke="${C.muted}" stroke-width="1"`);
-    for (const v of [-2,0,2]) {
-      out += line(X(v),y+h,X(v),y+h+4,C.muted,1);
-      out += text(X(v),y+h+19,fmt(v),'text-anchor="middle" class="tick"');
-      if (!options.minimalTicks) out += text(x-8,Y(v)+4,fmt(v),'text-anchor="end" class="tick"');
-    }
-    out += w<120 ? text(x+w-2,y+h+37,'x₁','text-anchor="end" class="axis-label"') : text(x+w+7,y+h+5,'x₁','class="axis-label"');
-    out += text(x-3,y-8,'x₂','class="axis-label"');
-    return out;
-  }
-
-  function legend(x,y,w) {
-    let out = text(x,y-12,'Prediction · shared scale','class="legend-label"');
-    for(let v=0;v<=5;v++) {
-      out += rect(x+v*w/6,y,w/6,10,color(v),'stroke="#aaa" stroke-width=".5"');
-      out += text(x+(v+.5)*w/6,y+27,v,'text-anchor="middle" class="tick"');
-    }
-    return out;
-  }
-
-  function partitionReadout(scene,state={}) {
-    const a = state.addition ?? 1;
-    if (scene === 0) return 'Prediction: 0 if x ≤ −0.5; 1 if x > −0.5.';
-    if (scene === 1) return 'T₁ changes with x₁; its prediction is constant across x₂.';
-    if (scene === 2) {
-      if(state.splitProgress===0) return 'First split: 2 regions in each picture.';
-      return 'One tree: 3 regions · Two stumps: 4 regions · 2 splits each';
-    }
-    if (scene === 3) {
-      return `λ = ${fmt(a)} · Add ${fmt(2*a)} where x₂ > 0; add 0 where x₂ ≤ 0.`;
-    }
-    if (scene === 4) return 'Same four predictions: 0, 1, 2, 3 · One tree: 3 splits · Two stumps: 2 splits';
-    if (scene === 5) return 'Upper-right = lower-right + upper-left − lower-left: 3 = 1 + 2 − 0';
-    if (scene === 6) {
-      return `Upper-right prediction: ${state.interaction?'5':'3'} · x₁ jump: ${state.interaction?'1 below, 3 above':'1 below, 1 above'}`;
-    }
-    return 'Three fixed observations → three prediction coordinates.';
-  }
-
-  function renderPartitionScene(scene, provided = {}, compact = false) {
-    const state = {addition:1,interaction:false,splitProgress:1,...provided};
-    const W=compact?420:780, H=compact?280:510;
-    let out = '';
-    if (scene === 0) {
-      const tree = E.stump1D;
-      out += text(compact?90:165,compact?22:55,'Decision tree','text-anchor="middle" class="plot-heading"');
-      out += text(compact?310:572,compact?22:55,'Prediction function','text-anchor="middle" class="plot-heading"');
-      out += treeDiagram(tree,compact?{x:8,y:72,w:168,h:120}:{x:20,y:140,w:290,h:200},true);
-      out += stepPlot([tree],compact?{x:216,y:66,w:175,h:160}:{x:397,y:116,w:326,h:255});
-      out += text(compact?210:390,compact?266:440,'Follow a branch; read the corresponding height.','text-anchor="middle" class="figure-note"');
-    } else if (scene === 1) {
-      const tree = E.stumpX;
-      const b=compact?{x:32,y:76,w:142,h:132}:{x:70,y:130,w:255,h:250};
-      const X=v=>b.x+(v+2)/4*b.w,Y=v=>b.y+b.h-v/1.5*b.h;
-      const map=compact?{x:247,y:76,w:132,h:132}:{x:470,y:130,w:250,h:250};
-      out+=text(b.x+b.w/2,compact?24:45,'Prediction curve','text-anchor="middle" class="plot-heading"');
-      out+=text(map.x+map.w/2,compact?24:45,'Input map','text-anchor="middle" class="plot-heading"');
-      out+=text(b.x,compact?55:96,'Prediction T₁','class="figure-note"');
-      out+='<g data-axis-role="prediction" data-prediction-values="0,1">';
-      for(const v of [0,1]){
-        out+=line(b.x,Y(v),b.x+b.w,Y(v),'#e8e8e8');
-        out+=text(b.x-9,Y(v)+4,v,'text-anchor="end" class="tick"');
-      }
-      out+=line(b.x,b.y,b.x,b.y+b.h,C.muted);
-      for(const v of [-2,0,2]){
-        out+=line(X(v),Y(0),X(v),Y(0)+4,C.muted);
-        out+=text(X(v),Y(0)+19,v,'text-anchor="middle" class="tick"');
-      }
-      out+=line(X(0),b.y,X(0),Y(0),C.rule,1,'stroke-dasharray="3 4"');
-      out+=line(X(-2),Y(0),X(0),Y(0),C.blue,3);
-      out+=line(X(0),Y(1),X(2),Y(1),C.blue,3);
-      out+=circle(X(0),Y(0),3.5,C.blue)+circle(X(0),Y(1),3.5,'white',`stroke="${C.blue}" stroke-width="1.5"`);
-      out+=text(b.x+b.w+7,b.y+b.h+5,'x₁','class="axis-label"');
-      out+='</g><g data-axis-role="second-predictor">'+partitionMap([tree],map)+'</g>';
-      out+=line(W/2,compact?43:72,W/2,compact?231:439,'#dedede');
-      out+=text(b.x+b.w/2,compact?251:430,'Height gives the prediction','text-anchor="middle" class="figure-note"');
-      out+=text(map.x+map.w/2,compact?251:430,'Numbers give the prediction','text-anchor="middle" class="figure-note"');
-      if(!compact)out+=text(W/2,483,'Same rule: 0 if x₁ ≤ 0; 1 if x₁ > 0. The first stump ignores x₂.','text-anchor="middle" class="figure-note"');
-    } else if (scene === 2 || scene === 4) {
-      const firstOnly=scene===2 && state.splitProgress===0;
-      const single=firstOnly?E.stumpX:scene===2?E.recursive2D:E.matched2D;
-      const ensemble=firstOnly?[E.stumpX]:[E.stumpX,E.stumpY];
-      const centers=compact?[105,315]:[200,584];
-      const boxes=compact?[{x:33,y:91,w:144,h:144},{x:243,y:91,w:144,h:144}]:[{x:65,y:123,w:270,h:270},{x:449,y:123,w:270,h:270}];
-      [single,ensemble].forEach((tree,i)=>{
-        const ts=i===0?[tree]:tree;
-        out+=text(centers[i],compact?22:28,i===0?'One tree':'Two stumps','text-anchor="middle" class="plot-heading"');
-        out+=text(centers[i],compact?43:55,`${ts.reduce((s,t)=>s+M.splitCount(t),0)} split${firstOnly?'':'s'}`,'text-anchor="middle" class="figure-note"');
-        out+=text(centers[i],compact?72:88,`${M.refinement(ts).length} regions`,'text-anchor="middle" class="region-count"');
-        out+=`<g data-comparison="${i===0?'single':'sum'}">${partitionMap(ts,boxes[i])}</g>`;
-      });
-      out+=line(W/2,compact?8:10,W/2,compact?263:488,'#dedede',1);
-      const notes=scene===2?['The second cut stays in one leaf.','The second cut crosses both leaves.']:['Ask about x₂ in each branch.','Ask about x₂ in one new stump.'];
-      if(!compact)notes.forEach((note,i)=>{out+=text(centers[i],462,note,'text-anchor="middle" class="figure-note"');});
-      if(compact && scene===2){out+=text(105,276,'Local second cut','text-anchor="middle" class="figure-note"');out+=text(315,276,'Crossing second cut','text-anchor="middle" class="figure-note"');}
-      if(scene===4)out+=text(W/2,H-4,compact?'Same function; different split counts.':'Same four regions and predictions; different split counts.','text-anchor="middle" class="figure-note"');
-    } else if (scene === 3) {
-      const second=scaled(E.stumpY,state.addition);
-      const maps=[[E.stumpX],[second],[E.stumpX,second]];
-      const labels=['T₁','λT₂','F = T₁ + λT₂'];
-      for(let i=0;i<3;i++) out += partitionMap(maps[i],compact?{x:26+i*138,y:57,w:96,h:96}:{x:38+i*254,y:111,w:196,h:196},{label:labels[i],minimalTicks:i>0});
-      out += text(compact?136:261,compact?107:214,'+','text-anchor="middle" class="operator"');
-      out += text(compact?277:515,compact?107:214,'=','text-anchor="middle" class="operator"');
-      out += text(W/2,compact?211:369,'Add the two region values at every input.','text-anchor="middle" class="figure-note"');
-      out += legend(compact?110:250,compact?247:432,compact?200:280);
-    } else if (scene === 5) {
-      const box=compact?{x:110,y:47,w:195,h:195}:{x:237,y:83,w:306,h:306};
-      out+=partitionMap([E.stumpX,E.stumpY],box,{label:'F = T₁ + T₂'});
-      const X=v=>box.x+(v+2)/4*box.w,Y=v=>box.y+box.h-(v+2)/4*box.h;
-      for(const y of [-1.5,1.5]){
-        const py=Y(y);
-        out+=line(X(-1),py,X(1),py,C.rust,2);
-        out+=text(X(1)+1,py+6,'›',`fill="${C.rust}" class="operator"`);
-        out+=text(box.x+box.w+16,py+5,'+1',`fill="${C.rust}" class="plot-heading"`);
-      }
-      if(!compact)out+=text(W/2,455,'The x₁ jump is the same above and below.','text-anchor="middle" class="figure-note"');
-    } else if (scene === 6) {
-      const trees=[E.stumpX,E.stumpY];
-      if(state.interaction) trees.push(E.conditional);
-      out += partitionMap([E.conditional],compact?{x:28,y:42,w:137,h:137}:{x:73,y:92,w:253,h:253},{label:'Conditional tree U'});
-      out += partitionMap(trees,compact?{x:247,y:42,w:137,h:137}:{x:451,y:92,w:253,h:253},{label:state.interaction?'F = T₁ + T₂ + U':'F = T₁ + T₂'});
-      out += text(compact?211:390,compact?103:220,state.interaction?'+ U':'U off','text-anchor="middle" class="figure-note"');
-      out += text(W/2,compact?215:393,`x₁ jump: 1 below; ${state.interaction?'3':'1'} above.`, 'text-anchor="middle" class="figure-note"');
-      out += legend(compact?115:250,compact?248:446,compact?190:280);
-    } else {
-      const box=compact?{x:29,y:47,w:162,h:162}:{x:92,y:108,w:275,h:275};
-      out += partitionMap([E.stumpX,E.stumpY],box,{label:'Input space'});
-      const points=[[-1.25,-1.3],[1.2,-1.35],[1.2,1.35]], vals=points.map(p=>M.evaluate(E.stumpX,p)+M.evaluate(E.stumpY,p));
-      points.forEach((p,i)=>{
-        const px=box.x+(p[0]+2)/4*box.w,py=box.y+box.h-(p[1]+2)/4*box.h;
-        out += circle(px,py,11,'white',`stroke="${C.ink}" stroke-width="1.5"`);
-        out += text(px,py+4,String.fromCharCode(65+i),'text-anchor="middle" class="tick"');
-      });
-      out += line(compact?219:403,compact?125:242,compact?245:448,compact?125:242,C.muted,1.5);
-      out += text(compact?244:448,compact?131:248,'›','text-anchor="end" class="operator"');
-      out += text(compact?328:598,compact?23:76,'Prediction vector','text-anchor="middle" class="plot-heading"');
-      vals.forEach((v,i)=>{
-        out += text(compact?278:508,compact?81+i*53:161+i*76,`F(${String.fromCharCode(65+i)})`, 'class="axis-label"');
-        out += text(compact?363:665,compact?81+i*53:161+i*76,fmt(v),'text-anchor="middle" class="vector-value"');
-      });
-      out += text(W/2,compact?259:459,'Next: choose a tree by the correction it makes.','text-anchor="middle" class="figure-note"');
-    }
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="${C.ink}" role="img" aria-labelledby="scene-title scene-description"><title id="scene-title">${escape(partitionTopics[scene])}</title><desc id="scene-description">${escape(partitionCaptions[scene]+' '+partitionReadout(scene,state))}</desc><style>text{font-family:Georgia,serif;font-size:${compact?14:18}px}.tick,.branch-label{font-family:Arial,sans-serif;font-size:${compact?12:13}px}.plot-heading{font-size:${compact?15:20}px}.figure-note,.legend-label{font-size:${compact?13:16}px}.legend-label{font-family:Arial,sans-serif}.cell-value{font-size:${compact?18:27}px}.region-count{font-size:${compact?25:30}px;fill:${C.blue}}.operator{font-size:${compact?20:28}px}.vector-value{font-size:${compact?25:35}px}.axis-label{font-style:italic}.partition-cut{vector-effect:non-scaling-stroke}</style>${out}</svg>`;
-  }
-
   function renderScene(scene, state = {}, compact = false) {
-    return scene < 6 ? D.render(scene, state, compact) : renderPartitionScene(scene - 5, state, compact);
+    return scene < 6 ? D.render(scene, state, compact) : G.render(scene-6,state,compact);
   }
   function readout(scene, state = {}) {
-    return scene < 6 ? D.readout(scene, state) : partitionReadout(scene - 5, state);
+    return scene < 6 ? D.readout(scene, state) : G.readout(scene-6,state);
   }
 
   function init(doc,win) {
     const get=id=>doc.getElementById(id);
     doc.documentElement.dataset.enhanced='true';
     get('full-explanation').open=false;
-    const state={addition:1,interaction:false,splitProgress:1,process:0,candidateIndex:null,continuation:0};
+    const state={process:0,candidateIndex:null,continuation:0,growth:0};
     const steps=Array.from(doc.querySelectorAll('.step'));
     const diagram=get('diagram'), shell=diagram.closest('.stage-shell');
     const reduced=win.matchMedia('(prefers-reduced-motion: reduce)');
     const compact=win.matchMedia('(max-width: 800px)');
-    let scene=0, frame=0, animation=0, targetScene=null, targetTimeout=0, processResumeTarget=null, scrollPosition=win.scrollY, scrollSyncPending=true;
+    let scene=0, frame=0, animation=0, targetScene=null, targetTimeout=0, processResumeTarget=null, growthResumeTarget=null, scrollPosition=win.scrollY, scrollSyncPending=true;
     function render(transition=false) {
       shell.dataset.scene=String(scene);
       shell.dataset.layout='visual';
-      get('stage-topic').textContent=topics[scene];
+      get('stage-topic').textContent=scenePresentation(scene,state).heading;
       get('stage-topic').hidden=true;
       const presentation=scenePresentation(scene,state);
       get('visual-heading').hidden=false;
       get('visual-heading').textContent=presentation.heading;
       get('stage-equation').textContent=presentation.equation;
       get('stage-equation').hidden=false;
-      get('stage-count').textContent=`${String(scene+1).padStart(2,'0')} / ${steps.length}`;
+      get('stage-count').textContent=`${String(scene+1).padStart(2,'0')} / ${String(steps.length).padStart(2,'0')}`;
       get('stage-caption').textContent=presentation.takeaway;
       get('stage-caption').hidden=false;
-      get('continue-boosting').hidden=scene!==12;
-      get('addition-controls').hidden=scene!==8;
-      get('split-controls').hidden=scene!==7;
-      get('interaction-controls').hidden=scene!==11;
+      get('continue-boosting').hidden=scene!==8;
+      const growthScene=scene===6 || scene===7;
+      get('growth-controls').hidden=!growthScene;
+      if(growthScene){
+        const maximum=G.max(scene-6), complete=Math.floor(state.growth+1e-8), unit=scene===6?'split':'stump';
+        get('growth-label').textContent=state.growth>complete+1e-8
+          ?`Drawing ${unit} ${complete+1} of ${maximum}`:`${complete} / ${maximum} ${unit}s`;
+        get('growth-back').textContent=`Previous ${unit}`;
+        get('growth-next').textContent=`Next ${unit}`;
+        get('growth-back').disabled=state.growth<=0;
+        get('growth-next').disabled=state.growth>=maximum;
+      }
       const processScene=scene>=0 && scene<=4, fitScene=scene===1 || scene===3;
       get('process-controls').hidden=!processScene;
       get('candidate-controls').hidden=!fitScene;
@@ -387,8 +106,6 @@
         get('candidate-value').textContent=`${fmt(row.threshold)} km`;
         get('candidate-description').textContent=`Leaf means: ${fmt(row.left)}, ${fmt(row.right)} min. Residual SSE: ${fmt(row.sse)} min². ${index===winner?'Lowest among the seven candidate splits.':`Best split: ${fmt(candidates[winner].threshold)} km, SSE ${fmt(candidates[winner].sse)} min².`}`;
       }
-      get('addition-value').textContent=fmt(state.addition);
-      get('addition').value=state.addition;
       get('calculation').textContent=readout(scene,state);
       get('previous').disabled=scene===0;
       get('next').disabled=scene===steps.length-1;
@@ -398,10 +115,9 @@
     }
     function stopAnimation(keepProcessPosition=false){
       win.cancelAnimationFrame(animation);animation=0;
-      if(!keepProcessPosition)processResumeTarget=null;
+      if(!keepProcessPosition){processResumeTarget=null;growthResumeTarget=null;}
       get('process-replay').textContent=processResumeTarget===null?'Replay sequence':'Resume sequence';
-      get('replay-addition').textContent='Replay addition';
-      get('replay-splits').textContent='Replay the second split';
+      get('growth-replay').textContent=growthResumeTarget===null?'Replay':'Resume';
       get('calculation').setAttribute('aria-live','polite');
     }
     function closeCandidates(){get('candidate-details').open=false;state.candidateIndex=null;}
@@ -425,7 +141,7 @@
     }
     function activate(index){
       if(index===scene) return;
-      stopAnimation(); closeCandidates(); scene=index; shell.scrollTop=0; state.addition=1; state.process=0; state.continuation=0; state.splitProgress=1;render(true);
+      stopAnimation(); closeCandidates(); scene=index; shell.scrollTop=0; state.process=0; state.continuation=0; state.growth=0;render(true);
     }
     function readingLine(){
       // One viewport-centered trigger for the full-width stage at every screen size.
@@ -444,13 +160,16 @@
         steps.forEach((s,i)=>{if(s.getBoundingClientRect().top<=line) nearest=i;});
         const changed=nearest!==scene;
         activate(nearest);
-        if((moved || changed || force) && scene>=0 && scene<=5){
+        if((moved || changed || force) && scene>=0 && scene<=7){
           stopAnimation();closeCandidates();
           const box=steps[scene].getBoundingClientRect();
           // Give the initial scatterplot time to arrive before revealing the mean.
           const hold=scene===0?.4:.08,duration=scene===0?.5:.77;
           const fraction=Math.max(0,Math.min(1,((line-box.top)/Math.max(1,box.height)-hold)/duration));
-          if(scene===5){
+          if(scene>=6){
+            const progress=Math.round(fraction*G.max(scene-6)*1000)/1000;
+            state.growth=reduced.matches?Math.floor(progress):progress;
+          }else if(scene===5){
             state.continuation=fraction;
             if(reduced.matches){
               const current=D.continuationState(fraction);
@@ -484,21 +203,29 @@
       state.continuation=D.continuationProgress(Math.max(2,Math.min(8,round)));
       render();
     });
-    get('addition').addEventListener('input',e=>{stopAnimation();state.addition=Number(e.target.value);render();});
-    get('include-interaction').addEventListener('change',e=>{state.interaction=e.target.checked;render(true);});
-    get('replay-splits').addEventListener('click',()=>{
-      if(animation || reduced.matches){stopAnimation();state.splitProgress=1;render();return;}
-      state.splitProgress=0;render(true);get('replay-splits').textContent='Show the second split';
-      const start=win.performance.now();
-      function tick(now){if(now-start<1400){animation=win.requestAnimationFrame(tick);return;}state.splitProgress=1;render(true);stopAnimation();}
-      animation=win.requestAnimationFrame(tick);
-    });
-    get('replay-addition').addEventListener('click',()=>{
-      if(animation){stopAnimation();return;}
-      if(reduced.matches){state.addition=1;render();return;}
-      const start=win.performance.now();state.addition=0;get('replay-addition').textContent='Pause';
-      function tick(now){state.addition=Math.min(1,Math.round((now-start)/1800*100)/100);render();if(state.addition<1)animation=win.requestAnimationFrame(tick);else stopAnimation();}
-      animation=win.requestAnimationFrame(tick);
+    function animateGrowth(target,restart=false){
+      stopAnimation();
+      if(restart)state.growth=0;
+      if(reduced.matches){state.growth=target;render();return;}
+      const from=state.growth,start=win.performance.now(),duration=Math.max(650,Math.abs(target-from)*2200);
+      growthResumeTarget=target;
+      get('growth-replay').textContent='Pause';
+      get('calculation').setAttribute('aria-live','off');
+      function tick(now){
+        const t=Math.min(1,(now-start)/duration);
+        state.growth=Math.round((from+(target-from)*t)*1000)/1000;
+        render();
+        if(t<1)animation=win.requestAnimationFrame(tick);
+        else {stopAnimation();render();}
+      }
+      render();animation=win.requestAnimationFrame(tick);
+    }
+    get('growth-next').addEventListener('click',()=>animateGrowth(Math.min(G.max(scene-6),Math.floor(state.growth+1e-6)+1)));
+    get('growth-back').addEventListener('click',()=>animateGrowth(Math.max(0,Math.ceil(state.growth-1e-6)-1)));
+    get('growth-replay').addEventListener('click',()=>{
+      if(animation){stopAnimation(true);render();}
+      else if(growthResumeTarget!==null)animateGrowth(growthResumeTarget);
+      else animateGrowth(G.max(scene-6),true);
     });
     get('process-next').addEventListener('click',()=>animateProcess(Math.min(D.processMax(scene),Math.floor(state.process+1e-6)+1)));
     get('process-back').addEventListener('click',()=>animateProcess(Math.max(0,Math.ceil(state.process-1e-6)-1)));
@@ -531,5 +258,5 @@
     reduced.addEventListener('change',()=>{stopAnimation();scrollSyncPending=true;render();onScroll();});
     render();onScroll();
   }
-  return {renderScene,readout,renderPartitionScene,partitionReadout,scenePresentation,cuts,scaled,init};
+  return {renderScene,readout,scenePresentation,init};
 });
