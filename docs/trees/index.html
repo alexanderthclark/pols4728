@@ -52,10 +52,29 @@
             <input id="probe-y" type="range" min="-2" max="2" step="0.01" value="0.8">
           </div>
         </div>
-        <div id="correction-controls" class="correction-controls" hidden>
-          <label for="correction-progress">Correction added <output id="correction-value" for="correction-progress">1.00</output></label>
-          <input id="correction-progress" type="range" min="0" max="1" step="0.01" value="1">
-          <button id="replay-correction" type="button">Replay addition</button>
+        <div id="process-controls" class="process-controls" aria-label="Work through the correction" hidden>
+          <div class="process-status"><span id="process-label" role="status" aria-live="polite">Measure the errors</span></div>
+          <div class="process-actions">
+            <button id="process-back" type="button" disabled>Previous action</button>
+            <button id="process-next" type="button">Next action</button>
+            <button id="process-replay" type="button">Replay sequence</button>
+          </div>
+          <div class="process-timeline"><label for="process-progress">Sequence progress</label><input id="process-progress" type="range" min="0" max="3" step="0.01" value="0"></div>
+        </div>
+        <div id="candidate-controls" class="candidate-controls" hidden>
+          <details id="candidate-details">
+            <summary>How was this split chosen?</summary>
+            <div class="candidate-panel">
+              <div class="candidate-label"><label for="candidate-cut">Candidate cut</label><output id="candidate-value" for="candidate-cut">8 km</output></div>
+              <input id="candidate-cut" type="range" min="0" max="6" step="1" value="4">
+              <p id="candidate-description">Move the cut to compare the squared error after fitting the mean residual in each leaf.</p>
+            </div>
+          </details>
+        </div>
+        <div id="contribution-controls" class="contribution-controls" hidden>
+          <label for="contribution-x">Inspect distance <output id="contribution-x-value" for="contribution-x">6.00 km</output></label>
+          <input id="contribution-x" type="range" min="0" max="13" step="0.01" value="6">
+          <button id="replay-contributions" type="button">Trace the sum</button>
         </div>
         <div id="addition-controls" class="addition-controls" hidden>
           <label for="addition">Contribution of T₂ <output id="addition-value" for="addition">1.00</output></label>
@@ -92,8 +111,8 @@
           <h2 id="heading-1">Fit a tree to the residuals</h2>
           <p>A <em>residual</em> is the observed time minus the current prediction. From our 12-minute starting point, the residuals are −6, −6, −1, −1, −1, 5, 5, and 5 minutes.</p>
           <p>Fit a one-split regression tree—a <em>stump</em>—to those residuals. The best split among the midpoints between observed distances is 8 km. Each leaf predicts its mean residual: −3 minutes on the left and +5 on the right.</p>
-          <p>The tree tells us how to adjust the prediction. It proposes subtracting 3 minutes for shorter deliveries and adding 5 for longer ones.</p>
-          <p class="quiet">The upper plot shows residuals and the fitted correction. The lower plot shows the original delivery times and the accumulated prediction. Each plot keeps its axes fixed across rounds, so changes in height reflect changes in residuals and predictions.</p>
+          <p>Use “Next action” to measure the errors, form the residuals, split them, and fit the two leaf means. Open the split comparison to see why 8 km gives the lowest fitting error.</p>
+          <p class="quiet">The upper plot shows residuals and their fitted correction. The lower plot shows original delivery times and the accumulated prediction. Each plot keeps its axes fixed across rounds.</p>
         </div></section>
 
         <section class="step" id="add-first-correction" data-step="2" aria-labelledby="heading-2"><div>
@@ -101,8 +120,8 @@
           <h2 id="heading-2">Add the correction to the current prediction</h2>
           <p>The first tree, <span class="math">h₁</span>, predicts a change in minutes. Add that change to the 12-minute baseline:</p>
           <p class="equation math">F₁(x) = 12 + h₁(x).</p>
-          <p>The new prediction is <span class="math">12 − 3 = 9</span> minutes up to 8 km and <span class="math">12 + 5 = 17</span> minutes above it. Replay the addition to see the two levels move away from the old prediction.</p>
-          <p>The training mean squared error falls from 18.75 to 3.75. The longer deliveries are fitted exactly, while the shorter ones still leave errors to correct.</p>
+          <p>Advance through the actions to attach the correction to the old prediction, add it, and inspect the remaining errors. The left level moves down 3 minutes while the right level moves up 5.</p>
+          <p>The result is <span class="math">12 − 3 = 9</span> minutes up to 8 km and <span class="math">12 + 5 = 17</span> above it. Training mean squared error falls from 18.75 to 3.75. The longer deliveries are fitted exactly; the shorter ones still leave errors to correct.</p>
         </div></section>
 
         <section class="step" id="fit-second-correction" data-step="3" aria-labelledby="heading-3"><div>
@@ -110,7 +129,7 @@
           <h2 id="heading-3">Recompute the residuals, then fit again</h2>
           <p>Subtract the new prediction from each observed time. The residuals are now −3, −3, 2, 2, 2, 0, 0, and 0 minutes. These are the targets for the next tree.</p>
           <p>The best stump now splits at 3.5 km. Its left leaf predicts −3. Its right leaf predicts +1, the mean of the six residuals to the right.</p>
-          <p>The second tree, <span class="math">h₂</span>, is fitted to what the current ensemble misses. Its cutpoint differs from the first tree’s because the residuals have changed.</p>
+          <p>Follow the residuals changing in the upper plot while the current prediction stays fixed below. Then split and fit the new residuals. The second tree, <span class="math">h₂</span>, chooses a different cutpoint because what remains to be learned has changed.</p>
         </div></section>
 
         <section class="step" id="add-second-correction" data-step="4" aria-labelledby="heading-4"><div>
@@ -118,15 +137,15 @@
           <h2 id="heading-4">Keep the first tree and add the second</h2>
           <p>Add <span class="math">h₂</span> to the current prediction at every distance:</p>
           <p class="equation math">F₂(x) = 12 + h₁(x) + h₂(x).</p>
-          <p>Up to 3.5 km, <span class="math">9 − 3 = 6</span>. Between 3.5 and 8 km, <span class="math">9 + 1 = 10</span>. Above 8 km, <span class="math">17 + 1 = 18</span>. The accumulated prediction now has three levels.</p>
-          <p>The training mean squared error falls again, from 3.75 to 0.75. Some previously exact predictions have moved away from their observations; the fitted correction improves the total squared error.</p>
+          <p>The shortest deliveries move from 9 to 6 minutes. Both intervals to the right of 3.5 km rise together by 1: from 9 to 10 in the middle, and from 17 to 18 above 8 km. They share the second tree’s right leaf even though the first tree gave them different predictions.</p>
+          <p>In the final action, inspect the remaining errors. The middle group improves, but the long deliveries now overshoot by 1 minute. Together with the improvement on the left, the changes reduce training mean squared error from 3.75 to 0.75.</p>
         </div></section>
 
         <section class="step" id="three-plateaus" data-step="5" aria-labelledby="heading-5"><div>
           <p class="step-number">06 / 13 · TWO TREES, ONE FUNCTION</p>
           <h2 id="heading-5">Two stumps, three plateaus</h2>
           <p>Each fitted tree has just one cutpoint and two leaves. Their sum keeps both cutpoints, 3.5 and 8 km, so it has three intervals with predictions 6, 10, and 18 minutes.</p>
-          <p>The second tree did not replace the first one. At every input we evaluate both trees, then add their contributions to the baseline. This is how separate step functions build a more detailed prediction function.</p>
+          <p>Move “Inspect distance” or choose “Trace the sum” to follow one input through both trees. At 6 km, the two contributions are −3 and +1, giving <span class="math">12 − 3 + 1 = 10</span> minutes. Watch which contribution changes when the cursor crosses each cutpoint.</p>
           <p>With one predictor, two distinct cutpoints make three intervals. With two predictors, a new split can cross an earlier boundary. That changes the comparison between growing one tree and adding another.</p>
           <p class="quiet">These are training errors for a small illustrative dataset. Better predictions on new deliveries would need to be checked separately.</p>
         </div></section>

@@ -13,12 +13,27 @@ comparison shows the third split a single tree needs to match the four-region
 prediction function, before distinguishing region counts from freedom in the
 leaf values.
 
-The input sliders, pointer probing, and focusable leaf buttons select the same input across
-the diagrams. Previous/Next buttons and left/right keys navigate the explanation.
-Sliders retain their native arrow-key behavior. The addition control scales a
-second tree; Replay animates its coefficient from zero to one. A separate replay
-shows the first split in both constructions, then adds the second. Reduced motion
-uses the completed comparison and immediate navigation.
+Previous/Next buttons and left/right keys navigate the explanation. Entering a
+delivery fitting or update scene starts its sequence paused. Previous action,
+Next action, Replay sequence, and the progress slider control its three stages;
+an active replay can be paused and resumed. Sliders retain their native arrow-key
+behavior. Reduced motion applies each requested action immediately.
+
+Fitting first forms the residual targets, then separates the observations at the
+chosen threshold, and finally reveals the leaf means. The second fitting scene
+subtracts the previous correction from the old residuals while keeping F₁ fixed.
+The optional candidate-cut explorer compares all seven partitions, reporting
+their fitted residual means and SSE without changing the accumulated model.
+Closing it restores the fitted winner. Update scenes attach a fixed correction,
+add it to the previous function, and inspect the remaining errors. The targets
+and correction above stay fixed while the prediction below changes.
+
+The delivery summary uses three aligned strips for h₁, h₂, and their sum plus
+the starting mean. Inspect distance, pointer probing, and Trace the sum reveal
+the contributions at one shared input. In the later partition scenes, input
+sliders and focusable leaf buttons select the same input across the diagrams.
+Separate replays animate a stump's contribution and compare the second split
+in the recursive and ensemble constructions.
 
 ## Numerical examples
 
@@ -42,6 +57,10 @@ data partitions. Midpoints label the thresholds; other thresholds between the
 same adjacent observations produce the same training partition. The first stump
 is fitted to `[-6, -6, -1, -1, -1, 5, 5, 5]`, and the second to
 `[-3, -3, 2, 2, 2, 0, 0, 0]`. The error reductions describe training fit.
+During the second update, the three longest-distance predictions rise from 17
+to 18 even though their observations equal 17. Those individual errors grow
+while aggregate training MSE falls. Animation progress interpolates the chosen
+update; it does not refit the displayed stump to changing residual targets.
 
 - The main comparison uses one tree that splits x1 at zero and then only its
   right child at x2 = 0, with leaf predictions 0, 1, and 3. The two-stump sum has
@@ -68,10 +87,13 @@ learning procedures and constraints differ.
 - `model.js` supplies evaluation, branch paths, rectangular regions and common
   refinement; it is shared by the renderer and Node tests.
 - `delivery.js` fits the two residual stumps and exports observations, rounds,
-  MSE calculation, and partial-update predictions. It uses `BoostingMath` in the
-  browser and the same module through CommonJS in tests.
+  MSE calculation, partial-update predictions, and frozen candidate rows through
+  `candidates(round)`. Candidate values are residual predictions. It uses
+  `BoostingMath` in the browser and the same module through CommonJS in tests.
 - `delivery-view.js` renders the first six scenes with shared axes and exports
-  their topics, captions, and numerical readouts.
+  their topics, captions, process labels, and numerical readouts. Process runs
+  from 0 to 3; addition runs during process 1 to 2. Direct renders default to a
+  completed sequence and retain the older `correction` input for inspection.
 - `story.js` routes all thirteen scenes and initializes controls and scrolling.
   It also exports the original partition renderer and readout as
   `renderPartitionScene` and `partitionReadout` for focused tests.
@@ -83,8 +105,12 @@ Run the JavaScript syntax checks in `.github/workflows/pages.yml` and
 `node --test tests/*.test.mjs`. Browser loading order is `../boosting/model.js`,
 `delivery.js`, `delivery-view.js`, `model.js`, then `story.js`.
 For browser review, inspect all thirteen scenes at desktop and mobile widths,
-replay the fitted residual corrections, compare both aligned rows, and drag
-both input sliders, probe the plots, activate leaves with Enter/Space, replay and
-pause addition, toggle U, and navigate both directions. Check reduced motion and
-links between the companion, boosting, and course home. The full prose remains
+step through each delivery action, pause and resume a replay, scrub backward,
+compare candidate cuts, and trace contributions across both thresholds. Then
+drag both partition input sliders, activate leaves with Enter/Space, replay
+addition, toggle U, and navigate both directions. Check reduced motion and links
+between the companion, boosting, and course home. Renderer tests verify fixed
+coordinates and numerical states; a headless event/clock harness covers control
+transitions and asynchronous candidate-panel closure. Browser review remains
+necessary for layout and visual animation quality. The full prose remains
 available without JavaScript.

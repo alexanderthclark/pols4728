@@ -1,9 +1,9 @@
 (function (root, factory) {
   'use strict';
-  const api = factory(root.TreePartitions || (typeof require === 'function' ? require('./model.js') : null), root.DeliveryView || (typeof require === 'function' ? require('./delivery-view.js') : null));
+  const api = factory(root.TreePartitions || (typeof require === 'function' ? require('./model.js') : null), root.DeliveryView || (typeof require === 'function' ? require('./delivery-view.js') : null), root.DeliveryExample || (typeof require === 'function' ? require('./delivery.js') : null));
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root.document) api.init(root.document, root);
-})(typeof window !== 'undefined' ? window : globalThis, function (M, D) {
+})(typeof window !== 'undefined' ? window : globalThis, function (M, D, B) {
   'use strict';
   const E = M.examples;
   const C = { ink: '#242424', muted: '#606060', rule: '#b9b9b9', blue: '#234E70', rust: '#A54F32', teal: '#007F73' };
@@ -298,12 +298,12 @@
 
   function init(doc,win) {
     const get=id=>doc.getElementById(id);
-    const state={x:.8,y:.8,addition:1,interaction:false,splitProgress:1,correction:1};
+    const state={x:.8,y:.8,addition:1,interaction:false,splitProgress:1,process:0,inspectX:6,candidateIndex:null};
     const steps=Array.from(doc.querySelectorAll('.step'));
     const diagram=get('diagram'), shell=diagram.closest('.stage-shell');
     const reduced=win.matchMedia('(prefers-reduced-motion: reduce)');
     const compact=win.matchMedia('(max-width: 800px)');
-    let scene=0, frame=0, animation=0, targetScene=null, targetTimeout=0;
+    let scene=0, frame=0, animation=0, targetScene=null, targetTimeout=0, processResumeTarget=null;
     function render(transition=false) {
       shell.dataset.scene=String(scene);
       get('stage-topic').textContent=topics[scene];
@@ -314,9 +314,28 @@
       get('addition-controls').hidden=scene!==8;
       get('split-controls').hidden=scene!==7;
       get('interaction-controls').hidden=scene!==11;
-      get('correction-controls').hidden=scene!==2 && scene!==4;
-      get('correction-progress').value=state.correction;
-      get('correction-value').textContent=fmt(state.correction);
+      const processScene=scene>=1 && scene<=4, fitScene=scene===1 || scene===3;
+      get('process-controls').hidden=!processScene;
+      get('candidate-controls').hidden=!fitScene;
+      get('contribution-controls').hidden=scene!==5;
+      if(processScene){
+        const labels=D.processLabels(scene), stage=Math.min(3,Math.ceil(state.process));
+        get('process-label').textContent=`${stage} / 3 · ${labels[stage]}`;
+        get('process-progress').value=state.process;
+        get('process-progress').setAttribute('aria-valuetext',labels[stage]);
+        get('process-back').disabled=state.process<=0;
+        get('process-next').disabled=state.process>=3;
+      }
+      if(fitScene){
+        const round=scene===1?1:2,candidates=B.candidates(round);
+        const winner=candidates.reduce((best,row,i)=>row.sse<candidates[best].sse?i:best,0);
+        const index=state.candidateIndex===null?winner:state.candidateIndex,row=candidates[index];
+        get('candidate-cut').value=index;
+        get('candidate-value').textContent=`${fmt(row.threshold)} km`;
+        get('candidate-description').textContent=`Leaf means: ${fmt(row.left)}, ${fmt(row.right)} min. Residual SSE: ${fmt(row.sse)} min². ${index===winner?'Lowest among the seven candidate splits.':`Best split: ${fmt(candidates[winner].threshold)} km, SSE ${fmt(candidates[winner].sse)} min².`}`;
+      }
+      get('contribution-x').value=state.inspectX;
+      get('contribution-x-value').textContent=`${fmt(state.inspectX)} km`;
       get('probe-x-value').textContent=fmt(state.x);
       get('probe-y-value').textContent=fmt(state.y);
       get('addition-value').textContent=fmt(state.addition);
@@ -330,10 +349,37 @@
       diagram.innerHTML=renderScene(scene,state,compact.matches);
       if(transition && !reduced.matches && diagram.animate) diagram.animate([{opacity:.25},{opacity:1}],{duration:280,easing:'ease-out'});
     }
-    function stopAnimation(){win.cancelAnimationFrame(animation);animation=0;get('replay-correction').textContent='Replay correction';get('replay-addition').textContent='Replay addition';get('replay-splits').textContent='Replay the second split';}
+    function stopAnimation(keepProcessPosition=false){
+      win.cancelAnimationFrame(animation);animation=0;
+      if(!keepProcessPosition)processResumeTarget=null;
+      get('process-replay').textContent=processResumeTarget===null?'Replay sequence':'Resume sequence';
+      get('replay-contributions').textContent='Trace the sum';
+      get('replay-addition').textContent='Replay addition';
+      get('replay-splits').textContent='Replay the second split';
+      get('calculation').setAttribute('aria-live','polite');
+    }
+    function closeCandidates(){get('candidate-details').open=false;state.candidateIndex=null;}
+    function animateProcess(target,restart=false){
+      stopAnimation();closeCandidates();
+      if(restart)state.process=0;
+      if(reduced.matches){state.process=target;render();return;}
+      const from=state.process,start=win.performance.now();
+      const duration=Math.max(650,Math.abs(target-from)*1450);
+      processResumeTarget=target;
+      get('process-replay').textContent='Pause';
+      get('calculation').setAttribute('aria-live','off');
+      function tick(now){
+        const t=Math.min(1,(now-start)/duration);
+        state.process=Math.round((from+(target-from)*t)*1000)/1000;
+        render();
+        if(t<1)animation=win.requestAnimationFrame(tick);
+        else {stopAnimation();render();}
+      }
+      render();animation=win.requestAnimationFrame(tick);
+    }
     function activate(index){
       if(index===scene) return;
-      stopAnimation(); scene=index; state.addition=1; state.correction=1; state.splitProgress=1;if(scene===7){state.x=-1;state.y=1;}render(true);
+      stopAnimation(); closeCandidates(); scene=index; state.addition=1; state.process=0; state.splitProgress=1;if(scene===7){state.x=-1;state.y=1;}render(true);
     }
     function readingLine(){
       return compact.matches && win.innerHeight>560 ? shell.getBoundingClientRect().bottom+35 : win.innerHeight*.46;
@@ -361,7 +407,7 @@
     }
     get('previous').addEventListener('click',()=>go(scene-1));
     get('next').addEventListener('click',()=>go(scene+1));
-    for(const [id,key] of [['probe-x','x'],['probe-y','y'],['addition','addition'],['correction-progress','correction']]) get(id).addEventListener('input',e=>{if(key==='addition' || key==='correction')stopAnimation();state[key]=Number(e.target.value);render();});
+    for(const [id,key] of [['probe-x','x'],['probe-y','y'],['addition','addition']]) get(id).addEventListener('input',e=>{if(key==='addition')stopAnimation();state[key]=Number(e.target.value);render();});
     get('include-interaction').addEventListener('change',e=>{state.interaction=e.target.checked;render(true);});
     get('replay-splits').addEventListener('click',()=>{
       if(animation || reduced.matches){stopAnimation();state.splitProgress=1;render();return;}
@@ -377,20 +423,43 @@
       function tick(now){state.addition=Math.min(1,Math.round((now-start)/1800*100)/100);render();if(state.addition<1)animation=win.requestAnimationFrame(tick);else stopAnimation();}
       animation=win.requestAnimationFrame(tick);
     });
-    get('replay-correction').addEventListener('click',()=>{
-      if(animation){stopAnimation();return;}
-      if(reduced.matches){state.correction=1;render();return;}
-      const start=win.performance.now();state.correction=0;render();get('replay-correction').textContent='Pause';
-      function tick(now){state.correction=Math.min(1,Math.round((now-start)/1800*100)/100);render();if(state.correction<1)animation=win.requestAnimationFrame(tick);else stopAnimation();}
-      animation=win.requestAnimationFrame(tick);
+    get('process-next').addEventListener('click',()=>animateProcess(Math.min(3,Math.floor(state.process+1e-6)+1)));
+    get('process-back').addEventListener('click',()=>animateProcess(Math.max(0,Math.ceil(state.process-1e-6)-1)));
+    get('process-replay').addEventListener('click',()=>{if(animation){stopAnimation(true);render();}else if(processResumeTarget!==null)animateProcess(processResumeTarget);else animateProcess(3,true);});
+    get('process-progress').addEventListener('input',event=>{stopAnimation();closeCandidates();state.process=Number(event.target.value);render();});
+    get('candidate-details').addEventListener('toggle',()=>{
+      if(scene!==1 && scene!==3)return;
+      if(!get('candidate-details').open && state.candidateIndex===null)return;
+      stopAnimation();
+      if(get('candidate-details').open){
+        const rows=B.candidates(scene===1?1:2);
+        state.candidateIndex=rows.reduce((best,row,i)=>row.sse<rows[best].sse?i:best,0);
+      }else state.candidateIndex=null;
+      render();
+    });
+    get('candidate-cut').addEventListener('input',event=>{stopAnimation();state.candidateIndex=Number(event.target.value);render();});
+    get('contribution-x').addEventListener('input',event=>{stopAnimation();state.inspectX=Number(event.target.value);render();});
+    get('replay-contributions').addEventListener('click',()=>{
+      if(animation){stopAnimation();render();return;}
+      if(reduced.matches){state.inspectX=12;render();return;}
+      const start=win.performance.now();state.inspectX=0;
+      get('replay-contributions').textContent='Pause';
+      get('calculation').setAttribute('aria-live','off');
+      function tick(now){
+        const t=Math.min(1,(now-start)/5000);state.inspectX=Math.round(t*1300)/100;
+        render();if(t<1)animation=win.requestAnimationFrame(tick);else{stopAnimation();render();}
+      }
+      render();animation=win.requestAnimationFrame(tick);
     });
     function probe(event){
-      const plot=event.target.closest('[data-plot]');
+      const contribution=event.target.closest('[data-contribution-plot]');
+      const plot=contribution || event.target.closest('[data-plot]');
       if(!plot || (event.type==='pointermove' && event.pointerType!=='mouse'))return;
       const svg=diagram.querySelector('svg');
       const point=svg.createSVGPoint();point.x=event.clientX;point.y=event.clientY;
       const local=point.matrixTransform(svg.getScreenCTM().inverse());
       const [x,y,w,h]=plot.dataset.box.split(',').map(Number);
+      if(contribution){stopAnimation();state.inspectX=Math.max(0,Math.min(13,Math.round((local.x-x)/w*1300)/100));render();return;}
       state.x=Math.max(-2,Math.min(2,Math.round(((local.x-x)/w*4-2)*100)/100));
       if(plot.dataset.plot==='2')state.y=Math.max(-2,Math.min(2,Math.round((2-(local.y-y)/h*4)*100)/100));
       render();

@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const require = createRequire(import.meta.url);
 const example = require('../docs/trees/delivery.js');
-const { x, y, baseline, rounds, mse, predict } = example;
+const { x, y, baseline, rounds, mse, predict, candidates } = example;
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-11, `${actual} should equal ${expected}`);
 
 test('the delivery example fits both stumps to the current residual means', () => {
@@ -31,6 +31,8 @@ test('each fitted partition is the unique SSE minimum among all seven candidates
     [138 / 7, 6, 322 / 15, 28, 30, 30, 30]
   ];
   for (const [index, round] of rounds.entries()) {
+    const rows = candidates(round.number);
+    assert.deepEqual(rows.map(row => row.threshold), thresholds);
     // Independently evaluate the two within-group sums of squared deviations.
     const scores = thresholds.map(threshold => {
       const left = [], right = [];
@@ -41,10 +43,39 @@ test('each fitted partition is the unique SSE minimum among all seven candidates
       }, 0);
     });
     scores.forEach((score, candidate) => close(score, expectedSSE[index][candidate]));
+    rows.forEach((row, candidate) => {
+      close(row.sse, scores[candidate]);
+      close(row.mse, scores[candidate] / x.length);
+    });
     const winner = thresholds.indexOf(round.threshold);
     assert.ok(scores.every((score, candidate) => candidate === winner || score > scores[winner]));
     close(scores[winner] / y.length, round.mse);
+    assert.deepEqual(rows[winner].values, round.correction);
   }
+});
+
+test('candidate rows expose the residual leaf means and preserve the fitted example', () => {
+  const means = [
+    [[-6, 6 / 7], [-6, 2], [-13 / 3, 13 / 5], [-3.5, 3.5], [-3, 5], [-5 / 3, 5], [-5 / 7, 5]],
+    [[-3, 3 / 7], [-3, 1], [-4 / 3, 4 / 5], [-0.5, 0.5], [0, 0], [0, 0], [0, 0]]
+  ];
+  const before = JSON.stringify({ x, y, rounds });
+  for (const [index, round] of rounds.entries()) {
+    const rows = candidates(round.number);
+    assert.equal(rows.length, 7);
+    rows.forEach((row, cut) => {
+      close(row.left, means[index][cut][0]);
+      close(row.right, means[index][cut][1]);
+      assert.deepEqual(row.values, [...Array(cut + 1).fill(row.left), ...Array(7 - cut).fill(row.right)]);
+      assert.ok(Object.isFrozen(row));
+      assert.ok(Object.isFrozen(row.values));
+    });
+    assert.ok(Object.isFrozen(rows));
+    assert.throws(() => { rows[0].values[0] = 100; }, TypeError);
+  }
+  assert.equal(JSON.stringify({ x, y, rounds }), before);
+  assert.throws(() => candidates(0), RangeError);
+  assert.throws(() => candidates(3), RangeError);
 });
 
 test('the accumulated training predictions have MSE 18.75, 3.75, and 0.75', () => {

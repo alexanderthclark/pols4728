@@ -6,107 +6,210 @@
 })(typeof window !== 'undefined' ? window : globalThis, function (D) {
   'use strict';
   const C = { ink:'#242424', muted:'#606060', blue:'#234E70', rust:'#A54F32', teal:'#007F73', grid:'#e8e8e8' };
-  const topics = ['Start with one prediction', 'Fit the first correction', 'Add it to the prediction', 'Fit the remaining mistakes', 'Add a second correction', 'Two stumps, three plateaus'];
+  const topics = ['Start with one prediction', 'Fit the first correction', 'Add it to the prediction', 'Fit the remaining mistakes', 'Add a second correction', 'Every prediction is a sum'];
   const captions = [
     'The same eight deliveries appear in both panels. A residual is observed time minus predicted time.',
-    'The stump predicts the mean residual on each side of 8 km: −3 minutes and +5 minutes.',
-    'Move the slider: add the upper step function to the lower prediction at every distance.',
-    'Recompute residuals from F₁. The next stump separates the two short deliveries from the other six.',
-    'Add h₂ everywhere, including across the first stump’s boundary at 8 km.',
-    'The two distinct cut points divide this one-dimensional input into three intervals.'
+    'Measure the errors, form the residuals, split them, and then calculate each leaf’s mean.',
+    'The fitted correction stays fixed above as it moves the prediction below. Observed outcomes do not move.',
+    'Subtract the first correction from the old residuals before fitting the next tree.',
+    'The second tree’s right leaf moves both existing plateaus together. Some errors grow while total squared error falls.',
+    'Move the guide across the three aligned plots. Each prediction adds the starting mean and both tree contributions.'
   ];
-  const fmt = n => Math.abs(n)<1e-9?'0':String(Number(n.toFixed(2))).replace('-', '−');
-  const signed = n => n>0?'+'+fmt(n):fmt(n);
-  const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const clamp=(n,lo=0,hi=1)=>Math.max(lo,Math.min(hi,n));
+  const fmt=n=>Math.abs(n)<1e-9?'0':String(Number(n.toFixed(2))).replace('-', '−');
+  const signed=n=>n>0?'+'+fmt(n):fmt(n);
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
   const line=(x1,y1,x2,y2,color=C.grid,width=1,extra='')=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" ${extra}/>`;
   const circle=(x,y,r,color,extra='')=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${color}" ${extra}/>`;
-  function progress(state) { return Math.max(0,Math.min(1,Number.isFinite(state.correction)?state.correction:1)); }
+  const mix=(a,b,t)=>a+(b-a)*t;
+  const sub=n=>['₀','₁','₂'][n];
+  const phase=state=>Number.isFinite(state.process)?clamp(state.process,0,3):3;
+  function updateAmount(state) {
+    if(Number.isFinite(state.process))return clamp(state.process-1);
+    return Number.isFinite(state.correction)?clamp(state.correction):1;
+  }
+  function processLabels(scene) {
+    if(scene===1)return ['Measure the errors','Form the residuals','Split the residuals','Fit the leaf means'];
+    if(scene===3)return ['Inspect the old residuals','Recompute the residuals','Split the residuals','Fit the leaf means'];
+    return ['Inspect the correction','Attach the correction','Add to the prediction','Inspect remaining errors'];
+  }
+  function candidate(scene,state) {
+    if((scene!==1 && scene!==3) || !Number.isInteger(state.candidateIndex) || !D.candidates)return null;
+    return D.candidates(scene===1?1:2)[state.candidateIndex] || null;
+  }
   function readout(scene,state={}) {
-    const p=progress(state);
+    const p=phase(state), trial=candidate(scene,state);
     if(scene===0)return 'F₀ = mean(y) = 12 min · MSE = 18.75';
-    if(scene===1)return 'h₁: −3 if x ≤ 8; +5 if x > 8';
-    if(scene===3)return 'h₂: −3 if x ≤ 3.5; +1 if x > 3.5';
-    if(scene===5)return 'F₂ = 12 + h₁ + h₂ · predictions: 6, 10, 18';
-    const round=scene===2?1:2;
-    const mse=D.mse(D.x.map(x=>D.predict(round,x,p)));
-    return `F${round===1?'₁':'₂'} = F${round===1?'₀':'₁'} + ${fmt(p)} × h${round===1?'₁':'₂'} · MSE = ${fmt(mse)}`;
+    if(scene===1 || scene===3){
+      const round=scene===1?1:2, r=trial||D.rounds[round-1];
+      if(trial)return `Candidate cut ${fmt(r.threshold)} km · leaf means ${signed(r.left)}, ${signed(r.right)} · residual SSE = ${fmt(r.sse)}`;
+      if(p<1)return scene===1?'Each error is y − 12; carry its signed value to the residual plot.':'New residual = old residual − h₁; the prediction F₁ stays fixed.';
+      if(p<2)return `Residuals now use F${sub(round-1)}. Next, separate them at ${fmt(r.threshold)} km.`;
+      if(p<3)return `Within each leaf, average the residuals to obtain h${sub(round)}.`;
+      return `h${sub(round)}: ${signed(r.left)} if x ≤ ${fmt(r.threshold)}; ${signed(r.right)} if x > ${fmt(r.threshold)}`;
+    }
+    if(scene===5){
+      const x=Number.isFinite(state.inspectX)?clamp(state.inspectX,0,13):6;
+      const [a,b]=D.rounds.map(r=>x<=r.threshold?r.left:r.right);
+      return `At x = ${fmt(x)} km: 12 ${a<0?'−':'+'} ${fmt(Math.abs(a))} ${b<0?'−':'+'} ${fmt(Math.abs(b))} = ${fmt(D.predict(2,x))} min`;
+    }
+    const round=scene===2?1:2, amount=updateAmount(state), mse=D.mse(D.x.map(x=>D.predict(round,x,amount)));
+    return `F${sub(round)} = F${sub(round-1)} + ${fmt(amount)} × h${sub(round)} · MSE = ${fmt(mse)}${scene===4 && p>=3?' (was 3.75)':''}`;
   }
   function render(scene,state={},compact=false) {
-    const W=compact?420:780,H=compact?355:540;
+    const W=compact?420:780,H=compact?378:550;
     const x=compact?48:76,w=compact?350:652;
-    const top={y:compact?45:66,h:compact?100:157,min:-7,max:6};
-    const bottom={y:compact?214:333,h:compact?100:166,min:0,max:20};
+    const top={y:compact?45:66,h:compact?95:148,min:-7,max:6};
+    const bottom={y:compact?242:340,h:compact?100:164,min:0,max:20};
     const X=v=>x+v/13*w;
     const Y=(v,b)=>b.y+b.h-(v-b.min)/(b.max-b.min)*b.h;
-    const round=scene<3?1:2, r=D.rounds[round-1], p=progress(state);
+    const round=scene<3?1:2, r=D.rounds[round-1], p=phase(state), amount=updateAmount(state), trial=candidate(scene,state);
+    const fitting=scene===1 || scene===3, adding=scene===2 || scene===4;
     let out='';
-    function axis(b,ticks,label,showXLabel) {
-      let s=`<g data-axis="${label}" data-x-domain="0,13" data-y-domain="${b.min},${b.max}">`;
+    function axis(b,ticks,label,showXLabel=true,showTicks=true) {
+      let s=`<g data-axis="${label}" data-x-domain="0,13" data-y-domain="${b.min},${b.max}" data-panel="${x},${b.y},${w},${b.h}">`;
       for(const v of ticks){s+=line(x,Y(v,b),x+w,Y(v,b),v===0?'#929292':C.grid,v===0?1.3:1);s+=text(x-9,Y(v,b)+4,fmt(v),'text-anchor="end" class="tick"');}
       s+=line(x,b.y,x,b.y+b.h,'#929292');
-      for(const v of [0,3,6,9,12]){s+=line(X(v),b.y+b.h,X(v),b.y+b.h+4,'#929292');s+=text(X(v),b.y+b.h+18,v,'text-anchor="middle" class="tick"');}
+      if(showTicks)for(const v of [0,3,6,9,12]){s+=line(X(v),b.y+b.h,X(v),b.y+b.h+4,'#929292');s+=text(X(v),b.y+b.h+18,v,'text-anchor="middle" class="tick"');}
       const lx=compact?12:23,ly=b.y+b.h/2;
       s+=text(lx,ly,label,`text-anchor="middle" transform="rotate(-90 ${lx} ${ly})" class="axis-label"`);
-      if(showXLabel)s+=text(x+w, H-2,'Distance (km)','text-anchor="end" class="axis-label"');
+      if(showXLabel)s+=text(x+w,H-3,'Distance (km)','text-anchor="end" class="axis-label"');
       return s+'</g>';
     }
-    function step(values,cuts,b,color,extra='',kind='') {
+    function step(values,cuts,b,color,extra='',kind='',reveal=1) {
       const bounds=[0,...cuts,13];
-      let s=`<g data-curve="${kind}" data-values="${values.join(',')}" data-cuts="${cuts.join(',')}">`;
-      values.forEach((v,i)=>{s+=line(X(bounds[i]),Y(v,b),X(bounds[i+1]),Y(v,b),color,3,extra);if(i)s+=line(X(bounds[i]),Y(values[i-1],b),X(bounds[i]),Y(v,b),color,1.5,extra);});
+      let s=`<g data-curve="${kind}" data-values="${values.join(',')}" data-cuts="${cuts.join(',')}" opacity="${reveal}">`;
+      values.forEach((v,i)=>{const mid=(bounds[i]+bounds[i+1])/2;s+=line(X(mix(mid,bounds[i],reveal)),Y(v,b),X(mix(mid,bounds[i+1],reveal)),Y(v,b),color,3,extra);if(i && reveal===1)s+=line(X(bounds[i]),Y(values[i-1],b),X(bounds[i]),Y(v,b),color,1.5,extra);});
       return s+'</g>';
     }
-    function predictionPath(count,amount,color,extra='',kind='') {
-      const cuts=[...new Set(D.rounds.slice(0,count).map(r=>r.threshold))].sort((a,b)=>a-b);
-      const bounds=[0,...cuts,13],values=bounds.slice(0,-1).map((lo,i)=>D.predict(count,(lo+bounds[i+1])/2,amount));
+    function predictionPath(count,alpha,color,extra='',kind='') {
+      const cuts=[...new Set(D.rounds.slice(0,count).map(q=>q.threshold))].sort((a,b)=>a-b);
+      const bounds=[0,...cuts,13],values=bounds.slice(0,-1).map((lo,i)=>D.predict(count,(lo+bounds[i+1])/2,alpha));
       return step(values,cuts,bottom,color,extra,kind);
     }
-    function labels(values,cuts,b,color) {
+    function labels(values,cuts,b,color,useSigns=true,negativeBelow=false) {
       const bounds=[0,...cuts,13];
-      return values.map((v,i)=>text(X((bounds[i]+bounds[i+1])/2),Y(v,b)-(compact?7:10),signed(v),`text-anchor="middle" class="value" fill="${color}"`)).join('');
+      return values.map((v,i)=>text(X((bounds[i]+bounds[i+1])/2),Y(v,b)+(negativeBelow && v<0?(compact?17:24):-(compact?7:10)),useSigns?signed(v):fmt(v),`text-anchor="middle" class="value" fill="${color}"`)).join('');
     }
-    function points(values,b,kind) {
-      return `<g data-points="${kind}" data-values="${values.join(',')}">`+D.x.map((v,i)=>circle(X(v),Y(values[i],b),compact?3.8:4.5,C.ink,'stroke="white" stroke-width="1.2"')).join('')+'</g>';
+    function points(values,b,kind,extra='') {
+      return `<g data-points="${kind}" data-values="${values.join(',')}" ${extra}>`+D.x.map((v,i)=>circle(X(v),Y(values[i],b),compact?3.8:4.5,C.ink,'stroke="white" stroke-width="1.2"')).join('')+'</g>';
     }
-    const topTitle=scene===0?'Residuals from the starting prediction':scene===5?'The two fitted corrections':`Residuals before update ${round}`;
-    const lowerTitle=scene===0?'Observed times and starting prediction':scene===5?'Their sum, plus the starting mean':'Observed times and model predictions';
-    out+=text(x,compact?18:27,topTitle,'class="panel-title"');
-    out+=text(x,compact?183:282,lowerTitle,'class="panel-title"');
-    // Small, stable keys keep the role of dots and lines explicit across rounds.
-    if(scene!==5){out+=circle(x+3,compact?32:46,3.5,C.ink);out+=text(x+13,compact?36:50,'Residual y − F','class="key"');}
-    if(scene>0){const sx=scene===5?x:x+(compact?141:186);out+=line(sx,compact?32:46,sx+21,compact?32:46,C.rust,3);out+=text(sx+28,compact?36:50,scene===5?'h₁':`Correction h${round===1?'₁':'₂'}`,'class="key"');}
-    if(scene===5){out+=line(x+95,compact?32:46,x+116,compact?32:46,C.teal,3,'stroke-dasharray="6 4"');out+=text(x+123,compact?36:50,'h₂','class="key"');}
-    out+=circle(x+3,compact?198:310,3.5,C.ink)+text(x+13,compact?202:314,'Observed y','class="key"');
-    if(scene!==0 && scene!==5){out+=line(x+(compact?105:147),compact?198:310,x+(compact?123:170),compact?198:310,C.muted,2,'stroke-dasharray="5 4"');out+=text(x+(compact?130:179),compact?202:314,`Previous F${round===1?'₀':'₁'}`,'class="key"');}
-    if(scene!==1 && scene!==3){const sx=x+(compact?235:346);out+=line(sx,compact?198:310,sx+20,compact?198:310,C.blue,3);out+=text(sx+27,compact?202:314,scene===0?'Mean F₀':scene===5?'Sum F₂':'Updated F','class="key"');}
-    out+=axis(top,[-6,-3,0,3,6],'Residual (min)',false)+axis(bottom,[0,5,10,15,20],'Time (min)',true);
-    const shownRound=scene===0?0:scene===1?0:scene===2?1:scene===3?1:2;
-    const amount=scene===2 || scene===4?p:1;
-    if(scene>0){
-      const cuts=scene===5?[3.5,8]:[r.threshold];
-      for(const cut of cuts){for(const box of [top,bottom])out+=line(X(cut),box.y,X(cut),box.y+box.h,'#aaa',1,'stroke-dasharray="3 5"');out+=text(X(cut)+5,top.y+top.h-7,`${fmt(cut)} km`,'class="cut-label"');}
+    function bracket(lo,hi,y,label,opacity=1) {
+      return `<g opacity="${opacity}" data-group="${lo},${hi}">`+line(X(lo)+3,y,X(hi)-3,y,C.muted)+line(X(lo)+3,y-4,X(lo)+3,y,C.muted)+line(X(hi)-3,y-4,X(hi)-3,y,C.muted)+text(X((lo+hi)/2),y+(compact?15:20),label,'text-anchor="middle" class="arithmetic"')+'</g>';
     }
-    // Lower stems show the error remaining after the displayed partial update.
-    for(let i=0;i<D.x.length;i++)out+=line(X(D.x[i]),Y(D.y[i],bottom),X(D.x[i]),Y(D.predict(shownRound,D.x[i],amount),bottom),'#b9b9b9',1.6);
+    function cutGuide(cut,opacity=1,boxes=[top,bottom]) {
+      return `<g data-cut="${cut}" opacity="${opacity}">`+boxes.map(b=>line(X(cut),b.y,X(cut),b.y+b.h,'#999',1,'stroke-dasharray="3 5"')).join('')+text(X(cut)+5,(boxes.includes(top)?top:bottom).y+(boxes.includes(top)?top:bottom).h-7,`${fmt(cut)} km`,'class="cut-label"')+'</g>';
+    }
+    function arrow(at,from,to,opacity,kind='correction') {
+      if(Math.abs(from-to)<1e-8)return '';
+      const cx=X(at),sy=Y(from,bottom),ey=Y(to,bottom),direction=Math.sign(ey-sy),head=Math.min(compact?4:5,Math.abs(ey-sy)*.4);
+      return `<g data-arrow="${kind}" data-x="${at}" data-from="${from}" data-to="${to}" opacity="${opacity}">`+line(cx,sy,cx,ey,C.rust,2)+`<path d="M${cx-head},${ey-direction*head} L${cx},${ey} L${cx+head},${ey-direction*head}" fill="none" stroke="${C.rust}" stroke-width="2"/>`+text(cx+8,(sy+ey)/2+4,signed(to-from),'class="arrow-label"')+'</g>';
+    }
+    function residualStems(predictions,emphasis=0) {
+      return `<g data-errors="remaining" data-predictions="${predictions.join(',')}">`+D.x.map((v,i)=>line(X(v),Y(D.y[i],bottom),X(v),Y(predictions[i],bottom),scene===4 && i>=5 && emphasis>0?C.rust:'#b0b0b0',scene===4 && i>=5 && emphasis>0?2.8:1.6)).join('')+'</g>';
+    }
+    function wrap(body) {
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="${C.ink}" role="img" aria-labelledby="delivery-title delivery-description" data-process="${p}"><title id="delivery-title">${esc(topics[scene])}</title><desc id="delivery-description">${esc(captions[scene]+' '+readout(scene,state))}</desc><style>text{font-family:Georgia,serif;font-size:${compact?14:18}px}.panel-title{font-size:${compact?16:21}px}.tick,.key,.cut-label,.axis-label,.arrow-label,.arithmetic{font-family:Arial,sans-serif;font-size:${compact?12:14}px}.tick,.axis-label,.key{fill:${C.muted}}.cut-label,.value,.arrow-label,.arithmetic{paint-order:stroke;stroke:white;stroke-width:5px;stroke-linejoin:round}.value{font-size:${compact?15:20}px}.arrow-label{fill:${C.rust}}.annotation{font-size:${compact?13:17}px}</style>${body}</svg>`;
+    }
     if(scene===5){
-      for(let i=0;i<2;i++){const q=D.rounds[i];out+=step([q.left,q.right],[q.threshold],top,i?C.teal:C.rust,i?'stroke-dasharray="6 4"':'',`h${i+1}`);}
-      out+=text(X(11),Y(5,top)-8,'h₁: +5',`class="value" fill="${C.rust}" text-anchor="middle"`);
-      out+=text(X(10),Y(1,top)-8,'h₂: +1',`class="value" fill="${C.teal}" text-anchor="middle"`);
-      out+=text(X(1.6),Y(-3,top)-8,'−3',`class="value" text-anchor="middle"`);
-    } else {
-      if(scene>0){out+=step([r.left,r.right],[r.threshold],top,C.rust,'',`h${round}`);out+=labels([r.left,r.right],[r.threshold],top,C.rust);}
-      out+=points(scene===0?D.rounds[0].residual:r.residual,top,'residuals');
+      const strips=[{y:compact?39:56,h:compact?66:104,min:-4,max:6},{y:compact?159:220,h:compact?66:104,min:-4,max:6},{y:compact?279:387,h:compact?62:118,min:0,max:20}];
+      const inspectX=Number.isFinite(state.inspectX)?clamp(state.inspectX,0,13):6;
+      const vals=D.rounds.map(q=>inspectX<=q.threshold?q.left:q.right).concat(D.predict(2,inspectX));
+      out+=text(x,compact?19:29,'First tree h₁','class="panel-title"')+text(x+w,compact?19:29,`x = ${fmt(inspectX)} km`,'text-anchor="end" class="key"');
+      out+=text(x,compact?139:192,'Second tree h₂','class="panel-title"');
+      out+=text(x,compact?259:359,'Prediction F₂ = 12 + h₁ + h₂','class="panel-title"');
+      strips.forEach((b,i)=>{
+        out+=axis(b,i<2?[-3,0,5]:[0,10,20],i<2?'Correction (min)':'Time (min)',i===2,i===2);
+        for(const cut of [3.5,8])out+=line(X(cut),b.y,X(cut),b.y+b.h,'#999',1,'stroke-dasharray="3 5"');
+      });
+      out+=line(X(inspectX),strips[0].y,X(inspectX),strips[2].y+strips[2].h,C.blue,1.5,'stroke-dasharray="5 4" data-contribution-guide="true"');
+      D.rounds.forEach((q,i)=>{
+        out+=step([q.left,q.right],[q.threshold],strips[i],i?C.teal:C.rust,i?'stroke-dasharray="7 4"':'',`h${i+1}`);
+        out+=labels([q.left,q.right],[q.threshold],strips[i],i?C.teal:C.rust);
+      });
+      out+=step([6,10,18],[3.5,8],strips[2],C.blue,'','prediction')+labels([6,10,18],[3.5,8],strips[2],C.blue,false);
+      for(const cut of [3.5,8])out+=text(X(cut)+4,strips[0].y+strips[0].h+17,`${fmt(cut)} km`,'class="cut-label"');
+      strips.forEach((b,i)=>{
+        out+=circle(X(inspectX),Y(vals[i],b),compact?5:6,C.blue,'stroke="white" stroke-width="2"');
+        out+=`<rect x="${x}" y="${b.y}" width="${w}" height="${b.h}" fill="transparent" data-contribution-plot="1" data-box="${x},${b.y},${w},${b.h}" style="cursor:crosshair"/>`;
+      });
+      out+=`<g data-contributions="${vals.join(',')}" data-inspect-x="${inspectX}"/>`;
+      return wrap(out);
     }
-    if(scene!==0 && scene!==5)out+=predictionPath(round-1,1,C.muted,'stroke-dasharray="6 5"','previous');
-    if(scene!==1 && scene!==3)out+=predictionPath(shownRound,amount,C.blue,'','prediction');
+    const transitFade=scene===1 && p>0 && p<1 && !trial?1-Math.min(clamp(p*8),clamp((1-p)*8)):1;
+    const topTitle=scene===0?'Residuals from the starting prediction':scene===3 && p<1 && !trial?'Subtract the previous correction':`Residuals before update ${round}`;
+    out+=text(x,compact?18:27,topTitle,'class="panel-title"');
+    out+=text(x,compact?207:288,scene===0?'Observed times and starting prediction':'Observed times and model predictions',`class="panel-title" opacity="${transitFade}"`);
+    out+=circle(x+3,compact?32:46,3.5,C.ink)+text(x+13,compact?36:50,'Residual y − F','class="key"');
+    const meanReveal=trial?1:fitting?clamp(p-2):scene===0?0:1;
+    if(meanReveal>0)out+=`<g opacity="${meanReveal}">`+line(x+(compact?141:186),compact?32:46,x+(compact?162:207),compact?32:46,C.rust,3)+text(x+(compact?169:214),compact?36:50,trial?'Candidate stump':`Correction h${sub(round)}`,'class="key"')+'</g>';
+    out+=`<g opacity="${transitFade}">`+circle(x+3,compact?225:316,3.5,C.ink)+text(x+13,compact?229:320,'Observed y','class="key"');
+    if(scene!==0){out+=line(x+(compact?105:147),compact?225:316,x+(compact?123:170),compact?225:316,C.muted,2,'stroke-dasharray="5 4"')+text(x+(compact?130:179),compact?229:320,`Previous F${sub(round-1)}`,'class="key"');}
+    if(!fitting){const sx=x+(compact?235:346);out+=line(sx,compact?225:316,sx+20,compact?225:316,C.blue,3)+text(sx+27,compact?229:320,scene===0?'Mean F₀':'Updated F','class="key"');}
+    out+='</g>';
+    out+=axis(top,[-6,-3,0,3,6],'Residual (min)',false)+axis(bottom,[0,5,10,15,20],'Time (min)');
+    if(scene>0){
+      if(round===2)out+=cutGuide(8,.55,[bottom]);
+      if(!fitting || trial || p>1)out+=cutGuide((trial||r).threshold,trial || !fitting?1:clamp(p-1));
+    }
+    const shownRound=scene===0?0:fitting?round-1:round;
+    const predictions=D.x.map(v=>D.predict(shownRound,v,adding?amount:1));
+    out+=residualStems(predictions,adding?clamp(p-2):0);
+    if(scene===0){
+      out+=points(D.rounds[0].residual,top,'residuals');
+    } else if(scene===1 && p<1 && !trial){
+      // A residual is a signed distance, not a point translated on equal axes.
+      // Interpolating both endpoints explicitly rescales minutes between panels.
+      const order=[0,3,2,4,5,1,6,7];
+      out+='<g data-residual-transfer="true">';
+      D.x.forEach((v,i)=>{
+        const t=clamp((p-order[i]*.045)/.67);
+        if(t===0)return;
+        const zero=mix(Y(D.baseline,bottom),Y(0,top),t),end=mix(Y(D.y[i],bottom),Y(r.residual[i],top),t);
+        out+=line(X(v),zero,X(v),end,C.muted,1.5,`opacity="${.7*(1-t)}"`)+circle(X(v),end,compact?3.8:4.5,C.ink,'stroke="white" stroke-width="1.2"');
+      });
+      out+='</g>';
+    } else if(scene===3 && p<1 && !trial){
+      const first=D.rounds[0],t=clamp(p);
+      out+=step([first.left,first.right],[first.threshold],top,C.rust,'','previous-correction',1-t);
+      out+=points(first.residual,top,'old-residuals',`opacity="${.3*(1-t)}"`);
+      out+=points(first.residual.map((v,i)=>mix(v,r.residual[i],t)),top,'residuals');
+    } else {
+      const q=trial||r;
+      if(meanReveal>0)out+=step([q.left,q.right],[q.threshold],top,C.rust,'',trial?'candidate':`h${round}`,meanReveal);
+      out+=points(r.residual,top,'residuals');
+      if(meanReveal>0)out+=`<g opacity="${meanReveal}">`+labels([q.left,q.right],[q.threshold],top,C.rust,true,true)+'</g>';
+    }
+    if(fitting && (trial || p>1)){
+      const q=trial||r,groupOpacity=trial?1:clamp(p-1),bounds=[0,q.threshold,13];
+      for(let side=0;side<2;side++){
+        const indices=D.x.map((v,i)=>i).filter(i=>(D.x[i]<=q.threshold)===(side===0));
+        const sum=indices.reduce((s,i)=>s+r.residual[i],0),mean=side===0?q.left:q.right;
+        const label=meanReveal===1?`${signed(sum)} ÷ ${indices.length} = ${signed(mean)}`:`${indices.length} residuals`;
+        out+=bracket(bounds[side],bounds[side+1],compact?170:244,label,groupOpacity);
+      }
+    }
+    if(scene!==0)out+=predictionPath(round-1,1,C.muted,'stroke-dasharray="6 5"','previous');
+    if(!fitting)out+=predictionPath(shownRound,adding?amount:1,C.blue,'','prediction');
+    if(adding){
+      const arrowOpacity=Number.isFinite(state.process)?clamp(p)* (1-clamp(p-2)):1;
+      const positions=round===1?[6.4,11.5]:[2.6,6.8,11.5];
+      positions.forEach(v=>out+=arrow(v,D.predict(round-1,v),D.predict(round,v),arrowOpacity));
+      if(round===2 && p>0){
+        out+=bracket(3.5,13,compact?170:244,p<2?'One leaf moves both plateaus: +1':'17 → 18: three errors grow',clamp(p));
+      } else if(round===1 && p>0)out+=text(x+w/2,compact?186:264,'Add the same leaf value throughout its interval','text-anchor="middle" class="annotation"');
+      const cuts=round===1?[8]:[3.5,8],bounds=[0,...cuts,13];
+      out+=labels(bounds.slice(0,-1).map((v,i)=>D.predict(round,(v+bounds[i+1])/2,amount)),cuts,bottom,C.blue,false);
+    }
     out+=points(D.y,bottom,'observations');
     if(scene===0)out+=text(X(11),Y(12,bottom)-10,'12',`class="value" fill="${C.blue}" text-anchor="middle"`);
-    if(scene===2 || scene===4 || scene===5){
-      const cuts=shownRound===1?[8]:[3.5,8],bounds=[0,...cuts,13];
-      bounds.slice(0,-1).forEach((v,i)=>{const mid=(v+bounds[i+1])/2,pred=D.predict(shownRound,mid,amount);out+=text(X(mid),Y(pred,bottom)-10,fmt(pred),`class="value" fill="${C.blue}" text-anchor="middle"`);});
+    if(scene===4 && p>2){
+      out+=`<g data-worsened-errors="9,10,12" opacity="${clamp(p-2)}">`;
+      for(const i of [5,6,7])out+=circle(X(D.x[i]),Y(D.y[i],bottom),compact?6:7,'none',`stroke="${C.rust}" stroke-width="1.5"`);
+      out+='</g>';
     }
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="${C.ink}" role="img" aria-labelledby="delivery-title delivery-description"><title id="delivery-title">${esc(topics[scene])}</title><desc id="delivery-description">${esc(captions[scene]+' '+readout(scene,state))}</desc><style>text{font-family:Georgia,serif;font-size:${compact?14:18}px}.panel-title{font-size:${compact?16:21}px}.tick,.key,.cut-label,.axis-label{font-family:Arial,sans-serif;font-size:${compact?12:14}px}.tick,.axis-label,.key{fill:${C.muted}}.cut-label,.value{paint-order:stroke;stroke:white;stroke-width:5px;stroke-linejoin:round}.value{font-size:${compact?15:20}px}</style>${out}</svg>`;
+    return wrap(out);
   }
-  return {render,readout,topics,captions};
+  return {render,readout,topics,captions,processLabels};
 });

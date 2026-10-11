@@ -41,6 +41,28 @@
   }
   Object.freeze(rounds);
 
+  // Every midpoint represents one possible partition of the observed inputs.
+  // Candidate predictions are residual means, not accumulated delivery times.
+  const candidateRows = Object.freeze(rounds.map(round => Object.freeze(
+    x.slice(0, -1).map((input, index) => {
+      const threshold = input / 2 + x[index + 1] / 2;
+      const leftResiduals = round.residual.slice(0, index + 1);
+      const rightResiduals = round.residual.slice(index + 1);
+      const left = leftResiduals.reduce((sum, value) => sum + value, 0) / leftResiduals.length;
+      const right = rightResiduals.reduce((sum, value) => sum + value, 0) / rightResiduals.length;
+      const values = Object.freeze(x.map(value => value <= threshold ? left : right));
+      const sse = 2 * math.loss(round.residual, values);
+      return Object.freeze({ threshold, left, right, sse, mse: sse / x.length, values });
+    })
+  )));
+
+  function candidates(round) {
+    if (!Number.isInteger(round) || round < 1 || round > rounds.length) {
+      throw new RangeError('Candidate round must be 1 or 2.');
+    }
+    return candidateRows[round - 1];
+  }
+
   // A partial update adds progress times the current stump to all previous
   // completed updates. Input values between or beyond the observed distances
   // follow the same threshold rules; this is not a generalization claim.
@@ -61,5 +83,5 @@
     return value;
   }
 
-  return { x, y, baseline, rounds, mse, predict };
+  return { x, y, baseline, rounds, mse, predict, candidates };
 });
