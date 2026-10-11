@@ -5,7 +5,7 @@ import test from 'node:test';
 const require = createRequire(import.meta.url);
 const math = require('../docs/trees/model.js');
 const story = require('../docs/trees/story.js');
-const { stump1D, grown1D, second1D, stumpX, stumpY, conditional } = math.examples;
+const { stump1D, grown1D, second1D, stumpX, stumpY, recursive2D, matched2D, conditional } = math.examples;
 const intervalValues = segments => segments.map(({ lo, hi, value }) => [lo, hi, value]);
 const area = cell => cell.bounds.reduce((size, [lo, hi]) => size * (hi - lo), 1);
 const interaction = predict => predict([1, 1]) - predict([-1, 1]) - predict([1, -1]) + predict([-1, -1]);
@@ -61,7 +61,42 @@ test('crossing stumps make four cells whose values obey an additive restriction'
   }
 });
 
+test('the same two-split budget creates three local regions or four overlay cells', () => {
+  assert.equal(math.splitCount(recursive2D), 2);
+  assert.equal(math.splitCount(stumpX) + math.splitCount(stumpY), 2);
+  const recursive = math.regions(recursive2D);
+  const ensemble = math.refinement([stumpX, stumpY]);
+  assert.equal(recursive.length, 3);
+  assert.equal(ensemble.length, 4);
+  assert.deepEqual(recursive.map(({ bounds, value }) => ({ bounds, value })), [
+    { bounds: [[-2, 0], [-2, 2]], value: 0 },
+    { bounds: [[0, 2], [-2, 0]], value: 1 },
+    { bounds: [[0, 2], [0, 2]], value: 3 }
+  ]);
+  assert.deepEqual([[-1, -1], [1, -1], [-1, 1], [1, 1]].map(point => math.evaluate(recursive2D, point)), [0, 1, 0, 3]);
+  // The additional ensemble cell is meaningful: it has prediction 2, which
+  // differs from all three predictions of this two-split recursive tree.
+  assert.deepEqual(ensemble.map(cell => cell.value).sort((a, b) => a - b), [0, 1, 2, 3]);
+});
+
+test('one tree with three splits matches the two stumps across quadrants and boundaries', () => {
+  assert.equal(math.splitCount(matched2D), 3);
+  assert.equal(math.regions(matched2D).length, 4);
+  const coordinates = [-2, -1, 0, Number.EPSILON, 1, 2];
+  for (const x of coordinates) {
+    for (const y of coordinates) {
+      assert.equal(math.evaluate(matched2D, [x, y]), math.evaluate(stumpX, [x, y]) + math.evaluate(stumpY, [x, y]));
+    }
+  }
+  assert.equal(interaction(point => math.evaluate(matched2D, point)), 0);
+  assert.equal(interaction(point => math.evaluate(recursive2D, point)), 2);
+});
+
 test('a sum of two one-dimensional stumps equals a grown tree, including at both jumps', () => {
+  // The 2-D three-versus-four comparison is not a universal region-count
+  // advantage: here both constructions use two splits and three intervals.
+  assert.equal(math.splitCount(grown1D), 2);
+  assert.equal(math.splitCount(stump1D) + math.splitCount(second1D), 2);
   const expected = [[-2, -0.5, 0], [-0.5, 0.75, 1], [0.75, 2, 3]];
   assert.deepEqual(intervalValues(math.segments1D(grown1D)), expected);
   assert.deepEqual(intervalValues(math.sumSegments1D([stump1D, second1D])), expected);
@@ -101,10 +136,14 @@ test('clipping omits zero-width drawing regions and preserves inputs', () => {
 });
 
 const attributes = tag => Object.fromEntries(Array.from(tag.matchAll(/([\w-]+)="([^"]*)"/g), match => [match[1], match[2]]));
+const comparisonPanels = svg => Object.fromEntries(Array.from(
+  svg.matchAll(/<g data-comparison="(single|sum)">([\s\S]*?)<\/g>/g), match => [match[1], match[2]]));
+const displayedCellValues = svg => Array.from(
+  svg.matchAll(/<text\b[^>]*class="cell-value"[^>]*>([^<]+)<\/text>/g), match => Number(match[1]));
 
 test('all eight scenes render finite geometry at both layouts and interaction limits', () => {
   const states = [
-    { x: -2, y: -2, addition: 0, interaction: false },
+    { x: -2, y: -2, addition: 0, interaction: false, splitProgress: 0 },
     { x: 2, y: 2, addition: 1, interaction: true },
     { x: -0.5, y: 0, addition: 0.35, interaction: false },
     { x: 0.75, y: 0, addition: 0, interaction: true },
@@ -133,12 +172,12 @@ test('all eight scenes render finite geometry at both layouts and interaction li
 });
 
 test('the rendered conditional boundary ends at its parent split in both layouts', () => {
-  assert.deepEqual(story.cuts(conditional), [
+  assert.deepEqual(story.cuts(recursive2D), [
     { feature: 0, threshold: 0, bounds: [[-2, 2], [-2, 2]], depth: 0 },
     { feature: 1, threshold: 0, bounds: [[0, 2], [-2, 2]], depth: 1 }
   ]);
   for (const compact of [false, true]) {
-    const svg = story.renderScene(4, {}, compact);
+    const svg = comparisonPanels(story.renderScene(2, {}, compact)).single;
     const cuts = (svg.match(/<line\b[^>]*>/g) || []).map(attributes)
       .filter(attr => attr.class?.includes('partition-cut'));
     assert.equal(cuts.length, 2);
@@ -153,33 +192,40 @@ test('the rendered conditional boundary ends at its parent split in both layouts
   }
 });
 
-test('zero contribution leaves no apparent hole at the cancelled step boundary', () => {
-  for (const addition of [0, 1]) {
-    const svg = story.renderScene(2, { addition, x: -1 });
-    const plots = (svg.match(/<rect\b[^>]*>/g) || []).map(attributes)
-      .filter(attr => attr['data-plot'] === '1');
-    const circles = (svg.match(/<circle\b[^>]*>/g) || []).map(attributes);
-    // At x = .75, the second plot and the sum have a real jump only when
-    // the second tree contributes. A closed marker remains in either case.
-    for (const plot of plots.slice(1)) {
-      const [x, y, width, height] = plot['data-box'].split(',').map(Number);
-      const boundaryX = x + (0.75 + 2) / 4 * width;
-      const markers = circles.filter(circle => Number(circle.cx) === boundaryX &&
-        Number(circle.cy) >= y && Number(circle.cy) <= y + height);
-      assert.equal(markers.filter(circle => circle.fill === 'white').length, addition);
-      assert.equal(markers.filter(circle => circle.fill !== 'white').length, 1);
-    }
+test('the central comparison shows the same split budget but three versus four cells', () => {
+  for (const compact of [false, true]) {
+    const initial = story.renderScene(2, { splitProgress: 0 }, compact);
+    const initialPanels = comparisonPanels(initial);
+    assert.deepEqual(displayedCellValues(initialPanels.single), [0, 1]);
+    assert.deepEqual(displayedCellValues(initialPanels.sum), [0, 1]);
+    assert.equal((initial.match(/>1 split<\/text>/g) || []).length, 2);
+    const final = story.renderScene(2, {}, compact);
+    const finalPanels = comparisonPanels(final);
+    assert.deepEqual(displayedCellValues(finalPanels.single), [0, 1, 3]);
+    assert.deepEqual(displayedCellValues(finalPanels.sum), [0, 2, 1, 3]);
+    assert.equal((final.match(/>2 splits<\/text>/g) || []).length, 2);
+    assert.match(final, />3 regions<\/text>/);
+    assert.match(final, />4 regions<\/text>/);
+    const matched = story.renderScene(4, {}, compact);
+    const matchedPanels = comparisonPanels(matched);
+    assert.deepEqual(displayedCellValues(matchedPanels.single), [0, 2, 1, 3]);
+    assert.deepEqual(displayedCellValues(matchedPanels.sum), [0, 2, 1, 3]);
+    assert.equal((matched.match(/>3 splits<\/text>/g) || []).length, 1);
+    assert.equal((matched.match(/>2 splits<\/text>/g) || []).length, 1);
+    assert.equal((matched.match(/>4 regions<\/text>/g) || []).length, 2);
   }
 });
 
 test('readouts honor threshold membership, weighted addition, and conditional interactions', () => {
   const base = { x: 1, y: 1, addition: 0.25, interaction: false };
   assert.equal(story.readout(0, { ...base, x: -0.5 }), 'x = −0.5  →  prediction = 0');
-  assert.equal(story.readout(1, { ...base, x: 0.75 }), 'x = 0.75  →  prediction = 1');
-  assert.equal(story.readout(2, base), '1 + 0.25 × 2 = 1.5');
-  assert.equal(story.readout(3, { ...base, x: 0 }), '(x₁, x₂) = (0, 1)  →  T₁(x) = 0');
-  assert.equal(story.readout(4, { ...base, y: 0 }), '(x₁, x₂) = (1, 0)  →  U(x) = 0');
-  assert.equal(story.readout(5, base), 'T₁ + λT₂ = 1 + 0.25 × 2 = 1.5');
+  assert.equal(story.readout(1, { ...base, x: 0 }), '(x₁, x₂) = (0, 1)  →  T₁(x) = 0');
+  assert.equal(story.readout(2, { ...base, splitProgress: 0 }), 'First split: 2 regions in each picture.');
+  assert.equal(story.readout(2, { ...base, x: -1 }), 'One tree: 0 · Two stumps: 2');
+  assert.equal(story.readout(3, base), 'T₁ + λT₂ = 1 + 0.25 × 2 = 1.5');
+  assert.equal(story.readout(3, { ...base, y: 0 }), 'T₁ + λT₂ = 1 + 0.25 × 0 = 1');
+  assert.equal(story.readout(4, { ...base, y: 0 }), 'Same prediction: 1 · One tree: 3 splits · Two stumps: 2 splits');
+  assert.equal(story.readout(5, base), 'Upper-right = lower-right + upper-left − lower-left: 3 = 1 + 2 − 0');
   assert.equal(story.readout(6, base), '1 + 2 = 3 · x₁ jump: 1 below, 1 above');
   assert.equal(story.readout(6, { ...base, interaction: true }), '1 + 2 + 2 = 5 · x₁ jump: 1 below, 3 above');
   assert.equal(story.readout(6, { ...base, y: 0, interaction: true }), '1 + 0 + 0 = 1 · x₁ jump: 1 below, 3 above');

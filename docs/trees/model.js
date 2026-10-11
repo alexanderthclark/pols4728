@@ -52,6 +52,10 @@
     return leafAt(tree, point).value;
   }
 
+  function splitCount(tree) {
+    return isLeaf(tree) ? 0 : 1 + splitCount(tree.left) + splitCount(tree.right);
+  }
+
   // Bounds describe drawing geometry: adjacent regions share an edge. The
   // path/evaluate API supplies exact <= / > membership on that edge. Regions
   // of zero width are omitted, including a leaf touching only the plot edge.
@@ -153,6 +157,25 @@
       id: 'sy-root', feature: 1, threshold: 0,
       left: { id: 'sy-left', value: 0 }, right: { id: 'sy-right', value: 2 }
     },
+    recursive2D: {
+      id: 'r2-root', feature: 0, threshold: 0,
+      left: { id: 'r2-left', value: 0 },
+      right: {
+        id: 'r2-right', feature: 1, threshold: 0,
+        left: { id: 'r2-low', value: 1 }, right: { id: 'r2-high', value: 3 }
+      }
+    },
+    matched2D: {
+      id: 'm2-root', feature: 0, threshold: 0,
+      left: {
+        id: 'm2-left', feature: 1, threshold: 0,
+        left: { id: 'm2-left-low', value: 0 }, right: { id: 'm2-left-high', value: 2 }
+      },
+      right: {
+        id: 'm2-right', feature: 1, threshold: 0,
+        left: { id: 'm2-right-low', value: 1 }, right: { id: 'm2-right-high', value: 3 }
+      }
+    },
     conditional: {
       id: 'c-root', feature: 0, threshold: 0,
       left: { id: 'c-left', value: 0 },
@@ -163,5 +186,5 @@
     }
   };
 
-  return { evaluate, leafAt, pathNodes, regions, refinement, segments1D, sumSegments1D, examples };
+  return { evaluate, leafAt, pathNodes, splitCount, regions, refinement, segments1D, sumSegments1D, examples };
 });

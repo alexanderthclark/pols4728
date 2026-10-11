@@ -69,9 +69,12 @@ sub, sup { line-height: 0; }
 .probe-control label { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .probe-control output { color: var(--blue); font-variant-numeric: tabular-nums; }
 .probe-control input[type='range'] { display: block; width: 100%; min-height: 30px; margin: 0; accent-color: var(--blue); cursor: pointer; }
-.stage-shell[data-scene='0'] .two-dimensional-label,
-.stage-shell[data-scene='1'] .two-dimensional-label,
-.stage-shell[data-scene='2'] .two-dimensional-label { display: none; }
+.stage-shell[data-scene='0'] .two-dimensional-label { display: none; }
+.split-controls { flex: 0 0 auto; padding: 3px 0 5px; }
+.split-controls button { min-height: 32px; padding: 4px 10px; font: 12px/1.4 var(--sans); }
+.afterword details { margin: 30px 0; padding: 18px 0; border-top: 1px solid var(--light-rule); border-bottom: 1px solid var(--light-rule); }
+.afterword summary { cursor: pointer; font-size: 20px; }
+.afterword details[open] summary { margin-bottom: 20px; }
 .addition-controls { display: grid; flex: 0 0 auto; grid-template-columns: auto minmax(70px, 1fr) auto; align-items: center; gap: 13px; padding: 2px 0 5px; font: 12px/1.4 var(--sans); }
 .addition-controls label { white-space: nowrap; }
 .addition-controls output { margin-left: 6px; color: var(--blue); font-variant-numeric: tabular-nums; }

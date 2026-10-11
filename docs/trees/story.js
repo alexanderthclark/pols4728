@@ -7,14 +7,14 @@
   'use strict';
   const E = M.examples;
   const C = { ink: '#242424', muted: '#606060', rule: '#b9b9b9', blue: '#234E70', rust: '#A54F32', teal: '#007F73' };
-  const topics = ['A split is a rule', 'Refine one leaf', 'Add functions', 'Split the input plane', 'A split stays inside its parent', 'Overlay the partitions', 'Where interactions enter', 'From inputs to predictions'];
+  const topics = ['A split is a rule', 'The same idea in two dimensions', 'Two splits: three regions or four', 'The new stump acts everywhere', 'Matching four regions takes three splits', 'Four regions, constrained values', 'Where interactions enter', 'From inputs to predictions'];
   const captions = [
     'The highlighted leaf and horizontal segment give the same prediction.',
-    'The second rule applies only after x > −0.5. The left leaf stays intact.',
-    'At each x, add the heights. At full strength the sum is 0, 1, then 3.',
-    'Every point in a leaf’s rectangle receives the same prediction.',
-    'The horizontal cut stops at x₁ = 0: only the right-hand region is split.',
-    'Each outlined cell is the intersection of a leaf from each tree. Read its sum.',
+    'The axes now locate inputs. The numbers inside the rectangles are predictions.',
+    'Same two split nodes: one tree cuts one existing leaf; the second stump cuts across both.',
+    'T₂ contributes 2 above x₂ = 0, on both sides of the first tree’s boundary.',
+    'A single tree must ask about x₂ separately in its left and right branches.',
+    'Crossing x₁ = 0 adds 1 at either height. Four regions do not imply an interaction.',
     'Compare the x₁ jump below and above x₂ = 0. Does that jump depend on x₂?',
     'The input plane locates observations; the vector records their predictions.'
   ];
@@ -147,7 +147,7 @@
         const attrs = `class="partition-cut cut-${cut.depth}" ${i===1?'stroke-dasharray="6 4"':''}`;
         out += cut.feature === 0
           ? line(X(cut.threshold),Y(cut.bounds[1][0]),X(cut.threshold),Y(cut.bounds[1][1]),i===1?C.rust:C.blue,2,attrs)
-          : line(X(cut.bounds[0][0]),Y(cut.threshold),X(cut.bounds[0][1]),Y(cut.threshold),i===1?C.rust:C.blue,2,attrs);
+          : line(X(cut.bounds[0][0]),Y(cut.threshold),X(cut.bounds[0][1]),Y(cut.threshold),C.rust,2,attrs);
       }
     }
     out += rect(x,y,w,h,'none',`stroke="${C.muted}" stroke-width="1"`);
@@ -183,16 +183,18 @@
 
   function readout(scene,state) {
     const p = [state.x,state.y], a = state.addition;
-    if (scene === 0 || scene === 1) return `x = ${fmt(p[0])}  →  prediction = ${fmt(M.evaluate(scene===0?E.stump1D:E.grown1D,p))}`;
+    if (scene === 0) return `x = ${fmt(p[0])}  →  prediction = ${fmt(M.evaluate(E.stump1D,p))}`;
+    if (scene === 1) return `(x₁, x₂) = (${fmt(p[0])}, ${fmt(p[1])})  →  T₁(x) = ${fmt(M.evaluate(E.stumpX,p))}`;
     if (scene === 2) {
-      const u=M.evaluate(E.stump1D,p),v=M.evaluate(E.second1D,p);
-      return `${fmt(u)} + ${fmt(a)} × ${fmt(v)} = ${fmt(u+a*v)}`;
+      if(state.splitProgress===0) return 'First split: 2 regions in each picture.';
+      return `One tree: ${fmt(M.evaluate(E.recursive2D,p))} · Two stumps: ${fmt(M.evaluate(E.stumpX,p)+M.evaluate(E.stumpY,p))}`;
     }
-    if (scene === 3 || scene === 4) return `(x₁, x₂) = (${fmt(p[0])}, ${fmt(p[1])})  →  ${scene===3?'T₁':'U'}(x) = ${fmt(M.evaluate(scene===3?E.stumpX:E.conditional,p))}`;
-    if (scene === 5) {
+    if (scene === 3) {
       const u=M.evaluate(E.stumpX,p),v=M.evaluate(E.stumpY,p);
       return `T₁ + λT₂ = ${fmt(u)} + ${fmt(a)} × ${fmt(v)} = ${fmt(u+a*v)}`;
     }
+    if (scene === 4) return `Same prediction: ${fmt(M.evaluate(E.matched2D,p))} · One tree: 3 splits · Two stumps: 2 splits`;
+    if (scene === 5) return 'Upper-right = lower-right + upper-left − lower-left: 3 = 1 + 2 − 0';
     if (scene === 6) {
       const values = [E.stumpX,E.stumpY].map(t=>M.evaluate(t,p));
       if(state.interaction) values.push(M.evaluate(E.conditional,p));
@@ -202,30 +204,41 @@
   }
 
   function renderScene(scene, provided = {}, compact = false) {
-    const state = {x:.8,y:.8,addition:1,interaction:false,...provided};
+    const state = {x:.8,y:.8,addition:1,interaction:false,splitProgress:1,...provided};
     const p = [state.x,state.y], W=compact?420:780, H=compact?280:510;
     let out = '';
-    if (scene === 0 || scene === 1) {
-      const tree = scene===0?E.stump1D:E.grown1D;
+    if (scene === 0) {
+      const tree = E.stump1D;
       out += text(compact?90:165,compact?22:55,'Decision tree','text-anchor="middle" class="plot-heading"');
       out += text(compact?310:572,compact?22:55,'Prediction function','text-anchor="middle" class="plot-heading"');
       out += treeDiagram(tree,p,compact?{x:8,y:72,w:168,h:120}:{x:20,y:140,w:290,h:200},true);
       out += stepPlot([tree],p,compact?{x:216,y:66,w:175,h:160}:{x:397,y:116,w:326,h:255});
       out += text(compact?210:390,compact?266:440,'Follow a branch; read the corresponding height.','text-anchor="middle" class="figure-note"');
-    } else if (scene === 2) {
-      const second = scaled(E.second1D,state.addition);
-      const labels = ['T₁','λT₂','F'];
-      for(const [i,trees] of [[E.stump1D],[second],[E.stump1D,second]].entries()) {
-        out += stepPlot(trees,p,compact?{x:73,y:10+i*83,w:310,h:49}:{x:124,y:25+i*150,w:585,h:105},{label:labels[i],accent:[C.blue,C.rust,C.teal][i]});
-      }
-      out += text(W/2,H-4,'Same x, same vertical scale. F = T₁ + λT₂.','text-anchor="middle" class="figure-note"');
-    } else if (scene === 3 || scene === 4) {
-      const tree = scene===3?E.stumpX:E.conditional;
-      out += text(compact?85:165,compact?22:52,scene===3?'One rule':'Two nested rules','text-anchor="middle" class="plot-heading"');
+    } else if (scene === 1) {
+      const tree = E.stumpX;
+      out += text(compact?85:165,compact?22:52,'One rule','text-anchor="middle" class="plot-heading"');
       out += treeDiagram(tree,p,compact?{x:2,y:64,w:169,h:113}:{x:20,y:142,w:290,h:200});
       out += partitionMap([tree],p,compact?{x:222,y:43,w:155,h:155}:{x:398,y:91,w:303,h:303},{label:'Input space'});
       out += legend(compact?217:443,compact?251:455,compact?172:220);
-    } else if (scene === 5) {
+    } else if (scene === 2 || scene === 4) {
+      const firstOnly=scene===2 && state.splitProgress===0;
+      const single=firstOnly?E.stumpX:scene===2?E.recursive2D:E.matched2D;
+      const ensemble=firstOnly?[E.stumpX]:[E.stumpX,E.stumpY];
+      const centers=compact?[105,315]:[200,584];
+      const boxes=compact?[{x:33,y:91,w:144,h:144},{x:243,y:91,w:144,h:144}]:[{x:65,y:123,w:270,h:270},{x:449,y:123,w:270,h:270}];
+      [single,ensemble].forEach((tree,i)=>{
+        const ts=i===0?[tree]:tree;
+        out+=text(centers[i],compact?22:28,i===0?'One tree':'Two stumps','text-anchor="middle" class="plot-heading"');
+        out+=text(centers[i],compact?43:55,`${ts.reduce((s,t)=>s+M.splitCount(t),0)} split${firstOnly?'':'s'}`,'text-anchor="middle" class="figure-note"');
+        out+=text(centers[i],compact?72:88,`${M.refinement(ts).length} regions`,'text-anchor="middle" class="region-count"');
+        out+=`<g data-comparison="${i===0?'single':'sum'}">${partitionMap(ts,p,boxes[i])}</g>`;
+      });
+      out+=line(W/2,compact?8:10,W/2,compact?263:488,'#dedede',1);
+      const notes=scene===2?['The second cut stays in one leaf.','The second cut crosses both leaves.']:['Ask about x₂ in each branch.','Ask about x₂ in one new stump.'];
+      if(!compact)notes.forEach((note,i)=>{out+=text(centers[i],462,note,'text-anchor="middle" class="figure-note"');});
+      if(compact && scene===2){out+=text(105,276,'Local second cut','text-anchor="middle" class="figure-note"');out+=text(315,276,'Crossing second cut','text-anchor="middle" class="figure-note"');}
+      if(scene===4)out+=text(W/2,H-4,compact?'Same function; different split counts.':'Same four regions and predictions; different split counts.','text-anchor="middle" class="figure-note"');
+    } else if (scene === 3) {
       const second=scaled(E.stumpY,state.addition);
       const maps=[[E.stumpX],[second],[E.stumpX,second]];
       const labels=['T₁','λT₂','F = T₁ + λT₂'];
@@ -234,6 +247,17 @@
       out += text(compact?277:515,compact?107:214,'=','text-anchor="middle" class="operator"');
       out += text(W/2,compact?211:369,'One location. Two leaf values. Their sum.','text-anchor="middle" class="figure-note"');
       out += legend(compact?110:250,compact?247:432,compact?200:280);
+    } else if (scene === 5) {
+      const box=compact?{x:110,y:47,w:195,h:195}:{x:237,y:83,w:306,h:306};
+      out+=partitionMap([E.stumpX,E.stumpY],p,box,{label:'F = T₁ + T₂',noProbe:true});
+      const X=v=>box.x+(v+2)/4*box.w,Y=v=>box.y+box.h-(v+2)/4*box.h;
+      for(const y of [-1.5,1.5]){
+        const py=Y(y);
+        out+=line(X(-1),py,X(1),py,C.rust,2);
+        out+=text(X(1)+1,py+6,'›',`fill="${C.rust}" class="operator"`);
+        out+=text(box.x+box.w+16,py+5,'+1',`fill="${C.rust}" class="plot-heading"`);
+      }
+      if(!compact)out+=text(W/2,455,'The x₁ jump is the same above and below.','text-anchor="middle" class="figure-note"');
     } else if (scene === 6) {
       const trees=[E.stumpX,E.stumpY];
       if(state.interaction) trees.push(E.conditional);
@@ -260,12 +284,12 @@
       });
       out += text(W/2,compact?259:459,'Next: choose a tree by the correction it makes.','text-anchor="middle" class="figure-note"');
     }
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="${C.ink}" role="group" aria-labelledby="scene-title scene-description"><title id="scene-title">${escape(topics[scene])}</title><desc id="scene-description">${escape(captions[scene]+' '+readout(scene,state))}</desc><style>text{font-family:Georgia,serif;font-size:${compact?14:18}px}.tick,.branch-label{font-family:Arial,sans-serif;font-size:${compact?12:13}px}.plot-heading{font-size:${compact?15:20}px}.figure-note,.legend-label{font-size:${compact?13:16}px}.legend-label{font-family:Arial,sans-serif}.cell-value{font-size:${compact?18:27}px}.operator{font-size:${compact?20:28}px}.vector-value{font-size:${compact?25:35}px}.axis-label{font-style:italic}.leaf-button,.plot-hit{cursor:crosshair}.leaf-button:focus{outline:none}.leaf-button:focus rect{stroke:#242424;stroke-width:4}.partition-cut{vector-effect:non-scaling-stroke}</style>${out}</svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="${C.ink}" role="group" aria-labelledby="scene-title scene-description"><title id="scene-title">${escape(topics[scene])}</title><desc id="scene-description">${escape(captions[scene]+' '+readout(scene,state))}</desc><style>text{font-family:Georgia,serif;font-size:${compact?14:18}px}.tick,.branch-label{font-family:Arial,sans-serif;font-size:${compact?12:13}px}.plot-heading{font-size:${compact?15:20}px}.figure-note,.legend-label{font-size:${compact?13:16}px}.legend-label{font-family:Arial,sans-serif}.cell-value{font-size:${compact?18:27}px}.region-count{font-size:${compact?25:30}px;fill:${C.blue}}.operator{font-size:${compact?20:28}px}.vector-value{font-size:${compact?25:35}px}.axis-label{font-style:italic}.leaf-button,.plot-hit{cursor:crosshair}.leaf-button:focus{outline:none}.leaf-button:focus rect{stroke:#242424;stroke-width:4}.partition-cut{vector-effect:non-scaling-stroke}</style>${out}</svg>`;
   }
 
   function init(doc,win) {
     const get=id=>doc.getElementById(id);
-    const state={x:.8,y:.8,addition:1,interaction:false};
+    const state={x:.8,y:.8,addition:1,interaction:false,splitProgress:1};
     const steps=Array.from(doc.querySelectorAll('.step'));
     const diagram=get('diagram'), shell=diagram.closest('.stage-shell');
     const reduced=win.matchMedia('(prefers-reduced-motion: reduce)');
@@ -276,9 +300,10 @@
       get('stage-topic').textContent=topics[scene];
       get('stage-count').textContent=`${String(scene+1).padStart(2,'0')} / 08`;
       get('stage-caption').textContent=captions[scene];
-      get('probe-controls').hidden=scene===7;
-      get('probe-y-control').hidden=scene<3;
-      get('addition-controls').hidden=scene!==2 && scene!==5;
+      get('probe-controls').hidden=scene===5 || scene===7;
+      get('probe-y-control').hidden=scene===0;
+      get('addition-controls').hidden=scene!==3;
+      get('split-controls').hidden=scene!==2;
       get('interaction-controls').hidden=scene!==6;
       get('probe-x-value').textContent=fmt(state.x);
       get('probe-y-value').textContent=fmt(state.y);
@@ -293,10 +318,10 @@
       diagram.innerHTML=renderScene(scene,state,compact.matches);
       if(transition && !reduced.matches && diagram.animate) diagram.animate([{opacity:.25},{opacity:1}],{duration:280,easing:'ease-out'});
     }
-    function stopAnimation(){win.cancelAnimationFrame(animation);animation=0;get('replay-addition').textContent='Replay addition';}
+    function stopAnimation(){win.cancelAnimationFrame(animation);animation=0;get('replay-addition').textContent='Replay addition';get('replay-splits').textContent='Replay the second split';}
     function activate(index){
       if(index===scene) return;
-      stopAnimation(); scene=index; state.addition=1; render(true);
+      stopAnimation(); scene=index; state.addition=1; state.splitProgress=1;if(scene===2){state.x=-1;state.y=1;}render(true);
     }
     function readingLine(){
       return compact.matches && win.innerHeight>560 ? shell.getBoundingClientRect().bottom+35 : win.innerHeight*.46;
@@ -326,6 +351,13 @@
     get('next').addEventListener('click',()=>go(scene+1));
     for(const [id,key] of [['probe-x','x'],['probe-y','y'],['addition','addition']]) get(id).addEventListener('input',e=>{if(key==='addition')stopAnimation();state[key]=Number(e.target.value);render();});
     get('include-interaction').addEventListener('change',e=>{state.interaction=e.target.checked;render(true);});
+    get('replay-splits').addEventListener('click',()=>{
+      if(animation || reduced.matches){stopAnimation();state.splitProgress=1;render();return;}
+      state.splitProgress=0;render(true);get('replay-splits').textContent='Show the second split';
+      const start=win.performance.now();
+      function tick(now){if(now-start<1400){animation=win.requestAnimationFrame(tick);return;}state.splitProgress=1;render(true);stopAnimation();}
+      animation=win.requestAnimationFrame(tick);
+    });
     get('replay-addition').addEventListener('click',()=>{
       if(animation){stopAnimation();return;}
       if(reduced.matches){state.addition=1;render();return;}

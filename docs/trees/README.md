@@ -4,21 +4,33 @@ A static companion to the boosting story, served at `/trees/`. No build step or
 external JavaScript dependencies. The course home lists this page before boosting;
 both explainers link to one another.
 
-Eight scroll-linked scenes connect a decision tree to its step function, recursive
-splits to local rectangles, and a sum of trees to a common refinement. The input
+Eight scroll-linked scenes connect a decision tree to its step function and then
+compare two split nodes in one tree (three regions) with two crossing stumps
+(four regions). Slide 03 makes that comparison side by side; slide 05 shows the
+third split a single tree needs to match the same four-region prediction function.
+The next scene distinguishes region counts from freedom in the leaf values.
+The input
 sliders, pointer probing, and focusable leaf buttons select the same input across
 the diagrams. Previous/Next buttons and left/right keys navigate the explanation.
 Sliders retain their native arrow-key behavior. The addition control scales a
-second tree; Replay animates its coefficient from zero to one. Reduced motion
-disables that animation and uses immediate navigation.
+second tree; Replay animates its coefficient from zero to one. A separate replay
+shows the first split in both constructions, then adds the second. Reduced motion
+uses the completed comparison and immediate navigation.
 
 ## Numerical examples
 
 The leaf values are illustrative, not estimated from data. All predictions are on
 the regression scale, with exact `<=` left-branch semantics.
 
-- In one dimension, `T1 = 1{x > -0.5}` and `T2 = 2·1{x > 0.75}`. Their sum matches
-  the displayed three-leaf tree with predictions 0, 1, and 3.
+- The main comparison uses one tree that splits x1 at zero and then only its
+  right child at x2 = 0, with leaf predictions 0, 1, and 3. The two-stump sum has
+  an additional upper-left region predicting 2. Both constructions use two split
+  nodes; their boundaries differ in where the second cut applies.
+- A single tree that tests x2 in both children matches the sum with three split
+  nodes. Its four leaf predictions are unrestricted, while the stump sum obeys
+  the zero-interaction constraint: upper right = lower right + upper left − lower left.
+- The one-dimensional two-cut example is retained in an afterword note. Both
+  constructions yield three intervals there; it cannot demonstrate crossing cuts.
 - In two dimensions, `T1 = 1{x1 > 0}` and `T2 = 2·1{x2 > 0}`. Their common refinement
   has predictions 0, 1, 2, and 3. A single 0–5 prediction color scale is shared by
   all the maps. Numbers, line styles, and leaf outlines supplement color.
