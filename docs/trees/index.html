@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="See how a decision tree recursively partitions its inputs, how sums of trees overlay those partitions, and why tree depth matters for interactions.">
+  <title>Trees, one partition at a time — POLS 4728</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="model.js" defer></script>
+  <script src="story.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#reading">Skip to the explanation</a>
+  <header class="masthead">
+    <a href="../">POLS 4728 <span>· ML &amp; AI</span></a>
+    <nav aria-label="Page navigation"><a href="#story">Partitions</a><a href="../boosting/">Boosting →</a></nav>
+  </header>
+  <div class="reading-progress" aria-hidden="true"><span id="progress"></span></div>
+
+  <main>
+    <section class="title-page" aria-labelledby="page-title">
+      <div class="title-content">
+        <p class="eyebrow">MACHINE LEARNING &amp; AI FOR THE SOCIAL SCIENCES</p>
+        <h1 id="page-title">Trees,<br>one partition at a time</h1>
+        <p class="title-subtitle">From recursive splits to sums of trees</p>
+        <svg class="title-art" viewBox="0 0 650 220" aria-hidden="true" focusable="false">
+          <g fill="none" stroke-width="1.5">
+            <path d="M27 22h148v148H27z M249 22h148v148H249z M471 22h148v148H471z" stroke="#767676"/>
+            <path d="M101 22v148 M323 22v148 M545 22v148" stroke="#234E70" stroke-width="2.5"/>
+            <path d="M323 96h74 M471 96h148" stroke="#A54F32" stroke-width="2.5"/>
+            <path d="M195 96h30m-7-5 7 5-7 5 M417 96h30m-7-5 7 5-7 5" stroke="#767676"/>
+          </g>
+          <g fill="#234E70" fill-opacity=".07"><path d="M101 22h74v148h-74z M323 22h74v148h-74z M545 22h74v148h-74z"/></g>
+          <g fill="#A54F32" fill-opacity=".09"><path d="M323 22h74v74h-74z M471 22h148v74H471z"/></g>
+          <g class="title-art-label" text-anchor="middle"><text x="101" y="201">One split</text><text x="323" y="201">A split within a leaf</text><text x="545" y="201">Partitions overlaid</text></g>
+        </svg>
+        <p class="title-intro">A tree divides the input space. An ensemble adds predictions across several such divisions.</p>
+        <a class="start-link" href="#story">Begin with one predictor <span aria-hidden="true">↓</span></a>
+      </div>
+    </section>
+
+    <div class="story-layout" id="story">
+      <aside class="stage-shell" aria-label="Interactive tree and partition diagrams" data-scene="0">
+        <div class="stage-top"><span id="stage-topic">One split, two predictions</span><span id="stage-count">01 / 08</span></div>
+        <div id="diagram" class="diagram" aria-label="Current tree and its predictions"></div>
+        <div id="probe-controls" class="probe-controls" aria-label="Choose an input">
+          <div class="probe-control">
+            <label for="probe-x"><span>Input <i>x</i><sub class="two-dimensional-label">1</sub></span><output id="probe-x-value" for="probe-x">0.80</output></label>
+            <input id="probe-x" type="range" min="-2" max="2" step="0.01" value="0.8">
+          </div>
+          <div id="probe-y-control" class="probe-control" hidden>
+            <label for="probe-y"><span>Input <i>x</i><sub>2</sub></span><output id="probe-y-value" for="probe-y">0.80</output></label>
+            <input id="probe-y" type="range" min="-2" max="2" step="0.01" value="0.8">
+          </div>
+        </div>
+        <div id="addition-controls" class="addition-controls" hidden>
+          <label for="addition">Contribution of T₂ <output id="addition-value" for="addition">1.00</output></label>
+          <input id="addition" type="range" min="0" max="1" step="0.01" value="1">
+          <button id="replay-addition" type="button">Replay addition</button>
+        </div>
+        <div id="interaction-controls" class="interaction-controls" hidden>
+          <label for="include-interaction"><input id="include-interaction" type="checkbox"> Add the tree with a conditional split</label>
+        </div>
+        <div id="calculation" class="calculation" role="status" aria-live="polite" aria-atomic="true"></div>
+        <p id="stage-caption" class="stage-caption">Move the input to follow its path through the tree.</p>
+        <nav class="stage-nav" aria-label="Explanation steps"><button id="previous" type="button" disabled>Previous</button><span>Scroll or use the buttons</span><button id="next" type="button">Next</button></nav>
+      </aside>
+
+      <article id="reading" class="narrative">
+        <section class="step" id="one-split" data-step="0" aria-labelledby="heading-0"><div>
+          <p class="step-number">01 / 08 · ONE PREDICTOR</p>
+          <h2 id="heading-0">One split, two predictions</h2>
+          <p>A regression tree asks a sequence of questions about the inputs. With one predictor <i>x</i>, the first question might be whether <span class="math">x ≤ −0.5</span>.</p>
+          <p>Each answer leads to a <em>leaf</em>, which returns one constant prediction. Here the left leaf predicts 0 and the right leaf predicts 1. Draw the prediction against <i>x</i>, and the tree becomes a step function.</p>
+          <p class="quiet">The thresholds and leaf values in this explainer are chosen to make the geometry clear. We are not fitting these trees to a dataset.</p>
+        </div></section>
+
+        <section class="step" id="split-a-leaf" data-step="1" aria-labelledby="heading-1"><div>
+          <p class="step-number">02 / 08 · RECURSIVE PARTITIONING</p>
+          <h2 id="heading-1">Split a leaf, not the whole line</h2>
+          <p>To grow the tree, choose one existing leaf and ask another question there. We split the right leaf at <span class="math">x = 0.75</span>, assigning predictions 1 and 3 to its two children.</p>
+          <p>The original left leaf is untouched. An input reaches the second question only after passing the first one.</p>
+          <p>This is <em>recursive partitioning</em>: repeatedly divide a region that an earlier split has already created. With one predictor, the resulting leaves are intervals.</p>
+        </div></section>
+
+        <section class="step" id="add-a-tree" data-step="2" aria-labelledby="heading-2"><div>
+          <p class="step-number">03 / 08 · ADDING FUNCTIONS</p>
+          <h2 id="heading-2">Add another tree</h2>
+          <p>We can construct the same step function another way. Keep the first tree, <span class="math">T₁</span>, and add a second tree, <span class="math">T₂</span>, that contributes 0 up to 0.75 and 2 above it.</p>
+          <p class="equation math">F(x) = T₁(x) + T₂(x).</p>
+          <p>At each input, follow both trees to their leaves and add the two numbers. Their cutpoints divide the line into intervals on which the sum is constant.</p>
+          <p>The result is again 0, then 1, then 3. Growing one tree and adding two smaller trees have produced the same predictions here, through different constructions.</p>
+          <p class="quiet">Use the contribution control to add T₂ gradually. During the replay, λ runs from 0 to 1 in F = T₁ + λT₂.</p>
+        </div></section>
+
+        <section class="step" id="two-predictors" data-step="3" aria-labelledby="heading-3"><div>
+          <p class="step-number">04 / 08 · TWO PREDICTORS</p>
+          <h2 id="heading-3">Now the inputs form a plane</h2>
+          <p>With two predictors, each possible input is a point <span class="math">(x₁, x₂)</span>. The horizontal axis is <span class="math">x₁</span>; the vertical axis is <span class="math">x₂</span>. Predictions are the numbers inside the regions.</p>
+          <p>A split at <span class="math">x₁ = 0</span> draws a vertical boundary. Every point to its left receives one leaf prediction, and every point to its right receives the other.</p>
+          <p>A one-split tree is often called a <em>stump</em>. This stump depends on <span class="math">x₁</span> alone: moving up or down within either half does not change its prediction.</p>
+        </div></section>
+
+        <section class="step" id="local-split" data-step="4" aria-labelledby="heading-4"><div>
+          <p class="step-number">05 / 08 · CONDITIONAL SPLITS</p>
+          <h2 id="heading-4">The next boundary is local</h2>
+          <p>Consider another tree, <span class="math">U</span>. First split at <span class="math">x₁ = 0</span>, then split the right child at <span class="math">x₂ = 0</span>. The horizontal boundary belongs only to the right half of the plane.</p>
+          <p>Give the upper-right leaf a prediction of 2 and the other leaves a prediction of 0. The tree now contributes 2 only when both predictors are positive.</p>
+          <p class="equation math">U(x₁, x₂) = 2 · 1{x₁ &gt; 0, x₂ &gt; 0}.</p>
+          <p class="quiet">The indicator, 1{…}, equals 1 when its condition is true and 0 otherwise. The tree has three leaves even though two of them share a prediction.</p>
+        </div></section>
+
+        <section class="step" id="overlay" data-step="5" aria-labelledby="heading-5"><div>
+          <p class="step-number">06 / 08 · OVERLAYING PARTITIONS</p>
+          <h2 id="heading-5">Two stumps, four regions</h2>
+          <p>Return to two separate stumps. Let <span class="math">T₁</span> contribute 1 when <span class="math">x₁ &gt; 0</span>, and let <span class="math">T₂</span> contribute 2 when <span class="math">x₂ &gt; 0</span>.</p>
+          <p>To understand their sum, overlay their partitions. Each resulting region is an intersection of one leaf from each tree. Its prediction is the sum of those leaves’ values.</p>
+          <p>The four regions predict 0, 1, 2, and 3. Move the same input across the three maps to see which two leaves supply its prediction.</p>
+          <p class="quiet">Colors use a shared prediction scale. Numbers are added; colors are not mixed. In general, some boundaries can disappear from the prediction function if their jumps cancel.</p>
+        </div></section>
+
+        <section class="step" id="interactions" data-step="6" aria-labelledby="heading-6"><div>
+          <p class="step-number">07 / 08 · WHAT DEPTH ADDS</p>
+          <h2 id="heading-6">Additive in trees—and in predictors?</h2>
+          <p>Our sum of two stumps has four regions, but no interaction. Crossing <span class="math">x₁ = 0</span> always adds 1, whether <span class="math">x₂</span> is positive or negative. Each predictor contributes separately.</p>
+          <p>Now add the tree <span class="math">U</span> with the conditional split. Only the upper-right prediction rises, from 3 to 5. Crossing <span class="math">x₁ = 0</span> then adds 3 above the horizontal boundary and 1 below it. The effect of one predictor depends on the other.</p>
+          <p>A sum of stumps is additive in predictors: <span class="math">c + ∑<sub>j</sub> g<sub>j</sub>(x<sub>j</sub>)</span>. A sum of deeper trees can include interactions. Both are additive in trees.</p>
+          <p class="quiet">We are discussing numerical regression predictions. A nonlinear transformation, such as converting a classification score to a probability, changes the scale on which additivity holds.</p>
+        </div></section>
+
+        <section class="step" id="toward-boosting" data-step="7" aria-labelledby="heading-7"><div>
+          <p class="step-number">08 / 08 · FROM TREES TO BOOSTING</p>
+          <h2 id="heading-7">How should we choose the next tree?</h2>
+          <p>A single tree refines its own partition. An ensemble combines the partitions of its constituent trees, adding their predictions at every input.</p>
+          <p>A finite sum of these constant-leaf, axis-aligned trees can itself be represented by a larger tree. The distinction lies in how we construct and constrain the model, including the depth of each added tree and the size of its contribution.</p>
+          <p>We can build a function by adding small trees. How should we choose the next one?</p>
+          <p>The next explainer changes coordinate systems. Here, the axes described <em>inputs</em>. In the boosting story, each axis will represent a model’s prediction for one training observation.</p>
+          <p><a class="continue-link" href="../boosting/">Continue to Boosting, one step at a time <span aria-hidden="true">→</span></a></p>
+        </div></section>
+      </article>
+    </div>
+
+    <section class="afterword" id="further-reading" aria-labelledby="reading-heading">
+      <h2 id="reading-heading">The construction and the function</h2>
+      <p>The partition created by an ensemble is the common refinement of its trees’ leaf regions: all the nonempty intersections. A tree’s local boundary stays local in this overlay. The sum is constant within each intersection, although adjacent regions can have the same prediction.</p>
+      <p>Representing that sum as one tree may require a much larger tree. Fitting one large tree and sequentially fitting many small ones are different learning procedures, even when their final prediction functions can be represented in either form.</p>
+      <div class="sources">
+        <h3>Further reading</h3>
+        <p>Susan Athey and Guido W. Imbens (2019), <a href="https://arxiv.org/pdf/1903.10075">“Machine Learning Methods That Economists Should Know About”</a>. Section 3.4 discusses boosting and how the number of splits in each component tree constrains the interactions the ensemble can represent.</p>
+      </div>
+    </section>
+  </main>
+  <footer><a href="../">ML &amp; AI for the Social Sciences</a><a href="../boosting/">Next: Boosting →</a><a href="#page-title">Back to the beginning</a></footer>
+  <noscript><style>.stage-shell{display:none}.story-layout{display:block}.narrative{max-width:760px;margin:auto}.step{min-height:0;padding:35px 0}</style><p class="no-script">The full explanation above is readable without JavaScript. Enable JavaScript to explore the linked tree diagrams, step functions, and partition maps.</p></noscript>
+</body>
+</html>

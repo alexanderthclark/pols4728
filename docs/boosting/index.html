@@ -13,7 +13,7 @@
   <a class="skip-link" href="#reading">Skip to the explanation</a>
   <header class="masthead">
     <a href="../">POLS 4728 <span>· ML &amp; AI</span></a>
-    <nav aria-label="Page navigation"><a href="#story">The geometry</a><a href="#xgboost">XGBoost</a></nav>
+    <nav aria-label="Page navigation"><a href="../trees/">Tree partitions</a><a href="#story">The geometry</a><a href="#xgboost">XGBoost</a></nav>
   </header>
   <div class="reading-progress" aria-hidden="true"><span id="progress"></span></div>
 
@@ -25,6 +25,7 @@
         <p class="title-subtitle">Gradient descent in function space</p>
         <img src="assets/boosting-swing.png" width="1671" height="941" alt="A round, torso-less figure in a dad hat pushes another round, torso-less figure wearing a propeller beanie on a swing." class="title-art">
         <a class="start-link" href="#story">Begin the explanation</a>
+        <p class="quiet">First encounter with trees? <a href="../trees/">See how trees partition the input space.</a></p>
       </div>
     </section>
 
@@ -62,6 +63,7 @@
           <p class="step-number">01 / 12</p><h2 id="heading-0">Begin with three observations</h2>
           <p>Suppose we want to predict these three outcomes from a single input <i>x</i>. Each model gives us three predictions: one for each observation.</p>
           <p>To understand boosting, we will put those predictions into a new coordinate system.</p>
+          <p>If you came from <a href="../trees/">the partition explainer</a>, notice the change: we now study prediction space, with one coordinate per observation. This page starts a new worked example.</p>
           <p class="quiet">We treat the outcomes as numerical regression targets throughout this example.</p>
         </div></section>
 
