@@ -15,6 +15,58 @@ const vectorClose = (actual, expected, tolerance) => {
 const attributes = fragment => Object.fromEntries([...fragment.matchAll(/([\w-]+)="([^"]*)"/g)].map(match => [match[1], match[2]]));
 const dataValue = (html, name) => new RegExp(`data-${name}="([^"]+)"`).exec(html)?.[1];
 
+// A projection is a full least-squares fit of the target vector onto the
+// available corrections. Its geometry is independent of the reveal animation
+// and of the learning rate subsequently applied to that fitted vector.
+function assertProjection(html, basePrediction, targets, opacity) {
+  const guideTag = /<line\b[^>]*class="restricted-projection-guide"[^>]*>/.exec(html);
+  assert.ok(guideTag, 'The fitted target should have a projection connector');
+  const guide = attributes(guideTag[0]);
+  const fitted = targets.map(() => (targets[0] + targets[1]) / 2);
+  const dropped = targets.map((value, index) => value - fitted[index]);
+  vectorClose(guide['data-at-values'].split(',').map(Number), basePrediction);
+  vectorClose(guide['data-target-values'].split(',').map(Number), targets);
+  vectorClose(guide['data-projection-values'].split(',').map(Number), fitted);
+  close(Number(guide.opacity), opacity);
+  close(math.dot(dropped, [1, 1]), 0);
+  close(math.dot(dropped, fitted), 0);
+  close(fitted[0], fitted[1]);
+
+  // Infer the plot's translation from its actual current prediction. During an
+  // update this point moves, while the displayed training target's base stays
+  // fixed at the start of that round.
+  const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]), scale = Number(svg['data-scale']);
+  const point = attributes(/<circle\b[^>]*class="restricted-current"[^>]*>/.exec(html)[0]);
+  const currentPrediction = JSON.parse(dataValue(html, 'prediction'));
+  const origin = [Number(point.cx) - currentPrediction[0] * scale, Number(point.cy) + currentPrediction[1] * scale];
+  const project = prediction => [origin[0] + prediction[0] * scale, origin[1] - prediction[1] * scale];
+  const targetTip = project(basePrediction.map((value, index) => value + targets[index]));
+  const projectionFoot = project(basePrediction.map((value, index) => value + fitted[index]));
+  vectorClose([Number(guide.x1), Number(guide.y1)], targetTip);
+  vectorClose([Number(guide.x2), Number(guide.y2)], projectionFoot);
+  // Equal axis scales make the screen-space connector perpendicular to the
+  // visible 45-degree update line, not merely perpendicular in data values.
+  close(math.dot([Number(guide.x2) - Number(guide.x1), Number(guide.y2) - Number(guide.y1)], [1, -1]), 0);
+
+  const markerTag = /<polyline\b[^>]*class="restricted-projection-angle"[^>]*>/.exec(html);
+  assert.ok(markerTag, 'The full projection foot should carry its right-angle marker');
+  if (markerTag) {
+    const marker = attributes(markerTag[0]);
+    close(Number(marker.opacity), opacity);
+    close(Number(marker['data-dot-product']), 0);
+    const vertices = marker.points.split(' ').map(point => point.split(',').map(Number));
+    assert.equal(vertices.length, 3);
+    const firstSide = vertices[1].map((value, index) => value - vertices[0][index]);
+    const secondSide = vertices[2].map((value, index) => value - vertices[1][index]);
+    assert.ok(math.norm(firstSide) > 0 && math.norm(secondSide) > 0);
+    close(math.dot(firstSide, secondSide), 0);
+    close(math.dot(firstSide, [1, -1]), 0);
+    close(math.dot(secondSide, [1, 1]), 0);
+    vectorClose(vertices[0].map((value, index) => value + vertices[2][index] - vertices[1][index]), projectionFoot);
+  }
+  return { guide, fitted, dropped, projectionFoot, scale, markerTag };
+}
+
 // Independent definitions evaluate the displayed objective directly from y and
 // prediction coordinates, rather than using the view's own loss evaluator.
 function selectedLoss(prediction, state) {
@@ -289,6 +341,25 @@ test('the residual animation moves together from zero to the mean and decreases 
   vectorClose(view.resolve(4, { progress: 10 }).prediction, [.5, .5]);
 });
 
+test('the MSE fit projects the actual residual onto the allowed update line at every frame', () => {
+  for (const [width, height, compact] of [[273, 300, true], [320, 520, true], [970, 520, false]]) {
+    for (let frame = 0; frame <= 20; frame++) {
+      const progress = frame / 20, prediction = [progress / 2, progress / 2];
+      const residual = [1 - prediction[0], -prediction[1]];
+      const html = view.render(4, { progress, width, height }, compact);
+      const projection = assertProjection(html, prediction, residual, progress);
+      vectorClose(projection.fitted, [.5 - prediction[0], .5 - prediction[1]]);
+      vectorClose(projection.dropped, [.5, -.5]);
+      // Although the current residual gets shorter, every frame projects to
+      // the same best prediction, and its dropped component stays unchanged.
+      vectorClose(prediction.map((value, index) => value + projection.fitted[index]), [.5, .5]);
+      const optimum = attributes(/<rect\b[^>]*class="restricted-optimum"[^>]*>/.exec(html)[0]);
+      vectorClose(projection.projectionFoot, [Number(optimum['data-pixel-x']), Number(optimum['data-pixel-y'])]);
+      assert.doesNotMatch(html, /gradient|∇/i);
+    }
+  }
+});
+
 test('the residual progression explicitly labels its current values and the fitted destination', () => {
   for (const [width, height, compact] of [[273, 300, true], [450, 410, false]]) {
     for (const [progress, prediction, residual] of [
@@ -402,6 +473,77 @@ test('targets and the fitted-tree preview stay at the midpoint before any update
   vectorClose([(Number(fitted.x2) - Number(fitted.x1)) / scale, (Number(fitted.y1) - Number(fitted.y2)) / scale], [.3, .3]);
   vectorClose([(Number(scaled.x2) - Number(scaled.x1)) / scale, (Number(scaled.y1) - Number(scaled.y2)) / scale], [.15, .15]);
   assert.doesNotMatch(view.render(7, { progress: 1 }), /restricted-tree-arrow|restricted-update-endpoint/);
+});
+
+test('the gradient fit projects the full training target before applying the half-sized update', () => {
+  for (const [width, height, compact] of [[273, 300, true], [320, 520, true], [970, 520, false]]) {
+    const baseline = [.5, .5], targets = [.8, -.2];
+    for (const progress of [0, .65 * .5, .65 * .75, .65 * .875, .65, .8, 1]) {
+      const fitReveal = progress < .65 ? progress / .65 : 1;
+      const opacity = Math.max(0, Math.min(1, (fitReveal - .75) / .25));
+      const html = view.render(8, { progress, width, height }, compact);
+      const projection = assertProjection(html, baseline, targets, opacity);
+      vectorClose(projection.fitted, [.3, .3]);
+      vectorClose(projection.dropped, [.5, -.5]);
+      const fittedArrow = attributes(/<line\b[^>]*class="restricted-tree-arrow"[^>]*>/.exec(html)[0]);
+      vectorClose([(Number(fittedArrow.x2) - Number(fittedArrow.x1)) / projection.scale,
+        (Number(fittedArrow.y1) - Number(fittedArrow.y2)) / projection.scale], [.3 * fitReveal, .3 * fitReveal]);
+      const scaledArrow = attributes(/<line\b[^>]*class="restricted-scaled-update"[^>]*>/.exec(html)[0]);
+      vectorClose([(Number(scaledArrow.x2) - Number(scaledArrow.x1)) / projection.scale,
+        (Number(scaledArrow.y1) - Number(scaledArrow.y2)) / projection.scale], [.15, .15]);
+      assert.ok(Math.hypot(Number(scaledArrow.x2) - projection.projectionFoot[0], Number(scaledArrow.y2) - projection.projectionFoot[1]) > 0,
+        'The learning-rate endpoint is distinct from the full projection foot');
+      if (fitReveal > 0 && fitReveal < 1) {
+        assert.ok(Math.hypot(Number(fittedArrow.x2) - projection.projectionFoot[0], Number(fittedArrow.y2) - projection.projectionFoot[1]) > 0,
+          'A partially drawn fit arrow must not move the true projection foot');
+      }
+    }
+  }
+});
+
+test('projection guides stay at the training base throughout every fitted-tree round', () => {
+  const locals = [0, .125, .25, .375, .4375, .46875, .5, .625, .75, .875, .999];
+  for (const [width, height, compact] of [[273, 300, true], [320, 520, true], [970, 520, false]]) {
+    for (let round = 0; round < 6; round++) {
+      const base = .8 - .3 * 2 ** -round, baseline = [base, base];
+      const targets = [1.6 * (1 - base), -.4 * base];
+      for (const local of locals) {
+        const progress = (round + local) / 6;
+        const html = view.render(9, { progress, width, height }, compact);
+        const fitReveal = local < .25 ? 0 : local < .5 ? (local - .25) / .25 : 1;
+        const opacity = Math.max(0, Math.min(1, (fitReveal - .75) / .25));
+        const projection = assertProjection(html, baseline, targets, opacity);
+        vectorClose(projection.fitted, [.8 - base, .8 - base]);
+        const gradient = attributes(/<line\b[^>]*class="restricted-gradient-arrow"[^>]*>/.exec(html)[0]);
+        vectorClose(gradient['data-at-values'].split(',').map(Number), baseline);
+        vectorClose(gradient['data-values'].split(',').map(Number), targets);
+        const updateFraction = local < .5 ? 0 : (local - .5) / .5;
+        const current = JSON.parse(dataValue(html, 'prediction'));
+        vectorClose(current, baseline.map((value, index) => value + .5 * updateFraction * projection.fitted[index]));
+        if (local > .5) {
+          assert.notDeepEqual(current, baseline, 'Current predictions move while the training base remains frozen');
+          assert.notDeepEqual(current, baseline.map((value, index) => value + projection.fitted[index]),
+            'The current update uses the learning rate, not the full fitted projection');
+        }
+      }
+    }
+    const finalPrediction = [.7953125, .7953125];
+    const finalTargets = [1.6 * (1 - finalPrediction[0]), -.4 * finalPrediction[1]];
+    assertProjection(view.render(9, { progress: 1, width, height }, compact), finalPrediction, finalTargets, 1);
+  }
+});
+
+test('projection guides appear only after fitting and exclude original-loss leaf optimization', () => {
+  for (const [width, height, compact] of [[273, 300, true], [970, 520, false]]) {
+    for (const scene of [0, 1, 2, 3, 5, 6, 7, 10, 11]) {
+      for (const progress of [0, .5, 1]) {
+        for (const loss of ['squared', 'expectile', 'huber', 'quartic']) {
+          const html = view.render(scene, { progress, width, height, loss, tau: .8, delta: .25, prediction: .5 }, compact);
+          assert.doesNotMatch(html, /class="restricted-projection-(?:guide|angle)"/, `Scene ${scene} must not imply an unintroduced or different projection`);
+        }
+      }
+    }
+  }
 });
 
 test('six actual fitted-tree updates halve the remaining error without reaching the limit exactly', () => {

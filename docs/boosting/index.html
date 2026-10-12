@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Begin with two observations, residual fitting, and orthogonality, then change the loss to discover why gradient boosting needs different targets.">
   <title>Gradient Boosting</title>
-  <link rel="stylesheet" href="style.css?v=signed-residual-loss">
+  <link rel="stylesheet" href="style.css?v=projection-geometry">
   <script src="../shared/boosting-math.js" defer></script>
   <script src="prediction-view.js?v=iterative-updates" defer></script>
-  <script src="restricted-view.js?v=signed-residual-loss" defer></script>
+  <script src="restricted-view.js?v=projection-geometry" defer></script>
   <script src="worked-example.js" defer></script>
   <script src="worked-view.js" defer></script>
   <script src="loss-example.js" defer></script>
   <script src="loss-view.js" defer></script>
-  <script src="story.js?v=signed-residual-loss" defer></script>
+  <script src="story.js?v=projection-geometry" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#reading">Skip to the explanation</a>
@@ -119,10 +119,11 @@
         </div></section>
         <section class="step" id="residual-move" data-step="4" data-restricted-scene="4" aria-labelledby="heading-4"><div>
           <h2 id="heading-4">Fit the residual mean</h2>
-          <p class="step-summary">Fit the residual mean, <span class="math">½</span>, and move together to <span class="math">(½, ½)</span>.</p>
+          <p class="step-summary">Project the residual onto the allowed line: the fitted update is <span class="math">(½, ½)</span>.</p>
           <details class="step-notes"><summary>Why this works</summary><div>
           <p>A residual is the observed outcome minus its prediction: <span class="math">r = y − f</span>. At the starting point the residuals are 1 and 0. Since both inputs are identical, a fitted tree must predict one shared residual value. The least-squares fit is their mean.</p>
-          <p class="equation math">h = (½, ½),<br>f<sub>new</sub> = (0, 0) + (½, ½) = (½, ½).</p>
+          <p>Geometrically, this fit is the orthogonal projection of the residual vector onto the line of available updates. Write the line's direction as <span class="math">u = (1, 1)</span>. The projection is the vector on this line closest to <span class="math">r</span> in Euclidean distance:</p>
+          <p class="equation math">h = [(r · u) / (u · u)]u = (½, ½),<br>f<sub>new</sub> = (0, 0) + (½, ½) = (½, ½).</p>
           <p>As you scroll, the predictions move along the diagonal. The outcomes stay fixed while the remaining residual changes. MSE falls from <span class="math">½</span> to <span class="math">¼</span>.</p>
           </div></details>
         </div></section>
@@ -130,7 +131,7 @@
           <h2 id="heading-5">The remaining residual is perpendicular</h2>
           <p class="step-summary">The residual is perpendicular to the line; moving either way increases MSE.</p>
           <details class="step-notes"><summary>Why this works</summary><div>
-          <p>Refitting a tree to the remaining residuals gives a shared prediction of zero, so another residual update cannot move us. Geometrically, every available update has the form <span class="math">(a, a)</span>, and</p>
+          <p>The remaining residual projects to zero on the available update line. Refitting a tree therefore gives a shared prediction of zero, so another residual update cannot move us. Geometrically, every available update has the form <span class="math">(a, a)</span>, and</p>
           <p class="equation math">(½, −½) · (a, a) = 0.</p>
           <p>The equal-MSE circle touches the diagonal at this point. The faint trial points show that moving up or down the diagonal increases MSE, so <span class="math">(½, ½)</span> is the best prediction this model can represent. A nonzero residual can remain even when every useful update is exhausted.</p>
           </div></details>
@@ -158,22 +159,24 @@
         </div></section>
         <section class="step" id="fit-gradient" data-step="8" data-restricted-scene="8" aria-labelledby="heading-8"><div>
           <h2 id="heading-8">Fit a tree to the new targets</h2>
-          <p class="step-summary">The tree learns <span class="math">h(1) = 0.3</span>; a half-sized update would move both predictions to <span class="math">0.65</span>.</p>
+          <p class="step-summary">Project the new targets onto the same line, then add half the fitted correction.</p>
           <details class="step-notes"><summary>From training targets to a function</summary><div>
-          <p>The two training targets are <span class="math">(0.8, −0.2)</span>, but their inputs are identical: <span class="math">x₁ = x₂ = 1</span>. Both observations must reach the same leaf. The least-squares tree fit averages the targets:</p>
-          <p class="equation math">h(1) = (0.8 − 0.2) / 2 = 0.3,<br>(h(x₁), h(x₂)) = (0.3, 0.3).</p>
+          <p>The two training targets are <span class="math">g = −∇L(f) = (0.8, −0.2)</span>, but their inputs are identical: <span class="math">x₁ = x₂ = 1</span>. Both observations must reach the same leaf. The least-squares tree fit averages the targets, projecting <span class="math">g</span> onto the same available update line with direction <span class="math">u = (1, 1)</span>:</p>
+          <p class="equation math">h = [(g · u) / (u · u)]u = (0.3, 0.3),<br>h(1) = (0.8 − 0.2) / 2 = 0.3.</p>
+          <p>The ordinary residual <span class="math">(0.5, −0.5)</span> projects to zero here. The negative-gradient targets instead have a nonzero projection, giving an update that reduces the asymmetric loss.</p>
           <p>The full target vector asks for different corrections at the two observations. A function of this input cannot supply those two values separately. The tree supplies the shared correction it can represent.</p>
           <p>Use learning rate <span class="math">α = ½</span>, so the actual update is half the fitted correction:</p>
           <p class="equation math">f<sub>new</sub> = f + ½h<br>= (0.5, 0.5) + (0.15, 0.15)<br>= (0.65, 0.65).</p>
           <p>This tree has one leaf, so its learned function is <span class="math">h(x) = 0.3</span>. Evaluating it at a new input uses that input alone; the observed outcomes were needed to create its training targets.</p>
+          <p class="quiet">The projection is the Euclidean least-squares fit of the targets. Loss contours describe the objective, and the learning rate scales the fitted vector afterward. For a fixed tree leaf partition, least-squares leaf means likewise project targets onto the space of vectors constant within each leaf. Searching over different tree partitions requires a search across those spaces; choosing final leaf values to minimize a different loss can also change the correction.</p>
           </div></details>
         </div></section>
         <section class="step" id="gradient-descent" data-step="9" data-restricted-scene="9" aria-labelledby="heading-9"><div>
           <h2 id="heading-9">Recompute, refit, and move again</h2>
-          <p class="step-summary">Repeat six half-sized updates, fitting fresh targets each time as the predictions approach <span class="math">(0.8, 0.8)</span>.</p>
+          <p class="step-summary">Recompute the targets, project them onto the line, and add half the projection. Repeat six times.</p>
           <details class="step-notes"><summary>The whole descent</summary><div>
           <p>Start again with <span class="math">F₀(x) = 0.5</span>. At every round, compute signed residuals <span class="math">rₘᵢ = yᵢ − Fₘ(xᵢ)</span> from the current predictions and observed outcomes. The negative-gradient target is <span class="math">1.6rₘᵢ</span> when <span class="math">rₘᵢ ≥ 0</span>, and <span class="math">0.4rₘᵢ</span> when <span class="math">rₘᵢ &lt; 0</span>. Fit a new tree using the inputs and add half its correction. Earlier trees stay fixed.</p>
-          <p>Both observations receive the same prediction <span class="math">Fₘ(1)</span>. While that prediction is between 0 and 1, the mean of their negative-gradient targets is <span class="math">0.8 − Fₘ(1)</span>. The fitted tree and next model are therefore</p>
+          <p>Both observations receive the same prediction <span class="math">Fₘ(1)</span>. Each least-squares tree fit projects the current negative-gradient vector onto the diagonal. While the shared prediction is between 0 and 1, the mean of their negative-gradient targets is <span class="math">0.8 − Fₘ(1)</span>. The fitted tree and next model are therefore</p>
           <p class="equation math">hₘ₊₁(1) = 0.8 − Fₘ(1),<br>Fₘ₊₁(x) = Fₘ(x) + ½hₘ₊₁(x).</p>
           <p>The remaining distance to 0.8 halves on every round. The six updates shown take the shared prediction through <span class="math">0.65, 0.725, 0.7625, 0.78125, 0.790625, 0.7953125</span>. This finite sequence approaches 0.8; it does not reach it exactly.</p>
           <p>The resulting ensemble evaluates a new input by adding the learned functions' outputs. The outcome-dependent targets are recomputed during training, while prediction on a new case uses the fitted functions of <i>x</i>.</p>
@@ -186,7 +189,7 @@
           <p>This scene inspects the exact limiting prediction <span class="math">(0.8, 0.8)</span>. The preceding six updates ended at <span class="math">(0.7953125, 0.7953125)</span>, close to this limit.</p>
           <p>The remaining residual is <span class="math">(0.2, −0.8)</span>. Its mean is −0.3, so a raw-residual fit would move our predictions back toward <span class="math">(0.5, 0.5)</span> and increase the selected loss. The negative-gradient targets instead are</p>
           <p class="equation math">−∇L(f) = (0.32, −0.32),<br>h(1) = (0.32 − 0.32) / 2 = 0.</p>
-          <p>The full negative gradient is perpendicular to every available update <span class="math">(a, a)</span>. Its fitted shared correction is zero, so no tree using this input can improve the loss here.</p>
+          <p>The full negative gradient is perpendicular to every available update <span class="math">(a, a)</span>, so its projection onto the diagonal is zero. Its fitted shared correction is zero, and no tree using this input can improve the loss here.</p>
           <p>The full gradient can remain nonzero at a constrained optimum. Independently changing both predictions could still reduce the loss, but our trees cannot represent the target <span class="math">y = (1, 0)</span> when both inputs are identical.</p>
           </div></details>
         </div></section>

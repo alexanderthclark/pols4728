@@ -19,7 +19,7 @@
     'Moving away from the midpoint increases MSE',
     'Change the loss, change the best prediction',
     'A new target: the negative gradient',
-    'Fit a tree to the training targets',
+    'Project the targets, then scale the fit',
     'Repeat targets, fit, and update',
     'The limiting shared prediction',
     'Explore the loss and its updates'
@@ -223,15 +223,15 @@
     else if (scene === 1) caption = 'The residual r = y − f = (1, 0) points from our predictions to the observed outcomes.';
     else if (scene === 2) caption = 'Both observations have x = 1, so a tree gives each the same correction. Every available update h = (a, a) lies on the 45° line.';
     else if (scene === 3) caption = 'Each circle joins predictions with the same MSE. Circles closer to the observed outcomes have less loss. Our predictions are still (0, 0).';
-    else if (scene === 4) caption = `Current predictions f = ${shortVector(q.prediction)}; residuals r = y − f = ${shortVector(q.residual)}. The starting residual (1, 0) has mean 0.5, so its fitted correction is (0.5, 0.5).`;
+    else if (scene === 4) caption = `Current predictions f = ${shortVector(q.prediction)}; residuals r = y − f = ${shortVector(q.residual)}. The starting residual (1, 0) has mean 0.5, so its fitted correction is (0.5, 0.5). Least-squares fitting projects the residual onto the allowed diagonal; the omitted component is perpendicular to that line.`;
     else if (scene === 5) caption = 'At (0.5, 0.5), the residual is perpendicular to the shared-update line. Try moving either way: MSE increases. The midpoint stays our current prediction.';
     else if (scene === 6) caption = 'Underprediction costs four times as much. Keep f = (0.5, 0.5) and its residual fixed while the loss contours change. The best shared prediction moves to (0.8, 0.8).';
     else if (scene === 7) caption = 'Keep predictions at (0.5, 0.5). Using the observed outcomes y, compute negative-gradient training targets (0.8, −0.2). Their mean is 0.3, although the raw residual mean is zero.';
-    else if (scene === 8) caption = 'Fit a tree to the training targets. Identical inputs give h(1) = 0.3 for each observation. The fitted tree takes x alone; adding ½h(x) would move predictions to (0.65, 0.65).';
+    else if (scene === 8) caption = 'Least-squares fitting projects the negative-gradient training targets onto the allowed diagonal. Identical inputs give h(1) = 0.3 for each observation. The fitted tree takes x alone; adding ½h(x) would move predictions to (0.65, 0.65).';
     else if (scene === 9) caption = q.phase === 'complete'
       ? 'Six half-step updates reach (0.7953125, 0.7953125). This is close to the optimum, not exactly there. The next fitted correction is still positive.'
-      : `Round ${q.round + 1}: compute targets using observed y, fit h(x), then add ½h(x). Keep the fitted tree fixed during this update; recompute training targets at the next round.`;
-    else if (scene === 10) caption = 'Inspect the limiting prediction (0.8, 0.8). The negative gradient (0.32, −0.32) is perpendicular to the shared-update line, so its fitted tree is zero. The raw residual mean is still −0.3.';
+      : `Round ${q.round + 1}: compute targets using observed y, project them onto the diagonal to fit h(x), then add ½h(x). Keep the fitted tree fixed during this update; recompute training targets at the next round.`;
+    else if (scene === 10) caption = 'Inspect the limiting prediction (0.8, 0.8). The negative gradient (0.32, −0.32) is perpendicular to the shared-update line, so its projection and fitted tree are zero. The raw residual mean is still −0.3.';
     else if (q.lossSpec.key === 'expectile') caption = atBest
       ? `At predictions ${vector(q.optimalPrediction)}, the gradient is perpendicular to the diagonal. The fitted gradient is zero; the raw residual generally is not perpendicular.`
       : `Raw residual fitting goes to (0.5, 0.5). The gradient fit goes to ${vector(q.optimalPrediction)}. Under this loss, those endpoints have losses ${fmt(q.rawNextLoss)} and ${fmt(q.minLoss)}.`;
@@ -260,11 +260,11 @@
       'The residual points from our predictions to the outcomes.',
       'Same input, same correction: every update follows the diagonal.',
       'Each circle joins predictions with equal MSE.',
-      'Fit the residual mean: move both predictions by ½.',
+      'Project the residual onto the allowed diagonal.',
       'Every nonzero shared adjustment raises MSE.',
       'Underprediction costs four times as much.',
       'Training targets need observed outcomes y.',
-      'Fit a tree. Once fitted, h(x) needs x alone.'
+      'Project the targets onto the diagonal. Once fitted, h(x) needs x alone.'
     ];
     let status = '';
     if (scene === 0) status = 'y = (1, 0) · f = (0, 0)';
@@ -283,10 +283,10 @@
     const underpredictionWeight = q.lossSpec.tau / (1 - q.lossSpec.tau);
     const playgroundCaption = q.lossSpec.key === 'expectile' ? `Underprediction costs ${Math.abs(underpredictionWeight - 4) < 1e-10 ? 'four' : fmt(underpredictionWeight)} times as much.` : q.lossSpec.name;
     const processCaption = scene === 9 ? q.phase === 'target' ? 'Compute targets using observed y.'
-      : q.phase === 'fit' ? 'Fit a tree to the targets.'
-        : q.phase === 'update' ? 'Add ½h(x). Recompute targets.'
+      : q.phase === 'fit' ? 'Project the targets onto the diagonal.'
+        : q.phase === 'update' ? 'Add half the projection. Recompute targets.'
           : 'Still approaching the optimum.'
-      : scene === 10 ? 'At the limit, perpendicular targets give a zero fitted correction.' : captions[scene];
+      : scene === 10 ? 'At the limit, perpendicular targets have zero projection.' : captions[scene];
     return { equation: displayedEquation, caption: scene === 11 ? playgroundCaption : processCaption, status };
   }
 
@@ -329,6 +329,19 @@
     function contour(level, color, className, dashed = false, extra = '') {
       const points = Array.from({ length: 193 }, (_, i) => project(contourPoint(level, i * Math.PI / 96, q.lossSpec)).join(',')).join(' ');
       return `<polyline class="${className}" data-loss="${level}" points="${points}" fill="none" stroke="${color}" stroke-width="1.5" ${dashed ? 'stroke-dasharray="3 4"' : ''} ${extra}/>`;
+    }
+    function projectionGuide(basePrediction, targets, fitted, reveal) {
+      const tip = project(M.add(basePrediction, targets)), foot = project(M.add(basePrediction, fitted));
+      const omitted = M.sub(targets, fitted), length = M.norm(omitted);
+      if (length < 1e-12) return '';
+      const base = project(basePrediction), fitLength = Math.hypot(base[0] - foot[0], base[1] - foot[1]);
+      const along = fitLength > 1e-8 ? [(base[0] - foot[0]) / fitLength, (base[1] - foot[1]) / fitLength] : [-Math.SQRT1_2, Math.SQRT1_2];
+      const away = [omitted[0] / length, -omitted[1] / length], size = compact ? 7 : 9;
+      const corner = [[foot[0] + size * along[0], foot[1] + size * along[1]],
+        [foot[0] + size * (along[0] + away[0]), foot[1] + size * (along[1] + away[1])],
+        [foot[0] + size * away[0], foot[1] + size * away[1]]];
+      return line(tip, foot, C.rule, 1.3, `class="restricted-projection-guide" stroke-dasharray="3 4" data-at-values="${basePrediction.join(',')}" data-target-values="${targets.join(',')}" data-projection-values="${fitted.join(',')}" opacity="${reveal}"`)
+        + `<polyline class="restricted-projection-angle" data-dot-product="${M.dot(omitted, [1, 1])}" points="${corner.map(p => p.join(',')).join(' ')}" fill="none" stroke="${C.rule}" stroke-width="1.3" opacity="${reveal}"/>`;
     }
     if (q.scene === 3) {
       body += `<g class="restricted-contour-reveal" data-reveal="${q.progress}" opacity="${q.progress}" clip-path="url(#restricted-plot-clip)">`;
@@ -388,12 +401,16 @@
       body += text([(f[0] + residualEnd[0]) / 2, (f[1] + residualEnd[1]) / 2 + 17], 'r', `class="rv-small rv-label" style="fill:${C.muted}"`);
       body += text([(gradientBase[0] + gradientEnd[0]) / 2 + 6, (gradientBase[1] + gradientEnd[1]) / 2 - 10], '−∇L', `class="rv-small rv-label" opacity="${targetReveal}" style="fill:${C.rust}"`);
     }
-    if (q.scene === 4) body += arrow(f, best, C.teal, 'class="restricted-tree-arrow"');
+    if (q.scene === 4) {
+      body += projectionGuide(q.prediction, q.residual, M.sub(q.nextPrediction, q.prediction), q.progress);
+      body += arrow(f, best, C.teal, 'class="restricted-tree-arrow"');
+    }
     if (q.scene === 8 || q.scene === 9 || q.scene === 11) {
       const fitted = processScene ? q.fittedCorrection : q.correction;
       const basePrediction = processScene ? q.targetPrediction : q.prediction, base = project(basePrediction);
       const fitReveal = q.scene === 8 ? q.phase === 'fit' ? q.phaseProgress : 1 : q.scene === 9 ? q.phase === 'target' ? 0 : q.phase === 'fit' ? q.phaseProgress : 1 : 1;
       const fittedEnd = project(M.add(basePrediction, M.scale(fitted, fitReveal)));
+      if (processScene) body += projectionGuide(basePrediction, q.trainingTargets, fitted, clamp((fitReveal - .75) / .25));
       body += line(base, fittedEnd, C.teal, 2.3, `marker-end="url(#restricted-arrow-${C.teal.slice(1)})" class="restricted-tree-arrow" data-at-values="${basePrediction.join(',')}" data-values="${fitted.join(',')}" data-reveal="${fitReveal}" opacity="${fitReveal}"`);
       if (processScene) body += text([fittedEnd[0] + 9, fittedEnd[1] - 10], 'h(x)', `class="rv-small rv-label restricted-fitted-label" text-anchor="start" opacity="${fitReveal}" style="fill:${C.teal}"`);
       if (q.scene === 8) {
@@ -450,6 +467,7 @@
     if (q.scene >= 3) description += ` ${q.lossSpec.name}. Mean residual ${fmt(q.residualMean)} and loss ${fmt(q.loss)}.`;
     if (q.scene === 5) description += ` The separate trial prediction ${vector(q.trialPrediction)} has MSE ${fmt(q.trialLoss)}. The current prediction does not move.`;
     if (q.scene >= 7) description += ` Negative gradient ${vector(q.negativeGradient)}, fitted gradient target ${vector(q.nextTree)}, and loss-optimal leaf correction ${vector(q.correction)}. ${arrowScale === .5 ? 'Gradient and raw residual arrows are drawn at half their numerical lengths.' : 'Residual and negative-gradient arrows use their full numerical lengths.'}`;
+    if (q.scene === 4 || q.scene === 8 || q.scene === 9) description += ' The dashed projection guide joins the full target tip to the fitted endpoint on the diagonal. It is perpendicular to the allowed update line. Fitting is the orthogonal projection; the learning rate scales the applied update.';
     if (q.scene === 9) description += ` The displayed training targets ${vector(q.trainingTargets)} were computed at ${vector(q.targetPrediction)}. Their fitted tree stays fixed during the update; the actual current negative gradient is ${vector(q.currentNegativeGradient)}.`;
     if (q.scene >= 3) description += ' Contours show the selected loss; only their portion in the displayed window is visible.';
     description += ' Both axes have the same physical scale.';

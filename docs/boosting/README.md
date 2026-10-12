@@ -97,10 +97,13 @@ leaf, so any update is `(a, a)` and lies on the 45-degree line. Equal-MSE circle
 appear in their own step while the predictions remain at zero; the following
 animation fits the residual mean.
 Starting at `(0, 0)`, fitting the residual mean
-adds `(0.5, 0.5)`. With signed residuals `r_i = y_i-f_i`, MSE is
+adds `(0.5, 0.5)`. This least-squares fit is exactly the Euclidean orthogonal
+projection of the residual vector onto the available update line
+`span(u)`, where `u = (1,1)`: `h = ((r·u)/(u·u))*u`.
+With signed residuals `r_i = y_i-f_i`, MSE is
 `0.5*(r_1^2+r_2^2)`, falling from 0.5 to 0.25.
 At `(0.5, 0.5)`, the residual `(0.5, -0.5)` is perpendicular to the diagonal;
-the next residual fit is zero. A right-angle mark and tangent equal-MSE contour
+the next residual fit, or projection, is zero. A right-angle mark and tangent equal-MSE contour
 show the geometric condition. A separate ghost prediction probes both directions
 along the diagonal and returns to the midpoint. Its loss obeys
 `MSE = 0.25 + a^2` after a shared adjustment `(a,a)` from the midpoint,
@@ -120,9 +123,22 @@ this counterexample does the following scene introduce the negative gradient:
 at `(0.5, 0.5)` it is `(0.8, -0.2)`, whose mean 0.3 supplies a useful correction.
 The target comparison keeps predictions fixed at the midpoint. The next scene
 fits an actual stump to those targets: identical inputs share one leaf, so
-`h(x) = 0.3` for both observations. The full negative gradient and the feasible
+`h(x) = 0.3` for both observations. Writing `g = -grad L`, the fit is now
+`h = ((g·u)/(u·u))*u = (0.3,0.3)`. The raw residual still projects to zero at
+the midpoint, while the new targets have a nonzero projection.
+The full negative gradient and the feasible
 tree correction are drawn separately. A learning rate of 0.5 supplies the
 smaller update `(0.15, 0.15)`.
+
+Projection describes the Euclidean least-squares fit of a target vector onto
+the available update line; the learning rate scales that fit afterward.
+Loss contours describe a different object: levels of the original objective.
+For a fixed tree leaf partition, least-squares leaf means project a target
+vector onto the subspace of vectors constant within each leaf. Searching over
+different tree partitions searches across those subspaces, so an unrestricted
+tree-structure search is not one orthogonal projection onto a single linear
+space. Recalibrating leaves to minimize a different original loss can also
+produce corrections different from the least-squares projection.
 
 The repeated-descent animation shows six rounds of computing targets, fitting
 the stump, and adding half its correction. Targets and the fitted tree remain
@@ -132,7 +148,7 @@ prediction follows `F_(m+1)(1) = F_m(1) + 0.5*(0.8-F_m(1))`, ending at 0.7953125
 six updates. A separate scene inspects its limiting optimum at 0.8; finite
 shrinkage steps are not depicted as exact convergence. At that optimum the
 full negative gradient `(0.32, -0.32)` is perpendicular to the diagonal, so the
-fitted tree correction is zero. The raw residual `(0.2, -0.8)` has mean -0.3;
+projection and fitted tree correction are zero. The raw residual `(0.2, -0.8)` has mean -0.3;
 following it would move away from the selected loss's optimum.
 
 Both residual and negative-gradient targets require observed outcomes during
