@@ -156,9 +156,9 @@
         </div></section>
         <section class="step" id="gradient-algorithm" data-step="10" data-worked-scene="7" aria-labelledby="heading-10"><div>
           <p class="step-number">11 / 11</p><h2 id="heading-10">The loss defines the learning targets</h2>
-          <p>For a differentiable loss <span class="math">ℓ(y, z)</span>, gradient boosting starts from a constant that minimizes total loss and then computes</p>
+          <p>For a differentiable loss <span class="math">ℓ(y, z)</span>, gradient boosting starts from a constant that minimizes total loss, when a finite minimizer exists. Otherwise, constrain the starting constant to a finite closed interval or use a suitable penalty. Each round then computes</p>
           <p class="equation math">rₘᵢ = −∂ℓ(yᵢ, z)/∂z<br>evaluated at z = Fₘ₋₁(xᵢ).</p>
-          <p>These pseudo-residuals describe the desired change at each training prediction. Fit a regression tree to them to choose its regions. Within each region, choose a leaf correction that minimizes the original loss when added to the current model. Scale the correction tree by α, add it, and differentiate again.</p>
+          <p>These pseudo-residuals describe the desired change at each training prediction. Fit a regression tree to them to choose its regions. Within each region, choose a leaf correction that minimizes the original loss when added to the current model. Use a learning rate <span class="math">0 &lt; α ≤ 1</span> to scale the correction tree, add it, and differentiate again.</p>
           <p>For half-squared error, both calculations simplify: pseudo-residuals are ordinary residuals, and the optimal leaf correction is their mean. For other losses, the gradient targets and final leaf values can differ.</p>
           <p>The tree is a constrained approximation to a gradient direction. Gradient boosting therefore performs stagewise optimization over functions that the chosen trees can represent.</p>
           <p><a href="#other-losses">See how a different loss changes the gradient.</a></p>
@@ -173,10 +173,10 @@
       <p>In the binary-classification row, <span class="math">z = F(x)</span> is an additive score. Its sign predicts the class. A positive observation with score 0 has target +1; with score −2, its target is <span class="math">exp(2)</span>, about 7.39. A confidently wrong prediction asks for a larger correction. These targets come from the loss derivative, rather than the difference between a class label and its score.</p>
       <p>For a tree region <span class="math">Rₘⱼ</span>, the final leaf correction is chosen using the original loss:</p>
       <p class="equation math">cₘⱼ = arg min<sub>c</sub> Σ<sub>xᵢ ∈ Rₘⱼ</sub> ℓ(yᵢ, Fₘ₋₁(xᵢ) + c).</p>
-      <p>For exponential loss, a leaf containing only one class has no finite unpenalized minimum: the loss keeps falling as the score grows in that class’s direction. A bound or penalty on the leaf correction makes that optimization finite.</p>
+      <p>For exponential loss, a leaf containing only one class has no finite unpenalized minimizer: the loss approaches zero as the score grows in that class’s direction, but never reaches zero at a finite score. Constraining the correction to a finite closed interval, or adding a positive quadratic penalty, gives a finite minimizer.</p>
       <p>The fitted pseudo-residual tree defines the regions; these corrections define <span class="math">hₘ</span>. The learning rate then scales the tree’s contribution. Squared error makes <span class="math">cₘⱼ</span> the mean residual; that shortcut does not apply to every loss.</p>
       <details id="xgboost"><summary>How XGBoost extends the calculation</summary>
-        <p>XGBoost uses first and second derivatives to choose trees with a quadratic loss approximation and penalties on leaf values and tree complexity. For a fixed structure, with an L2 penalty and no L1 penalty, the optimal leaf value is <span class="math">wⱼ* = −Gⱼ/(Hⱼ + λ)</span>, where G and H sum the gradients and second derivatives in the leaf.</p>
+        <p>XGBoost uses first and second derivatives to choose trees with a quadratic loss approximation and penalties on leaf values and tree complexity. For a fixed structure, with penalty <span class="math">½λΣⱼwⱼ²</span> and no L1 penalty, the leaf value that minimizes this quadratic approximation is <span class="math">wⱼ* = −Gⱼ/(Hⱼ + λ)</span>, provided <span class="math">Hⱼ + λ &gt; 0</span>. Here G and H sum the gradients and second derivatives in the leaf.</p>
         <p>For our half-squared-error loss, this becomes <span class="math">Σrᵢ/(nⱼ + λ)</span>. With λ = 0 it is the mean residual. The learning rate scales the fitted tree afterward. XGBoost is one extension of the gradient-boosting idea; the worked calculation above uses ordinary least-squares stumps.</p>
       </details>
       <h3>More prediction-space geometry</h3>

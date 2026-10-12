@@ -31,7 +31,11 @@
   let displayed = { pred: zero, local: zero };
   let scrollPending = false;
 
-  const fmt = (n, places = 2) => Math.abs(n) < 0.00001 ? '0' : Number(n.toFixed(places)).toString().replace('-', '−');
+  const fmt = (n, places = 2) => {
+    if (n === 0) return '0';
+    if (Math.abs(n) < 10 ** -places) return n.toExponential(2).replace(/e([+-]?\d+)/, (_, exponent) => ' × 10^' + String(Number(exponent)).replace('-', '−')).replace('-', '−');
+    return Number(n.toFixed(places)).toString().replace('-', '−');
+  };
   const vector = v => '(' + v.map(n => fmt(n, 3)).join(', ') + ')';
   const lossText = n => n > 0 && n < 0.0001 ? n.toExponential(2).replace('e-', ' × 10^−') : fmt(n, 4);
   function node(tag, attributes = {}, text, parent = svg) {

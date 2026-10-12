@@ -13,7 +13,7 @@
   const topics = ['The observed vector and its gradient', 'Fit and scale a correction', 'The residual norm is a radius'];
   const esc = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
   const fmt = value => {
-    if (Math.abs(value) < 1e-12) return '0';
+    if (value === 0) return '0';
     if (Math.abs(value) < 1e-4) return value.toExponential(2).replace(/e([+-]?\d+)/, (_, exponent) => ' × 10^' + String(Number(exponent)).replace('-', '−'));
     return String(Number(value.toPrecision(4))).replace('-', '−');
   };
@@ -26,8 +26,8 @@
   // lengths when a two-dimensional trial step is lifted into prediction space.
   function basisForResidual(residual) {
     const radius = M.norm(residual);
-    if (radius <= 1e-12) return { radius, e1: [1, 0, 0], e2: [0, 1, 0] };
-    const e1 = M.scale(residual, 1 / radius);
+    if (radius === 0) return { radius, e1: [1, 0, 0], e2: [0, 1, 0] };
+    const e1 = residual.map(value => value / radius);
     let axisIndex = 0;
     for (let i = 1; i < e1.length; i++) if (Math.abs(e1[i]) < Math.abs(e1[axisIndex])) axisIndex = i;
     const axis = e1.map((_, i) => i === axisIndex ? 1 : 0);
@@ -49,7 +49,7 @@
     const tree = M.fitStump([1, 2, 3], baseResidual);
     let step = zero.slice(), planeStep = [0, 0], orientation = 1, effectiveAngle = 0, maxRelativeStep = 0;
     if (scene === 1) step = M.scale(tree.values, rate * progress);
-    if (scene === 2 && radius > 1e-12) {
+    if (scene === 2 && radius > 0) {
       const geometry = M.orientedStepGeometry(angle, length, radius);
       planeStep = geometry.step;
       orientation = geometry.sign;
@@ -81,23 +81,34 @@
     ];
   }
 
+  // L(F + Δ) − L(F) = ½R²s(s − 2|cos θ|). Classify the
+  // dimensionless geometry so small positive losses retain their true sign.
+  // A relative floating-point tolerance handles exact circle intersections.
+  function trialLossChange(q) {
+    if (q.radius === 0 || q.length === 0) return 0;
+    const difference = q.length - q.maxRelativeStep;
+    const tolerance = 8 * Number.EPSILON * Math.max(q.length, q.maxRelativeStep);
+    return Math.abs(difference) <= tolerance ? 0 : difference < 0 ? -1 : 1;
+  }
+
   function presentation(scene, state = {}) {
     const q = resolve(scene, state);
     let caption;
     if (scene === 0) caption = `${q.round} ${q.round === 1 ? 'tree' : 'trees'} at α = ${fmt(q.rate)}. The target y stays fixed; each tree is refitted to y − F. Arrow lengths here are projected; the displayed norm is computed in three dimensions.`;
     if (scene === 1) caption = `Fit h = ${vector(q.tree.values)} to the current negative gradient, then add ${fmt(q.progress)} × αh. The moving residual and gradient are evaluated at F′.`;
     if (scene === 2) {
-      const improvement = q.beforeLoss - q.loss;
-      const outcome = improvement > 1e-10 ? 'The trial step reduces loss.' : improvement < -1e-10 ? 'The trial step increases loss.' : 'The trial step leaves loss unchanged.';
-      const orientation = q.radius <= 1e-12 ? 'The residual is zero, so there is no descent direction.' : q.angle === 90 ? 'At 90°, neither h nor −h is a descent direction.' : `Choose ${q.orientation === -1 ? '−h' : 'h'}; its angle to the residual is ${fmt(q.effectiveAngle)}°.`;
+      const change = trialLossChange(q);
+      const outcome = change < 0 ? 'The trial step reduces loss.' : change > 0 ? 'The trial step increases loss.' : 'The trial step leaves loss unchanged.';
+      const orientation = q.radius === 0 ? 'The residual is zero, so there is no descent direction.' : q.angle === 90 ? 'At 90°, neither h nor −h is a descent direction.' : `Choose ${q.orientation === -1 ? '−h' : 'h'}; its angle to the residual is ${fmt(q.effectiveAngle)}°.`;
       caption = `${orientation} ${outcome} The circle is an exact equal-loss slice: R = ‖y − F‖ = ${fmt(q.radius)}, L(F) = ${fmt(q.beforeLoss)}.`;
     }
     if (Number.isFinite(state.width) && state.width < 400) {
       if (scene === 0) caption = `${q.round} trees; α = ${fmt(q.rate)}. y stays fixed. Gradient and norm use the displayed prediction.`;
       if (scene === 1) caption = `h = ${vector(q.tree.values)}; add ${fmt(q.progress)} × αh. The gradient is evaluated at F′.`;
       if (scene === 2) {
-        const outcome = q.loss < q.beforeLoss - 1e-10 ? 'Loss decreases' : q.loss > q.beforeLoss + 1e-10 ? 'Loss increases' : 'Loss is unchanged';
-        caption = `${q.radius <= 1e-12 ? 'The residual is zero.' : q.angle === 90 ? 'Neither orientation offers descent.' : `Use ${q.orientation === -1 ? '−h' : 'h'} (${fmt(q.effectiveAngle)}°).`} ${outcome}: ${fmt(q.beforeLoss)} → ${fmt(q.loss)}. Starting R = ${fmt(q.radius)}.`;
+        const change = trialLossChange(q);
+        const outcome = change < 0 ? 'Loss decreases' : change > 0 ? 'Loss increases' : 'Loss is unchanged';
+        caption = `${q.radius === 0 ? 'The residual is zero.' : q.angle === 90 ? 'Neither orientation offers descent.' : `Use ${q.orientation === -1 ? '−h' : 'h'} (${fmt(q.effectiveAngle)}°).`} ${outcome}: ${fmt(q.beforeLoss)} → ${fmt(q.loss)}. Starting R = ${fmt(q.radius)}.`;
       }
     }
     return { topic: topics[scene], caption, readout: readout(scene, state) };
@@ -201,7 +212,7 @@
     body += arrow(base, gradientEnd, C.rust, 'stroke-dasharray="2 4" class="prediction-gradient-arrow"');
     body += text([(base[0] + observed[0]) / 2, base[1] - 10], compact ? 'r' : '−∇L(F) = r', `class="pv-math" text-anchor="middle" style="fill:${C.teal}"`);
     body += text([(base[0] + gradientEnd[0]) / 2, base[1] + 17], compact ? 'g' : '∇L(F)', `class="pv-math" text-anchor="middle" style="fill:${C.rust}"`);
-    if (q.radius > 1e-12) {
+    if (q.radius > 0) {
       const unit = M.orientedStepGeometry(q.angle, 1, q.radius).step;
       const guide = M.scale(unit, .6), selectedGuide = project([-q.radius + guide[0], guide[1]]), oppositeGuide = project([-q.radius - guide[0], -guide[1]]);
       body += line(oppositeGuide, selectedGuide, '#aaa', 1.2, 'stroke-dasharray="3 4"');

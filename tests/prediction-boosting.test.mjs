@@ -180,3 +180,58 @@ test('a zero residual has a finite deterministic fallback plane basis', () => {
   close(math.dot(basis.e1, basis.e2), 0);
   assert.ok([...basis.e1, ...basis.e2].every(Number.isFinite));
 });
+
+test('small nonzero residuals retain an aligned orthonormal basis', () => {
+  const residual = [1e-15, 2e-15, -1e-15];
+  const basis = view.basisForResidual(residual);
+  assert.ok(basis.radius > 0);
+  close(squared(basis.e1), 1);
+  close(squared(basis.e2), 1);
+  close(math.dot(basis.e1, basis.e2), 0);
+  basis.e1.forEach((value, index) => close(value, residual[index] / Math.sqrt(6e-30)));
+});
+
+test('late fitted rounds display positive loss and nonzero gradients instead of exact zeros', () => {
+  // For α = 1, every two rounds divide the residual by four. Thus round 24
+  // has r = (2^-23, -2^-23, 0) and L = 2^-46, rather than a perfect fit.
+  const state = { rate: 1, round: 24 };
+  const result = view.resolve(0, state);
+  assert.equal(result.loss, 2 ** -46);
+  assert.equal(result.residual[0], 2 ** -23);
+  assert.equal(result.residual[1], -(2 ** -23));
+  const perfect = view.resolve(2, { ...state, angle: 0, length: 1 });
+  assert.equal(perfect.loss, 0);
+  assert.equal(perfect.norm, 0);
+  for (const width of [320, 640]) {
+    const rows = view.readout(0, { ...state, width });
+    assert.match(rows[2][1], /(?:e[−-]7|10\^−7)/);
+    assert.match(rows[3][1], /1\.42 × 10\^−14/);
+    assert.match(view.presentation(2, { ...state, width, length: 0 }).caption, /1\.42 × 10\^−14/);
+    assert.equal(view.readout(2, { ...state, width, angle: 0, length: 1 })[3][1], '0; 0');
+  }
+});
+
+test('inside, boundary and outside trials stay correctly classified at tiny radii', () => {
+  // These cases use exact hand-derived circle intersections: along r, the
+  // second intersection is s = 2; at a 60° effective angle it is s = 1.
+  const cases = [
+    [0, .5, /reduces loss|Loss decreases/],
+    [120, .5, /reduces loss|Loss decreases/],
+    [90, .5, /increases loss|Loss increases/],
+    [0, 2.5, /increases loss|Loss increases/],
+    [0, 2, /leaves loss unchanged|Loss is unchanged/],
+    [60, 1, /leaves loss unchanged|Loss is unchanged/],
+    [120, 1, /leaves loss unchanged|Loss is unchanged/],
+    [120, 0, /leaves loss unchanged|Loss is unchanged/]
+  ];
+  for (const rate of [.25, .5, 1]) {
+    for (const round of [0, 1, 2, 18, 24]) {
+      for (const width of [320, 640]) {
+        for (const [angle, length, expected] of cases) {
+          const state = { rate, round, angle, length, width };
+          assert.match(view.presentation(2, state).caption, expected, JSON.stringify(state));
+        }
+      }
+    }
+  }
+});
