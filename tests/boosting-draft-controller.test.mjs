@@ -18,7 +18,7 @@ const stageTop = 400;
 
 // This harness checks real controller events and numerical output. It does not
 // emulate layout, parse generated HTML, or claim to replace browser visual QA.
-function setup({ reducedMotion = false, compact = false, variableStageHeight = false, smoothScroll = false, hash = '' } = {}) {
+function setup({ reducedMotion = false, compact = false, variableStageHeight = false, smoothScroll = false, hash = '', stageDocumentTop = stageTop } = {}) {
   let time = 0, nextId = 1;
   let pendingScroll = null;
   const visitedHashes = [];
@@ -66,16 +66,16 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
   }
   const get = id => nodes.get(id);
   const shell = new Element();
-  const stageHeight = () => !compact ? 500 : !variableStageHeight ? 620
+  const stageHeight = () => !narrow.matches ? 500 : !variableStageHeight ? 620
     : shell.dataset.example === 'restricted' ? 660 : Number(shell.dataset.geometryScene) === 2
       || (shell.dataset.example === 'worked' && [3, 5, 6].includes(Number(shell.dataset.workedScene))) ? 528 : 392;
-  const headingTop = physical => (compact ? stageTop + stageHeight() + 48 : 1000) + physical * 1000;
+  const headingTop = physical => (narrow.matches ? stageDocumentTop + stageHeight() + 48 : stageDocumentTop + 600) + physical * 1000;
   // The phone stage moves with the document; only the wide stage is sticky.
   shell.getBoundingClientRect = () => {
-    const top = compact ? stageTop - win.scrollY : Math.max(64, stageTop - win.scrollY);
-    return { top, bottom: top + stageHeight(), height: stageHeight(), width: compact ? 288 : 1100 };
+    const top = narrow.matches ? stageDocumentTop - win.scrollY : Math.max(64, stageDocumentTop - win.scrollY);
+    return { top, bottom: top + stageHeight(), height: stageHeight(), width: narrow.matches ? 288 : 1100 };
   };
-  get('visual-area').getBoundingClientRect = () => ({ width: compact ? 288 : 790, height: compact ? 340 : 450 });
+  get('visual-area').getBoundingClientRect = () => ({ width: narrow.matches ? 288 : 790, height: narrow.matches ? 340 : 450 });
   const win = new Element();
   const reduced = new Element(); reduced.matches = reducedMotion;
   const narrow = new Element(); narrow.matches = compact;
@@ -103,7 +103,7 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
     return element;
   });
   const layout = new Element();
-  layout.getBoundingClientRect = () => ({ top: stageTop - win.scrollY, bottom: headingTop(steps.length) - win.scrollY });
+  layout.getBoundingClientRect = () => ({ top: stageDocumentTop - win.scrollY, bottom: headingTop(steps.length) - win.scrollY });
   let afterwordVisits = 0;
   get('other-losses').scrollIntoView = () => { afterwordVisits++; };
   const doc = new Element();
@@ -134,9 +134,9 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
   const click = id => { assert.equal(get(id).disabled, false); get(id).emit('click'); advance(0); };
   const control = (id, value, event = 'input') => { get(id).value = String(value); get(id).emit(event); };
   const scrollAt = index => {
-    const threshold = compact ? win.innerHeight * .35 : 64 + stageHeight() + 32;
+    const threshold = narrow.matches ? win.innerHeight * .35 : 64 + stageHeight() + 32;
     win.scrollY = headingTop(index) - threshold + 1;
-    if (compact) win.scrollY = Math.max(win.scrollY, stageTop + stageHeight() - 64 + 1);
+    if (narrow.matches) win.scrollY = Math.max(win.scrollY, stageDocumentTop + stageHeight() - 64 + 1);
     win.emit('scroll'); advance(0);
   };
   const key = (key, target = doc) => { const event = doc.emit('keydown', { key, target }); advance(0); return event; };
@@ -153,6 +153,7 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
     win.emit('scroll'); advance(0);
   };
   return { get, shell, click, clickLink, control, scrollAt, scrollFraction, advance, key, resize, reduced, frames, headingTop,
+    setCompact: matches => { narrow.matches = matches; win.innerWidth = matches ? 320 : 1200; },
     historyBack: hash => { win.location.hash = hash; win.emit('popstate'); advance(0); },
     nativeFragment: index => { win.scrollY = headingTop(index) - 64; win.emit('scroll'); },
     hashChange: () => { win.emit('hashchange'); advance(0); advance(0); },
@@ -509,6 +510,31 @@ for (const compact of [false, true]) {
     assert.equal(ui.scrollCalls.length, requests, 'Reading-only anchors keep native navigation');
   });
 }
+
+test('crossing the layout breakpoint preserves the selected chapter and restores its plot position', () => {
+  const ui = setup({ reducedMotion: true, variableStageHeight: true });
+  ui.clickLink('#identical-inputs');
+  assert.equal(Number(ui.shell.dataset.scene), 3);
+  assert.ok(ui.scrollY() > stageTop + 660, 'The desktop chapter is deep enough to move the static stage off screen');
+  ui.setCompact(true); ui.resize();
+  assert.equal(Number(ui.shell.dataset.scene), 3);
+  close(ui.shell.getBoundingClientRect().top, 64);
+  assert.match(ui.get('restricted-diagram').innerHTML, /viewBox="0 0 288 340"/);
+  ui.setCompact(false); ui.resize();
+  assert.equal(Number(ui.shell.dataset.scene), 3);
+  close(ui.headingTop(3) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
+  assert.match(ui.get('restricted-diagram').innerHTML, /viewBox="0 0 790 450"/);
+});
+
+test('resizing across the layout breakpoint keeps the opening title in place before the story is entered', () => {
+  const ui = setup({ reducedMotion: true, stageDocumentTop: 1200 });
+  ui.setCompact(true); ui.resize();
+  assert.equal(ui.scrollY(), 0);
+  assert.equal(ui.scrollCalls.length, 0);
+  ui.setCompact(false); ui.resize();
+  assert.equal(ui.scrollY(), 0);
+  assert.equal(ui.scrollCalls.length, 0);
+});
 
 const geometryAttribute = (ui, name) => new RegExp(`data-${name}="([^"]+)"`).exec(ui.get('prediction-diagram').innerHTML)?.[1];
 const geometryLoss = ui => Number(geometryAttribute(ui, 'loss'));

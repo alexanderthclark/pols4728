@@ -18,6 +18,7 @@
   let animation = 0;
   let scrollPending = false;
   let navigationTarget = null;
+  let mobileLayout = mobile();
 
   function readout(items) {
     $('vector-readout').replaceChildren(...items.map(([name, value, color]) => {
@@ -375,7 +376,18 @@
   });
   $('numbers').addEventListener('toggle', () => render());
   new ResizeObserver(() => render()).observe($('visual-area'));
-  window.addEventListener('resize', () => { navigationTarget = null; scrollUpdate(); });
+  window.addEventListener('resize', () => {
+    const nextLayout = mobile();
+    if (nextLayout !== mobileLayout) {
+      mobileLayout = nextLayout;
+      render();
+      if (stage.getBoundingClientRect().top < innerHeight - 80) scrollToStep(scene, true);
+      else { navigationTarget = null; scrollUpdate(); }
+    } else {
+      navigationTarget = null;
+      scrollUpdate();
+    }
+  });
   reduced.addEventListener('change', () => {
     cancelUpdate();
     exampleState.process = 1;
