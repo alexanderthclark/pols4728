@@ -38,6 +38,27 @@
     return e;
   }
 
+  function equation(state = {}) {
+    const spec = specification(state);
+    const cases = rows => `<span class="loss-equation-brace">{</span><span class="loss-equation-cases">${rows.map(([term, condition]) => `<span>${term}</span><span>${condition}</span>`).join('')}</span>`;
+    let point, shared;
+    if (spec.key === 'expectile') {
+      point = `<span>ℓ<sub>τ</sub>(e) =</span>${cases([['τe²', 'e ≥ 0'], ['(1 − τ)e²', 'e &lt; 0']])}`;
+      shared = `L<sub>τ</sub>(c,c) = ${fmt(1 - spec.tau)}c² + ${fmt(spec.tau)}(1 − c)²`;
+    } else if (spec.key === 'huber') {
+      point = `<span>ℓ<sub>δ</sub>(e) =</span>${cases([['½e²', '|e| ≤ δ'], ['δ(|e| − ½δ)', '|e| &gt; δ']])}`;
+      shared = `L(c,c) = ℓ<sub>δ</sub>(−c) + ℓ<sub>δ</sub>(1 − c)`;
+    } else if (spec.key === 'quartic') {
+      point = 'ℓ(e) = ¼e⁴';
+      shared = 'L(c,c) = ¼[c⁴ + (1 − c)⁴]';
+    } else {
+      point = 'ℓ(e) = ½e²';
+      shared = 'L(c,c) = ½[c² + (1 − c)²]';
+    }
+    const parameter = spec.key === 'expectile' ? ` · τ = ${fmt(spec.tau)}` : spec.key === 'huber' ? ` · δ = ${fmt(spec.delta)}` : '';
+    return `<div class="loss-equation-definition math" role="math">${point}</div><p class="loss-equation-total math">e = y − f; L = Σ<sub>i</sub>ℓ(e<sub>i</sub>)${parameter}</p><div class="loss-equation-shared math" role="math">${shared}</div><p class="loss-equation-domain">On f₁ = f₂ = c, with 0 ≤ c ≤ 1.</p>`;
+  }
+
   const totalLoss = (prediction, spec) => target.reduce((sum, y, i) => sum + pointLoss(y - prediction[i], spec), 0);
 
   function resolve(scene = 0, state = {}) {
@@ -179,5 +200,5 @@
     return `${styles}<div class="restricted-view${compact ? ' compact' : ''}" ${Object.entries(attributes).map(([key, value]) => `data-${key}="${esc(value)}"`).join(' ')}>${plot(q, state, compact)}</div>`;
   }
 
-  return { render, readout, presentation, topics, resolve, specification, pointLoss, negativeDerivative, totalLoss, contourPoint };
+  return { render, readout, presentation, topics, resolve, specification, pointLoss, negativeDerivative, totalLoss, contourPoint, equation };
 });

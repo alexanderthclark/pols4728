@@ -88,6 +88,9 @@ on new observations.
 The two-observation example uses `x = [1, 1]` and `y = [0, 1]`, so every
 prediction and update is restricted to equal coordinates.
 The default is asymmetric squared error with τ = 0.8 and prediction `(0, 0)`.
+The controls show the selected pointwise loss and its total-loss equation on
+the diagonal. The asymmetric coefficients and Huber parameter update with the
+controls; the general definition also applies to contours off the diagonal.
 For `0 ≤ c ≤ 1`, total loss is `(1-τ)c² + τ(1-c)²`, so the best shared
 prediction is `(τ, τ)`. At `(0.5, 0.5)`, raw residuals have mean zero but the
 negative-gradient targets are `(-0.2, 0.8)` and their fitted mean is 0.3.

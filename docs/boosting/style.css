@@ -131,6 +131,13 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
 .stage-tools .controls input[type=range]{min-height:26px;margin:1px 0 0}
 .stage-tools .restricted-loss-label{display:block!important;padding:0}
 .stage-tools .restricted-loss-label select{display:block;width:100%;margin-top:4px}
+.loss-equation{padding:8px 0 9px;border-bottom:1px solid var(--light-rule)}
+.loss-equation-definition{display:flex;align-items:center;gap:5px;font-size:18px;line-height:1.35}
+.loss-equation-brace{font-size:36px;line-height:1;font-weight:300}
+.loss-equation-cases{display:grid;grid-template-columns:auto auto;gap:3px 10px;font-size:17px}
+.loss-equation-total{font-size:14px;line-height:1.45;margin:7px 0 9px}
+.loss-equation-shared{font-size:18px;line-height:1.4}
+.loss-equation-domain{font:11px/1.4 var(--sans);color:var(--muted);margin:5px 0 0}
 .stage-tools .restricted-parameter,.stage-tools .restricted-prediction-controls{width:100%}
 .stage-tools .restricted-actions{gap:6px;display:flex;flex-wrap:wrap}
 .stage-tools .restricted-actions button{font-size:13px;min-height:36px;padding:5px 9px}

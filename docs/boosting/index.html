@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Follow gradient boosting from a loss function to negative-gradient targets, fitted trees, scaled corrections, and a worked sequence of prediction updates.">
   <title>Gradient Boosting</title>
-  <link rel="stylesheet" href="style.css?v=iterative-updates">
+  <link rel="stylesheet" href="style.css?v=loss-equations">
   <script src="../shared/boosting-math.js" defer></script>
   <script src="prediction-view.js?v=iterative-updates" defer></script>
-  <script src="restricted-view.js" defer></script>
+  <script src="restricted-view.js?v=loss-equations" defer></script>
   <script src="worked-example.js" defer></script>
   <script src="worked-view.js" defer></script>
   <script src="loss-example.js" defer></script>
   <script src="loss-view.js" defer></script>
-  <script src="story.js?v=iterative-updates" defer></script>
+  <script src="story.js?v=loss-equations" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#reading">Skip to the explanation</a>
@@ -51,6 +51,7 @@
         </div>
         <div class="controls restricted-controls" id="restricted-controls" hidden>
           <label class="restricted-loss-label" for="restricted-loss">Loss <select id="restricted-loss"><option value="squared">Squared error</option><option value="expectile" selected>Asymmetric squared</option><option value="huber">Huber</option><option value="quartic">Fourth-power error</option></select></label>
+          <div class="loss-equation" id="restricted-loss-equation" aria-label="Selected loss equation"></div>
           <div class="restricted-parameter" id="restricted-tau-controls">
             <label for="restricted-tau">Asymmetry τ <output id="restricted-tau-value" for="restricted-tau">0.8</output></label>
             <input id="restricted-tau" type="range" min="0.05" max="0.95" step="0.05" value="0.8" aria-describedby="restricted-weights">

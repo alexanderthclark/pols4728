@@ -88,6 +88,7 @@
     delete stage.dataset.loss;
     if (current.restricted) {
       $('restricted-loss').value = restrictedState.loss;
+      $('restricted-loss-equation').innerHTML = R.equation(restrictedState);
       $('restricted-tau').value = String(restrictedState.tau);
       $('restricted-tau-value').textContent = String(Number(restrictedState.tau.toFixed(2)));
       $('restricted-weights').textContent = `Underpredict ×${Number(restrictedState.tau.toFixed(2))} · Overpredict ×${Number((1 - restrictedState.tau).toFixed(2))}`;
