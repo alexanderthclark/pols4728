@@ -6,13 +6,13 @@
   <meta name="description" content="See boosting as gradient descent in function space: predictions form a vector, weak learners supply corrections, and each small step changes what remains to be learned.">
   <title>Gradient boosting: prediction-space geometry — POLS 4728</title>
   <link rel="stylesheet" href="geometry.css">
-  <script src="../../docs/shared/boosting-math.js" defer></script>
+  <script src="../shared/boosting-math.js" defer></script>
   <script src="geometry.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#reading">Skip to the explanation</a>
   <header class="masthead">
-    <a href="../../docs/">POLS 4728 <span>· ML &amp; AI</span></a>
+    <a href="../">POLS 4728 <span>· ML &amp; AI</span></a>
     <nav aria-label="Page navigation"><a href="index.html">Gradient boosting</a><a href="#story">Geometry</a></nav>
   </header>
   <div class="reading-progress" aria-hidden="true"><span id="progress"></span></div>
@@ -25,7 +25,7 @@
         <p class="title-subtitle">An optional view of gradient boosting</p>
         <img src="assets/boosting-swing.png" width="1671" height="941" alt="A round, torso-less figure in a dad hat pushes another round, torso-less figure wearing a propeller beanie on a swing." class="title-art">
         <a class="start-link" href="#story">Begin the explanation</a>
-        <p class="quiet">First encounter with trees? <a href="../../docs/trees/">See how trees partition the input space.</a></p>
+        <p class="quiet">First encounter with trees? <a href="../trees/">See how trees partition the input space.</a></p>
       </div>
     </section>
 
@@ -63,7 +63,7 @@
           <p class="step-number">01 / 12</p><h2 id="heading-0">Begin with three observations</h2>
           <p>Suppose we want to predict these three outcomes from a single input <i>x</i>. Each model gives us three predictions: one for each observation.</p>
           <p>To understand boosting, we will put those predictions into a new coordinate system.</p>
-          <p>If you came from <a href="../../docs/trees/">the partition explainer</a>, notice the change: we now study prediction space, with one coordinate per observation. This smaller example complements the <a href="index.html#worked-data">main gradient-boosting story</a>.</p>
+          <p>If you came from <a href="../trees/">the partition explainer</a>, notice the change: we now study prediction space, with one coordinate per observation. This smaller example complements the <a href="index.html#worked-data">main gradient-boosting story</a>.</p>
           <p class="quiet">We treat the outcomes as numerical regression targets throughout this example.</p>
         </div></section>
 
@@ -161,7 +161,7 @@
       <p class="quiet">The construction follows Kilian Weinberger’s <a href="https://www.youtube.com/watch?v=dosOtgSdbnY&amp;t=180s">Cornell boosting lecture</a>.</p>
     </section>
   </main>
-  <footer><a href="../../docs/">ML &amp; AI for the Social Sciences</a><a href="#page-title">Back to the beginning</a></footer>
+  <footer><a href="../">ML &amp; AI for the Social Sciences</a><a href="#page-title">Back to the beginning</a></footer>
   <noscript><p class="no-script">The explanation above remains readable without JavaScript. Enable JavaScript to see the moving prediction vectors and use the controls.</p></noscript>
 </body>
 </html>

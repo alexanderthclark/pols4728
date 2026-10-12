@@ -5,7 +5,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 
 const require = createRequire(import.meta.url);
-const example = require('../unpublished/boosting/worked-example.js');
+const example = require('../docs/boosting/worked-example.js');
 const math = require('../docs/shared/boosting-math.js');
 const close = (actual, expected, tolerance = 1e-11) => {
   assert.ok(Number.isFinite(actual), `Expected a finite value, received ${actual}`);
@@ -179,7 +179,7 @@ test('immutable builds and fractional labels preserve the example across indepen
 
 test('the standalone UMD module loads the unchanged shared math and exposes its browser API', () => {
   const context = vm.createContext({ window: { BoostingMath: math } });
-  const source = readFileSync(new URL('../unpublished/boosting/worked-example.js', import.meta.url), 'utf8');
+  const source = readFileSync(new URL('../docs/boosting/worked-example.js', import.meta.url), 'utf8');
   vm.runInContext(source, context);
   assert.equal(context.window.WorkedBoostingExample.baseline, 2);
   close(context.window.WorkedBoostingExample.build()[2].loss, 1 / 3);

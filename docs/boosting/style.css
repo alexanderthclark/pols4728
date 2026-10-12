@@ -1,4 +1,4 @@
-@font-face{font-family:'Course Math';src:url('../../docs/shapley/fonts/STIXTwoMath-Regular.ttf') format('truetype');font-display:swap}
+@font-face{font-family:'Course Math';src:url('../shapley/fonts/STIXTwoMath-Regular.ttf') format('truetype');font-display:swap}
 :root{--ink:#242424;--blue:#234e70;--rust:#a54f32;--teal:#007f73;--muted:#606060;--rule:#767676;--light-rule:#ddd;--paper:#fff;--sans:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--serif:Georgia,'Times New Roman',serif;color-scheme:light}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:74px}

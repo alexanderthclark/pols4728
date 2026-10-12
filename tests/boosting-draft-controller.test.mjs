@@ -6,12 +6,12 @@ import test from 'node:test';
 
 const require = createRequire(import.meta.url);
 const math = require('../docs/shared/boosting-math.js');
-const example = require('../unpublished/boosting/worked-example.js');
-const view = require('../unpublished/boosting/worked-view.js');
-const geometry = require('../unpublished/boosting/prediction-view.js');
-const restricted = require('../unpublished/boosting/restricted-view.js');
-const html = readFileSync(new URL('../unpublished/boosting/index.html', import.meta.url), 'utf8');
-const source = readFileSync(new URL('../unpublished/boosting/story.js', import.meta.url), 'utf8');
+const example = require('../docs/boosting/worked-example.js');
+const view = require('../docs/boosting/worked-view.js');
+const geometry = require('../docs/boosting/prediction-view.js');
+const restricted = require('../docs/boosting/restricted-view.js');
+const html = readFileSync(new URL('../docs/boosting/index.html', import.meta.url), 'utf8');
+const source = readFileSync(new URL('../docs/boosting/story.js', import.meta.url), 'utf8');
 const workedPhysical = local => local + 4;
 const headingTop = physical => 1000 + physical * 1000;
 

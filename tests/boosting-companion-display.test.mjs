@@ -5,8 +5,8 @@ import { runInNewContext } from 'node:vm';
 import test from 'node:test';
 
 const math = createRequire(import.meta.url)('../docs/shared/boosting-math.js');
-const html = readFileSync(new URL('../unpublished/boosting/geometry.html', import.meta.url), 'utf8');
-const source = readFileSync(new URL('../unpublished/boosting/geometry.js', import.meta.url), 'utf8');
+const html = readFileSync(new URL('../docs/boosting/geometry.html', import.meta.url), 'utf8');
+const source = readFileSync(new URL('../docs/boosting/geometry.js', import.meta.url), 'utf8');
 
 // Exercise the companion's actual controller and readouts. This small DOM
 // harness supplies events and numerical state without claiming layout coverage.

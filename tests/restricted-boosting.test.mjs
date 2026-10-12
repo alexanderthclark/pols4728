@@ -6,7 +6,7 @@ import test from 'node:test';
 
 const require = createRequire(import.meta.url);
 const math = require('../docs/shared/boosting-math.js');
-const view = require('../unpublished/boosting/restricted-view.js');
+const view = require('../docs/boosting/restricted-view.js');
 const close = (actual, expected, tolerance = 1e-9) => assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} should equal ${expected}`);
 const vectorClose = (actual, expected) => {
   assert.equal(actual.length, expected.length);
@@ -130,7 +130,7 @@ test('the display distinguishes a zero fitted correction from its nonzero residu
 
 test('the restricted-input visual runs without a module loader', () => {
   const context = { window: { BoostingMath: math } };
-  runInNewContext(readFileSync(new URL('../unpublished/boosting/restricted-view.js', import.meta.url), 'utf8'), context);
+  runInNewContext(readFileSync(new URL('../docs/boosting/restricted-view.js', import.meta.url), 'utf8'), context);
   assert.equal(typeof context.window.RestrictedBoostingView.render, 'function');
   assert.equal(typeof context.window.RestrictedBoostingView.resolve, 'function');
   const result = context.window.RestrictedBoostingView.resolve(0, { prediction: .5 });

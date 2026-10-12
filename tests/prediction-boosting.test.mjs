@@ -6,7 +6,7 @@ import test from 'node:test';
 
 const require = createRequire(import.meta.url);
 const math = require('../docs/shared/boosting-math.js');
-const view = require('../unpublished/boosting/prediction-view.js');
+const view = require('../docs/boosting/prediction-view.js');
 const close = (actual, expected, tolerance = 1e-9) => assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} should equal ${expected}`);
 const vectorClose = (actual, expected) => {
   assert.equal(actual.length, expected.length);
@@ -156,7 +156,7 @@ test('rendered geometry exposes computed vectors and uses a loss circle only in 
 
 test('the geometry module runs without a module loader and keeps all three scenes responsive', () => {
   const context = { window: { BoostingMath: math } };
-  runInNewContext(readFileSync(new URL('../unpublished/boosting/prediction-view.js', import.meta.url), 'utf8'), context);
+  runInNewContext(readFileSync(new URL('../docs/boosting/prediction-view.js', import.meta.url), 'utf8'), context);
   assert.equal(typeof context.window.PredictionBoostingView.render, 'function');
   for (const scene of [0, 1, 2]) {
     for (const width of [288, 346, 640]) {

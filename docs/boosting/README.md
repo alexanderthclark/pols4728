@@ -1,6 +1,6 @@
 # Gradient boosting, one step at a time
 
-An unpublished scrollytelling chapter about gradient boosting. Its main path
+A scrollytelling chapter about gradient boosting. Its main path
 restores the interactive observed-outcome vector, prediction
 coordinates, negative gradients, and norm/radius experiment. Three vector
 scenes lead into an identical-input example and eight scenes developing the four-observation example from
@@ -8,8 +8,9 @@ sections 1.4.2–1.4.3 of the boosting notes. The chapter then explains other
 losses and a brief XGBoost extension. The longer geometry sequence remains
 available as a companion.
 
-The chapter stays outside the `docs` directory published by GitHub Pages.
-To preview, serve the repository root and open `/unpublished/boosting/`.
+The chapter is the second item on the course homepage. GitHub Pages publishes
+it from `docs/boosting/` after the checks pass on `main`.
+To preview, serve the repository root and open `/docs/boosting/`.
 No build step or external JavaScript dependencies are required.
 
 ## Construction
@@ -25,7 +26,7 @@ No build step or external JavaScript dependencies are required.
   shared-prediction control and unit-rate update expose the projection onto
   the equal-prediction line and the nonzero perpendicular residual.
 - `worked-example.js` builds immutable gradient-boosting states using the
-  unchanged `../../docs/shared/boosting-math.js` stump-fitting module.
+  unchanged `../shared/boosting-math.js` stump-fitting module.
 - `worked-view.js` renders response plots, gradients, candidate split tables,
   prediction updates, later fitted rounds, and the general learning loop.
 - `style.css` follows the course design guide and supports phone layouts.
@@ -76,12 +77,12 @@ usual outcome-mean initialization already starts at the optimum.
 From the repository root:
 
 ```sh
-node --check unpublished/boosting/story.js
-node --check unpublished/boosting/prediction-view.js
-node --check unpublished/boosting/restricted-view.js
-node --check unpublished/boosting/worked-example.js
-node --check unpublished/boosting/worked-view.js
-node --check unpublished/boosting/geometry.js
+node --check docs/boosting/story.js
+node --check docs/boosting/prediction-view.js
+node --check docs/boosting/restricted-view.js
+node --check docs/boosting/worked-example.js
+node --check docs/boosting/worked-view.js
+node --check docs/boosting/geometry.js
 node --test tests/*.test.mjs
 ```
 
@@ -102,4 +103,4 @@ The page also links Cornell's lecture notes and the official XGBoost tutorial.
 `assets/boosting-swing.png` is the approved transparent cover artwork, registered
 with its hash and usage guidance in `../../design/assets.json`. The existing
 STIX math font is loaded from the Shapley explainer's local asset. No shared
-design rules or published pages are changed.
+design rules are changed.
