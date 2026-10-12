@@ -2,7 +2,6 @@
   'use strict';
   const E = window.WorkedBoostingExample;
   const W = window.WorkedBoostingView;
-  const G = window.PredictionBoostingView;
   const R = window.RestrictedBoostingView;
   const L = window.LossBoostingView;
   const $ = id => document.getElementById(id);
@@ -11,7 +10,6 @@
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   const mobile = () => window.matchMedia('(max-width: 800px)').matches;
   const exampleState = { rate: 1, process: 1, candidateIndex: null, round: 8 };
-  const geometryState = { round: 0, rate: 0.5, progress: 1 };
   const restrictedState = { prediction: 0.5, loss: 'squared', tau: 0.8, delta: 0.25, progress: 1 };
   const openingDurations = { 1: 1200, 2: 1400, 3: 1700, 4: 2600, 5: 3600, 6: 5000, 7: 1800, 8: 2600, 9: 18000 };
   const lossState = { loss: 'huber', dataset: 'outlier', delta: 1, tau: 0.8, rate: 0.5, round: 0 };
@@ -37,34 +35,40 @@
 
   function localScene() {
     const step = steps[scene];
-    if (step.dataset.lossScene !== undefined) return { loss: true, geometry: false, restricted: false, index: Number(step.dataset.lossScene) };
-    if (step.dataset.geometryScene !== undefined) return { loss: false, geometry: true, restricted: false, index: Number(step.dataset.geometryScene) };
-    if (step.dataset.restrictedScene !== undefined) return { loss: false, geometry: false, restricted: true, index: Number(step.dataset.restrictedScene) };
-    return { loss: false, geometry: false, restricted: false, index: Number(step.dataset.workedScene) };
+    if (step.dataset.transitionScene !== undefined) return { transition: true, index: Number(step.dataset.transitionScene) };
+    if (step.dataset.lossScene !== undefined) return { loss: true, index: Number(step.dataset.lossScene) };
+    if (step.dataset.restrictedScene !== undefined) return { restricted: true, index: Number(step.dataset.restrictedScene) };
+    return { worked: true, index: Number(step.dataset.workedScene) };
   }
 
   function render(announce = true) {
     if (scene < 0) return;
     const current = localScene();
     const index = current.index;
-    stage.dataset.opening = String(current.restricted);
-    $('stage-tools').hidden = current.restricted;
+    stage.dataset.opening = String(Boolean(current.restricted || current.transition));
+    $('stage-tools').hidden = Boolean(current.restricted || current.transition);
+    $('worked-transition-diagram').hidden = !current.transition;
     $('opening-annotation').hidden = !current.restricted;
     $('opening-replay').hidden = !current.restricted || !openingDurations[index];
     // Controls change the available plot space, especially on a narrow screen.
     // Set their visibility before measuring the figure.
-    $('geometry-controls').hidden = !current.geometry;
-    $('geometry-tree-controls').hidden = !current.geometry || index !== 1;
-    $('prediction-diagram').hidden = !current.geometry;
     $('restricted-controls').hidden = !current.restricted || index !== 11;
     $('restricted-diagram').hidden = !current.restricted;
-    $('worked-diagram').hidden = current.geometry || current.restricted || current.loss;
-    $('worked-controls').hidden = current.geometry || current.restricted || current.loss || index === 7;
+    $('worked-diagram').hidden = !current.worked;
+    $('worked-controls').hidden = !current.worked || index === 7;
     $('loss-diagram').hidden = !current.loss;
     $('loss-controls').hidden = !current.loss;
-    const hideNumbers = current.restricted || (!current.geometry && !current.loss && index === 7);
+    const hideNumbers = Boolean(current.restricted || current.transition || (current.worked && index === 7));
     $('vector-readout').hidden = hideNumbers;
     $('numbers').hidden = hideNumbers;
+    delete stage.dataset.transitionScene;
+    if (current.transition) {
+      stage.dataset.transitionScene = index;
+      for (const key of ['lossScene', 'restrictedScene', 'sharedPrediction', 'descentPhase', 'workedScene', 'updateProgress', 'loss', 'rate', 'round']) delete stage.dataset[key];
+      $('stage-caption').textContent = '';
+      if (announce) $('opening-status').textContent = 'Scroll to continue';
+      return;
+    }
     if (current.loss) {
       $('loss-choice').value = lossState.loss;
       $('loss-dataset').value = lossState.dataset;
@@ -84,7 +88,6 @@
       stage.dataset.loss = lossState.loss;
       stage.dataset.rate = lossState.rate;
       stage.dataset.round = lossState.round;
-      delete stage.dataset.geometryScene;
       delete stage.dataset.restrictedScene;
       delete stage.dataset.sharedPrediction;
       delete stage.dataset.descentPhase;
@@ -119,7 +122,6 @@
       stage.dataset.sharedPrediction = resolved.prediction[0];
       stage.dataset.loss = resolved.lossSpec.key;
       stage.dataset.restrictedScene = index;
-      delete stage.dataset.geometryScene;
       delete stage.dataset.workedScene;
       if (resolved.round !== undefined) stage.dataset.round = resolved.round;
       else delete stage.dataset.round;
@@ -131,29 +133,6 @@
     delete stage.dataset.restrictedScene;
     delete stage.dataset.sharedPrediction;
     delete stage.dataset.descentPhase;
-    if (current.geometry) {
-      $('geometry-round-label').textContent = index === 0 ? 'Trees added' : 'Starting round';
-      $('geometry-tree-controls').hidden = index !== 1;
-      $('geometry-update-controls').hidden = index !== 1;
-      $('geometry-previous-tree').disabled = geometryState.round === 0;
-      $('geometry-next-tree').disabled = geometryState.round === 24;
-      $('geometry-round').value = String(geometryState.round);
-      $('geometry-round-value').textContent = String(geometryState.round);
-      $('geometry-rate').value = String(geometryState.rate);
-      $('geometry-progress').value = String(geometryState.progress);
-      $('geometry-progress-value').textContent = `${Math.round(100 * geometryState.progress)}%`;
-      const bounds = $('visual-area').getBoundingClientRect();
-      const state = { ...geometryState, width: bounds.width, height: bounds.height };
-      $('prediction-diagram').innerHTML = G.render(index, state, mobile());
-      readout(G.readout(index, state));
-      if (announce) $('stage-caption').textContent = G.presentation(index, state).caption;
-      stage.dataset.rate = geometryState.rate;
-      stage.dataset.updateProgress = geometryState.progress;
-      stage.dataset.round = geometryState.round;
-      stage.dataset.geometryScene = index;
-      delete stage.dataset.workedScene;
-      return;
-    }
     const fitting = index === 2 || index === 4;
     const updating = index === 3 || index === 5;
     $('worked-cut-label').hidden = !fitting;
@@ -180,7 +159,6 @@
     stage.dataset.updateProgress = exampleState.process;
     stage.dataset.round = exampleState.round;
     stage.dataset.workedScene = index;
-    delete stage.dataset.geometryScene;
   }
 
   function cancelUpdate() {
@@ -253,13 +231,13 @@
     scene = index;
     stage.dataset.scene = scene;
     const current = localScene();
-    stage.dataset.example = current.loss ? 'loss' : current.geometry ? 'geometry' : current.restricted ? 'restricted' : 'worked';
-    $('stage-topic').textContent = (current.loss ? L : current.geometry ? G : current.restricted ? R : W).topics[current.index];
+    stage.dataset.example = current.transition ? 'transition' : current.loss ? 'loss' : current.restricted ? 'restricted' : 'worked';
+    $('stage-topic').textContent = current.transition ? 'From two observations to four' : (current.loss ? L : current.restricted ? R : W).topics[current.index];
     $('stage-count').textContent = `${String(scene + 1).padStart(2, '0')} / ${steps.length}`;
     $('previous').disabled = scene === 0;
     $('next').textContent = scene === steps.length - 1 ? 'Beyond squared error' : 'Next';
     steps.forEach((step, i) => step.toggleAttribute('data-active', i === scene));
-    if (!current.geometry && !current.restricted && !current.loss) {
+    if (current.worked) {
       exampleState.candidateIndex = null;
       exampleState.process = 1;
       if (animate && (current.index === 3 || current.index === 5)) animateUpdate();
@@ -305,6 +283,7 @@
 
   function stepForId(id) {
     if (id === 'vector-radius') id = 'identical-inputs';
+    if (id === 'vector-geometry' || id === 'vector-correction') id = 'worked-transition';
     return id === 'story' || id === 'reading' ? 0 : steps.findIndex(step => step.id === id);
   }
 
@@ -384,26 +363,6 @@
     });
   });
 
-  $('geometry-round').addEventListener('input', () => {
-    geometryState.round = Math.max(0, Math.min(24, Math.round(Number($('geometry-round').value))));
-    geometryState.progress = 1;
-    render();
-  });
-  function moveTree(direction) {
-    geometryState.round = Math.max(0, Math.min(24, geometryState.round + direction));
-    geometryState.progress = 1;
-    render();
-  }
-  $('geometry-previous-tree').addEventListener('click', () => moveTree(-1));
-  $('geometry-next-tree').addEventListener('click', () => moveTree(1));
-  $('geometry-rate').addEventListener('change', () => {
-    geometryState.rate = Number($('geometry-rate').value);
-    render();
-  });
-  $('geometry-progress').addEventListener('input', () => {
-    geometryState.progress = Math.max(0, Math.min(1, Number($('geometry-progress').value)));
-    render();
-  });
   window.addEventListener('scroll', () => {
     if (!scrollPending) { scrollPending = true; requestAnimationFrame(scrollUpdate); }
   }, { passive: true });

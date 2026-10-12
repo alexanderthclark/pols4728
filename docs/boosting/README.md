@@ -6,8 +6,8 @@ the identical-input update constraint, equal-MSE contours, the fitted update,
 orthogonality, a changed loss, negative-gradient targets, a fitted tree, repeated
 descent, the constrained optimum, and a loss playground.
 Scrolling into a step starts its animation. Gradient terminology enters only after asymmetric loss exposes a
-limitation of raw residual fitting. Two three-observation vector scenes follow,
-then eight scenes developing the four-observation example from sections
+limitation of raw residual fitting. A full-width transition introduces varying
+inputs, followed by eight scenes developing the four-observation example from sections
 1.4.2–1.4.3 of the boosting notes. Four later scenes compare squared error,
 Huber loss, and asymmetric squared loss through targets, splits, leaf values,
 and fitted paths. The chapter closes with exponential loss and a brief XGBoost
@@ -34,12 +34,11 @@ No build step or external JavaScript dependencies are required.
 
 - `index.html` contains the main explanation, numerical example, controls,
   general algorithm, and loss comparison.
-- `story.js` follows twenty-six narrative steps and handles vector experiments,
+- `story.js` follows twenty-five narrative steps and handles the transition,
   split inspection, update progress, learning rate, later rounds, and navigation.
-- `prediction-view.js` restores the three-observation vector picture and fitted
-  correction. Its reusable equal-loss circle renderer remains available outside
-  the main story. It exposes consistent vectors, gradient norms, step lengths,
-  and losses.
+- `prediction-view.js` retains the reusable three-observation vector and
+  equal-loss circle renderers outside the main story, with consistent vectors,
+  gradient norms, step lengths, and losses.
 - `restricted-view.js` shows two observations with identical inputs and
   loss contours in prediction space. Shared-prediction and loss controls compare
   ordinary residuals with negative gradients and the loss-optimal shared tree
@@ -80,15 +79,6 @@ For general differentiable losses, fitting those targets chooses tree regions;
 leaf corrections minimize the original loss within each region. The other-loss
 section illustrates exponential loss for binary labels. XGBoost is a brief
 extension, not the implementation used in the interactive calculation.
-
-The later vector geometry uses `x = [1, 2, 3]`, `y = [1, -1, 1]`, zero baseline,
-and learning rate 0.5. Its orthographic axes are training-point predictions.
-The first scene selects how many trees have been added. In “Fit a correction,” Previous tree and Next tree select successive updates, each refitted
-to the new negative gradient. The starting-round slider jumps to any of the
-first 25 updates; selecting another round resets correction progress to 100%,
-while the progress slider shows a partial update within that round. Both scenes
-share the learning rate and round selection. Neither apparent projected angles nor falling training loss establish predictive performance
-on new observations.
 
 The opening uses `x = [1, 1]` and `y = [1, 0]`. It first shows only the zero
 predictions and observed outcomes, then adds the full residual `(1, 0)`.

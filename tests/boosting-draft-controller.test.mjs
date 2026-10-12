@@ -8,14 +8,13 @@ const require = createRequire(import.meta.url);
 const math = require('../docs/shared/boosting-math.js');
 const example = require('../docs/boosting/worked-example.js');
 const view = require('../docs/boosting/worked-view.js');
-const geometry = require('../docs/boosting/prediction-view.js');
 const restricted = require('../docs/boosting/restricted-view.js');
 const lossView = require('../docs/boosting/loss-view.js');
 const html = readFileSync(new URL('../docs/boosting/index.html', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../docs/boosting/story.js', import.meta.url), 'utf8');
-const workedPhysical = local => local + 14;
-const geometryPhysical = local => local + 12;
-const lossPhysical = local => local + 22;
+const transitionPhysical = 12;
+const workedPhysical = local => local + 13;
+const lossPhysical = local => local + 21;
 const mseContourPhysical = 3;
 const mseUpdatePhysical = 4;
 const orthogonalPhysical = 5;
@@ -105,7 +104,7 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
   const reduced = new Element(); reduced.matches = reducedMotion;
   const narrow = new Element(); narrow.matches = compact;
   Object.assign(win, {
-    BoostingMath: math, WorkedBoostingExample: example, WorkedBoostingView: view, PredictionBoostingView: geometry, RestrictedBoostingView: restricted, LossBoostingView: lossView,
+    BoostingMath: math, WorkedBoostingExample: example, WorkedBoostingView: view, RestrictedBoostingView: restricted, LossBoostingView: lossView,
     innerHeight: 800, innerWidth: compact ? 320 : 1200, scrollY: 0,
     location: { hash },
     matchMedia: query => query.includes('reduced-motion') ? reduced : narrow,
@@ -253,6 +252,10 @@ test('all opening scenes hide the old pane, numbers, and sliders while revealing
   for (const id of ['restricted-progress', 'restricted-play', 'restricted-loss', 'restricted-tau', 'restricted-delta', 'restricted-prediction', 'restricted-loss-equation']) {
     assert.equal(ui.get(id), undefined, `${id} is removed from the opening`);
   }
+  ui.click('next');
+  assert.equal(ui.shell.dataset.example, 'transition');
+  assert.equal(ui.stageTools.hidden, true);
+  assert.equal(ui.get('numbers').hidden, true);
   ui.click('next');
   assert.equal(ui.shell.dataset.opening, 'false');
   assert.equal(ui.stageTools.hidden, false);
@@ -509,25 +512,29 @@ test('enabling reduced motion finishes active opening playback without restartin
 });
 
 for (const compact of [false, true]) {
-  test(`the two-point progression precedes vectors and the eight-scene boosting calculation (${compact ? 'narrow' : 'wide'} navigation)`, () => {
+  test(`the two-point progression leads through a transition into the eight-scene boosting calculation (${compact ? 'narrow' : 'wide'} navigation)`, () => {
     const ui = setup({ reducedMotion: true, compact });
     assert.equal(Number(ui.shell.dataset.scene), 0);
     assert.equal(ui.shell.dataset.example, 'restricted');
     restrictedVector(ui, 'target', [1, 0]);
     restrictedVector(ui, 'prediction', [0, 0]);
     assert.equal(ui.get('previous').disabled, true);
-    for (let scene = 1; scene <= 25; scene++) {
+    for (let scene = 1; scene <= 24; scene++) {
       ui.click('next');
       assert.equal(Number(ui.shell.dataset.scene), scene);
-      assert.equal(ui.get('stage-count').textContent, `${String(scene + 1).padStart(2, '0')} / 26`);
+      assert.equal(ui.get('stage-count').textContent, `${String(scene + 1).padStart(2, '0')} / 25`);
       if (scene <= sandboxPhysical) {
         assert.equal(ui.shell.dataset.example, 'restricted');
         assert.match(ui.get('restricted-diagram').innerHTML, new RegExp(`data-restricted-scene="${scene}"`));
         assert.equal(ui.get('restricted-controls').hidden, scene !== sandboxPhysical);
         restrictedVector(ui, 'target', [1, 0]);
-      } else if (scene < workedPhysical(0)) {
-        assert.equal(ui.shell.dataset.example, 'geometry');
-        assert.match(ui.get('prediction-diagram').innerHTML, new RegExp(`data-geometry-scene="${scene - geometryPhysical(0)}"`));
+      } else if (scene === transitionPhysical) {
+        assert.equal(ui.shell.dataset.example, 'transition');
+        assert.equal(Number(ui.shell.dataset.transitionScene), 0);
+        assert.equal(ui.get('worked-transition-diagram').hidden, false);
+        assert.equal(ui.get('worked-diagram').hidden, true);
+        assert.equal(ui.stageTools.hidden, true);
+        assert.equal(ui.get('numbers').hidden, true);
       } else if (scene >= lossPhysical(0)) {
         assert.equal(ui.shell.dataset.example, 'loss');
         assert.equal(Number(ui.shell.dataset.lossScene), scene - lossPhysical(0));
@@ -785,16 +792,19 @@ test('a phone hash aligns its card below the pinned figure and natural scrolling
   close(ui.shell.getBoundingClientRect().top, 64);
 });
 
-test('the number disclosure remeasures later figures and is hidden for the opening and algorithm recap', () => {
+test('the number disclosure remeasures worked figures and is hidden for the opening, transition, and algorithm recap', () => {
   const ui = setup({ reducedMotion: true });
   assert.equal(ui.get('numbers').hidden, true);
-  ui.clickLink('#vector-geometry');
+  ui.clickLink('#worked-transition');
+  assert.equal(ui.get('numbers').hidden, true);
+  ui.clickLink('#worked-data');
   assert.equal(ui.get('numbers').hidden, false);
-  assert.match(ui.get('prediction-diagram').innerHTML, /viewBox="0 0 790 450"/);
+  const initialHeight = Number(/viewBox="0 0 790 ([^"]+)"/.exec(ui.get('worked-diagram').innerHTML)[1]);
   ui.get('visual-area').getBoundingClientRect = () => ({ width: 790, height: 540 });
   ui.get('numbers').emit('toggle');
-  assert.match(ui.get('prediction-diagram').innerHTML, /viewBox="0 0 790 540"/);
-  assert.equal(Number(ui.shell.dataset.scene), geometryPhysical(0));
+  const expandedHeight = Number(/viewBox="0 0 790 ([^"]+)"/.exec(ui.get('worked-diagram').innerHTML)[1]);
+  assert.equal(expandedHeight - initialHeight, 90, 'Opening the disclosure remeasures the available plot height');
+  assert.equal(Number(ui.shell.dataset.scene), workedPhysical(0));
   ui.clickLink('#gradient-algorithm');
   assert.equal(ui.get('numbers').hidden, true);
   ui.clickLink('#loss-targets');
@@ -872,173 +882,97 @@ test('resizing across the layout breakpoint keeps the opening title in place bef
   assert.equal(ui.scrollCalls.length, 0);
 });
 
-const geometryAttribute = (ui, name) => new RegExp(`data-${name}="([^"]+)"`).exec(ui.get('prediction-diagram').innerHTML)?.[1];
-const geometryLoss = ui => Number(geometryAttribute(ui, 'loss'));
-
-test('geometry controls move the original three-vector path and expose the residual norm', () => {
-  const ui = setup({ reducedMotion: true });
-  ui.scrollAt(geometryPhysical(0));
-  assert.equal(ui.get('geometry-controls').hidden, false);
-  assert.equal(ui.get('geometry-path-controls').hidden, false);
-  assert.equal(ui.get('geometry-round-label').textContent, 'Trees added');
-  assert.equal(ui.get('geometry-tree-controls').hidden, true);
-  assert.equal(ui.get('geometry-update-controls').hidden, true);
-  assert.equal(ui.get('worked-controls').hidden, true);
-  close(Number(geometryAttribute(ui, 'norm')), Math.sqrt(3));
-  close(geometryLoss(ui), 1.5);
-  ui.control('geometry-round', 1);
-  close(Number(geometryAttribute(ui, 'norm')), 1.5);
-  close(geometryLoss(ui), 1.125);
-  assert.equal(ui.get('geometry-round-value').textContent, '1');
-  ui.control('geometry-rate', 1, 'change');
-  close(geometryLoss(ui), 1);
-  ui.control('geometry-rate', .5, 'change');
-  ui.control('geometry-round', 0);
+test('the transition introduces varied inputs and hides every plot, control, and readout', () => {
+  const ui = setup();
+  ui.scrollAt(sandboxPhysical);
+  chooseRestrictedLoss(ui, 'expectile');
+  ui.click('restricted-fit');
+  assert.ok(ui.frames.size > 0, 'The preceding sandbox has an active fit animation');
   ui.click('next');
-  assert.equal(Number(ui.shell.dataset.scene), geometryPhysical(1));
-  assert.equal(ui.get('geometry-path-controls').hidden, false);
-  assert.equal(ui.get('geometry-round-label').textContent, 'Starting round');
-  assert.equal(ui.get('geometry-tree-controls').hidden, false);
-  assert.equal(ui.get('geometry-update-controls').hidden, false);
-  close(geometryLoss(ui), 1.125);
-  ui.control('geometry-progress', .5);
-  close(geometryLoss(ui), 1.28125);
-  assert.equal(ui.get('geometry-progress-value').textContent, '50%');
-  ui.click('next');
-  assert.equal(Number(ui.shell.dataset.scene), workedPhysical(0));
-  assert.equal(ui.shell.dataset.example, 'worked');
-  assert.equal(ui.get('geometry-controls').hidden, true);
-  assert.equal(ui.get('worked-controls').hidden, false);
-});
-
-test('the vector tree controls disappear when leaving vector correction for other examples', () => {
-  const ui = setup({ reducedMotion: true });
-  assert.equal(ui.get('geometry-tree-controls').hidden, true);
-  ui.clickLink('#vector-correction');
-  assert.equal(Number(ui.shell.dataset.scene), geometryPhysical(1));
-  assert.equal(ui.get('geometry-tree-controls').hidden, false);
-  ui.click('next');
-  assert.equal(Number(ui.shell.dataset.scene), workedPhysical(0));
-  assert.equal(ui.shell.dataset.example, 'worked');
-  assert.equal(ui.get('geometry-tree-controls').hidden, true);
-  ui.click('previous');
-  assert.equal(Number(ui.shell.dataset.scene), geometryPhysical(1));
-  assert.equal(ui.get('geometry-tree-controls').hidden, false);
-  ui.clickLink('#identical-inputs');
-  assert.equal(Number(ui.shell.dataset.scene), 0);
-  assert.equal(ui.shell.dataset.example, 'restricted');
-  assert.equal(ui.get('geometry-tree-controls').hidden, true);
-  ui.clickLink('#vector-geometry');
-  assert.equal(Number(ui.shell.dataset.scene), geometryPhysical(0));
-  assert.equal(ui.get('geometry-tree-controls').hidden, true);
-});
-
-test('successive vector corrections refit the tree and gradient, while earlier updates remain selectable', () => {
-  const ui = setup({ reducedMotion: true });
-  ui.scrollAt(geometryPhysical(1));
-  const vectorAttribute = name => JSON.parse(geometryAttribute(ui, name));
-  assert.equal(ui.get('geometry-previous-tree').disabled, true);
-  assert.equal(ui.get('geometry-next-tree').disabled, false);
-  assert.deepEqual(vectorAttribute('tree'), [1, 0, 0]);
-  assert.deepEqual(vectorAttribute('prediction'), [.5, 0, 0]);
-  close(geometryLoss(ui), 1.125);
-
-  // Refitting after F1 changes both the split and leaf values; repeating h1
-  // would instead put the next point at (1, 0, 0).
-  ui.click('geometry-next-tree');
-  assert.equal(ui.get('geometry-round').value, '1');
-  assert.equal(ui.get('geometry-previous-tree').disabled, false);
-  assert.deepEqual(vectorAttribute('tree'), [-.25, -.25, 1]);
-  assert.deepEqual(vectorAttribute('prediction'), [.375, -.125, .5]);
-  assert.deepEqual(vectorAttribute('gradient'), [-.625, .875, -.5]);
-  close(geometryLoss(ui), .703125);
-  close(Number(geometryAttribute(ui, 'before-loss')), 1.125);
-
-  ui.control('geometry-progress', .5);
-  assert.deepEqual(vectorAttribute('prediction'), [.4375, -.0625, .25]);
-  ui.click('geometry-previous-tree');
-  assert.equal(ui.get('geometry-progress').value, '1');
-  assert.deepEqual(vectorAttribute('prediction'), [.5, 0, 0]);
-  close(geometryLoss(ui), 1.125);
-  assert.equal(ui.get('geometry-previous-tree').disabled, true);
-
-  // Jumping to another start commits a complete displayed correction. The
-  // scrubber still provides a partial update within that selected round.
-  ui.control('geometry-progress', .25);
-  ui.control('geometry-round', 2);
-  assert.equal(ui.get('geometry-progress').value, '1');
-  assert.deepEqual(vectorAttribute('tree'), [.625, -.1875, -.1875]);
-  assert.deepEqual(vectorAttribute('prediction'), [.6875, -.21875, .40625]);
-  close(geometryLoss(ui), .5302734375);
-  ui.control('geometry-progress', 0);
-  assert.deepEqual(vectorAttribute('prediction'), [.375, -.125, .5]);
-  close(geometryLoss(ui), .703125);
-  ui.control('geometry-progress', 1);
-
-  for (const button of ['geometry-previous-tree', 'geometry-next-tree']) {
-    assert.equal(ui.get(button).tagName, 'BUTTON');
-    const focusedKey = ui.key('ArrowRight', ui.get(button));
-    assert.notEqual(focusedKey.defaultPrevented, true);
-    assert.equal(Number(ui.shell.dataset.scene), geometryPhysical(1));
-    assert.equal(ui.get('geometry-round').value, '2');
+  assert.equal(Number(ui.shell.dataset.scene), transitionPhysical);
+  assert.equal(ui.shell.dataset.example, 'transition');
+  assert.equal(Number(ui.shell.dataset.transitionScene), 0);
+  assert.equal(ui.shell.dataset.opening, 'true');
+  assert.equal(ui.get('stage-topic').textContent, 'From two observations to four');
+  assert.equal(ui.get('worked-transition-diagram').hidden, false);
+  for (const id of ['restricted-diagram', 'worked-diagram', 'loss-diagram', 'restricted-controls', 'worked-controls', 'loss-controls', 'numbers', 'vector-readout', 'opening-annotation', 'opening-replay']) {
+    assert.equal(ui.get(id).hidden, true, `${id} is hidden during the transition`);
   }
-  ui.control('geometry-round', 24);
-  assert.equal(ui.get('geometry-next-tree').disabled, true);
-  assert.equal(ui.get('geometry-previous-tree').disabled, false);
-  assert.ok(geometryLoss(ui) < .001);
-  ui.click('geometry-previous-tree');
-  assert.equal(ui.get('geometry-round').value, '23');
-  assert.equal(ui.get('geometry-next-tree').disabled, false);
-  ui.click('geometry-next-tree');
-  assert.equal(ui.get('geometry-round').value, '24');
-  assert.equal(ui.get('geometry-next-tree').disabled, true);
-  ui.control('geometry-round', 0);
-  assert.equal(ui.get('geometry-previous-tree').disabled, true);
-  assert.deepEqual(vectorAttribute('prediction'), [.5, 0, 0]);
+  assert.equal(ui.stageTools.hidden, true);
+  for (const name of ['restrictedScene', 'workedScene', 'lossScene', 'descentPhase', 'round']) {
+    assert.equal(ui.shell.dataset[name], undefined, `${name} is cleared on the transition`);
+  }
+  assert.equal(ui.frames.size, 0, 'The transition cancels the preceding fit without starting a worked animation');
+  const before = ui.get('worked-diagram').innerHTML;
+  ui.advance(4000);
+  assert.equal(ui.get('worked-diagram').innerHTML, before);
+  assert.equal(ui.frames.size, 0);
+  assert.match(html, /id="worked-transition-diagram"[\s\S]*?Now let[\s\S]*?vary/);
+  assert.match(html, /Four observations/);
+  assert.equal(ui.get('prediction-diagram'), undefined, 'The old three-observation plot is removed from the main page');
+  assert.equal(ui.get('geometry-controls'), undefined, 'Its controls are removed too');
 });
 
-test('legacy radius links skip directly to the identical-input example', () => {
+for (const compact of [false, true]) {
+  test(`next, previous, and keyboard navigation cross the transition in both directions (${compact ? 'narrow' : 'wide'})`, () => {
+    const ui = setup({ reducedMotion: true, compact, variableStageHeight: true });
+    ui.scrollAt(sandboxPhysical);
+    for (const destination of [transitionPhysical, workedPhysical(0)]) {
+      ui.click('next');
+      assert.equal(Number(ui.shell.dataset.scene), destination);
+      assert.equal(ui.get('stage-count').textContent, `${String(destination + 1).padStart(2, '0')} / 25`);
+    }
+    for (const destination of [transitionPhysical, sandboxPhysical]) {
+      ui.click('previous');
+      assert.equal(Number(ui.shell.dataset.scene), destination);
+    }
+    for (const destination of [transitionPhysical, workedPhysical(0)]) {
+      assert.equal(ui.key('ArrowRight').defaultPrevented, true);
+      assert.equal(Number(ui.shell.dataset.scene), destination);
+    }
+    for (const destination of [transitionPhysical, sandboxPhysical]) {
+      assert.equal(ui.key('ArrowLeft').defaultPrevented, true);
+      assert.equal(Number(ui.shell.dataset.scene), destination);
+    }
+    ui.clickLink('#loss-paths');
+    assert.equal(Number(ui.shell.dataset.scene), 24);
+    assert.equal(ui.get('stage-count').textContent, '25 / 25');
+  });
+}
+
+test('legacy three-observation links go to the transition while the radius link returns to the opening', () => {
   const ui = setup({ reducedMotion: true });
+  for (const hash of ['#vector-geometry', '#vector-correction']) {
+    ui.clickLink('#worked-data');
+    assert.equal(ui.clickLink(hash).defaultPrevented, true);
+    assert.equal(Number(ui.shell.dataset.scene), transitionPhysical);
+    assert.equal(ui.shell.dataset.example, 'transition');
+  }
   assert.equal(ui.clickLink('#vector-radius').defaultPrevented, true);
   assert.equal(Number(ui.shell.dataset.scene), 0);
   assert.equal(ui.shell.dataset.example, 'restricted');
-  assert.equal(ui.get('geometry-controls').hidden, true);
-  assert.equal(ui.get('restricted-controls').hidden, true);
   restrictedVector(ui, 'target', [1, 0]);
   restrictedVector(ui, 'prediction', [0, 0]);
-  ui.clickLink('#vector-geometry');
-  assert.equal(Number(ui.shell.dataset.scene), geometryPhysical(0));
-  assert.equal(ui.shell.dataset.example, 'geometry');
 });
 
-test('geometry, the opening sandbox, and the four-point calculation preserve independent choices', () => {
+test('the opening sandbox and four-point calculation preserve independent choices across the transition', () => {
   const ui = setup({ reducedMotion: true });
-  ui.scrollAt(geometryPhysical(1));
-  ui.control('geometry-rate', 1, 'change');
-  ui.control('geometry-progress', .75);
-  const before = ui.get('prediction-diagram').innerHTML;
   ui.clickLink('#loss-playground');
-  assert.equal(Number(ui.shell.dataset.scene), sandboxPhysical);
-  assert.equal(ui.get('prediction-diagram').hidden, true);
-  assert.equal(ui.get('restricted-diagram').hidden, false);
-  assert.equal(ui.get('geometry-controls').hidden, true);
-  assert.equal(ui.get('restricted-controls').hidden, false);
   chooseRestrictedLoss(ui, 'expectile');
   ui.click('restricted-fit');
   restrictedVector(ui, 'prediction', [.8, .8]);
-  const restrictedBefore = ui.get('restricted-diagram').innerHTML;
-  ui.clickLink('#worked-data');
+  const before = ui.get('restricted-diagram').innerHTML;
+  ui.click('next');
   assert.equal(ui.get('restricted-controls').hidden, true);
+  assert.equal(ui.get('worked-controls').hidden, true);
+  ui.click('next');
+  assert.equal(Number(ui.shell.dataset.scene), workedPhysical(0));
   assert.equal(ui.get('worked-controls').hidden, false);
   ui.control('worked-rate', .5, 'change');
   ui.clickLink('#loss-playground');
-  assert.equal(ui.get('restricted-diagram').innerHTML, restrictedBefore);
+  assert.equal(ui.get('restricted-diagram').innerHTML, before);
   assert.equal(ui.get('restricted-choice-expectile').getAttribute('aria-pressed'), 'true');
-  ui.clickLink('#vector-correction');
-  assert.equal(ui.get('prediction-diagram').innerHTML, before);
-  assert.equal(ui.get('geometry-rate').value, '1');
-  assert.equal(ui.get('geometry-progress').value, '0.75');
-  ui.click('next');
+  ui.click('next'); ui.click('next');
   assert.equal(ui.get('worked-rate').value, '0.5');
 });
 
@@ -1192,17 +1126,17 @@ test('the sandbox keeps its loss and prediction independently of the later loss 
   close(Number(restrictedAttribute(ui, 'delta')), .25);
 });
 
-test('phone navigation goes from the opening sandbox through vectors into the four-point example', () => {
+test('phone navigation goes from the opening sandbox through the transition into the four-point example', () => {
   const ui = setup({ compact: true, variableStageHeight: true, smoothScroll: true });
   ui.scrollAt(sandboxPhysical);
-  for (const destination of [geometryPhysical(0), geometryPhysical(1), workedPhysical(0)]) {
+  for (const destination of [transitionPhysical, workedPhysical(0)]) {
     ui.click('next'); ui.scrollFraction(.2);
     assert.equal(Number(ui.shell.dataset.scene), destination);
     ui.scrollFraction(1); ui.resize();
     assert.equal(Number(ui.shell.dataset.scene), destination);
     close(ui.shell.getBoundingClientRect().top, 64);
   }
-  for (const destination of [geometryPhysical(1), geometryPhysical(0), sandboxPhysical]) {
+  for (const destination of [transitionPhysical, sandboxPhysical]) {
     ui.click('previous'); ui.scrollFraction(.5);
     assert.equal(Number(ui.shell.dataset.scene), destination);
     ui.scrollFraction(1); ui.resize();
@@ -1226,18 +1160,19 @@ test('the identical-input hash opens the new scene before the worked-data hash',
   assert.deepEqual(ui.visitedHashes, ['#worked-data']);
 });
 
-test('returning to geometry during an animated worked update cancels the stale correction', () => {
+test('returning to the transition during an animated worked update cancels the stale correction', () => {
   const ui = setup();
   ui.scrollAt(workedPhysical(3));
   assert.ok(ui.frames.size > 0);
-  ui.scrollAt(geometryPhysical(1));
-  const restored = ui.get('prediction-diagram').innerHTML;
+  ui.scrollAt(transitionPhysical);
+  const restored = ui.get('worked-diagram').innerHTML;
   ui.advance(2000);
-  assert.equal(ui.get('prediction-diagram').innerHTML, restored);
-  assert.equal(Number(ui.shell.dataset.scene), geometryPhysical(1));
-  close(geometryLoss(ui), 1.125);
+  assert.equal(ui.get('worked-diagram').innerHTML, restored);
+  assert.equal(Number(ui.shell.dataset.scene), transitionPhysical);
+  assert.equal(ui.frames.size, 0);
   assert.equal(ui.get('worked-diagram').hidden, true);
-  assert.equal(ui.get('geometry-controls').hidden, false);
+  assert.equal(ui.get('worked-controls').hidden, true);
+  assert.equal(ui.get('worked-transition-diagram').hidden, false);
 });
 
 
