@@ -7,7 +7,7 @@ const controller = readFileSync(new URL('../docs/assets/coronation.js', import.m
 
 // Exercise the real controller's clock and lifecycle. Browser checks cover
 // proportions, face alignment, and the rendered crown separately.
-function setup({ reducedMotion = false, imageLoaded = true } = {}) {
+function setup({ reducedMotion = false, imageLoaded = true, imageBounds = {}, scrollY = 0 } = {}) {
   let time = 0;
   let nextId = 1;
   let intersection;
@@ -39,6 +39,13 @@ function setup({ reducedMotion = false, imageLoaded = true } = {}) {
   const image = new Element();
   image.complete = imageLoaded;
   image.naturalWidth = imageLoaded ? 1692 : 0;
+  let bounds = { left: 300, top: 180, width: 576, ...imageBounds };
+  image.getBoundingClientRect = () => ({
+    ...bounds,
+    height: bounds.width * 930 / 1692,
+    right: bounds.left + bounds.width,
+    bottom: bounds.top + bounds.width * 930 / 1692
+  });
   const svg = new Element();
   const parts = new Map([
     '.animated-eyes', '.eye-clips', '.descending-crown',
@@ -71,7 +78,7 @@ function setup({ reducedMotion = false, imageLoaded = true } = {}) {
     observe() {}
     disconnect() { intersection = null; }
   };
-  Object.assign(window, { IntersectionObserver, innerWidth: 1200, innerHeight: 800 });
+  Object.assign(window, { IntersectionObserver, innerWidth: 1200, innerHeight: 800, scrollY });
   runInNewContext(controller, {
     window, document, IntersectionObserver,
     performance: { now: () => time },
@@ -88,6 +95,23 @@ function setup({ reducedMotion = false, imageLoaded = true } = {}) {
     visual: () => [...parts].map(([selector, element]) => [selector, snapshot(element)]),
     pendingTimers: () => timers.size,
     pendingFrames: () => frames.size,
+    crownPosition() {
+      const crown = parts.get('.descending-crown');
+      const [, x, y] = crown.attrs.get('transform').match(/^translate\(([-\d.]+) ([-\d.]+)\)$/);
+      const scale = bounds.width / 1692;
+      return {
+        x: Number(x), y: Number(y), scale,
+        viewportY: bounds.top + Number(y) * scale,
+        pageY: bounds.top + window.scrollY + Number(y) * scale,
+        opacity: Number(crown.attrs.get('opacity'))
+      };
+    },
+    setImageBounds(next) { bounds = { ...bounds, ...next }; window.emit('resize'); },
+    scrollTo(next) {
+      bounds.top += window.scrollY - next;
+      window.scrollY = next;
+      document.emit('scroll');
+    },
     activity: type => document.emit(type),
     intersect(visible) {
       intersection?.([{ isIntersecting: visible, intersectionRatio: visible ? 1 : 0 }]);
@@ -198,7 +222,7 @@ test('the coronation completes once and does not restart after activity or visib
   const ui = setup();
   ui.intersect(true);
   ui.advance(5000);
-  ui.advance(3900);
+  ui.advance(4900);
   assert.equal(ui.state(), 'crowned');
   assert.equal(ui.pendingTimers(), 0);
   assert.equal(ui.pendingFrames(), 0);
@@ -214,6 +238,81 @@ test('the coronation completes once and does not restart after activity or visib
   assert.deepEqual(ui.visual(), final);
   assert.equal(ui.pendingTimers(), 0);
   assert.equal(ui.pendingFrames(), 0);
+});
+
+test('the visible crown enters fully above the page top on desktop, mobile, and scrolled pages', () => {
+  for (const geometry of [
+    { imageBounds: { top: 180, width: 576 } },
+    { imageBounds: { top: 72, width: 320 } },
+    { imageBounds: { top: 120, width: 576 }, scrollY: 260 }
+  ]) {
+    const ui = setup(geometry);
+    ui.intersect(true);
+    ui.advance(5000);
+    ui.advance(420);
+    const crown = ui.crownPosition();
+    assert.equal(crown.opacity, 1);
+    // 176 logo units enclose the crown's tilted artwork, depth, and shadow.
+    assert.ok(crown.pageY + 176 * crown.scale < 0, JSON.stringify(geometry));
+  }
+});
+
+test('the crown travels through the space above the logo and settles without bouncing', () => {
+  const ui = setup();
+  ui.intersect(true);
+  ui.advance(5000);
+  ui.advance(420);
+  let previous = ui.crownPosition().y;
+  ui.advance(1000);
+  const entering = ui.crownPosition();
+  assert.ok(entering.pageY + 176 * entering.scale > 0, 'the crown has entered the page');
+  assert.ok(entering.y < 0, 'the crown travels outside the logo before reaching I');
+  assert.ok(entering.y > previous);
+  previous = entering.y;
+  for (const delta of [1000, 1000, 200, 1280]) {
+    ui.advance(delta);
+    const crown = ui.crownPosition();
+    assert.ok(crown.y >= previous, 'descent remains monotonic');
+    assert.ok(crown.y <= 121.5, 'the crown never overshoots its seat');
+    previous = crown.y;
+  }
+  assert.equal(ui.state(), 'crowned');
+  assert.equal(ui.crownPosition().y, 121.5);
+});
+
+test('scrolling during descent preserves the page-relative path', () => {
+  const ui = setup();
+  ui.intersect(true);
+  ui.advance(5000);
+  ui.advance(1420);
+  const before = ui.crownPosition();
+  ui.scrollTo(260);
+  ui.advance(0);
+  const after = ui.crownPosition();
+  assert.equal(after.y, before.y);
+  assert.equal(after.pageY, before.pageY);
+  assert.equal(after.viewportY, before.viewportY - 260);
+  ui.advance(3480);
+  assert.equal(ui.state(), 'crowned');
+  assert.equal(ui.crownPosition().y, 121.5);
+});
+
+test('a layout change during descent recomputes the page path and retains the same landing', () => {
+  const ui = setup();
+  const mobile = setup({ imageBounds: { top: 72, width: 320 } });
+  for (const scene of [ui, mobile]) {
+    scene.intersect(true);
+    scene.advance(5000);
+    scene.advance(1420);
+  }
+  const desktopPosition = ui.crownPosition();
+  ui.setImageBounds({ top: 72, width: 320 });
+  ui.advance(0);
+  assert.notEqual(ui.crownPosition().y, desktopPosition.y);
+  assert.deepEqual(ui.crownPosition(), mobile.crownPosition());
+  ui.advance(3480);
+  assert.equal(ui.state(), 'crowned');
+  assert.equal(ui.crownPosition().y, 121.5);
 });
 
 test('initial reduced motion reveals the static final pose after the idle delay', () => {
