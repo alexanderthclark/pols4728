@@ -13,7 +13,10 @@ const restricted = require('../docs/boosting/restricted-view.js');
 const lossView = require('../docs/boosting/loss-view.js');
 const html = readFileSync(new URL('../docs/boosting/index.html', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../docs/boosting/story.js', import.meta.url), 'utf8');
-const workedPhysical = local => local + 3;
+const workedPhysical = local => local + 8;
+const geometryPhysical = local => local + 6;
+const lossPhysical = local => local + 16;
+const sandboxPhysical = 5;
 const stageTop = 400;
 
 // This harness checks real controller events and numerical output. It does not
@@ -172,30 +175,154 @@ const restrictedVector = (ui, name, expected) => {
   assert.equal(actual.length, expected.length);
   actual.forEach((value, index) => close(value, expected[index]));
 };
+const restrictedVisibleWords = ui => [
+  ...[...ui.get('restricted-diagram').innerHTML.matchAll(/<(?:title|desc|text)\b[^>]*>([\s\S]*?)<\/(?:title|desc|text)>/g)].map(match => match[1]),
+  ui.get('stage-caption').textContent, numbers(ui)
+].join(' ');
+
+test('the opening introduces residual fitting and orthogonality before gradient terminology or loss controls', () => {
+  const ui = setup({ reducedMotion: true });
+  for (let scene = 0; scene <= 3; scene++) {
+    if (scene > 0) ui.click('next');
+    assert.equal(ui.shell.dataset.example, 'restricted');
+    assert.equal(ui.get('restricted-sandbox-controls').hidden, true);
+    assert.equal(ui.get('restricted-progression-controls').hidden, ![1, 3].includes(scene));
+    assert.doesNotMatch(restrictedVisibleWords(ui), /gradient|∇/i);
+    assert.doesNotMatch(ui.get('restricted-diagram').innerHTML, /class="restricted-gradient-arrow"/);
+    restrictedVector(ui, 'target', [1, 0]);
+    const narrative = new RegExp(`<section\\b[^>]*data-step="${scene}"[^>]*>([\\s\\S]*?)<\\/section>`).exec(html)[1];
+    assert.doesNotMatch(narrative, /gradient|∇/i);
+    if (scene === 2) {
+      restrictedVector(ui, 'prediction', [.5, .5]);
+      restrictedVector(ui, 'residual', [.5, -.5]);
+      const residual = JSON.parse(restrictedAttribute(ui, 'residual'));
+      close(residual[0] + residual[1], 0);
+      close(restrictedLoss(ui), .25);
+      assert.match(ui.get('restricted-diagram').innerHTML, /class="restricted-right-angle"/);
+      assert.match(restrictedVisibleWords(ui), /perpendicular|orthogonal/i);
+    }
+  }
+  restrictedVector(ui, 'prediction', [.5, .5]);
+  restrictedVector(ui, 'optimal-prediction', [.8, .8]);
+  close(restrictedLoss(ui), .25);
+  ui.click('next');
+  assert.equal(Number(ui.shell.dataset.scene), 4);
+  assert.match(restrictedVisibleWords(ui), /negative gradient/i);
+  assert.match(ui.get('restricted-diagram').innerHTML, /class="restricted-gradient-arrow"/);
+  restrictedVector(ui, 'negative-gradient', [.8, -.2]);
+  restrictedVector(ui, 'next-tree', [.3, .3]);
+  ui.click('next');
+  assert.equal(ui.get('restricted-sandbox-controls').hidden, false);
+  assert.equal(ui.get('restricted-progression-controls').hidden, true);
+  assert.equal(ui.get('restricted-loss').value, 'squared');
+  restrictedVector(ui, 'prediction', [.5, .5]);
+});
+
+test('the MSE animation moves the shared prediction from zero to the residual projection', () => {
+  const ui = setup();
+  close(restrictedLoss(ui), .5);
+  ui.click('next');
+  restrictedVector(ui, 'prediction', [0, 0]);
+  assert.ok(ui.frames.size > 0, 'Entering the residual update starts its progression');
+  ui.advance(900);
+  restrictedVector(ui, 'prediction', [.25, .25]);
+  restrictedVector(ui, 'residual', [.75, -.25]);
+  close(restrictedLoss(ui), .3125);
+  assert.equal(ui.get('restricted-progress-value').textContent, '50%');
+  ui.advance(900);
+  restrictedVector(ui, 'prediction', [.5, .5]);
+  restrictedVector(ui, 'residual', [.5, -.5]);
+  close(restrictedLoss(ui), .25);
+  assert.equal(ui.get('restricted-play').textContent, 'Replay update');
+  ui.click('restricted-play');
+  restrictedVector(ui, 'prediction', [0, 0]);
+  ui.advance(1800);
+  restrictedVector(ui, 'prediction', [.5, .5]);
+});
+
+test('scrubbing an opening update cancels playback and changing chapters cancels stale frames', () => {
+  const ui = setup();
+  ui.scrollAt(1); ui.advance(200);
+  ui.control('restricted-progress', .6);
+  restrictedVector(ui, 'prediction', [.3, .3]);
+  ui.advance(2000);
+  restrictedVector(ui, 'prediction', [.3, .3]);
+  assert.equal(ui.get('restricted-progress-value').textContent, '60%');
+  ui.click('restricted-play'); ui.advance(200);
+  ui.scrollAt(2);
+  const orthogonal = ui.get('restricted-diagram').innerHTML;
+  ui.advance(2000);
+  assert.equal(ui.get('restricted-diagram').innerHTML, orthogonal);
+  restrictedVector(ui, 'prediction', [.5, .5]);
+  ui.scrollAt(1);
+  restrictedVector(ui, 'prediction', [0, 0]);
+  for (const key of ['Home', 'End', 'ArrowRight', 'ArrowLeft']) {
+    assert.equal(ui.key(key, ui.get('restricted-progress')).defaultPrevented, undefined);
+    assert.equal(Number(ui.shell.dataset.scene), 1);
+  }
+});
+
+test('the changed-loss progression improves on the residual mean before revealing its gradient target', () => {
+  const ui = setup();
+  ui.scrollAt(3);
+  restrictedVector(ui, 'prediction', [.5, .5]);
+  close(restrictedLoss(ui), .25);
+  assert.doesNotMatch(restrictedVisibleWords(ui), /gradient|∇/i);
+  ui.click('restricted-play'); ui.advance(900);
+  restrictedVector(ui, 'prediction', [.65, .65]);
+  close(restrictedLoss(ui), .1825);
+  ui.advance(900);
+  restrictedVector(ui, 'prediction', [.8, .8]);
+  close(restrictedLoss(ui), .16);
+  ui.click('next');
+  restrictedVector(ui, 'prediction', [.5, .5]);
+  restrictedVector(ui, 'residual', [.5, -.5]);
+  restrictedVector(ui, 'negative-gradient', [.8, -.2]);
+  ui.click('restricted-play'); ui.advance(1800);
+  restrictedVector(ui, 'prediction', [.8, .8]);
+  restrictedVector(ui, 'negative-gradient', [.32, -.32]);
+  const gradient = JSON.parse(restrictedAttribute(ui, 'negative-gradient'));
+  close(gradient[0] + gradient[1], 0);
+  close(restrictedLoss(ui), .16);
+});
+
+test('reduced motion settles the MSE update and keeps changed-loss examples still until played', () => {
+  const ui = setup({ reducedMotion: true });
+  ui.scrollAt(1);
+  restrictedVector(ui, 'prediction', [.5, .5]);
+  assert.equal(ui.get('restricted-progress-value').textContent, '100%');
+  ui.scrollAt(3);
+  restrictedVector(ui, 'prediction', [.5, .5]);
+  assert.equal(ui.get('restricted-progress-value').textContent, '0%');
+  ui.click('restricted-play');
+  restrictedVector(ui, 'prediction', [.8, .8]);
+  ui.advance(2000);
+  restrictedVector(ui, 'prediction', [.8, .8]);
+});
 
 for (const compact of [false, true]) {
-  test(`prediction vectors and the identical-input restriction lead into the eight-scene gradient-boosting calculation (${compact ? 'narrow' : 'wide'} navigation)`, () => {
+  test(`the two-point progression precedes vectors and the eight-scene boosting calculation (${compact ? 'narrow' : 'wide'} navigation)`, () => {
     const ui = setup({ reducedMotion: true, compact });
     assert.equal(Number(ui.shell.dataset.scene), 0);
-    assert.equal(ui.shell.dataset.example, 'geometry');
-    assert.match(numbers(ui), /\(1, [−-]1, 1\)/);
+    assert.equal(ui.shell.dataset.example, 'restricted');
+    restrictedVector(ui, 'target', [1, 0]);
+    restrictedVector(ui, 'prediction', [0, 0]);
     assert.equal(ui.get('previous').disabled, true);
-    for (let scene = 1; scene <= 14; scene++) {
+    for (let scene = 1; scene <= 19; scene++) {
       ui.click('next');
       assert.equal(Number(ui.shell.dataset.scene), scene);
-      assert.equal(ui.get('stage-count').textContent, `${String(scene + 1).padStart(2, '0')} / 15`);
-      if (scene < 2) {
-        assert.equal(ui.shell.dataset.example, 'geometry');
-        assert.match(ui.get('prediction-diagram').innerHTML, new RegExp(`data-geometry-scene="${scene}"`));
-      } else if (scene === 2) {
+      assert.equal(ui.get('stage-count').textContent, `${String(scene + 1).padStart(2, '0')} / 20`);
+      if (scene <= sandboxPhysical) {
         assert.equal(ui.shell.dataset.example, 'restricted');
-        assert.match(ui.get('restricted-diagram').innerHTML, /data-restricted-scene="0"/);
+        assert.match(ui.get('restricted-diagram').innerHTML, new RegExp(`data-restricted-scene="${scene}"`));
         assert.equal(ui.get('restricted-controls').hidden, false);
-        assert.equal(ui.get('restricted-loss').value, 'expectile');
-        close(restrictedLoss(ui), .8);
-      } else if (scene >= 11) {
+        restrictedVector(ui, 'target', [1, 0]);
+      } else if (scene < workedPhysical(0)) {
+        assert.equal(ui.shell.dataset.example, 'geometry');
+        assert.match(ui.get('prediction-diagram').innerHTML, new RegExp(`data-geometry-scene="${scene - geometryPhysical(0)}"`));
+      } else if (scene >= lossPhysical(0)) {
         assert.equal(ui.shell.dataset.example, 'loss');
-        assert.equal(Number(ui.shell.dataset.lossScene), scene - 11);
+        assert.equal(Number(ui.shell.dataset.lossScene), scene - lossPhysical(0));
         assert.equal(ui.get('loss-controls').hidden, false);
         assert.equal(ui.get('loss-choice').value, 'huber');
         assert.equal(ui.get('worked-diagram').hidden, true);
@@ -217,7 +344,7 @@ for (const compact of [false, true]) {
     assert.equal(ui.afterwordVisits(), 1);
     ui.scrollAt(0);
     assert.equal(ui.get('previous').disabled, true);
-    assert.equal(ui.shell.dataset.example, 'geometry');
+    assert.equal(ui.shell.dataset.example, 'restricted');
     ui.scrollAt(workedPhysical(0));
     assert.match(numbers(ui), /\(2, 2, 2, 2\)/);
     close(figureLoss(ui), 7);
@@ -422,21 +549,21 @@ test('the end of a cancelled old scroll does not release a newer scene navigatio
 test('wide navigation aligns a short card below the sticky stage and scrolling still advances scenes', () => {
   const ui = setup({ reducedMotion: true });
   ui.clickLink('#loss-targets');
-  assert.equal(Number(ui.shell.dataset.scene), 11);
-  close(ui.headingTop(11) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
-  ui.scrollAt(12);
-  assert.equal(Number(ui.shell.dataset.scene), 12);
-  ui.scrollAt(10);
-  assert.equal(Number(ui.shell.dataset.scene), 10);
+  assert.equal(Number(ui.shell.dataset.scene), lossPhysical(0));
+  close(ui.headingTop(lossPhysical(0)) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
+  ui.scrollAt(lossPhysical(1));
+  assert.equal(Number(ui.shell.dataset.scene), lossPhysical(1));
+  ui.scrollAt(workedPhysical(7));
+  assert.equal(Number(ui.shell.dataset.scene), workedPhysical(7));
 });
 
 test('a phone hash stays selected while the figure is visible, and Next returns from manual reading', () => {
   const ui = setup({ reducedMotion: true, compact: true, variableStageHeight: true, hash: '#loss-targets' });
   ui.advance(0); ui.advance(0);
-  assert.equal(Number(ui.shell.dataset.scene), 11);
+  assert.equal(Number(ui.shell.dataset.scene), lossPhysical(0));
   close(ui.shell.getBoundingClientRect().top, 64);
   ui.scrollBy(100); ui.resize();
-  assert.equal(Number(ui.shell.dataset.scene), 11);
+  assert.equal(Number(ui.shell.dataset.scene), lossPhysical(0));
   ui.scrollAt(2);
   assert.equal(Number(ui.shell.dataset.scene), 2);
   assert.ok(ui.shell.getBoundingClientRect().bottom <= 64);
@@ -458,7 +585,7 @@ test('the number disclosure remeasures the figure and is hidden for the algorith
   ui.get('visual-area').getBoundingClientRect = () => ({ width: 790, height: 540 });
   ui.get('numbers').emit('toggle');
   assert.match(ui.get('restricted-diagram').innerHTML, /viewBox="0 0 790 540"/);
-  assert.equal(Number(ui.shell.dataset.scene), 2);
+  assert.equal(Number(ui.shell.dataset.scene), 0);
   ui.clickLink('#gradient-algorithm');
   assert.equal(ui.get('numbers').hidden, true);
   ui.clickLink('#loss-targets');
@@ -469,17 +596,17 @@ for (const compact of [false, true]) {
   test(`late native fragment restoration keeps the initial plot-aware position (${compact ? 'phone' : 'wide'})`, () => {
     const ui = setup({ compact, smoothScroll: true, hash: '#identical-inputs' });
     ui.advance(0); ui.advance(0);
-    assert.equal(Number(ui.shell.dataset.scene), 2);
+    assert.equal(Number(ui.shell.dataset.scene), 0);
     assert.equal(ui.scrollCalls.at(-1).behavior, 'instant');
-    ui.nativeFragment(2); ui.load();
-    assert.equal(Number(ui.shell.dataset.scene), 2);
+    ui.nativeFragment(0); ui.load();
+    assert.equal(Number(ui.shell.dataset.scene), 0);
     assert.equal(ui.scrollCalls.at(-1).behavior, 'instant');
     if (compact) close(ui.shell.getBoundingClientRect().top, 64);
-    else close(ui.headingTop(2) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
+    else close(ui.headingTop(0) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
     ui.click('next');
     assert.equal(ui.scrollCalls.at(-1).behavior, 'smooth');
     ui.scrollFraction(1);
-    assert.equal(Number(ui.shell.dataset.scene), 3);
+    assert.equal(Number(ui.shell.dataset.scene), 1);
   });
 }
 
@@ -490,7 +617,7 @@ test('late load does not restore the initial hash after the reader navigates els
   const position = ui.scrollY();
   const requests = ui.scrollCalls.length;
   ui.load();
-  assert.equal(Number(ui.shell.dataset.scene), 3);
+  assert.equal(Number(ui.shell.dataset.scene), 1);
   assert.equal(ui.scrollY(), position);
   assert.equal(ui.scrollCalls.length, requests);
 });
@@ -500,11 +627,11 @@ for (const compact of [false, true]) {
     const ui = setup({ compact, smoothScroll: true, hash: '#identical-inputs' });
     ui.advance(0); ui.advance(0);
     ui.historyBack('#loss-targets');
-    ui.nativeFragment(11); ui.hashChange();
-    assert.equal(Number(ui.shell.dataset.scene), 11);
+    ui.nativeFragment(lossPhysical(0)); ui.hashChange();
+    assert.equal(Number(ui.shell.dataset.scene), lossPhysical(0));
     assert.equal(ui.scrollCalls.at(-1).behavior, 'instant');
     if (compact) close(ui.shell.getBoundingClientRect().top, 64);
-    else close(ui.headingTop(11) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
+    else close(ui.headingTop(lossPhysical(0)) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
     const requests = ui.scrollCalls.length;
     ui.historyBack('#other-losses'); ui.hashChange();
     assert.equal(ui.scrollCalls.length, requests, 'Reading-only anchors keep native navigation');
@@ -513,16 +640,16 @@ for (const compact of [false, true]) {
 
 test('crossing the layout breakpoint preserves the selected chapter and restores its plot position', () => {
   const ui = setup({ reducedMotion: true, variableStageHeight: true });
-  ui.clickLink('#identical-inputs');
-  assert.equal(Number(ui.shell.dataset.scene), 2);
+  ui.clickLink('#loss-playground');
+  assert.equal(Number(ui.shell.dataset.scene), sandboxPhysical);
   assert.ok(ui.scrollY() > stageTop + 660, 'The desktop chapter is deep enough to move the static stage off screen');
   ui.setCompact(true); ui.resize();
-  assert.equal(Number(ui.shell.dataset.scene), 2);
+  assert.equal(Number(ui.shell.dataset.scene), sandboxPhysical);
   close(ui.shell.getBoundingClientRect().top, 64);
   assert.match(ui.get('restricted-diagram').innerHTML, /viewBox="0 0 288 340"/);
   ui.setCompact(false); ui.resize();
-  assert.equal(Number(ui.shell.dataset.scene), 2);
-  close(ui.headingTop(2) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
+  assert.equal(Number(ui.shell.dataset.scene), sandboxPhysical);
+  close(ui.headingTop(sandboxPhysical) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
   assert.match(ui.get('restricted-diagram').innerHTML, /viewBox="0 0 790 450"/);
 });
 
@@ -541,6 +668,7 @@ const geometryLoss = ui => Number(geometryAttribute(ui, 'loss'));
 
 test('geometry controls move the original three-vector path and expose the residual norm', () => {
   const ui = setup({ reducedMotion: true });
+  ui.scrollAt(geometryPhysical(0));
   assert.equal(ui.get('geometry-controls').hidden, false);
   assert.equal(ui.get('geometry-path-controls').hidden, false);
   assert.equal(ui.get('geometry-round-label').textContent, 'Trees added');
@@ -558,7 +686,7 @@ test('geometry controls move the original three-vector path and expose the resid
   ui.control('geometry-rate', .5, 'change');
   ui.control('geometry-round', 0);
   ui.click('next');
-  assert.equal(Number(ui.shell.dataset.scene), 1);
+  assert.equal(Number(ui.shell.dataset.scene), geometryPhysical(1));
   assert.equal(ui.get('geometry-path-controls').hidden, false);
   assert.equal(ui.get('geometry-round-label').textContent, 'Starting round');
   assert.equal(ui.get('geometry-tree-controls').hidden, false);
@@ -568,15 +696,37 @@ test('geometry controls move the original three-vector path and expose the resid
   close(geometryLoss(ui), 1.28125);
   assert.equal(ui.get('geometry-progress-value').textContent, '50%');
   ui.click('next');
-  assert.equal(Number(ui.shell.dataset.scene), 2);
-  assert.equal(ui.shell.dataset.example, 'restricted');
+  assert.equal(Number(ui.shell.dataset.scene), workedPhysical(0));
+  assert.equal(ui.shell.dataset.example, 'worked');
   assert.equal(ui.get('geometry-controls').hidden, true);
-  assert.equal(ui.get('restricted-controls').hidden, false);
+  assert.equal(ui.get('worked-controls').hidden, false);
+});
+
+test('the vector tree controls disappear when leaving vector correction for other examples', () => {
+  const ui = setup({ reducedMotion: true });
+  assert.equal(ui.get('geometry-tree-controls').hidden, true);
+  ui.clickLink('#vector-correction');
+  assert.equal(Number(ui.shell.dataset.scene), geometryPhysical(1));
+  assert.equal(ui.get('geometry-tree-controls').hidden, false);
+  ui.click('next');
+  assert.equal(Number(ui.shell.dataset.scene), workedPhysical(0));
+  assert.equal(ui.shell.dataset.example, 'worked');
+  assert.equal(ui.get('geometry-tree-controls').hidden, true);
+  ui.click('previous');
+  assert.equal(Number(ui.shell.dataset.scene), geometryPhysical(1));
+  assert.equal(ui.get('geometry-tree-controls').hidden, false);
+  ui.clickLink('#identical-inputs');
+  assert.equal(Number(ui.shell.dataset.scene), 0);
+  assert.equal(ui.shell.dataset.example, 'restricted');
+  assert.equal(ui.get('geometry-tree-controls').hidden, true);
+  ui.clickLink('#vector-geometry');
+  assert.equal(Number(ui.shell.dataset.scene), geometryPhysical(0));
+  assert.equal(ui.get('geometry-tree-controls').hidden, true);
 });
 
 test('successive vector corrections refit the tree and gradient, while earlier updates remain selectable', () => {
   const ui = setup({ reducedMotion: true });
-  ui.scrollAt(1);
+  ui.scrollAt(geometryPhysical(1));
   const vectorAttribute = name => JSON.parse(geometryAttribute(ui, name));
   assert.equal(ui.get('geometry-previous-tree').disabled, true);
   assert.equal(ui.get('geometry-next-tree').disabled, false);
@@ -620,7 +770,7 @@ test('successive vector corrections refit the tree and gradient, while earlier u
     assert.equal(ui.get(button).tagName, 'BUTTON');
     const focusedKey = ui.key('ArrowRight', ui.get(button));
     assert.notEqual(focusedKey.defaultPrevented, true);
-    assert.equal(Number(ui.shell.dataset.scene), 1);
+    assert.equal(Number(ui.shell.dataset.scene), geometryPhysical(1));
     assert.equal(ui.get('geometry-round').value, '2');
   }
   ui.control('geometry-round', 24);
@@ -641,24 +791,24 @@ test('successive vector corrections refit the tree and gradient, while earlier u
 test('legacy radius links skip directly to the identical-input example', () => {
   const ui = setup({ reducedMotion: true });
   assert.equal(ui.clickLink('#vector-radius').defaultPrevented, true);
-  assert.equal(Number(ui.shell.dataset.scene), 2);
+  assert.equal(Number(ui.shell.dataset.scene), 0);
   assert.equal(ui.shell.dataset.example, 'restricted');
   assert.equal(ui.get('geometry-controls').hidden, true);
   assert.equal(ui.get('restricted-controls').hidden, false);
-  close(restrictedLoss(ui), .8);
-  ui.click('previous');
-  assert.equal(Number(ui.shell.dataset.scene), 1);
+  close(restrictedLoss(ui), .5);
+  ui.clickLink('#vector-geometry');
+  assert.equal(Number(ui.shell.dataset.scene), geometryPhysical(0));
   assert.equal(ui.shell.dataset.example, 'geometry');
 });
 
 test('crossing geometry, identical inputs and the four-point calculation preserves independent controls', () => {
   const ui = setup({ reducedMotion: true });
-  ui.scrollAt(1);
+  ui.scrollAt(geometryPhysical(1));
   ui.control('geometry-rate', 1, 'change');
   ui.control('geometry-progress', .75);
   const before = ui.get('prediction-diagram').innerHTML;
-  ui.click('next');
-  assert.equal(Number(ui.shell.dataset.scene), 2);
+  ui.clickLink('#loss-playground');
+  assert.equal(Number(ui.shell.dataset.scene), sandboxPhysical);
   assert.equal(ui.shell.dataset.example, 'restricted');
   assert.equal(ui.get('prediction-diagram').hidden, true);
   assert.equal(ui.get('restricted-diagram').hidden, false);
@@ -668,8 +818,8 @@ test('crossing geometry, identical inputs and the four-point calculation preserv
   assert.equal(ui.get('worked-controls').hidden, true);
   ui.control('restricted-prediction', .25);
   const restrictedBefore = ui.get('restricted-diagram').innerHTML;
-  close(restrictedLoss(ui), .4625);
-  ui.click('next');
+  close(restrictedLoss(ui), .3125);
+  ui.clickLink('#worked-data');
   assert.equal(Number(ui.shell.dataset.scene), workedPhysical(0));
   assert.equal(ui.shell.dataset.example, 'worked');
   assert.equal(ui.get('restricted-diagram').hidden, true);
@@ -679,12 +829,12 @@ test('crossing geometry, identical inputs and the four-point calculation preserv
   assert.equal(ui.get('worked-rate').value, '1');
   close(figureLoss(ui), 7);
   ui.control('worked-rate', .5, 'change');
-  ui.click('previous');
-  assert.equal(Number(ui.shell.dataset.scene), 2);
+  ui.clickLink('#loss-playground');
+  assert.equal(Number(ui.shell.dataset.scene), sandboxPhysical);
   assert.equal(ui.get('restricted-diagram').innerHTML, restrictedBefore);
   assert.equal(ui.get('restricted-prediction').value, '0.25');
-  ui.click('previous');
-  assert.equal(Number(ui.shell.dataset.scene), 1);
+  ui.clickLink('#vector-correction');
+  assert.equal(Number(ui.shell.dataset.scene), geometryPhysical(1));
   assert.equal(ui.shell.dataset.example, 'geometry');
   assert.equal(ui.get('prediction-diagram').hidden, false);
   assert.equal(ui.get('worked-diagram').hidden, true);
@@ -692,16 +842,17 @@ test('crossing geometry, identical inputs and the four-point calculation preserv
   assert.equal(ui.get('prediction-diagram').innerHTML, before);
   assert.equal(ui.get('geometry-rate').value, '1');
   assert.equal(ui.get('geometry-progress').value, '0.75');
-  ui.click('next'); ui.click('next');
+  ui.click('next');
   assert.equal(ui.get('worked-rate').value, '0.5');
 });
 
 test('the identical-input control uses native focused keys and fits its only tree to the projection', () => {
   const ui = setup({ reducedMotion: true });
-  ui.scrollAt(2);
+  ui.scrollAt(sandboxPhysical);
   ui.control('restricted-loss', 'squared', 'change');
+  ui.click('restricted-reset');
   assert.equal(ui.shell.dataset.example, 'restricted');
-  assert.equal(Number(ui.shell.dataset.restrictedScene), 0);
+  assert.equal(Number(ui.shell.dataset.restrictedScene), sandboxPhysical);
   assert.equal(ui.get('restricted-prediction').value, '0');
   assert.deepEqual(JSON.parse(restrictedAttribute(ui, 'prediction')), [0, 0]);
   assert.deepEqual(JSON.parse(restrictedAttribute(ui, 'next-tree')), [.5, .5]);
@@ -710,7 +861,7 @@ test('the identical-input control uses native focused keys and fits its only tre
   for (const key of ['Home', 'End', 'ArrowRight', 'ArrowLeft']) {
     const event = ui.key(key, ui.get('restricted-prediction'));
     assert.equal(event.defaultPrevented, undefined);
-    assert.equal(Number(ui.shell.dataset.scene), 2);
+    assert.equal(Number(ui.shell.dataset.scene), sandboxPhysical);
   }
   ui.control('restricted-prediction', 1);
   assert.deepEqual(JSON.parse(restrictedAttribute(ui, 'prediction')), [1, 1]);
@@ -719,7 +870,7 @@ test('the identical-input control uses native focused keys and fits its only tre
   ui.click('restricted-fit');
   assert.equal(ui.get('restricted-prediction').value, '0.5');
   assert.deepEqual(JSON.parse(restrictedAttribute(ui, 'prediction')), [.5, .5]);
-  assert.deepEqual(JSON.parse(restrictedAttribute(ui, 'residual')), [-.5, .5]);
+  assert.deepEqual(JSON.parse(restrictedAttribute(ui, 'residual')), [.5, -.5]);
   assert.deepEqual(JSON.parse(restrictedAttribute(ui, 'next-tree')), [0, 0]);
   close(restrictedLoss(ui), .25);
   assert.match(ui.get('stage-caption').textContent, /zero|no further|cannot reduce/i);
@@ -732,33 +883,36 @@ test('the identical-input control uses native focused keys and fits its only tre
 for (const compact of [false, true]) {
   test(`the two-observation controls expose asymmetric gradients at the residual mean (${compact ? 'narrow' : 'wide'})`, () => {
     const ui = setup({ reducedMotion: true, compact });
-    ui.clickLink('#identical-inputs');
+    ui.clickLink('#loss-playground');
+    assert.equal(ui.get('restricted-loss').value, 'squared');
+    ui.control('restricted-loss', 'expectile', 'change');
+    ui.click('restricted-reset');
     assert.equal(ui.get('restricted-loss').value, 'expectile');
     assert.equal(ui.get('restricted-tau').value, '0.8');
     assert.equal(ui.get('restricted-tau-controls').hidden, false);
     assert.equal(ui.get('restricted-delta-label').hidden, true);
-    restrictedVector(ui, 'target', [0, 1]);
+    restrictedVector(ui, 'target', [1, 0]);
     restrictedVector(ui, 'prediction', [0, 0]);
     restrictedVector(ui, 'next-tree', [.8, .8]);
     assert.match(ui.get('restricted-weights').textContent, /Underpredict ×0\.8.*Overpredict ×0\.2/);
 
     ui.click('restricted-mean');
     restrictedVector(ui, 'prediction', [.5, .5]);
-    restrictedVector(ui, 'residual', [-.5, .5]);
-    restrictedVector(ui, 'negative-gradient', [-.2, .8]);
+    restrictedVector(ui, 'residual', [.5, -.5]);
+    restrictedVector(ui, 'negative-gradient', [.8, -.2]);
     restrictedVector(ui, 'next-tree', [.3, .3]);
     close(restrictedLoss(ui), .25);
-    assert.match(numbers(ui), /Negative gradient.*−0\.2, 0\.8/);
+    assert.match(numbers(ui), /Negative gradient.*0\.8, −0\.2/);
     ui.click('restricted-fit');
     assert.equal(ui.get('restricted-prediction').value, '0.8');
-    restrictedVector(ui, 'negative-gradient', [-.32, .32]);
+    restrictedVector(ui, 'negative-gradient', [.32, -.32]);
     restrictedVector(ui, 'next-tree', [0, 0]);
     close(restrictedLoss(ui), .16);
 
     // The native range retains its own keyboard behavior and updates on input.
     for (const key of ['Home', 'End', 'ArrowRight', 'ArrowLeft']) {
       assert.equal(ui.key(key, ui.get('restricted-tau')).defaultPrevented, undefined);
-      assert.equal(Number(ui.shell.dataset.scene), 2);
+      assert.equal(Number(ui.shell.dataset.scene), sandboxPhysical);
     }
     ui.control('restricted-tau', .2);
     assert.equal(ui.get('restricted-tau-value').textContent, '0.2');
@@ -776,7 +930,7 @@ for (const compact of [false, true]) {
 
 test('switching to Huber and fourth-power loss calibrates the shared leaf correction', () => {
   const ui = setup({ reducedMotion: true });
-  ui.scrollAt(2);
+  ui.scrollAt(sandboxPhysical);
   ui.control('restricted-loss', 'huber', 'change');
   assert.equal(ui.get('restricted-tau-controls').hidden, true);
   assert.equal(ui.get('restricted-delta-label').hidden, false);
@@ -806,7 +960,7 @@ test('switching to Huber and fourth-power loss calibrates the shared leaf correc
   assert.equal(ui.get('restricted-tau-controls').hidden, true);
   assert.equal(ui.get('restricted-delta-label').hidden, true);
   ui.control('restricted-prediction', .25);
-  restrictedVector(ui, 'negative-gradient', [-.015625, .421875]);
+  restrictedVector(ui, 'negative-gradient', [.421875, -.015625]);
   restrictedVector(ui, 'next-tree', [.203125, .203125]);
   restrictedVector(ui, 'correction', [.25, .25]);
   ui.click('restricted-fit');
@@ -818,7 +972,8 @@ test('switching to Huber and fourth-power loss calibrates the shared leaf correc
 
 test('two-observation loss parameters persist independently of the later loss comparison', () => {
   const ui = setup({ reducedMotion: true });
-  ui.clickLink('#identical-inputs');
+  ui.clickLink('#loss-playground');
+  ui.control('restricted-loss', 'expectile', 'change');
   ui.control('restricted-tau', .65);
   ui.control('restricted-delta', .1, 'change');
   ui.control('restricted-prediction', .3);
@@ -829,7 +984,7 @@ test('two-observation loss parameters persist independently of the later loss co
   assert.equal(ui.get('loss-delta').value, '1');
   ui.control('loss-choice', 'expectile', 'change');
   ui.control('loss-tau', .2, 'change');
-  ui.clickLink('#identical-inputs');
+  ui.clickLink('#loss-playground');
   assert.equal(ui.get('restricted-diagram').innerHTML, before);
   assert.equal(ui.get('restricted-loss').value, 'expectile');
   assert.equal(ui.get('restricted-tau').value, '0.65');
@@ -837,17 +992,17 @@ test('two-observation loss parameters persist independently of the later loss co
   assert.equal(ui.get('restricted-prediction').value, '0.3');
 });
 
-test('phone navigation goes directly from vector correction through the two-observation example', () => {
+test('phone navigation goes from the opening sandbox through vectors into the four-point example', () => {
   const ui = setup({ compact: true, variableStageHeight: true, smoothScroll: true });
-  ui.scrollAt(1);
-  for (const destination of [2, workedPhysical(0)]) {
+  ui.scrollAt(sandboxPhysical);
+  for (const destination of [geometryPhysical(0), geometryPhysical(1), workedPhysical(0)]) {
     ui.click('next'); ui.scrollFraction(.2);
     assert.equal(Number(ui.shell.dataset.scene), destination);
     ui.scrollFraction(1); ui.resize();
     assert.equal(Number(ui.shell.dataset.scene), destination);
     close(ui.shell.getBoundingClientRect().top, 64);
   }
-  for (const destination of [2, 1]) {
+  for (const destination of [geometryPhysical(1), geometryPhysical(0), sandboxPhysical]) {
     ui.click('previous'); ui.scrollFraction(.5);
     assert.equal(Number(ui.shell.dataset.scene), destination);
     ui.scrollFraction(1); ui.resize();
@@ -859,14 +1014,14 @@ test('phone navigation goes directly from vector correction through the two-obse
 test('the identical-input hash opens the new scene before the worked-data hash', () => {
   const ui = setup({ reducedMotion: true, compact: true, variableStageHeight: true, hash: '#identical-inputs' });
   ui.advance(0); ui.advance(0);
-  assert.equal(Number(ui.shell.dataset.scene), 2);
+  assert.equal(Number(ui.shell.dataset.scene), 0);
   assert.equal(ui.shell.dataset.example, 'restricted');
   close(ui.shell.getBoundingClientRect().top, 64);
   ui.clickLink('#worked-data');
   assert.equal(Number(ui.shell.dataset.scene), workedPhysical(0));
   assert.equal(ui.shell.dataset.example, 'worked');
   ui.historyBack('#identical-inputs');
-  assert.equal(Number(ui.shell.dataset.scene), 2);
+  assert.equal(Number(ui.shell.dataset.scene), 0);
   assert.equal(ui.shell.dataset.example, 'restricted');
   assert.deepEqual(ui.visitedHashes, ['#worked-data']);
 });
@@ -875,11 +1030,11 @@ test('returning to geometry during an animated worked update cancels the stale c
   const ui = setup();
   ui.scrollAt(workedPhysical(3));
   assert.ok(ui.frames.size > 0);
-  ui.scrollAt(1);
+  ui.scrollAt(geometryPhysical(1));
   const restored = ui.get('prediction-diagram').innerHTML;
   ui.advance(2000);
   assert.equal(ui.get('prediction-diagram').innerHTML, restored);
-  assert.equal(Number(ui.shell.dataset.scene), 1);
+  assert.equal(Number(ui.shell.dataset.scene), geometryPhysical(1));
   close(geometryLoss(ui), 1.125);
   assert.equal(ui.get('worked-diagram').hidden, true);
   assert.equal(ui.get('geometry-controls').hidden, false);
@@ -889,7 +1044,7 @@ test('returning to geometry during an animated worked update cancels the stale c
 test('loss controls refit the compared paths and persist across narrative scenes', () => {
   const ui = setup({ reducedMotion: true });
   ui.clickLink('#loss-targets');
-  assert.equal(Number(ui.shell.dataset.scene), 11);
+  assert.equal(Number(ui.shell.dataset.scene), lossPhysical(0));
   assert.equal(ui.shell.dataset.loss, 'huber');
   assert.equal(ui.get('loss-delta-label').hidden, false);
   assert.equal(ui.get('loss-tau-label').hidden, true);

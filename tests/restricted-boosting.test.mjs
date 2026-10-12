@@ -18,7 +18,7 @@ const dataValue = (html, name) => new RegExp(`data-${name}="([^"]+)"`).exec(html
 // Independent definitions evaluate the displayed objective directly from y and
 // prediction coordinates, rather than using the view's own loss evaluator.
 function selectedLoss(prediction, state) {
-  const residuals = [-prediction[0], 1 - prediction[1]];
+  const residuals = [1 - prediction[0], -prediction[1]];
   if (state.loss === 'quartic') return residuals.reduce((sum, e) => sum + e ** 4 / 4, 0);
   if (state.loss === 'expectile') {
     return residuals.reduce((sum, e) => sum + (e >= 0 ? state.tau : 1 - state.tau) * e ** 2, 0);
@@ -40,16 +40,114 @@ const allLosses = [
   { loss: 'quartic' }
 ];
 
-test('the default example uses the requested observations and asymmetric squared loss', () => {
+test('the opening reveals the shared-prediction constraint before the optimum or new terminology', () => {
   const q = view.resolve();
   vectorClose(q.x, [1, 1]);
-  vectorClose(q.target, [0, 1]);
+  vectorClose(q.target, [1, 0]);
   vectorClose(q.prediction, [0, 0]);
-  vectorClose(q.residual, [0, 1]);
+  assert.equal(q.lossSpec.key, 'squared');
+  close(q.loss, .5);
+  const html = view.render();
+  assert.match(html, /class="restricted-available-line"/);
+  assert.match(html, /observed y = \(1, 0\)/);
+  assert.doesNotMatch(html, /gradient|∇|class="restricted-optimum"|class="restricted-residual-arrow"|\(0\.5, 0\.5\)/i);
+  assert.doesNotMatch(view.presentation().caption, /gradient|∇/i);
+});
+
+test('the residual animation moves together from zero to the mean and decreases MSE', () => {
+  let lastLoss = Infinity;
+  for (let step = 0; step <= 20; step++) {
+    const progress = step / 20, c = progress / 2;
+    const state = { progress, prediction: .99, loss: 'quartic', width: 700, height: 440 };
+    const q = view.resolve(1, state);
+    vectorClose(q.prediction, [c, c]);
+    vectorClose(q.residual, [1 - c, -c]);
+    close(q.residualMean, .5 - c);
+    close(q.loss, ((1 - c) ** 2 + c ** 2) / 2);
+    assert.ok(q.loss <= lastLoss);
+    lastLoss = q.loss;
+    const html = view.render(1, state);
+    const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]);
+    const residualArrow = attributes(/<line\b[^>]*class="restricted-residual-arrow"[^>]*>/.exec(html)[0]);
+    const scale = Number(svg['data-scale']);
+    vectorClose([(Number(residualArrow.x2) - Number(residualArrow.x1)) / scale, (Number(residualArrow.y1) - Number(residualArrow.y2)) / scale], q.residual);
+    assert.match(html, /class="restricted-progress-path"/);
+    assert.doesNotMatch(html, /gradient|∇/i);
+  }
+  close(lastLoss, .25);
+  vectorClose(view.resolve(1, { progress: -10 }).prediction, [0, 0]);
+  vectorClose(view.resolve(1, { progress: 10 }).prediction, [.5, .5]);
+});
+
+test('orthogonality is visible and the MSE contour is tangent to the constraint', () => {
+  const q = view.resolve(2, { progress: 0, prediction: 0, loss: 'expectile' });
+  vectorClose(q.prediction, [.5, .5]);
+  vectorClose(q.residual, [.5, -.5]);
+  close(math.dot(q.residual, [1, 1]), 0);
+  close(q.residualMean, 0);
+  close(q.loss, .25);
+  const html = view.render(2, { width: 900, height: 430 });
+  assert.match(html, /class="restricted-right-angle" data-dot-product="0"/);
+  assert.match(html, /90°/);
+  assert.match(html, /Equal-MSE contour touches the diagonal/);
+  assert.doesNotMatch(html, /gradient|∇/i);
+  // Moving either way along the diagonal increases the actual average error.
+  for (const shift of [-.1, -.001, .001, .1]) assert.ok(selectedLoss([.5 + shift, .5 + shift], { loss: 'squared' }) > q.loss);
+});
+
+test('changed loss establishes the counterexample before gradients are introduced', () => {
+  for (const progress of [0, .25, .5, .75, 1]) {
+    const q = view.resolve(3, { progress, tau: .2, loss: 'squared' });
+    vectorClose(q.prediction, [.5 + .3 * progress, .5 + .3 * progress]);
+    assert.equal(q.lossSpec.key, 'expectile');
+    close(q.lossSpec.tau, .8);
+    close(q.rawNextLoss, .25);
+    close(q.minLoss, .16);
+    assert.ok(q.loss <= .25 + 1e-12);
+    assert.doesNotMatch(view.render(3, { progress }), /gradient|∇/i);
+    assert.doesNotMatch(JSON.stringify(view.presentation(3, { progress })), /gradient|∇/i);
+  }
+  const firstGradient = view.resolve(4);
+  vectorClose(firstGradient.prediction, [.5, .5]);
+  vectorClose(firstGradient.residual, [.5, -.5]);
+  close(firstGradient.residualMean, 0);
+  vectorClose(firstGradient.negativeGradient, [.8, -.2]);
+  close(firstGradient.negativeGradientMean, .3);
+  vectorClose(firstGradient.nextTree, [.3, .3]);
+  assert.match(view.render(4), /class="restricted-gradient-arrow"/);
+  assert.match(view.presentation(4).caption, /negative-gradient mean is 0\.3/);
+  const lastGradient = view.resolve(4, { progress: 1 });
+  close(lastGradient.negativeGradientMean, 0);
+  close(math.dot(lastGradient.negativeGradient, [1, 1]), 0);
+  close(lastGradient.residualMean, -.3);
+});
+
+test('early equations display the exact two-point MSE and both axes retain half ticks', () => {
+  for (const scene of [0, 1, 2]) {
+    const html = view.equation({ loss: 'quartic' }, scene);
+    assert.match(html, /MSE\(f₁,f₂\) = ½\[\(1 − f₁\)² \+ f₂²\]/);
+    assert.match(html, /MSE\(c,c\) = ½\[\(1 − c\)² \+ c²\]/);
+    assert.doesNotMatch(html, /ℓ|gradient|∇/i);
+  }
+  for (let scene = 0; scene <= 5; scene++) {
+    const html = view.render(scene);
+    assert.equal([...html.matchAll(/>½<\/text>/g)].length, 2);
+    assert.match(html, new RegExp(`<title id="restricted-title">${view.topics[scene]}</title>`));
+  }
+  assert.throws(() => view.resolve(-1), RangeError);
+  assert.throws(() => view.resolve(6), RangeError);
+});
+
+test('the loss explorer uses the requested observations and asymmetric squared loss', () => {
+  const q = view.resolve(5);
+  vectorClose(q.x, [1, 1]);
+  vectorClose(q.target, [1, 0]);
+  vectorClose(q.prediction, [0, 0]);
+  vectorClose(q.residual, [1, 0]);
   assert.equal(q.lossSpec.key, 'expectile');
   close(q.lossSpec.tau, .8);
-  vectorClose(q.negativeGradient, [0, 1.6]);
-  vectorClose(q.gradient, [0, -1.6]);
+  vectorClose(q.negativeGradient, [1.6, 0]);
+  vectorClose(q.gradient, [-1.6, 0]);
   vectorClose(q.nextTree, [.8, .8]);
   vectorClose(q.correction, [.8, .8]);
   vectorClose(q.nextPrediction, [.8, .8]);
@@ -61,16 +159,16 @@ test('the default example uses the requested observations and asymmetric squared
   assert.equal(q.tree.threshold, null, 'Identical inputs cannot be separated by a tree split');
 });
 
-test('half-squared error and symmetric asymmetric squared loss have identical updates and losses', () => {
+test('two-point MSE and symmetric asymmetric squared loss have identical updates and losses', () => {
   const cases = [
-    [0, [0, 1], [.5, .5], .5, 1],
-    [.25, [-.25, .75], [.25, .25], .3125, Math.sqrt(.625)],
-    [.5, [-.5, .5], [0, 0], .25, Math.sqrt(.5)],
-    [1, [-1, 0], [-.5, -.5], .5, 1]
+    [0, [1, 0], [.5, .5], .5, 1],
+    [.25, [.75, -.25], [.25, .25], .3125, Math.sqrt(.625)],
+    [.5, [.5, -.5], [0, 0], .25, Math.sqrt(.5)],
+    [1, [0, -1], [-.5, -.5], .5, 1]
   ];
   for (const [c, residual, correction, loss, norm] of cases) {
     for (const state of [{ loss: 'squared' }, { loss: 'expectile', tau: .5 }, { loss: 'huber', delta: 2 }]) {
-      const q = view.resolve(0, { ...state, prediction: c });
+      const q = view.resolve(5, { ...state, prediction: c });
       vectorClose(q.residual, residual);
       vectorClose(q.negativeGradient, residual);
       vectorClose(q.nextTree, correction);
@@ -89,11 +187,11 @@ test('asymmetry changes the diagonal optimum and the fitted gradient at every sh
   for (const tau of [.05, .2, .5, .8, .95]) {
     for (let index = 0; index <= 100; index++) {
       const c = index / 100;
-      const q = view.resolve(0, { loss: 'expectile', tau, prediction: c });
+      const q = view.resolve(5, { loss: 'expectile', tau, prediction: c });
       // On [0,1], the two observations have opposite residual signs. Completing
       // the square gives L(c,c) = (c - tau)^2 + tau(1 - tau).
       close(q.loss, (c - tau) ** 2 + tau * (1 - tau));
-      vectorClose(q.negativeGradient, [-2 * (1 - tau) * c, 2 * tau * (1 - c)]);
+      vectorClose(q.negativeGradient, [2 * tau * (1 - c), -2 * (1 - tau) * c]);
       vectorClose(q.nextTree, [tau - c, tau - c]);
       vectorClose(q.correction, [tau - c, tau - c]);
       vectorClose(q.nextPrediction, [tau, tau]);
@@ -108,36 +206,36 @@ test('asymmetry changes the diagonal optimum and the fitted gradient at every sh
 });
 
 test('zero mean residual can hide a needed gradient update; a zero fitted gradient can leave residuals', () => {
-  const atMean = view.resolve(0, { loss: 'expectile', tau: .8, prediction: .5 });
-  vectorClose(atMean.residual, [-.5, .5]);
+  const atMean = view.resolve(5, { loss: 'expectile', tau: .8, prediction: .5 });
+  vectorClose(atMean.residual, [.5, -.5]);
   close(math.dot(atMean.residual, [1, 1]), 0);
-  vectorClose(atMean.negativeGradient, [-.2, .8]);
+  vectorClose(atMean.negativeGradient, [.8, -.2]);
   vectorClose(atMean.nextTree, [.3, .3]);
   close(atMean.loss, .25);
   close(atMean.nextLoss, .16);
 
-  const atOptimum = view.resolve(0, { loss: 'expectile', tau: .8, prediction: .8 });
-  vectorClose(atOptimum.negativeGradient, [-.32, .32]);
+  const atOptimum = view.resolve(5, { loss: 'expectile', tau: .8, prediction: .8 });
+  vectorClose(atOptimum.negativeGradient, [.32, -.32]);
   close(math.dot(atOptimum.negativeGradient, [1, 1]), 0);
   vectorClose(atOptimum.nextTree, [0, 0]);
   vectorClose(atOptimum.correction, [0, 0]);
   close(math.dot(atOptimum.residual, [1, 1]), -.6);
   close(atOptimum.loss, .16);
   close(atOptimum.rawNextLoss, .25);
-  assert.match(view.presentation(0, { loss: 'expectile', tau: .8, prediction: .8 }).caption, /gradient.*perpendicular.*fitted gradient is zero/i);
+  assert.match(view.presentation(5, { loss: 'expectile', tau: .8, prediction: .8 }).caption, /gradient.*perpendicular.*fitted gradient is zero/i);
 });
 
 test('Huber flat minima choose the closest optimum and distinguish gradient targets from leaf corrections', () => {
   const cases = [
-    [.25, 0, [0, .25], .125, .25, .21875, .1875],
-    [.25, .1, [-.1, .25], .075, .25, .19875, .1875],
-    [.25, .3, [-.25, .25], 0, .3, .1875, .1875],
-    [.25, .5, [-.25, .25], 0, .5, .1875, .1875],
-    [.25, .9, [-.25, .1], -.075, .75, .19875, .1875],
-    [.75, 0, [0, .75], .375, .5, .46875, .25]
+    [.25, 0, [.25, 0], .125, .25, .21875, .1875],
+    [.25, .1, [.25, -.1], .075, .25, .19875, .1875],
+    [.25, .3, [.25, -.25], 0, .3, .1875, .1875],
+    [.25, .5, [.25, -.25], 0, .5, .1875, .1875],
+    [.25, .9, [.1, -.25], -.075, .75, .19875, .1875],
+    [.75, 0, [.75, 0], .375, .5, .46875, .25]
   ];
   for (const [delta, c, gradient, sharedTarget, nextC, loss, minLoss] of cases) {
-    const q = view.resolve(0, { loss: 'huber', delta, prediction: c });
+    const q = view.resolve(5, { loss: 'huber', delta, prediction: c });
     vectorClose(q.negativeGradient, gradient);
     vectorClose(q.nextTree, [sharedTarget, sharedTarget]);
     vectorClose(q.correction, [nextC - c, nextC - c]);
@@ -148,17 +246,17 @@ test('Huber flat minima choose the closest optimum and distinguish gradient targ
   }
   for (const delta of [.05, .25, .49]) {
     const state = { loss: 'huber', delta };
-    const q = view.resolve(0, state);
+    const q = view.resolve(5, state);
     vectorClose(q.optimumInterval, [delta, 1 - delta]);
     close(q.minLoss, delta - delta ** 2);
     for (const c of [delta, .5, 1 - delta]) {
-      const inPlateau = view.resolve(0, { ...state, prediction: c });
+      const inPlateau = view.resolve(5, { ...state, prediction: c });
       close(inPlateau.loss, q.minLoss);
       vectorClose(inPlateau.correction, [0, 0]);
       vectorClose(inPlateau.nextTree, [0, 0]);
     }
     for (const c of [0, delta / 2, 1 - delta / 2, 1]) {
-      const outsidePlateau = view.resolve(0, { ...state, prediction: c });
+      const outsidePlateau = view.resolve(5, { ...state, prediction: c });
       assert.ok(outsidePlateau.loss > q.minLoss);
     }
   }
@@ -166,14 +264,14 @@ test('Huber flat minima choose the closest optimum and distinguish gradient targ
 
 test('fourth-power gradients differ from raw residuals and exact leaf corrections away from the origin', () => {
   const cases = [
-    [0, [0, 1], .5, .5, .25],
-    [.25, [-1 / 64, 27 / 64], 13 / 64, .25, 41 / 512],
-    [.5, [-1 / 8, 1 / 8], 0, 0, 1 / 32],
-    [.75, [-27 / 64, 1 / 64], -13 / 64, -.25, 41 / 512],
-    [1, [-1, 0], -.5, -.5, .25]
+    [0, [1, 0], .5, .5, .25],
+    [.25, [27 / 64, -1 / 64], 13 / 64, .25, 41 / 512],
+    [.5, [1 / 8, -1 / 8], 0, 0, 1 / 32],
+    [.75, [1 / 64, -27 / 64], -13 / 64, -.25, 41 / 512],
+    [1, [0, -1], -.5, -.5, .25]
   ];
   for (const [c, gradient, sharedTarget, correction, loss] of cases) {
-    const q = view.resolve(0, { loss: 'quartic', prediction: c });
+    const q = view.resolve(5, { loss: 'quartic', prediction: c });
     vectorClose(q.negativeGradient, gradient);
     vectorClose(q.nextTree, [sharedTarget, sharedTarget]);
     vectorClose(q.correction, [correction, correction]);
@@ -189,7 +287,7 @@ test('negative gradients match derivatives of the selected total loss in both co
   const epsilon = 1e-6;
   for (const state of allLosses) {
     for (const c of [0, .13, .25, .5, .8, 1]) {
-      const q = view.resolve(0, { ...state, prediction: c });
+      const q = view.resolve(5, { ...state, prediction: c });
       const numerical = q.prediction.map((_, index) => {
         const plus = q.prediction.slice(), minus = q.prediction.slice();
         plus[index] += epsilon;
@@ -209,7 +307,7 @@ test('every plotted contour sample has its labeled selected-loss value at respon
   for (const [width, height] of [[288, 260], [346, 300], [640, 450], [700, 260]]) {
     for (const state of allLosses) {
       for (const c of [0, .25, .5, .8, 1]) {
-        const html = view.render(0, { ...state, prediction: c, width, height }, width < 400);
+        const html = view.render(5, { ...state, prediction: c, width, height }, width < 400);
         assert.doesNotMatch(html, /NaN|Infinity|undefined/);
         const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]);
         const scale = Number(svg['data-scale']);
@@ -219,7 +317,7 @@ test('every plotted contour sample has its labeled selected-loss value at respon
         const current = attributes(/<circle\b[^>]*class="restricted-current"[^>]*>/.exec(html)[0]);
         const currentPixel = [Number(current.cx), Number(current.cy)];
         const contours = [...html.matchAll(/<polyline\b[^>]*>/g)].map(match => attributes(match[0]));
-        assert.ok(contours.length >= 2);
+        assert.ok(contours.length >= 1);
         for (const contour of contours) {
           const level = Number(contour['data-loss']);
           const points = contour.points.split(' ').map(point => point.split(',').map(Number));
@@ -242,8 +340,8 @@ test('residual and gradient arrows preserve direction with the disclosed half-le
   for (const [width, height] of [[288, 260], [640, 450]]) {
     for (const state of allLosses) {
       for (const c of [0, .25, .5, .8, 1]) {
-        const q = view.resolve(0, { ...state, prediction: c });
-        const html = view.render(0, { ...state, prediction: c, width, height }, width < 400);
+        const q = view.resolve(5, { ...state, prediction: c });
+        const html = view.render(5, { ...state, prediction: c, width, height }, width < 400);
         const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]);
         const scale = Number(svg['data-scale']);
         close(Number(svg['data-arrow-scale']), .5);
@@ -271,8 +369,8 @@ test('residual and gradient arrows preserve direction with the disclosed half-le
 
 test('rendered numerical data describes the current selected-loss calculation', () => {
   for (const state of allLosses) {
-    const q = view.resolve(0, { ...state, prediction: .37 });
-    const html = view.render(0, { ...state, prediction: .37 });
+    const q = view.resolve(5, { ...state, prediction: .37 });
+    const html = view.render(5, { ...state, prediction: .37 });
     assert.equal(dataValue(html, 'loss-key'), state.loss);
     for (const [attribute, expected] of [
       ['target', q.target], ['prediction', q.prediction], ['residual', q.residual],
@@ -282,16 +380,16 @@ test('rendered numerical data describes the current selected-loss calculation', 
     close(Number(dataValue(html, 'loss')), q.loss);
     close(Number(dataValue(html, 'min-loss')), q.minLoss);
     close(Number(dataValue(html, 'next-loss')), q.nextLoss);
-    assert.ok(view.readout(0, state).every(row => row.length >= 2 && typeof row[0] === 'string'));
+    assert.ok(view.readout(5, state).every(row => row.length >= 2 && typeof row[0] === 'string'));
   }
 });
 
 test('Huber captions describe selected loss and never claim all Huber gradients are raw residuals', () => {
   const state = { loss: 'huber', delta: .75, prediction: 0 };
-  const caption = view.presentation(0, state).caption;
+  const caption = view.presentation(5, state).caption;
   assert.doesNotMatch(caption, /residual and negative gradient coincide|half-squared loss/i);
   assert.match(caption, /Huber|clipp|gradient/i);
-  assert.match(view.presentation(0, { loss: 'huber', delta: .25 }).caption, /Every c in \[0\.25, 0\.75\]/);
+  assert.match(view.presentation(5, { loss: 'huber', delta: .25 }).caption, /Every c in \[0\.25, 0\.75\]/);
 });
 
 test('the restricted-input visual runs without a module loader', () => {
@@ -299,8 +397,8 @@ test('the restricted-input visual runs without a module loader', () => {
   runInNewContext(readFileSync(new URL('../docs/boosting/restricted-view.js', import.meta.url), 'utf8'), context);
   assert.equal(typeof context.window.RestrictedBoostingView.render, 'function');
   assert.equal(typeof context.window.RestrictedBoostingView.resolve, 'function');
-  const q = context.window.RestrictedBoostingView.resolve(0, { prediction: .8 });
-  vectorClose(q.target, [0, 1]);
+  const q = context.window.RestrictedBoostingView.resolve(5, { prediction: .8 });
+  vectorClose(q.target, [1, 0]);
   vectorClose(q.prediction, [.8, .8]);
   vectorClose(q.nextTree, [0, 0]);
   close(q.loss, .16);

@@ -1,14 +1,15 @@
 # Gradient Boosting
 
-A scrollytelling chapter about gradient boosting. Its main path
-starts with interactive observed-outcome vectors, prediction
-coordinates, and negative gradients. Two vector scenes lead directly into
-an identical-input example and eight scenes developing the four-observation example from
-sections 1.4.2–1.4.3 of the boosting notes. Four additional scenes compare squared error, Huber loss, and asymmetric squared
-(expectile) loss through targets, split search, original-loss leaf optimization,
-and two fitted paths. The chapter closes with an exponential-loss comparison
-and a brief XGBoost extension. The longer geometry sequence remains
-available as a companion.
+A scrollytelling chapter about gradient boosting. After the title, six scenes
+build one two-observation example: shared predictions, an animated MSE residual
+update, orthogonality, a changed loss, negative-gradient targets, and a loss
+playground. Gradient terminology enters only after asymmetric loss exposes a
+limitation of raw residual fitting. Two three-observation vector scenes follow,
+then eight scenes developing the four-observation example from sections
+1.4.2–1.4.3 of the boosting notes. Four later scenes compare squared error,
+Huber loss, and asymmetric squared loss through targets, splits, leaf values,
+and fitted paths. The chapter closes with exponential loss and a brief XGBoost
+extension. The longer geometry sequence remains available as a companion.
 
 The figure occupies the full story width, with a compact controls tray on
 desktop and stacked controls on phones. Each chapter has a short summary;
@@ -26,7 +27,7 @@ No build step or external JavaScript dependencies are required.
 
 - `index.html` contains the main explanation, numerical example, controls,
   general algorithm, and loss comparison.
-- `story.js` follows fifteen narrative steps and handles vector experiments,
+- `story.js` follows twenty narrative steps and handles vector experiments,
   split inspection, update progress, learning rate, later rounds, and navigation.
 - `prediction-view.js` restores the three-observation vector picture and fitted
   correction. Its reusable equal-loss circle renderer remains available outside
@@ -73,45 +74,47 @@ leaf corrections minimize the original loss within each region. The other-loss
 section illustrates exponential loss for binary labels. XGBoost is a brief
 extension, not the implementation used in the interactive calculation.
 
-The opening vector geometry uses `x = [1, 2, 3]`, `y = [1, -1, 1]`, zero baseline,
+The later vector geometry uses `x = [1, 2, 3]`, `y = [1, -1, 1]`, zero baseline,
 and learning rate 0.5. Its orthographic axes are training-point predictions.
-The first scene selects how many trees have been added. In “Fit and scale a
-correction,” Previous tree and Next tree select successive updates, each refitted
+The first scene selects how many trees have been added. In “Fit a correction,” Previous tree and Next tree select successive updates, each refitted
 to the new negative gradient. The starting-round slider jumps to any of the
 first 25 updates; selecting another round resets correction progress to 100%,
 while the progress slider shows a partial update within that round. Both scenes
-share the learning rate and round selection, then proceed directly to the
-two-observation example. Neither apparent
-projected angles nor falling training loss establish predictive performance
+share the learning rate and round selection. Neither apparent projected angles nor falling training loss establish predictive performance
 on new observations.
 
-The two-observation example uses `x = [1, 1]` and `y = [0, 1]`, so every
-prediction and update is restricted to equal coordinates.
-The default is asymmetric squared error with τ = 0.8 and prediction `(0, 0)`.
-The controls show the selected pointwise loss and its total-loss equation on
-the diagonal. The asymmetric coefficients and Huber parameter update with the
-controls; the general definition also applies to contours off the diagonal.
-For `0 ≤ c ≤ 1`, total loss is `(1-τ)c² + τ(1-c)²`, so the best shared
-prediction is `(τ, τ)`. At `(0.5, 0.5)`, raw residuals have mean zero but the
-negative-gradient targets are `(-0.2, 0.8)` and their fitted mean is 0.3.
-At `(0.8, 0.8)` the negative gradient `(-0.32, 0.32)` is perpendicular to
-the available line, while the residual `(-0.8, 0.2)` is not.
+The opening uses `x = [1, 1]` and `y = [1, 0]`, so predictions and updates
+must have equal coordinates. Starting at `(0, 0)`, fitting the residual mean
+adds `(0.5, 0.5)`. MSE is `0.5*((1-f1)^2+f2^2)`, falling from 0.5 to 0.25.
+At `(0.5, 0.5)`, the residual `(0.5, -0.5)` is perpendicular to the diagonal;
+the next residual fit is zero. A right-angle mark and tangent equal-MSE contour
+show the geometric condition.
 
-The loss selector also provides half-squared error (and asymmetric squared
-at τ = 0.5), Huber δ in {0.1, 0.25, 0.5, 1}, and fourth-power error `e^4/4`.
-For Huber δ < 0.5, the optimum is the entire interval `[δ, 1-δ]` on the
-shared-prediction line. A unit-rate loss-optimal correction moves to the closest
-point in that interval, preserving an already optimal prediction. The gradient
-targets are fitted by least squares; Huber and fourth-power error generally
-need a different shared leaf correction to minimize the original loss.
+The next scene changes only the loss. Asymmetric squared loss with τ = 0.8
+charges underprediction four times as much as overprediction. The best shared
+prediction moves to `(0.8, 0.8)`, with loss 0.16 rather than 0.25. Only after
+this counterexample does the following scene introduce the negative gradient:
+at `(0.5, 0.5)` it is `(0.8, -0.2)`, whose mean 0.3 supplies a useful correction.
+At the optimum it is `(0.32, -0.32)`, perpendicular to the diagonal, while the
+raw residual `(0.2, -0.8)` is not. Progress sliders and replay buttons expose
+both updates; the MSE move plays on entry, with reduced-motion support.
 
-Both axes use equal, fixed scales. The raw residual and negative gradient
-arrows are drawn at half length, stated in the legend, while the final shared
-correction is drawn at its actual length. Current and optimal equal-loss contours
-make the loss geometry visible; only squared error has circular contours.
-Reset and residual-mean buttons allow comparisons at the same prediction.
-The zero start demonstrates an update; initialization at the selected loss's
-best constant would already start at an optimum in this two-observation case.
+The final opening scene provides MSE, asymmetric squared loss with continuous
+τ, Huber δ in {0.1, 0.25, 0.5, 1}, and fourth-power error `e^4/4`. Its initial
+state is MSE at `(0.5, 0.5)`. The equation beside the plot follows the selected
+loss. For `0 ≤ c ≤ 1`, asymmetric loss is `τ(1-c)^2 + (1-τ)c^2`, minimized at
+`c = τ`. When Huber δ < 0.5, the entire interval `[δ, 1-δ]` is optimal; the
+loss-optimal correction chooses the closest point and preserves an optimum.
+Huber and fourth-power loss generally require a different leaf correction
+from the mean fitted gradient target.
+
+Both axes use equal scales and labeled half-unit minor ticks. Current and
+optimal contours show the selected loss's geometry. Early scenes draw the
+residual at its actual length and contain no gradient terminology; later
+comparison arrows disclose their display scaling. Reset and midpoint buttons
+support comparisons at the same prediction. The zero start demonstrates the
+update; initialization at the selected loss's best constant would already
+solve this two-observation problem.
 
 ## Checks
 
@@ -161,7 +164,7 @@ residual targets and mean-residual updates, and is evaluated using the selected
 loss. It is not a comparator for every possible forward stagewise optimizer.
 Different targets do not guarantee a lower loss at every finite round.
 
-Loss values are sums, not MSE. Candidate SSEs are measured on each method's
+The later loss comparison reports sums, not MSE. Candidate SSEs are measured on each method's
 own targets, not directly ranked against one another. The two-observation
 view changes its contours with the selected loss; only squared error has
 circular contours. Controls support keyboard use, and round

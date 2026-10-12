@@ -143,6 +143,12 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
 .stage-tools .restricted-actions button{font-size:13px;min-height:36px;padding:5px 9px}
 .stage-tools .restricted-weights{font-size:11px;line-height:1.4;margin:3px 0 0}
 .stage-tools .restricted-rate{font-size:12px}
+.restricted-progression-controls,.restricted-sandbox-controls{display:flex;flex-direction:column;align-items:stretch;gap:12px}
+.restricted-progression-controls>label{justify-content:space-between!important}
+.stage-tools .restricted-progression-controls button{min-height:42px;color:var(--teal);border-color:var(--teal);background:#f0f8f6}
+.stage-tools .restricted-progression-controls button:hover{background:#e3f3ef}
+.restricted-sandbox-controls>.restricted-parameter,.restricted-sandbox-controls>.restricted-prediction-controls{min-width:0}
+.restricted-sandbox-controls>.restricted-parameter>label,.restricted-sandbox-controls>.restricted-prediction-controls>label{justify-content:space-between}
 .stage-tools .vector-readout{display:flex;flex-direction:column;flex-wrap:nowrap;gap:9px;min-height:0;border-top:0;padding:10px 0 4px}
 .stage-tools .vector-readout>div{flex:none!important;width:100%}
 .stage-tools .vector-readout .value{font-size:19px;line-height:1.3}
@@ -187,6 +193,8 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
   .step .equation{font-size:22px}
 }
 @media(max-width:380px){
+  .masthead nav{min-width:0;flex:1;justify-content:flex-end;gap:8px}
+  .masthead nav a{white-space:normal;text-align:center}
   .story-layout{padding:0 16px}
   .stage-tools .vector-readout{grid-template-columns:minmax(0,1fr)}
   .step h2{font-size:24px}
