@@ -6,8 +6,8 @@ directly to this chapter.
 
 The title cartoon shows two round, torso-less figures taking turns to straighten
 a picture. Each adjustment crosses level by less than the previous one. The
-animation plays once, then holds the final near-level pose; Pause and Replay
-controls are available. Leaving the title or hiding the tab pauses elapsed time.
+animation plays automatically once, then holds the final near-level pose.
+Leaving the title or hiding the tab pauses elapsed time.
 Reduced motion shows the final pose without movement. `title-picture.js` draws
 the SVG and defines the sequence; `title-motion.js` controls playback separately
 from the scroll-driven teaching diagrams. The illustration is an analogy for
