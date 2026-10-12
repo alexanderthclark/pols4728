@@ -21,6 +21,7 @@
   const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
   const number = (value, fallback) => Number.isFinite(value) ? value : fallback;
   const sub = value => String(value).replace(/\d/g, digit => '₀₁₂₃₄₅₆₇₈₉'[digit]);
+  const predictionLabel = q => q.scene === 0 ? `F${sub(q.round)}` : q.scene === 1 && q.progress === 1 ? `F${sub(q.round + 1)}` : 'F′';
 
   // A deterministic plane through F and y. Its orthonormal basis preserves
   // lengths when a two-dimensional trial step is lifted into prediction space.
@@ -75,9 +76,9 @@
     }).join(', ') + ')' : vector(values);
     return [
       ['Observed vector y', displayedVector(q.target), C.rust],
-      [scene === 0 ? `Prediction F${sub(q.round)}` : scene === 1 ? 'Updated prediction F′' : 'Trial prediction F′', displayedVector(q.prediction), C.blue],
-      [scene === 0 ? 'Gradient ∇L(F) = F − y' : 'Gradient at F′', displayedVector(q.gradient), C.rust],
-      [scene === 2 ? 'Trial norm; trial loss' : 'Residual norm; loss ½‖r‖²', `${fmt(q.norm)}; ${fmt(q.loss)}`, C.ink]
+      [scene === 0 ? `Prediction F${sub(q.round)}` : scene === 1 ? `Updated prediction ${predictionLabel(q)}` : 'Trial prediction F′', displayedVector(q.prediction), C.blue],
+      [scene === 0 ? 'Gradient ∇L(F) = F − y' : `Gradient at ${predictionLabel(q)}`, displayedVector(q.gradient), C.rust],
+      [scene === 1 ? 'Loss before → after; residual norm' : scene === 2 ? 'Trial norm; trial loss' : 'Residual norm; loss ½‖r‖²', scene === 1 ? `${fmt(q.beforeLoss)} → ${fmt(q.loss)}; ${fmt(q.norm)}` : `${fmt(q.norm)}; ${fmt(q.loss)}`, C.ink]
     ];
   }
 
@@ -95,7 +96,7 @@
     const q = resolve(scene, state);
     let caption;
     if (scene === 0) caption = `${q.round} ${q.round === 1 ? 'tree' : 'trees'} at α = ${fmt(q.rate)}. The target y stays fixed; each tree is refitted to y − F. Arrow lengths here are projected; the displayed norm is computed in three dimensions.`;
-    if (scene === 1) caption = `Fit h = ${vector(q.tree.values)} to the current negative gradient, then add ${fmt(q.progress)} × αh. The moving residual and gradient are evaluated at F′.`;
+    if (scene === 1) caption = `Update ${q.round + 1}: F${sub(q.round)} → ${predictionLabel(q)}. Refit h${sub(q.round + 1)} = ${vector(q.tree.values)} to the current negative gradient; add ${fmt(q.progress)} × αh${sub(q.round + 1)}. Loss ${fmt(q.beforeLoss)} → ${fmt(q.loss)}.`;
     if (scene === 2) {
       const change = trialLossChange(q);
       const outcome = change < 0 ? 'The trial step reduces loss.' : change > 0 ? 'The trial step increases loss.' : 'The trial step leaves loss unchanged.';
@@ -104,7 +105,7 @@
     }
     if (Number.isFinite(state.width) && state.width < 400) {
       if (scene === 0) caption = `${q.round} trees; α = ${fmt(q.rate)}. y stays fixed. Gradient and norm use the displayed prediction.`;
-      if (scene === 1) caption = `h = ${vector(q.tree.values)}; add ${fmt(q.progress)} × αh. The gradient is evaluated at F′.`;
+      if (scene === 1) caption = `Update ${q.round + 1}: F${sub(q.round)} → ${predictionLabel(q)}. Refit h${sub(q.round + 1)} = ${vector(q.tree.values)}; add ${fmt(q.progress)} × αh${sub(q.round + 1)}. Loss ${fmt(q.beforeLoss)} → ${fmt(q.loss)}.`;
       if (scene === 2) {
         const change = trialLossChange(q);
         const outcome = change < 0 ? 'Loss decreases' : change > 0 ? 'Loss increases' : 'Loss is unchanged';
@@ -170,7 +171,7 @@
       body += arrow(base, full, C.teal, 'stroke-dasharray="2 5" opacity=".45" class="prediction-full-tree"');
       body += arrow(base, current, C.teal, 'stroke-width="3" class="prediction-scaled-tree"');
       body += dot(base, C.blue, 3, 'class="prediction-base"');
-      body += text([full[0] + 8, full[1] - 8], 'h', `class="pv-math" style="fill:${C.teal}"`);
+      body += text([full[0] + 8, full[1] - 8], `h${sub(q.round + 1)}`, `class="pv-math" style="fill:${C.teal}"`);
       body += text([base[0] - 8, base[1] + 18], `F${sub(q.round)}`, `text-anchor="end" class="pv-math" style="fill:${C.blue}"`);
     }
     const gradientEnd = project(M.add(q.prediction, q.gradient));
@@ -183,7 +184,7 @@
     }
     body += diamond(observed) + text([observed[0] + 9, observed[1] - 10], 'y = (1, −1, 1)', `class="pv-math" style="fill:${C.rust}" text-anchor="${observed[0] > W - 120 ? 'end' : 'start'}"`);
     body += dot(current, C.blue, 4.5, 'class="prediction-current"');
-    const label = q.scene === 0 ? `F${sub(q.round)}` : 'F′';
+    const label = predictionLabel(q);
     body += text([current[0] + 8, current[1] + 20], label, `class="pv-math" style="fill:${C.blue}"`);
     if (q.scene === 0 && q.round === 0) body += text([origin[0] - 8, origin[1] + 19], '= 0', 'class="pv-small" text-anchor="end"');
     body += text([W / 2, H - 4], `‖r‖ = ${fmt(q.norm)}     L = ½‖r‖² = ${fmt(q.loss)}`, 'class="pv-small" text-anchor="middle"');
@@ -193,43 +194,50 @@
   function plane(q, state, compact) {
     const { W, H } = dimensions(state, compact), margin = compact ? 24 : 34;
     const initialRadius = Math.sqrt(3);
-    // The physical domain is independent of the selected boosting round. This
-    // makes the equal-loss circle shrink visibly as the residual norm falls.
-    const extentY = initialRadius * 2.65;
-    const minimumX = -2.25 * initialRadius;
-    const maximumX = initialRadius * 1.7;
-    const scale = Math.max(.01, Math.min((W - 2 * margin) / (maximumX - minimumX), (H - 2 * margin - 22) / (2 * extentY)));
+    // Fit the selected trial, rather than reserving room for every possible
+    // step. Use the initial radius for the camera so changing the starting
+    // round still visibly shrinks the circle at a fixed physical scale.
+    const referenceStep = M.orientedStepGeometry(q.angle, q.length, initialRadius).step;
+    const minimumX = -2 * initialRadius;
+    const maximumX = Math.max(initialRadius, -initialRadius + referenceStep[0]);
+    const minimumY = Math.min(-initialRadius, referenceStep[1]);
+    const maximumY = Math.max(initialRadius, referenceStep[1]);
+    // Keep the legend and footer separate from both the geometry and its
+    // endpoint labels, especially when a nearly vertical guide touches a circle.
+    const plotTop = compact ? 44 : 40, plotBottom = H - (compact ? 40 : 38);
+    const scale = Math.max(.01, Math.min((W - 2 * margin) / (maximumX - minimumX), (plotBottom - plotTop) / (maximumY - minimumY)));
     const cx = (W - (maximumX - minimumX) * scale) / 2 - minimumX * scale;
-    const cy = (H - 22) / 2;
+    const cy = (plotTop + plotBottom - (maximumY - minimumY) * scale) / 2 + maximumY * scale;
     const project = p => [cx + p[0] * scale, cy - p[1] * scale];
     const observed = project([0, 0]), base = project([-q.radius, 0]);
     const trial = project([-q.radius + q.planeStep[0], q.planeStep[1]]);
     const gradientEnd = project([-2 * q.radius, 0]);
     let body = `<circle class="equal-loss-circle" data-radius="${q.radius}" cx="${observed[0]}" cy="${observed[1]}" r="${q.radius * scale}" fill="#f8fafb" stroke="${C.rule}" stroke-width="1.3"/>`;
-    if (compact) body += text([W / 2, 14], 'g = ∇L(F); r = −g', 'class="pv-small" text-anchor="middle"');
+    body += text([W / 2 - 10, 16], compact ? 'r = −∇L(F)' : '−∇L(F) = r', `class="pv-math" text-anchor="end" style="fill:${C.teal}"`);
+    body += text([W / 2 + 10, 16], '∇L(F)', `class="pv-math" style="fill:${C.rust}"`);
     body += line(project([minimumX, 0]), project([maximumX, 0]), C.faint, 1);
     body += arrow(base, observed, C.teal, 'stroke-dasharray="5 4" class="prediction-residual-arrow"');
     body += arrow(base, gradientEnd, C.rust, 'stroke-dasharray="2 4" class="prediction-gradient-arrow"');
-    body += text([(base[0] + observed[0]) / 2, base[1] - 10], compact ? 'r' : '−∇L(F) = r', `class="pv-math" text-anchor="middle" style="fill:${C.teal}"`);
-    body += text([(base[0] + gradientEnd[0]) / 2, base[1] + 17], compact ? 'g' : '∇L(F)', `class="pv-math" text-anchor="middle" style="fill:${C.rust}"`);
     if (q.radius > 0) {
       const unit = M.orientedStepGeometry(q.angle, 1, q.radius).step;
-      const guide = M.scale(unit, .6), selectedGuide = project([-q.radius + guide[0], guide[1]]), oppositeGuide = project([-q.radius - guide[0], -guide[1]]);
-      body += line(oppositeGuide, selectedGuide, '#aaa', 1.2, 'stroke-dasharray="3 4"');
+      const selectedGuide = project([-q.radius + unit[0], unit[1]]), oppositeGuide = project([-q.radius - unit[0], -unit[1]]);
+      body += line(oppositeGuide, selectedGuide, '#aaa', 1.2, 'stroke-dasharray="3 4" class="prediction-direction-guide"');
       body += arrow(base, trial, q.angle === 90 ? C.rule : C.teal, 'stroke-width="3" class="prediction-trial-step"');
       body += line(trial, observed, C.rule, 1.2, 'stroke-dasharray="3 4" class="prediction-trial-residual"');
       if (q.length > 0) body += dot(trial, C.blue, 4.5, 'class="prediction-current"');
       const selectedName = q.orientation === -1 ? '−h' : 'h';
-      body += text([selectedGuide[0] + 6, selectedGuide[1] + (q.planeStep[1] < 0 ? compact ? 30 : 17 : compact ? -20 : -9)], selectedName, `class="pv-math" style="fill:${q.angle === 90 ? C.rule : C.teal}"`);
-      body += text([oppositeGuide[0] - 6, oppositeGuide[1] + (q.planeStep[1] < 0 ? -8 : 17)], q.orientation === -1 ? 'h' : '−h', 'class="pv-math" text-anchor="end"');
-      if (q.length > 0) body += text([clamp(trial[0] + 8, 55, W - 55), clamp(trial[1] + (q.planeStep[1] < 0 ? 17 : -11), 15, H - 29)], compact ? 'F′' : 'trial F′', `class="pv-small" style="fill:${C.blue}"`);
+      const selectedLabel = [clamp(selectedGuide[0] + 6, 12, W - (compact ? 34 : 40)), clamp(selectedGuide[1] + (unit[1] < 0 ? compact ? 30 : 17 : compact ? -20 : -9), 30, H - 29)];
+      const oppositeLabel = [clamp(oppositeGuide[0] - 6, compact ? 36 : 40, W - 12), clamp(oppositeGuide[1] + (unit[1] < 0 ? -8 : 17), 30, H - 29)];
+      body += text(selectedLabel, selectedName, `class="pv-math pv-direction-label" style="fill:${q.angle === 90 ? C.rule : C.teal}"`);
+      body += text(oppositeLabel, q.orientation === -1 ? 'h' : '−h', 'class="pv-math pv-direction-label" text-anchor="end"');
+      if (q.length > 0) body += text([clamp(trial[0] + 8, 55, W - 55), clamp(trial[1] + (q.planeStep[1] < 0 ? -11 : 19), 30, H - 29)], compact ? 'F′' : 'trial F′', `class="pv-small" style="fill:${C.blue}"`);
     }
     body += dot(base, C.blue, 4.5, 'class="prediction-base"') + diamond(observed);
     body += text([base[0] - 6, base[1] + 34], `F${sub(q.round)}`, `class="pv-math" text-anchor="end" style="fill:${C.blue}"`);
     body += text([observed[0] + 8, observed[1] + 22], compact ? 'y' : 'target y', `class="pv-math" style="fill:${C.rust}"`);
     const radiusEnd = project([q.radius * Math.SQRT1_2, q.radius * Math.SQRT1_2]);
     body += line(observed, radiusEnd, C.rule, 1.2, 'class="prediction-radius"');
-    body += text([radiusEnd[0] + 7, radiusEnd[1] - 5], `R = ${fmt(q.radius)}`, 'class="pv-small"');
+    body += text([Math.min(radiusEnd[0] + 7, W - (compact ? 75 : 88)), radiusEnd[1] - 5], `R = ${fmt(q.radius)}`, 'class="pv-small"');
     body += text([W / 2, H - 4], `Equal-loss circle: L = ½R² = ${fmt(q.beforeLoss)}`, 'class="pv-small" text-anchor="middle"');
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="prediction-title prediction-description" data-geometry="equal-loss-plane" data-scale="${scale}" data-units-per-pixel="${1 / scale}"><title id="prediction-title">${esc(topics[2])}</title><desc id="prediction-description">${esc(presentation(2, state).caption)} This is an equal-scale two-dimensional plane through the actual prediction F and target y. The trial step has norm ${fmt(q.stepNorm)}; its three-dimensional prediction is ${esc(vector(q.prediction))} and loss is ${fmt(q.loss)}.</desc>${defs}${body}</svg>`;
   }
@@ -239,6 +247,7 @@
     const attributes = {
       scene, 'geometry-scene': scene, y: JSON.stringify(q.target), target: JSON.stringify(q.target), f: JSON.stringify(q.prediction), prediction: JSON.stringify(q.prediction),
       residual: JSON.stringify(q.residual), gradient: JSON.stringify(q.gradient), 'base-gradient': JSON.stringify(q.baseGradient),
+      tree: JSON.stringify(q.tree.values),
       norm: q.norm, loss: q.loss, radius: q.radius, 'before-loss': q.beforeLoss, step: JSON.stringify(q.step),
       'step-norm': q.stepNorm, orientation: q.orientation, 'effective-angle': q.effectiveAngle, round: q.round, rate: q.rate, progress: q.progress
     };

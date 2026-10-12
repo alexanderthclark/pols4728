@@ -72,6 +72,75 @@ test('adding a partial fitted correction updates F, both gradients and the true 
   close(second.beforeLoss, 1.125);
 });
 
+test('successive correction updates start from the previous endpoint and refit a different tree', () => {
+  // With α = ½, the best stump first isolates observation 1, then 3, then 1.
+  // Keeping the first tree fixed would never produce the second or third F.
+  const expected = [
+    { base: [0, 0, 0], tree: [1, 0, 0], prediction: [.5, 0, 0], loss: 1.125 },
+    { base: [.5, 0, 0], tree: [-.25, -.25, 1], prediction: [.375, -.125, .5], loss: .703125 },
+    { base: [.375, -.125, .5], tree: [.625, -.1875, -.1875], prediction: [.6875, -.21875, .40625], loss: .5302734375 }
+  ];
+  let previousLoss = 1.5;
+  expected.forEach((step, round) => {
+    const q = view.resolve(1, { round, rate: .5, progress: 1 });
+    vectorClose(q.base, step.base);
+    vectorClose(q.tree.values, step.tree);
+    vectorClose(q.prediction, step.prediction);
+    vectorClose(q.residual, [1, -1, 1].map((value, index) => value - step.prediction[index]));
+    close(q.beforeLoss, previousLoss);
+    close(q.loss, step.loss);
+    previousLoss = step.loss;
+  });
+});
+
+test('numbered correction labels and loss readouts distinguish completed and partial updates', () => {
+  for (const width of [320, 640]) {
+    const complete = { round: 1, rate: .5, progress: 1, width };
+    assert.match(view.presentation(1, complete).caption, /^Update 2: F₁ → F₂\./);
+    assert.match(view.presentation(1, complete).caption, /Refit h₂ = \(−0\.25, −0\.25, 1\)/);
+    assert.match(view.presentation(1, complete).caption, /Loss 1\.125 → 0\.7031\./);
+    const rows = view.readout(1, complete);
+    assert.equal(rows[1][0], 'Updated prediction F₂');
+    assert.equal(rows[2][0], 'Gradient at F₂');
+    assert.equal(rows[3][1], '1.125 → 0.7031; 1.186');
+    const fullHtml = view.render(1, complete);
+    assert.match(fullHtml, />h₂<\/text>/);
+    assert.match(fullHtml, />F₁<\/text>/);
+    assert.match(fullHtml, />F₂<\/text>/);
+    const partial = { ...complete, progress: .5 };
+    assert.match(view.presentation(1, partial).caption, /^Update 2: F₁ → F′\./);
+    assert.match(view.presentation(1, partial).caption, /add 0\.5 × αh₂\./);
+    assert.equal(view.readout(1, partial)[1][0], 'Updated prediction F′');
+    assert.equal(view.readout(1, partial)[2][0], 'Gradient at F′');
+    const partialHtml = view.render(1, partial);
+    assert.match(partialHtml, />F′<\/text>/);
+    assert.doesNotMatch(partialHtml, />F₂<\/text>/);
+  }
+  assert.match(view.presentation(1, { round: 24 }).caption, /^Update 25: F₂₄ → F₂₅\./);
+});
+
+test('the accumulated correction path ends at the next starting point without including the partial tree', () => {
+  const point = (html, className) => {
+    const circle = attributes(new RegExp(`<circle\\b[^>]*class="${className}"[^>]*>`).exec(html)[0]);
+    return [Number(circle.cx), Number(circle.cy)];
+  };
+  const state = { rate: .5, progress: 1, width: 640, height: 450 };
+  let previous = view.render(1, { ...state, round: 0 });
+  for (const round of [1, 2, 3]) {
+    const current = view.render(1, { ...state, round });
+    const path = attributes(/<polyline\b[^>]*class="prediction-path"[^>]*>/.exec(current)[0]);
+    const points = path.points.split(' ').map(pair => pair.split(',').map(Number));
+    assert.equal(points.length, round + 1);
+    vectorClose(points.at(-1), point(current, 'prediction-base'));
+    vectorClose(points.at(-1), point(previous, 'prediction-current'));
+    const partial = view.render(1, { ...state, round, progress: .5 });
+    const partialPath = attributes(/<polyline\b[^>]*class="prediction-path"[^>]*>/.exec(partial)[0]);
+    assert.equal(partialPath.points, path.points, 'Scrubbing only changes the current correction, not earlier trees');
+    assert.notDeepEqual(point(partial, 'prediction-current'), points.at(-1));
+    previous = current;
+  }
+});
+
 test('the flat radius is an actual equal-loss distance, not a normalized or projected length', () => {
   for (const round of [0, 1, 2, 8]) {
     for (const angle of [0, 30, 90, 120, 180]) {
@@ -150,6 +219,71 @@ test('rendered geometry exposes computed vectors and uses a loss circle only in 
     } else {
       assert.match(html, /data-geometry="orthographic-3d"/);
       assert.doesNotMatch(html, /equal-loss-circle/);
+    }
+  }
+});
+
+test('the initial equal-loss circle fills a readable part of short and narrow figures', () => {
+  for (const [width, height, compact] of [[288, 220, true], [346, 260, true], [734, 288, false], [640, 450, false]]) {
+    for (const angle of [0, 89, 90, 91, 120, 180]) {
+      const html = view.render(2, { width, height, angle, length: .5, round: 0 }, compact);
+      const circle = attributes(/<circle\b[^>]*class="equal-loss-circle"[^>]*>/.exec(html)[0]);
+      // A diameter of at least 60% of the figure's shorter side makes the
+      // normal half-radius trial legible without losing its true distances.
+      assert.ok(Number(circle.r) >= .3 * Math.min(width, height), `Circle should be readable at ${width}×${height}, θ=${angle}`);
+    }
+  }
+});
+
+test('the fitted camera keeps circles, long trials and direction guides inside the figure', () => {
+  for (const [width, height, compact] of [[288, 220, true], [346, 260, true], [734, 288, false], [640, 450, false]]) {
+    for (const angle of [0, 30, 89, 90, 91, 120, 180]) {
+      for (const length of [0, .5, 1, 2.5]) {
+        for (const round of [0, 2, 24]) {
+          const state = { width, height, angle, length, round, rate: 1 };
+          const html = view.render(2, state, compact);
+          const context = JSON.stringify(state);
+          const inside = (x, y, padding = 8) => {
+            assert.ok(x >= padding && x <= width - padding, `Horizontal containment: (${x},${y}) ${context}`);
+            assert.ok(y >= padding && y <= height - padding, `Vertical containment: (${x},${y}) ${context}`);
+          };
+          const circle = attributes(/<circle\b[^>]*class="equal-loss-circle"[^>]*>/.exec(html)[0]);
+          const cx = Number(circle.cx), cy = Number(circle.cy), radius = Number(circle.r);
+          inside(cx - radius, cy - radius);
+          inside(cx + radius, cy + radius);
+          for (const match of html.matchAll(/<line\b[^>]*class="prediction-(?:residual-arrow|gradient-arrow|trial-step|trial-residual|direction-guide)"[^>]*>/g)) {
+            const line = attributes(match[0]);
+            inside(Number(line.x1), Number(line.y1));
+            inside(Number(line.x2), Number(line.y2));
+          }
+          for (const match of html.matchAll(/<text\b[^>]*class="pv-math pv-direction-label"[^>]*>/g)) {
+            const label = attributes(match[0]);
+            inside(Number(label.x), Number(label.y));
+            assert.ok(Number(label.y) >= 30 && Number(label.y) <= height - 29, `Direction labels should avoid the legend and footer: ${context}`);
+          }
+        }
+      }
+    }
+  }
+});
+
+test('changing the starting round shrinks the circle at the same physical camera scale', () => {
+  for (const angle of [0, 89, 90, 91, 120, 180]) {
+    for (const length of [.5, 2.5]) {
+      for (const [width, height, compact] of [[288, 220, true], [734, 288, false]]) {
+        let reference;
+        let previousRadius = Infinity;
+        for (const round of [0, 1, 2, 8, 24]) {
+          const html = view.render(2, { width, height, angle, length, round, rate: .5 }, compact);
+          const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]);
+          const circle = attributes(/<circle\b[^>]*class="equal-loss-circle"[^>]*>/.exec(html)[0]);
+          const camera = [Number(svg['data-scale']), Number(circle.cx), Number(circle.cy)];
+          if (!reference) reference = camera;
+          else vectorClose(camera, reference);
+          assert.ok(Number(circle.r) < previousRadius, `Circle should shrink at round ${round}`);
+          previousRadius = Number(circle.r);
+        }
+      }
     }
   }
 });

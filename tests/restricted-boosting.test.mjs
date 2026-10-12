@@ -8,16 +8,821 @@ const require = createRequire(import.meta.url);
 const math = require('../docs/shared/boosting-math.js');
 const view = require('../docs/boosting/restricted-view.js');
 const close = (actual, expected, tolerance = 1e-9) => assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} should equal ${expected}`);
-const vectorClose = (actual, expected) => {
+const vectorClose = (actual, expected, tolerance) => {
   assert.equal(actual.length, expected.length);
-  actual.forEach((value, index) => close(value, expected[index]));
+  actual.forEach((value, index) => close(value, expected[index], tolerance));
 };
 const attributes = fragment => Object.fromEntries([...fragment.matchAll(/([\w-]+)="([^"]*)"/g)].map(match => [match[1], match[2]]));
 const dataValue = (html, name) => new RegExp(`data-${name}="([^"]+)"`).exec(html)?.[1];
+const equationPart = (html, name) => new RegExp(`<div class="loss-equation-${name} math">(<math\\b[^]*?<\\/math>)<\\/div>`).exec(html)?.[1];
+const equationCases = html => new Map([...html.matchAll(/<mtr data-loss-case="([^"]+)"><mtd>([^]*?)<\/mtd><mtd>([^]*?)<\/mtd><\/mtr>/g)].map(match => [match[1], { term: match[2], condition: match[3] }]));
+const displayedFraction = html => {
+  const fraction = /<mfrac><mn>([0-9.]+)<\/mn><mn>([0-9.]+)<\/mn><\/mfrac>/.exec(html);
+  assert.ok(fraction, 'The displayed formula must include a real stacked fraction');
+  return Number(fraction[1]) / Number(fraction[2]);
+};
+const displayedPower = html => Number(/<msup><mi>r<\/mi><mn>(\d+)<\/mn><\/msup>/.exec(html)?.[1]);
+const indexedPowers = html => [...html.matchAll(/<msubsup><mi>r<\/mi><mn>(\d+)<\/mn><mn>(\d+)<\/mn><\/msubsup>/g)].map(match => ({ index: Number(match[1]), exponent: Number(match[2]) }));
 
-// These expectations are independent, hand-calculated cases. The duplicate x
-// values leave one constant leaf, so its residual mean is the only fitted tree.
-test('identical predictors restrict every tree correction to equal coordinates', () => {
+// A projection is a full least-squares fit of the target vector onto the
+// available corrections. Its geometry is independent of the reveal animation
+// and of the learning rate subsequently applied to that fitted vector.
+function assertProjection(html, basePrediction, targets, opacity) {
+  const guideTag = /<line\b[^>]*class="restricted-projection-guide"[^>]*>/.exec(html);
+  assert.ok(guideTag, 'The fitted target should have a projection connector');
+  const guide = attributes(guideTag[0]);
+  const fitted = targets.map(() => (targets[0] + targets[1]) / 2);
+  const dropped = targets.map((value, index) => value - fitted[index]);
+  vectorClose(guide['data-at-values'].split(',').map(Number), basePrediction);
+  vectorClose(guide['data-target-values'].split(',').map(Number), targets);
+  vectorClose(guide['data-projection-values'].split(',').map(Number), fitted);
+  close(Number(guide.opacity), opacity);
+  close(math.dot(dropped, [1, 1]), 0);
+  close(math.dot(dropped, fitted), 0);
+  close(fitted[0], fitted[1]);
+
+  // Infer the plot's translation from its actual current prediction. During an
+  // update this point moves, while the displayed training target's base stays
+  // fixed at the start of that round.
+  const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]), scale = Number(svg['data-scale']);
+  const point = attributes(/<circle\b[^>]*class="restricted-current"[^>]*>/.exec(html)[0]);
+  const currentPrediction = JSON.parse(dataValue(html, 'prediction'));
+  const origin = [Number(point.cx) - currentPrediction[0] * scale, Number(point.cy) + currentPrediction[1] * scale];
+  const project = prediction => [origin[0] + prediction[0] * scale, origin[1] - prediction[1] * scale];
+  const targetTip = project(basePrediction.map((value, index) => value + targets[index]));
+  const projectionFoot = project(basePrediction.map((value, index) => value + fitted[index]));
+  vectorClose([Number(guide.x1), Number(guide.y1)], targetTip);
+  vectorClose([Number(guide.x2), Number(guide.y2)], projectionFoot);
+  // Equal axis scales make the screen-space connector perpendicular to the
+  // visible 45-degree update line, not merely perpendicular in data values.
+  close(math.dot([Number(guide.x2) - Number(guide.x1), Number(guide.y2) - Number(guide.y1)], [1, -1]), 0);
+
+  const markerTag = /<polyline\b[^>]*class="restricted-projection-angle"[^>]*>/.exec(html);
+  assert.ok(markerTag, 'The full projection foot should carry its right-angle marker');
+  if (markerTag) {
+    const marker = attributes(markerTag[0]);
+    close(Number(marker.opacity), opacity);
+    close(Number(marker['data-dot-product']), 0);
+    const vertices = marker.points.split(' ').map(point => point.split(',').map(Number));
+    assert.equal(vertices.length, 3);
+    const firstSide = vertices[1].map((value, index) => value - vertices[0][index]);
+    const secondSide = vertices[2].map((value, index) => value - vertices[1][index]);
+    assert.ok(math.norm(firstSide) > 0 && math.norm(secondSide) > 0);
+    close(math.dot(firstSide, secondSide), 0);
+    close(math.dot(firstSide, [1, -1]), 0);
+    close(math.dot(secondSide, [1, 1]), 0);
+    vectorClose(vertices[0].map((value, index) => value + vertices[2][index] - vertices[1][index]), projectionFoot);
+  }
+  return { guide, fitted, dropped, projectionFoot, scale, markerTag };
+}
+
+// Independent definitions evaluate the displayed objective directly from y and
+// prediction coordinates, rather than using the view's own loss evaluator.
+function selectedLoss(prediction, state) {
+  const residuals = [1 - prediction[0], -prediction[1]];
+  if (state.loss === 'quartic') return residuals.reduce((sum, e) => sum + e ** 4 / 4, 0);
+  if (state.loss === 'expectile') {
+    return residuals.reduce((sum, e) => sum + (e >= 0 ? state.tau : 1 - state.tau) * e ** 2, 0);
+  }
+  if (state.loss === 'huber') {
+    return residuals.reduce((sum, e) => {
+      const magnitude = Math.abs(e);
+      const quadraticPart = Math.min(magnitude, state.delta);
+      return sum + quadraticPart ** 2 / 2 + state.delta * Math.max(0, magnitude - state.delta);
+    }, 0);
+  }
+  return residuals.reduce((sum, e) => sum + e ** 2 / 2, 0);
+}
+
+const allLosses = [
+  { loss: 'squared' },
+  ...[.05, .2, .5, .8, .95].map(tau => ({ loss: 'expectile', tau })),
+  ...[.05, .25, .49, .5, .75, 1, 2].map(delta => ({ loss: 'huber', delta })),
+  { loss: 'quartic' }
+];
+
+test('the opening reveals only outcomes and starting predictions', () => {
+  const q = view.resolve();
+  vectorClose(q.x, [1, 1]);
+  vectorClose(q.target, [1, 0]);
+  vectorClose(q.prediction, [0, 0]);
+  assert.equal(q.lossSpec.key, 'squared');
+  close(q.loss, .5);
+  const html = view.render();
+  assert.doesNotMatch(html, /class="restricted-available-line"/);
+  assert.match(html, /observed y = \(1, 0\)/);
+  assert.doesNotMatch(html, /gradient|∇|diagonal|correction|MSE|class="restricted-optimum"|class="restricted-residual-arrow"|\(0\.5, 0\.5\)/i);
+  assert.doesNotMatch(view.presentation().caption, /gradient|∇/i);
+});
+
+test('the residual appears before any fitted update or restriction on the updates', () => {
+  const state = { progress: 1, prediction: .9, loss: 'expectile', tau: .1 };
+  const q = view.resolve(1, state);
+  vectorClose(q.prediction, [0, 0]);
+  vectorClose(q.residual, [1, 0]);
+  for (const [width, height] of [[273, 300], [450, 410], [970, 430]]) {
+    const html = view.render(1, { ...state, width, height }, width < 400);
+    const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]);
+    const arrow = attributes(/<line\b[^>]*class="restricted-residual-arrow"[^>]*>/.exec(html)[0]);
+    const current = attributes(/<circle\b[^>]*class="restricted-current"[^>]*>/.exec(html)[0]);
+    const target = attributes(/<path\b[^>]*class="restricted-target"[^>]*>/.exec(html)[0]);
+    close(Number(arrow.x1), Number(current.cx));
+    close(Number(arrow.y1), Number(current.cy));
+    close(Number(arrow.x2), Number(target['data-pixel-x']));
+    close(Number(arrow.y2), Number(target['data-pixel-y']));
+    close((Number(arrow.x2) - Number(arrow.x1)) / Number(svg['data-scale']), 1);
+    close(Number(arrow.y2) - Number(arrow.y1), 0);
+    assert.match(html, /restricted-residual-label[^>]*>r = \(1, 0\)<\/text>/);
+    assert.match(html, /restricted-prediction-label[^>]*>f = \(0, 0\)<\/text>/);
+    assert.doesNotMatch(html, /restricted-available-line|restricted-tree-arrow|restricted-optimum|restricted-.*contour|diagonal|45°|MSE|\(0\.5, 0\.5\)/);
+  }
+  assert.equal(view.equation(state, 0), '');
+  assert.equal(view.equation(state, 1), '');
+  assert.doesNotMatch(JSON.stringify(view.presentation(1, state)), /mean|diagonal|correction|45°|MSE|gradient|∇/i);
+});
+
+test('the identical-input restriction reveals a true 45-degree update line before fitting', () => {
+  for (const [width, height] of [[273, 300], [450, 410], [970, 430]]) {
+    const state = { progress: 1, prediction: .8, width, height };
+    const q = view.resolve(2, state), html = view.render(2, state, width < 400);
+    vectorClose(q.x, [1, 1]);
+    vectorClose(q.prediction, [0, 0]);
+    vectorClose(q.residual, [1, 0]);
+    const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]);
+    assert.equal(svg['data-x-domain'], svg['data-y-domain']);
+    const diagonal = attributes(/<line\b[^>]*class="restricted-available-line"[^>]*>/.exec(html)[0]);
+    const horizontal = Number(diagonal.x2) - Number(diagonal.x1), vertical = Number(diagonal.y1) - Number(diagonal.y2);
+    close(horizontal, vertical);
+    close(Math.atan2(vertical, horizontal) * 180 / Math.PI, 45);
+    const angle = attributes(/<path\b[^>]*class="restricted-update-angle"[^>]*>/.exec(html)[0]);
+    assert.equal(angle['data-angle-degrees'], '45');
+    assert.match(angle.d, /A[^ ]+ 0 0 0/);
+    assert.match(html, /restricted-update-angle-label[^>]*>45°<\/text>/);
+    assert.match(html, />h₁ = h₂<\/text>/);
+    assert.match(view.presentation(2, state).caption, /x = 1/);
+    assert.match(view.presentation(2, state).caption, /same correction/);
+    assert.match(view.presentation(2, state).caption, /45° line/);
+    assert.doesNotMatch(html, /restricted-tree-arrow|restricted-optimum|restricted-.*contour|MSE|\(0\.5, 0\.5\)/);
+  }
+  assert.equal(view.equation({}, 2), '');
+  assert.match(view.annotation(2).status, /Same x → same correction h = \(a, a\)/);
+  for (let scene = 0; scene <= 6; scene++) {
+    const html = view.render(scene);
+    assert.doesNotMatch(html, /gradient|∇/i);
+    assert.doesNotMatch(JSON.stringify(view.presentation(scene)), /gradient|∇/i);
+    if (scene < 3) assert.doesNotMatch(html, /data-(?:next|optimal|correction|min-loss|negative-gradient)/);
+  }
+  assert.match(view.render(7), /restricted-gradient-arrow/);
+});
+
+test('scroll reveal draws the residual and shared-update line without moving predictions', () => {
+  for (const progress of [0, .25, .5, .75, 1]) {
+    for (const scene of [1, 2]) {
+      const state = { progress, width: 700, height: 520 }, q = view.resolve(scene, state), html = view.render(scene, state);
+      vectorClose(q.prediction, [0, 0]);
+      vectorClose(q.residual, [1, 0]);
+      const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]), scale = Number(svg['data-scale']);
+      const arrow = attributes(/<line\b[^>]*class="restricted-residual-arrow"[^>]*>/.exec(html)[0]);
+      close((Number(arrow.x2) - Number(arrow.x1)) / scale, scene === 1 ? progress : 1);
+      close(Number(arrow.y1), Number(arrow.y2));
+      if (scene === 1) close(Number(arrow.opacity), progress);
+      else {
+        const diagonal = attributes(/<line\b[^>]*class="restricted-available-line"[^>]*>/.exec(html)[0]);
+        close((Number(diagonal.x2) - Number(diagonal.x1)) / scale, 1.6 * progress);
+        close(Number(diagonal.opacity), progress);
+        close(Number(diagonal.x2) - Number(diagonal.x1), Number(diagonal.y1) - Number(diagonal.y2));
+      }
+      assert.doesNotMatch(html, /restricted-optimum|restricted-tree-arrow|restricted-.*contour/);
+    }
+  }
+});
+
+test('MSE contours reveal before fitting and remain exact equal-loss circles', () => {
+  for (const progress of [0, .25, .5, .75, 1]) {
+    const state = { progress, width: 970, height: 520 }, q = view.resolve(3, state), html = view.render(3, state);
+    vectorClose(q.prediction, [0, 0]);
+    assert.equal(q.lossSpec.key, 'squared');
+    const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]), scale = Number(svg['data-scale']);
+    const current = attributes(/<circle\b[^>]*class="restricted-current"[^>]*>/.exec(html)[0]);
+    const group = attributes(/<g\b[^>]*class="restricted-contour-reveal"[^>]*>/.exec(html)[0]);
+    close(Number(group.opacity), progress);
+    const contours = [...html.matchAll(/<polyline\b[^>]*>/g)].map(match => attributes(match[0]));
+    assert.equal(contours.length, 4);
+    for (const contour of contours) {
+      const level = Number(contour['data-loss']);
+      for (const point of contour.points.split(' ')) {
+        const [px, py] = point.split(',').map(Number), prediction = [(px - Number(current.cx)) / scale, (Number(current.cy) - py) / scale];
+        close(selectedLoss(prediction, { loss: 'squared' }), level);
+        close(Math.hypot(prediction[0] - 1, prediction[1]), Math.sqrt(2 * level));
+      }
+    }
+    assert.doesNotMatch(html, /restricted-optimum|restricted-tree-arrow|restricted-destination-label|data-(?:optimal|next|correction)/);
+  }
+});
+
+test('a separate trial moves away from the midpoint and increases MSE without moving the baseline', () => {
+  for (const progress of [0, .125, .25, .375, .5, .625, .75, .875, 1]) {
+    const state = { progress, width: 700, height: 520 }, q = view.resolve(5, state), html = view.render(5, state);
+    vectorClose(q.prediction, [.5, .5]);
+    vectorClose(q.residual, [.5, -.5]);
+    vectorClose(q.trialPrediction, [q.trialC, q.trialC]);
+    close(q.trialLoss, selectedLoss(q.trialPrediction, { loss: 'squared' }));
+    close(q.trialLoss, .25 + (q.trialC - .5) ** 2);
+    assert.ok(q.trialLoss >= q.loss);
+    close(Number(dataValue(html, 'trial-loss')), q.trialLoss);
+    vectorClose(JSON.parse(dataValue(html, 'trial-prediction')), q.trialPrediction);
+    assert.match(html, /restricted-right-angle/);
+    if (Math.abs(q.trialC - .5) > 1e-8) {
+      assert.match(html, /class="restricted-trial"/);
+      assert.match(html, /class="restricted-trial-contour"/);
+      assert.ok(q.trialLoss > .25);
+    } else assert.doesNotMatch(html, /class="restricted-trial"/);
+    assert.doesNotMatch(html, /gradient|∇/i);
+  }
+  vectorClose(view.resolve(5, { progress: 0 }).trialPrediction, [.5, .5]);
+  vectorClose(view.resolve(5, { progress: 1 }).trialPrediction, [.5, .5]);
+  vectorClose(view.resolve(5, { progress: .25 }).trialPrediction, [.68, .68]);
+  vectorClose(view.resolve(5, { progress: .75 }).trialPrediction, [.32, .32]);
+});
+
+test('loss contours morph while the midpoint and its actual residual stay fixed', () => {
+  let baselinePoint, baselineArrow;
+  for (const progress of [0, .25, .5, .75, 1]) {
+    const state = { progress, width: 970, height: 520 }, q = view.resolve(6, state), html = view.render(6, state);
+    const tau = .5 + .3 * progress;
+    vectorClose(q.prediction, [.5, .5]);
+    vectorClose(q.residual, [.5, -.5]);
+    close(q.lossSpec.tau, tau);
+    close(q.loss, .25);
+    close(q.minLoss, tau * (1 - tau));
+    vectorClose(q.optimalPrediction, [tau, tau]);
+    const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]), scale = Number(svg['data-scale']);
+    const point = attributes(/<circle\b[^>]*class="restricted-current"[^>]*>/.exec(html)[0]);
+    const arrow = attributes(/<line\b[^>]*class="restricted-residual-arrow"[^>]*>/.exec(html)[0]);
+    const pointCoordinates = [Number(point.cx), Number(point.cy)], arrowCoordinates = [arrow.x1, arrow.y1, arrow.x2, arrow.y2].map(Number);
+    baselinePoint ??= pointCoordinates;
+    baselineArrow ??= arrowCoordinates;
+    vectorClose(pointCoordinates, baselinePoint);
+    vectorClose(arrowCoordinates, baselineArrow);
+    for (const match of html.matchAll(/<polyline\b[^>]*data-loss="[^>]*>/g)) {
+      const contour = attributes(match[0]), level = Number(contour['data-loss']);
+      for (const pixel of contour.points.split(' ')) {
+        const [px, py] = pixel.split(',').map(Number), prediction = [.5 + (px - Number(point.cx)) / scale, .5 - (py - Number(point.cy)) / scale];
+        close(selectedLoss(prediction, { loss: 'expectile', tau }), level);
+      }
+    }
+    assert.doesNotMatch(html, /gradient|∇/i);
+    const formula = view.annotation(6, state).equation;
+    assert.match(formula, /rᵢ = yᵢ − fᵢ/);
+    assert.match(formula, /ℓ\(r\) =/);
+    const rows = equationCases(formula);
+    assert.match(rows.get('nonnegative').term, /<mn>0\.8<\/mn><msup><mi>r<\/mi><mn>2<\/mn><\/msup>/);
+    assert.match(rows.get('negative').term, /<mn>0\.2<\/mn><msup><mi>r<\/mi><mn>2<\/mn><\/msup>/);
+  }
+  close(view.resolve(6, { progress: 1 }).minLoss, .16);
+});
+
+test('compact midpoint residual labels clear the outcomes and stay fixed through the loss morph', () => {
+  for (const width of [273, 288, 320]) {
+    let residualPosition;
+    for (const [scene, progress] of [[5, 0], [5, .25], [5, .75], [6, 0], [6, .25], [6, .5], [6, .75], [6, 1]]) {
+      const html = view.render(scene, { progress, width, height: 520 }, true);
+      const labels = [...html.matchAll(/<text\b([^>]*)>([^<]*)<\/text>/g)].map(match => ({ ...attributes(match[1]), text: match[2] }));
+      const residual = labels.find(label => label.class.includes('restricted-residual-label'));
+      const outcome = labels.find(label => label.class.includes('restricted-target-label'));
+      const position = [Number(residual.x), Number(residual.y)];
+      residualPosition ??= position;
+      vectorClose(position, residualPosition);
+      assert.ok(Number(outcome.y) - Number(residual.y) > 20, 'Compact residual and outcome labels need distinct vertical space');
+      if (scene === 6 && progress > 0) {
+        const best = labels.find(label => label.class.includes('restricted-best-label'));
+        assert.equal(best.text, progress === 1 ? 'best: (0.8, 0.8)' : 'best shared fit');
+      }
+    }
+  }
+});
+
+test('floating annotations stay sparse and responsive plot headroom stays stable', () => {
+  assert.equal(view.annotation(11, { loss: 'expectile', tau: .8 }).caption, 'Underprediction costs four times as much.');
+  assert.doesNotMatch(view.annotation(11, { loss: 'expectile', tau: .8 }).caption, /τ/);
+  assert.equal(view.annotation(6).caption, 'Underprediction costs four times as much.');
+  for (const [width, height, headroom] of [[273, 520, 86], [450, 520, 86], [970, 520, 86]]) {
+    let lastScale;
+    for (let scene = 0; scene <= 11; scene++) {
+      const state = { progress: .5, width, height }, html = view.render(scene, state), note = view.annotation(scene, state);
+      const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]);
+      close(Number(svg['data-annotation-headroom']), headroom);
+      lastScale ??= Number(svg['data-scale']);
+      close(Number(svg['data-scale']), lastScale);
+      assert.equal(typeof note.equation, 'string');
+      assert.equal(typeof note.caption, 'string');
+      assert.equal(typeof note.status, 'string');
+      if (![3, 6, 11].includes(scene)) assert.equal(note.equation, '');
+      assert.ok(note.caption.split(/\s+/).length <= 12, 'Floating captions should stay brief');
+      assert.doesNotMatch(note.equation, /loss-equation-total|loss-equation-shared|loss-equation-domain/);
+      if (note.equation) assert.match(note.equation, /loss-equation-residual/);
+      if (scene < 7) assert.doesNotMatch(JSON.stringify(note), /gradient|∇/i);
+    }
+  }
+});
+
+test('the residual animation moves together from zero to the mean and decreases MSE', () => {
+  let lastLoss = Infinity;
+  for (let step = 0; step <= 20; step++) {
+    const progress = step / 20, c = progress / 2;
+    const state = { progress, prediction: .99, loss: 'quartic', width: 700, height: 440 };
+    const q = view.resolve(4, state);
+    vectorClose(q.prediction, [c, c]);
+    vectorClose(q.residual, [1 - c, -c]);
+    close(q.residualMean, .5 - c);
+    close(q.loss, ((1 - c) ** 2 + c ** 2) / 2);
+    assert.ok(q.loss <= lastLoss);
+    lastLoss = q.loss;
+    const html = view.render(4, state);
+    const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]);
+    const residualArrow = attributes(/<line\b[^>]*class="restricted-residual-arrow"[^>]*>/.exec(html)[0]);
+    const scale = Number(svg['data-scale']);
+    vectorClose([(Number(residualArrow.x2) - Number(residualArrow.x1)) / scale, (Number(residualArrow.y1) - Number(residualArrow.y2)) / scale], q.residual);
+    assert.match(html, /class="restricted-progress-path"/);
+    assert.doesNotMatch(html, /gradient|∇/i);
+  }
+  close(lastLoss, .25);
+  vectorClose(view.resolve(4, { progress: -10 }).prediction, [0, 0]);
+  vectorClose(view.resolve(4, { progress: 10 }).prediction, [.5, .5]);
+});
+
+test('the MSE fit projects the actual residual onto the allowed update line at every frame', () => {
+  for (const [width, height, compact] of [[273, 300, true], [320, 520, true], [970, 520, false]]) {
+    for (let frame = 0; frame <= 20; frame++) {
+      const progress = frame / 20, prediction = [progress / 2, progress / 2];
+      const residual = [1 - prediction[0], -prediction[1]];
+      const html = view.render(4, { progress, width, height }, compact);
+      const projection = assertProjection(html, prediction, residual, progress);
+      vectorClose(projection.fitted, [.5 - prediction[0], .5 - prediction[1]]);
+      vectorClose(projection.dropped, [.5, -.5]);
+      // Although the current residual gets shorter, every frame projects to
+      // the same best prediction, and its dropped component stays unchanged.
+      vectorClose(prediction.map((value, index) => value + projection.fitted[index]), [.5, .5]);
+      const optimum = attributes(/<rect\b[^>]*class="restricted-optimum"[^>]*>/.exec(html)[0]);
+      vectorClose(projection.projectionFoot, [Number(optimum['data-pixel-x']), Number(optimum['data-pixel-y'])]);
+      assert.doesNotMatch(html, /gradient|∇/i);
+    }
+  }
+});
+
+test('the residual progression explicitly labels its current values and the fitted destination', () => {
+  for (const [width, height, compact] of [[273, 300, true], [450, 410, false]]) {
+    for (const [progress, prediction, residual] of [
+      [0, '(0, 0)', '(1, 0)'],
+      [.5, '(0.25, 0.25)', '(0.75, −0.25)'],
+      [1, '(0.5, 0.5)', '(0.5, −0.5)']
+    ]) {
+      const state = { progress, width, height }, html = view.render(4, state, compact);
+      const labels = [...html.matchAll(/<text\b([^>]*)>([^<]*)<\/text>/g)].map(match => ({ ...attributes(match[1]), text: match[2] }));
+      const predictions = labels.filter(label => label.class.includes('restricted-prediction-label'));
+      const residuals = labels.filter(label => label.class.includes('restricted-residual-label'));
+      assert.equal(predictions.length, 1, 'Only one label should identify the actual prediction');
+      assert.equal(residuals.length, 1);
+      assert.equal(predictions[0].text, `f = ${prediction}`);
+      assert.equal(residuals[0].text, `r = ${residual}`);
+      if (progress < 1) assert.ok(labels.some(label => label.class.includes('restricted-destination-label') && label.text === 'fit: (0.5, 0.5)'));
+      else assert.ok(labels.every(label => !label.class.includes('restricted-destination-label')));
+      for (const label of [...predictions, ...residuals]) {
+        assert.ok(Number(label.x) > 0 && Number(label.x) < width);
+        assert.ok(Number(label.y) > 0 && Number(label.y) < height);
+      }
+      const caption = view.presentation(4, state).caption;
+      assert.ok(caption.includes(`Current predictions f = ${prediction}; residuals r = y − f = ${residual}.`));
+      assert.match(caption, /starting residual \(1, 0\) has mean 0\.5, so its fitted correction is \(0\.5, 0\.5\)/);
+      if (progress === 0) {
+        const targetLabel = labels.find(label => label.class.includes('restricted-target-label'));
+        assert.ok(Number(targetLabel.y) - Number(residuals[0].y) >= 22, 'Residual and observed-outcome labels need separate vertical space');
+        const arrow = attributes(/<line\b[^>]*class="restricted-residual-arrow"[^>]*>/.exec(html)[0]);
+        close(Number(arrow.y1), Number(arrow.y2));
+        assert.equal(arrow['stroke-width'], '3');
+        assert.equal(arrow['stroke-dasharray'], undefined, 'The initial residual stays visible on the x axis');
+      }
+    }
+  }
+});
+
+test('orthogonality is visible and the MSE contour is tangent to the constraint', () => {
+  const q = view.resolve(5, { progress: 0, prediction: 0, loss: 'expectile' });
+  vectorClose(q.prediction, [.5, .5]);
+  vectorClose(q.residual, [.5, -.5]);
+  close(math.dot(q.residual, [1, 1]), 0);
+  close(q.residualMean, 0);
+  close(q.loss, .25);
+  const html = view.render(5, { width: 900, height: 430 });
+  assert.match(html, /class="restricted-right-angle"[^>]*data-dot-product="0"/);
+  assert.match(html, /90°/);
+  assert.match(view.presentation(5).caption, /Try moving either way: MSE increases/);
+  assert.doesNotMatch(html, /gradient|∇/i);
+  // Moving either way along the diagonal increases the actual average error.
+  for (const shift of [-.1, -.001, .001, .1]) assert.ok(selectedLoss([.5 + shift, .5 + shift], { loss: 'squared' }) > q.loss);
+});
+
+test('changed loss establishes the counterexample before gradients are introduced', () => {
+  for (const progress of [0, .25, .5, .75, 1]) {
+    const q = view.resolve(6, { progress, tau: .2, loss: 'squared' });
+    vectorClose(q.prediction, [.5, .5]);
+    vectorClose(q.residual, [.5, -.5]);
+    assert.equal(q.lossSpec.key, 'expectile');
+    close(q.lossSpec.tau, .5 + .3 * progress);
+    close(q.rawNextLoss, .25);
+    close(q.minLoss, q.lossSpec.tau * (1 - q.lossSpec.tau));
+    assert.ok(q.loss <= .25 + 1e-12);
+    assert.doesNotMatch(view.render(6, { progress }), /gradient|∇/i);
+    assert.doesNotMatch(JSON.stringify(view.presentation(6, { progress })), /gradient|∇/i);
+  }
+  const firstGradient = view.resolve(7);
+  vectorClose(firstGradient.prediction, [.5, .5]);
+  vectorClose(firstGradient.residual, [.5, -.5]);
+  close(firstGradient.residualMean, 0);
+  vectorClose(firstGradient.negativeGradient, [.8, -.2]);
+  close(firstGradient.negativeGradientMean, .3);
+  vectorClose(firstGradient.nextTree, [.3, .3]);
+  assert.match(view.render(7), /class="restricted-gradient-arrow"/);
+  assert.match(view.presentation(7).caption, /training targets.*mean is 0\.3/);
+  const lastGradient = view.resolve(10, { progress: 1 });
+  close(lastGradient.negativeGradientMean, 0);
+  close(math.dot(lastGradient.negativeGradient, [1, 1]), 0);
+  close(lastGradient.residualMean, -.3);
+});
+
+test('training targets use observed outcomes while a fitted tree predicts from inputs alone', () => {
+  const prediction = [.5, .5], targets = view.computeTrainingTargets([1, 0], prediction);
+  vectorClose(targets, [.8, -.2]);
+  vectorClose(view.computeTrainingTargets([0, 0], prediction), [-.2, -.2]);
+  const tree = math.fitStump([1, 1], targets);
+  vectorClose(view.predictFittedTree(tree, [1, 1]), [.3, .3]);
+  // This constant fitted tree can also be evaluated at a new x; no y or
+  // training target is provided to its prediction function.
+  vectorClose(view.predictFittedTree(tree, [4, -2]), [.3, .3]);
+  vectorClose(view.predictFittedTree({ threshold: 2, left: .3, right: 1.1 }, [1, 3]), [.3, 1.1]);
+  assert.match(view.presentation(8).caption, /fitted tree takes x alone/);
+  assert.match(view.annotation(8).caption, /h\(x\) needs x alone/);
+});
+
+test('targets and the fitted-tree preview stay at the midpoint before any update is applied', () => {
+  for (const progress of [0, .25, .5, .75, 1]) {
+    for (const scene of [7, 8]) {
+      const q = view.resolve(scene, { progress });
+      vectorClose(q.prediction, [.5, .5]);
+      vectorClose(q.targetPrediction, [.5, .5]);
+      vectorClose(q.trainingTargets, [.8, -.2]);
+      vectorClose(q.fittedCorrection, [.3, .3]);
+      vectorClose(q.updatePrediction, [.65, .65]);
+      close(q.learningRate, .5);
+    }
+  }
+  const html = view.render(8, { progress: 1, width: 700, height: 520 });
+  const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]), scale = Number(svg['data-scale']);
+  const fitted = attributes(/<line\b[^>]*class="restricted-tree-arrow"[^>]*>/.exec(html)[0]);
+  const scaled = attributes(/<line\b[^>]*class="restricted-scaled-update"[^>]*>/.exec(html)[0]);
+  vectorClose([(Number(fitted.x2) - Number(fitted.x1)) / scale, (Number(fitted.y1) - Number(fitted.y2)) / scale], [.3, .3]);
+  vectorClose([(Number(scaled.x2) - Number(scaled.x1)) / scale, (Number(scaled.y1) - Number(scaled.y2)) / scale], [.15, .15]);
+  assert.doesNotMatch(view.render(7, { progress: 1 }), /restricted-tree-arrow|restricted-update-endpoint/);
+});
+
+test('the gradient fit projects the full training target before applying the half-sized update', () => {
+  for (const [width, height, compact] of [[273, 300, true], [320, 520, true], [970, 520, false]]) {
+    const baseline = [.5, .5], targets = [.8, -.2];
+    for (const progress of [0, .65 * .5, .65 * .75, .65 * .875, .65, .8, 1]) {
+      const fitReveal = progress < .65 ? progress / .65 : 1;
+      const opacity = Math.max(0, Math.min(1, (fitReveal - .75) / .25));
+      const html = view.render(8, { progress, width, height }, compact);
+      const projection = assertProjection(html, baseline, targets, opacity);
+      vectorClose(projection.fitted, [.3, .3]);
+      vectorClose(projection.dropped, [.5, -.5]);
+      const fittedArrow = attributes(/<line\b[^>]*class="restricted-tree-arrow"[^>]*>/.exec(html)[0]);
+      vectorClose([(Number(fittedArrow.x2) - Number(fittedArrow.x1)) / projection.scale,
+        (Number(fittedArrow.y1) - Number(fittedArrow.y2)) / projection.scale], [.3 * fitReveal, .3 * fitReveal]);
+      const scaledArrow = attributes(/<line\b[^>]*class="restricted-scaled-update"[^>]*>/.exec(html)[0]);
+      vectorClose([(Number(scaledArrow.x2) - Number(scaledArrow.x1)) / projection.scale,
+        (Number(scaledArrow.y1) - Number(scaledArrow.y2)) / projection.scale], [.15, .15]);
+      assert.ok(Math.hypot(Number(scaledArrow.x2) - projection.projectionFoot[0], Number(scaledArrow.y2) - projection.projectionFoot[1]) > 0,
+        'The learning-rate endpoint is distinct from the full projection foot');
+      if (fitReveal > 0 && fitReveal < 1) {
+        assert.ok(Math.hypot(Number(fittedArrow.x2) - projection.projectionFoot[0], Number(fittedArrow.y2) - projection.projectionFoot[1]) > 0,
+          'A partially drawn fit arrow must not move the true projection foot');
+      }
+    }
+  }
+});
+
+test('projection guides stay at the training base throughout every fitted-tree round', () => {
+  const locals = [0, .125, .25, .375, .4375, .46875, .5, .625, .75, .875, .999];
+  for (const [width, height, compact] of [[273, 300, true], [320, 520, true], [970, 520, false]]) {
+    for (let round = 0; round < 6; round++) {
+      const base = .8 - .3 * 2 ** -round, baseline = [base, base];
+      const targets = [1.6 * (1 - base), -.4 * base];
+      for (const local of locals) {
+        const progress = (round + local) / 6;
+        const html = view.render(9, { progress, width, height }, compact);
+        const fitReveal = local < .25 ? 0 : local < .5 ? (local - .25) / .25 : 1;
+        const opacity = Math.max(0, Math.min(1, (fitReveal - .75) / .25));
+        const projection = assertProjection(html, baseline, targets, opacity);
+        vectorClose(projection.fitted, [.8 - base, .8 - base]);
+        const gradient = attributes(/<line\b[^>]*class="restricted-gradient-arrow"[^>]*>/.exec(html)[0]);
+        vectorClose(gradient['data-at-values'].split(',').map(Number), baseline);
+        vectorClose(gradient['data-values'].split(',').map(Number), targets);
+        const updateFraction = local < .5 ? 0 : (local - .5) / .5;
+        const current = JSON.parse(dataValue(html, 'prediction'));
+        vectorClose(current, baseline.map((value, index) => value + .5 * updateFraction * projection.fitted[index]));
+        if (local > .5) {
+          assert.notDeepEqual(current, baseline, 'Current predictions move while the training base remains frozen');
+          assert.notDeepEqual(current, baseline.map((value, index) => value + projection.fitted[index]),
+            'The current update uses the learning rate, not the full fitted projection');
+        }
+      }
+    }
+    const finalPrediction = [.7953125, .7953125];
+    const finalTargets = [1.6 * (1 - finalPrediction[0]), -.4 * finalPrediction[1]];
+    assertProjection(view.render(9, { progress: 1, width, height }, compact), finalPrediction, finalTargets, 1);
+  }
+});
+
+test('projection guides appear only after fitting and exclude original-loss leaf optimization', () => {
+  for (const [width, height, compact] of [[273, 300, true], [970, 520, false]]) {
+    for (const scene of [0, 1, 2, 3, 5, 6, 7, 10, 11]) {
+      for (const progress of [0, .5, 1]) {
+        for (const loss of ['squared', 'expectile', 'huber', 'quartic']) {
+          const html = view.render(scene, { progress, width, height, loss, tau: .8, delta: .25, prediction: .5 }, compact);
+          assert.doesNotMatch(html, /class="restricted-projection-(?:guide|angle)"/, `Scene ${scene} must not imply an unintroduced or different projection`);
+        }
+      }
+    }
+  }
+});
+
+test('six actual fitted-tree updates halve the remaining error without reaching the limit exactly', () => {
+  const trajectory = view.buildDescentPath();
+  assert.equal(trajectory.rounds, 6);
+  assert.equal(trajectory.steps.length, 6);
+  assert.equal(trajectory.path.length, 7);
+  close(trajectory.learningRate, .5);
+  for (let round = 0; round <= 6; round++) {
+    const c = .8 - .3 * 2 ** -round;
+    vectorClose(trajectory.path[round], [c, c]);
+    if (round < 6) {
+      const step = trajectory.steps[round], next = c + .5 * (.8 - c);
+      vectorClose(step.targetPrediction, [c, c]);
+      vectorClose(step.trainingTargets, [1.6 * (1 - c), -.4 * c]);
+      vectorClose(step.fittedCorrection, [.8 - c, .8 - c]);
+      vectorClose(step.fittedCorrection, view.predictFittedTree(step.tree, [1, 1]));
+      vectorClose(step.updatePrediction, [next, next]);
+      assert.equal(step.tree.threshold, null);
+      close(step.beforeLoss, selectedLoss([c, c], { loss: 'expectile', tau: .8 }));
+      close(step.afterLoss, selectedLoss([next, next], { loss: 'expectile', tau: .8 }));
+      assert.ok(step.afterLoss < step.beforeLoss);
+    }
+  }
+  const final = view.resolve(9, { progress: 1 });
+  vectorClose(final.prediction, [.7953125, .7953125]);
+  close(final.fittedCorrection[0], .0046875);
+  assert.equal(final.phase, 'complete');
+  assert.ok(final.loss > final.minLoss);
+  assert.ok(final.prediction[0] < .8);
+  assert.match(view.presentation(9, { progress: 1 }).caption, /close to the optimum, not exactly there/);
+  const html = view.render(9, { progress: 1 });
+  assert.match(html, /restricted-prediction-label[^>]*>f ≈ \(0\.7953, 0\.7953\)/);
+  assert.doesNotMatch(html, /restricted-prediction-label[^>]*>f = \(0\.8, 0\.8\)/);
+});
+
+test('each round reveals targets, fits once, and keeps that tree frozen during its scaled update', () => {
+  for (let round = 0; round < 6; round++) {
+    const baseC = .8 - .3 * 2 ** -round;
+    const cases = [[.125, 'target', 0], [.375, 'fit', 0], [.625, 'update', .25], [.75, 'update', .5], [.875, 'update', .75]];
+    for (const [withinRound, phase, updateFraction] of cases) {
+      const progress = (round + withinRound) / 6, q = view.resolve(9, { progress });
+      const current = baseC + .5 * (.8 - baseC) * updateFraction;
+      assert.equal(q.round, round);
+      assert.equal(q.phase, phase);
+      vectorClose(q.targetPrediction, [baseC, baseC]);
+      vectorClose(q.trainingTargets, [1.6 * (1 - baseC), -.4 * baseC]);
+      vectorClose(q.fittedCorrection, [.8 - baseC, .8 - baseC]);
+      vectorClose(q.nextTree, q.fittedCorrection);
+      vectorClose(q.prediction, [current, current]);
+      vectorClose(q.currentNegativeGradient, [1.6 * (1 - current), -.4 * current]);
+      close(q.loss, selectedLoss(q.prediction, { loss: 'expectile', tau: .8 }));
+      const html = view.render(9, { progress, width: 700, height: 520 });
+      assert.equal(dataValue(html, 'phase'), phase);
+      vectorClose(JSON.parse(dataValue(html, 'target-prediction')), q.targetPrediction);
+      vectorClose(JSON.parse(dataValue(html, 'display-negative-gradient')), q.trainingTargets);
+      vectorClose(JSON.parse(dataValue(html, 'current-negative-gradient')), q.currentNegativeGradient);
+      const gradient = attributes(/<line\b[^>]*class="restricted-gradient-arrow"[^>]*>/.exec(html)[0]);
+      vectorClose(gradient['data-at-values'].split(',').map(Number), q.targetPrediction);
+      vectorClose(gradient['data-values'].split(',').map(Number), q.trainingTargets);
+      if (phase === 'update') assert.match(html, /restricted-target-base/);
+    }
+  }
+});
+
+test('compact process labels separate the fitted endpoint from the fixed training base', () => {
+  for (const width of [273, 288, 320]) {
+    for (let round = 0; round < 6; round++) {
+      for (const local of [.625, .75, .875]) {
+        const html = view.render(9, { progress: (round + local) / 6, width, height: 520 }, true);
+        const labels = [...html.matchAll(/<text\b([^>]*)>([^<]*)<\/text>/g)].map(match => ({ ...attributes(match[1]), text: match[2] }));
+        const fitted = labels.find(label => label.class.includes('restricted-fitted-label'));
+        const base = labels.find(label => label.class.includes('restricted-target-base-label'));
+        assert.equal(fitted['text-anchor'], 'start');
+        assert.equal(base['text-anchor'], 'end');
+        // The training-base label ends to the left of the h(x) label's start,
+        // leaving room for both glyph widths and their white outline strokes.
+        assert.ok(Number(fitted.x) - Number(base.x) >= 18 - 1e-9);
+        assert.ok(Number(fitted.x) + 30 < width, 'The short h(x) label fits inside the compact plot');
+      }
+    }
+  }
+});
+
+test('the exact limit has a nonzero perpendicular gradient and a zero fitted tree', () => {
+  const q = view.resolve(10);
+  vectorClose(q.prediction, [.8, .8]);
+  vectorClose(q.trainingTargets, [.32, -.32]);
+  assert.ok(math.norm(q.trainingTargets) > 0);
+  close(math.dot(q.trainingTargets, [1, 1]), 0);
+  vectorClose(q.fittedCorrection, [0, 0]);
+  vectorClose(q.updatePrediction, [.8, .8]);
+  vectorClose(q.residual, [.2, -.8]);
+  close(q.residualMean, -.3);
+  close(q.loss, .16);
+  const html = view.render(10);
+  assert.match(html, /restricted-zero-fit-label[^>]*>h\(x\) = 0/);
+  assert.match(html, /restricted-right-angle[^>]*data-vector="negative-gradient"[^>]*data-dot-product="0"/);
+  assert.match(html, /restricted-prediction-label[^>]*>f = \(0\.8, 0\.8\)/);
+  assert.doesNotMatch(html, /restricted-tree-arrow/);
+});
+
+test('early equations display the exact two-point MSE and both axes retain half ticks', () => {
+  for (const scene of [3, 4, 5]) {
+    const html = view.equation({ loss: 'quartic' }, scene);
+    assert.match(html, /MSE = ½\(r₁² \+ r₂²\)/);
+    assert.match(html, /rᵢ = yᵢ − fᵢ/);
+    const formula = equationPart(html, 'definition');
+    close(displayedFraction(formula), .5);
+    assert.deepEqual(indexedPowers(formula), [{ index: 1, exponent: 2 }, { index: 2, exponent: 2 }]);
+    assert.match(formula, /<mi mathvariant="normal">MSE<\/mi>/);
+    assert.match(formula, /<mo stretchy="true">\(<\/mo>/);
+    assert.doesNotMatch(html, /MSE\(c,c\)/);
+    assert.doesNotMatch(html, /ℓ|gradient|∇/i);
+  }
+  for (let scene = 0; scene <= 11; scene++) {
+    const html = view.render(scene);
+    assert.equal([...html.matchAll(/>½<\/text>/g)].length, 2);
+    assert.match(html, new RegExp(`<title id="restricted-title">${view.topics[scene]}</title>`));
+  }
+  assert.throws(() => view.resolve(-1), RangeError);
+  assert.throws(() => view.resolve(12), RangeError);
+});
+
+test('displayed signed-residual equations match each loss for both residual signs', () => {
+  const residualSamples = [-2, -.75, -.1, 0, .1, .75, 2];
+  for (const state of allLosses) {
+    const html = view.equation(state, 11), compact = view.annotation(11, state).equation;
+    const spec = view.specification(state);
+    assert.match(html, /rᵢ = yᵢ − fᵢ/);
+    assert.match(compact, /rᵢ = yᵢ − fᵢ/);
+    const formula = equationPart(html, 'definition');
+    let displayedPointLoss;
+    if (state.loss === 'expectile') {
+      const rows = equationCases(formula);
+      assert.equal(rows.size, 2);
+      const positive = rows.get('nonnegative'), negative = rows.get('negative');
+      const weight = term => Number(/^<mn>([0-9.]+)<\/mn>/.exec(term)?.[1]);
+      const [positiveWeight, negativeWeight] = [positive, negative].map(row => weight(row.term));
+      const [positivePower, negativePower] = [positive, negative].map(row => displayedPower(row.term));
+      close(positiveWeight, state.tau);
+      close(negativeWeight, 1 - state.tau);
+      assert.equal(positivePower, 2);
+      assert.equal(negativePower, 2);
+      assert.equal(positive.condition, '<mi>r</mi><mo>≥</mo><mn>0</mn>');
+      assert.equal(negative.condition, '<mi>r</mi><mo>&lt;</mo><mn>0</mn>');
+      assert.match(html, /L = ℓ\(r₁\) \+ ℓ\(r₂\)/);
+      displayedPointLoss = r => r >= 0 ? positiveWeight * r ** positivePower : negativeWeight * r ** negativePower;
+    } else if (state.loss === 'huber') {
+      const delta = Number(/<mi>δ<\/mi><mo>=<\/mo><mn>([0-9.]+)<\/mn>/.exec(equationPart(html, 'residual'))[1]);
+      close(delta, state.delta);
+      const rows = equationCases(formula);
+      assert.equal(rows.size, 2);
+      const quadratic = rows.get('quadratic'), linear = rows.get('linear');
+      const quadraticScale = displayedFraction(quadratic.term), exponent = displayedPower(quadratic.term), linearOffset = displayedFraction(linear.term);
+      close(quadraticScale, .5);
+      assert.equal(exponent, 2);
+      close(linearOffset, .5);
+      assert.match(quadratic.condition, /<mo>≤<\/mo><mi>δ<\/mi>/);
+      assert.match(linear.condition, /<mo>&gt;<\/mo><mi>δ<\/mi>/);
+      assert.match(linear.term, /^<mi>δ<\/mi><mrow><mo stretchy="true">\(<\/mo>/);
+      assert.match(linear.term, /<mo>−<\/mo><mfrac>/);
+      assert.match(linear.term, /<\/mfrac><mi>δ<\/mi><mo stretchy="true">\)<\/mo>/);
+      assert.match(html, /L = ℓ\(r₁\) \+ ℓ\(r₂\)/);
+      displayedPointLoss = r => Math.abs(r) <= delta ? quadraticScale * r ** exponent : delta * (Math.abs(r) - linearOffset * delta);
+    } else if (state.loss === 'quartic') {
+      assert.match(html, /L = ¼\(r₁⁴ \+ r₂⁴\)/);
+      const scale = displayedFraction(formula), terms = indexedPowers(formula);
+      close(scale, .25);
+      assert.deepEqual(terms, [{ index: 1, exponent: 4 }, { index: 2, exponent: 4 }]);
+      displayedPointLoss = r => scale * r ** terms[0].exponent;
+    } else {
+      assert.match(html, /MSE = ½\(r₁² \+ r₂²\)/);
+      const scale = displayedFraction(formula), terms = indexedPowers(formula);
+      close(scale, .5);
+      assert.deepEqual(terms, [{ index: 1, exponent: 2 }, { index: 2, exponent: 2 }]);
+      displayedPointLoss = r => scale * r ** terms[0].exponent;
+    }
+    for (const residual of residualSamples) close(displayedPointLoss(residual), view.pointLoss(residual, spec));
+    // Include predictions outside the outcomes' range so both positive-positive
+    // and negative-negative residual quadrants verify the signed case assignment.
+    for (const prediction of [[-.2, -.7], [.2, .8], [1.3, .4], [1, 0]]) {
+      const residuals = [1 - prediction[0], -prediction[1]];
+      const displayedTotal = residuals.reduce((sum, r) => sum + displayedPointLoss(r), 0);
+      close(displayedTotal, selectedLoss(prediction, state));
+      close(displayedTotal, view.totalLoss(prediction, spec));
+    }
+  }
+  // The morph explains the destination loss even while its contours transition.
+  for (const progress of [0, .5, 1]) {
+    assert.equal(view.annotation(6, { progress }).equation, view.annotation(11, { loss: 'expectile', tau: .8 }).equation);
+  }
+});
+
+test('equations use accessible native mathematical structure without duplicate math roles', () => {
+  for (const state of allLosses) {
+    const html = view.equation(state, 11), compact = view.annotation(11, state).equation;
+    for (const markup of [html, compact]) {
+      const blocks = [...markup.matchAll(/<math\b([^>]*)>([^]*?)<\/math>/g)];
+      assert.equal(blocks.length, markup === compact || ['squared', 'quartic'].includes(state.loss) ? 2 : 3);
+      assert.doesNotMatch(markup, /role="math"|<span|loss-equation-brace|loss-equation-cases/);
+      for (const block of blocks) {
+        const props = attributes(block[1]);
+        assert.equal(props.xmlns, 'http://www.w3.org/1998/Math/MathML');
+        assert.equal(props.display, 'block');
+        assert.equal(props.displaystyle, 'true');
+        assert.ok(props['aria-label'].length > 0);
+        assert.doesNotMatch(block[2], /[₁₂ᵢ²⁴½¼]/, 'Subscripts, powers, and fractions should use native MathML rather than Unicode substitutes');
+      }
+      const residual = equationPart(markup, 'residual');
+      for (const symbol of ['r', 'y', 'f']) assert.match(residual, new RegExp(`<msub><mi>${symbol}<\\/mi><mi>i<\\/mi><\\/msub>`));
+      if (['expectile', 'huber'].includes(state.loss)) {
+        const formula = equationPart(markup, 'definition');
+        assert.match(formula, /<mo stretchy="true">\{<\/mo><mstyle displaystyle="false"><mtable columnalign="left"/);
+        assert.equal([...formula.matchAll(/<mtr\b/g)].length, 2);
+        assert.equal([...formula.matchAll(/<mtd>/g)].length, 4);
+        assert.doesNotMatch(compact, /loss-equation-total/);
+        assert.match(equationPart(html, 'total'), /<msub><mi>r<\/mi><mn>1<\/mn><\/msub>/);
+        assert.match(equationPart(html, 'total'), /<msub><mi>r<\/mi><mn>2<\/mn><\/msub>/);
+      }
+    }
+  }
+});
+
+test('public copy uses residuals and prediction pairs without introducing a shared scalar', () => {
+  const plain = html => html.replace(/<style>[^]*?<\/style>/g, '').replace(/<[^>]*>/g, ' ');
+  for (const width of [320, 970]) {
+    for (let scene = 0; scene <= 11; scene++) {
+      for (const selected of allLosses) {
+        for (const prediction of [0, .5, .8, 1]) {
+          const state = { ...selected, prediction, width, progress: 1 };
+          const publicText = [plain(view.equation(state, scene)), plain(view.annotation(scene, state).equation),
+            view.annotation(scene, state).caption, view.annotation(scene, state).status,
+            view.presentation(scene, state).caption, JSON.stringify(view.readout(scene, state)),
+            ...[...view.render(scene, state, width < 400).matchAll(/<(?:title|desc|text)\b[^>]*>([^<]*)<\/(?:title|desc|text)>/g)].map(match => match[1])].join(' ');
+          assert.doesNotMatch(publicText, /\bc\b|ℓ\(e|e[²³⁴]|L\(c,c\)|MSE\(c,c\)/, `Scene ${scene} should use residuals and prediction pairs`);
+          if (scene < 7) assert.doesNotMatch(publicText, /gradient|∇/i);
+        }
+      }
+    }
+  }
+  const interval = view.readout(11, { loss: 'huber', delta: .25 }).at(-1);
+  assert.equal(interval[0], 'Best predictions; loss / minimum');
+  assert.match(interval[1], /\(0\.25, 0\.25\) to \(0\.75, 0\.75\)/);
+  assert.match(view.render(11, { loss: 'expectile', tau: .8 }), /restricted-best-label[^>]*>best: \(0\.8, 0\.8\)/);
+});
+
+test('the loss explorer uses the requested observations and asymmetric squared loss', () => {
+  const q = view.resolve(11);
+  vectorClose(q.x, [1, 1]);
+  vectorClose(q.target, [1, 0]);
+  vectorClose(q.prediction, [0, 0]);
+  vectorClose(q.residual, [1, 0]);
+  assert.equal(q.lossSpec.key, 'expectile');
+  close(q.lossSpec.tau, .8);
+  vectorClose(q.negativeGradient, [1.6, 0]);
+  vectorClose(q.gradient, [-1.6, 0]);
+  vectorClose(q.nextTree, [.8, .8]);
+  vectorClose(q.correction, [.8, .8]);
+  vectorClose(q.nextPrediction, [.8, .8]);
+  vectorClose(q.gradientNextPrediction, [.8, .8]);
+  vectorClose(q.rawNextPrediction, [.5, .5]);
+  close(q.loss, .8);
+  close(q.nextLoss, .16);
+  close(q.rawNextLoss, .25);
+  assert.equal(q.tree.threshold, null, 'Identical inputs cannot be separated by a tree split');
+});
+
+test('two-point MSE and symmetric asymmetric squared loss have identical updates and losses', () => {
   const cases = [
     [0, [1, 0], [.5, .5], .5, 1],
     [.25, [.75, -.25], [.25, .25], .3125, Math.sqrt(.625)],
@@ -25,107 +830,229 @@ test('identical predictors restrict every tree correction to equal coordinates',
     [1, [0, -1], [-.5, -.5], .5, 1]
   ];
   for (const [c, residual, correction, loss, norm] of cases) {
-    const result = view.resolve(0, { prediction: c });
-    vectorClose(result.x, [1, 1]);
-    vectorClose(result.target, [1, 0]);
-    vectorClose(result.prediction, [c, c]);
-    vectorClose(result.residual, residual);
-    vectorClose(result.gradient, residual.map(value => -value));
-    vectorClose(result.nextTree, correction);
-    vectorClose(result.nextPrediction, [.5, .5]);
-    close(result.loss, loss);
-    close(result.norm, norm);
-    close(result.nextLoss, .25);
-    close(result.minLoss, .25);
-    assert.equal(result.tree.threshold, null, 'Identical x values cannot create a split');
-  }
-});
-
-test('the irreducible residual is perpendicular to every representable update', () => {
-  const result = view.resolve(0, { prediction: .5 });
-  vectorClose(result.optimalPrediction, [.5, .5]);
-  vectorClose(result.optimalResidual, [.5, -.5]);
-  for (const coefficient of [-2, -.5, 0, .25, 3]) {
-    close(math.dot(result.residual, [coefficient, coefficient]), 0);
-    const movedLoss = .25 + coefficient * coefficient;
-    assert.ok(movedLoss >= result.loss);
-    if (coefficient !== 0) assert.ok(movedLoss > result.loss);
-  }
-  vectorClose(result.nextTree, [0, 0]);
-  vectorClose(result.nextPrediction, result.prediction);
-  close(result.nextLoss, result.loss);
-});
-
-test('moving on the diagonal minimizes half-squared loss exactly at its projection', () => {
-  for (let index = 0; index <= 100; index++) {
-    const c = index / 100;
-    const result = view.resolve(0, { prediction: c });
-    // L(c,c) = 1/4 + (c - 1/2)^2. This separates the fixed perpendicular
-    // component from the correctable component along the diagonal.
-    close(result.loss, .25 + (c - .5) ** 2);
-    close(result.norm ** 2, 2 * result.loss);
-    close(result.loss - result.nextLoss, (c - .5) ** 2);
-    close(math.dot(result.residual, result.nextTree), 2 * (c - .5) ** 2);
-    vectorClose(result.nextPrediction, [.5, .5]);
-  }
-});
-
-test('the rendered diagonal, residuals and loss circle describe the computed two-dimensional state', () => {
-  for (const width of [288, 346, 640]) {
-    const height = width < 400 ? 260 : 450;
-    let referenceScale;
-    for (const c of [0, .25, .5, 1]) {
-      const result = view.resolve(0, { prediction: c });
-      const html = view.render(0, { prediction: c, width, height }, width < 400);
-      assert.doesNotMatch(html, /NaN|Infinity|undefined/);
-      assert.equal(Number(dataValue(html, 'restricted-scene')), 0);
-      for (const [attribute, expected] of [
-        ['prediction', result.prediction], ['residual', result.residual],
-        ['gradient', result.gradient], ['next-tree', result.nextTree],
-        ['next-prediction', result.nextPrediction]
-      ]) vectorClose(JSON.parse(dataValue(html, attribute)), expected);
-      close(Number(dataValue(html, 'loss')), result.loss);
-      close(Number(dataValue(html, 'norm')), result.norm);
-      close(Number(dataValue(html, 'min-loss')), .25);
-      const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]);
-      assert.ok(Number(svg['data-scale']) > 0);
-      close(Number(svg['data-scale']) * Number(svg['data-units-per-pixel']), 1);
-      assert.equal(svg['data-x-domain'], svg['data-y-domain']);
-      if (referenceScale === undefined) referenceScale = Number(svg['data-scale']);
-      close(Number(svg['data-scale']), referenceScale, 1e-9);
-      const circle = attributes(/<circle\b[^>]*class="restricted-loss-circle"[^>]*>/.exec(html)[0]);
-      const current = attributes(/<circle\b[^>]*class="restricted-current"[^>]*>/.exec(html)[0]);
-      const target = attributes(/<path\b[^>]*class="restricted-target"[^>]*>/.exec(html)[0]);
-      const projection = attributes(/<rect\b[^>]*class="[^"]*restricted-projection[^>]*>/.exec(html)[0]);
-      const diagonal = attributes(/<line\b[^>]*class="restricted-available-line"[^>]*>/.exec(html)[0]);
-      close(Number(circle.r), result.norm * Number(svg['data-scale']));
-      close(Number(circle.cx), Number(target['data-pixel-x']));
-      close(Number(circle.cy), Number(target['data-pixel-y']));
-      close(Math.hypot(Number(current.cx) - Number(circle.cx), Number(current.cy) - Number(circle.cy)), Number(circle.r));
-      vectorClose(projection['data-values'].split(',').map(Number), [.5, .5]);
-      close(Number(diagonal.x2) - Number(diagonal.x1), Number(diagonal.y1) - Number(diagonal.y2));
-      const dx = Number(target['data-pixel-x']) - Number(projection['data-pixel-x']);
-      const dy = Number(target['data-pixel-y']) - Number(projection['data-pixel-y']);
-      close(dx, dy, 1e-9);
-      if (c === .5) close(Math.hypot(dx, dy), Number(circle.r));
-      assert.match(html, /restricted-residual-arrow/);
-      if (c === .5) assert.doesNotMatch(html, /class="restricted-tree-arrow"/);
-      else assert.match(html, /restricted-tree-arrow/);
+    for (const state of [{ loss: 'squared' }, { loss: 'expectile', tau: .5 }, { loss: 'huber', delta: 2 }]) {
+      const q = view.resolve(11, { ...state, prediction: c });
+      vectorClose(q.residual, residual);
+      vectorClose(q.negativeGradient, residual);
+      vectorClose(q.nextTree, correction);
+      vectorClose(q.correction, correction);
+      vectorClose(q.nextPrediction, [.5, .5]);
+      vectorClose(q.optimalPrediction, [.5, .5]);
+      close(q.loss, loss);
+      close(q.norm, norm);
+      close(q.nextLoss, .25);
+      close(q.minLoss, .25);
     }
   }
 });
 
-test('the display distinguishes a zero fitted correction from its nonzero residual and loss', () => {
-  const state = { prediction: .5 };
-  const html = view.render(0, state);
-  const rows = view.readout(0, state);
-  assert.ok(rows.length >= 3);
-  assert.ok(rows.every(row => row.length >= 2 && typeof row[0] === 'string'));
-  assert.match(rows.map(row => row[1]).join(' '), /0\.5|1\/2/);
-  assert.match(rows.map(row => row[1]).join(' '), /[−-](?:0\.5|1\/2)/);
-  assert.match(view.presentation(0, state).caption, /zero|no further|cannot reduce/i);
-  assert.match(html, /zero|no further|cannot reduce/i);
-  assert.ok(view.topics[0].length > 0);
+test('asymmetry changes the diagonal optimum and the fitted gradient at every shared prediction', () => {
+  for (const tau of [.05, .2, .5, .8, .95]) {
+    for (let index = 0; index <= 100; index++) {
+      const c = index / 100;
+      const q = view.resolve(11, { loss: 'expectile', tau, prediction: c });
+      // On [0,1], the two observations have opposite residual signs. Completing
+      // the square gives L(c,c) = (c - tau)^2 + tau(1 - tau).
+      close(q.loss, (c - tau) ** 2 + tau * (1 - tau));
+      vectorClose(q.negativeGradient, [2 * tau * (1 - c), -2 * (1 - tau) * c]);
+      vectorClose(q.nextTree, [tau - c, tau - c]);
+      vectorClose(q.correction, [tau - c, tau - c]);
+      vectorClose(q.nextPrediction, [tau, tau]);
+      vectorClose(q.gradientNextPrediction, [tau, tau]);
+      close(q.minLoss, tau * (1 - tau));
+      close(q.nextLoss, q.minLoss);
+      close(q.rawNextLoss, .25);
+      close(q.loss - q.nextLoss, (c - tau) ** 2);
+      assert.equal(q.tree.threshold, null);
+    }
+  }
+});
+
+test('zero mean residual can hide a needed gradient update; a zero fitted gradient can leave residuals', () => {
+  const atMean = view.resolve(11, { loss: 'expectile', tau: .8, prediction: .5 });
+  vectorClose(atMean.residual, [.5, -.5]);
+  close(math.dot(atMean.residual, [1, 1]), 0);
+  vectorClose(atMean.negativeGradient, [.8, -.2]);
+  vectorClose(atMean.nextTree, [.3, .3]);
+  close(atMean.loss, .25);
+  close(atMean.nextLoss, .16);
+
+  const atOptimum = view.resolve(11, { loss: 'expectile', tau: .8, prediction: .8 });
+  vectorClose(atOptimum.negativeGradient, [.32, -.32]);
+  close(math.dot(atOptimum.negativeGradient, [1, 1]), 0);
+  vectorClose(atOptimum.nextTree, [0, 0]);
+  vectorClose(atOptimum.correction, [0, 0]);
+  close(math.dot(atOptimum.residual, [1, 1]), -.6);
+  close(atOptimum.loss, .16);
+  close(atOptimum.rawNextLoss, .25);
+  assert.match(view.presentation(11, { loss: 'expectile', tau: .8, prediction: .8 }).caption, /gradient.*perpendicular.*fitted gradient is zero/i);
+});
+
+test('Huber flat minima choose the closest optimum and distinguish gradient targets from leaf corrections', () => {
+  const cases = [
+    [.25, 0, [.25, 0], .125, .25, .21875, .1875],
+    [.25, .1, [.25, -.1], .075, .25, .19875, .1875],
+    [.25, .3, [.25, -.25], 0, .3, .1875, .1875],
+    [.25, .5, [.25, -.25], 0, .5, .1875, .1875],
+    [.25, .9, [.1, -.25], -.075, .75, .19875, .1875],
+    [.75, 0, [.75, 0], .375, .5, .46875, .25]
+  ];
+  for (const [delta, c, gradient, sharedTarget, nextC, loss, minLoss] of cases) {
+    const q = view.resolve(11, { loss: 'huber', delta, prediction: c });
+    vectorClose(q.negativeGradient, gradient);
+    vectorClose(q.nextTree, [sharedTarget, sharedTarget]);
+    vectorClose(q.correction, [nextC - c, nextC - c]);
+    vectorClose(q.nextPrediction, [nextC, nextC]);
+    close(q.loss, loss);
+    close(q.minLoss, minLoss);
+    close(q.nextLoss, minLoss);
+  }
+  for (const delta of [.05, .25, .49]) {
+    const state = { loss: 'huber', delta };
+    const q = view.resolve(11, state);
+    vectorClose(q.optimumInterval, [delta, 1 - delta]);
+    close(q.minLoss, delta - delta ** 2);
+    for (const c of [delta, .5, 1 - delta]) {
+      const inPlateau = view.resolve(11, { ...state, prediction: c });
+      close(inPlateau.loss, q.minLoss);
+      vectorClose(inPlateau.correction, [0, 0]);
+      vectorClose(inPlateau.nextTree, [0, 0]);
+    }
+    for (const c of [0, delta / 2, 1 - delta / 2, 1]) {
+      const outsidePlateau = view.resolve(11, { ...state, prediction: c });
+      assert.ok(outsidePlateau.loss > q.minLoss);
+    }
+  }
+});
+
+test('fourth-power gradients differ from raw residuals and exact leaf corrections away from the origin', () => {
+  const cases = [
+    [0, [1, 0], .5, .5, .25],
+    [.25, [27 / 64, -1 / 64], 13 / 64, .25, 41 / 512],
+    [.5, [1 / 8, -1 / 8], 0, 0, 1 / 32],
+    [.75, [1 / 64, -27 / 64], -13 / 64, -.25, 41 / 512],
+    [1, [0, -1], -.5, -.5, .25]
+  ];
+  for (const [c, gradient, sharedTarget, correction, loss] of cases) {
+    const q = view.resolve(11, { loss: 'quartic', prediction: c });
+    vectorClose(q.negativeGradient, gradient);
+    vectorClose(q.nextTree, [sharedTarget, sharedTarget]);
+    vectorClose(q.correction, [correction, correction]);
+    vectorClose(q.gradientNextPrediction, [c + sharedTarget, c + sharedTarget]);
+    vectorClose(q.nextPrediction, [.5, .5]);
+    close(q.loss, loss);
+    close(q.minLoss, 1 / 32);
+    close(q.nextLoss, 1 / 32);
+  }
+});
+
+test('negative gradients match derivatives of the selected total loss in both coordinates', () => {
+  const epsilon = 1e-6;
+  for (const state of allLosses) {
+    for (const c of [0, .13, .25, .5, .8, 1]) {
+      const q = view.resolve(11, { ...state, prediction: c });
+      const numerical = q.prediction.map((_, index) => {
+        const plus = q.prediction.slice(), minus = q.prediction.slice();
+        plus[index] += epsilon;
+        minus[index] -= epsilon;
+        return -(selectedLoss(plus, state) - selectedLoss(minus, state)) / (2 * epsilon);
+      });
+      vectorClose(q.negativeGradient, numerical, 1e-6);
+      close(q.loss, selectedLoss(q.prediction, state));
+      close(q.nextLoss, selectedLoss(q.nextPrediction, state));
+      close(q.rawNextLoss, selectedLoss(q.rawNextPrediction, state));
+      assert.ok(q.nextLoss <= q.loss + 1e-12);
+    }
+  }
+});
+
+test('every plotted contour sample has its labeled selected-loss value at responsive sizes', () => {
+  for (const [width, height] of [[288, 260], [346, 300], [640, 450], [700, 260]]) {
+    for (const state of allLosses) {
+      for (const c of [0, .25, .5, .8, 1]) {
+        const html = view.render(11, { ...state, prediction: c, width, height }, width < 400);
+        assert.doesNotMatch(html, /NaN|Infinity|undefined/);
+        const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]);
+        const scale = Number(svg['data-scale']);
+        assert.ok(scale > 0);
+        close(scale * Number(svg['data-units-per-pixel']), 1);
+        assert.equal(svg['data-x-domain'], svg['data-y-domain']);
+        const current = attributes(/<circle\b[^>]*class="restricted-current"[^>]*>/.exec(html)[0]);
+        const currentPixel = [Number(current.cx), Number(current.cy)];
+        const contours = [...html.matchAll(/<polyline\b[^>]*>/g)].map(match => attributes(match[0]));
+        assert.ok(contours.length >= 1);
+        for (const contour of contours) {
+          const level = Number(contour['data-loss']);
+          const points = contour.points.split(' ').map(point => point.split(',').map(Number));
+          assert.equal(points.length, 193);
+          for (const [px, py] of points) {
+            const prediction = [c + (px - currentPixel[0]) / scale, c - (py - currentPixel[1]) / scale];
+            close(selectedLoss(prediction, state), level, 1e-8);
+          }
+        }
+        const diagonal = attributes(/<line\b[^>]*class="restricted-available-line"[^>]*>/.exec(html)[0]);
+        close(Number(diagonal.x2) - Number(diagonal.x1), Number(diagonal.y1) - Number(diagonal.y2));
+        const optimum = attributes(/<rect\b[^>]*class="restricted-optimum"[^>]*>/.exec(html)[0]);
+        close(selectedLoss(optimum['data-values'].split(',').map(Number), state), Number(dataValue(html, 'min-loss')));
+      }
+    }
+  }
+});
+
+test('residual and gradient arrows preserve direction with the disclosed half-length scale', () => {
+  for (const [width, height] of [[288, 260], [640, 450]]) {
+    for (const state of allLosses) {
+      for (const c of [0, .25, .5, .8, 1]) {
+        const q = view.resolve(11, { ...state, prediction: c });
+        const html = view.render(11, { ...state, prediction: c, width, height }, width < 400);
+        const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]);
+        const scale = Number(svg['data-scale']);
+        close(Number(svg['data-arrow-scale']), .5);
+        assert.match(html, /arrows are drawn at half their numerical lengths/);
+        for (const [className, values, factor] of [
+          ['restricted-residual-arrow', q.residual, .5],
+          ['restricted-gradient-arrow', q.negativeGradient, .5],
+          ['restricted-tree-arrow', q.correction, 1]
+        ]) {
+          const match = new RegExp(`<line\\b[^>]*class="${className}"[^>]*>`).exec(html);
+          if (!match) {
+            assert.ok(math.norm(values) * scale * factor < .25, 'Only imperceptibly short arrows may be omitted');
+            continue;
+          }
+          const arrow = attributes(match[0]);
+          vectorClose([
+            (Number(arrow.x2) - Number(arrow.x1)) / scale,
+            (Number(arrow.y1) - Number(arrow.y2)) / scale
+          ], values.map(value => value * factor));
+        }
+      }
+    }
+  }
+});
+
+test('rendered numerical data describes the current selected-loss calculation', () => {
+  for (const state of allLosses) {
+    const q = view.resolve(11, { ...state, prediction: .37 });
+    const html = view.render(11, { ...state, prediction: .37 });
+    assert.equal(dataValue(html, 'loss-key'), state.loss);
+    for (const [attribute, expected] of [
+      ['target', q.target], ['prediction', q.prediction], ['residual', q.residual],
+      ['gradient', q.gradient], ['negative-gradient', q.negativeGradient], ['next-tree', q.nextTree],
+      ['correction', q.correction], ['next-prediction', q.nextPrediction], ['optimum-interval', q.optimumInterval]
+    ]) vectorClose(JSON.parse(dataValue(html, attribute)), expected);
+    close(Number(dataValue(html, 'loss')), q.loss);
+    close(Number(dataValue(html, 'min-loss')), q.minLoss);
+    close(Number(dataValue(html, 'next-loss')), q.nextLoss);
+    assert.ok(view.readout(11, state).every(row => row.length >= 2 && typeof row[0] === 'string'));
+  }
+});
+
+test('Huber captions describe selected loss and never claim all Huber gradients are raw residuals', () => {
+  const state = { loss: 'huber', delta: .75, prediction: 0 };
+  const caption = view.presentation(11, state).caption;
+  assert.doesNotMatch(caption, /residual and negative gradient coincide|half-squared loss/i);
+  assert.match(caption, /Huber|clipp|gradient/i);
+  assert.match(view.presentation(11, { loss: 'huber', delta: .25 }).caption, /Every shared prediction between \(0\.25, 0\.25\) and \(0\.75, 0\.75\)/);
 });
 
 test('the restricted-input visual runs without a module loader', () => {
@@ -133,8 +1060,9 @@ test('the restricted-input visual runs without a module loader', () => {
   runInNewContext(readFileSync(new URL('../docs/boosting/restricted-view.js', import.meta.url), 'utf8'), context);
   assert.equal(typeof context.window.RestrictedBoostingView.render, 'function');
   assert.equal(typeof context.window.RestrictedBoostingView.resolve, 'function');
-  const result = context.window.RestrictedBoostingView.resolve(0, { prediction: .5 });
-  vectorClose(result.prediction, [.5, .5]);
-  vectorClose(result.nextTree, [0, 0]);
-  close(result.loss, .25);
+  const q = context.window.RestrictedBoostingView.resolve(11, { prediction: .8 });
+  vectorClose(q.target, [1, 0]);
+  vectorClose(q.prediction, [.8, .8]);
+  vectorClose(q.nextTree, [0, 0]);
+  close(q.loss, .16);
 });
