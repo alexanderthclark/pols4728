@@ -79,6 +79,42 @@ test('the residual animation moves together from zero to the mean and decreases 
   vectorClose(view.resolve(1, { progress: 10 }).prediction, [.5, .5]);
 });
 
+test('the residual progression explicitly labels its current values and the fitted destination', () => {
+  for (const [width, height, compact] of [[273, 300, true], [450, 410, false]]) {
+    for (const [progress, prediction, residual] of [
+      [0, '(0, 0)', '(1, 0)'],
+      [.5, '(0.25, 0.25)', '(0.75, −0.25)'],
+      [1, '(0.5, 0.5)', '(0.5, −0.5)']
+    ]) {
+      const state = { progress, width, height }, html = view.render(1, state, compact);
+      const labels = [...html.matchAll(/<text\b([^>]*)>([^<]*)<\/text>/g)].map(match => ({ ...attributes(match[1]), text: match[2] }));
+      const predictions = labels.filter(label => label.class.includes('restricted-prediction-label'));
+      const residuals = labels.filter(label => label.class.includes('restricted-residual-label'));
+      assert.equal(predictions.length, 1, 'Only one label should identify the actual prediction');
+      assert.equal(residuals.length, 1);
+      assert.equal(predictions[0].text, `f = ${prediction}`);
+      assert.equal(residuals[0].text, `r = ${residual}`);
+      if (progress < 1) assert.ok(labels.some(label => label.class.includes('restricted-destination-label') && label.text === 'fit: (0.5, 0.5)'));
+      else assert.ok(labels.every(label => !label.class.includes('restricted-destination-label')));
+      for (const label of [...predictions, ...residuals]) {
+        assert.ok(Number(label.x) > 0 && Number(label.x) < width);
+        assert.ok(Number(label.y) > 0 && Number(label.y) < height);
+      }
+      const caption = view.presentation(1, state).caption;
+      assert.ok(caption.includes(`Current predictions f = ${prediction}; residuals r = y − f = ${residual}.`));
+      assert.match(caption, /starting residual \(1, 0\) has mean 0\.5, so its fitted correction is \(0\.5, 0\.5\)/);
+      if (progress === 0) {
+        const targetLabel = labels.find(label => label.class.includes('restricted-target-label'));
+        assert.ok(Number(targetLabel.y) - Number(residuals[0].y) >= 22, 'Residual and observed-outcome labels need separate vertical space');
+        const arrow = attributes(/<line\b[^>]*class="restricted-residual-arrow"[^>]*>/.exec(html)[0]);
+        close(Number(arrow.y1), Number(arrow.y2));
+        assert.equal(arrow['stroke-width'], '3');
+        assert.equal(arrow['stroke-dasharray'], undefined, 'The initial residual stays visible on the x axis');
+      }
+    }
+  }
+});
+
 test('orthogonality is visible and the MSE contour is tangent to the constraint', () => {
   const q = view.resolve(2, { progress: 0, prediction: 0, loss: 'expectile' });
   vectorClose(q.prediction, [.5, .5]);

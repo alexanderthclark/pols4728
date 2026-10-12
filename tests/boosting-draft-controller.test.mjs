@@ -179,6 +179,7 @@ const restrictedVisibleWords = ui => [
   ...[...ui.get('restricted-diagram').innerHTML.matchAll(/<(?:title|desc|text)\b[^>]*>([\s\S]*?)<\/(?:title|desc|text)>/g)].map(match => match[1]),
   ui.get('stage-caption').textContent, numbers(ui)
 ].join(' ');
+const restrictedAnnotation = (ui, className) => new RegExp(`<text\\b[^>]*class="[^"]*\\b${className}\\b[^"]*"[^>]*>([\\s\\S]*?)<\\/text>`).exec(ui.get('restricted-diagram').innerHTML)?.[1];
 
 test('the opening introduces residual fitting and orthogonality before gradient terminology or loss controls', () => {
   const ui = setup({ reducedMotion: true });
@@ -218,20 +219,33 @@ test('the opening introduces residual fitting and orthogonality before gradient 
   restrictedVector(ui, 'prediction', [.5, .5]);
 });
 
-test('the MSE animation moves the shared prediction from zero to the residual projection', () => {
+test('the MSE update starts paused at zero and plays toward the residual projection on request', () => {
   const ui = setup();
   close(restrictedLoss(ui), .5);
   ui.click('next');
   restrictedVector(ui, 'prediction', [0, 0]);
-  assert.ok(ui.frames.size > 0, 'Entering the residual update starts its progression');
+  restrictedVector(ui, 'residual', [1, 0]);
+  assert.equal(ui.frames.size, 0, 'Entering the residual update leaves it paused');
+  ui.advance(3000);
+  restrictedVector(ui, 'prediction', [0, 0]);
+  restrictedVector(ui, 'residual', [1, 0]);
+  assert.equal(restrictedAnnotation(ui, 'restricted-prediction-label'), 'f = (0, 0)');
+  assert.equal(restrictedAnnotation(ui, 'restricted-residual-label'), 'r = (1, 0)');
+  assert.equal(ui.get('restricted-progress-value').textContent, '0%');
+  ui.click('restricted-play');
+  assert.ok(ui.frames.size > 0, 'Playing the residual update starts its progression');
   ui.advance(900);
   restrictedVector(ui, 'prediction', [.25, .25]);
   restrictedVector(ui, 'residual', [.75, -.25]);
+  assert.equal(restrictedAnnotation(ui, 'restricted-prediction-label'), 'f = (0.25, 0.25)');
+  assert.equal(restrictedAnnotation(ui, 'restricted-residual-label'), 'r = (0.75, −0.25)');
   close(restrictedLoss(ui), .3125);
   assert.equal(ui.get('restricted-progress-value').textContent, '50%');
   ui.advance(900);
   restrictedVector(ui, 'prediction', [.5, .5]);
   restrictedVector(ui, 'residual', [.5, -.5]);
+  assert.equal(restrictedAnnotation(ui, 'restricted-prediction-label'), 'f = (0.5, 0.5)');
+  assert.equal(restrictedAnnotation(ui, 'restricted-residual-label'), 'r = (0.5, −0.5)');
   close(restrictedLoss(ui), .25);
   assert.equal(ui.get('restricted-play').textContent, 'Replay update');
   ui.click('restricted-play');
@@ -242,7 +256,7 @@ test('the MSE animation moves the shared prediction from zero to the residual pr
 
 test('scrubbing an opening update cancels playback and changing chapters cancels stale frames', () => {
   const ui = setup();
-  ui.scrollAt(1); ui.advance(200);
+  ui.scrollAt(1); ui.click('restricted-play'); ui.advance(200);
   ui.control('restricted-progress', .6);
   restrictedVector(ui, 'prediction', [.3, .3]);
   ui.advance(2000);
@@ -286,9 +300,14 @@ test('the changed-loss progression improves on the residual mean before revealin
   close(restrictedLoss(ui), .16);
 });
 
-test('reduced motion settles the MSE update and keeps changed-loss examples still until played', () => {
+test('reduced motion keeps opening examples paused and settles updates only when played', () => {
   const ui = setup({ reducedMotion: true });
   ui.scrollAt(1);
+  restrictedVector(ui, 'prediction', [0, 0]);
+  assert.equal(ui.get('restricted-progress-value').textContent, '0%');
+  ui.advance(3000);
+  restrictedVector(ui, 'prediction', [0, 0]);
+  ui.click('restricted-play');
   restrictedVector(ui, 'prediction', [.5, .5]);
   assert.equal(ui.get('restricted-progress-value').textContent, '100%');
   ui.scrollAt(3);
@@ -298,6 +317,27 @@ test('reduced motion settles the MSE update and keeps changed-loss examples stil
   restrictedVector(ui, 'prediction', [.8, .8]);
   ui.advance(2000);
   restrictedVector(ui, 'prediction', [.8, .8]);
+});
+
+test('motion-preference changes preserve a paused opening update and settle active playback', () => {
+  const ui = setup();
+  ui.scrollAt(1);
+  ui.reduced.matches = true; ui.reduced.emit('change');
+  restrictedVector(ui, 'prediction', [0, 0]);
+  assert.equal(ui.get('restricted-progress-value').textContent, '0%');
+  ui.control('restricted-progress', .6);
+  ui.reduced.matches = false; ui.reduced.emit('change');
+  restrictedVector(ui, 'prediction', [.3, .3]);
+  assert.equal(ui.get('restricted-progress-value').textContent, '60%');
+  ui.advance(3000);
+  restrictedVector(ui, 'prediction', [.3, .3]);
+  ui.click('restricted-play'); ui.advance(500);
+  assert.ok(Number(restrictedAttribute(ui, 'c')) > 0 && Number(restrictedAttribute(ui, 'c')) < .5);
+  ui.reduced.matches = true; ui.reduced.emit('change');
+  restrictedVector(ui, 'prediction', [.5, .5]);
+  assert.equal(ui.get('restricted-progress-value').textContent, '100%');
+  ui.advance(3000);
+  restrictedVector(ui, 'prediction', [.5, .5]);
 });
 
 for (const compact of [false, true]) {

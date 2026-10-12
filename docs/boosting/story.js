@@ -107,7 +107,7 @@
       const state = { ...restrictedState, width: bounds.width, height: bounds.height };
       $('restricted-diagram').innerHTML = R.render(index, state, mobile());
       readout(R.readout(index, state));
-      if (announce) $('stage-caption').textContent = R.presentation(index, state).caption;
+      $('stage-caption').textContent = R.presentation(index, state).caption;
       stage.dataset.rate = 1;
       stage.dataset.sharedPrediction = R.resolve(index, state).prediction[0];
       stage.dataset.loss = index < 3 ? 'squared' : index < 5 ? 'expectile' : restrictedState.loss;
@@ -173,6 +173,7 @@
   }
 
   function cancelUpdate() {
+    $('stage-caption').setAttribute('aria-live', 'polite');
     cancelAnimationFrame(animation);
     animation = 0;
   }
@@ -196,14 +197,14 @@
     cancelUpdate();
     const start = performance.now();
     restrictedState.progress = reduced.matches ? 1 : 0;
+    $('stage-caption').setAttribute('aria-live', reduced.matches ? 'polite' : 'off');
     render();
     if (reduced.matches) return;
     const tick = now => {
       const t = Math.min(1, (now - start) / 1800);
       restrictedState.progress = t * t * (3 - 2 * t);
-      render(false);
-      if (t < 1) animation = requestAnimationFrame(tick);
-      else { animation = 0; render(); }
+      if (t < 1) { render(false); animation = requestAnimationFrame(tick); }
+      else { animation = 0; $('stage-caption').setAttribute('aria-live', 'polite'); render(); }
     };
     animation = requestAnimationFrame(tick);
   }
@@ -228,8 +229,7 @@
       else render();
     } else if (current.restricted) {
       if ([1, 3, 4].includes(current.index)) restrictedState.progress = 0;
-      if (current.index === 1 && animate) animateRestrictedUpdate();
-      else render();
+      render();
     } else render();
   }
 
@@ -412,9 +412,10 @@
     }
   });
   reduced.addEventListener('change', () => {
+    const wasAnimating = animation !== 0;
     cancelUpdate();
     exampleState.process = 1;
-    restrictedState.progress = 1;
+    if (wasAnimating && localScene().restricted) restrictedState.progress = 1;
     render();
   });
   window.addEventListener('popstate', () => {

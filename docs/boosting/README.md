@@ -97,7 +97,8 @@ this counterexample does the following scene introduce the negative gradient:
 at `(0.5, 0.5)` it is `(0.8, -0.2)`, whose mean 0.3 supplies a useful correction.
 At the optimum it is `(0.32, -0.32)`, perpendicular to the diagonal, while the
 raw residual `(0.2, -0.8)` is not. Progress sliders and replay buttons expose
-both updates; the MSE move plays on entry, with reduced-motion support.
+both updates. Each scene waits at its starting prediction until Play is pressed
+or its progress slider is moved, with reduced-motion support.
 
 The final opening scene provides MSE, asymmetric squared loss with continuous
 τ, Huber δ in {0.1, 0.25, 0.5, 1}, and fourth-power error `e^4/4`. Its initial

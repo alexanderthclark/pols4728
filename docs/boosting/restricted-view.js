@@ -23,6 +23,7 @@
   const clamp = (value, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, value));
   const fmt = value => String(Number(value.toPrecision(4))).replace('-', '−');
   const vector = values => '(' + values.map(fmt).join(', ') + ')';
+  const shortVector = values => '(' + values.map(value => String(Number(value.toFixed(2))).replace('-', '−')).join(', ') + ')';
 
   function specification(state) {
     const key = ['squared', 'expectile', 'huber', 'quartic'].includes(state.loss) ? state.loss : 'expectile';
@@ -133,7 +134,7 @@
     const q = resolve(scene, state), atBest = Math.abs(q.loss - q.minLoss) < 1e-12;
     let caption;
     if (scene === 0) caption = 'Both observations have x = 1. Every tree must give them the same prediction, so our predictions stay on the diagonal. Start at (0, 0).';
-    else if (scene === 1) caption = `Fit one shared value to the residuals. Their starting mean is 0.5, so move along the diagonal to (0.5, 0.5). MSE falls from 0.5 to 0.25.`;
+    else if (scene === 1) caption = `Current predictions f = ${shortVector(q.prediction)}; residuals r = y − f = ${shortVector(q.residual)}. The starting residual (1, 0) has mean 0.5, so its fitted correction is (0.5, 0.5). ${Math.round(100 * q.progress)}% is applied.`;
     else if (scene === 2) caption = 'At (0.5, 0.5), the residual is (0.5, −0.5): perpendicular to every allowed move along the diagonal. Its mean is zero. Another residual fit adds nothing.';
     else if (scene === 3) caption = 'Now underprediction costs four times as much as overprediction. The residual fit still stops at (0.5, 0.5), but (0.8, 0.8) lowers this loss from 0.25 to 0.16.';
     else if (scene === 4) caption = atBest
@@ -228,14 +229,16 @@
     }
     if (q.scene === 5 && q.optimumInterval[0] !== q.optimumInterval[1]) body += line(project(q.optimumInterval.map(() => q.optimumInterval[0])), project(q.optimumInterval.map(() => q.optimumInterval[1])), C.teal, 7, 'class="restricted-optimal-segment"');
     const residualEnd = project(M.add(q.prediction, M.scale(q.residual, arrowScale))), gradientEnd = project(M.add(q.prediction, M.scale(q.negativeGradient, arrowScale)));
-    if (q.scene > 0) body += arrow(f, residualEnd, C.muted, 'stroke-dasharray="4 4" class="restricted-residual-arrow"');
+    if (q.scene === 1) body += line(f, residualEnd, C.muted, 3, `marker-end="url(#restricted-arrow-${C.muted.slice(1)})" class="restricted-residual-arrow"`);
+    else if (q.scene > 0) body += arrow(f, residualEnd, C.muted, 'stroke-dasharray="4 4" class="restricted-residual-arrow"');
     if (q.scene >= 4) body += arrow(f, gradientEnd, C.rust, 'class="restricted-gradient-arrow"');
     if (q.scene > 0 && q.scene !== 2) body += arrow(f, best, C.teal, 'class="restricted-tree-arrow"');
     if (q.scene === 1 || q.scene === 2) {
       const middle = [(f[0] + y[0]) / 2, (f[1] + y[1]) / 2];
-      const labelPoint = q.scene === 2 ? [middle[0] + 8, middle[1] + 17] : [middle[0] - 8, middle[1] - (compact ? 27 : 17)];
-      const label = q.scene === 2 ? 'r = (0.5, −0.5)' : compact ? 'r = y − f' : 'residual y − f';
-      body += text(labelPoint, label, `class="rv-small rv-label" ${q.scene === 1 ? 'text-anchor="end"' : ''} style="fill:${C.muted}"`);
+      const labelPadding = compact ? 36 - 9 * q.progress : 34 - 17 * q.progress;
+      const labelPoint = q.scene === 2 ? [middle[0] + 8, middle[1] + 17] : [middle[0] - 8, middle[1] - labelPadding];
+      const label = q.scene === 2 ? 'r = (0.5, −0.5)' : `r = ${shortVector(q.residual)}`;
+      body += text(labelPoint, label, `class="rv-small rv-label restricted-residual-label" ${q.scene === 1 ? 'text-anchor="end"' : ''} style="fill:${C.muted}"`);
     }
     if (q.scene === 2) {
       const size = compact ? 8 : 10, unit = Math.SQRT1_2 * size;
@@ -250,9 +253,15 @@
     if (q.scene > 0) body += `<rect class="restricted-optimum" data-values="${q.nextPrediction.join(',')}" data-pixel-x="${best[0]}" data-pixel-y="${best[1]}" x="${best[0] - 4}" y="${best[1] - 4}" width="8" height="8" fill="white" stroke="${C.teal}" stroke-width="1.6"/>`;
     body += `<circle class="restricted-current" data-values="${q.prediction.join(',')}" cx="${f[0]}" cy="${f[1]}" r="4.5" fill="${C.blue}" stroke="white" stroke-width="1.5"/>`;
     body += `<path class="restricted-target" data-values="${q.target.join(',')}" data-pixel-x="${y[0]}" data-pixel-y="${y[1]}" d="M${y[0]},${y[1] - 6}l6,6l-6,6l-6,-6Z" fill="${C.rust}" stroke="white" stroke-width="1.5"/>`;
-    body += text([y[0] - 9, y[1] - 12], compact ? 'y = (1, 0)' : 'observed y = (1, 0)', `class="rv-math rv-label" text-anchor="end" style="fill:${C.rust}"`);
-    if (q.scene > 0) body += text([best[0] - 9, best[1] - 12], q.scene < 3 ? '(0.5, 0.5)' : `best: c = ${fmt(q.nextPrediction[0])}`, `class="rv-math rv-label" text-anchor="end" style="fill:${C.teal}"`);
-    if (Math.abs(q.loss - q.minLoss) >= 1e-12 || q.scene === 0) body += text([f[0] - 8, f[1] + 21], q.scene === 0 ? '(0, 0)' : 'f', `class="rv-math rv-label" text-anchor="end" style="fill:${C.blue}"`);
+    body += text([y[0] - 9, y[1] - 12], compact ? 'y = (1, 0)' : 'observed y = (1, 0)', `class="rv-math rv-label restricted-target-label" text-anchor="end" style="fill:${C.rust}"`);
+    if (q.scene === 1) {
+      const finished = q.progress === 1;
+      body += text([best[0], best[1] - 16], finished ? 'f = (0.5, 0.5)' : 'fit: (0.5, 0.5)', `class="rv-small rv-label ${finished ? 'restricted-prediction-label' : 'restricted-destination-label'}" text-anchor="middle" style="fill:${finished ? C.blue : C.teal}"`);
+      if (!finished) body += text([f[0] + 8, f[1] + (q.progress === 0 ? 36 : 26)], `f = ${shortVector(q.prediction)}`, `class="rv-small rv-label restricted-prediction-label" style="fill:${C.blue}"`);
+    } else {
+      if (q.scene > 0) body += text([best[0] - 9, best[1] - 12], q.scene < 3 ? '(0.5, 0.5)' : `best: c = ${fmt(q.nextPrediction[0])}`, `class="rv-math rv-label" text-anchor="end" style="fill:${C.teal}"`);
+      if (Math.abs(q.loss - q.minLoss) >= 1e-12 || q.scene === 0) body += text([f[0] - 8, f[1] + 21], q.scene === 0 ? '(0, 0)' : 'f', `class="rv-math rv-label" text-anchor="end" style="fill:${C.blue}"`);
+    }
     const footer = q.scene === 0 ? 'Same input → same prediction' : q.scene === 2 ? 'Equal-MSE contour touches the diagonal at its minimum' : q.scene === 1 ? `MSE = ${fmt(q.loss)}` : compact ? 'Dashed: current loss · Teal: minimum on diagonal' : 'Dashed contour: current loss · Teal contour: best attainable loss';
     body += text([W / 2, H - 5], footer, 'class="rv-small" text-anchor="middle"');
     let description = `${q.lossSpec.name}. ${presentation(q.scene, state).caption} The observations (x,y)=(1,1) and (1,0) constrain every prediction to the diagonal. Current prediction ${vector(q.prediction)}, residual ${vector(q.residual)}, mean residual ${fmt(q.residualMean)}, and loss ${fmt(q.loss)}.`;
