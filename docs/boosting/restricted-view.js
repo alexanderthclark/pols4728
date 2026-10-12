@@ -143,6 +143,9 @@
       body += line([px[0], px[1] - 3], [px[0], px[1] + 3], C.rule, 1) + line([py[0] - 3, py[1]], [py[0] + 3, py[1]], C.rule, 1);
       if (value === 1) body += text([px[0], px[1] + 17], '1', 'class="rv-small" text-anchor="middle"') + text([py[0] - 8, py[1] + 4], '1', 'class="rv-small" text-anchor="end"');
     });
+    const halfX = project([.5, 0]), halfY = project([0, .5]);
+    body += line([halfX[0], halfX[1] - 2], [halfX[0], halfX[1] + 2], C.rule, 1) + line([halfY[0] - 2, halfY[1]], [halfY[0] + 2, halfY[1]], C.rule, 1);
+    body += text([halfX[0], halfX[1] + 17], '½', 'class="rv-small" text-anchor="middle"') + text([halfY[0] - 8, halfY[1] + 4], '½', 'class="rv-small" text-anchor="end"');
     body += text([project([domain[1], 0])[0], project([domain[1], 0])[1] - 10], 'f₁', 'class="rv-math" text-anchor="end"') + text([project([0, domain[1]])[0] - 8, project([0, domain[1]])[1] + 5], 'f₂', 'class="rv-math" text-anchor="end"');
     body += line(project([domain[0], domain[0]]), project([domain[1], domain[1]]), C.blue, 2, 'class="restricted-available-line"');
     body += text([project([1.18, 1.18])[0] - 8, project([1.18, 1.18])[1]], 'f₁ = f₂', `class="rv-small rv-label" text-anchor="end" style="fill:${C.blue}"`);
