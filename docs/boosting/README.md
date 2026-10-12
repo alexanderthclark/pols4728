@@ -1,9 +1,10 @@
 # Gradient Boosting
 
-A scrollytelling chapter about gradient boosting. After the title, six scenes
-build one two-observation example: shared predictions, an animated MSE residual
-update, orthogonality, a changed loss, negative-gradient targets, and a loss
-playground. Gradient terminology enters only after asymmetric loss exposes a
+A scrollytelling chapter about gradient boosting. After the title, eight scenes
+build one two-observation example: zero predictions, the residual vector,
+the identical-input update constraint, an animated MSE residual update,
+orthogonality, a changed loss, negative-gradient targets, and a loss playground.
+Each visual idea appears in a separate step. Gradient terminology enters only after asymmetric loss exposes a
 limitation of raw residual fitting. Two three-observation vector scenes follow,
 then eight scenes developing the four-observation example from sections
 1.4.2–1.4.3 of the boosting notes. Four later scenes compare squared error,
@@ -27,7 +28,7 @@ No build step or external JavaScript dependencies are required.
 
 - `index.html` contains the main explanation, numerical example, controls,
   general algorithm, and loss comparison.
-- `story.js` follows twenty narrative steps and handles vector experiments,
+- `story.js` follows twenty-two narrative steps and handles vector experiments,
   split inspection, update progress, learning rate, later rounds, and navigation.
 - `prediction-view.js` restores the three-observation vector picture and fitted
   correction. Its reusable equal-loss circle renderer remains available outside
@@ -83,8 +84,12 @@ while the progress slider shows a partial update within that round. Both scenes
 share the learning rate and round selection. Neither apparent projected angles nor falling training loss establish predictive performance
 on new observations.
 
-The opening uses `x = [1, 1]` and `y = [1, 0]`, so predictions and updates
-must have equal coordinates. Starting at `(0, 0)`, fitting the residual mean
+The opening uses `x = [1, 1]` and `y = [1, 0]`. It first shows only the zero
+predictions and observed outcomes, then adds the full residual `(1, 0)`.
+The next step introduces the constraint: identical inputs reach the same tree
+leaf, so any update is `(a, a)` and lies on the 45-degree line. The fitted
+midpoint and loss contours appear only in the following step.
+Starting at `(0, 0)`, fitting the residual mean
 adds `(0.5, 0.5)`. MSE is `0.5*((1-f1)^2+f2^2)`, falling from 0.5 to 0.25.
 At `(0.5, 0.5)`, the residual `(0.5, -0.5)` is perpendicular to the diagonal;
 the next residual fit is zero. A right-angle mark and tangent equal-MSE contour

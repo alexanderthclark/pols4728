@@ -13,10 +13,14 @@ const restricted = require('../docs/boosting/restricted-view.js');
 const lossView = require('../docs/boosting/loss-view.js');
 const html = readFileSync(new URL('../docs/boosting/index.html', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../docs/boosting/story.js', import.meta.url), 'utf8');
-const workedPhysical = local => local + 8;
-const geometryPhysical = local => local + 6;
-const lossPhysical = local => local + 16;
-const sandboxPhysical = 5;
+const workedPhysical = local => local + 10;
+const geometryPhysical = local => local + 8;
+const lossPhysical = local => local + 18;
+const mseUpdatePhysical = 3;
+const orthogonalPhysical = 4;
+const changedLossPhysical = 5;
+const gradientPhysical = 6;
+const sandboxPhysical = 7;
 const stageTop = 400;
 
 // This harness checks real controller events and numerical output. It does not
@@ -181,19 +185,42 @@ const restrictedVisibleWords = ui => [
 ].join(' ');
 const restrictedAnnotation = (ui, className) => new RegExp(`<text\\b[^>]*class="[^"]*\\b${className}\\b[^"]*"[^>]*>([\\s\\S]*?)<\\/text>`).exec(ui.get('restricted-diagram').innerHTML)?.[1];
 
+test('the opening reveals observations, residuals, and then the shared-input restriction separately', () => {
+  const ui = setup({ reducedMotion: true });
+  let svg = ui.get('restricted-diagram').innerHTML;
+  assert.doesNotMatch(svg, /class="restricted-(?:residual-arrow|available-line|tree-arrow|optimum|current-contour|optimal-contour)"/);
+  assert.equal(ui.get('restricted-loss-equation').hidden, true);
+  ui.click('next');
+  svg = ui.get('restricted-diagram').innerHTML;
+  assert.equal(Number(ui.shell.dataset.scene), 1);
+  assert.match(svg, /class="restricted-residual-arrow"/);
+  assert.equal(restrictedAnnotation(ui, 'restricted-residual-label'), 'r = (1, 0)');
+  assert.doesNotMatch(svg, /class="restricted-(?:available-line|tree-arrow|optimum|current-contour|optimal-contour)"/);
+  assert.equal(ui.get('restricted-loss-equation').hidden, true);
+  ui.click('next');
+  svg = ui.get('restricted-diagram').innerHTML;
+  assert.equal(Number(ui.shell.dataset.scene), 2);
+  assert.match(svg, /class="restricted-available-line"/);
+  assert.match(restrictedVisibleWords(ui), /x\s*=\s*1/);
+  assert.match(restrictedVisibleWords(ui), /same correction/i);
+  assert.match(restrictedVisibleWords(ui), /45°/);
+  assert.doesNotMatch(svg, /class="restricted-(?:tree-arrow|optimum|mean|current-contour|optimal-contour)"/);
+  assert.equal(ui.get('restricted-loss-equation').hidden, false);
+});
+
 test('the opening introduces residual fitting and orthogonality before gradient terminology or loss controls', () => {
   const ui = setup({ reducedMotion: true });
-  for (let scene = 0; scene <= 3; scene++) {
+  for (let scene = 0; scene <= changedLossPhysical; scene++) {
     if (scene > 0) ui.click('next');
     assert.equal(ui.shell.dataset.example, 'restricted');
     assert.equal(ui.get('restricted-sandbox-controls').hidden, true);
-    assert.equal(ui.get('restricted-progression-controls').hidden, ![1, 3].includes(scene));
+    assert.equal(ui.get('restricted-progression-controls').hidden, ![mseUpdatePhysical, changedLossPhysical].includes(scene));
     assert.doesNotMatch(restrictedVisibleWords(ui), /gradient|∇/i);
     assert.doesNotMatch(ui.get('restricted-diagram').innerHTML, /class="restricted-gradient-arrow"/);
     restrictedVector(ui, 'target', [1, 0]);
     const narrative = new RegExp(`<section\\b[^>]*data-step="${scene}"[^>]*>([\\s\\S]*?)<\\/section>`).exec(html)[1];
     assert.doesNotMatch(narrative, /gradient|∇/i);
-    if (scene === 2) {
+    if (scene === orthogonalPhysical) {
       restrictedVector(ui, 'prediction', [.5, .5]);
       restrictedVector(ui, 'residual', [.5, -.5]);
       const residual = JSON.parse(restrictedAttribute(ui, 'residual'));
@@ -207,7 +234,7 @@ test('the opening introduces residual fitting and orthogonality before gradient 
   restrictedVector(ui, 'optimal-prediction', [.8, .8]);
   close(restrictedLoss(ui), .25);
   ui.click('next');
-  assert.equal(Number(ui.shell.dataset.scene), 4);
+  assert.equal(Number(ui.shell.dataset.scene), gradientPhysical);
   assert.match(restrictedVisibleWords(ui), /negative gradient/i);
   assert.match(ui.get('restricted-diagram').innerHTML, /class="restricted-gradient-arrow"/);
   restrictedVector(ui, 'negative-gradient', [.8, -.2]);
@@ -221,8 +248,8 @@ test('the opening introduces residual fitting and orthogonality before gradient 
 
 test('the MSE update starts paused at zero and plays toward the residual projection on request', () => {
   const ui = setup();
+  ui.clickLink('#residual-move');
   close(restrictedLoss(ui), .5);
-  ui.click('next');
   restrictedVector(ui, 'prediction', [0, 0]);
   restrictedVector(ui, 'residual', [1, 0]);
   assert.equal(ui.frames.size, 0, 'Entering the residual update leaves it paused');
@@ -256,29 +283,29 @@ test('the MSE update starts paused at zero and plays toward the residual project
 
 test('scrubbing an opening update cancels playback and changing chapters cancels stale frames', () => {
   const ui = setup();
-  ui.scrollAt(1); ui.click('restricted-play'); ui.advance(200);
+  ui.scrollAt(mseUpdatePhysical); ui.click('restricted-play'); ui.advance(200);
   ui.control('restricted-progress', .6);
   restrictedVector(ui, 'prediction', [.3, .3]);
   ui.advance(2000);
   restrictedVector(ui, 'prediction', [.3, .3]);
   assert.equal(ui.get('restricted-progress-value').textContent, '60%');
   ui.click('restricted-play'); ui.advance(200);
-  ui.scrollAt(2);
+  ui.scrollAt(orthogonalPhysical);
   const orthogonal = ui.get('restricted-diagram').innerHTML;
   ui.advance(2000);
   assert.equal(ui.get('restricted-diagram').innerHTML, orthogonal);
   restrictedVector(ui, 'prediction', [.5, .5]);
-  ui.scrollAt(1);
+  ui.scrollAt(mseUpdatePhysical);
   restrictedVector(ui, 'prediction', [0, 0]);
   for (const key of ['Home', 'End', 'ArrowRight', 'ArrowLeft']) {
     assert.equal(ui.key(key, ui.get('restricted-progress')).defaultPrevented, undefined);
-    assert.equal(Number(ui.shell.dataset.scene), 1);
+    assert.equal(Number(ui.shell.dataset.scene), mseUpdatePhysical);
   }
 });
 
 test('the changed-loss progression improves on the residual mean before revealing its gradient target', () => {
   const ui = setup();
-  ui.scrollAt(3);
+  ui.scrollAt(changedLossPhysical);
   restrictedVector(ui, 'prediction', [.5, .5]);
   close(restrictedLoss(ui), .25);
   assert.doesNotMatch(restrictedVisibleWords(ui), /gradient|∇/i);
@@ -302,7 +329,7 @@ test('the changed-loss progression improves on the residual mean before revealin
 
 test('reduced motion keeps opening examples paused and settles updates only when played', () => {
   const ui = setup({ reducedMotion: true });
-  ui.scrollAt(1);
+  ui.scrollAt(mseUpdatePhysical);
   restrictedVector(ui, 'prediction', [0, 0]);
   assert.equal(ui.get('restricted-progress-value').textContent, '0%');
   ui.advance(3000);
@@ -310,7 +337,7 @@ test('reduced motion keeps opening examples paused and settles updates only when
   ui.click('restricted-play');
   restrictedVector(ui, 'prediction', [.5, .5]);
   assert.equal(ui.get('restricted-progress-value').textContent, '100%');
-  ui.scrollAt(3);
+  ui.scrollAt(changedLossPhysical);
   restrictedVector(ui, 'prediction', [.5, .5]);
   assert.equal(ui.get('restricted-progress-value').textContent, '0%');
   ui.click('restricted-play');
@@ -321,7 +348,7 @@ test('reduced motion keeps opening examples paused and settles updates only when
 
 test('motion-preference changes preserve a paused opening update and settle active playback', () => {
   const ui = setup();
-  ui.scrollAt(1);
+  ui.scrollAt(mseUpdatePhysical);
   ui.reduced.matches = true; ui.reduced.emit('change');
   restrictedVector(ui, 'prediction', [0, 0]);
   assert.equal(ui.get('restricted-progress-value').textContent, '0%');
@@ -348,10 +375,10 @@ for (const compact of [false, true]) {
     restrictedVector(ui, 'target', [1, 0]);
     restrictedVector(ui, 'prediction', [0, 0]);
     assert.equal(ui.get('previous').disabled, true);
-    for (let scene = 1; scene <= 19; scene++) {
+    for (let scene = 1; scene <= 21; scene++) {
       ui.click('next');
       assert.equal(Number(ui.shell.dataset.scene), scene);
-      assert.equal(ui.get('stage-count').textContent, `${String(scene + 1).padStart(2, '0')} / 20`);
+      assert.equal(ui.get('stage-count').textContent, `${String(scene + 1).padStart(2, '0')} / 22`);
       if (scene <= sandboxPhysical) {
         assert.equal(ui.shell.dataset.example, 'restricted');
         assert.match(ui.get('restricted-diagram').innerHTML, new RegExp(`data-restricted-scene="${scene}"`));
@@ -835,7 +862,8 @@ test('legacy radius links skip directly to the identical-input example', () => {
   assert.equal(ui.shell.dataset.example, 'restricted');
   assert.equal(ui.get('geometry-controls').hidden, true);
   assert.equal(ui.get('restricted-controls').hidden, false);
-  close(restrictedLoss(ui), .5);
+  restrictedVector(ui, 'target', [1, 0]);
+  restrictedVector(ui, 'prediction', [0, 0]);
   ui.clickLink('#vector-geometry');
   assert.equal(Number(ui.shell.dataset.scene), geometryPhysical(0));
   assert.equal(ui.shell.dataset.example, 'geometry');

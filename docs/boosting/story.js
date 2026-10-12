@@ -90,8 +90,9 @@
     if (current.restricted) {
       $('restricted-loss').value = restrictedState.loss;
       $('restricted-loss-equation').innerHTML = R.equation(restrictedState, index);
-      $('restricted-progression-controls').hidden = ![1, 3, 4].includes(index);
-      $('restricted-sandbox-controls').hidden = index !== 5;
+      $('restricted-loss-equation').hidden = index < 2;
+      $('restricted-progression-controls').hidden = ![3, 5, 6].includes(index);
+      $('restricted-sandbox-controls').hidden = index !== 7;
       $('restricted-progress').value = String(restrictedState.progress);
       $('restricted-progress-value').textContent = `${Math.round(100 * restrictedState.progress)}%`;
       $('restricted-play').textContent = restrictedState.progress === 1 ? 'Replay update' : 'Play update';
@@ -110,7 +111,7 @@
       $('stage-caption').textContent = R.presentation(index, state).caption;
       stage.dataset.rate = 1;
       stage.dataset.sharedPrediction = R.resolve(index, state).prediction[0];
-      stage.dataset.loss = index < 3 ? 'squared' : index < 5 ? 'expectile' : restrictedState.loss;
+      stage.dataset.loss = index < 5 ? 'squared' : index < 7 ? 'expectile' : restrictedState.loss;
       stage.dataset.restrictedScene = index;
       delete stage.dataset.geometryScene;
       delete stage.dataset.workedScene;
@@ -228,7 +229,7 @@
       if (animate && (current.index === 3 || current.index === 5)) animateUpdate();
       else render();
     } else if (current.restricted) {
-      if ([1, 3, 4].includes(current.index)) restrictedState.progress = 0;
+      if ([3, 5, 6].includes(current.index)) restrictedState.progress = 0;
       render();
     } else render();
   }
@@ -342,7 +343,7 @@
     render();
   });
   $('restricted-fit').addEventListener('click', () => {
-    restrictedState.prediction = R.resolve(5, restrictedState).nextPrediction[0];
+    restrictedState.prediction = R.resolve(7, restrictedState).nextPrediction[0];
     render();
   });
   $('restricted-reset').addEventListener('click', () => {
