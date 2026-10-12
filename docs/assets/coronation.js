@@ -17,7 +17,8 @@
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const NS = 'http://www.w3.org/2000/svg';
   const idleDelay = 5000;
-  const duration = 3900;
+  const duration = 4900;
+  const landingAt = 3.62;
   const eyes = [
     {name:'m-left',cx:322,cy:451,rx:27,ry:25,px:337,py:453,r:11,delay:.58,path:'M321 426 C337 425 350 436 350 451 C351 465 338 477 322 476 C307 476 296 465 296 451 C296 437 306 427 321 426 Z'},
     {name:'m-right',cx:375,cy:448,rx:27,ry:26,px:390,py:451,r:11,delay:.58,path:'M374 422 C389 421 401 433 401 448 C402 463 391 474 376 474 C361 476 350 464 350 449 C349 434 359 423 374 422 Z'},
@@ -60,13 +61,19 @@
   }
   function paint(t) {
     layer.setAttribute('opacity',1);
-    const descent=ease((t-.42)/2.22);
-    const crownY=lerp(-60,121.5,descent);
-    crown.setAttribute('opacity',ease((t-.42)/.4));
+    // Convert the page's top edge to logo coordinates. Include the rotated
+    // crown and its shadow so it enters from fully above the page. Measuring
+    // during active frames also keeps the path aligned when the layout changes.
+    const bounds=image.getBoundingClientRect();
+    const scale=bounds.width/1692 || 1;
+    const startY=-(bounds.top+window.scrollY)/scale-180;
+    const descent=ease((t-.42)/3.2);
+    const crownY=lerp(startY,121.5,descent);
+    crown.setAttribute('opacity',t>=.42?1:0);
     crown.setAttribute('transform','translate(1379.6 '+crownY+')');
-    crownContact.setAttribute('opacity',ease((t-2.18)/.46));
+    crownContact.setAttribute('opacity',ease((t-(landingAt-.46))/.46));
     rays.setAttribute('opacity',ease((t-.15)/1.2));
-    smile.setAttribute('opacity',ease((t-2.85)/.65));
+    smile.setAttribute('opacity',ease((t-(landingAt+.21))/.65));
     eyes.forEach(eye => {
       const isI=eye.name.startsWith('i-');
       const gaze=ease((t-eye.delay)/.85);
@@ -76,10 +83,10 @@
       let y=lerp(eye.py,eye.cy+dy/distance*reach,gaze);
       let openness=1;
       if(isI) {
-        const settle=ease((t-2.8)/.7);
+        const settle=ease((t-(landingAt+.16))/.7);
         x=lerp(x,eye.cx,settle);
         y=lerp(y,eye.cy-1,settle);
-        openness=blink(t,.08,.30)*blink(t,2.85,.34);
+        openness=blink(t,.08,.30)*blink(t,landingAt+.21,.34);
       }
       eye.pupil.setAttribute('cx',x.toFixed(2));
       eye.pupil.setAttribute('cy',y.toFixed(2));
