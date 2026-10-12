@@ -54,7 +54,9 @@
     $('worked-controls').hidden = current.geometry || current.restricted || current.loss || index === 7;
     $('loss-diagram').hidden = !current.loss;
     $('loss-controls').hidden = !current.loss;
-    $('vector-readout').hidden = !current.geometry && !current.restricted && !current.loss && index === 7;
+    const hideNumbers = !current.geometry && !current.restricted && !current.loss && index === 7;
+    $('vector-readout').hidden = hideNumbers;
+    $('numbers').hidden = hideNumbers;
     if (current.loss) {
       $('loss-choice').value = lossState.loss;
       $('loss-dataset').value = lossState.dataset;
@@ -211,15 +213,20 @@
     scrollPending = false;
     // Keep an explicitly requested scene selected until its scroll arrives.
     if (navigationTarget && Math.abs(scrollY - navigationTarget.top) <= 2) navigationTarget = null;
-    const threshold = mobile() ? stage.getBoundingClientRect().bottom + 65 : window.innerHeight * 0.52;
-    let index = 0;
-    steps.forEach((step, i) => { if (step.getBoundingClientRect().top <= threshold) index = i; });
-    if (!navigationTarget) changeScene(index);
+    const stageBounds = stage.getBoundingClientRect();
+    // On a phone, navigation brings the static figure into view. Keep that
+    // chosen scene while it is visible; reading below it can select new scenes.
+    if (!navigationTarget && (!mobile() || stageBounds.bottom <= 64)) {
+      const threshold = mobile() ? window.innerHeight * 0.35 : stageBounds.bottom + 32;
+      let index = 0;
+      steps.forEach((step, i) => { if (step.getBoundingClientRect().top <= threshold) index = i; });
+      changeScene(index);
+    }
     const range = document.documentElement.scrollHeight - innerHeight;
     $('progress').style.width = `${range > 0 ? Math.min(100, Math.max(0, scrollY / range * 100)) : 0}%`;
   }
 
-  function scrollToStep(index) {
+  function scrollToStep(index, instant = false) {
     if (index >= steps.length) {
       navigationTarget = null;
       $('other-losses').scrollIntoView({ behavior: reduced.matches ? 'instant' : 'smooth' });
@@ -227,12 +234,14 @@
     }
     index = Math.max(0, index);
     changeScene(index);
-    const offset = mobile() ? stage.getBoundingClientRect().height + 64 : 90;
-    const requested = steps[index].getBoundingClientRect().top + scrollY - offset;
+    const bounds = stage.getBoundingClientRect();
+    const requested = mobile()
+      ? bounds.top + scrollY - 64
+      : steps[index].getBoundingClientRect().top + scrollY - bounds.height - 74;
     // Browsers clamp scroll destinations to the available document range.
     const top = Math.max(0, Math.min(document.documentElement.scrollHeight - innerHeight, requested));
     navigationTarget = { top };
-    window.scrollTo({ top, behavior: reduced.matches ? 'instant' : 'smooth' });
+    window.scrollTo({ top, behavior: instant || reduced.matches ? 'instant' : 'smooth' });
   }
 
   function stepForId(id) {
@@ -364,6 +373,7 @@
       scrollUpdate();
     }
   });
+  $('numbers').addEventListener('toggle', () => render());
   new ResizeObserver(() => render()).observe($('visual-area'));
   window.addEventListener('resize', () => { navigationTarget = null; scrollUpdate(); });
   reduced.addEventListener('change', () => {
@@ -375,12 +385,37 @@
     const index = stepForId(window.location?.hash?.slice(1) || 'story');
     if (index >= 0) scrollToStep(index);
   });
+  window.addEventListener('hashchange', () => {
+    const id = window.location?.hash?.slice(1) || 'story';
+    const index = stepForId(id);
+    if (index < 0) return;
+    changeScene(index);
+    // Same-document navigation applies a native fragment scroll after history
+    // handling. Correct that position once it has settled.
+    requestAnimationFrame(() => {
+      if (scene === index && (window.location?.hash?.slice(1) || 'story') === id) {
+        scrollToStep(index, true);
+      }
+    });
+  });
 
   changeScene(0, false);
   scrollUpdate();
   const initialId = window.location?.hash?.slice(1);
   if (initialId) {
     const initialStep = stepForId(initialId);
-    if (initialStep >= 0) requestAnimationFrame(() => scrollToStep(initialStep));
+    if (initialStep >= 0) {
+      requestAnimationFrame(() => scrollToStep(initialStep, true));
+      // Native fragment restoration can run after the deferred controller.
+      // Restore the plot-aware position once loading finishes, unless the
+      // reader has already navigated to another scene or another hash.
+      if (document.readyState !== 'complete') window.addEventListener('load', () => {
+        requestAnimationFrame(() => {
+          if (scene === initialStep && window.location?.hash?.slice(1) === initialId) {
+            scrollToStep(initialStep, true);
+          }
+        });
+      }, { once: true });
+    }
   }
 })();

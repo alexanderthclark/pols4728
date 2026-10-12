@@ -109,9 +109,9 @@
   const diamond = (x, y, color, radius = 4) => `<path d="M${x},${y - radius}l${radius},${radius}l${-radius},${radius}l${-radius},${-radius}Z" fill="white" stroke="${color}" stroke-width="1.5"/>`;
   const path = (points, color, width = 2.3, attributes = '') => `<polyline points="${points.map(point => point.join(',')).join(' ')}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linejoin="round" ${attributes}/>`;
 
-  function dimensions(state, compact, minimum = 205, maximum = 350) {
+  function dimensions(state, compact, minimum = 205) {
     const W = Math.max(200, number(state.width, compact ? 346 : 620));
-    const H = Math.max(minimum, Math.min(maximum, number(state.height, compact ? 245 : 400) - (compact ? 20 : 26)));
+    const H = Math.max(minimum, number(state.height, compact ? 245 : 400) - (compact ? 30 : 26));
     return { W, H };
   }
 
@@ -128,7 +128,7 @@
   }
 
   function targetPlot(q, state, compact) {
-    const { W, H } = dimensions(state, compact, 170, compact ? 255 : 355);
+    const { W, H } = dimensions(state, compact, 170);
     const residual = q.before.residual, targets = q.before.targets;
     let minimum = Math.min(0, ...residual, ...targets), maximum = Math.max(0, ...residual, ...targets);
     if (maximum === minimum) { minimum -= 1; maximum += 1; }
@@ -170,7 +170,7 @@
 
   function correctionPlot(q, state, compact) {
     const stacked = !q.shared && (compact || number(state.width, 620) < 440);
-    const { W, H } = dimensions(state, compact, stacked ? 198 : 155, stacked ? 282 : 340);
+    const { W, H } = dimensions(state, compact, stacked ? 198 : 155);
     const gap = stacked ? 7 : 20;
     const panelW = q.shared || stacked ? W : (W - gap) / 2, panelH = stacked ? (H - gap) / 2 : H;
     let body = '';
@@ -208,7 +208,7 @@
   }
 
   function trajectories(q, state, compact) {
-    const { W, H } = dimensions(state, compact, 180, compact ? 285 : 420);
+    const { W, H } = dimensions(state, compact, 180);
     const margin = compact ? 26 : 38, top = 32, upperHeight = Math.max(52, (H - 80) * .53);
     const panelW = W / 2, inner = compact ? 25 : 33;
     const allValues = [...q.model.y, ...q.model.gradient.flatMap(s => s.predictions), ...q.model.residual.flatMap(s => s.predictions)];

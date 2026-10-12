@@ -132,8 +132,8 @@
     const residual = q.fitting;
     const W = Number.isFinite(state.width) && state.width >= 200 ? state.width : compact ? 400 : 620;
     const available = Number.isFinite(state.height) ? state.height : compact ? 240 : 480;
-    const extraHeight = scene === 0 || scene === 6 ? (compact ? 28 : 40) : residual ? (compact ? 146 : 184) : (compact ? 97 : 160);
-    const H = compact ? Math.max(residual ? 100 : 118, Math.min(residual ? 138 : 184, available - extraHeight)) : Math.max(170, Math.min(288, available - extraHeight));
+    const extraHeight = scene === 0 || scene === 6 ? (compact ? 28 : 40) : residual ? (compact ? 146 : 206) : (compact ? 97 : 172);
+    const H = Math.max(compact ? (residual ? 100 : 118) : 170, available - extraHeight);
     const box = { x: compact ? 29 : 43, y: compact ? 21 : 36, w: W - (compact ? 46 : 72), h: H - (compact ? 44 : 67) };
     const minimum = residual ? -3.5 : -.5, maximum = residual ? 3.5 : 6;
     const X = value => box.x + (value - .5) / 4 * box.w;

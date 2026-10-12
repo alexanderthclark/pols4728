@@ -20,16 +20,16 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
 .eyebrow{font:12px/1.5 var(--sans);letter-spacing:.13em;color:var(--muted);margin:0 0 18px}.title-page h1{font-size:clamp(42px,5vw,70px);line-height:1.05;margin:0 0 15px;letter-spacing:-.035em}
 .title-subtitle{font-size:clamp(18px,2vw,23px);margin:0 0 10px;color:var(--muted)}.title-art{display:block;width:auto;max-width:min(630px,100%);height:auto;max-height:37svh;object-fit:contain;margin:20px auto 8px}
 .start-link{display:inline-flex;align-items:center;min-height:44px;margin-top:10px;font:15px/1.5 var(--sans);padding:6px}
-.story-layout{max-width:1500px;margin:auto;padding:0 4vw;display:grid;grid-template-columns:minmax(300px,.78fr) minmax(0,1.22fr);gap:5vw}
-.stage-shell{grid-column:2;grid-row:1;position:sticky;top:64px;height:calc(100svh - 64px);align-self:start;display:flex;flex-direction:column;min-width:0;padding:24px 0 18px;background:#fff}
+.story-layout{max-width:1500px;margin:auto;padding:0 4vw}
+.stage-shell{position:sticky;top:64px;height:72svh;min-height:500px;display:grid;grid-template-columns:minmax(0,1fr) 280px;grid-template-rows:auto minmax(0,1fr) auto;column-gap:24px;row-gap:10px;min-width:0;padding:14px 0 10px;background:#fff;z-index:20;border-bottom:1px solid var(--light-rule)}
 .stage-top{display:flex;justify-content:space-between;gap:16px;font:13px/1.5 var(--sans);color:var(--muted);padding-bottom:10px;border-bottom:1px solid var(--light-rule)}
 #stage-count{flex-shrink:0;white-space:nowrap}
-.visual-area{position:relative;flex:1;min-height:270px;display:flex;align-items:center;justify-content:center;isolation:isolate}.worked-diagram{width:100%;height:100%;min-width:0}
+.visual-area{grid-column:1;grid-row:2;position:relative;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;isolation:isolate}.worked-diagram{width:100%;height:100%;min-width:0}
 .vector-readout{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;min-height:55px;padding:12px 0;border-top:1px solid var(--light-rule);font:14px/1.5 var(--sans);font-variant-numeric:tabular-nums}
 .vector-readout>div{min-width:0}.vector-readout .value{display:block;font-family:'Course Math',math;font-size:20px;color:var(--ink);overflow-wrap:anywhere}.vector-readout .readout-label{font-size:12px;color:var(--muted)}
 .stage-caption{font:14px/1.5 var(--sans);color:var(--muted);min-height:44px;margin:12px 0}
 .stage-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:12px;border-top:1px solid var(--light-rule);font:13px/1.4 var(--sans)}.stage-nav span{color:var(--muted);text-align:center;font-size:12px}.stage-nav button{font:14px/1.4 var(--sans);min-width:78px}
-.narrative{grid-column:1;grid-row:1;min-width:0}.step{min-height:calc(112svh - 64px);display:flex;align-items:center;padding:75px 0}.step>div{max-width:430px}.step h2{font-size:clamp(32px,3.1vw,44px);margin:0 0 24px}.step-number{font:12px/1.5 var(--sans);letter-spacing:.08em;color:var(--blue);margin-bottom:20px}.step p{line-height:1.65}
+.narrative{min-width:0}.step{min-height:90svh;display:flex;align-items:flex-start;padding:30px 0 50px}.step>div{max-width:840px;width:100%;margin:0 auto}.step h2{font-size:clamp(24px,2.1vw,29px);margin:0 0 12px}.step-number{font:12px/1.5 var(--sans);letter-spacing:.08em;color:var(--blue);margin-bottom:10px}.step p{line-height:1.55;margin:0 0 14px}
 .controls{font:14px/1.5 var(--sans);padding:8px 0;border-top:1px solid var(--light-rule)}.worked-controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px 22px}.controls label{display:flex;align-items:center;justify-content:flex-start;gap:10px}.controls output{font-variant-numeric:tabular-nums;color:var(--blue)}
 .controls label[for='worked-progress'],.controls label[for='worked-round']{flex:1 1 100%;justify-content:space-between}.controls input[type=range]{flex:1 1 100%;width:100%;min-height:26px;accent-color:var(--blue);margin:0}.controls select{font-size:14px;min-height:34px;padding:3px 9px}
 .afterword{max-width:810px;margin:40px auto 0;padding:80px 28px;border-top:1px solid var(--rule)}.afterword h2{font-size:clamp(32px,4vw,43px);margin:0 0 30px;max-width:24ch}.afterword h3{font-size:26px;margin-top:38px}.afterword p{margin:0 0 23px}
@@ -121,4 +121,78 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
   #geometry-angle-controls label{font-size:11px}
   .step[data-geometry-scene]{padding-top:20px}
   .step[data-restricted-scene]{padding-top:20px}
+}
+
+/* The diagram leads; each chapter's explanation is a short card beneath it. */
+.stage-top{grid-column:1/-1;grid-row:1;padding-bottom:7px}
+.stage-top #stage-topic{font:17px/1.3 var(--sans);color:var(--ink)}
+.stage-nav{grid-column:1/-1;grid-row:3;padding-top:8px}
+.stage-tools{grid-column:2;grid-row:2;min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 4px 0 16px;border-left:1px solid var(--light-rule);font:13px/1.45 var(--sans)}
+.stage-tools>.controls{border-top:0;padding:0;display:flex;flex-direction:column;align-items:stretch;gap:10px}
+.stage-tools .controls>label,.stage-tools .controls>div{flex:none;width:100%;min-width:0}
+.stage-tools .controls label{font-size:13px;gap:8px}
+.stage-tools .controls select{font-size:13px;min-height:34px;min-width:0;max-width:100%}
+.stage-tools .controls input[type=range]{min-height:26px;margin:1px 0 0}
+.stage-tools .restricted-loss-label{display:block!important;padding:0}
+.stage-tools .restricted-loss-label select{display:block;width:100%;margin-top:4px}
+.stage-tools .restricted-parameter,.stage-tools .restricted-prediction-controls{width:100%}
+.stage-tools .restricted-actions{gap:6px;display:flex;flex-wrap:wrap}
+.stage-tools .restricted-actions button{font-size:13px;min-height:36px;padding:5px 9px}
+.stage-tools .restricted-weights{font-size:11px;line-height:1.4;margin:3px 0 0}
+.stage-tools .restricted-rate{font-size:12px}
+.stage-tools #geometry-angle-controls{display:flex;flex-direction:column;gap:10px}
+.stage-tools #geometry-angle-controls>.geometry-start-label{display:block}
+.stage-tools .geometry-start-label select{display:block;width:100%;margin-top:4px}
+.stage-tools .vector-readout{display:flex;flex-direction:column;flex-wrap:nowrap;gap:9px;min-height:0;border-top:0;padding:10px 0 4px}
+.stage-tools .vector-readout>div{flex:none!important;width:100%}
+.stage-tools .vector-readout .value{font-size:19px;line-height:1.3}
+.stage-tools .vector-readout .readout-label{font-size:11px;line-height:1.3}
+.stage-tools #numbers{border-top:1px solid var(--light-rule);padding:9px 0;margin-top:12px}
+.stage-tools #numbers summary{font:12px/1.5 var(--sans);color:var(--muted);cursor:pointer;min-height:28px}
+.stage-tools #numbers .vector-readout>div{display:block}
+.stage-tools .stage-caption{font:13px/1.45 var(--sans);min-height:0;margin:14px 0 0}
+.stage-shell[data-example] .visual-area{min-height:0}
+.step .step-number{display:none}
+.step>.step-content,.step>div{padding:0 8px}
+.step .step-summary{font-size:19px;line-height:1.55;max-width:70ch}
+.step .equation{font-size:24px;line-height:1.45;margin:14px 0}
+.step details{border-top:1px solid var(--light-rule);margin-top:18px;padding-top:12px}
+.step details summary{font:14px/1.5 var(--sans);color:var(--blue);cursor:pointer;min-height:32px}
+.step details p{font-size:17px;line-height:1.55;margin:14px 0}
+.step details .quiet{font-size:15px}
+.step details .equation{font-size:22px}
+@media(max-width:800px){
+  .story-layout{padding:0 22px}
+  .stage-shell,.stage-shell[data-example],.stage-shell[data-geometry-scene]{position:static;height:auto;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto auto;row-gap:10px;padding:16px 0 14px;border-bottom:1px solid var(--light-rule)}
+  .stage-top{grid-column:1;grid-row:1;font-size:12px;padding-bottom:7px}
+  .stage-top #stage-topic{font-size:15px}
+  .stage-shell .visual-area,.stage-shell[data-example] .visual-area{grid-column:1;grid-row:2;height:clamp(280px,52svh,460px);min-height:0}
+  .stage-tools{grid-column:1;grid-row:3;overflow:visible;min-height:0;padding:12px 0 0;border-left:0;border-top:1px solid var(--light-rule)}
+  .stage-tools>.controls{gap:9px}
+  .stage-tools .controls select{font-size:14px;min-height:38px}
+  .stage-tools .controls label{font-size:13px}
+  .stage-tools .controls input[type=range]{min-height:30px}
+  .stage-tools .restricted-actions button{font-size:13px;min-height:40px;padding:6px 12px}
+  .stage-tools .vector-readout{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px}
+  .stage-tools .vector-readout .value{font-size:17px}
+  .stage-tools .stage-caption,.stage-shell[data-example] .stage-tools .stage-caption{font-size:13px;line-height:1.45;margin:12px 0 0}
+  .stage-nav{grid-column:1;grid-row:4;padding-top:9px}
+  .stage-nav button{min-height:42px;padding:6px 12px}
+  .step,.step[data-geometry-scene],.step[data-restricted-scene],.step[data-loss-scene]{min-height:75svh;align-items:flex-start;padding:28px 0 45px;scroll-margin-top:74px}
+  .step>div{max-width:840px;padding:0}
+  .step h2{font-size:26px;margin-bottom:12px}
+  .step .step-summary{font-size:18px;line-height:1.55}
+  .step .equation{font-size:22px}
+}
+@media(max-width:380px){
+  .story-layout{padding:0 16px}
+  .stage-tools .vector-readout{grid-template-columns:minmax(0,1fr)}
+  .step h2{font-size:24px}
+}
+@media print{
+  .stage-shell{display:none}
+  .step{min-height:0;padding:24px 0}
+  .step>div{padding:0}
+  .step details{border:0;margin:0;padding:0}
+  .step details summary{display:none}
 }

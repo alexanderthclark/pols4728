@@ -10,6 +10,13 @@ and two fitted paths. The chapter closes with an exponential-loss comparison
 and a brief XGBoost extension. The longer geometry sequence remains
 available as a companion.
 
+The figure occupies the full story width, with a compact controls tray on
+desktop and stacked controls on phones. Each chapter has a short summary;
+the original explanation and equations remain under “Why this works.”
+“Show numbers” reveals the numerical vectors without shrinking the plot.
+Desktop scrolling follows the cards beneath the pinned figure. Phone links
+and Previous/Next return to the figure, which scrolls naturally with the page.
+
 The chapter is the second item on the course homepage. GitHub Pages publishes
 it from `docs/boosting/` after the checks pass on `main`.
 To preview, serve the repository root and open `/docs/boosting/`.

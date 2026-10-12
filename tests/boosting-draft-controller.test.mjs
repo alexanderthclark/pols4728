@@ -14,7 +14,7 @@ const lossView = require('../docs/boosting/loss-view.js');
 const html = readFileSync(new URL('../docs/boosting/index.html', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../docs/boosting/story.js', import.meta.url), 'utf8');
 const workedPhysical = local => local + 4;
-const headingTop = physical => 1000 + physical * 1000;
+const stageTop = 400;
 
 // This harness checks real controller events and numerical output. It does not
 // emulate layout, parse generated HTML, or claim to replace browser visual QA.
@@ -22,6 +22,7 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
   let time = 0, nextId = 1;
   let pendingScroll = null;
   const visitedHashes = [];
+  const scrollCalls = [];
   const frames = new Map();
   class Element {
     constructor(tagName = 'DIV') {
@@ -65,11 +66,16 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
   }
   const get = id => nodes.get(id);
   const shell = new Element();
-  const stageHeight = () => !compact ? 736 : !variableStageHeight ? 450
+  const stageHeight = () => !compact ? 500 : !variableStageHeight ? 620
     : shell.dataset.example === 'restricted' ? 660 : Number(shell.dataset.geometryScene) === 2
       || (shell.dataset.example === 'worked' && [3, 5, 6].includes(Number(shell.dataset.workedScene))) ? 528 : 392;
-  shell.getBoundingClientRect = () => ({ top: compact ? 56 : 64, bottom: (compact ? 56 : 64) + stageHeight(), height: stageHeight(), width: compact ? 288 : 640 });
-  get('visual-area').getBoundingClientRect = () => ({ width: compact ? 288 : 640, height: compact ? 260 : 450 });
+  const headingTop = physical => (compact ? stageTop + stageHeight() + 48 : 1000) + physical * 1000;
+  // The phone stage moves with the document; only the wide stage is sticky.
+  shell.getBoundingClientRect = () => {
+    const top = compact ? stageTop - win.scrollY : Math.max(64, stageTop - win.scrollY);
+    return { top, bottom: top + stageHeight(), height: stageHeight(), width: compact ? 288 : 1100 };
+  };
+  get('visual-area').getBoundingClientRect = () => ({ width: compact ? 288 : 790, height: compact ? 340 : 450 });
   const win = new Element();
   const reduced = new Element(); reduced.matches = reducedMotion;
   const narrow = new Element(); narrow.matches = compact;
@@ -80,6 +86,7 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
     matchMedia: query => query.includes('reduced-motion') ? reduced : narrow,
     history: { pushState: (_, __, hash) => visitedHashes.push(hash) },
     scrollTo: ({ top, behavior }) => {
+      scrollCalls.push({ top, behavior });
       if (smoothScroll && behavior === 'smooth') pendingScroll = { from: win.scrollY, to: top };
       else { win.scrollY = top; win.emit('scroll'); }
     }
@@ -92,11 +99,11 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
       element.dataset[name] = attribute[2];
       element.setAttribute('data-' + attribute[1], attribute[2]);
     }
-    element.getBoundingClientRect = () => ({ top: 1000 + Number(match[1]) * 1000 - win.scrollY, height: 800 });
+    element.getBoundingClientRect = () => ({ top: headingTop(Number(match[1])) - win.scrollY, height: 300 });
     return element;
   });
   const layout = new Element();
-  layout.getBoundingClientRect = () => ({ top: 1000 - win.scrollY, bottom: (1000 + steps.length * 1000) - win.scrollY });
+  layout.getBoundingClientRect = () => ({ top: stageTop - win.scrollY, bottom: headingTop(steps.length) - win.scrollY });
   let afterwordVisits = 0;
   get('other-losses').scrollIntoView = () => { afterwordVisits++; };
   const doc = new Element();
@@ -127,8 +134,9 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
   const click = id => { assert.equal(get(id).disabled, false); get(id).emit('click'); advance(0); };
   const control = (id, value, event = 'input') => { get(id).value = String(value); get(id).emit(event); };
   const scrollAt = index => {
-    const threshold = compact ? shell.getBoundingClientRect().bottom + 65 : win.innerHeight * .52;
-    win.scrollY = 1000 + index * 1000 - threshold + 1;
+    const threshold = compact ? win.innerHeight * .35 : 64 + stageHeight() + 32;
+    win.scrollY = headingTop(index) - threshold + 1;
+    if (compact) win.scrollY = Math.max(win.scrollY, stageTop + stageHeight() - 64 + 1);
     win.emit('scroll'); advance(0);
   };
   const key = (key, target = doc) => { const event = doc.emit('keydown', { key, target }); advance(0); return event; };
@@ -144,8 +152,12 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
     win.scrollY = pendingScroll.from + fraction * (pendingScroll.to - pendingScroll.from);
     win.emit('scroll'); advance(0);
   };
-  return { get, shell, click, clickLink, control, scrollAt, scrollFraction, advance, key, resize, reduced, frames,
+  return { get, shell, click, clickLink, control, scrollAt, scrollFraction, advance, key, resize, reduced, frames, headingTop,
     historyBack: hash => { win.location.hash = hash; win.emit('popstate'); advance(0); },
+    nativeFragment: index => { win.scrollY = headingTop(index) - 64; win.emit('scroll'); },
+    hashChange: () => { win.emit('hashchange'); advance(0); advance(0); },
+    load: () => { win.emit('load'); advance(0); advance(0); }, scrollCalls,
+    scrollBy: distance => { win.scrollY += distance; win.emit('scroll'); advance(0); },
     wheel: () => win.emit('wheel'), scrollEnd: () => win.emit('scrollend'), visitedHashes, scrollY: () => win.scrollY, afterwordVisits: () => afterwordVisits };
 }
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} should equal ${expected}`);
@@ -324,7 +336,7 @@ test('the repeat control includes the baseline and rebuilds fresh gradients thro
   assert.equal(ui.get('worked-controls').hidden, true);
 });
 
-test('backward navigation retains its destination when the pinned stage changes height on a phone', () => {
+test('backward navigation retains its destination when the static stage changes height on a phone', () => {
   const ui = setup({ reducedMotion: true, compact: true, variableStageHeight: true });
   ui.scrollAt(workedPhysical(2));
   ui.click('next');
@@ -337,7 +349,7 @@ test('backward navigation retains its destination when the pinned stage changes 
   assert.equal(Number(ui.shell.dataset.scene), workedPhysical(2));
 });
 
-test('step links show their heading below the phone stage and retain their target through smooth scrolling', () => {
+test('step links return to the phone stage and retain their target through smooth scrolling', () => {
   const ui = setup({ compact: true, variableStageHeight: true, smoothScroll: true });
   ui.scrollAt(workedPhysical(0));
   assert.equal(ui.clickLink('#worked-first-update').defaultPrevented, true);
@@ -346,7 +358,7 @@ test('step links show their heading below the phone stage and retain their targe
   assert.equal(Number(ui.shell.dataset.scene), workedPhysical(3));
   ui.scrollFraction(1);
   assert.equal(Number(ui.shell.dataset.scene), workedPhysical(3));
-  assert.ok(headingTop(workedPhysical(3)) - ui.scrollY() > ui.shell.getBoundingClientRect().bottom, 'The heading is hidden by the pinned figure');
+  close(ui.shell.getBoundingClientRect().top, 64);
   assert.deepEqual(ui.visitedHashes, ['#worked-first-update']);
   ui.click('previous'); ui.scrollFraction(.5);
   assert.equal(Number(ui.shell.dataset.scene), workedPhysical(2));
@@ -371,11 +383,11 @@ test('manual wheel and page scrolling can interrupt an in-flight scene navigatio
   assert.equal(Number(ui.shell.dataset.scene), workedPhysical(0));
 });
 
-test('opening a worked-step hash uses the phone offset, while other-losses keeps native navigation', () => {
+test('opening a worked-step hash returns to the phone stage, while other-losses keeps native navigation', () => {
   const ui = setup({ reducedMotion: true, compact: true, variableStageHeight: true, hash: '#worked-first-update' });
   ui.advance(0); ui.advance(0);
   assert.equal(Number(ui.shell.dataset.scene), workedPhysical(3));
-  assert.ok(headingTop(workedPhysical(3)) - ui.scrollY() > ui.shell.getBoundingClientRect().bottom);
+  close(ui.shell.getBoundingClientRect().top, 64);
   const afterword = setup({ reducedMotion: true, hash: '#other-losses' });
   afterword.advance(0);
   assert.equal(afterword.scrollY(), 0);
@@ -388,7 +400,7 @@ test('history navigation restores the linked step without adding another history
   assert.equal(Number(ui.shell.dataset.scene), workedPhysical(2));
   ui.historyBack('#worked-first-update');
   assert.equal(Number(ui.shell.dataset.scene), workedPhysical(3));
-  assert.ok(headingTop(workedPhysical(3)) - ui.scrollY() > ui.shell.getBoundingClientRect().bottom);
+  close(ui.shell.getBoundingClientRect().top, 64);
   ui.historyBack('');
   assert.equal(Number(ui.shell.dataset.scene), 0);
   assert.deepEqual(ui.visitedHashes, ['#worked-first-fit']);
@@ -405,6 +417,98 @@ test('the end of a cancelled old scroll does not release a newer scene navigatio
   ui.scrollFraction(1); ui.scrollEnd(); ui.resize();
   assert.equal(Number(ui.shell.dataset.scene), workedPhysical(2));
 });
+
+test('wide navigation aligns a short card below the sticky stage and scrolling still advances scenes', () => {
+  const ui = setup({ reducedMotion: true });
+  ui.clickLink('#loss-targets');
+  assert.equal(Number(ui.shell.dataset.scene), 12);
+  close(ui.headingTop(12) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
+  ui.scrollAt(13);
+  assert.equal(Number(ui.shell.dataset.scene), 13);
+  ui.scrollAt(11);
+  assert.equal(Number(ui.shell.dataset.scene), 11);
+});
+
+test('a phone hash stays selected while the figure is visible, and Next returns from manual reading', () => {
+  const ui = setup({ reducedMotion: true, compact: true, variableStageHeight: true, hash: '#loss-targets' });
+  ui.advance(0); ui.advance(0);
+  assert.equal(Number(ui.shell.dataset.scene), 12);
+  close(ui.shell.getBoundingClientRect().top, 64);
+  ui.scrollBy(100); ui.resize();
+  assert.equal(Number(ui.shell.dataset.scene), 12);
+  ui.scrollAt(3);
+  assert.equal(Number(ui.shell.dataset.scene), 3);
+  assert.ok(ui.shell.getBoundingClientRect().bottom <= 64);
+  ui.click('next');
+  assert.equal(Number(ui.shell.dataset.scene), 4);
+  close(ui.shell.getBoundingClientRect().top, 64);
+  ui.resize(); ui.scrollBy(20);
+  assert.equal(Number(ui.shell.dataset.scene), 4);
+  ui.click('previous');
+  assert.equal(Number(ui.shell.dataset.scene), 3);
+  close(ui.shell.getBoundingClientRect().top, 64);
+});
+
+test('the number disclosure remeasures the figure and is hidden for the algorithm recap', () => {
+  const ui = setup({ reducedMotion: true });
+  ui.clickLink('#identical-inputs');
+  assert.equal(ui.get('numbers').hidden, false);
+  assert.match(ui.get('restricted-diagram').innerHTML, /viewBox="0 0 790 450"/);
+  ui.get('visual-area').getBoundingClientRect = () => ({ width: 790, height: 540 });
+  ui.get('numbers').emit('toggle');
+  assert.match(ui.get('restricted-diagram').innerHTML, /viewBox="0 0 790 540"/);
+  assert.equal(Number(ui.shell.dataset.scene), 3);
+  ui.clickLink('#gradient-algorithm');
+  assert.equal(ui.get('numbers').hidden, true);
+  ui.clickLink('#loss-targets');
+  assert.equal(ui.get('numbers').hidden, false);
+});
+
+for (const compact of [false, true]) {
+  test(`late native fragment restoration keeps the initial plot-aware position (${compact ? 'phone' : 'wide'})`, () => {
+    const ui = setup({ compact, smoothScroll: true, hash: '#identical-inputs' });
+    ui.advance(0); ui.advance(0);
+    assert.equal(Number(ui.shell.dataset.scene), 3);
+    assert.equal(ui.scrollCalls.at(-1).behavior, 'instant');
+    ui.nativeFragment(3); ui.load();
+    assert.equal(Number(ui.shell.dataset.scene), 3);
+    assert.equal(ui.scrollCalls.at(-1).behavior, 'instant');
+    if (compact) close(ui.shell.getBoundingClientRect().top, 64);
+    else close(ui.headingTop(3) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
+    ui.click('next');
+    assert.equal(ui.scrollCalls.at(-1).behavior, 'smooth');
+    ui.scrollFraction(1);
+    assert.equal(Number(ui.shell.dataset.scene), 4);
+  });
+}
+
+test('late load does not restore the initial hash after the reader navigates elsewhere', () => {
+  const ui = setup({ reducedMotion: true, hash: '#identical-inputs' });
+  ui.advance(0); ui.advance(0);
+  ui.click('next');
+  const position = ui.scrollY();
+  const requests = ui.scrollCalls.length;
+  ui.load();
+  assert.equal(Number(ui.shell.dataset.scene), 4);
+  assert.equal(ui.scrollY(), position);
+  assert.equal(ui.scrollCalls.length, requests);
+});
+
+for (const compact of [false, true]) {
+  test(`same-document hash navigation restores plot placement after the native scroll (${compact ? 'phone' : 'wide'})`, () => {
+    const ui = setup({ compact, smoothScroll: true, hash: '#identical-inputs' });
+    ui.advance(0); ui.advance(0);
+    ui.historyBack('#loss-targets');
+    ui.nativeFragment(12); ui.hashChange();
+    assert.equal(Number(ui.shell.dataset.scene), 12);
+    assert.equal(ui.scrollCalls.at(-1).behavior, 'instant');
+    if (compact) close(ui.shell.getBoundingClientRect().top, 64);
+    else close(ui.headingTop(12) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
+    const requests = ui.scrollCalls.length;
+    ui.historyBack('#other-losses'); ui.hashChange();
+    assert.equal(ui.scrollCalls.length, requests, 'Reading-only anchors keep native navigation');
+  });
+}
 
 const geometryAttribute = (ui, name) => new RegExp(`data-${name}="([^"]+)"`).exec(ui.get('prediction-diagram').innerHTML)?.[1];
 const geometryLoss = ui => Number(geometryAttribute(ui, 'loss'));
@@ -651,7 +755,7 @@ test('two-observation loss parameters persist independently of the later loss co
   assert.equal(ui.get('restricted-prediction').value, '0.3');
 });
 
-test('phone navigation keeps both inserted-scene boundaries below the changed stage height', () => {
+test('phone navigation returns to the stage across both inserted-scene boundaries', () => {
   const ui = setup({ compact: true, variableStageHeight: true, smoothScroll: true });
   ui.scrollAt(1);
   for (const destination of [2, 3, workedPhysical(0)]) {
@@ -659,14 +763,14 @@ test('phone navigation keeps both inserted-scene boundaries below the changed st
     assert.equal(Number(ui.shell.dataset.scene), destination);
     ui.scrollFraction(1); ui.resize();
     assert.equal(Number(ui.shell.dataset.scene), destination);
-    assert.ok(headingTop(destination) - ui.scrollY() > ui.shell.getBoundingClientRect().bottom);
+    close(ui.shell.getBoundingClientRect().top, 64);
   }
   for (const destination of [3, 2]) {
     ui.click('previous'); ui.scrollFraction(.5);
     assert.equal(Number(ui.shell.dataset.scene), destination);
     ui.scrollFraction(1); ui.resize();
     assert.equal(Number(ui.shell.dataset.scene), destination);
-    assert.ok(headingTop(destination) - ui.scrollY() > ui.shell.getBoundingClientRect().bottom);
+    close(ui.shell.getBoundingClientRect().top, 64);
   }
 });
 
@@ -675,7 +779,7 @@ test('the identical-input hash opens the new scene before the worked-data hash',
   ui.advance(0); ui.advance(0);
   assert.equal(Number(ui.shell.dataset.scene), 3);
   assert.equal(ui.shell.dataset.example, 'restricted');
-  assert.ok(headingTop(3) - ui.scrollY() > ui.shell.getBoundingClientRect().bottom);
+  close(ui.shell.getBoundingClientRect().top, 64);
   ui.clickLink('#worked-data');
   assert.equal(Number(ui.shell.dataset.scene), workedPhysical(0));
   assert.equal(ui.shell.dataset.example, 'worked');
