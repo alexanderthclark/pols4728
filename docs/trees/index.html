@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Fit trees to delivery-time residuals, follow boosting toward near-zero training error, and see how prediction curves become partition maps with two predictors.">
+  <title>Forward stagewise additive modeling — POLS 4728</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="../shared/boosting-math.js" defer></script>
+  <script src="delivery.js" defer></script>
+  <script src="delivery-view.js" defer></script>
+  <script src="model.js" defer></script>
+  <script src="growth.js" defer></script>
+  <script src="growth-view.js" defer></script>
+  <script src="story.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#story">Skip to the explanation</a>
+  <header class="masthead">
+    <a href="../">POLS 4728 <span>· ML &amp; AI</span></a>
+    <nav aria-label="Page navigation"><a href="#story">Trees &amp; corrections</a><a href="#further-reading">Further reading</a></nav>
+  </header>
+  <div class="reading-progress" aria-hidden="true"><span id="progress"></span></div>
+
+  <main>
+    <section class="title-page" aria-labelledby="page-title">
+      <div class="title-content">
+        <p class="eyebrow">MACHINE LEARNING &amp; AI FOR THE SOCIAL SCIENCES</p>
+        <h1 id="page-title">Forward stagewise additive modeling</h1>
+        <svg class="title-art" viewBox="0 0 650 238" aria-hidden="true" focusable="false">
+          <path d="M50 36v160h520" fill="none" stroke="#767676" stroke-width="1.2"/>
+          <path d="M50 100h520" fill="none" stroke="#767676" stroke-width="2" stroke-dasharray="7 5"/>
+          <path d="M50 148h140v-32h180V52h200" fill="none" stroke="#234E70" stroke-width="3"/>
+          <g fill="#242424" stroke="#fff" stroke-width="1.5"><circle cx="90" cy="148" r="5"/><circle cx="170" cy="148" r="5"/><circle cx="210" cy="108" r="5"/><circle cx="290" cy="108" r="5"/><circle cx="330" cy="108" r="5"/><circle cx="410" cy="60" r="5"/><circle cx="450" cy="60" r="5"/><circle cx="530" cy="60" r="5"/></g>
+          <g class="title-art-label"><text x="50" y="23">Delivery time</text><text x="388" y="91">12-minute starting prediction</text><text x="310" y="224" text-anchor="middle">Distance</text></g>
+        </svg>
+        <a class="start-link" href="#story">Start explanation <span aria-hidden="true">↓</span></a>
+      </div>
+    </section>
+
+    <div class="story-layout" id="story">
+      <aside class="stage-shell" aria-label="Interactive tree and partition diagrams" data-scene="0">
+        <div class="stage-top"><span id="stage-topic">Predict delivery time</span><span id="stage-count">01 / 10</span></div>
+        <h2 id="visual-heading" class="visual-heading" hidden>Predict delivery time</h2>
+        <p id="stage-equation" class="stage-equation math" hidden></p>
+        <div id="diagram" class="diagram" aria-label="Current tree and its predictions"></div>
+        <p id="stage-caption" class="stage-caption">The initial prediction is the mean of the eight observed delivery times.</p>
+        <div id="process-controls" class="process-controls" aria-label="Work through the correction" hidden>
+          <div class="process-status"><span id="process-label" role="status" aria-live="polite">Measure the errors</span></div>
+          <div class="process-actions">
+            <button id="process-back" type="button" disabled>Previous action</button>
+            <button id="process-next" type="button">Next action</button>
+            <button id="process-replay" type="button">Replay sequence</button>
+          </div>
+          <div class="process-timeline"><label for="process-progress">Animation progress</label><input id="process-progress" type="range" min="0" max="3" step="0.01" value="0"></div>
+        </div>
+        <div id="candidate-controls" class="candidate-controls" hidden>
+          <details id="candidate-details">
+            <summary>How was this split chosen?</summary>
+            <div class="candidate-panel">
+              <div class="candidate-label"><label for="candidate-cut">Candidate cut</label><output id="candidate-value" for="candidate-cut">8 km</output></div>
+              <input id="candidate-cut" type="range" min="0" max="6" step="1" value="4">
+              <p id="candidate-description">Move the cut to compare the squared error after fitting the mean residual in each leaf.</p>
+            </div>
+          </details>
+        </div>
+        <div id="continuation-controls" class="continuation-controls" aria-label="Inspect later boosting rounds" hidden>
+          <button id="continuation-back" type="button" disabled>Previous round</button>
+          <span id="continuation-label">After 2 trees</span>
+          <button id="continuation-next" type="button">Next round</button>
+        </div>
+        <div id="growth-controls" class="growth-controls" aria-label="Build the fitted models" hidden>
+          <span id="growth-label" role="status" aria-live="polite">0 splits</span>
+          <div class="growth-actions"><button id="growth-back" type="button" disabled>Previous split</button><button id="growth-next" type="button">Next split</button><button id="growth-replay" type="button">Replay</button></div>
+        </div>
+        <div id="calculation" class="calculation" role="status" aria-live="polite" aria-atomic="true"></div>
+        <nav class="stage-nav" aria-label="Explanation steps"><button id="previous" type="button" disabled>Previous</button><a class="notes-link" href="#further-reading">Further reading</a><button id="next" type="button">Next</button></nav>
+      </aside>
+
+      <div class="scroll-track" aria-hidden="true">
+        <section class="step" id="delivery-baseline" data-step="0"></section>
+        <section class="step" id="fit-first-correction" data-step="1"></section>
+        <section class="step" id="add-first-correction" data-step="2"></section>
+        <section class="step" id="fit-second-correction" data-step="3"></section>
+        <section class="step" id="add-second-correction" data-step="4"></section>
+        <section class="step" id="keep-fitting" data-step="5"></section>
+        <section class="step" id="two-predictors" data-step="6"></section>
+        <section class="step" id="grow-one-tree" data-step="7"></section>
+        <section class="step" id="add-stumps" data-step="8"></section>
+        <section class="step" id="compare-models" data-step="9"></section>
+      </div>
+    </div>
+
+    <section class="afterword" id="further-reading" aria-labelledby="reading-heading">
+      <h2 id="reading-heading">Further reading</h2>
+      <p>Susan Athey and Guido W. Imbens (2019), <a href="https://arxiv.org/abs/1903.10075">“Machine Learning Methods Economists Should Know About”</a>.</p>
+      <p>Trevor Hastie, Robert Tibshirani, and Jerome Friedman (2009), <a href="https://hastie.su.domains/ElemStatLearn/">The Elements of Statistical Learning</a>, 2nd edition, Chapter 10: “Boosting and Additive Trees.”</p>
+    </section>
+  </main>
+  <footer><a href="../">ML &amp; AI for the Social Sciences</a><a href="#page-title">Back to the beginning</a></footer>
+  <noscript><p class="no-script">Enable JavaScript to explore the tree diagrams, step functions, and partition maps. The further reading links are available above.</p></noscript>
+</body>
+</html>
