@@ -21,6 +21,7 @@
   const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
   const number = (value, fallback) => Number.isFinite(value) ? value : fallback;
   const sub = value => String(value).replace(/\d/g, digit => '₀₁₂₃₄₅₆₇₈₉'[digit]);
+  const predictionLabel = q => q.scene === 0 ? `F${sub(q.round)}` : q.scene === 1 && q.progress === 1 ? `F${sub(q.round + 1)}` : 'F′';
 
   // A deterministic plane through F and y. Its orthonormal basis preserves
   // lengths when a two-dimensional trial step is lifted into prediction space.
@@ -75,9 +76,9 @@
     }).join(', ') + ')' : vector(values);
     return [
       ['Observed vector y', displayedVector(q.target), C.rust],
-      [scene === 0 ? `Prediction F${sub(q.round)}` : scene === 1 ? 'Updated prediction F′' : 'Trial prediction F′', displayedVector(q.prediction), C.blue],
-      [scene === 0 ? 'Gradient ∇L(F) = F − y' : 'Gradient at F′', displayedVector(q.gradient), C.rust],
-      [scene === 2 ? 'Trial norm; trial loss' : 'Residual norm; loss ½‖r‖²', `${fmt(q.norm)}; ${fmt(q.loss)}`, C.ink]
+      [scene === 0 ? `Prediction F${sub(q.round)}` : scene === 1 ? `Updated prediction ${predictionLabel(q)}` : 'Trial prediction F′', displayedVector(q.prediction), C.blue],
+      [scene === 0 ? 'Gradient ∇L(F) = F − y' : `Gradient at ${predictionLabel(q)}`, displayedVector(q.gradient), C.rust],
+      [scene === 1 ? 'Loss before → after; residual norm' : scene === 2 ? 'Trial norm; trial loss' : 'Residual norm; loss ½‖r‖²', scene === 1 ? `${fmt(q.beforeLoss)} → ${fmt(q.loss)}; ${fmt(q.norm)}` : `${fmt(q.norm)}; ${fmt(q.loss)}`, C.ink]
     ];
   }
 
@@ -95,7 +96,7 @@
     const q = resolve(scene, state);
     let caption;
     if (scene === 0) caption = `${q.round} ${q.round === 1 ? 'tree' : 'trees'} at α = ${fmt(q.rate)}. The target y stays fixed; each tree is refitted to y − F. Arrow lengths here are projected; the displayed norm is computed in three dimensions.`;
-    if (scene === 1) caption = `Fit h = ${vector(q.tree.values)} to the current negative gradient, then add ${fmt(q.progress)} × αh. The moving residual and gradient are evaluated at F′.`;
+    if (scene === 1) caption = `Update ${q.round + 1}: F${sub(q.round)} → ${predictionLabel(q)}. Refit h${sub(q.round + 1)} = ${vector(q.tree.values)} to the current negative gradient; add ${fmt(q.progress)} × αh${sub(q.round + 1)}. Loss ${fmt(q.beforeLoss)} → ${fmt(q.loss)}.`;
     if (scene === 2) {
       const change = trialLossChange(q);
       const outcome = change < 0 ? 'The trial step reduces loss.' : change > 0 ? 'The trial step increases loss.' : 'The trial step leaves loss unchanged.';
@@ -104,7 +105,7 @@
     }
     if (Number.isFinite(state.width) && state.width < 400) {
       if (scene === 0) caption = `${q.round} trees; α = ${fmt(q.rate)}. y stays fixed. Gradient and norm use the displayed prediction.`;
-      if (scene === 1) caption = `h = ${vector(q.tree.values)}; add ${fmt(q.progress)} × αh. The gradient is evaluated at F′.`;
+      if (scene === 1) caption = `Update ${q.round + 1}: F${sub(q.round)} → ${predictionLabel(q)}. Refit h${sub(q.round + 1)} = ${vector(q.tree.values)}; add ${fmt(q.progress)} × αh${sub(q.round + 1)}. Loss ${fmt(q.beforeLoss)} → ${fmt(q.loss)}.`;
       if (scene === 2) {
         const change = trialLossChange(q);
         const outcome = change < 0 ? 'Loss decreases' : change > 0 ? 'Loss increases' : 'Loss is unchanged';
@@ -170,7 +171,7 @@
       body += arrow(base, full, C.teal, 'stroke-dasharray="2 5" opacity=".45" class="prediction-full-tree"');
       body += arrow(base, current, C.teal, 'stroke-width="3" class="prediction-scaled-tree"');
       body += dot(base, C.blue, 3, 'class="prediction-base"');
-      body += text([full[0] + 8, full[1] - 8], 'h', `class="pv-math" style="fill:${C.teal}"`);
+      body += text([full[0] + 8, full[1] - 8], `h${sub(q.round + 1)}`, `class="pv-math" style="fill:${C.teal}"`);
       body += text([base[0] - 8, base[1] + 18], `F${sub(q.round)}`, `text-anchor="end" class="pv-math" style="fill:${C.blue}"`);
     }
     const gradientEnd = project(M.add(q.prediction, q.gradient));
@@ -183,7 +184,7 @@
     }
     body += diamond(observed) + text([observed[0] + 9, observed[1] - 10], 'y = (1, −1, 1)', `class="pv-math" style="fill:${C.rust}" text-anchor="${observed[0] > W - 120 ? 'end' : 'start'}"`);
     body += dot(current, C.blue, 4.5, 'class="prediction-current"');
-    const label = q.scene === 0 ? `F${sub(q.round)}` : 'F′';
+    const label = predictionLabel(q);
     body += text([current[0] + 8, current[1] + 20], label, `class="pv-math" style="fill:${C.blue}"`);
     if (q.scene === 0 && q.round === 0) body += text([origin[0] - 8, origin[1] + 19], '= 0', 'class="pv-small" text-anchor="end"');
     body += text([W / 2, H - 4], `‖r‖ = ${fmt(q.norm)}     L = ½‖r‖² = ${fmt(q.loss)}`, 'class="pv-small" text-anchor="middle"');
@@ -246,6 +247,7 @@
     const attributes = {
       scene, 'geometry-scene': scene, y: JSON.stringify(q.target), target: JSON.stringify(q.target), f: JSON.stringify(q.prediction), prediction: JSON.stringify(q.prediction),
       residual: JSON.stringify(q.residual), gradient: JSON.stringify(q.gradient), 'base-gradient': JSON.stringify(q.baseGradient),
+      tree: JSON.stringify(q.tree.values),
       norm: q.norm, loss: q.loss, radius: q.radius, 'before-loss': q.beforeLoss, step: JSON.stringify(q.step),
       'step-norm': q.stepNorm, orientation: q.orientation, 'effective-angle': q.effectiveAngle, round: q.round, rate: q.rate, progress: q.progress
     };

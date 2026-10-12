@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Follow gradient boosting from a loss function to negative-gradient targets, fitted trees, scaled corrections, and a worked sequence of prediction updates.">
   <title>Gradient Boosting</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=iterative-updates">
   <script src="../shared/boosting-math.js" defer></script>
-  <script src="prediction-view.js" defer></script>
+  <script src="prediction-view.js?v=iterative-updates" defer></script>
   <script src="restricted-view.js" defer></script>
   <script src="worked-example.js" defer></script>
   <script src="worked-view.js" defer></script>
   <script src="loss-example.js" defer></script>
   <script src="loss-view.js" defer></script>
-  <script src="story.js?v=15-scenes" defer></script>
+  <script src="story.js?v=iterative-updates" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#reading">Skip to the explanation</a>
@@ -35,12 +35,12 @@
     </section>
     <div class="story-layout" id="story">
       <aside class="stage-shell" data-example="geometry" aria-label="Interactive gradient-boosting diagram">
-        <div class="stage-top"><span id="stage-topic">The outcome vector stays fixed</span><span id="stage-count">01 / 15</span></div>
+        <div class="stage-top"><span id="stage-topic">The outcome vector stays fixed</span><div id="geometry-tree-controls" class="geometry-tree-actions" hidden><button id="geometry-previous-tree" type="button">Previous tree</button><button id="geometry-next-tree" type="button">Next tree</button></div><span id="stage-count">01 / 15</span></div>
         <div class="visual-area" id="visual-area"><div id="prediction-diagram" class="prediction-diagram" aria-label="Prediction vectors and gradient geometry"></div><div id="restricted-diagram" class="restricted-diagram" hidden aria-label="Identical-input prediction geometry"></div><div id="worked-diagram" class="worked-diagram" hidden aria-label="Gradient-boosting calculation"></div><div id="loss-diagram" class="loss-diagram" hidden aria-label="Loss-dependent targets, splits, leaf corrections, and fitted paths"></div></div>
         <div class="stage-tools">
         <div class="controls geometry-controls" id="geometry-controls">
           <div id="geometry-path-controls">
-            <label for="geometry-round">Trees added <output id="geometry-round-value" for="geometry-round">0</output></label>
+            <label for="geometry-round"><span id="geometry-round-label">Trees added</span> <output id="geometry-round-value" for="geometry-round">0</output></label>
             <input id="geometry-round" type="range" min="0" max="24" step="1" value="0">
           </div>
           <label for="geometry-rate" id="geometry-rate-label">Learning rate α <select id="geometry-rate"><option value="0.25">1/4</option><option value="0.5" selected>1/2</option><option value="1">1</option></select></label>
@@ -101,13 +101,13 @@
         </div></section>
         <section class="step" id="vector-correction" data-step="1" data-geometry-scene="1" aria-labelledby="heading-1"><div>
           <h2 id="heading-1">Fit a correction</h2>
-          <p class="step-summary">A stump approximates the negative gradient with shared leaf values. Move the correction slider to add its scaled update and watch the prediction and loss change.</p>
+          <p class="step-summary">Each new stump fits the current negative gradient. Step through successive trees to trace the prediction path, or move the correction slider to examine one update.</p>
           <details class="step-notes"><summary>Why this works</summary><div>
           <p>The desired change is <span class="math">−∇L(F) = y − F</span>. We cannot independently set every prediction when the next learner is a small tree. Fit a stump to these negative-gradient targets and add a scaled correction.</p>
           <p>At the zero model, the first stump predicts <span class="math">h₁ = (1, 0, 0)</span>. With learning rate <span class="math">α = ½</span>, its update is</p>
           <p class="equation math">F₁ = F₀ + ½h₁ = (½, 0, 0).</p>
           <p>The residual becomes <span class="math">(½, −1, 1)</span>. Its norm falls from <span class="math">√3</span> to <span class="math">3/2</span>, so half-squared loss falls from <span class="math">3/2</span> to <span class="math">9/8</span>.</p>
-          <p>Use the correction slider to move from the starting model to the updated prediction. The observed outcomes stay fixed, and the gradient is recalculated at the displayed prediction. The tree remains the one fitted at the start of this step.</p>
+          <p>Use “Next tree” to advance through successive updates. Each tree is refitted to the negative gradient at its starting prediction, and the blue path keeps the earlier predictions visible. Choose a starting round to jump through the sequence, or use the correction slider to examine one update. The observed outcomes stay fixed, and the gradient is recalculated at the displayed prediction. While you scrub an update, its tree remains the one fitted at the start of that round.</p>
           <p class="quiet">The figure uses the round and learning rate selected in the preceding view. These numbers describe its initial setting.</p>
           </div></details>
         </div></section>

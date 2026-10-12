@@ -94,6 +94,8 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
 .geometry-controls{display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px}
 .geometry-controls>div{flex:1 1 100%}
 .geometry-controls>div>label{justify-content:space-between}
+.geometry-tree-actions{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}
+.geometry-tree-actions button{font:13px/1.4 var(--sans);min-height:36px;padding:5px 9px}
 #geometry-rate-label{order:-1}
 @media(max-width:800px){
   .stage-shell[data-example='geometry']{height:60svh;min-height:500px}
@@ -157,6 +159,8 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
   .stage-shell,.stage-shell[data-example],.stage-shell[data-geometry-scene]{position:static;height:auto;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto auto;row-gap:10px;padding:16px 0 14px;border-bottom:1px solid var(--light-rule)}
   .stage-top{grid-column:1;grid-row:1;font-size:12px;padding-bottom:7px}
   .stage-top #stage-topic{font-size:15px}
+  .stage-top:has(.geometry-tree-actions:not([hidden])){flex-wrap:wrap}
+  .stage-top .geometry-tree-actions{order:3;width:100%;margin-left:0}
   .stage-shell .visual-area,.stage-shell[data-example] .visual-area{grid-column:1;grid-row:2;height:clamp(280px,52svh,460px);min-height:0}
   .stage-tools{grid-column:1;grid-row:3;overflow:visible;min-height:0;padding:12px 0 0;border-left:0;border-top:1px solid var(--light-rule)}
   .stage-tools>.controls{gap:9px}

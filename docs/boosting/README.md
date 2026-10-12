@@ -75,8 +75,13 @@ extension, not the implementation used in the interactive calculation.
 
 The opening vector geometry uses `x = [1, 2, 3]`, `y = [1, -1, 1]`, zero baseline,
 and learning rate 0.5. Its orthographic axes are training-point predictions.
-The two opening scenes show fitted-tree states and correction progress,
-then proceed directly to the two-observation example. Neither apparent
+The first scene selects how many trees have been added. In “Fit and scale a
+correction,” Previous tree and Next tree select successive updates, each refitted
+to the new negative gradient. The starting-round slider jumps to any of the
+first 25 updates; selecting another round resets correction progress to 100%,
+while the progress slider shows a partial update within that round. Both scenes
+share the learning rate and round selection, then proceed directly to the
+two-observation example. Neither apparent
 projected angles nor falling training loss establish predictive performance
 on new observations.
 

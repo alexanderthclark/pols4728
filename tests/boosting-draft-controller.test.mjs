@@ -543,6 +543,8 @@ test('geometry controls move the original three-vector path and expose the resid
   const ui = setup({ reducedMotion: true });
   assert.equal(ui.get('geometry-controls').hidden, false);
   assert.equal(ui.get('geometry-path-controls').hidden, false);
+  assert.equal(ui.get('geometry-round-label').textContent, 'Trees added');
+  assert.equal(ui.get('geometry-tree-controls').hidden, true);
   assert.equal(ui.get('geometry-update-controls').hidden, true);
   assert.equal(ui.get('worked-controls').hidden, true);
   close(Number(geometryAttribute(ui, 'norm')), Math.sqrt(3));
@@ -557,7 +559,9 @@ test('geometry controls move the original three-vector path and expose the resid
   ui.control('geometry-round', 0);
   ui.click('next');
   assert.equal(Number(ui.shell.dataset.scene), 1);
-  assert.equal(ui.get('geometry-path-controls').hidden, true);
+  assert.equal(ui.get('geometry-path-controls').hidden, false);
+  assert.equal(ui.get('geometry-round-label').textContent, 'Starting round');
+  assert.equal(ui.get('geometry-tree-controls').hidden, false);
   assert.equal(ui.get('geometry-update-controls').hidden, false);
   close(geometryLoss(ui), 1.125);
   ui.control('geometry-progress', .5);
@@ -568,6 +572,70 @@ test('geometry controls move the original three-vector path and expose the resid
   assert.equal(ui.shell.dataset.example, 'restricted');
   assert.equal(ui.get('geometry-controls').hidden, true);
   assert.equal(ui.get('restricted-controls').hidden, false);
+});
+
+test('successive vector corrections refit the tree and gradient, while earlier updates remain selectable', () => {
+  const ui = setup({ reducedMotion: true });
+  ui.scrollAt(1);
+  const vectorAttribute = name => JSON.parse(geometryAttribute(ui, name));
+  assert.equal(ui.get('geometry-previous-tree').disabled, true);
+  assert.equal(ui.get('geometry-next-tree').disabled, false);
+  assert.deepEqual(vectorAttribute('tree'), [1, 0, 0]);
+  assert.deepEqual(vectorAttribute('prediction'), [.5, 0, 0]);
+  close(geometryLoss(ui), 1.125);
+
+  // Refitting after F1 changes both the split and leaf values; repeating h1
+  // would instead put the next point at (1, 0, 0).
+  ui.click('geometry-next-tree');
+  assert.equal(ui.get('geometry-round').value, '1');
+  assert.equal(ui.get('geometry-previous-tree').disabled, false);
+  assert.deepEqual(vectorAttribute('tree'), [-.25, -.25, 1]);
+  assert.deepEqual(vectorAttribute('prediction'), [.375, -.125, .5]);
+  assert.deepEqual(vectorAttribute('gradient'), [-.625, .875, -.5]);
+  close(geometryLoss(ui), .703125);
+  close(Number(geometryAttribute(ui, 'before-loss')), 1.125);
+
+  ui.control('geometry-progress', .5);
+  assert.deepEqual(vectorAttribute('prediction'), [.4375, -.0625, .25]);
+  ui.click('geometry-previous-tree');
+  assert.equal(ui.get('geometry-progress').value, '1');
+  assert.deepEqual(vectorAttribute('prediction'), [.5, 0, 0]);
+  close(geometryLoss(ui), 1.125);
+  assert.equal(ui.get('geometry-previous-tree').disabled, true);
+
+  // Jumping to another start commits a complete displayed correction. The
+  // scrubber still provides a partial update within that selected round.
+  ui.control('geometry-progress', .25);
+  ui.control('geometry-round', 2);
+  assert.equal(ui.get('geometry-progress').value, '1');
+  assert.deepEqual(vectorAttribute('tree'), [.625, -.1875, -.1875]);
+  assert.deepEqual(vectorAttribute('prediction'), [.6875, -.21875, .40625]);
+  close(geometryLoss(ui), .5302734375);
+  ui.control('geometry-progress', 0);
+  assert.deepEqual(vectorAttribute('prediction'), [.375, -.125, .5]);
+  close(geometryLoss(ui), .703125);
+  ui.control('geometry-progress', 1);
+
+  for (const button of ['geometry-previous-tree', 'geometry-next-tree']) {
+    assert.equal(ui.get(button).tagName, 'BUTTON');
+    const focusedKey = ui.key('ArrowRight', ui.get(button));
+    assert.notEqual(focusedKey.defaultPrevented, true);
+    assert.equal(Number(ui.shell.dataset.scene), 1);
+    assert.equal(ui.get('geometry-round').value, '2');
+  }
+  ui.control('geometry-round', 24);
+  assert.equal(ui.get('geometry-next-tree').disabled, true);
+  assert.equal(ui.get('geometry-previous-tree').disabled, false);
+  assert.ok(geometryLoss(ui) < .001);
+  ui.click('geometry-previous-tree');
+  assert.equal(ui.get('geometry-round').value, '23');
+  assert.equal(ui.get('geometry-next-tree').disabled, false);
+  ui.click('geometry-next-tree');
+  assert.equal(ui.get('geometry-round').value, '24');
+  assert.equal(ui.get('geometry-next-tree').disabled, true);
+  ui.control('geometry-round', 0);
+  assert.equal(ui.get('geometry-previous-tree').disabled, true);
+  assert.deepEqual(vectorAttribute('prediction'), [.5, 0, 0]);
 });
 
 test('legacy radius links skip directly to the identical-input example', () => {

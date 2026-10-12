@@ -114,8 +114,11 @@
     delete stage.dataset.restrictedScene;
     delete stage.dataset.sharedPrediction;
     if (current.geometry) {
-      $('geometry-path-controls').hidden = index !== 0;
+      $('geometry-round-label').textContent = index === 0 ? 'Trees added' : 'Starting round';
+      $('geometry-tree-controls').hidden = index !== 1;
       $('geometry-update-controls').hidden = index !== 1;
+      $('geometry-previous-tree').disabled = geometryState.round === 0;
+      $('geometry-next-tree').disabled = geometryState.round === 24;
       $('geometry-round').value = String(geometryState.round);
       $('geometry-round-value').textContent = String(geometryState.round);
       $('geometry-rate').value = String(geometryState.rate);
@@ -332,8 +335,16 @@
 
   $('geometry-round').addEventListener('input', () => {
     geometryState.round = Math.max(0, Math.min(24, Math.round(Number($('geometry-round').value))));
+    geometryState.progress = 1;
     render();
   });
+  function moveTree(direction) {
+    geometryState.round = Math.max(0, Math.min(24, geometryState.round + direction));
+    geometryState.progress = 1;
+    render();
+  }
+  $('geometry-previous-tree').addEventListener('click', () => moveTree(-1));
+  $('geometry-next-tree').addEventListener('click', () => moveTree(1));
   $('geometry-rate').addEventListener('change', () => {
     geometryState.rate = Number($('geometry-rate').value);
     render();
