@@ -1,90 +1,82 @@
-# Boosting, one step at a time
+# Gradient boosting, one step at a time
 
-An unpublished static scrollytelling draft about gradient descent in function
-space. This chapter is kept outside the `docs` directory published by GitHub
-Pages. To preview it locally, serve the repository root with a static HTTP
-server and open `/unpublished/boosting/`. No build step or external JavaScript
-dependencies.
+An unpublished scrollytelling chapter about gradient boosting. Its main path
+starts with a loss and a constant prediction, differentiates training-point
+predictions, fits trees to negative-gradient targets, and adds scaled
+corrections. Eight scenes develop the four-observation example from sections
+1.4.2–1.4.3 of the boosting notes, followed by other losses and a brief XGBoost
+extension. Prediction-space geometry is an optional companion.
+
+The chapter stays outside the `docs` directory published by GitHub Pages.
+To preview, serve the repository root and open `/unpublished/boosting/`.
+No build step or external JavaScript dependencies are required.
 
 ## Construction
 
-- `index.html` contains the full explanation, MathML, references and controls.
-- `../../docs/shared/boosting-math.js` is the canonical shared math module. It
-  fits least-squares regression stumps and calculates exact vectors and losses
-  for this draft and the public tree explainer. It supports both the browser
-  and Node.js tests.
-- `story.js` renders SVG scenes, follows the narrative while scrolling, and
-  handles the experiment controls. Previous/Next buttons also navigate scenes;
-  left/right arrow keys work when focus is outside an interactive control.
-- `worked-example.js` builds the appended four-observation calculation from
-  section 1.4.3 of the boosting notes. It uses the shared stump-fitting module
-  without changing the earlier geometric example or the published tree page.
-- `worked-view.js` shows the four observed responses, prediction gradients,
-  candidate split tables, and two cumulative model updates.
-- `style.css` follows the course design guide. The existing STIX math font is
-  loaded from the Shapley explainer's local font asset.
+- `index.html` contains the main explanation, numerical example, controls,
+  general algorithm, and loss comparison.
+- `story.js` follows the eight narrative steps and handles split inspection,
+  update progress, learning rate, later rounds, and navigation.
+- `worked-example.js` builds immutable gradient-boosting states using the
+  unchanged `../../docs/shared/boosting-math.js` stump-fitting module.
+- `worked-view.js` renders response plots, gradients, candidate split tables,
+  prediction updates, later fitted rounds, and the general learning loop.
+- `style.css` follows the course design guide and supports phone layouts.
+- `geometry.html`, `geometry.js`, and `geometry.css` preserve the earlier
+  three-observation prediction-space construction as a linked supplement.
 
-The earlier geometric example uses `x = [1, 2, 3]`, `y = [1, -1, 1]`, an explicit zero
-baseline, and learning rate 0.5. Each next stump is fit to freshly computed
-residuals. Ties select the first sorted candidate threshold. Slider paths
-recompute all trees when the learning rate changes.
+The main example uses `x = [1, 2, 3, 4]`, `y = [0, 2, 1, 5]`, and mean
+prediction `F0 = 2`. With learning rate 1, the first two stumps split at 3.5 and
+1.5, and total half-squared loss falls from 7 to 1 to 1/3. The gradient has
+one entry per training prediction; inputs and outcomes stay fixed. Split
+comparisons use residual-fitting SSE, which differs from the model's
+half-squared loss. A shared leaf correction can worsen an individual
+prediction while reducing total loss.
 
-The appended worked section uses `x = [1, 2, 3, 4]`, `y = [0, 2, 1, 5]`, and
-the mean prediction `f0 = 2`. With learning rate 1, its two stumps split at
-3.5 and then 1.5, and total half-squared loss falls from 7 to 1 to 1/3.
-The gradient has four entries because it differentiates the four predictions,
-holding observed inputs and responses fixed. Candidate tables report the SSE
-for fitting the current residuals; this differs from the model's half-squared
-loss. Shared leaf corrections can worsen an individual prediction while
-improving the aggregate objective.
+At learning rate 0.5, both rounds are rebuilt from the baseline. Their losses
+are 7, 5/2, and 11/8. The second round ties at cuts 1.5 and 3.5; the first
+sorted cut wins. The later-round control continues the same four-observation
+model through 24 freshly fitted corrections rather than introducing a new
+example.
 
-Selecting learning rate 0.5 rebuilds both rounds from the mean baseline and
-fits the second tree to its newly computed residuals. The loss sequence becomes
-7, 5/2, and 11/8. The second round has an exact tie between splits 1.5 and 3.5;
-the shared fitting routine deterministically chooses 1.5, the first sorted
-threshold. The two-round states, trees, and candidate rows are immutable.
+Negative-gradient targets equal ordinary residuals for half-squared error.
+For general differentiable losses, fitting those targets chooses tree regions;
+leaf corrections minimize the original loss within each region. The other-loss
+section illustrates exponential loss for binary labels. XGBoost is a brief
+extension, not the implementation used in the interactive calculation.
 
-The three-axis picture is an orthographic projection of prediction vectors.
-Axes correspond to training observations, not input features. Its apparent
-angles are not used to establish descent. A separate flat, equal-scale
-experiment shows both orientations of a candidate learner's line and selects
-`h` or `-h` to align with the residual. The selected step is a true vector
-negation for obtuse input angles. It demonstrates the exact step-length bound
-`0 < s < 2 |cos(theta)|`, where `s` is step length divided by remaining distance
-and `theta` is the original angle of `h`. At 90 degrees neither sign improves
-loss. The fitted leaf-mean trees already satisfy `r·h = ||h||²`, so their
-nonzero prediction vectors need no sign correction. Displayed training loss
-is always one half of the squared Euclidean error.
-
-The XGBoost afterword describes second-order tree selection and the L2-only
-optimal leaf weight. It does not claim to implement XGBoost itself.
+The optional geometry uses `x = [1, 2, 3]`, `y = [1, -1, 1]`, zero baseline,
+and learning rate 0.5. Its orthographic axes are training-point predictions.
+A separate flat angle experiment illustrates alignment and the exact
+step-length bound. Neither apparent projected angles nor falling training
+loss establish predictive performance on new observations.
 
 ## Checks
 
-Run these commands from the repository root:
+From the repository root:
 
 ```sh
-node --check docs/shared/boosting-math.js
 node --check unpublished/boosting/story.js
 node --check unpublished/boosting/worked-example.js
 node --check unpublished/boosting/worked-view.js
+node --check unpublished/boosting/geometry.js
 node --test tests/*.test.mjs
 ```
 
-For visual review, inspect a wide desktop viewport and a narrow phone viewport,
-scroll through every scene, use both sliders and the rate selectors, and
-check keyboard navigation and reduced-motion settings. The text remains
-readable without JavaScript. The plot has a dynamic accessible description
-and equivalent numerical readouts.
+Inspect a wide desktop and narrow phone viewport, navigate all main scenes,
+compare candidates, change learning rate, adjust update progress and rounds,
+and check keyboard and reduced-motion behavior. Review the optional geometry
+link and return route. Text remains readable without JavaScript; visual states
+have accessible descriptions and numerical readouts.
 
-## References and artwork
+## Sources and artwork
 
-The prediction-space construction follows Kilian Weinberger's Cornell lecture
-from approximately 3:20 onward:
-<https://www.youtube.com/watch?v=dosOtgSdbnY&t=180s>.
-The page links Cornell's lecture notes and the official XGBoost model tutorial.
-It uses original prose and executable calculations, not lecture screenshots.
+The main procedure and worked calculation follow the supplied boosting notes.
+The optional geometry follows Kilian Weinberger's Cornell lecture from about
+3:20 onward: <https://www.youtube.com/watch?v=dosOtgSdbnY&t=180s>.
+The page also links Cornell's lecture notes and the official XGBoost tutorial.
 
-`assets/boosting-swing.png` is the approved transparent title artwork, registered with
-its hash and usage guidance in `../../design/assets.json`. No shared design rules
-were changed.
+`assets/boosting-swing.png` is the approved transparent cover artwork, registered
+with its hash and usage guidance in `../../design/assets.json`. The existing
+STIX math font is loaded from the Shapley explainer's local asset. No shared
+design rules or published pages are changed.

@@ -9,8 +9,8 @@
   if (!math) throw new Error('Load BoostingMath before the worked boosting example.');
 
   // Section 1.4.3 of the notes: one predictor and four observed responses.
-  // This mean-initialized calculation supplements the earlier zero-initialized
-  // three-observation geometry; it does not replace that construction.
+  // This mean-initialized calculation is the main gradient-boosting example.
+  // The zero-initialized three-observation geometry is an optional companion.
   const x = Object.freeze([1, 2, 3, 4]);
   const y = Object.freeze([0, 2, 1, 5]);
   const baseline = y.reduce((sum, value) => sum + value, 0) / y.length;

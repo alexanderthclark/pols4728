@@ -9,14 +9,16 @@
   if (!E) throw new Error('Load WorkedBoostingExample before WorkedBoostingView.');
 
   const C = { ink: '#242424', muted: '#606060', blue: '#234e70', rust: '#a54f32', teal: '#007f73', grid: '#e6e6e6' };
-  const topics = ['Four points, one mean', 'Differentiate the predictions', 'Fit the first stump', 'Add the first stump', 'Fit the next residuals', 'Add the second stump'];
+  const topics = ['Four points, one mean', 'Differentiate the predictions', 'Fit the first stump', 'Add the first stump', 'Fit the next residuals', 'Add the second stump', 'Repeat with fresh gradients', 'The gradient boosting loop'];
   const captions = [
     'Each black dot is a fixed observed response. The blue line starts at their mean, 2.',
     'Differentiate with respect to predictions zᵢ. The negative gradient is the residual yᵢ − zᵢ.',
     'Compare all three midpoint cuts by residual SSE. Each leaf predicts its residual mean.',
     'Keep y fixed and add the scaled stump to every prediction in its leaf.',
     'Recompute y − F₁ before comparing the same three possible cuts.',
-    'The stump corrects its whole leaf. A single error can grow while total loss falls.'
+    'The stump corrects its whole leaf. A single error can grow while total loss falls.',
+    'Every additional tree is fitted to the current negative gradients. The observed responses and plot axes stay fixed.',
+    'Choose a differentiable loss, fit the current negative gradients, and add a scaled tree. Recompute before the next round.'
   ];
   const esc = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
   const sub = value => String(value).replace(/\d/g, digit => '₀₁₂₃₄₅₆₇₈₉'[digit]);
@@ -25,32 +27,40 @@
   const signed = value => value > 1e-12 ? '+' + fmt(value) : fmt(value);
   const vector = (values, formatter = fmt) => '(' + values.map(formatter).join(', ') + ')';
   const intermediate = value => Math.abs(value) < 1e-10 ? '0' : String(Number(value.toFixed(3))).replace('-', '−');
-  const predictionFormat = q => q.updating && q.progress > 0 && q.progress < 1 ? intermediate : fmt;
+  const concise = value => value === 0 ? '0' : String(Number(value.toPrecision(4))).replace('-', '−');
+  const predictionFormat = q => q.repeat && q.round > 2 ? concise : q.updating && q.progress > 0 && q.progress < 1 ? intermediate : fmt;
   const text = (x, y, value, attributes = '') => `<text x="${x}" y="${y}" ${attributes}>${esc(value)}</text>`;
   const line = (x1, y1, x2, y2, color, width = 1, attributes = '') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" ${attributes}/>`;
   const circle = (x, y, color, attributes = '', radius = 4) => `<circle cx="${x}" cy="${y}" r="${radius}" fill="${color}" stroke="white" stroke-width="1.2" ${attributes}/>`;
   const cutText = value => String(value).replace('-', '−');
   const rateOf = state => state.rate === .5 ? .5 : 1;
   const progressOf = state => Number.isFinite(state.process) ? clamp(state.process) : 1;
+  const roundOf = state => Number.isFinite(state.round) ? Math.max(0, Math.min(24, Math.round(state.round))) : 8;
 
   function situation(scene, state) {
-    const rate = rateOf(state), states = E.build(rate, 2);
-    const round = scene >= 4 ? 2 : 1;
-    const current = states[round], before = states[round - 1];
+    const repeat = scene === 6;
+    const rate = rateOf(state), states = E.build(rate, repeat ? 24 : 2);
+    const round = repeat ? roundOf(state) : scene >= 4 ? 2 : 1;
+    const current = states[round], before = states[Math.max(0, round - 1)];
     const fitting = scene === 2 || scene === 4;
     const updating = scene === 3 || scene === 5;
     const index = Number.isInteger(state.candidateIndex) ? state.candidateIndex : null;
     const candidate = fitting && index !== null ? current.candidates[index] || null : null;
     const chosen = candidate || current.tree;
     const progress = updating ? progressOf(state) : 1;
-    const prediction = scene <= 2 ? states[0].predictions : scene === 4 ? states[1].predictions : current.previous.map((value, i) => value + progress * current.step[i]);
-    return { rate, states, round, current, before, fitting, updating, candidate, candidateIndex: index, chosen, progress, prediction };
+    const prediction = repeat ? current.predictions : scene <= 2 ? states[0].predictions : scene === 4 ? states[1].predictions : current.previous.map((value, i) => value + progress * current.step[i]);
+    return { rate, states, round, current, before, fitting, updating, repeat, candidate, candidateIndex: index, chosen, progress, prediction };
   }
 
   function readout(scene, state = {}) {
+    if (scene === 7) return [];
     const q = situation(scene, state);
     if (scene === 0) return [['Initial prediction F₀', vector(q.states[0].predictions), C.blue], ['Total loss ½Σ(yᵢ − zᵢ)²', '7']];
     if (scene === 1) return [['Gradient ∇L(z)', vector(q.states[0].gradient), C.rust], ['Negative gradient = residual', vector(q.states[0].residual), C.teal]];
+    if (scene === 6) return [
+      [`Prediction F${sub(q.round)}${q.round > 2 ? ' (rounded)' : ''}`, vector(q.prediction, predictionFormat(q)), C.blue],
+      ['Total training loss', q.round <= 2 ? fmt(q.current.loss) : concise(q.current.loss)]
+    ];
     if (q.fitting) return [
       [q.candidate ? 'Candidate cut' : 'Best cut', `x = ${cutText(q.chosen.threshold)}`, C.teal],
       ['Residual SSE for this stump', fmt(q.chosen.sse)],
@@ -64,13 +74,15 @@
   }
 
   function presentation(scene, state = {}) {
+    if (scene === 7) return { topic: topics[scene], caption: captions[scene], readout: [] };
     const q = situation(scene, state);
     let caption = captions[scene];
     if (scene === 3 && q.rate === 1 && q.progress === 1) caption = 'The error at x = 2 grows from 0 to 1, while total half-squared loss falls from 7 to 1.';
     if (scene === 5 && q.rate === 1 && q.progress === 1) caption = 'At x = 4, the residual changes from 0 to −1/3. Total half-squared loss still falls from 1 to 1/3.';
     if (q.fitting && q.candidate) caption = 'Inspect this candidate’s leaves and residual SSE. The ensemble update still uses the best stump.';
     if (scene === 4 && q.rate === .5 && !q.candidate) caption = 'With α = 1/2, cuts 1.5 and 3.5 tie. The first cut, 1.5, is selected.';
-    if (q.rate === .5 && scene >= 2) caption += ' The prose numbers use α = 1.';
+    if (scene === 6) caption = `${q.round} ${q.round === 1 ? 'tree' : 'trees'} at α = ${fmt(q.rate)}. Each new tree is refitted to the current negative gradient y − F.`;
+    if (q.rate === .5 && scene >= 2 && scene <= 5) caption += ' The prose numbers use α = 1.';
     return { topic: topics[scene], caption, readout: readout(scene, state) };
   }
 
@@ -94,6 +106,12 @@
 .worked-view .worked-leaves{display:flex;justify-content:space-around;gap:12px;margin:0;font:18px/1.35 var(--math,'Course Math','Cambria Math',serif);color:${C.teal}}
 .worked-view .worked-leaf{display:flex;flex-direction:column;align-items:center;gap:1px}
 .worked-view .worked-leaf small{font:11px/1.3 var(--sans,Arial,sans-serif);color:${C.muted}}
+.worked-view .worked-loop{list-style:none;counter-reset:loop;padding:0;margin:0;display:flex;flex-direction:column;gap:13px}
+.worked-view .worked-loop li{counter-increment:loop;padding-left:30px;position:relative;font-size:15px;line-height:1.3}
+.worked-view .worked-loop li::before{content:counter(loop);position:absolute;left:0;top:0;color:${C.teal};font-weight:600}
+.worked-view .worked-loop strong{display:block;font-weight:600}
+.worked-view .worked-loop .loop-math{display:block;font:17px/1.4 var(--math,'Course Math','Cambria Math',serif);overflow-wrap:anywhere}
+.worked-view .worked-loop .loop-detail{display:block;color:${C.muted};font-size:13px;line-height:1.35}
 .worked-view.compact{gap:5px}
 .worked-view.compact .worked-equation{font-size:16px;line-height:1.25}
 .worked-view.compact .worked-table{font-size:12px;line-height:1.15}
@@ -104,13 +122,17 @@
 .worked-view.compact .worked-leaves{gap:6px;font-size:14px;line-height:1.2}
 .worked-view.compact .worked-leaf small{font-size:11px}
 .worked-view.compact .worked-note{font-size:11px;line-height:1.25}
+.worked-view.compact .worked-loop{gap:7px}
+.worked-view.compact .worked-loop li{padding-left:22px;font-size:13px;line-height:1.2}
+.worked-view.compact .worked-loop .loop-math{font-size:14px;line-height:1.25}
+.worked-view.compact .worked-loop .loop-detail{font-size:11px;line-height:1.25}
 </style>`;
 
   function plot(scene, q, compact, state) {
     const residual = q.fitting;
     const W = Number.isFinite(state.width) && state.width >= 200 ? state.width : compact ? 400 : 620;
     const available = Number.isFinite(state.height) ? state.height : compact ? 240 : 480;
-    const extraHeight = scene === 0 ? (compact ? 28 : 40) : residual ? (compact ? 146 : 184) : (compact ? 97 : 160);
+    const extraHeight = scene === 0 || scene === 6 ? (compact ? 28 : 40) : residual ? (compact ? 146 : 184) : (compact ? 97 : 160);
     const H = compact ? Math.max(residual ? 100 : 118, Math.min(residual ? 138 : 184, available - extraHeight)) : Math.max(170, Math.min(288, available - extraHeight));
     const box = { x: compact ? 29 : 43, y: compact ? 21 : 36, w: W - (compact ? 46 : 72), h: H - (compact ? 44 : 67) };
     const minimum = residual ? -3.5 : -.5, maximum = residual ? 3.5 : 6;
@@ -177,7 +199,8 @@
         body += `<g data-worsened-error="${E.x[i]}">` + circle(X(E.x[i]), Y(E.y[i]), 'none', `style="stroke:${C.rust};stroke-width:1.6"`, 6) + '</g>';
       }
     }
-    return `<svg class="worked-plot" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="worked-plot-title worked-plot-desc" data-axis="${residual ? 'residual' : 'response'}" data-x-domain="0.5,4.5" data-y-domain="${minimum},${maximum}" data-rate="${q.rate}" data-progress="${q.progress}" data-training-loss="${E.loss(q.prediction)}"><title id="worked-plot-title">${esc(title)}</title><desc id="worked-plot-desc">${esc(presentation(scene, { rate: q.rate, process: q.progress, candidateIndex: q.candidateIndex }).caption)}</desc><style>.worked-plot text{font-family:Arial,sans-serif;fill:${C.ink};font-size:${compact ? 11 : 14}px}.worked-plot .wv-title{font-family:Georgia,serif;font-size:${compact ? 12 : 19}px}.worked-plot .wv-key,.worked-plot .wv-tick{font-size:${compact ? 11 : 12}px;fill:${C.muted}}.worked-plot .wv-prediction-value{fill:${C.blue};font-family:'Course Math',serif;font-size:${compact ? 14 : 20}px}.worked-plot .wv-point-value,.worked-plot .wv-cut,.worked-plot .wv-prediction-value{paint-order:stroke;stroke:white;stroke-width:4px;stroke-linejoin:round}.worked-plot .wv-cut{font-size:${compact ? 11 : 12}px;fill:${C.muted}}</style>${body}</svg>`;
+    const description = presentation(scene, { rate: q.rate, process: q.progress, candidateIndex: q.candidateIndex, round: q.round }).caption + (q.repeat ? ` Current predictions: ${vector(q.prediction, predictionFormat(q))}. Current negative gradients: ${vector(q.current.residual, predictionFormat(q))}. Total training loss: ${concise(q.current.loss)}.` : '');
+    return `<svg class="worked-plot" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="worked-plot-title worked-plot-desc" data-axis="${residual ? 'residual' : 'response'}" data-x-domain="0.5,4.5" data-y-domain="${minimum},${maximum}" data-rate="${q.rate}" data-progress="${q.progress}" data-predictions="${q.prediction.join(',')}" data-negative-gradient="${E.y.map((value, i) => value - q.prediction[i]).join(',')}" data-training-loss="${E.loss(q.prediction)}"><title id="worked-plot-title">${esc(title)}</title><desc id="worked-plot-desc">${esc(description)}</desc><style>.worked-plot text{font-family:Arial,sans-serif;fill:${C.ink};font-size:${compact ? 11 : 14}px}.worked-plot .wv-title{font-family:Georgia,serif;font-size:${compact ? 12 : 19}px}.worked-plot .wv-key,.worked-plot .wv-tick{font-size:${compact ? 11 : 12}px;fill:${C.muted}}.worked-plot .wv-prediction-value{fill:${C.blue};font-family:'Course Math',serif;font-size:${compact ? 14 : 20}px}.worked-plot .wv-point-value,.worked-plot .wv-cut,.worked-plot .wv-prediction-value{paint-order:stroke;stroke:white;stroke-width:4px;stroke-linejoin:round}.worked-plot .wv-cut{font-size:${compact ? 11 : 12}px;fill:${C.muted}}</style>${body}</svg>`;
   }
 
   function gradientTable(q, compact) {
@@ -211,7 +234,8 @@
   }
 
   function render(scene, state = {}, compact = false) {
-    if (!Number.isInteger(scene) || scene < 0 || scene > 5) throw new RangeError('Worked scene must be an integer from 0 to 5.');
+    if (!Number.isInteger(scene) || scene < 0 || scene > 7) throw new RangeError('Worked scene must be an integer from 0 to 7.');
+    if (scene === 7) return scopedStyle + `<div class="worked-view${compact ? ' compact' : ''}" data-worked-scene="7"><ol class="worked-loop" aria-label="Gradient boosting at round m"><li><strong>Predict</strong><span class="loop-math">zᵢ = Fₘ₋₁(xᵢ)</span></li><li><strong>Differentiate the loss</strong><span class="loop-math">rₘᵢ = −∂ℓ(yᵢ, z) / ∂z | z = zᵢ</span></li><li><strong>Fit a tree to these targets</strong><span class="loop-detail">A squared-error fit to rₘᵢ defines the leaves Rₘⱼ.</span></li><li><strong>Choose leaf corrections and add</strong><span class="loop-math">cₘⱼ = arg min<sub>c</sub> Σ<sub>xᵢ∈Rₘⱼ</sub> ℓ(yᵢ, zᵢ + c)</span><span class="loop-math">hₘ(x) = Σⱼ cₘⱼ 1{x∈Rₘⱼ}</span><span class="loop-math">Fₘ = Fₘ₋₁ + α hₘ</span></li><li><strong>Recompute and repeat</strong><span class="loop-detail">Use Fₘ to calculate the next negative gradients.</span></li></ol><p class="worked-note">For squared error, cₘⱼ is the leaf’s mean residual. Other losses can require different leaf corrections, with bounds or penalties when an unpenalized minimum is not finite.</p></div>`;
     const q = situation(scene, state);
     let body;
     if (scene === 1) {
@@ -219,6 +243,7 @@
     } else {
       body = plot(scene, q, compact, state);
       if (scene === 0) body += '<p class="worked-equation">F₀(x) = (0 + 2 + 1 + 5) / 4 = 2</p>';
+      else if (scene === 6) body += `<p class="worked-equation">F${sub(q.round)}(x) = 2 + α Σ<sub>m=1</sub><sup>${q.round}</sup> hₘ(x)</p>`;
       else if (q.fitting) body += leafCalculation(q) + candidateTable(q, compact);
       else body += `<p class="worked-equation">F${sub(q.round)} = F${sub(q.round - 1)} + ${predictionFormat(q)(q.rate * q.progress)} h${sub(q.round)}</p>` + valueTable(q, compact);
     }

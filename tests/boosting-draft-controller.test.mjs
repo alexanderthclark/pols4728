@@ -61,7 +61,7 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
   const get = id => nodes.get(id);
   const shell = new Element();
   const stageHeight = () => !compact ? 736 : !variableStageHeight ? 450
-    : shell.dataset.example === 'worked' ? 528 : 392;
+    : [3, 5, 6].includes(Number(shell.dataset.scene)) ? 528 : 392;
   shell.getBoundingClientRect = () => ({ top: compact ? 56 : 64, bottom: (compact ? 56 : 64) + stageHeight(), height: stageHeight(), width: compact ? 288 : 640 });
   get('visual-area').getBoundingClientRect = () => ({ width: compact ? 288 : 640, height: compact ? 260 : 450 });
   const win = new Element();
@@ -85,16 +85,16 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
     return element;
   });
   const layout = new Element();
-  layout.getBoundingClientRect = () => ({ top: 1000 - win.scrollY, bottom: 19000 - win.scrollY });
+  layout.getBoundingClientRect = () => ({ top: 1000 - win.scrollY, bottom: (1000 + steps.length * 1000) - win.scrollY });
   let afterwordVisits = 0;
-  get('xgboost').scrollIntoView = () => { afterwordVisits++; };
+  get('other-losses').scrollIntoView = () => { afterwordVisits++; };
   const doc = new Element();
   doc.getElementById = get;
   doc.querySelector = selector => selector === '.stage-shell' ? shell : selector === '.story-layout' ? layout : null;
   doc.querySelectorAll = selector => selector === '.step' ? steps : [];
   doc.createElement = tag => new Element(tag.toUpperCase());
   doc.createElementNS = (_, tag) => new Element(tag.toUpperCase());
-  doc.documentElement = { scrollHeight: 22000 };
+  doc.documentElement = { scrollHeight: 1000 + steps.length * 1000 + 3000 };
   const requestAnimationFrame = callback => { const id = nextId++; frames.set(id, callback); return id; };
   const cancelAnimationFrame = id => frames.delete(id);
   const advance = elapsed => {
@@ -134,45 +134,43 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
     win.emit('scroll'); advance(0);
   };
   return { get, shell, click, clickLink, control, scrollAt, scrollFraction, advance, key, resize, reduced, frames,
+    historyBack: hash => { win.location.hash = hash; win.emit('popstate'); advance(0); },
     wheel: () => win.emit('wheel'), scrollEnd: () => win.emit('scrollend'), visitedHashes, scrollY: () => win.scrollY, afterwordVisits: () => afterwordVisits };
 }
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} should equal ${expected}`);
 const figureLoss = ui => Number(/data-training-loss="([^"]+)"/.exec(ui.get('worked-diagram').innerHTML)[1]);
+const figurePredictions = ui => /data-predictions="([^"]+)"/.exec(ui.get('worked-diagram').innerHTML)[1].split(',').map(Number);
 const numbers = ui => ui.get('vector-readout').textContent;
 
 for (const compact of [false, true]) {
-  test(`the six worked scenes stay between the geometry and XGBoost (${compact ? 'narrow' : 'wide'} navigation)`, () => {
+  test(`gradient boosting is the main eight-scene story (${compact ? 'narrow' : 'wide'} navigation)`, () => {
     const ui = setup({ reducedMotion: true, compact });
-    ui.scrollAt(11);
-    assert.equal(ui.get('space').hidden, false);
-    assert.equal(ui.get('next').textContent, 'Next');
-    for (let scene = 12; scene <= 17; scene++) {
+    assert.equal(Number(ui.shell.dataset.scene), 0);
+    assert.match(numbers(ui), /\(2, 2, 2, 2\)/);
+    close(figureLoss(ui), 7);
+    assert.equal(ui.get('previous').disabled, true);
+    for (let scene = 1; scene <= 7; scene++) {
       ui.click('next');
       assert.equal(Number(ui.shell.dataset.scene), scene);
-      assert.equal(ui.get('stage-count').textContent, `${String(scene + 1).padStart(2, '0')} / 18`);
-      assert.equal(ui.get('space').hidden, true);
-      assert.equal(ui.get('worked-diagram').hidden, false);
-      assert.equal(ui.get('path-controls').hidden, true);
-      assert.equal(ui.get('angle-controls').hidden, true);
-      assert.match(ui.get('worked-diagram').innerHTML, new RegExp(`data-worked-scene="${scene - 12}"`));
+      assert.equal(ui.get('stage-count').textContent, `${String(scene + 1).padStart(2, '0')} / 8`);
+      assert.match(ui.get('worked-diagram').innerHTML, new RegExp(`data-worked-scene="${scene}"`));
+      if (scene === 1) {
+        assert.match(numbers(ui), /\(2, 0, 1, [−-]3\)/);
+        assert.match(numbers(ui), /\([−-]2, 0, [−-]1, 3\)/);
+      }
     }
-    assert.equal(ui.get('next').textContent, 'XGBoost');
     ui.click('next');
     assert.equal(ui.afterwordVisits(), 1);
-    ui.scrollAt(12); ui.click('previous');
-    assert.equal(Number(ui.shell.dataset.scene), 11);
-    assert.equal(ui.get('space').hidden, false);
-    assert.equal(ui.get('worked-diagram').hidden, true);
-    assert.equal(ui.get('worked-controls').hidden, true);
-    assert.deepEqual(JSON.parse(ui.get('space').dataset.prediction), [.375, -.125, .5]);
-    close(Number(ui.get('space').dataset.loss), .703125);
-    assert.match(ui.get('stage-caption').textContent, /negative gradient/);
+    ui.scrollAt(0);
+    assert.equal(ui.get('previous').disabled, true);
+    assert.match(numbers(ui), /\(2, 2, 2, 2\)/);
+    close(figureLoss(ui), 7);
   });
 }
 
 test('inspecting a candidate does not replace the selected stump, and half-rate refits the next targets', () => {
   const ui = setup({ reducedMotion: true });
-  ui.scrollAt(14);
+  ui.scrollAt(2);
   assert.equal(ui.get('worked-cut').value, '2');
   ui.control('worked-cut', 0, 'change');
   assert.match(numbers(ui), /Candidate cut x = 1\.5/);
@@ -183,7 +181,6 @@ test('inspecting a candidate does not replace the selected stump, and half-rate 
   ui.control('worked-rate', .5, 'change');
   assert.match(numbers(ui), /\(3\/2, 3\/2, 3\/2, 7\/2\)/);
   close(figureLoss(ui), 2.5);
-  assert.match(ui.get('stage-caption').textContent, /prose.*α = 1/i);
   ui.click('next');
   assert.equal(ui.get('worked-cut').value, '0');
   assert.match(ui.get('worked-diagram').innerHTML, /data-values="-1\.5,0\.5,-0\.5,1\.5"/);
@@ -197,7 +194,7 @@ test('inspecting a candidate does not replace the selected stump, and half-rate 
 
 test('manual update progress represents a partial correction and cancels its running animation', () => {
   const ui = setup();
-  ui.scrollAt(15);
+  ui.scrollAt(3);
   close(figureLoss(ui), 7);
   assert.ok(ui.frames.size > 0);
   ui.control('worked-progress', .5);
@@ -211,117 +208,157 @@ test('manual update progress represents a partial correction and cancels its run
   assert.match(ui.get('worked-diagram').innerHTML, /data-values="-1,1,0,0"/);
 });
 
-test('leaving either animated example prevents a stale frame from overwriting the destination', () => {
+test('leaving an animated update prevents a stale frame from overwriting the destination', () => {
   const ui = setup();
-  ui.scrollAt(3); ui.click('next');
+  ui.scrollAt(3);
   assert.ok(ui.frames.size > 0);
-  ui.scrollAt(12);
-  const worked = ui.get('worked-diagram').innerHTML;
+  ui.scrollAt(1);
+  const gradient = ui.get('worked-diagram').innerHTML;
   ui.advance(2000);
-  assert.equal(ui.get('worked-diagram').innerHTML, worked);
-  assert.equal(ui.get('space').hidden, true);
-  assert.match(numbers(ui), /\(2, 2, 2, 2\)/);
-  ui.scrollAt(17);
+  assert.equal(ui.get('worked-diagram').innerHTML, gradient);
+  assert.equal(Number(ui.shell.dataset.scene), 1);
+  assert.match(numbers(ui), /\([−-]2, 0, [−-]1, 3\)/);
+  ui.scrollAt(5);
   assert.ok(ui.frames.size > 0);
-  ui.scrollAt(11);
+  ui.scrollAt(6);
+  const repeated = ui.get('worked-diagram').innerHTML;
   ui.advance(2000);
-  assert.equal(ui.get('worked-diagram').hidden, true);
-  assert.equal(ui.get('space').hidden, false);
-  close(Number(ui.get('space').dataset.loss), .703125);
-  assert.match(numbers(ui), /\(0\.375, −0\.125, 0\.5\)/);
+  assert.equal(ui.get('worked-diagram').innerHTML, repeated);
+  close(figureLoss(ui), example.build(1, 8)[8].loss);
 });
 
 test('rate changes and reduced-motion changes settle an active update, while focused controls keep arrow keys', () => {
   const ui = setup();
-  ui.scrollAt(15); ui.advance(250);
+  ui.scrollAt(3); ui.advance(250);
   assert.ok(figureLoss(ui) > 1);
   ui.control('worked-rate', .5, 'change');
   ui.advance(2000);
   close(figureLoss(ui), 2.5);
-  ui.scrollAt(17); ui.advance(200);
+  ui.scrollAt(5); ui.advance(200);
   ui.reduced.matches = true; ui.reduced.emit('change');
   ui.advance(2000);
   close(figureLoss(ui), 1.375);
   assert.equal(ui.get('worked-progress-value').textContent, '100%');
-  ui.scrollAt(14);
+  ui.scrollAt(2);
   const nativeKey = ui.key('ArrowRight', ui.get('worked-cut'));
   assert.equal(nativeKey.defaultPrevented, undefined);
-  assert.equal(Number(ui.shell.dataset.scene), 14);
+  assert.equal(Number(ui.shell.dataset.scene), 2);
   assert.equal(ui.key('ArrowRight').defaultPrevented, true);
-  assert.equal(Number(ui.shell.dataset.scene), 15);
+  assert.equal(Number(ui.shell.dataset.scene), 3);
   ui.resize();
-  assert.equal(Number(ui.shell.dataset.scene), 15);
+  assert.equal(Number(ui.shell.dataset.scene), 3);
 });
 
-test('backward navigation remains at its destination after the taller worked stage shrinks on a phone', () => {
-  const ui = setup({ reducedMotion: true, compact: true, variableStageHeight: true });
-  ui.scrollAt(11);
-  ui.click('next');
-  assert.equal(Number(ui.shell.dataset.scene), 12);
-  ui.resize();
-  assert.equal(Number(ui.shell.dataset.scene), 12);
+test('the repeat control includes the baseline and rebuilds fresh gradients through twenty-four rounds', () => {
+  const ui = setup({ reducedMotion: true });
+  ui.scrollAt(6);
+  assert.equal(ui.get('worked-round').hidden, false);
+  assert.equal(ui.get('worked-round-label').hidden, false);
+  close(figureLoss(ui), example.build(1, 8)[8].loss);
+  assert.equal(ui.get('worked-round').value, '8');
+  ui.control('worked-round', 0);
+  assert.match(numbers(ui), /\(2, 2, 2, 2\)/);
+  close(figureLoss(ui), 7);
+  ui.control('worked-round', 24);
+  const fullRate = example.build(1, 24)[24];
+  close(figureLoss(ui), fullRate.loss);
+  assert.deepEqual(figurePredictions(ui), fullRate.predictions);
+  ui.control('worked-rate', .5, 'change');
+  const halfRate = example.build(.5, 24)[24];
+  close(figureLoss(ui), halfRate.loss);
+  assert.deepEqual(figurePredictions(ui), halfRate.predictions);
+  assert.ok(halfRate.loss > fullRate.loss, 'The changed rate must affect the entire sequence');
+  assert.equal(ui.get('worked-round').value, '24');
+  const nativeKey = ui.key('ArrowLeft', ui.get('worked-round'));
+  assert.equal(nativeKey.defaultPrevented, undefined);
+  assert.equal(Number(ui.shell.dataset.scene), 6);
   ui.click('previous');
-  assert.equal(Number(ui.shell.dataset.scene), 11);
-  // A resize/scroll recalculation must not advance backward again simply
-  // because the previous scene's pinned stage is shorter.
-  ui.resize();
-  assert.equal(Number(ui.shell.dataset.scene), 11);
+  close(figureLoss(ui), 1.375);
+  ui.click('next');
+  close(figureLoss(ui), halfRate.loss);
+  ui.click('next');
+  assert.equal(ui.get('worked-round').hidden, true);
+  assert.equal(ui.get('worked-controls').hidden, true);
 });
 
-test('step links show the heading below its taller phone stage and retain their target through smooth scrolling', () => {
+test('backward navigation retains its destination when the pinned stage changes height on a phone', () => {
+  const ui = setup({ reducedMotion: true, compact: true, variableStageHeight: true });
+  ui.scrollAt(2);
+  ui.click('next');
+  assert.equal(Number(ui.shell.dataset.scene), 3);
+  ui.resize();
+  assert.equal(Number(ui.shell.dataset.scene), 3);
+  ui.click('previous');
+  assert.equal(Number(ui.shell.dataset.scene), 2);
+  ui.resize();
+  assert.equal(Number(ui.shell.dataset.scene), 2);
+});
+
+test('step links show their heading below the phone stage and retain their target through smooth scrolling', () => {
   const ui = setup({ compact: true, variableStageHeight: true, smoothScroll: true });
-  ui.scrollAt(11);
-  assert.equal(ui.clickLink('#worked-data').defaultPrevented, true);
-  assert.equal(Number(ui.shell.dataset.scene), 12);
+  ui.scrollAt(0);
+  assert.equal(ui.clickLink('#worked-first-update').defaultPrevented, true);
+  assert.equal(Number(ui.shell.dataset.scene), 3);
   ui.scrollFraction(.2);
-  assert.equal(Number(ui.shell.dataset.scene), 12);
+  assert.equal(Number(ui.shell.dataset.scene), 3);
   ui.scrollFraction(1);
-  assert.equal(Number(ui.shell.dataset.scene), 12);
-  assert.ok(13000 - ui.scrollY() > ui.shell.getBoundingClientRect().bottom, 'The worked heading is hidden by the pinned figure');
-  assert.deepEqual(ui.visitedHashes, ['#worked-data']);
+  assert.equal(Number(ui.shell.dataset.scene), 3);
+  assert.ok(4000 - ui.scrollY() > ui.shell.getBoundingClientRect().bottom, 'The heading is hidden by the pinned figure');
+  assert.deepEqual(ui.visitedHashes, ['#worked-first-update']);
   ui.click('previous'); ui.scrollFraction(.5);
-  assert.equal(Number(ui.shell.dataset.scene), 11);
+  assert.equal(Number(ui.shell.dataset.scene), 2);
   ui.scrollFraction(1); ui.resize();
-  assert.equal(Number(ui.shell.dataset.scene), 11);
-  ui.clickLink('#worked-first-fit'); ui.scrollFraction(1);
-  assert.equal(Number(ui.shell.dataset.scene), 14);
+  assert.equal(Number(ui.shell.dataset.scene), 2);
+  ui.clickLink('#worked-data'); ui.scrollFraction(1);
+  assert.equal(Number(ui.shell.dataset.scene), 0);
   ui.clickLink('#reading'); ui.scrollFraction(1);
   assert.equal(Number(ui.shell.dataset.scene), 0);
   ui.clickLink('#story'); ui.scrollFraction(1);
   assert.equal(Number(ui.shell.dataset.scene), 0);
 });
 
-test('manual wheel scrolling can interrupt an in-flight scene navigation', () => {
+test('manual wheel and page scrolling can interrupt an in-flight scene navigation', () => {
   const ui = setup({ smoothScroll: true });
-  ui.scrollAt(11); ui.click('next');
-  assert.equal(Number(ui.shell.dataset.scene), 12);
-  ui.wheel(); ui.scrollAt(10);
-  assert.equal(Number(ui.shell.dataset.scene), 10);
-  ui.scrollAt(11); ui.click('next');
-  ui.key('PageUp'); ui.scrollAt(10);
-  assert.equal(Number(ui.shell.dataset.scene), 10);
+  ui.scrollAt(0); ui.click('next');
+  assert.equal(Number(ui.shell.dataset.scene), 1);
+  ui.wheel(); ui.scrollAt(0);
+  assert.equal(Number(ui.shell.dataset.scene), 0);
+  ui.click('next');
+  ui.key('PageUp'); ui.scrollAt(0);
+  assert.equal(Number(ui.shell.dataset.scene), 0);
 });
 
-test('opening a worked-step hash uses the phone offset, while an XGBoost hash keeps native navigation', () => {
-  const ui = setup({ reducedMotion: true, compact: true, variableStageHeight: true, hash: '#worked-data' });
+test('opening a worked-step hash uses the phone offset, while other-losses keeps native navigation', () => {
+  const ui = setup({ reducedMotion: true, compact: true, variableStageHeight: true, hash: '#worked-first-update' });
   ui.advance(0); ui.advance(0);
-  assert.equal(Number(ui.shell.dataset.scene), 12);
-  assert.ok(13000 - ui.scrollY() > ui.shell.getBoundingClientRect().bottom);
-  const afterword = setup({ reducedMotion: true, hash: '#xgboost' });
+  assert.equal(Number(ui.shell.dataset.scene), 3);
+  assert.ok(4000 - ui.scrollY() > ui.shell.getBoundingClientRect().bottom);
+  const afterword = setup({ reducedMotion: true, hash: '#other-losses' });
   afterword.advance(0);
   assert.equal(afterword.scrollY(), 0);
   assert.equal(afterword.afterwordVisits(), 0);
 });
 
+test('history navigation restores the linked step without adding another history entry', () => {
+  const ui = setup({ reducedMotion: true, compact: true, variableStageHeight: true });
+  ui.clickLink('#worked-first-fit');
+  assert.equal(Number(ui.shell.dataset.scene), 2);
+  ui.historyBack('#worked-first-update');
+  assert.equal(Number(ui.shell.dataset.scene), 3);
+  assert.ok(4000 - ui.scrollY() > ui.shell.getBoundingClientRect().bottom);
+  ui.historyBack('');
+  assert.equal(Number(ui.shell.dataset.scene), 0);
+  assert.deepEqual(ui.visitedHashes, ['#worked-first-fit']);
+});
+
 test('the end of a cancelled old scroll does not release a newer scene navigation', () => {
   const ui = setup({ smoothScroll: true });
-  ui.scrollAt(12); ui.click('next'); ui.scrollFraction(.2);
-  assert.equal(Number(ui.shell.dataset.scene), 13);
+  ui.scrollAt(0); ui.click('next'); ui.scrollFraction(.2);
+  assert.equal(Number(ui.shell.dataset.scene), 1);
   ui.click('next');
-  assert.equal(Number(ui.shell.dataset.scene), 14);
-  // Browsers may dispatch this for the scroll that the second click replaced.
+  assert.equal(Number(ui.shell.dataset.scene), 2);
   ui.scrollEnd(); ui.scrollFraction(.1);
-  assert.equal(Number(ui.shell.dataset.scene), 14);
+  assert.equal(Number(ui.shell.dataset.scene), 2);
   ui.scrollFraction(1); ui.scrollEnd(); ui.resize();
-  assert.equal(Number(ui.shell.dataset.scene), 14);
+  assert.equal(Number(ui.shell.dataset.scene), 2);
 });
