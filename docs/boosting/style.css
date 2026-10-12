@@ -133,8 +133,6 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
 .stage-tools .restricted-loss-label select{display:block;width:100%;margin-top:4px}
 .loss-equation{padding:8px 0 9px;border-bottom:1px solid var(--light-rule)}
 .loss-equation-definition{display:flex;align-items:center;gap:5px;font-size:18px;line-height:1.35}
-.loss-equation-brace{font-size:36px;line-height:1;font-weight:300}
-.loss-equation-cases{display:grid;grid-template-columns:auto auto;gap:3px 10px;font-size:17px}
 .loss-equation-total{font-size:14px;line-height:1.45;margin:7px 0 9px}
 .loss-equation-shared{font-size:18px;line-height:1.4}
 .loss-equation-domain{font:11px/1.4 var(--sans);color:var(--muted);margin:5px 0 0}
@@ -227,11 +225,12 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
 .opening-annotation .opening-round{display:block;margin-bottom:3px;font-size:12px;color:var(--muted)}
 .opening-annotation>.math{display:block;margin-top:5px;font-size:18px;line-height:1.35}
 .opening-annotation[data-loss-equation='true']{top:4px;left:12px;right:12px;width:fit-content;max-width:calc(100% - 24px);padding:3px 6px;font-size:13px;line-height:1.4}
-.opening-annotation[data-loss-equation='true']>.math{margin-top:3px;font-size:16px;line-height:1.2}
-.opening-annotation .loss-equation-signed{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 14px}
-.opening-annotation .loss-equation-residual,.opening-annotation .loss-equation-definition{font-size:16px;line-height:1.2;white-space:nowrap}
-.opening-annotation .loss-equation-cases{font-size:16px;line-height:1.2;gap:2px 9px}
-.opening-annotation .loss-equation-brace{font-size:32px}
+.opening-annotation[data-loss-equation='true']>.math{margin-top:4px;font-size:18px;line-height:1.4}
+.opening-annotation .loss-equation-signed{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 18px}
+.opening-annotation .loss-equation-residual,.opening-annotation .loss-equation-definition{font-size:18px;line-height:1.4;white-space:nowrap}
+.loss-equation-signed math{font-family:'Course Math','Cambria Math',math;font-size:inherit}
+.loss-equation-signed mtd{padding:0 .35em}
+.loss-equation-definition:has([data-loss-case='quadratic']){font-size:17px}
 .step[data-restricted-scene]{min-height:68svh;padding:28px 0 44px}
 .step[data-restricted-scene]>div{max-width:700px}
 .step[data-restricted-scene] h2{font-size:clamp(24px,2vw,28px)}
@@ -259,7 +258,7 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
   .stage-shell[data-opening='false'] .stage-nav button{min-height:34px;padding:4px 10px}
 }
 @media(max-width:400px){
-  .opening-annotation .loss-equation-residual,.opening-annotation .loss-equation-definition,.opening-annotation .loss-equation-cases{font-size:14px}
+  .opening-annotation .loss-equation-residual,.opening-annotation .loss-equation-definition{font-size:16px}
 }
 @media print{
   .stage-shell[data-opening='true']{display:none}

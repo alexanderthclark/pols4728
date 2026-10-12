@@ -67,18 +67,39 @@
     if (scene < 3) return '';
     if (scene >= 7 && scene <= 10) return '';
     const spec = scene === 6 ? specification({ loss: 'expectile', tau: .8 }) : specification(sceneState(scene, state));
-    const cases = rows => `<span class="loss-equation-brace">{</span><span class="loss-equation-cases">${rows.map(([term, condition]) => `<span>${term}</span><span>${condition}</span>`).join('')}</span>`;
-    const parameter = spec.key === 'huber' ? ` · δ = ${fmt(spec.delta)}` : '';
-    const residual = `<div class="loss-equation-residual math" role="math">rᵢ = yᵢ − fᵢ${parameter}</div>`;
-    let formula;
+    const math = (content, label) => `<math xmlns="http://www.w3.org/1998/Math/MathML" display="block" displaystyle="true" aria-label="${esc(label)}"><mrow>${content}</mrow></math>`;
+    const subscript = (symbol, index) => `<msub><mi>${symbol}</mi><${typeof index === 'number' ? 'mn' : 'mi'}>${index}</${typeof index === 'number' ? 'mn' : 'mi'}></msub>`;
+    const power = exponent => `<msup><mi>r</mi><mn>${exponent}</mn></msup>`;
+    const indexedPower = (index, exponent) => `<msubsup><mi>r</mi><mn>${index}</mn><mn>${exponent}</mn></msubsup>`;
+    const fraction = denominator => `<mfrac><mn>1</mn><mn>${denominator}</mn></mfrac>`;
+    const parentheses = content => `<mrow><mo stretchy="true">(</mo>${content}<mo stretchy="true">)</mo></mrow>`;
+    const magnitude = '<mrow><mo stretchy="true" form="prefix">|</mo><mi>r</mi><mo stretchy="true" form="postfix">|</mo></mrow>';
+    const application = residual => `<mi>ℓ</mi><mo>⁡</mo>${parentheses(residual)}`;
+    const cases = rows => `<mrow><mo stretchy="true">{</mo><mstyle displaystyle="false"><mtable columnalign="left" columnspacing=".75em" rowspacing=".3em">${rows.map(([term, condition, name]) => `<mtr data-loss-case="${name}"><mtd>${term}</mtd><mtd>${condition}</mtd></mtr>`).join('')}</mtable></mstyle></mrow>`;
+    const parameter = spec.key === 'huber' ? `<mspace width=".7em"/><mi>δ</mi><mo>=</mo><mn>${fmt(spec.delta)}</mn>` : '';
+    const residual = `<div class="loss-equation-residual math">${math(`${subscript('r', 'i')}<mo>=</mo>${subscript('y', 'i')}<mo>−</mo>${subscript('f', 'i')}${parameter}`, `rᵢ = yᵢ − fᵢ${spec.key === 'huber' ? ` · δ = ${fmt(spec.delta)}` : ''}`)}</div>`;
+    let formula, label;
     if (spec.key === 'expectile') {
-      formula = `<span>ℓ(r) =</span>${cases([[`${fmt(spec.tau)}r²`, 'r ≥ 0'], [`${fmt(1 - spec.tau)}r²`, 'r &lt; 0']])}`;
+      formula = `${application('<mi>r</mi>')}<mo>=</mo>${cases([
+        [`<mn>${fmt(spec.tau)}</mn>${power(2)}`, '<mi>r</mi><mo>≥</mo><mn>0</mn>', 'nonnegative'],
+        [`<mn>${fmt(1 - spec.tau)}</mn>${power(2)}`, '<mi>r</mi><mo>&lt;</mo><mn>0</mn>', 'negative']
+      ])}`;
+      label = `ℓ(r) = ${fmt(spec.tau)}r² for r ≥ 0; ${fmt(1 - spec.tau)}r² for r < 0`;
     } else if (spec.key === 'huber') {
-      formula = `<span>ℓ(r) =</span>${cases([['½r²', '|r| ≤ δ'], ['δ(|r| − ½δ)', '|r| &gt; δ']])}`;
-    } else if (spec.key === 'quartic') formula = 'L = ¼(r₁⁴ + r₂⁴)';
-    else formula = 'MSE = ½(r₁² + r₂²)';
-    const total = !compact && ['expectile', 'huber'].includes(spec.key) ? '<div class="loss-equation-total math" role="math">L = ℓ(r₁) + ℓ(r₂)</div>' : '';
-    return `<div class="loss-equation-signed">${residual}<div class="loss-equation-definition math" role="math">${formula}</div>${total}</div>`;
+      formula = `${application('<mi>r</mi>')}<mo>=</mo>${cases([
+        [`${fraction(2)}${power(2)}`, `${magnitude}<mo>≤</mo><mi>δ</mi>`, 'quadratic'],
+        [`<mi>δ</mi>${parentheses(`${magnitude}<mo>−</mo>${fraction(2)}<mi>δ</mi>`)}`, `${magnitude}<mo>&gt;</mo><mi>δ</mi>`, 'linear']
+      ])}`;
+      label = 'ℓ(r) = ½r² for |r| ≤ δ; δ(|r| − ½δ) for |r| > δ';
+    } else if (spec.key === 'quartic') {
+      formula = `<mi>L</mi><mo>=</mo>${fraction(4)}${parentheses(`${indexedPower(1, 4)}<mo>+</mo>${indexedPower(2, 4)}`)}`;
+      label = 'L = ¼(r₁⁴ + r₂⁴)';
+    } else {
+      formula = `<mi mathvariant="normal">MSE</mi><mo>=</mo>${fraction(2)}${parentheses(`${indexedPower(1, 2)}<mo>+</mo>${indexedPower(2, 2)}`)}`;
+      label = 'MSE = ½(r₁² + r₂²)';
+    }
+    const total = !compact && ['expectile', 'huber'].includes(spec.key) ? `<div class="loss-equation-total math">${math(`<mi>L</mi><mo>=</mo>${application(subscript('r', 1))}<mo>+</mo>${application(subscript('r', 2))}`, 'L = ℓ(r₁) + ℓ(r₂)')}</div>` : '';
+    return `<div class="loss-equation-signed">${residual}<div class="loss-equation-definition math">${math(formula, label)}</div>${total}</div>`;
   }
 
   const totalLoss = (prediction, spec) => target.reduce((sum, y, i) => sum + pointLoss(y - prediction[i], spec), 0);
@@ -281,7 +302,7 @@
     else status = `Current loss = ${fmt(q.loss)} · Minimum = ${fmt(q.minLoss)}`;
     const displayedEquation = [3, 6, 11].includes(scene) ? equation(state, scene, true) : '';
     const underpredictionWeight = q.lossSpec.tau / (1 - q.lossSpec.tau);
-    const playgroundCaption = q.lossSpec.key === 'expectile' ? `Underprediction costs ${Math.abs(underpredictionWeight - 4) < 1e-10 ? 'four' : fmt(underpredictionWeight)} times as much.` : q.lossSpec.name;
+    const playgroundCaption = q.lossSpec.key === 'expectile' ? `Underprediction costs ${Math.abs(underpredictionWeight - 4) < 1e-10 ? 'four' : fmt(underpredictionWeight)} times as much.` : q.lossSpec.key === 'huber' ? '' : q.lossSpec.name;
     const processCaption = scene === 9 ? q.phase === 'target' ? 'Compute targets using observed y.'
       : q.phase === 'fit' ? 'Project the targets onto the diagonal.'
         : q.phase === 'update' ? 'Add half the projection. Recompute targets.'

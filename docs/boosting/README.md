@@ -160,7 +160,11 @@ are available from inputs alone.
 
 The final opening scene provides MSE, fixed asymmetric squared loss with
 τ = 0.8, Huber δ = 0.25, and fourth-power error `r^4/4`. Its initial
-state is MSE at `(0.5, 0.5)`. A brief floating equation follows the selected
+state is MSE at `(0.5, 0.5)`. Native MathML with the bundled STIX Two Math
+font typesets the floating equations, with stacked fractions, true scripts,
+and stretching case braces. Formulas wrap between the residual definition
+and loss, retaining their mathematical structure. A brief floating equation
+follows the selected
 loss. Asymmetric loss weights positive residuals by τ and negative residuals
 by `1-τ`; its best prediction pair is `(τ,τ)` for these observations.
 When Huber δ < 0.5, every shared prediction in `[δ, 1-δ]` is optimal; the

@@ -14,6 +14,15 @@ const vectorClose = (actual, expected, tolerance) => {
 };
 const attributes = fragment => Object.fromEntries([...fragment.matchAll(/([\w-]+)="([^"]*)"/g)].map(match => [match[1], match[2]]));
 const dataValue = (html, name) => new RegExp(`data-${name}="([^"]+)"`).exec(html)?.[1];
+const equationPart = (html, name) => new RegExp(`<div class="loss-equation-${name} math">(<math\\b[^]*?<\\/math>)<\\/div>`).exec(html)?.[1];
+const equationCases = html => new Map([...html.matchAll(/<mtr data-loss-case="([^"]+)"><mtd>([^]*?)<\/mtd><mtd>([^]*?)<\/mtd><\/mtr>/g)].map(match => [match[1], { term: match[2], condition: match[3] }]));
+const displayedFraction = html => {
+  const fraction = /<mfrac><mn>([0-9.]+)<\/mn><mn>([0-9.]+)<\/mn><\/mfrac>/.exec(html);
+  assert.ok(fraction, 'The displayed formula must include a real stacked fraction');
+  return Number(fraction[1]) / Number(fraction[2]);
+};
+const displayedPower = html => Number(/<msup><mi>r<\/mi><mn>(\d+)<\/mn><\/msup>/.exec(html)?.[1]);
+const indexedPowers = html => [...html.matchAll(/<msubsup><mi>r<\/mi><mn>(\d+)<\/mn><mn>(\d+)<\/mn><\/msubsup>/g)].map(match => ({ index: Number(match[1]), exponent: Number(match[2]) }));
 
 // A projection is a full least-squares fit of the target vector onto the
 // available corrections. Its geometry is independent of the reveal animation
@@ -266,8 +275,9 @@ test('loss contours morph while the midpoint and its actual residual stay fixed'
     const formula = view.annotation(6, state).equation;
     assert.match(formula, /rᵢ = yᵢ − fᵢ/);
     assert.match(formula, /ℓ\(r\) =/);
-    assert.match(formula, /<span>0\.8r²<\/span><span>r ≥ 0<\/span>/);
-    assert.match(formula, /<span>0\.2r²<\/span><span>r &lt; 0<\/span>/);
+    const rows = equationCases(formula);
+    assert.match(rows.get('nonnegative').term, /<mn>0\.8<\/mn><msup><mi>r<\/mi><mn>2<\/mn><\/msup>/);
+    assert.match(rows.get('negative').term, /<mn>0\.2<\/mn><msup><mi>r<\/mi><mn>2<\/mn><\/msup>/);
   }
   close(view.resolve(6, { progress: 1 }).minLoss, .16);
 });
@@ -651,6 +661,11 @@ test('early equations display the exact two-point MSE and both axes retain half 
     const html = view.equation({ loss: 'quartic' }, scene);
     assert.match(html, /MSE = ½\(r₁² \+ r₂²\)/);
     assert.match(html, /rᵢ = yᵢ − fᵢ/);
+    const formula = equationPart(html, 'definition');
+    close(displayedFraction(formula), .5);
+    assert.deepEqual(indexedPowers(formula), [{ index: 1, exponent: 2 }, { index: 2, exponent: 2 }]);
+    assert.match(formula, /<mi mathvariant="normal">MSE<\/mi>/);
+    assert.match(formula, /<mo stretchy="true">\(<\/mo>/);
     assert.doesNotMatch(html, /MSE\(c,c\)/);
     assert.doesNotMatch(html, /ℓ|gradient|∇/i);
   }
@@ -670,28 +685,52 @@ test('displayed signed-residual equations match each loss for both residual sign
     const spec = view.specification(state);
     assert.match(html, /rᵢ = yᵢ − fᵢ/);
     assert.match(compact, /rᵢ = yᵢ − fᵢ/);
+    const formula = equationPart(html, 'definition');
     let displayedPointLoss;
     if (state.loss === 'expectile') {
-      const coefficients = [...html.matchAll(/<span>([0-9.]+)r²<\/span><span>(r ≥ 0|r &lt; 0)<\/span>/g)];
-      assert.equal(coefficients.length, 2);
-      const [positiveWeight, negativeWeight] = coefficients.map(match => Number(match[1]));
+      const rows = equationCases(formula);
+      assert.equal(rows.size, 2);
+      const positive = rows.get('nonnegative'), negative = rows.get('negative');
+      const weight = term => Number(/^<mn>([0-9.]+)<\/mn>/.exec(term)?.[1]);
+      const [positiveWeight, negativeWeight] = [positive, negative].map(row => weight(row.term));
+      const [positivePower, negativePower] = [positive, negative].map(row => displayedPower(row.term));
       close(positiveWeight, state.tau);
       close(negativeWeight, 1 - state.tau);
+      assert.equal(positivePower, 2);
+      assert.equal(negativePower, 2);
+      assert.equal(positive.condition, '<mi>r</mi><mo>≥</mo><mn>0</mn>');
+      assert.equal(negative.condition, '<mi>r</mi><mo>&lt;</mo><mn>0</mn>');
       assert.match(html, /L = ℓ\(r₁\) \+ ℓ\(r₂\)/);
-      displayedPointLoss = r => (r >= 0 ? positiveWeight : negativeWeight) * r ** 2;
+      displayedPointLoss = r => r >= 0 ? positiveWeight * r ** positivePower : negativeWeight * r ** negativePower;
     } else if (state.loss === 'huber') {
-      const delta = Number(/δ = ([0-9.]+)/.exec(html)[1]);
+      const delta = Number(/<mi>δ<\/mi><mo>=<\/mo><mn>([0-9.]+)<\/mn>/.exec(equationPart(html, 'residual'))[1]);
       close(delta, state.delta);
-      assert.match(html, /<span>½r²<\/span><span>\|r\| ≤ δ<\/span>/);
-      assert.match(html, /<span>δ\(\|r\| − ½δ\)<\/span><span>\|r\| &gt; δ<\/span>/);
+      const rows = equationCases(formula);
+      assert.equal(rows.size, 2);
+      const quadratic = rows.get('quadratic'), linear = rows.get('linear');
+      const quadraticScale = displayedFraction(quadratic.term), exponent = displayedPower(quadratic.term), linearOffset = displayedFraction(linear.term);
+      close(quadraticScale, .5);
+      assert.equal(exponent, 2);
+      close(linearOffset, .5);
+      assert.match(quadratic.condition, /<mo>≤<\/mo><mi>δ<\/mi>/);
+      assert.match(linear.condition, /<mo>&gt;<\/mo><mi>δ<\/mi>/);
+      assert.match(linear.term, /^<mi>δ<\/mi><mrow><mo stretchy="true">\(<\/mo>/);
+      assert.match(linear.term, /<mo>−<\/mo><mfrac>/);
+      assert.match(linear.term, /<\/mfrac><mi>δ<\/mi><mo stretchy="true">\)<\/mo>/);
       assert.match(html, /L = ℓ\(r₁\) \+ ℓ\(r₂\)/);
-      displayedPointLoss = r => Math.abs(r) <= delta ? r ** 2 / 2 : delta * (Math.abs(r) - delta / 2);
+      displayedPointLoss = r => Math.abs(r) <= delta ? quadraticScale * r ** exponent : delta * (Math.abs(r) - linearOffset * delta);
     } else if (state.loss === 'quartic') {
       assert.match(html, /L = ¼\(r₁⁴ \+ r₂⁴\)/);
-      displayedPointLoss = r => r ** 4 / 4;
+      const scale = displayedFraction(formula), terms = indexedPowers(formula);
+      close(scale, .25);
+      assert.deepEqual(terms, [{ index: 1, exponent: 4 }, { index: 2, exponent: 4 }]);
+      displayedPointLoss = r => scale * r ** terms[0].exponent;
     } else {
       assert.match(html, /MSE = ½\(r₁² \+ r₂²\)/);
-      displayedPointLoss = r => r ** 2 / 2;
+      const scale = displayedFraction(formula), terms = indexedPowers(formula);
+      close(scale, .5);
+      assert.deepEqual(terms, [{ index: 1, exponent: 2 }, { index: 2, exponent: 2 }]);
+      displayedPointLoss = r => scale * r ** terms[0].exponent;
     }
     for (const residual of residualSamples) close(displayedPointLoss(residual), view.pointLoss(residual, spec));
     // Include predictions outside the outcomes' range so both positive-positive
@@ -706,6 +745,36 @@ test('displayed signed-residual equations match each loss for both residual sign
   // The morph explains the destination loss even while its contours transition.
   for (const progress of [0, .5, 1]) {
     assert.equal(view.annotation(6, { progress }).equation, view.annotation(11, { loss: 'expectile', tau: .8 }).equation);
+  }
+});
+
+test('equations use accessible native mathematical structure without duplicate math roles', () => {
+  for (const state of allLosses) {
+    const html = view.equation(state, 11), compact = view.annotation(11, state).equation;
+    for (const markup of [html, compact]) {
+      const blocks = [...markup.matchAll(/<math\b([^>]*)>([^]*?)<\/math>/g)];
+      assert.equal(blocks.length, markup === compact || ['squared', 'quartic'].includes(state.loss) ? 2 : 3);
+      assert.doesNotMatch(markup, /role="math"|<span|loss-equation-brace|loss-equation-cases/);
+      for (const block of blocks) {
+        const props = attributes(block[1]);
+        assert.equal(props.xmlns, 'http://www.w3.org/1998/Math/MathML');
+        assert.equal(props.display, 'block');
+        assert.equal(props.displaystyle, 'true');
+        assert.ok(props['aria-label'].length > 0);
+        assert.doesNotMatch(block[2], /[₁₂ᵢ²⁴½¼]/, 'Subscripts, powers, and fractions should use native MathML rather than Unicode substitutes');
+      }
+      const residual = equationPart(markup, 'residual');
+      for (const symbol of ['r', 'y', 'f']) assert.match(residual, new RegExp(`<msub><mi>${symbol}<\\/mi><mi>i<\\/mi><\\/msub>`));
+      if (['expectile', 'huber'].includes(state.loss)) {
+        const formula = equationPart(markup, 'definition');
+        assert.match(formula, /<mo stretchy="true">\{<\/mo><mstyle displaystyle="false"><mtable columnalign="left"/);
+        assert.equal([...formula.matchAll(/<mtr\b/g)].length, 2);
+        assert.equal([...formula.matchAll(/<mtd>/g)].length, 4);
+        assert.doesNotMatch(compact, /loss-equation-total/);
+        assert.match(equationPart(html, 'total'), /<msub><mi>r<\/mi><mn>1<\/mn><\/msub>/);
+        assert.match(equationPart(html, 'total'), /<msub><mi>r<\/mi><mn>2<\/mn><\/msub>/);
+      }
+    }
   }
 });
 
