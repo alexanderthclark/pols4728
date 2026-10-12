@@ -64,6 +64,20 @@
       "description": "Two round, torso-less figures inspect a nearly level wall-mounted landscape after taking turns to correct its tilt. Monochrome SVG artwork.",
       "sha256": "a456b29cc4b745ff6785b3e556656d2d237767389cf5cb79381a89894decfe86",
       "usage": "Static final pose of the title cartoon. title-picture.js renders the same characters in motion; title-motion.js manages a single automatic sequence with shrinking corrections, visibility handling, and reduced motion. Preserve proportions and keep the title as HTML."
+    },
+    {
+      "path": "docs/assets/coronation-crown.svg",
+      "role": "homepage-coronation-decoration",
+      "description": "The Columbia crown in Columbia blue, with subtle face shading, a thin lower-right extrusion, and an edge highlight.",
+      "sha256": "7f44b9a161586e9444f020a2958be1f53433dee10831bdbc04b9626c72d719d8",
+      "usage": "User-approved colored decoration for the homepage’s one-time idle coronation. The original monochrome course logo and its proportions remain intact; coronation.js changes only eyes, the I’s expression, and the crown. The colored crown is a purposeful exception to the default monochrome artwork guidance.",
+      "references": [
+        {
+          "title": "Columbia University header artwork",
+          "url": "https://www.columbia.edu/content/themes/custom/columbia/assets/img/cu-header.svg",
+          "usage": "Original crown path and base geometry; local blue shading and depth support the requested decorative animation."
+        }
+      ]
     }
   ]
 }

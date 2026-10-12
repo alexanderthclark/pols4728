@@ -9,14 +9,38 @@
     * { box-sizing: border-box; }
     body { margin: 0; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; padding: 1.5rem; color: #242424; background: #fff; font: 1.125rem/1.5 Georgia, serif; }
     main { width: 100%; max-width: 42rem; display: grid; justify-items: center; gap: 1.25rem; text-align: center; transform: translateY(-3vh); transform: translateY(-3svh); }
-    .course-logo { display: block; width: min(36rem, 100%); height: auto; max-height: 54vh; max-height: 54svh; object-fit: contain; }
+    .course-coronation { position: relative; width: min(36rem, 100%); max-width: calc(54vh * 1.8193548387); max-width: calc(54svh * 1.8193548387); overflow: hidden; }
+    .course-logo { display: block; width: 100%; height: auto; }
+    .character-layer { position: absolute; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; }
     a { display: inline-block; padding: .5rem; color: #234e70; text-underline-offset: .2em; }
     a:focus-visible { outline: 2px solid #234e70; outline-offset: 4px; }
   </style>
+  <script src="./assets/coronation.js" defer></script>
 </head>
 <body>
   <main aria-label="POLS 4728">
-    <img class="course-logo" src="./assets/ML_and_AI_logo.png" width="1692" height="930" alt="ML &amp; AI for the Social Sciences">
+    <div id="course-coronation" class="course-coronation">
+      <img class="course-logo" src="./assets/ML_and_AI_logo.png" width="1692" height="930" alt="ML &amp; AI for the Social Sciences">
+      <svg class="character-layer" viewBox="0 0 1692 930" aria-hidden="true" focusable="false">
+        <defs class="eye-clips"></defs>
+        <g class="animated-eyes" opacity="0"></g>
+        <g class="pleased-smile" opacity="0">
+          <rect x="1434" y="393" width="60" height="39" fill="#fff"/>
+          <path d="M1443 406 C1455 418 1475 419 1485 405" fill="none" stroke="#161616" stroke-width="6" stroke-linecap="round"/>
+        </g>
+        <g class="crown-rays-mask" opacity="0">
+          <rect x="1398" y="191" width="178" height="83" fill="#fff"/>
+        </g>
+        <g class="crown-contact-shadow" opacity="0">
+          <ellipse cx="1472" cy="286" rx="68" ry="3.5" fill="#4C748F" opacity=".18" transform="rotate(3.5 1472 286)"/>
+        </g>
+        <g class="descending-crown" opacity="0">
+          <g transform="scale(1.12) rotate(3.5 82.5 142)">
+            <use href="./assets/coronation-crown.svg#crown"/>
+          </g>
+        </g>
+      </svg>
+    </div>
     <a href="./trees/">Boosting with regression trees</a>
     <a href="./boosting/">Gradient Boosting</a>
     <a href="./shapley/">Shapley values for credit assignment</a>
