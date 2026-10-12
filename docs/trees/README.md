@@ -4,6 +4,17 @@ A static explainer of forward stagewise additive modeling, served at `/trees/`.
 No build step or external JavaScript dependencies. The course homepage links
 directly to this chapter.
 
+The title cartoon shows two round, torso-less figures taking turns to straighten
+a picture. Each adjustment crosses level by less than the previous one. The
+animation plays once, then holds the final near-level pose; Pause and Replay
+controls are available. Leaving the title or hiding the tab pauses elapsed time.
+Reduced motion shows the final pose without movement. `title-picture.js` draws
+the SVG and defines the sequence; `title-motion.js` controls playback separately
+from the scroll-driven teaching diagrams. The illustration is an analogy for
+successive corrections, not a plot of the example's training error.
+`assets/picture-hanging.svg` is the static final-pose fallback generated with
+`TitlePicture.render(TitlePicture.duration)` and registered in the artwork list.
+
 Ten scroll-linked scenes begin with observations from a synthetic delivery
 dataset, reveal the mean prediction, and then form residuals for the first tree.
 The figure scenes use a full-width figure, a short heading and equation, and
@@ -185,7 +196,8 @@ cut is being drawn. Keyboard focus exposes the same observation details.
   reduced motion, keyboard focus styling, and print references.
 
 Run the JavaScript syntax checks in `.github/workflows/pages.yml` and
-`node --test tests/*.test.mjs`. Browser loading order is `../shared/boosting-math.js`,
+`node --test tests/*.test.mjs`. The title loads `title-picture.js`, then
+`title-motion.js`. The teaching diagrams load `../shared/boosting-math.js`,
 `delivery.js`, `delivery-view.js`, `model.js`, `growth.js`, `growth-view.js`, then
 `story.js`.
 For browser review, inspect all ten scenes at desktop and mobile widths,

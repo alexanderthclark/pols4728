@@ -6,6 +6,8 @@
   <meta name="description" content="Fit trees to delivery-time residuals, follow boosting toward near-zero training error, and see how prediction curves become partition maps with two predictors.">
   <title>Forward stagewise additive modeling — POLS 4728</title>
   <link rel="stylesheet" href="style.css">
+  <script src="title-picture.js" defer></script>
+  <script src="title-motion.js" defer></script>
   <script src="../shared/boosting-math.js" defer></script>
   <script src="delivery.js" defer></script>
   <script src="delivery-view.js" defer></script>
@@ -27,13 +29,13 @@
       <div class="title-content">
         <p class="eyebrow">MACHINE LEARNING &amp; AI FOR THE SOCIAL SCIENCES</p>
         <h1 id="page-title">Forward stagewise additive modeling</h1>
-        <svg class="title-art" viewBox="0 0 650 238" aria-hidden="true" focusable="false">
-          <path d="M50 36v160h520" fill="none" stroke="#767676" stroke-width="1.2"/>
-          <path d="M50 100h520" fill="none" stroke="#767676" stroke-width="2" stroke-dasharray="7 5"/>
-          <path d="M50 148h140v-32h180V52h200" fill="none" stroke="#234E70" stroke-width="3"/>
-          <g fill="#242424" stroke="#fff" stroke-width="1.5"><circle cx="90" cy="148" r="5"/><circle cx="170" cy="148" r="5"/><circle cx="210" cy="108" r="5"/><circle cx="290" cy="108" r="5"/><circle cx="330" cy="108" r="5"/><circle cx="410" cy="60" r="5"/><circle cx="450" cy="60" r="5"/><circle cx="530" cy="60" r="5"/></g>
-          <g class="title-art-label"><text x="50" y="23">Delivery time</text><text x="388" y="91">12-minute starting prediction</text><text x="310" y="224" text-anchor="middle">Distance</text></g>
-        </svg>
+        <div id="title-picture" class="title-art">
+          <img src="assets/picture-hanging.svg" width="840" height="440" alt="Two round, torso-less figures stand back to inspect a nearly level picture after taking turns to straighten it.">
+        </div>
+        <div id="title-motion-controls" class="title-motion-controls" aria-label="Title animation controls" hidden>
+          <button id="title-motion-toggle" type="button">Pause animation</button>
+          <button id="title-motion-replay" type="button" hidden>Replay animation</button>
+        </div>
         <a class="start-link" href="#story">Start explanation <span aria-hidden="true">↓</span></a>
       </div>
     </section>

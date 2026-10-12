@@ -57,6 +57,13 @@
       "description": "Two round, torso-less stick figures at a swing set: a figure wearing a plain dad hat pushes a joyful rider wearing a propeller beanie. Monochrome line artwork on a transparent field.",
       "sha256": "16038a43940e2251cd38abc98ef7d71d1610516a0a2e0ae3b4d4301e7c2dbd82",
       "usage": "Opening title of the boosting explainer. Preserve proportions, transparency, full composition, and clear space; keep the title and explanatory text as HTML."
+    },
+    {
+      "path": "docs/trees/assets/picture-hanging.svg",
+      "role": "trees-title-illustration",
+      "description": "Two round, torso-less figures inspect a nearly level wall-mounted landscape after taking turns to correct its tilt. Monochrome SVG artwork.",
+      "sha256": "a456b29cc4b745ff6785b3e556656d2d237767389cf5cb79381a89894decfe86",
+      "usage": "Static final pose of the title cartoon. title-picture.js renders the same characters in motion; title-motion.js manages a single alternating sequence with shrinking corrections, pause, replay, visibility, and reduced motion. Preserve proportions and keep the title as HTML."
     }
   ]
 }
