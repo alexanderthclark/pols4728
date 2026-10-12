@@ -2,12 +2,14 @@
   'use strict';
   const E = window.WorkedBoostingExample;
   const W = window.WorkedBoostingView;
+  const G = window.PredictionBoostingView;
   const $ = id => document.getElementById(id);
   const stage = document.querySelector('.stage-shell');
   const steps = [...document.querySelectorAll('.step')];
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   const mobile = () => window.matchMedia('(max-width: 800px)').matches;
   const exampleState = { rate: 1, process: 1, candidateIndex: null, round: 8 };
+  const geometryState = { round: 0, rate: 0.5, progress: 1, angle: 120, length: 0.5 };
   let scene = -1;
   let animation = 0;
   let scrollPending = false;
@@ -26,35 +28,78 @@
     }));
   }
 
+  function localScene() {
+    const step = steps[scene];
+    return step.dataset.geometryScene !== undefined
+      ? { geometry: true, index: Number(step.dataset.geometryScene) }
+      : { geometry: false, index: Number(step.dataset.workedScene) };
+  }
+
   function render(announce = true) {
     if (scene < 0) return;
-    const bounds = $('visual-area').getBoundingClientRect();
-    const state = { ...exampleState, width: bounds.width, height: bounds.height };
-    $('worked-diagram').innerHTML = W.render(scene, state, mobile());
-    readout(W.readout(scene, state));
-    if (announce) $('stage-caption').textContent = W.presentation(scene, state).caption;
-    const fitting = scene === 2 || scene === 4;
-    const updating = scene === 3 || scene === 5;
-    $('worked-controls').hidden = scene === 7;
-    $('vector-readout').hidden = scene === 7;
+    const current = localScene();
+    const index = current.index;
+    // Controls change the available plot space, especially on a narrow screen.
+    // Set their visibility before measuring the figure.
+    $('geometry-controls').hidden = !current.geometry;
+    $('prediction-diagram').hidden = !current.geometry;
+    $('worked-diagram').hidden = current.geometry;
+    $('worked-controls').hidden = current.geometry || index === 7;
+    $('vector-readout').hidden = !current.geometry && index === 7;
+    if (current.geometry) {
+      $('geometry-path-controls').hidden = index !== 0;
+      $('geometry-rate-label').hidden = index === 2;
+      $('geometry-update-controls').hidden = index !== 1;
+      $('geometry-angle-controls').hidden = index !== 2;
+      $('geometry-round').value = String(geometryState.round);
+      $('geometry-round-value').textContent = String(geometryState.round);
+      $('geometry-rate').value = String(geometryState.rate);
+      $('geometry-progress').value = String(geometryState.progress);
+      $('geometry-progress-value').textContent = `${Math.round(100 * geometryState.progress)}%`;
+      $('geometry-angle').value = String(geometryState.angle);
+      $('geometry-angle-value').textContent = `${Math.round(geometryState.angle)}°`;
+      $('geometry-length').value = String(geometryState.length);
+      $('geometry-length-value').textContent = geometryState.length.toFixed(2);
+      $('geometry-start').value = geometryState.round <= 2 ? String(geometryState.round) : 'current';
+      const bounds = $('visual-area').getBoundingClientRect();
+      const state = { ...geometryState, width: bounds.width, height: bounds.height };
+      $('prediction-diagram').innerHTML = G.render(index, state, mobile());
+      readout(G.readout(index, state));
+      if (announce) $('stage-caption').textContent = G.presentation(index, state).caption;
+      stage.dataset.rate = geometryState.rate;
+      stage.dataset.updateProgress = geometryState.progress;
+      stage.dataset.round = geometryState.round;
+      stage.dataset.geometryScene = index;
+      delete stage.dataset.workedScene;
+      return;
+    }
+    const fitting = index === 2 || index === 4;
+    const updating = index === 3 || index === 5;
     $('worked-cut-label').hidden = !fitting;
     $('worked-progress-label').hidden = !updating;
     $('worked-progress').hidden = !updating;
-    $('worked-round-label').hidden = scene !== 6;
-    $('worked-round').hidden = scene !== 6;
+    $('worked-round-label').hidden = index !== 6;
+    $('worked-round').hidden = index !== 6;
     $('worked-rate').value = String(exampleState.rate);
     $('worked-progress').value = String(exampleState.process);
     $('worked-progress-value').textContent = `${Math.round(100 * exampleState.process)}%`;
     $('worked-round').value = String(exampleState.round);
     $('worked-round-value').textContent = String(exampleState.round);
     if (fitting) {
-      const fitted = E.build(exampleState.rate, 2)[scene === 2 ? 1 : 2];
+      const fitted = E.build(exampleState.rate, 2)[index === 2 ? 1 : 2];
       const winner = fitted.candidates.findIndex(row => row.threshold === fitted.tree.threshold);
       $('worked-cut').value = String(exampleState.candidateIndex === null ? winner : exampleState.candidateIndex);
     }
+    const bounds = $('visual-area').getBoundingClientRect();
+    const state = { ...exampleState, width: bounds.width, height: bounds.height };
+    $('worked-diagram').innerHTML = W.render(index, state, mobile());
+    readout(W.readout(index, state));
+    if (announce) $('stage-caption').textContent = W.presentation(index, state).caption;
     stage.dataset.rate = exampleState.rate;
     stage.dataset.updateProgress = exampleState.process;
     stage.dataset.round = exampleState.round;
+    stage.dataset.workedScene = index;
+    delete stage.dataset.geometryScene;
   }
 
   function cancelUpdate() {
@@ -83,16 +128,19 @@
     cancelUpdate();
     scene = index;
     stage.dataset.scene = scene;
-    stage.dataset.example = 'worked';
-    $('stage-topic').textContent = W.topics[scene];
+    const current = localScene();
+    stage.dataset.example = current.geometry ? 'geometry' : 'worked';
+    $('stage-topic').textContent = (current.geometry ? G : W).topics[current.index];
     $('stage-count').textContent = `${String(scene + 1).padStart(2, '0')} / ${steps.length}`;
     $('previous').disabled = scene === 0;
     $('next').textContent = scene === steps.length - 1 ? 'Beyond squared error' : 'Next';
     steps.forEach((step, i) => step.toggleAttribute('data-active', i === scene));
-    exampleState.candidateIndex = null;
-    exampleState.process = 1;
-    if (animate && (scene === 3 || scene === 5)) animateUpdate();
-    else render();
+    if (!current.geometry) {
+      exampleState.candidateIndex = null;
+      exampleState.process = 1;
+      if (animate && (current.index === 3 || current.index === 5)) animateUpdate();
+      else render();
+    } else render();
   }
 
   function scrollUpdate() {
@@ -124,7 +172,7 @@
   }
 
   function stepForId(id) {
-    return id === 'story' || id === 'reading' ? 0 : steps.findIndex(step => step.id === id);
+    return id === 'story' || id === 'reading' || id === 'vector-geometry' ? 0 : steps.findIndex(step => step.id === id);
   }
 
   $('previous').addEventListener('click', () => scrollToStep(scene - 1));
@@ -170,6 +218,33 @@
   $('worked-round').addEventListener('input', () => {
     cancelUpdate();
     exampleState.round = Math.max(0, Math.min(24, Math.round(Number($('worked-round').value))));
+    render();
+  });
+
+  $('geometry-round').addEventListener('input', () => {
+    geometryState.round = Math.max(0, Math.min(24, Math.round(Number($('geometry-round').value))));
+    render();
+  });
+  $('geometry-rate').addEventListener('change', () => {
+    geometryState.rate = Number($('geometry-rate').value);
+    render();
+  });
+  $('geometry-progress').addEventListener('input', () => {
+    geometryState.progress = Math.max(0, Math.min(1, Number($('geometry-progress').value)));
+    render();
+  });
+  $('geometry-angle').addEventListener('input', () => {
+    geometryState.angle = Math.max(0, Math.min(180, Number($('geometry-angle').value)));
+    render();
+  });
+  $('geometry-length').addEventListener('input', () => {
+    geometryState.length = Math.max(0, Math.min(2.5, Number($('geometry-length').value)));
+    render();
+  });
+  $('geometry-start').addEventListener('change', () => {
+    if ($('geometry-start').value !== 'current') {
+      geometryState.round = Math.max(0, Math.min(2, Math.round(Number($('geometry-start').value))));
+    }
     render();
   });
 

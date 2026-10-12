@@ -40,7 +40,7 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
   .title-page{min-height:calc(100svh - 56px);padding:32px 22px}.title-page h1{font-size:clamp(40px,10vw,60px)}.title-art{max-height:34svh;max-width:100%}.eyebrow{font-size:11px}
   .story-layout{display:block;padding:0 22px}.stage-shell{top:56px;height:66svh;min-height:470px;padding:8px 0;z-index:20;border-bottom:1px solid var(--rule)}.stage-top{font-size:12px;padding-bottom:5px}.visual-area{min-height:215px}
   .vector-readout{padding:4px 0;min-height:43px;gap:6px;font-size:12px}.vector-readout .value{font-size:15px;line-height:1.25}.vector-readout .readout-label{font-size:11px;line-height:1.25}
-  .stage-shell[data-scene='3'] .vector-readout>div:last-child,.stage-shell[data-scene='5'] .vector-readout>div:last-child{display:none}
+  .stage-shell[data-worked-scene='3'] .vector-readout>div:last-child,.stage-shell[data-worked-scene='5'] .vector-readout>div:last-child{display:none}
   .stage-caption{font-size:11px;line-height:1.3;min-height:30px;margin:5px 0}.stage-nav{padding-top:5px;font-size:12px}.stage-nav span{display:none}.stage-nav button{min-height:40px;padding:4px 12px;font-size:13px}
   .step{min-height:75svh;align-items:flex-start;padding:48px 0 65px;scroll-margin-top:calc(66svh + 66px)}.step>div{max-width:620px;margin:auto;width:100%}.step h2{font-size:32px;margin-bottom:20px}.step-number{margin-bottom:12px}.step p{font-size:17px;line-height:1.6}.step .quiet{font-size:15px}.step .equation{font-size:23px}
   .worked-controls{gap:3px 14px;padding:3px 0}.controls label{font-size:11px;gap:6px}.controls input[type=range]{min-height:24px}.controls select{min-height:28px;padding:2px 6px;font-size:12px}
@@ -49,8 +49,30 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
 @media(max-width:540px){.masthead nav{gap:12px;font-size:12px}.masthead{padding:0 16px;gap:10px}}
 @media(max-width:380px){
   .masthead>a{font-size:12px}.masthead nav{gap:9px;font-size:11px}.story-layout{padding:0 16px}.stage-top{font-size:11px}.step h2{font-size:29px}.vector-readout .value{font-size:14px}
-  .stage-shell[data-scene='2'] .vector-readout>div:nth-child(-n+2),.stage-shell[data-scene='4'] .vector-readout>div:nth-child(-n+2){display:none}
+  .stage-shell[data-worked-scene='2'] .vector-readout>div:nth-child(-n+2),.stage-shell[data-worked-scene='4'] .vector-readout>div:nth-child(-n+2){display:none}
   .loss-table th{max-width:100px}.loss-table .math{font-size:16px}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 @media print{.masthead,.stage-shell,.reading-progress,.start-link,.skip-link{display:none}.title-page{min-height:0;padding:20px}.title-page h1{font-size:38px}.title-art{max-height:200px}.story-layout{display:block;max-width:760px}.step{min-height:0;padding:24px 0;break-inside:avoid}.step>div{max-width:none}.step h2{font-size:26px}.afterword{padding-top:36px}.afterword details{display:block}.afterword details>*{display:block}footer{font-size:12px}}
+
+/* The vector picture and exact norm slice belong to the main explanation. */
+.prediction-diagram{width:100%;height:100%;min-width:0}
+.stage-shell[data-example='geometry']>.vector-readout,.stage-shell[data-example='geometry']>.geometry-controls,.stage-shell[data-example='geometry']>.stage-caption,.stage-shell[data-example='geometry']>.stage-top,.stage-shell[data-example='geometry']>.stage-nav{flex-shrink:0}
+.geometry-controls{display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px}
+.geometry-controls>div{flex:1 1 100%}
+.geometry-controls>div>label{justify-content:space-between}
+.geometry-angle-controls,#geometry-angle-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px}
+#geometry-angle-controls>.geometry-start-label{grid-column:1/-1;justify-content:flex-start}
+#geometry-angle-controls>div label{justify-content:space-between;gap:6px}
+#geometry-rate-label{order:-1}
+@media(max-width:800px){
+  .stage-shell[data-example='geometry']{height:60svh;min-height:500px}
+  .stage-shell[data-geometry-scene='2']{height:62svh;min-height:520px}
+  .stage-shell[data-example='geometry'] .visual-area{min-height:220px}
+  .stage-shell[data-example='geometry'] .vector-readout>div{flex:0 0 calc(50% - 3px)}
+  .stage-shell[data-example='geometry'] .vector-readout{min-height:70px}
+  .geometry-controls{gap:2px 12px;padding:3px 0}
+  #geometry-angle-controls{gap:3px 14px}
+  #geometry-angle-controls label{font-size:11px}
+  .step[data-geometry-scene]{padding-top:20px}
+}

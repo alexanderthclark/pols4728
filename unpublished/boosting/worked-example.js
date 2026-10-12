@@ -10,7 +10,7 @@
 
   // Section 1.4.3 of the notes: one predictor and four observed responses.
   // This mean-initialized calculation is the main gradient-boosting example.
-  // The zero-initialized three-observation geometry is an optional companion.
+  // It follows the interactive zero-initialized three-observation geometry.
   const x = Object.freeze([1, 2, 3, 4]);
   const y = Object.freeze([0, 2, 1, 5]);
   const baseline = y.reduce((sum, value) => sum + value, 0) / y.length;
