@@ -1,9 +1,9 @@
 # Gradient Boosting
 
 A scrollytelling chapter about gradient boosting. Its main path
-restores the interactive observed-outcome vector, prediction
-coordinates, negative gradients, and norm/radius experiment. Three vector
-scenes lead into an identical-input example and eight scenes developing the four-observation example from
+starts with interactive observed-outcome vectors, prediction
+coordinates, and negative gradients. Two vector scenes lead directly into
+an identical-input example and eight scenes developing the four-observation example from
 sections 1.4.2–1.4.3 of the boosting notes. Four additional scenes compare squared error, Huber loss, and asymmetric squared
 (expectile) loss through targets, split search, original-loss leaf optimization,
 and two fitted paths. The chapter closes with an exponential-loss comparison
@@ -26,11 +26,12 @@ No build step or external JavaScript dependencies are required.
 
 - `index.html` contains the main explanation, numerical example, controls,
   general algorithm, and loss comparison.
-- `story.js` follows sixteen narrative steps and handles vector experiments,
+- `story.js` follows fifteen narrative steps and handles vector experiments,
   split inspection, update progress, learning rate, later rounds, and navigation.
-- `prediction-view.js` restores the three-observation vector picture, fitted
-  correction, and exact equal-loss circle. It exposes consistent vectors,
-  gradient norms, step lengths, and losses for all three interactions.
+- `prediction-view.js` restores the three-observation vector picture and fitted
+  correction. Its reusable equal-loss circle renderer remains available outside
+  the main story. It exposes consistent vectors, gradient norms, step lengths,
+  and losses.
 - `restricted-view.js` shows two observations with identical inputs and
   loss contours in prediction space. Shared-prediction and loss controls compare
   ordinary residuals with negative gradients and the loss-optimal shared tree
@@ -74,16 +75,13 @@ extension, not the implementation used in the interactive calculation.
 
 The opening vector geometry uses `x = [1, 2, 3]`, `y = [1, -1, 1]`, zero baseline,
 and learning rate 0.5. Its orthographic axes are training-point predictions.
-Its flat angle experiment shows a true Euclidean equal-loss circle, with
-radius equal to the initial residual norm. A fixed, equal scale makes the
-circle shrink when the starting model improves. Arbitrary candidate updates
-are lifted to exact three-dimensional vectors; their angles, norms, and losses
-are not inferred from the orthographic projection. Fitted-tree states and the
-candidate experiment remain independent. Neither apparent projected angles nor falling training
-loss establish predictive performance on new observations.
+The two opening scenes show fitted-tree states and correction progress,
+then proceed directly to the two-observation example. Neither apparent
+projected angles nor falling training loss establish predictive performance
+on new observations.
 
-Between the radius view and the four-observation calculation, `x = [1, 1]`
-and `y = [0, 1]` restrict every prediction and update to equal coordinates.
+The two-observation example uses `x = [1, 1]` and `y = [0, 1]`, so every
+prediction and update is restricted to equal coordinates.
 The default is asymmetric squared error with τ = 0.8 and prediction `(0, 0)`.
 For `0 ≤ c ≤ 1`, total loss is `(1-τ)c² + τ(1-c)²`, so the best shared
 prediction is `(τ, τ)`. At `(0.5, 0.5)`, raw residuals have mean zero but the
@@ -156,9 +154,9 @@ loss. It is not a comparator for every possible forward stagewise optimizer.
 Different targets do not guarantee a lower loss at every finite round.
 
 Loss values are sums, not MSE. Candidate SSEs are measured on each method's
-own targets, not directly ranked against one another. The three-observation exact
-circles remain specific to squared error; the two-observation view changes its
-contours with the selected loss. Controls support keyboard use, and round
+own targets, not directly ranked against one another. The two-observation
+view changes its contours with the selected loss; only squared error has
+circular contours. Controls support keyboard use, and round
 changes refit from the initial model rather than reusing another loss's trees.
 
 The third dataset has identical inputs x = [1,1,1] and responses y = [0,0,10].

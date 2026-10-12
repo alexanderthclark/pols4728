@@ -13,7 +13,7 @@ const restricted = require('../docs/boosting/restricted-view.js');
 const lossView = require('../docs/boosting/loss-view.js');
 const html = readFileSync(new URL('../docs/boosting/index.html', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../docs/boosting/story.js', import.meta.url), 'utf8');
-const workedPhysical = local => local + 4;
+const workedPhysical = local => local + 3;
 const stageTop = 400;
 
 // This harness checks real controller events and numerical output. It does not
@@ -67,8 +67,8 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
   const get = id => nodes.get(id);
   const shell = new Element();
   const stageHeight = () => !narrow.matches ? 500 : !variableStageHeight ? 620
-    : shell.dataset.example === 'restricted' ? 660 : Number(shell.dataset.geometryScene) === 2
-      || (shell.dataset.example === 'worked' && [3, 5, 6].includes(Number(shell.dataset.workedScene))) ? 528 : 392;
+    : shell.dataset.example === 'restricted' ? 660
+    : shell.dataset.example === 'worked' && [3, 5, 6].includes(Number(shell.dataset.workedScene)) ? 528 : 392;
   const headingTop = physical => (narrow.matches ? stageDocumentTop + stageHeight() + 48 : stageDocumentTop + 600) + physical * 1000;
   // The phone stage moves with the document; only the wide stage is sticky.
   shell.getBoundingClientRect = () => {
@@ -180,22 +180,22 @@ for (const compact of [false, true]) {
     assert.equal(ui.shell.dataset.example, 'geometry');
     assert.match(numbers(ui), /\(1, [−-]1, 1\)/);
     assert.equal(ui.get('previous').disabled, true);
-    for (let scene = 1; scene <= 15; scene++) {
+    for (let scene = 1; scene <= 14; scene++) {
       ui.click('next');
       assert.equal(Number(ui.shell.dataset.scene), scene);
-      assert.equal(ui.get('stage-count').textContent, `${String(scene + 1).padStart(2, '0')} / 16`);
-      if (scene < 3) {
+      assert.equal(ui.get('stage-count').textContent, `${String(scene + 1).padStart(2, '0')} / 15`);
+      if (scene < 2) {
         assert.equal(ui.shell.dataset.example, 'geometry');
         assert.match(ui.get('prediction-diagram').innerHTML, new RegExp(`data-geometry-scene="${scene}"`));
-      } else if (scene === 3) {
+      } else if (scene === 2) {
         assert.equal(ui.shell.dataset.example, 'restricted');
         assert.match(ui.get('restricted-diagram').innerHTML, /data-restricted-scene="0"/);
         assert.equal(ui.get('restricted-controls').hidden, false);
         assert.equal(ui.get('restricted-loss').value, 'expectile');
         close(restrictedLoss(ui), .8);
-      } else if (scene >= 12) {
+      } else if (scene >= 11) {
         assert.equal(ui.shell.dataset.example, 'loss');
-        assert.equal(Number(ui.shell.dataset.lossScene), scene - 12);
+        assert.equal(Number(ui.shell.dataset.lossScene), scene - 11);
         assert.equal(ui.get('loss-controls').hidden, false);
         assert.equal(ui.get('loss-choice').value, 'huber');
         assert.equal(ui.get('worked-diagram').hidden, true);
@@ -422,31 +422,31 @@ test('the end of a cancelled old scroll does not release a newer scene navigatio
 test('wide navigation aligns a short card below the sticky stage and scrolling still advances scenes', () => {
   const ui = setup({ reducedMotion: true });
   ui.clickLink('#loss-targets');
-  assert.equal(Number(ui.shell.dataset.scene), 12);
-  close(ui.headingTop(12) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
-  ui.scrollAt(13);
-  assert.equal(Number(ui.shell.dataset.scene), 13);
-  ui.scrollAt(11);
   assert.equal(Number(ui.shell.dataset.scene), 11);
+  close(ui.headingTop(11) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
+  ui.scrollAt(12);
+  assert.equal(Number(ui.shell.dataset.scene), 12);
+  ui.scrollAt(10);
+  assert.equal(Number(ui.shell.dataset.scene), 10);
 });
 
 test('a phone hash stays selected while the figure is visible, and Next returns from manual reading', () => {
   const ui = setup({ reducedMotion: true, compact: true, variableStageHeight: true, hash: '#loss-targets' });
   ui.advance(0); ui.advance(0);
-  assert.equal(Number(ui.shell.dataset.scene), 12);
+  assert.equal(Number(ui.shell.dataset.scene), 11);
   close(ui.shell.getBoundingClientRect().top, 64);
   ui.scrollBy(100); ui.resize();
-  assert.equal(Number(ui.shell.dataset.scene), 12);
-  ui.scrollAt(3);
-  assert.equal(Number(ui.shell.dataset.scene), 3);
+  assert.equal(Number(ui.shell.dataset.scene), 11);
+  ui.scrollAt(2);
+  assert.equal(Number(ui.shell.dataset.scene), 2);
   assert.ok(ui.shell.getBoundingClientRect().bottom <= 64);
   ui.click('next');
-  assert.equal(Number(ui.shell.dataset.scene), 4);
+  assert.equal(Number(ui.shell.dataset.scene), 3);
   close(ui.shell.getBoundingClientRect().top, 64);
   ui.resize(); ui.scrollBy(20);
-  assert.equal(Number(ui.shell.dataset.scene), 4);
-  ui.click('previous');
   assert.equal(Number(ui.shell.dataset.scene), 3);
+  ui.click('previous');
+  assert.equal(Number(ui.shell.dataset.scene), 2);
   close(ui.shell.getBoundingClientRect().top, 64);
 });
 
@@ -458,7 +458,7 @@ test('the number disclosure remeasures the figure and is hidden for the algorith
   ui.get('visual-area').getBoundingClientRect = () => ({ width: 790, height: 540 });
   ui.get('numbers').emit('toggle');
   assert.match(ui.get('restricted-diagram').innerHTML, /viewBox="0 0 790 540"/);
-  assert.equal(Number(ui.shell.dataset.scene), 3);
+  assert.equal(Number(ui.shell.dataset.scene), 2);
   ui.clickLink('#gradient-algorithm');
   assert.equal(ui.get('numbers').hidden, true);
   ui.clickLink('#loss-targets');
@@ -469,17 +469,17 @@ for (const compact of [false, true]) {
   test(`late native fragment restoration keeps the initial plot-aware position (${compact ? 'phone' : 'wide'})`, () => {
     const ui = setup({ compact, smoothScroll: true, hash: '#identical-inputs' });
     ui.advance(0); ui.advance(0);
-    assert.equal(Number(ui.shell.dataset.scene), 3);
+    assert.equal(Number(ui.shell.dataset.scene), 2);
     assert.equal(ui.scrollCalls.at(-1).behavior, 'instant');
-    ui.nativeFragment(3); ui.load();
-    assert.equal(Number(ui.shell.dataset.scene), 3);
+    ui.nativeFragment(2); ui.load();
+    assert.equal(Number(ui.shell.dataset.scene), 2);
     assert.equal(ui.scrollCalls.at(-1).behavior, 'instant');
     if (compact) close(ui.shell.getBoundingClientRect().top, 64);
-    else close(ui.headingTop(3) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
+    else close(ui.headingTop(2) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
     ui.click('next');
     assert.equal(ui.scrollCalls.at(-1).behavior, 'smooth');
     ui.scrollFraction(1);
-    assert.equal(Number(ui.shell.dataset.scene), 4);
+    assert.equal(Number(ui.shell.dataset.scene), 3);
   });
 }
 
@@ -490,7 +490,7 @@ test('late load does not restore the initial hash after the reader navigates els
   const position = ui.scrollY();
   const requests = ui.scrollCalls.length;
   ui.load();
-  assert.equal(Number(ui.shell.dataset.scene), 4);
+  assert.equal(Number(ui.shell.dataset.scene), 3);
   assert.equal(ui.scrollY(), position);
   assert.equal(ui.scrollCalls.length, requests);
 });
@@ -500,11 +500,11 @@ for (const compact of [false, true]) {
     const ui = setup({ compact, smoothScroll: true, hash: '#identical-inputs' });
     ui.advance(0); ui.advance(0);
     ui.historyBack('#loss-targets');
-    ui.nativeFragment(12); ui.hashChange();
-    assert.equal(Number(ui.shell.dataset.scene), 12);
+    ui.nativeFragment(11); ui.hashChange();
+    assert.equal(Number(ui.shell.dataset.scene), 11);
     assert.equal(ui.scrollCalls.at(-1).behavior, 'instant');
     if (compact) close(ui.shell.getBoundingClientRect().top, 64);
-    else close(ui.headingTop(12) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
+    else close(ui.headingTop(11) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
     const requests = ui.scrollCalls.length;
     ui.historyBack('#other-losses'); ui.hashChange();
     assert.equal(ui.scrollCalls.length, requests, 'Reading-only anchors keep native navigation');
@@ -514,15 +514,15 @@ for (const compact of [false, true]) {
 test('crossing the layout breakpoint preserves the selected chapter and restores its plot position', () => {
   const ui = setup({ reducedMotion: true, variableStageHeight: true });
   ui.clickLink('#identical-inputs');
-  assert.equal(Number(ui.shell.dataset.scene), 3);
+  assert.equal(Number(ui.shell.dataset.scene), 2);
   assert.ok(ui.scrollY() > stageTop + 660, 'The desktop chapter is deep enough to move the static stage off screen');
   ui.setCompact(true); ui.resize();
-  assert.equal(Number(ui.shell.dataset.scene), 3);
+  assert.equal(Number(ui.shell.dataset.scene), 2);
   close(ui.shell.getBoundingClientRect().top, 64);
   assert.match(ui.get('restricted-diagram').innerHTML, /viewBox="0 0 288 340"/);
   ui.setCompact(false); ui.resize();
-  assert.equal(Number(ui.shell.dataset.scene), 3);
-  close(ui.headingTop(3) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
+  assert.equal(Number(ui.shell.dataset.scene), 2);
+  close(ui.headingTop(2) - ui.scrollY() - ui.shell.getBoundingClientRect().bottom, 10);
   assert.match(ui.get('restricted-diagram').innerHTML, /viewBox="0 0 790 450"/);
 });
 
@@ -544,7 +544,6 @@ test('geometry controls move the original three-vector path and expose the resid
   assert.equal(ui.get('geometry-controls').hidden, false);
   assert.equal(ui.get('geometry-path-controls').hidden, false);
   assert.equal(ui.get('geometry-update-controls').hidden, true);
-  assert.equal(ui.get('geometry-angle-controls').hidden, true);
   assert.equal(ui.get('worked-controls').hidden, true);
   close(Number(geometryAttribute(ui, 'norm')), Math.sqrt(3));
   close(geometryLoss(ui), 1.5);
@@ -566,42 +565,32 @@ test('geometry controls move the original three-vector path and expose the resid
   assert.equal(ui.get('geometry-progress-value').textContent, '50%');
   ui.click('next');
   assert.equal(Number(ui.shell.dataset.scene), 2);
-  assert.equal(ui.get('geometry-update-controls').hidden, true);
-  assert.equal(ui.get('geometry-angle-controls').hidden, false);
-  assert.equal(ui.get('geometry-rate-label').hidden, true);
-  close(Number(geometryAttribute(ui, 'radius')), Math.sqrt(3));
+  assert.equal(ui.shell.dataset.example, 'restricted');
+  assert.equal(ui.get('geometry-controls').hidden, true);
+  assert.equal(ui.get('restricted-controls').hidden, false);
 });
 
-test('the exact-radius experiment reports flipped directions, no orthogonal descent and overshoot', () => {
+test('legacy radius links skip directly to the identical-input example', () => {
   const ui = setup({ reducedMotion: true });
-  ui.scrollAt(2);
-  ui.control('geometry-angle', 120);
-  ui.control('geometry-length', .5);
-  assert.equal(geometryAttribute(ui, 'orientation'), '-1');
-  close(geometryLoss(ui), 1.125);
-  ui.control('geometry-angle', 90);
-  close(geometryLoss(ui), 1.875);
-  ui.control('geometry-angle', 0);
-  ui.control('geometry-length', 2.5);
-  close(geometryLoss(ui), 3.375);
-  ui.control('geometry-start', 1, 'change');
-  close(Number(geometryAttribute(ui, 'radius')), 1.5);
-  close(Number(geometryAttribute(ui, 'before-loss')), 1.125);
-  close(geometryLoss(ui), 2.53125);
-  const focused = ui.key('ArrowRight', ui.get('geometry-angle'));
-  assert.equal(focused.defaultPrevented, undefined);
+  assert.equal(ui.clickLink('#vector-radius').defaultPrevented, true);
   assert.equal(Number(ui.shell.dataset.scene), 2);
+  assert.equal(ui.shell.dataset.example, 'restricted');
+  assert.equal(ui.get('geometry-controls').hidden, true);
+  assert.equal(ui.get('restricted-controls').hidden, false);
+  close(restrictedLoss(ui), .8);
+  ui.click('previous');
+  assert.equal(Number(ui.shell.dataset.scene), 1);
+  assert.equal(ui.shell.dataset.example, 'geometry');
 });
 
 test('crossing geometry, identical inputs and the four-point calculation preserves independent controls', () => {
   const ui = setup({ reducedMotion: true });
-  ui.scrollAt(2);
-  ui.control('geometry-angle', 30);
-  ui.control('geometry-length', .75);
-  ui.control('geometry-start', 1, 'change');
+  ui.scrollAt(1);
+  ui.control('geometry-rate', 1, 'change');
+  ui.control('geometry-progress', .75);
   const before = ui.get('prediction-diagram').innerHTML;
   ui.click('next');
-  assert.equal(Number(ui.shell.dataset.scene), 3);
+  assert.equal(Number(ui.shell.dataset.scene), 2);
   assert.equal(ui.shell.dataset.example, 'restricted');
   assert.equal(ui.get('prediction-diagram').hidden, true);
   assert.equal(ui.get('restricted-diagram').hidden, false);
@@ -623,26 +612,25 @@ test('crossing geometry, identical inputs and the four-point calculation preserv
   close(figureLoss(ui), 7);
   ui.control('worked-rate', .5, 'change');
   ui.click('previous');
-  assert.equal(Number(ui.shell.dataset.scene), 3);
+  assert.equal(Number(ui.shell.dataset.scene), 2);
   assert.equal(ui.get('restricted-diagram').innerHTML, restrictedBefore);
   assert.equal(ui.get('restricted-prediction').value, '0.25');
   ui.click('previous');
-  assert.equal(Number(ui.shell.dataset.scene), 2);
+  assert.equal(Number(ui.shell.dataset.scene), 1);
   assert.equal(ui.shell.dataset.example, 'geometry');
   assert.equal(ui.get('prediction-diagram').hidden, false);
   assert.equal(ui.get('worked-diagram').hidden, true);
   assert.equal(ui.get('restricted-diagram').hidden, true);
   assert.equal(ui.get('prediction-diagram').innerHTML, before);
-  assert.equal(ui.get('geometry-angle').value, '30');
-  assert.equal(ui.get('geometry-length').value, '0.75');
-  assert.equal(ui.get('geometry-start').value, '1');
+  assert.equal(ui.get('geometry-rate').value, '1');
+  assert.equal(ui.get('geometry-progress').value, '0.75');
   ui.click('next'); ui.click('next');
   assert.equal(ui.get('worked-rate').value, '0.5');
 });
 
 test('the identical-input control uses native focused keys and fits its only tree to the projection', () => {
   const ui = setup({ reducedMotion: true });
-  ui.scrollAt(3);
+  ui.scrollAt(2);
   ui.control('restricted-loss', 'squared', 'change');
   assert.equal(ui.shell.dataset.example, 'restricted');
   assert.equal(Number(ui.shell.dataset.restrictedScene), 0);
@@ -654,7 +642,7 @@ test('the identical-input control uses native focused keys and fits its only tre
   for (const key of ['Home', 'End', 'ArrowRight', 'ArrowLeft']) {
     const event = ui.key(key, ui.get('restricted-prediction'));
     assert.equal(event.defaultPrevented, undefined);
-    assert.equal(Number(ui.shell.dataset.scene), 3);
+    assert.equal(Number(ui.shell.dataset.scene), 2);
   }
   ui.control('restricted-prediction', 1);
   assert.deepEqual(JSON.parse(restrictedAttribute(ui, 'prediction')), [1, 1]);
@@ -702,7 +690,7 @@ for (const compact of [false, true]) {
     // The native range retains its own keyboard behavior and updates on input.
     for (const key of ['Home', 'End', 'ArrowRight', 'ArrowLeft']) {
       assert.equal(ui.key(key, ui.get('restricted-tau')).defaultPrevented, undefined);
-      assert.equal(Number(ui.shell.dataset.scene), 3);
+      assert.equal(Number(ui.shell.dataset.scene), 2);
     }
     ui.control('restricted-tau', .2);
     assert.equal(ui.get('restricted-tau-value').textContent, '0.2');
@@ -720,7 +708,7 @@ for (const compact of [false, true]) {
 
 test('switching to Huber and fourth-power loss calibrates the shared leaf correction', () => {
   const ui = setup({ reducedMotion: true });
-  ui.scrollAt(3);
+  ui.scrollAt(2);
   ui.control('restricted-loss', 'huber', 'change');
   assert.equal(ui.get('restricted-tau-controls').hidden, true);
   assert.equal(ui.get('restricted-delta-label').hidden, false);
@@ -781,17 +769,17 @@ test('two-observation loss parameters persist independently of the later loss co
   assert.equal(ui.get('restricted-prediction').value, '0.3');
 });
 
-test('phone navigation returns to the stage across both inserted-scene boundaries', () => {
+test('phone navigation goes directly from vector correction through the two-observation example', () => {
   const ui = setup({ compact: true, variableStageHeight: true, smoothScroll: true });
   ui.scrollAt(1);
-  for (const destination of [2, 3, workedPhysical(0)]) {
+  for (const destination of [2, workedPhysical(0)]) {
     ui.click('next'); ui.scrollFraction(.2);
     assert.equal(Number(ui.shell.dataset.scene), destination);
     ui.scrollFraction(1); ui.resize();
     assert.equal(Number(ui.shell.dataset.scene), destination);
     close(ui.shell.getBoundingClientRect().top, 64);
   }
-  for (const destination of [3, 2]) {
+  for (const destination of [2, 1]) {
     ui.click('previous'); ui.scrollFraction(.5);
     assert.equal(Number(ui.shell.dataset.scene), destination);
     ui.scrollFraction(1); ui.resize();
@@ -803,14 +791,14 @@ test('phone navigation returns to the stage across both inserted-scene boundarie
 test('the identical-input hash opens the new scene before the worked-data hash', () => {
   const ui = setup({ reducedMotion: true, compact: true, variableStageHeight: true, hash: '#identical-inputs' });
   ui.advance(0); ui.advance(0);
-  assert.equal(Number(ui.shell.dataset.scene), 3);
+  assert.equal(Number(ui.shell.dataset.scene), 2);
   assert.equal(ui.shell.dataset.example, 'restricted');
   close(ui.shell.getBoundingClientRect().top, 64);
   ui.clickLink('#worked-data');
   assert.equal(Number(ui.shell.dataset.scene), workedPhysical(0));
   assert.equal(ui.shell.dataset.example, 'worked');
   ui.historyBack('#identical-inputs');
-  assert.equal(Number(ui.shell.dataset.scene), 3);
+  assert.equal(Number(ui.shell.dataset.scene), 2);
   assert.equal(ui.shell.dataset.example, 'restricted');
   assert.deepEqual(ui.visitedHashes, ['#worked-data']);
 });
@@ -833,7 +821,7 @@ test('returning to geometry during an animated worked update cancels the stale c
 test('loss controls refit the compared paths and persist across narrative scenes', () => {
   const ui = setup({ reducedMotion: true });
   ui.clickLink('#loss-targets');
-  assert.equal(Number(ui.shell.dataset.scene), 12);
+  assert.equal(Number(ui.shell.dataset.scene), 11);
   assert.equal(ui.shell.dataset.loss, 'huber');
   assert.equal(ui.get('loss-delta-label').hidden, false);
   assert.equal(ui.get('loss-tau-label').hidden, true);

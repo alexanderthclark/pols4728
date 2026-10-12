@@ -11,7 +11,7 @@
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   const mobile = () => window.matchMedia('(max-width: 800px)').matches;
   const exampleState = { rate: 1, process: 1, candidateIndex: null, round: 8 };
-  const geometryState = { round: 0, rate: 0.5, progress: 1, angle: 120, length: 0.5 };
+  const geometryState = { round: 0, rate: 0.5, progress: 1 };
   const restrictedState = { prediction: 0, loss: 'expectile', tau: 0.8, delta: 0.25 };
   const lossState = { loss: 'huber', dataset: 'outlier', delta: 1, tau: 0.8, rate: 0.5, round: 0 };
   let scene = -1;
@@ -115,19 +115,12 @@
     delete stage.dataset.sharedPrediction;
     if (current.geometry) {
       $('geometry-path-controls').hidden = index !== 0;
-      $('geometry-rate-label').hidden = index === 2;
       $('geometry-update-controls').hidden = index !== 1;
-      $('geometry-angle-controls').hidden = index !== 2;
       $('geometry-round').value = String(geometryState.round);
       $('geometry-round-value').textContent = String(geometryState.round);
       $('geometry-rate').value = String(geometryState.rate);
       $('geometry-progress').value = String(geometryState.progress);
       $('geometry-progress-value').textContent = `${Math.round(100 * geometryState.progress)}%`;
-      $('geometry-angle').value = String(geometryState.angle);
-      $('geometry-angle-value').textContent = `${Math.round(geometryState.angle)}°`;
-      $('geometry-length').value = String(geometryState.length);
-      $('geometry-length-value').textContent = geometryState.length.toFixed(2);
-      $('geometry-start').value = geometryState.round <= 2 ? String(geometryState.round) : 'current';
       const bounds = $('visual-area').getBoundingClientRect();
       const state = { ...geometryState, width: bounds.width, height: bounds.height };
       $('prediction-diagram').innerHTML = G.render(index, state, mobile());
@@ -246,6 +239,7 @@
   }
 
   function stepForId(id) {
+    if (id === 'vector-radius') id = 'identical-inputs';
     return id === 'story' || id === 'reading' || id === 'vector-geometry' ? 0 : steps.findIndex(step => step.id === id);
   }
 
@@ -348,21 +342,6 @@
     geometryState.progress = Math.max(0, Math.min(1, Number($('geometry-progress').value)));
     render();
   });
-  $('geometry-angle').addEventListener('input', () => {
-    geometryState.angle = Math.max(0, Math.min(180, Number($('geometry-angle').value)));
-    render();
-  });
-  $('geometry-length').addEventListener('input', () => {
-    geometryState.length = Math.max(0, Math.min(2.5, Number($('geometry-length').value)));
-    render();
-  });
-  $('geometry-start').addEventListener('change', () => {
-    if ($('geometry-start').value !== 'current') {
-      geometryState.round = Math.max(0, Math.min(2, Math.round(Number($('geometry-start').value))));
-    }
-    render();
-  });
-
   window.addEventListener('scroll', () => {
     if (!scrollPending) { scrollPending = true; requestAnimationFrame(scrollUpdate); }
   }, { passive: true });

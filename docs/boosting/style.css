@@ -94,14 +94,10 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
 .geometry-controls{display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px}
 .geometry-controls>div{flex:1 1 100%}
 .geometry-controls>div>label{justify-content:space-between}
-.geometry-angle-controls,#geometry-angle-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px}
-#geometry-angle-controls>.geometry-start-label{grid-column:1/-1;justify-content:flex-start}
-#geometry-angle-controls>div label{justify-content:space-between;gap:6px}
 #geometry-rate-label{order:-1}
 @media(max-width:800px){
   .stage-shell[data-example='geometry']{height:60svh;min-height:500px}
   .stage-shell[data-example='restricted']{height:78svh;min-height:660px}
-  .stage-shell[data-geometry-scene='2']{height:62svh;min-height:520px}
   .stage-shell[data-example='geometry'] .visual-area{min-height:220px}
   .stage-shell[data-example='geometry'] .vector-readout>div{flex:0 0 calc(50% - 3px)}
   .stage-shell[data-example='geometry'] .vector-readout{min-height:70px}
@@ -117,8 +113,6 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
   .restricted-rate{font-size:12px}
   .stage-shell[data-example='restricted'] .stage-caption{font-size:11px;line-height:1.3;margin:5px 0}
   .geometry-controls{gap:2px 12px;padding:3px 0}
-  #geometry-angle-controls{gap:3px 14px}
-  #geometry-angle-controls label{font-size:11px}
   .step[data-geometry-scene]{padding-top:20px}
   .step[data-restricted-scene]{padding-top:20px}
 }
@@ -140,9 +134,6 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
 .stage-tools .restricted-actions button{font-size:13px;min-height:36px;padding:5px 9px}
 .stage-tools .restricted-weights{font-size:11px;line-height:1.4;margin:3px 0 0}
 .stage-tools .restricted-rate{font-size:12px}
-.stage-tools #geometry-angle-controls{display:flex;flex-direction:column;gap:10px}
-.stage-tools #geometry-angle-controls>.geometry-start-label{display:block}
-.stage-tools .geometry-start-label select{display:block;width:100%;margin-top:4px}
 .stage-tools .vector-readout{display:flex;flex-direction:column;flex-wrap:nowrap;gap:9px;min-height:0;border-top:0;padding:10px 0 4px}
 .stage-tools .vector-readout>div{flex:none!important;width:100%}
 .stage-tools .vector-readout .value{font-size:19px;line-height:1.3}
