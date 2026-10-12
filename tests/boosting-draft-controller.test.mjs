@@ -128,8 +128,8 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
   });
   const layout = new Element();
   layout.getBoundingClientRect = () => ({ top: stageDocumentTop - win.scrollY, bottom: headingTop(steps.length) - win.scrollY });
-  let afterwordVisits = 0;
-  get('other-losses').scrollIntoView = () => { afterwordVisits++; };
+  let referencesVisits = 0;
+  get('references').scrollIntoView = () => { referencesVisits++; };
   const doc = new Element();
   doc.getElementById = get;
   doc.querySelector = selector => selector === '.stage-shell' ? shell : selector === '.story-layout' ? layout : selector === '.stage-tools' ? stageTools : null;
@@ -182,7 +182,7 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
     hashChange: () => { win.emit('hashchange'); advance(0); advance(0); },
     load: () => { win.emit('load'); advance(0); advance(0); }, scrollCalls,
     scrollBy: distance => { win.scrollY += distance; win.emit('scroll'); advance(0); },
-    wheel: () => win.emit('wheel'), scrollEnd: () => win.emit('scrollend'), visitedHashes, scrollY: () => win.scrollY, afterwordVisits: () => afterwordVisits };
+    wheel: () => win.emit('wheel'), scrollEnd: () => win.emit('scrollend'), visitedHashes, scrollY: () => win.scrollY, referencesVisits: () => referencesVisits };
 }
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} should equal ${expected}`);
 const figureLoss = ui => Number(/data-training-loss="([^"]+)"/.exec(ui.get('worked-diagram').innerHTML)[1]);
@@ -555,8 +555,9 @@ for (const compact of [false, true]) {
         }
       }
     }
+    assert.equal(ui.get('next').textContent, 'Sources');
     ui.click('next');
-    assert.equal(ui.afterwordVisits(), 1);
+    assert.equal(ui.referencesVisits(), 1);
     ui.scrollAt(0);
     assert.equal(ui.get('previous').disabled, true);
     assert.equal(ui.shell.dataset.example, 'restricted');
@@ -726,15 +727,15 @@ test('manual wheel and page scrolling can interrupt an in-flight scene navigatio
   assert.equal(Number(ui.shell.dataset.scene), workedPhysical(0));
 });
 
-test('opening a worked-step hash returns to the phone stage, while other-losses keeps native navigation', () => {
+test('opening a worked-step hash returns to the phone stage, while references keeps native navigation', () => {
   const ui = setup({ reducedMotion: true, compact: true, variableStageHeight: true, hash: '#worked-first-update' });
   ui.advance(0); ui.advance(0);
   assert.equal(Number(ui.shell.dataset.scene), workedPhysical(3));
   close(ui.shell.getBoundingClientRect().top, 64);
-  const afterword = setup({ reducedMotion: true, hash: '#other-losses' });
-  afterword.advance(0);
-  assert.equal(afterword.scrollY(), 0);
-  assert.equal(afterword.afterwordVisits(), 0);
+  const references = setup({ reducedMotion: true, hash: '#references' });
+  references.advance(0);
+  assert.equal(references.scrollY(), 0);
+  assert.equal(references.referencesVisits(), 0);
 });
 
 test('history navigation restores the linked step without adding another history entry', () => {

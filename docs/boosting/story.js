@@ -235,7 +235,7 @@
     $('stage-topic').textContent = current.transition ? 'From two observations to four' : (current.loss ? L : current.restricted ? R : W).topics[current.index];
     $('stage-count').textContent = `${String(scene + 1).padStart(2, '0')} / ${steps.length}`;
     $('previous').disabled = scene === 0;
-    $('next').textContent = scene === steps.length - 1 ? 'Beyond squared error' : 'Next';
+    $('next').textContent = scene === steps.length - 1 ? 'Sources' : 'Next';
     steps.forEach((step, i) => step.toggleAttribute('data-active', i === scene));
     if (current.worked) {
       exampleState.candidateIndex = null;
@@ -268,7 +268,7 @@
   function scrollToStep(index, instant = false) {
     if (index >= steps.length) {
       navigationTarget = null;
-      $('other-losses').scrollIntoView({ behavior: reduced.matches ? 'instant' : 'smooth' });
+      $('references').scrollIntoView({ behavior: reduced.matches ? 'instant' : 'smooth' });
       return;
     }
     index = Math.max(0, index);

@@ -10,8 +10,8 @@ limitation of raw residual fitting. A full-width transition introduces varying
 inputs, followed by eight scenes developing the four-observation example from sections
 1.4.2–1.4.3 of the boosting notes. Four later scenes compare squared error,
 Huber loss, and asymmetric squared loss through targets, splits, leaf values,
-and fitted paths. The chapter closes with exponential loss and a brief XGBoost
-extension. The longer geometry sequence remains available as a companion.
+and fitted paths. The chapter ends with the fitted-path comparison. A compact
+footer retains the sources, optional XGBoost reading, and geometry companion link.
 
 The opening figure occupies the full story width with sparse floating
 annotations, no right-hand pane, no sliders, and no numerical disclosure.
@@ -77,8 +77,8 @@ example.
 Negative-gradient targets equal ordinary residuals for half-squared error.
 For general differentiable losses, fitting those targets chooses tree regions;
 leaf corrections minimize the original loss within each region. The other-loss
-section illustrates exponential loss for binary labels. XGBoost is a brief
-extension, not the implementation used in the interactive calculation.
+examples show Huber and asymmetric squared loss. The footer links to XGBoost
+as optional reading; it is not used in the interactive calculation.
 
 The opening uses `x = [1, 1]` and `y = [1, 0]`. It first shows only the zero
 predictions and observed outcomes, then adds the full residual `(1, 0)`.
