@@ -1,9 +1,10 @@
 # Gradient Boosting
 
-A scrollytelling chapter about gradient boosting. After the title, nine scenes
+A scrollytelling chapter about gradient boosting. After the title, twelve scenes
 build one two-observation example: zero predictions, the residual vector,
 the identical-input update constraint, equal-MSE contours, the fitted update,
-orthogonality, a changed loss, negative-gradient targets, and a loss playground.
+orthogonality, a changed loss, negative-gradient targets, a fitted tree, repeated
+descent, the constrained optimum, and a loss playground.
 Scrolling into a step starts its animation. Gradient terminology enters only after asymmetric loss exposes a
 limitation of raw residual fitting. Two three-observation vector scenes follow,
 then eight scenes developing the four-observation example from sections
@@ -33,7 +34,7 @@ No build step or external JavaScript dependencies are required.
 
 - `index.html` contains the main explanation, numerical example, controls,
   general algorithm, and loss comparison.
-- `story.js` follows twenty-three narrative steps and handles vector experiments,
+- `story.js` follows twenty-six narrative steps and handles vector experiments,
   split inspection, update progress, learning rate, later rounds, and navigation.
 - `prediction-view.js` restores the three-observation vector picture and fitted
   correction. Its reusable equal-loss circle renderer remains available outside
@@ -112,9 +113,29 @@ charges underprediction four times as much as overprediction. The best shared
 prediction moves to `(0.8, 0.8)`, with loss 0.16 rather than 0.25. Only after
 this counterexample does the following scene introduce the negative gradient:
 at `(0.5, 0.5)` it is `(0.8, -0.2)`, whose mean 0.3 supplies a useful correction.
-At the optimum it is `(0.32, -0.32)`, perpendicular to the diagonal, while the
-raw residual `(0.2, -0.8)` is not. Both fitted updates animate on scene entry;
-the changed-loss step keeps the prediction fixed to isolate the objective.
+The target comparison keeps predictions fixed at the midpoint. The next scene
+fits an actual stump to those targets: identical inputs share one leaf, so
+`h(x) = 0.3` for both observations. The full negative gradient and the feasible
+tree correction are drawn separately. A learning rate of 0.5 supplies the
+smaller update `(0.15, 0.15)`.
+
+The repeated-descent animation shows six rounds of computing targets, fitting
+the stump, and adding half its correction. Targets and the fitted tree remain
+anchored to the start of each round while its update animates; the following
+round recomputes them. Earlier prediction vertices remain visible. The shared
+prediction follows `c_(m+1) = c_m + 0.5*(0.8-c_m)`, ending at 0.7953125 after
+six updates. A separate scene inspects its limiting optimum at 0.8; finite
+shrinkage steps are not depicted as exact convergence. At that optimum the
+full negative gradient `(0.32, -0.32)` is perpendicular to the diagonal, so the
+fitted tree correction is zero. The raw residual `(0.2, -0.8)` has mean -0.3;
+following it would move away from the selected loss's optimum.
+
+Both residual and negative-gradient targets require observed outcomes during
+training. The fitted tree learns a mapping from inputs to those targets. Once
+fitted, `h(x)` can supply a correction from the input alone, including at a new
+observation whose outcome is unknown. The plot distinguishes computing training
+targets from evaluating the learned function rather than implying gradients
+are available from inputs alone.
 
 The final opening scene provides MSE, fixed asymmetric squared loss with
 τ = 0.8, Huber δ = 0.25, and fourth-power error `e^4/4`. Its initial

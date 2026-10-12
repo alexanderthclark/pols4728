@@ -19,6 +19,9 @@
     'Moving away from the midpoint increases MSE',
     'Change the loss, change the best prediction',
     'A new target: the negative gradient',
+    'Fit a tree to the training targets',
+    'Repeat targets, fit, and update',
+    'The limiting shared prediction',
     'Explore the loss and its updates'
   ];
   const esc = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
@@ -36,11 +39,13 @@
   }
 
   function sceneState(scene, state = {}) {
-    if (!Number.isInteger(scene) || scene < 0 || scene > 8) throw new RangeError('Restricted scene must be from 0 to 8.');
+    if (!Number.isInteger(scene) || scene < 0 || scene > 11) throw new RangeError('Restricted scene must be from 0 to 11.');
     const progress = clamp(number(state.progress, 0));
     if (scene < 6) return { ...state, loss: 'squared', prediction: scene < 4 ? 0 : scene === 4 ? .5 * progress : .5, progress };
     if (scene === 6) return { ...state, loss: 'expectile', tau: .5 + .3 * progress, prediction: .5, progress };
-    if (scene === 7) return { ...state, loss: 'expectile', tau: .8, prediction: .5 + .3 * progress, progress };
+    if (scene === 7 || scene === 8) return { ...state, loss: 'expectile', tau: .8, prediction: .5, progress };
+    if (scene === 9) return { ...state, loss: 'expectile', tau: .8, prediction: descentState(progress).prediction[0], progress };
+    if (scene === 10) return { ...state, loss: 'expectile', tau: .8, prediction: .8, progress };
     return { ...state, progress };
   }
 
@@ -58,12 +63,12 @@
     return e;
   }
 
-  function equation(state = {}, scene = 8) {
+  function equation(state = {}, scene = 11) {
     const spec = specification(sceneState(scene, state));
     if (scene < 3) return '';
     if (scene < 6) return '<div class="loss-equation-definition math" role="math">MSE(f₁,f₂) = ½[(1 − f₁)² + f₂²]</div>';
     if (scene === 6) return '<div class="loss-equation-definition math" role="math">L(c,c) = 0.8(1 − c)² + 0.2c²</div>';
-    if (scene === 7) return '<div class="loss-equation-definition math" role="math">−∇L(f) = (1.6(1 − f₁), −0.4f₂)</div>';
+    if (scene >= 7 && scene <= 10) return '';
     const cases = rows => `<span class="loss-equation-brace">{</span><span class="loss-equation-cases">${rows.map(([term, condition]) => `<span>${term}</span><span>${condition}</span>`).join('')}</span>`;
     let point, shared;
     if (spec.key === 'expectile') {
@@ -84,12 +89,66 @@
 
   const totalLoss = (prediction, spec) => target.reduce((sum, y, i) => sum + pointLoss(y - prediction[i], spec), 0);
 
+  function computeTrainingTargets(observed, prediction, state = { loss: 'expectile', tau: .8 }) {
+    const spec = specification(state);
+    return observed.map((y, i) => negativeDerivative(y - prediction[i], spec));
+  }
+
+  function predictFittedTree(tree, inputs) {
+    return inputs.map(value => tree.threshold === null || value <= tree.threshold ? tree.left : tree.right);
+  }
+
+  function buildDescentPath(options = {}) {
+    const rounds = Math.max(1, Math.min(24, Math.floor(number(options.rounds, 6))));
+    const learningRate = clamp(number(options.learningRate, .5));
+    const start = clamp(number(options.start, .5)), spec = specification({ loss: 'expectile', tau: number(options.tau, .8) });
+    let prediction = [start, start];
+    const path = [prediction.slice()], steps = [];
+    for (let round = 0; round < rounds; round++) {
+      const targetPrediction = prediction.slice();
+      const trainingTargets = computeTrainingTargets(target, targetPrediction, { loss: 'expectile', tau: spec.tau });
+      const tree = M.fitStump(x, trainingTargets), fittedCorrection = predictFittedTree(tree, x);
+      const updatePrediction = M.add(targetPrediction, M.scale(fittedCorrection, learningRate));
+      steps.push({ round, targetPrediction, trainingTargets, tree, fittedCorrection, learningRate, updatePrediction,
+        beforeLoss: totalLoss(targetPrediction, spec), afterLoss: totalLoss(updatePrediction, spec) });
+      prediction = updatePrediction.slice();
+      path.push(prediction.slice());
+    }
+    return { rounds, learningRate, tau: spec.tau, start, steps, path };
+  }
+
+  function descentState(progress = 0, options = {}) {
+    const trajectory = buildDescentPath(options), p = clamp(number(progress, 0));
+    const completed = p === 1 ? trajectory.rounds : Math.floor(p * trajectory.rounds);
+    if (completed === trajectory.rounds) {
+      const prediction = trajectory.path[completed].slice(), spec = specification({ loss: 'expectile', tau: trajectory.tau });
+      const trainingTargets = computeTrainingTargets(target, prediction, { loss: 'expectile', tau: spec.tau });
+      const tree = M.fitStump(x, trainingTargets), fittedCorrection = predictFittedTree(tree, x);
+      return { ...trajectory, round: completed, phase: 'complete', phaseProgress: 1, targetPrediction: prediction.slice(), trainingTargets, tree, fittedCorrection,
+        updatePrediction: M.add(prediction, M.scale(fittedCorrection, trajectory.learningRate)), prediction, path: trajectory.path.map(p => p.slice()) };
+    }
+    const local = p * trajectory.rounds - completed, step = trajectory.steps[completed];
+    const phase = local < .25 ? 'target' : local < .5 ? 'fit' : 'update';
+    const phaseProgress = phase === 'target' ? local / .25 : phase === 'fit' ? (local - .25) / .25 : (local - .5) / .5;
+    const prediction = phase === 'update' ? M.add(step.targetPrediction, M.scale(step.fittedCorrection, trajectory.learningRate * phaseProgress)) : step.targetPrediction.slice();
+    const path = trajectory.path.slice(0, completed + 1).map(p => p.slice());
+    if (phase === 'update' && phaseProgress > 0) path.push(prediction.slice());
+    return { ...trajectory, ...step, round: completed, phase, phaseProgress, prediction, path };
+  }
+
   function resolve(scene = 0, state = {}) {
     const selected = sceneState(scene, state);
     const c = clamp(number(selected.prediction, 0)), lossSpec = specification(selected);
     const prediction = [c, c], residual = M.sub(target, prediction);
     const negativeGradient = residual.map(e => negativeDerivative(e, lossSpec));
-    const tree = M.fitStump(x, negativeGradient), nextTree = tree.values.slice();
+    const currentTree = M.fitStump(x, negativeGradient);
+    const process = scene === 9 ? descentState(selected.progress) : scene >= 7 && scene <= 10 ? {
+      round: scene === 10 ? 6 : 0, phase: scene === 7 ? 'target' : scene === 8 ? selected.progress < .65 ? 'fit' : 'update' : 'limit',
+      phaseProgress: scene === 8 ? selected.progress < .65 ? selected.progress / .65 : (selected.progress - .65) / .35 : selected.progress,
+      targetPrediction: prediction.slice(), trainingTargets: negativeGradient.slice(), tree: currentTree, fittedCorrection: currentTree.values.slice(), learningRate: .5,
+      updatePrediction: M.add(prediction, M.scale(currentTree.values, .5)), path: [prediction.slice()]
+    } : null;
+    const tree = process ? process.tree : currentTree, nextTree = tree.values.slice();
     const optimalC = lossSpec.key === 'expectile' ? lossSpec.tau : .5;
     const optimumInterval = lossSpec.key === 'huber' && lossSpec.delta < .5 ? [lossSpec.delta, 1 - lossSpec.delta] : [optimalC, optimalC];
     // Use the closest optimum when the original loss has a flat minimum. A
@@ -101,9 +160,11 @@
     const trialDisplacement = .18 * Math.sin(2 * Math.PI * selected.progress);
     const trialC = scene === 5 ? Math.abs(trialDisplacement) < 1e-12 ? .5 : .5 + trialDisplacement : c;
     const trialPrediction = [trialC, trialC], trialLoss = totalLoss(trialPrediction, lossSpec);
-    return { scene, c, progress: selected.progress, x: x.slice(), target: target.slice(), lossSpec, prediction, residual, residualMean: (residual[0] + residual[1]) / 2, negativeGradient, negativeGradientMean: (negativeGradient[0] + negativeGradient[1]) / 2, gradient: M.scale(negativeGradient, -1), tree, nextTree,
+    return { scene, c, progress: selected.progress, x: x.slice(), target: target.slice(), lossSpec, prediction, residual, residualMean: (residual[0] + residual[1]) / 2, negativeGradient, currentNegativeGradient: negativeGradient.slice(), negativeGradientMean: (negativeGradient[0] + negativeGradient[1]) / 2, gradient: M.scale(negativeGradient, -1), tree, nextTree,
       correction: M.sub(nextPrediction, prediction), nextPrediction, gradientNextPrediction, rawNextPrediction, optimalC, optimalPrediction, optimumInterval,
-      optimalResidual: M.sub(target, optimalPrediction), trialC, trialPrediction, trialLoss, norm, loss, minLoss, nextLoss: totalLoss(nextPrediction, lossSpec), rawNextLoss: totalLoss(rawNextPrediction, lossSpec) };
+      optimalResidual: M.sub(target, optimalPrediction), trialC, trialPrediction, trialLoss, norm, loss, minLoss, nextLoss: totalLoss(nextPrediction, lossSpec), rawNextLoss: totalLoss(rawNextPrediction, lossSpec),
+      ...(process ? { round: process.round, phase: process.phase, phaseProgress: process.phaseProgress, targetPrediction: process.targetPrediction, trainingTargets: process.trainingTargets,
+        fittedCorrection: process.fittedCorrection, learningRate: process.learningRate, updatePrediction: process.updatePrediction, path: process.path } : {}) };
   }
 
   function readout(scene = 0, state = {}) {
@@ -147,6 +208,12 @@
       ['Best shared predictions', vector(q.optimalPrediction), C.teal],
       ['Current loss / minimum', `${fmt(q.loss)} / ${fmt(q.minLoss)}`, C.ink]
     ];
+    if (scene >= 7 && scene <= 10) return [
+      ['Prediction where targets were computed', vector(q.targetPrediction), C.blue],
+      ['Training targets −∇L', vector(q.trainingTargets), C.rust],
+      ['Fitted tree h(x)', vector(q.fittedCorrection), C.teal],
+      ['Learning rate / current loss', `${fmt(q.learningRate)} / ${fmt(q.loss)}`, C.ink]
+    ];
     return [
       ['Raw residual y − f', vector(q.residual), C.muted],
       ['Negative gradient −∇L', vector(q.negativeGradient), C.rust],
@@ -165,9 +232,12 @@
     else if (scene === 4) caption = `Current predictions f = ${shortVector(q.prediction)}; residuals r = y − f = ${shortVector(q.residual)}. The starting residual (1, 0) has mean 0.5, so its fitted correction is (0.5, 0.5).`;
     else if (scene === 5) caption = 'At (0.5, 0.5), the residual is perpendicular to the shared-update line. Try moving either way: MSE increases. The midpoint stays our current prediction.';
     else if (scene === 6) caption = 'Underprediction costs four times as much. Keep f = (0.5, 0.5) and its residual fixed while the loss contours change. The best shared prediction moves to (0.8, 0.8).';
-    else if (scene === 7) caption = atBest
-      ? 'At (0.8, 0.8), the negative gradient is perpendicular to the diagonal. Its fitted mean is zero, so boosting stops at the new minimum.'
-      : 'The residual mean is zero at (0.5, 0.5), but the negative-gradient mean is 0.3. Fitting that new target moves both predictions toward (0.8, 0.8).';
+    else if (scene === 7) caption = 'Keep predictions at (0.5, 0.5). Using the observed outcomes y, compute negative-gradient training targets (0.8, −0.2). Their mean is 0.3, although the raw residual mean is zero.';
+    else if (scene === 8) caption = 'Fit a tree to the training targets. Identical inputs give h(1) = 0.3 for each observation. The fitted tree takes x alone; adding ½h(x) would move predictions to (0.65, 0.65).';
+    else if (scene === 9) caption = q.phase === 'complete'
+      ? 'Six half-step updates reach (0.7953125, 0.7953125). This is close to the optimum, not exactly there. The next fitted correction is still positive.'
+      : `Round ${q.round + 1}: compute targets using observed y, fit h(x), then add ½h(x). Keep the fitted tree fixed during this update; recompute training targets at the next round.`;
+    else if (scene === 10) caption = 'Inspect the limiting prediction (0.8, 0.8). The negative gradient (0.32, −0.32) is perpendicular to the shared-update line, so its fitted tree is zero. The raw residual mean is still −0.3.';
     else if (q.lossSpec.key === 'expectile') caption = atBest
       ? `At c = τ = ${fmt(q.optimalC)}, the gradient is perpendicular to the diagonal. The fitted gradient is zero; the raw residual generally is not perpendicular.`
       : `Raw residual fitting goes to c = 0.5. The gradient fit goes to c = τ = ${fmt(q.optimalC)}. Under this loss, those endpoints have losses ${fmt(q.rawNextLoss)} and ${fmt(q.minLoss)}.`;
@@ -177,7 +247,7 @@
     else caption = atBest
       ? 'At (0.5, 0.5), the residual and gradient are perpendicular to the diagonal. The next fitted tree is zero; minimum loss is 0.25.'
       : `The residual and negative gradient coincide. Adding the mean residual reaches (0.5, 0.5), reducing MSE from ${fmt(q.loss)} to 0.25.`;
-    if (scene === 8 && Number.isFinite(state.width) && state.width < 400) {
+    if (scene === 11 && Number.isFinite(state.width) && state.width < 400) {
       if (q.lossSpec.key === 'expectile') caption = atBest
         ? `Gradient fitting stops at c = τ = ${fmt(q.optimalC)}. The raw residual mean need not be zero.`
         : `Residual fit: c = 0.5, loss ${fmt(q.rawNextLoss)}. Gradient fit: c = ${fmt(q.optimalC)}, loss ${fmt(q.minLoss)}.`;
@@ -199,7 +269,8 @@
       'Fit the residual mean: move both predictions by ½.',
       'Every nonzero shared adjustment raises MSE.',
       'What if underprediction costs four times as much?',
-      'Fit the negative gradient instead of the raw residual.'
+      'Training targets need observed outcomes y.',
+      'Fit a tree. Once fitted, h(x) needs x alone.'
     ];
     let status = '';
     if (scene === 0) status = 'y = (1, 0) · f = (0, 0)';
@@ -209,9 +280,13 @@
     else if (scene === 4) status = `f = ${shortVector(q.prediction)} · r = ${shortVector(q.residual)} · MSE = ${fmt(q.loss)}`;
     else if (scene === 5) status = `Baseline MSE = 0.25 · Trial MSE = ${fmt(q.trialLoss)}`;
     else if (scene === 6) status = `f = (0.5, 0.5) · r = (0.5, −0.5) · Best c = ${fmt(q.optimalC)}`;
+    else if (scene === 7) status = 'Training targets = (0.8, −0.2)';
+    else if (scene === 8) status = 'h(1) = 0.3 · α = ½ · Next predictions = (0.65, 0.65)';
+    else if (scene === 9) status = q.phase === 'complete' ? 'Six updates complete · current c = 0.7953125' : `Round ${q.round + 1} of 6 · ${q.phase}`;
+    else if (scene === 10) status = 'Limiting c = 0.8 · fitted h(x) = 0';
     else status = `Current loss = ${fmt(q.loss)} · Minimum = ${fmt(q.minLoss)}`;
-    let displayedEquation = [3, 6, 8].includes(scene) ? equation(state, scene) : '';
-    if (scene === 8) {
+    let displayedEquation = [3, 6, 11].includes(scene) ? equation(state, scene) : '';
+    if (scene === 11) {
       const spec = q.lossSpec;
       const scalar = spec.key === 'expectile' ? `L(c,c) = ${fmt(spec.tau)}(1 − c)² + ${fmt(1 - spec.tau)}c²`
         : spec.key === 'quartic' ? 'L(c,c) = ¼[(1 − c)⁴ + c⁴]'
@@ -220,7 +295,12 @@
       displayedEquation = `<div class="loss-equation-definition math" role="math">${scalar}</div>`;
     }
     const playgroundCaption = q.lossSpec.key === 'expectile' ? 'Asymmetric squared: underprediction costs ' + fmt(q.lossSpec.tau / (1 - q.lossSpec.tau)) + ' times as much.' : q.lossSpec.name;
-    return { equation: displayedEquation, caption: scene === 8 ? playgroundCaption : captions[scene], status };
+    const processCaption = scene === 9 ? q.phase === 'target' ? 'Compute targets using observed y.'
+      : q.phase === 'fit' ? 'Fit a tree to the targets.'
+        : q.phase === 'update' ? 'Add ½h(x). Recompute targets.'
+          : 'Still approaching the optimum.'
+      : scene === 10 ? 'At the limit, perpendicular targets give a zero fitted correction.' : captions[scene];
+    return { equation: displayedEquation, caption: scene === 11 ? playgroundCaption : processCaption, status };
   }
 
   // A radial parameterization of a separable convex loss contour about y.
@@ -255,7 +335,8 @@
     const side = span * scale, left = (W - side) / 2, upper = top + (H - top - bottom - side) / 2;
     const project = p => [left + (p[0] - domain[0]) * scale, upper + (domain[1] - p[1]) * scale];
     const f = project(q.prediction), y = project(q.target), best = project(q.nextPrediction), mean = project([.5, .5]), origin = project([0, 0]);
-    const arrowScale = q.scene === 8 ? .5 : 1;
+    const processScene = q.scene >= 7 && q.scene <= 10;
+    const arrowScale = q.scene === 11 ? .5 : 1;
     const defs = `<defs><clipPath id="restricted-plot-clip"><rect x="${left}" y="${upper}" width="${side}" height="${side}"/></clipPath>${[C.blue, C.rust, C.teal, C.muted].map(color => `<marker id="restricted-arrow-${color.slice(1)}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="${color}"/></marker>`).join('')}</defs>`;
     let body = '';
     function contour(level, color, className, dashed = false, extra = '') {
@@ -298,31 +379,59 @@
     if (q.scene === 4 || q.scene === 5 || q.scene === 6) {
       body += line(origin, mean, C.blue, 4, 'class="restricted-prediction-path" stroke-opacity="0.15"');
       body += line(origin, f, C.blue, 4, 'class="restricted-progress-path"');
-    } else if (q.scene === 7) {
-      body += line(origin, mean, C.blue, 3, 'class="restricted-prediction-path" stroke-opacity="0.2"');
-      body += line(mean, f, C.blue, 4, 'class="restricted-progress-path"');
+    } else if (q.scene === 9) {
+      const points = q.path.map(project);
+      body += `<polyline class="restricted-descent-path" data-values="${esc(JSON.stringify(q.path))}" points="${points.map(p => p.join(',')).join(' ')}" fill="none" stroke="${C.blue}" stroke-width="2.4"/>`;
+      q.path.slice(0, -1).forEach((prediction, round) => {
+        const p = project(prediction);
+        body += `<circle class="restricted-descent-dot" data-round="${round}" data-values="${prediction.join(',')}" cx="${p[0]}" cy="${p[1]}" r="2.5" fill="${C.blue}"/>`;
+      });
     }
-    if (q.scene === 8 && q.optimumInterval[0] !== q.optimumInterval[1]) body += line(project(q.optimumInterval.map(() => q.optimumInterval[0])), project(q.optimumInterval.map(() => q.optimumInterval[1])), C.teal, 7, 'class="restricted-optimal-segment"');
+    if (q.scene === 11 && q.optimumInterval[0] !== q.optimumInterval[1]) body += line(project(q.optimumInterval.map(() => q.optimumInterval[0])), project(q.optimumInterval.map(() => q.optimumInterval[1])), C.teal, 7, 'class="restricted-optimal-segment"');
     const residualReveal = q.scene === 1 ? q.progress : 1;
-    const residualEnd = project(M.add(q.prediction, M.scale(q.residual, arrowScale * residualReveal))), gradientEnd = project(M.add(q.prediction, M.scale(q.negativeGradient, arrowScale)));
+    const residualEnd = project(M.add(q.prediction, M.scale(q.residual, arrowScale * residualReveal)));
+    const gradientBasePrediction = processScene ? q.targetPrediction : q.prediction, gradientBase = project(gradientBasePrediction);
+    const displayTargets = processScene ? q.trainingTargets : q.negativeGradient;
+    const targetReveal = q.scene === 7 ? q.progress : q.scene === 9 && q.phase === 'target' ? q.phaseProgress : 1;
+    const gradientEnd = project(M.add(gradientBasePrediction, M.scale(displayTargets, arrowScale * targetReveal)));
     if (q.scene > 0 && q.scene < 5) body += line(f, residualEnd, C.muted, 3, `marker-end="url(#restricted-arrow-${C.muted.slice(1)})" class="restricted-residual-arrow" data-reveal="${residualReveal}" opacity="${residualReveal}"`);
     else if (q.scene > 0) body += arrow(f, residualEnd, C.muted, 'stroke-dasharray="4 4" class="restricted-residual-arrow"');
-    if (q.scene >= 7) body += arrow(f, gradientEnd, C.rust, 'class="restricted-gradient-arrow"');
-    if (q.scene === 7) {
+    if (q.scene >= 7) body += line(gradientBase, gradientEnd, C.rust, 2.3, `marker-end="url(#restricted-arrow-${C.rust.slice(1)})" class="restricted-gradient-arrow" data-at-values="${gradientBasePrediction.join(',')}" data-values="${displayTargets.join(',')}" data-reveal="${targetReveal}" opacity="${targetReveal}"`);
+    if (q.scene >= 7 && q.scene <= 10) {
       body += text([(f[0] + residualEnd[0]) / 2, (f[1] + residualEnd[1]) / 2 + 17], 'r', `class="rv-small rv-label" style="fill:${C.muted}"`);
-      body += text([(f[0] + gradientEnd[0]) / 2 + 6, (f[1] + gradientEnd[1]) / 2 - 10], '−∇L', `class="rv-small rv-label" style="fill:${C.rust}"`);
+      body += text([(gradientBase[0] + gradientEnd[0]) / 2 + 6, (gradientBase[1] + gradientEnd[1]) / 2 - 10], '−∇L', `class="rv-small rv-label" opacity="${targetReveal}" style="fill:${C.rust}"`);
     }
-    if (q.scene === 4 || q.scene >= 7) body += arrow(f, best, C.teal, 'class="restricted-tree-arrow"');
+    if (q.scene === 4) body += arrow(f, best, C.teal, 'class="restricted-tree-arrow"');
+    if (q.scene === 8 || q.scene === 9 || q.scene === 11) {
+      const fitted = processScene ? q.fittedCorrection : q.correction;
+      const basePrediction = processScene ? q.targetPrediction : q.prediction, base = project(basePrediction);
+      const fitReveal = q.scene === 8 ? q.phase === 'fit' ? q.phaseProgress : 1 : q.scene === 9 ? q.phase === 'target' ? 0 : q.phase === 'fit' ? q.phaseProgress : 1 : 1;
+      const fittedEnd = project(M.add(basePrediction, M.scale(fitted, fitReveal)));
+      body += line(base, fittedEnd, C.teal, 2.3, `marker-end="url(#restricted-arrow-${C.teal.slice(1)})" class="restricted-tree-arrow" data-at-values="${basePrediction.join(',')}" data-values="${fitted.join(',')}" data-reveal="${fitReveal}" opacity="${fitReveal}"`);
+      if (processScene) body += text([fittedEnd[0] + 9, fittedEnd[1] - 10], 'h(x)', `class="rv-small rv-label restricted-fitted-label" text-anchor="start" opacity="${fitReveal}" style="fill:${C.teal}"`);
+      if (q.scene === 8) {
+        const reveal = q.phase === 'update' ? q.phaseProgress : 0, next = project(q.updatePrediction);
+        body += line(base, next, C.blue, 3, `class="restricted-scaled-update" opacity="${reveal}"`);
+        body += `<circle class="restricted-update-endpoint" data-values="${q.updatePrediction.join(',')}" cx="${next[0]}" cy="${next[1]}" r="4.5" fill="white" stroke="${C.blue}" stroke-width="1.5" opacity="${reveal}"/>`;
+        body += text([next[0] + 9, next[1] + 20], '½h(x)', `class="rv-small rv-label" opacity="${reveal}" style="fill:${C.blue}"`);
+      }
+    }
+    if (q.scene === 9 && q.phase === 'update' && q.phaseProgress > 0) {
+      const base = project(q.targetPrediction);
+      body += `<circle class="restricted-target-base" data-values="${q.targetPrediction.join(',')}" cx="${base[0]}" cy="${base[1]}" r="4" fill="white" stroke="${C.rust}" stroke-width="1.4"/>`;
+      body += text([base[0] - 9, base[1] - 18], 'targets here', `class="rv-small rv-label restricted-target-base-label" text-anchor="end" style="fill:${C.rust}"`);
+    }
+    if (q.scene === 10) body += text([f[0] - 14, f[1] - 19], 'h(x) = 0', `class="rv-small rv-label restricted-zero-fit-label" text-anchor="end" style="fill:${C.teal}"`);
     if (q.scene > 0 && q.scene < 7) {
       const middle = [(f[0] + y[0]) / 2, (f[1] + y[1]) / 2];
       const labelPadding = q.scene < 4 ? compact ? 36 : 34 : compact ? 36 - 9 * q.progress : 34 - 17 * q.progress;
       const labelPoint = q.scene >= 5 ? [middle[0] + 8, middle[1] - 4] : [middle[0] - 8, middle[1] - labelPadding];
       body += text(labelPoint, `r = ${shortVector(q.residual)}`, `class="rv-small rv-label restricted-residual-label" opacity="${residualReveal}" ${q.scene < 5 ? 'text-anchor="end"' : ''} style="fill:${C.muted}"`);
     }
-    if (q.scene === 5 || q.scene === 6) {
+    if (q.scene === 5 || q.scene === 6 || q.scene === 10) {
       const size = compact ? 8 : 10, unit = Math.SQRT1_2 * size;
       const points = [[f[0] + unit, f[1] - unit], [f[0] + 2 * unit, f[1]], [f[0] + unit, f[1] + unit]];
-      body += `<polyline class="restricted-right-angle" data-dot-product="${M.dot(q.residual, [1, 1])}" points="${points.map(p => p.join(',')).join(' ')}" fill="none" stroke="${C.ink}" stroke-width="1.5"/>`;
+      body += `<polyline class="restricted-right-angle" data-vector="${q.scene === 10 ? 'negative-gradient' : 'residual'}" data-dot-product="${M.dot(q.scene === 10 ? q.negativeGradient : q.residual, [1, 1])}" points="${points.map(p => p.join(',')).join(' ')}" fill="none" stroke="${C.ink}" stroke-width="1.5"/>`;
       body += text([f[0] + 23, f[1] - 5], '90°', 'class="rv-small rv-label"');
     }
     if (q.scene === 5 && Math.abs(q.trialC - q.c) > 1e-8) {
@@ -331,7 +440,7 @@
       body += `<circle class="restricted-trial" data-values="${q.trialPrediction.join(',')}" cx="${trial[0]}" cy="${trial[1]}" r="5" fill="white" stroke="${C.rust}" stroke-width="1.7"/>`;
       body += text([trial[0] - 10, trial[1] - 17], 'trial f′', `class="rv-small rv-label" text-anchor="end" style="fill:${C.rust}"`);
     }
-    if (q.scene === 4 || q.scene >= 6) body += `<rect class="restricted-optimum" data-values="${q.nextPrediction.join(',')}" data-pixel-x="${best[0]}" data-pixel-y="${best[1]}" x="${best[0] - 4}" y="${best[1] - 4}" width="8" height="8" fill="white" stroke="${C.teal}" stroke-width="1.6"/>`;
+    if (q.scene === 4 || q.scene === 6 || q.scene === 11) body += `<rect class="restricted-optimum" data-values="${q.nextPrediction.join(',')}" data-pixel-x="${best[0]}" data-pixel-y="${best[1]}" x="${best[0] - 4}" y="${best[1] - 4}" width="8" height="8" fill="white" stroke="${C.teal}" stroke-width="1.6"/>`;
     body += `<circle class="restricted-current" data-values="${q.prediction.join(',')}" cx="${f[0]}" cy="${f[1]}" r="4.5" fill="${C.blue}" stroke="white" stroke-width="1.5"/>`;
     body += `<path class="restricted-target" data-values="${q.target.join(',')}" data-pixel-x="${y[0]}" data-pixel-y="${y[1]}" d="M${y[0]},${y[1] - 6}l6,6l-6,6l-6,-6Z" fill="${C.rust}" stroke="white" stroke-width="1.5"/>`;
     body += text([y[0] - 9, y[1] - 12], compact ? 'y = (1, 0)' : 'observed y = (1, 0)', `class="rv-math rv-label restricted-target-label" text-anchor="end" style="fill:${C.rust}"`);
@@ -341,19 +450,20 @@
       body += text([best[0], best[1] - 16], finished ? 'f = (0.5, 0.5)' : 'fit: (0.5, 0.5)', `class="rv-small rv-label ${finished ? 'restricted-prediction-label' : 'restricted-destination-label'}" text-anchor="middle" style="fill:${finished ? C.blue : C.teal}"`);
       if (!finished) body += text([f[0] + 8, f[1] + (q.progress === 0 ? 36 : 26)], `f = ${shortVector(q.prediction)}`, `class="rv-small rv-label restricted-prediction-label" style="fill:${C.blue}"`);
     } else {
-      body += text([f[0] - 10, f[1] + 24], `f = ${shortVector(q.prediction)}`, `class="rv-small rv-label restricted-prediction-label" text-anchor="end" style="fill:${C.blue}"`);
-      if (q.scene >= 6 && q.loss > q.minLoss + 1e-12) {
+      body += text([f[0] - 10, f[1] + 24], q.scene === 9 ? `f ≈ ${vector(q.prediction)}` : `f = ${shortVector(q.prediction)}`, `class="rv-small rv-label restricted-prediction-label" text-anchor="end" style="fill:${C.blue}"`);
+      if ((q.scene === 6 || q.scene === 11) && q.loss > q.minLoss + 1e-12) {
         const label = q.scene === 6 ? q.progress === 1 ? 'best: (0.8, 0.8)' : 'best shared fit' : `best: c = ${fmt(q.nextPrediction[0])}`;
         body += text([best[0] - 9, best[1] - 12], label, `class="rv-math rv-label restricted-best-label" text-anchor="end" style="fill:${C.teal}"`);
       }
     }
-    if (q.scene === 8) body += text([W / 2, H - 5], compact ? 'Vector arrows shown at ½ length' : 'Residual and negative-gradient arrows shown at ½ length', 'class="rv-small" text-anchor="middle"');
+    if (q.scene === 11) body += text([W / 2, H - 5], compact ? 'Vector arrows shown at ½ length' : 'Residual and negative-gradient arrows shown at ½ length', 'class="rv-small" text-anchor="middle"');
     let description = presentation(q.scene, state).caption + ` Current prediction ${vector(q.prediction)} and observed outcomes ${vector(q.target)}.`;
     if (q.scene > 0) description += ` Residual ${vector(q.residual)}.`;
     if (q.scene >= 2) description += ' The observations (x,y)=(1,1) and (1,0) have identical inputs, so a tree must give them identical corrections.';
     if (q.scene >= 3) description += ` ${q.lossSpec.name}. Mean residual ${fmt(q.residualMean)} and loss ${fmt(q.loss)}.`;
     if (q.scene === 5) description += ` The separate trial prediction ${vector(q.trialPrediction)} has MSE ${fmt(q.trialLoss)}. The current prediction does not move.`;
     if (q.scene >= 7) description += ` Negative gradient ${vector(q.negativeGradient)}, fitted gradient target ${vector(q.nextTree)}, and loss-optimal leaf correction ${vector(q.correction)}. ${arrowScale === .5 ? 'Gradient and raw residual arrows are drawn at half their numerical lengths.' : 'Residual and negative-gradient arrows use their full numerical lengths.'}`;
+    if (q.scene === 9) description += ` The displayed training targets ${vector(q.trainingTargets)} were computed at ${vector(q.targetPrediction)}. Their fitted tree stays fixed during the update; the actual current negative gradient is ${vector(q.currentNegativeGradient)}.`;
     if (q.scene >= 3) description += ' Contours show the selected loss; only their portion in the displayed window is visible.';
     description += ' Both axes have the same physical scale.';
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="restricted-title restricted-description" data-geometry="two-observation-prediction-space" data-x-domain="${domain.join(',')}" data-y-domain="${domain.join(',')}" data-scale="${scale}" data-units-per-pixel="${1 / scale}" data-arrow-scale="${arrowScale}" data-annotation-headroom="${top}"><title id="restricted-title">${esc(topics[q.scene])}</title><desc id="restricted-description">${esc(description)}</desc>${defs}${body}</svg>`;
@@ -371,8 +481,12 @@
       norm: q.norm, 'min-loss': q.minLoss, 'next-loss': q.nextLoss });
     if (scene === 5) Object.assign(attributes, { 'trial-c': q.trialC, 'trial-prediction': JSON.stringify(q.trialPrediction), 'trial-loss': q.trialLoss });
     if (scene >= 7) Object.assign(attributes, { gradient: JSON.stringify(q.gradient), 'negative-gradient': JSON.stringify(q.negativeGradient), 'next-tree': JSON.stringify(q.nextTree), 'negative-gradient-mean': q.negativeGradientMean });
+    if (scene >= 7 && scene <= 10) Object.assign(attributes, { round: q.round, phase: q.phase, 'phase-progress': q.phaseProgress,
+      'target-prediction': JSON.stringify(q.targetPrediction), 'training-targets': JSON.stringify(q.trainingTargets), 'fitted-correction': JSON.stringify(q.fittedCorrection),
+      'learning-rate': q.learningRate, 'update-prediction': JSON.stringify(q.updatePrediction), path: JSON.stringify(q.path),
+      'current-negative-gradient': JSON.stringify(q.currentNegativeGradient), 'display-negative-gradient': JSON.stringify(q.trainingTargets) });
     return `${styles}<div class="restricted-view${compact ? ' compact' : ''}" ${Object.entries(attributes).map(([key, value]) => `data-${key}="${esc(value)}"`).join(' ')}>${plot(q, state, compact)}</div>`;
   }
 
-  return { render, readout, presentation, annotation, topics, resolve, specification, pointLoss, negativeDerivative, totalLoss, contourPoint, equation };
+  return { render, readout, presentation, annotation, topics, resolve, computeTrainingTargets, predictFittedTree, buildDescentPath, descentState, specification, pointLoss, negativeDerivative, totalLoss, contourPoint, equation };
 });

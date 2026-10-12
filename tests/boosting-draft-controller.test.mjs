@@ -13,15 +13,18 @@ const restricted = require('../docs/boosting/restricted-view.js');
 const lossView = require('../docs/boosting/loss-view.js');
 const html = readFileSync(new URL('../docs/boosting/index.html', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../docs/boosting/story.js', import.meta.url), 'utf8');
-const workedPhysical = local => local + 11;
-const geometryPhysical = local => local + 9;
-const lossPhysical = local => local + 19;
+const workedPhysical = local => local + 14;
+const geometryPhysical = local => local + 12;
+const lossPhysical = local => local + 22;
 const mseContourPhysical = 3;
 const mseUpdatePhysical = 4;
 const orthogonalPhysical = 5;
 const changedLossPhysical = 6;
 const gradientPhysical = 7;
-const sandboxPhysical = 8;
+const gradientFitPhysical = 8;
+const gradientDescentPhysical = 9;
+const gradientLimitPhysical = 10;
+const sandboxPhysical = 11;
 const stageTop = 400;
 
 // This harness checks real controller events and numerical output. It does not
@@ -199,7 +202,7 @@ const restrictedVisibleWords = ui => [
 ].join(' ');
 const restrictedAnnotation = (ui, className) => new RegExp(`<text\\b[^>]*class="[^"]*\\b${className}\\b[^"]*"[^>]*>([\\s\\S]*?)<\\/text>`).exec(ui.get('restricted-diagram').innerHTML)?.[1];
 
-const openingDurations = { 1: 1200, 2: 1400, 3: 1700, 4: 2600, 5: 3600, 6: 3200, 7: 2400 };
+const openingDurations = { 1: 1200, 2: 1400, 3: 1700, 4: 2600, 5: 3600, 6: 3200, 7: 1800, 8: 2600, 9: 18000 };
 const finishOpening = ui => ui.advance(openingDurations[Number(ui.shell.dataset.restrictedScene)] || 0);
 const chooseRestrictedLoss = (ui, loss) => ui.click('restricted-choice-' + loss);
 const finishSharedMove = ui => ui.advance(1600);
@@ -237,7 +240,7 @@ test('all opening scenes hide the old pane, numbers, and sliders while revealing
     assert.equal(ui.get('numbers').hidden, true);
     assert.equal(ui.get('vector-readout').hidden, true);
     assert.equal(ui.get('restricted-controls').hidden, scene !== sandboxPhysical);
-    assert.equal(ui.get('opening-replay').hidden, scene === 0 || scene === sandboxPhysical);
+    assert.equal(ui.get('opening-replay').hidden, !openingDurations[scene]);
     restrictedVector(ui, 'target', [1, 0]);
     if (scene < gradientPhysical) {
       assert.doesNotMatch(restrictedVisibleWords(ui), /gradient|∇/i);
@@ -352,14 +355,124 @@ test('changing the loss morphs contours while holding predictions and residuals 
   restrictedVector(ui, 'prediction', [.5, .5]);
   restrictedVector(ui, 'negative-gradient', [.8, -.2]);
   ui.advance(openingDurations[gradientPhysical] / 2);
-  restrictedVector(ui, 'prediction', [.65, .65]);
-  close(restrictedLoss(ui), .1825);
+  restrictedVector(ui, 'prediction', [.5, .5]);
+  restrictedVector(ui, 'negative-gradient', [.8, -.2]);
   ui.advance(openingDurations[gradientPhysical] / 2);
+  restrictedVector(ui, 'prediction', [.5, .5]);
+  restrictedVector(ui, 'negative-gradient', [.8, -.2]);
+  close(restrictedLoss(ui), .25);
+});
+
+test('fitting the first gradient tree reveals a half-rate step while keeping its starting prediction fixed', () => {
+  const ui = setup();
+  ui.scrollAt(gradientFitPhysical);
+  for (const elapsed of [0, openingDurations[gradientFitPhysical] / 2, openingDurations[gradientFitPhysical] / 2]) {
+    ui.advance(elapsed);
+    restrictedVector(ui, 'prediction', [.5, .5]);
+    restrictedVector(ui, 'training-targets', [.8, -.2]);
+    restrictedVector(ui, 'target-prediction', [.5, .5]);
+    restrictedVector(ui, 'fitted-correction', [.3, .3]);
+    restrictedVector(ui, 'update-prediction', [.65, .65]);
+    close(Number(restrictedAttribute(ui, 'learning-rate')), .5);
+    close(Number(ui.shell.dataset.rate), .5);
+  }
+});
+
+test('the descent timeline refits targets at round boundaries and keeps each fitted tree fixed during its update', () => {
+  const ui = setup();
+  ui.scrollAt(gradientDescentPhysical);
+  let previousElapsed = 0;
+  const basePredictions = [.5];
+  for (let round = 0; round < 6; round++) {
+    const c = basePredictions.at(-1);
+    basePredictions.push(c + .5 * (.8 - c));
+  }
+  for (const elapsed of [0, 500, 750, 1500, 2250, 3000, 3750, 4500, 5250, 6000, 9000, 12000, 15000, 18000]) {
+    ui.advance(elapsed - previousElapsed);
+    previousElapsed = elapsed;
+    const progress = elapsed / openingDurations[gradientDescentPhysical];
+    const expected = restricted.resolve(gradientDescentPhysical, { progress });
+    const round = Math.min(6, Math.floor(elapsed / 3000));
+    const base = basePredictions[round];
+    const trainingTargets = [1.6 * (1 - base), -.4 * base];
+    const fittedMean = (trainingTargets[0] + trainingTargets[1]) / 2;
+    close(Number(ui.shell.dataset.updateProgress), progress);
+    assert.equal(Number(ui.shell.dataset.round), round);
+    assert.equal(ui.shell.dataset.descentPhase, expected.phase);
+    assert.equal(restrictedAttribute(ui, 'phase'), expected.phase);
+    restrictedVector(ui, 'prediction', expected.prediction);
+    restrictedVector(ui, 'target-prediction', [base, base]);
+    restrictedVector(ui, 'training-targets', trainingTargets);
+    restrictedVector(ui, 'display-negative-gradient', trainingTargets);
+    restrictedVector(ui, 'fitted-correction', [fittedMean, fittedMean]);
+    restrictedVector(ui, 'current-negative-gradient', expected.negativeGradient);
+    close(restrictedLoss(ui), expected.loss);
+    close(Number(ui.shell.dataset.rate), .5);
+    if (elapsed === 750) assert.equal(expected.phase, 'fit');
+    if (elapsed === 1500) assert.equal(expected.phase, 'update');
+    if (elapsed === 2250) {
+      restrictedVector(ui, 'prediction', [.575, .575]);
+      restrictedVector(ui, 'fitted-correction', [.3, .3]);
+      restrictedVector(ui, 'current-negative-gradient', [.68, -.23]);
+    }
+    if (elapsed === 3000) {
+      assert.equal(expected.phase, 'target');
+      restrictedVector(ui, 'prediction', [.65, .65]);
+      restrictedVector(ui, 'fitted-correction', [.15, .15]);
+    }
+    if (elapsed === 5250) restrictedVector(ui, 'prediction', [.6875, .6875]);
+  }
+  restrictedVector(ui, 'prediction', [.7953125, .7953125]);
+  assert.equal(restrictedAttribute(ui, 'phase'), 'complete');
+  const finalGradient = JSON.parse(restrictedAttribute(ui, 'current-negative-gradient'));
+  assert.ok(finalGradient[0] + finalGradient[1] > 0, 'Six finite updates still leave a small improving direction');
+  ui.click('opening-replay');
+  restrictedVector(ui, 'prediction', [.5, .5]);
+  assert.equal(Number(ui.shell.dataset.round), 0);
+  assert.equal(ui.shell.dataset.descentPhase, 'target');
+});
+
+test('the exact gradient limit follows the finite sequence as its own stationary scene', () => {
+  const ui = setup({ reducedMotion: true });
+  ui.scrollAt(gradientDescentPhysical);
+  restrictedVector(ui, 'prediction', [.7953125, .7953125]);
+  assert.equal(Number(ui.shell.dataset.round), 6);
+  ui.click('next');
+  assert.equal(Number(ui.shell.dataset.scene), gradientLimitPhysical);
   restrictedVector(ui, 'prediction', [.8, .8]);
   restrictedVector(ui, 'negative-gradient', [.32, -.32]);
-  const gradient = JSON.parse(restrictedAttribute(ui, 'negative-gradient'));
-  close(gradient[0] + gradient[1], 0);
   close(restrictedLoss(ui), .16);
+  assert.equal(ui.get('opening-replay').hidden, true);
+  assert.equal(ui.frames.size, 0);
+  ui.advance(20000);
+  restrictedVector(ui, 'prediction', [.8, .8]);
+});
+
+test('leaving the repeated descent cancels its frames and returning starts again at round zero', () => {
+  const ui = setup();
+  ui.scrollAt(gradientDescentPhysical); ui.advance(2250);
+  restrictedVector(ui, 'prediction', [.575, .575]);
+  ui.click('next');
+  restrictedVector(ui, 'prediction', [.8, .8]);
+  const limit = ui.get('restricted-diagram').innerHTML;
+  ui.advance(openingDurations[gradientDescentPhysical]);
+  assert.equal(ui.get('restricted-diagram').innerHTML, limit);
+  ui.click('previous');
+  restrictedVector(ui, 'prediction', [.5, .5]);
+  assert.equal(Number(ui.shell.dataset.round), 0);
+  assert.equal(ui.shell.dataset.descentPhase, 'target');
+});
+
+test('enabling reduced motion finishes the six-round sequence at its finite endpoint', () => {
+  const ui = setup();
+  ui.scrollAt(gradientDescentPhysical); ui.advance(5250);
+  restrictedVector(ui, 'prediction', [.6875, .6875]);
+  ui.reduced.matches = true; ui.reduced.emit('change');
+  restrictedVector(ui, 'prediction', [.7953125, .7953125]);
+  assert.equal(Number(ui.shell.dataset.round), 6);
+  assert.equal(ui.shell.dataset.descentPhase, 'complete');
+  ui.advance(20000);
+  restrictedVector(ui, 'prediction', [.7953125, .7953125]);
 });
 
 test('reduced motion settles automatic opening transitions and replay immediately', () => {
@@ -373,7 +486,13 @@ test('reduced motion settles automatic opening transitions and replay immediatel
   restrictedVector(ui, 'prediction', [.5, .5]);
   restrictedVector(ui, 'optimal-prediction', [.8, .8]);
   ui.scrollAt(gradientPhysical);
+  restrictedVector(ui, 'prediction', [.5, .5]);
+  ui.scrollAt(gradientDescentPhysical);
+  restrictedVector(ui, 'prediction', [.7953125, .7953125]);
+  close(Number(ui.shell.dataset.updateProgress), 1);
+  ui.scrollAt(gradientLimitPhysical);
   restrictedVector(ui, 'prediction', [.8, .8]);
+  assert.equal(ui.get('opening-replay').hidden, true);
 });
 
 test('enabling reduced motion finishes active opening playback without restarting it', () => {
@@ -397,10 +516,10 @@ for (const compact of [false, true]) {
     restrictedVector(ui, 'target', [1, 0]);
     restrictedVector(ui, 'prediction', [0, 0]);
     assert.equal(ui.get('previous').disabled, true);
-    for (let scene = 1; scene <= 22; scene++) {
+    for (let scene = 1; scene <= 25; scene++) {
       ui.click('next');
       assert.equal(Number(ui.shell.dataset.scene), scene);
-      assert.equal(ui.get('stage-count').textContent, `${String(scene + 1).padStart(2, '0')} / 23`);
+      assert.equal(ui.get('stage-count').textContent, `${String(scene + 1).padStart(2, '0')} / 26`);
       if (scene <= sandboxPhysical) {
         assert.equal(ui.shell.dataset.example, 'restricted');
         assert.match(ui.get('restricted-diagram').innerHTML, new RegExp(`data-restricted-scene="${scene}"`));

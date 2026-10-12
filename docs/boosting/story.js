@@ -13,7 +13,7 @@
   const exampleState = { rate: 1, process: 1, candidateIndex: null, round: 8 };
   const geometryState = { round: 0, rate: 0.5, progress: 1 };
   const restrictedState = { prediction: 0.5, loss: 'squared', tau: 0.8, delta: 0.25, progress: 1 };
-  const openingDurations = { 1: 1200, 2: 1400, 3: 1700, 4: 2600, 5: 3600, 6: 3200, 7: 2400 };
+  const openingDurations = { 1: 1200, 2: 1400, 3: 1700, 4: 2600, 5: 3600, 6: 3200, 7: 1800, 8: 2600, 9: 18000 };
   const lossState = { loss: 'huber', dataset: 'outlier', delta: 1, tau: 0.8, rate: 0.5, round: 0 };
   let scene = -1;
   let animation = 0;
@@ -56,7 +56,7 @@
     $('geometry-controls').hidden = !current.geometry;
     $('geometry-tree-controls').hidden = !current.geometry || index !== 1;
     $('prediction-diagram').hidden = !current.geometry;
-    $('restricted-controls').hidden = !current.restricted || index !== 8;
+    $('restricted-controls').hidden = !current.restricted || index !== 11;
     $('restricted-diagram').hidden = !current.restricted;
     $('worked-diagram').hidden = current.geometry || current.restricted || current.loss;
     $('worked-controls').hidden = current.geometry || current.restricted || current.loss || index === 7;
@@ -87,6 +87,7 @@
       delete stage.dataset.geometryScene;
       delete stage.dataset.restrictedScene;
       delete stage.dataset.sharedPrediction;
+      delete stage.dataset.descentPhase;
       delete stage.dataset.workedScene;
       delete stage.dataset.updateProgress;
       return;
@@ -101,28 +102,34 @@
       const state = { ...restrictedState, width: bounds.width, height: bounds.height };
       $('restricted-diagram').innerHTML = R.render(index, state, mobile());
       $('stage-caption').textContent = R.presentation(index, state).caption;
+      const resolved = R.resolve(index, state);
       const annotation = R.annotation(index, state);
       const note = $('opening-annotation');
       const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-      note.innerHTML = `${annotation.caption ? `<p>${escape(annotation.caption)}</p>` : ''}${annotation.equation ? `<div class="math">${annotation.equation}</div>` : ''}`;
+      const roundLabel = index === 9 ? `<span class="opening-round">${resolved.phase === 'complete' ? '6 updates complete' : `Round ${resolved.round + 1} of 6`}</span>` : '';
+      note.innerHTML = `${roundLabel}${annotation.caption ? `<p>${escape(annotation.caption)}</p>` : ''}${annotation.equation ? `<div class="math">${annotation.equation}</div>` : ''}`;
       const p = restrictedState.progress;
       const opacity = index === 6 ? Math.max(0, Math.min(1, p / .12, (1 - p) / .18)) : 1;
       note.style.opacity = String(opacity);
       note.style.transform = `translateY(${(1 - opacity) * 14}px)`;
       note.hidden = index === 6 && p === 1;
       if (announce) $('opening-status').textContent = annotation.status;
-      stage.dataset.rate = 1;
-      stage.dataset.sharedPrediction = R.resolve(index, state).prediction[0];
-      stage.dataset.loss = index < 6 ? 'squared' : index < 8 ? 'expectile' : restrictedState.loss;
+      stage.dataset.rate = resolved.learningRate ?? 1;
+      stage.dataset.sharedPrediction = resolved.prediction[0];
+      stage.dataset.loss = resolved.lossSpec.key;
       stage.dataset.restrictedScene = index;
       delete stage.dataset.geometryScene;
       delete stage.dataset.workedScene;
-      delete stage.dataset.round;
+      if (resolved.round !== undefined) stage.dataset.round = resolved.round;
+      else delete stage.dataset.round;
+      if (resolved.phase) stage.dataset.descentPhase = resolved.phase;
+      else delete stage.dataset.descentPhase;
       stage.dataset.updateProgress = restrictedState.progress;
       return;
     }
     delete stage.dataset.restrictedScene;
     delete stage.dataset.sharedPrediction;
+    delete stage.dataset.descentPhase;
     if (current.geometry) {
       $('geometry-round-label').textContent = index === 0 ? 'Trees added' : 'Starting round';
       $('geometry-tree-controls').hidden = index !== 1;
@@ -188,7 +195,7 @@
     render();
     if (reduced.matches) return;
     const tick = now => {
-      const t = Math.min(1, (now - start) / 850);
+      const t = Math.max(0, Math.min(1, (now - start) / 850));
       exampleState.process = t * t * (3 - 2 * t);
       render(false);
       if (t < 1) animation = requestAnimationFrame(tick);
@@ -207,10 +214,17 @@
     $('stage-caption').setAttribute('aria-live', reduced.matches ? 'polite' : 'off');
     render();
     if (reduced.matches) return;
+    const initial = R.resolve(current.index, restrictedState);
+    let previousPhase = `${initial.round ?? ''}:${initial.phase ?? ''}`;
     const tick = now => {
-      const t = Math.min(1, (now - start) / duration);
-      restrictedState.progress = t * t * (3 - 2 * t);
-      if (t < 1) { render(false); animation = requestAnimationFrame(tick); }
+      const t = Math.max(0, Math.min(1, (now - start) / duration));
+      // Keep repeated rounds and their update phases evenly timed.
+      restrictedState.progress = current.index === 9 ? t : t * t * (3 - 2 * t);
+      const resolved = R.resolve(current.index, restrictedState);
+      const phase = `${resolved.round ?? ''}:${resolved.phase ?? ''}`;
+      const announce = current.index === 9 && phase !== previousPhase;
+      previousPhase = phase;
+      if (t < 1) { render(announce); animation = requestAnimationFrame(tick); }
       else { animation = 0; $('stage-caption').setAttribute('aria-live', 'polite'); render(); }
     };
     animation = requestAnimationFrame(tick);
@@ -222,7 +236,7 @@
     if (reduced.matches) { restrictedState.prediction = destination; render(); return; }
     restrictedDestination = destination;
     const tick = now => {
-      const t = Math.min(1, (now - start) / 1600), eased = t * t * (3 - 2 * t);
+      const t = Math.max(0, Math.min(1, (now - start) / 1600)), eased = t * t * (3 - 2 * t);
       restrictedState.prediction = from + (destination - from) * eased;
       render(t === 1);
       if (t < 1) animation = requestAnimationFrame(tick);
@@ -353,7 +367,7 @@
 
   $('opening-replay').addEventListener('click', animateRestrictedUpdate);
   $('restricted-fit').addEventListener('click', () => {
-    animateRestrictedPrediction(R.resolve(8, restrictedState).nextPrediction[0]);
+    animateRestrictedPrediction(R.resolve(11, restrictedState).nextPrediction[0]);
   });
   $('restricted-reset').addEventListener('click', () => {
     animateRestrictedPrediction(0);

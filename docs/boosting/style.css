@@ -224,6 +224,7 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
 .opening-annotation{position:absolute;z-index:3;top:12px;left:14px;max-width:32ch;margin:0;padding:6px 10px;font:15px/1.45 var(--sans);color:var(--ink);background:rgba(255,255,255,.92);pointer-events:none;transition:opacity .25s,transform .25s}
 .opening-annotation:empty{display:none}
 .opening-annotation p{margin:0}
+.opening-annotation .opening-round{display:block;margin-bottom:3px;font-size:12px;color:var(--muted)}
 .opening-annotation>.math{display:block;margin-top:5px;font-size:18px;line-height:1.35}
 .step[data-restricted-scene]{min-height:68svh;padding:28px 0 44px}
 .step[data-restricted-scene]>div{max-width:700px}
