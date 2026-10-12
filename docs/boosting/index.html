@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Begin with two observations, residual fitting, and orthogonality, then change the loss to discover why gradient boosting needs different targets.">
   <title>Gradient Boosting</title>
-  <link rel="stylesheet" href="style.css?v=worked-transition">
+  <link rel="stylesheet" href="style.css?v=ending-at-paths">
   <script src="../shared/boosting-math.js" defer></script>
   <script src="restricted-view.js?v=typeset-loss-equations" defer></script>
   <script src="worked-example.js" defer></script>
   <script src="worked-view.js" defer></script>
   <script src="loss-example.js" defer></script>
   <script src="loss-view.js" defer></script>
-  <script src="story.js?v=worked-transition" defer></script>
+  <script src="story.js?v=ending-at-paths" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#reading">Skip to the explanation</a>
@@ -333,28 +333,20 @@
         </div></section>
       </article>
     </div>
-    <section class="afterword" id="other-losses" aria-labelledby="loss-heading">
-      <p class="eyebrow">BEYOND SQUARED ERROR</p>
-      <h2 id="loss-heading">Change the loss, change the gradient</h2>
-      <p>Fitting ordinary residuals works for half-squared-error loss because its negative derivative is <span class="math">y − z</span>. Gradient boosting uses the derivative of the chosen loss, which need not have that form.</p>
-      <div class="table-scroll"><table class="loss-table"><caption>Losses and their negative-gradient targets (e = y − z)</caption><thead><tr><th scope="col">Loss</th><th scope="col">ℓ(y, z)</th><th scope="col">−∂ℓ/∂z</th></tr></thead><tbody><tr><th scope="row">Half-squared error</th><td class="math">½(y − z)²</td><td class="math">y − z</td></tr><tr><th scope="row">Huber</th><td class="math">½e² if |e| ≤ δ;<br>δ|e| − ½δ² otherwise</td><td class="math">clip(e, −δ, δ)</td></tr><tr><th scope="row">Asymmetric squared</th><td class="math">τe² if e ≥ 0;<br>(1 − τ)e² otherwise</td><td class="math">2τe if e ≥ 0;<br>2(1 − τ)e otherwise</td></tr><tr><th scope="row">Exponential, y ∈ {−1, +1}</th><td class="math">exp(−yz)</td><td class="math">y exp(−yz)</td></tr></tbody></table></div>
-      <p>In the binary-classification row, <span class="math">z = F(x)</span> is an additive score. Its sign predicts the class. A positive observation with score 0 has target +1; with score −2, its target is <span class="math">exp(2)</span>, about 7.39. A confidently wrong prediction asks for a larger correction. These targets come from the loss derivative, rather than the difference between a class label and its score.</p>
-      <p>For a tree region <span class="math">Rₘⱼ</span>, the final leaf correction is chosen using the original loss:</p>
-      <p class="equation math">γₘⱼ = arg min<sub>γ</sub> Σ<sub>xᵢ ∈ Rₘⱼ</sub> ℓ(yᵢ, Fₘ₋₁(xᵢ) + γ).</p>
-      <p>For exponential loss, a leaf containing only one class has no finite unpenalized minimizer: the loss approaches zero as the score grows in that class’s direction, but never reaches zero at a finite score. Constraining the correction to a finite closed interval, or adding a positive quadratic penalty, gives a finite minimizer.</p>
-      <p>The fitted pseudo-residual tree defines the regions; these corrections define <span class="math">hₘ</span>. The learning rate then scales the tree’s contribution. Squared error makes <span class="math">γₘⱼ</span> the mean residual; that shortcut does not apply to every loss.</p>
-      <details id="xgboost"><summary>How XGBoost extends the calculation</summary>
-        <p>XGBoost uses first and second derivatives to choose trees with a quadratic loss approximation and penalties on leaf values and tree complexity. For a fixed structure, with penalty <span class="math">½λΣⱼwⱼ²</span> and no L1 penalty, the leaf value that minimizes this quadratic approximation is <span class="math">wⱼ* = −Gⱼ/(Hⱼ + λ)</span>, provided <span class="math">Hⱼ + λ &gt; 0</span>. Here G and H sum the gradients and second derivatives in the leaf.</p>
-        <p>For our half-squared-error loss, this becomes <span class="math">Σrᵢ/(nⱼ + λ)</span>. With λ = 0 it is the mean residual. The learning rate scales the fitted tree afterward. XGBoost is one extension of the gradient-boosting idea; the worked calculation above uses ordinary least-squares stumps.</p>
-      </details>
-      <h3>More prediction-space geometry</h3>
-      <p>For the longer three-observation sequence, <a href="geometry.html">explore the three-observation companion</a>. Its axes are training-point predictions, and its angle experiment explains why alignment and step size matter.</p>
-      <div class="sources"><h3>Sources and further reading</h3>
-        <p>The worked calculation and general procedure follow sections 1.4.2–1.4.3 of the boosting notes. The loss comparison follows <a href="https://doi.org/10.1214/aos/1013203451">Friedman’s gradient boosting formulation</a>; asymmetric squared loss uses the <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.expectile.html">expectile objective</a>. See also the <a href="https://courses.cs.cornell.edu/cs4780/2022fa/lectures/lecturenote19.html">Cornell notes on boosting</a> and XGBoost’s <a href="https://xgboost.readthedocs.io/en/stable/tutorials/model.html">introduction to boosted trees</a>.</p>
-      </div>
-    </section>
   </main>
   <noscript><p class="no-script">The text gives the full calculation. Enable JavaScript to explore the splits, updates, and later rounds.</p></noscript>
-  <footer><a href="../">ML &amp; AI for the Social Sciences</a><a href="#page-title">Back to the beginning</a></footer>
+  <footer id="references">
+    <div class="footer-resources">
+      <p>The worked calculation and general procedure follow sections 1.4.2–1.4.3 of the boosting notes.</p>
+      <nav id="other-losses" aria-label="Sources and further reading">
+        <a href="https://doi.org/10.1214/aos/1013203451">Friedman’s boosting formulation</a>
+        <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.expectile.html">Expectile loss</a>
+        <a href="https://courses.cs.cornell.edu/cs4780/2022fa/lectures/lecturenote19.html">Cornell boosting notes</a>
+        <a href="https://xgboost.readthedocs.io/en/stable/tutorials/model.html">XGBoost introduction</a>
+        <a href="geometry.html">Prediction-space geometry companion</a>
+      </nav>
+    </div>
+    <div class="footer-links"><a href="../">ML &amp; AI for the Social Sciences</a><a href="#page-title">Back to the beginning</a></div>
+  </footer>
 </body>
 </html>
