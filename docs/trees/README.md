@@ -1,6 +1,6 @@
-# Forward stagewise additive modeling
+# Boosting with regression trees
 
-A static explainer of forward stagewise additive modeling, served at `/trees/`.
+A static explainer of boosting with regression trees, served at `/trees/`.
 No build step or external JavaScript dependencies. The course homepage links
 directly to this chapter.
 
