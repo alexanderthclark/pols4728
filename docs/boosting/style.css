@@ -58,6 +58,23 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
 
 /* The vector picture and exact norm slice belong to the main explanation. */
 .prediction-diagram{width:100%;height:100%;min-width:0}
+.loss-diagram{width:100%;height:100%;min-width:0}
+.loss-controls{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center}
+.loss-controls>label[for='loss-round']{flex:1 1 100%;justify-content:space-between}
+.stage-shell[data-example='loss'] .visual-area{min-height:170px}
+.stage-shell[data-example='loss']>.controls,.stage-shell[data-example='loss']>.vector-readout,.stage-shell[data-example='loss']>.stage-caption,.stage-shell[data-example='loss']>.stage-top,.stage-shell[data-example='loss']>.stage-nav{flex-shrink:0}
+.table-scroll{overflow-x:auto}
+.afterword .loss-table td{min-width:125px}
+@media(max-width:800px){
+  .stage-shell[data-example='loss']{height:70svh;min-height:570px}
+  .stage-shell[data-example='loss'] .visual-area{min-height:210px}
+  .loss-controls{gap:3px 10px;padding:4px 0}
+  .loss-controls>label{flex:1 1 calc(50% - 10px);min-width:0;font-size:11px;gap:4px}
+  .loss-controls select{min-width:0;max-width:100%;font-size:11px;padding:2px 4px}
+  .stage-shell[data-example='loss'] .vector-readout>div{flex:1 1 calc(50% - 6px)}
+  .stage-shell[data-example='loss'] .vector-readout .value{font-size:14px}
+  .step[data-loss-scene]{padding-top:20px}
+}
 .restricted-diagram{width:100%;height:100%;min-width:0}
 .stage-shell[data-example='restricted']>.vector-readout,.stage-shell[data-example='restricted']>.restricted-controls,.stage-shell[data-example='restricted']>.stage-caption,.stage-shell[data-example='restricted']>.stage-top,.stage-shell[data-example='restricted']>.stage-nav{flex-shrink:0}
 .restricted-controls{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center}

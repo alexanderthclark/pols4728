@@ -4,6 +4,7 @@
   const W = window.WorkedBoostingView;
   const G = window.PredictionBoostingView;
   const R = window.RestrictedBoostingView;
+  const L = window.LossBoostingView;
   const $ = id => document.getElementById(id);
   const stage = document.querySelector('.stage-shell');
   const steps = [...document.querySelectorAll('.step')];
@@ -12,6 +13,7 @@
   const exampleState = { rate: 1, process: 1, candidateIndex: null, round: 8 };
   const geometryState = { round: 0, rate: 0.5, progress: 1, angle: 120, length: 0.5 };
   const restrictedState = { prediction: 0 };
+  const lossState = { loss: 'huber', dataset: 'outlier', delta: 1, tau: 0.8, rate: 0.5, round: 0 };
   let scene = -1;
   let animation = 0;
   let scrollPending = false;
@@ -32,9 +34,10 @@
 
   function localScene() {
     const step = steps[scene];
-    if (step.dataset.geometryScene !== undefined) return { geometry: true, restricted: false, index: Number(step.dataset.geometryScene) };
-    if (step.dataset.restrictedScene !== undefined) return { geometry: false, restricted: true, index: Number(step.dataset.restrictedScene) };
-    return { geometry: false, restricted: false, index: Number(step.dataset.workedScene) };
+    if (step.dataset.lossScene !== undefined) return { loss: true, geometry: false, restricted: false, index: Number(step.dataset.lossScene) };
+    if (step.dataset.geometryScene !== undefined) return { loss: false, geometry: true, restricted: false, index: Number(step.dataset.geometryScene) };
+    if (step.dataset.restrictedScene !== undefined) return { loss: false, geometry: false, restricted: true, index: Number(step.dataset.restrictedScene) };
+    return { loss: false, geometry: false, restricted: false, index: Number(step.dataset.workedScene) };
   }
 
   function render(announce = true) {
@@ -47,9 +50,39 @@
     $('prediction-diagram').hidden = !current.geometry;
     $('restricted-controls').hidden = !current.restricted;
     $('restricted-diagram').hidden = !current.restricted;
-    $('worked-diagram').hidden = current.geometry || current.restricted;
-    $('worked-controls').hidden = current.geometry || current.restricted || index === 7;
-    $('vector-readout').hidden = !current.geometry && !current.restricted && index === 7;
+    $('worked-diagram').hidden = current.geometry || current.restricted || current.loss;
+    $('worked-controls').hidden = current.geometry || current.restricted || current.loss || index === 7;
+    $('loss-diagram').hidden = !current.loss;
+    $('loss-controls').hidden = !current.loss;
+    $('vector-readout').hidden = !current.geometry && !current.restricted && !current.loss && index === 7;
+    if (current.loss) {
+      $('loss-choice').value = lossState.loss;
+      $('loss-dataset').value = lossState.dataset;
+      $('loss-delta').value = String(lossState.delta);
+      $('loss-tau').value = String(lossState.tau);
+      $('loss-rate').value = String(lossState.rate);
+      $('loss-round').value = String(lossState.round);
+      $('loss-round-value').textContent = String(lossState.round);
+      $('loss-delta-label').hidden = lossState.loss !== 'huber';
+      $('loss-tau-label').hidden = lossState.loss !== 'expectile';
+      const bounds = $('visual-area').getBoundingClientRect();
+      const state = { ...lossState, width: bounds.width, height: bounds.height };
+      $('loss-diagram').innerHTML = L.render(index, state, mobile());
+      readout(L.readout(index, state));
+      if (announce) $('stage-caption').textContent = L.presentation(index, state).caption;
+      stage.dataset.lossScene = index;
+      stage.dataset.loss = lossState.loss;
+      stage.dataset.rate = lossState.rate;
+      stage.dataset.round = lossState.round;
+      delete stage.dataset.geometryScene;
+      delete stage.dataset.restrictedScene;
+      delete stage.dataset.sharedPrediction;
+      delete stage.dataset.workedScene;
+      delete stage.dataset.updateProgress;
+      return;
+    }
+    delete stage.dataset.lossScene;
+    delete stage.dataset.loss;
     if (current.restricted) {
       $('restricted-prediction').value = String(restrictedState.prediction);
       $('restricted-prediction-value').textContent = String(Number(restrictedState.prediction.toFixed(2)));
@@ -152,13 +185,13 @@
     scene = index;
     stage.dataset.scene = scene;
     const current = localScene();
-    stage.dataset.example = current.geometry ? 'geometry' : current.restricted ? 'restricted' : 'worked';
-    $('stage-topic').textContent = (current.geometry ? G : current.restricted ? R : W).topics[current.index];
+    stage.dataset.example = current.loss ? 'loss' : current.geometry ? 'geometry' : current.restricted ? 'restricted' : 'worked';
+    $('stage-topic').textContent = (current.loss ? L : current.geometry ? G : current.restricted ? R : W).topics[current.index];
     $('stage-count').textContent = `${String(scene + 1).padStart(2, '0')} / ${steps.length}`;
     $('previous').disabled = scene === 0;
     $('next').textContent = scene === steps.length - 1 ? 'Beyond squared error' : 'Next';
     steps.forEach((step, i) => step.toggleAttribute('data-active', i === scene));
-    if (!current.geometry && !current.restricted) {
+    if (!current.geometry && !current.restricted && !current.loss) {
       exampleState.candidateIndex = null;
       exampleState.process = 1;
       if (animate && (current.index === 3 || current.index === 5)) animateUpdate();
@@ -241,6 +274,18 @@
   $('worked-round').addEventListener('input', () => {
     cancelUpdate();
     exampleState.round = Math.max(0, Math.min(24, Math.round(Number($('worked-round').value))));
+    render();
+  });
+
+  ['loss-choice', 'loss-dataset', 'loss-delta', 'loss-tau', 'loss-rate'].forEach(id => {
+    $(id).addEventListener('change', () => {
+      const key = { 'loss-choice': 'loss', 'loss-dataset': 'dataset', 'loss-delta': 'delta', 'loss-tau': 'tau', 'loss-rate': 'rate' }[id];
+      lossState[key] = key === 'loss' || key === 'dataset' ? $(id).value : Number($(id).value);
+      render();
+    });
+  });
+  $('loss-round').addEventListener('input', () => {
+    lossState.round = Math.max(0, Math.min(24, Math.round(Number($('loss-round').value))));
     render();
   });
 

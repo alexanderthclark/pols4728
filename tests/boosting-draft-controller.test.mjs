@@ -10,6 +10,7 @@ const example = require('../docs/boosting/worked-example.js');
 const view = require('../docs/boosting/worked-view.js');
 const geometry = require('../docs/boosting/prediction-view.js');
 const restricted = require('../docs/boosting/restricted-view.js');
+const lossView = require('../docs/boosting/loss-view.js');
 const html = readFileSync(new URL('../docs/boosting/index.html', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../docs/boosting/story.js', import.meta.url), 'utf8');
 const workedPhysical = local => local + 4;
@@ -73,7 +74,7 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
   const reduced = new Element(); reduced.matches = reducedMotion;
   const narrow = new Element(); narrow.matches = compact;
   Object.assign(win, {
-    BoostingMath: math, WorkedBoostingExample: example, WorkedBoostingView: view, PredictionBoostingView: geometry, RestrictedBoostingView: restricted,
+    BoostingMath: math, WorkedBoostingExample: example, WorkedBoostingView: view, PredictionBoostingView: geometry, RestrictedBoostingView: restricted, LossBoostingView: lossView,
     innerHeight: 800, innerWidth: compact ? 320 : 1200, scrollY: 0,
     location: { hash },
     matchMedia: query => query.includes('reduced-motion') ? reduced : narrow,
@@ -161,10 +162,10 @@ for (const compact of [false, true]) {
     assert.equal(ui.shell.dataset.example, 'geometry');
     assert.match(numbers(ui), /\(1, [−-]1, 1\)/);
     assert.equal(ui.get('previous').disabled, true);
-    for (let scene = 1; scene <= 11; scene++) {
+    for (let scene = 1; scene <= 15; scene++) {
       ui.click('next');
       assert.equal(Number(ui.shell.dataset.scene), scene);
-      assert.equal(ui.get('stage-count').textContent, `${String(scene + 1).padStart(2, '0')} / 12`);
+      assert.equal(ui.get('stage-count').textContent, `${String(scene + 1).padStart(2, '0')} / 16`);
       if (scene < 3) {
         assert.equal(ui.shell.dataset.example, 'geometry');
         assert.match(ui.get('prediction-diagram').innerHTML, new RegExp(`data-geometry-scene="${scene}"`));
@@ -173,6 +174,12 @@ for (const compact of [false, true]) {
         assert.match(ui.get('restricted-diagram').innerHTML, /data-restricted-scene="0"/);
         assert.equal(ui.get('restricted-controls').hidden, false);
         close(restrictedLoss(ui), .5);
+      } else if (scene >= 12) {
+        assert.equal(ui.shell.dataset.example, 'loss');
+        assert.equal(Number(ui.shell.dataset.lossScene), scene - 12);
+        assert.equal(ui.get('loss-controls').hidden, false);
+        assert.equal(ui.get('loss-choice').value, 'huber');
+        assert.equal(ui.get('worked-diagram').hidden, true);
       } else {
         const local = scene - workedPhysical(0);
         assert.equal(ui.shell.dataset.example, 'worked');
@@ -575,4 +582,37 @@ test('returning to geometry during an animated worked update cancels the stale c
   close(geometryLoss(ui), 1.125);
   assert.equal(ui.get('worked-diagram').hidden, true);
   assert.equal(ui.get('geometry-controls').hidden, false);
+});
+
+
+test('loss controls refit the compared paths and persist across narrative scenes', () => {
+  const ui = setup({ reducedMotion: true });
+  ui.clickLink('#loss-targets');
+  assert.equal(Number(ui.shell.dataset.scene), 12);
+  assert.equal(ui.shell.dataset.loss, 'huber');
+  assert.equal(ui.get('loss-delta-label').hidden, false);
+  assert.equal(ui.get('loss-tau-label').hidden, true);
+  const initial = ui.get('loss-diagram').innerHTML;
+  ui.control('loss-choice', 'expectile', 'change');
+  assert.equal(ui.get('loss-delta-label').hidden, true);
+  assert.equal(ui.get('loss-tau-label').hidden, false);
+  assert.notEqual(ui.get('loss-diagram').innerHTML, initial);
+  ui.control('loss-tau', .2, 'change');
+  ui.control('loss-rate', .25, 'change');
+  ui.control('loss-dataset', 'worked', 'change');
+  ui.control('loss-round', 24);
+  ui.click('next');
+  assert.equal(ui.get('loss-tau').value, '0.2');
+  assert.equal(ui.get('loss-rate').value, '0.25');
+  assert.equal(ui.get('loss-round-value').textContent, '24');
+  assert.equal(ui.get('loss-dataset').value, 'worked');
+  assert.equal(ui.shell.dataset.loss, 'expectile');
+  assert.equal(ui.shell.dataset.round, 24);
+  ui.clickLink('#worked-data');
+  assert.equal(ui.get('loss-controls').hidden, true);
+  assert.equal(ui.get('loss-diagram').hidden, true);
+  ui.clickLink('#loss-paths');
+  assert.equal(ui.get('loss-round').value, '24');
+  assert.equal(ui.get('loss-choice').value, 'expectile');
+  assert.equal(ui.get('worked-controls').hidden, true);
 });

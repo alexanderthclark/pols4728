@@ -50,6 +50,8 @@ jobs:
           node --check docs/boosting/restricted-view.js
           node --check docs/boosting/worked-example.js
           node --check docs/boosting/worked-view.js
+          node --check docs/boosting/loss-example.js
+          node --check docs/boosting/loss-view.js
           node --check docs/boosting/geometry.js
           node --check docs/trees/model.js
           node --check docs/trees/delivery.js

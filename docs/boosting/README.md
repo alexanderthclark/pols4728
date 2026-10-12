@@ -4,8 +4,10 @@ A scrollytelling chapter about gradient boosting. Its main path
 restores the interactive observed-outcome vector, prediction
 coordinates, negative gradients, and norm/radius experiment. Three vector
 scenes lead into an identical-input example and eight scenes developing the four-observation example from
-sections 1.4.2–1.4.3 of the boosting notes. The chapter then explains other
-losses and a brief XGBoost extension. The longer geometry sequence remains
+sections 1.4.2–1.4.3 of the boosting notes. Four additional scenes compare squared error, Huber loss, and asymmetric squared
+(expectile) loss through targets, split search, original-loss leaf optimization,
+and two fitted paths. The chapter closes with an exponential-loss comparison
+and a brief XGBoost extension. The longer geometry sequence remains
 available as a companion.
 
 The chapter is the second item on the course homepage. GitHub Pages publishes
@@ -17,7 +19,7 @@ No build step or external JavaScript dependencies are required.
 
 - `index.html` contains the main explanation, numerical example, controls,
   general algorithm, and loss comparison.
-- `story.js` follows twelve narrative steps and handles vector experiments,
+- `story.js` follows sixteen narrative steps and handles vector experiments,
   split inspection, update progress, learning rate, later rounds, and navigation.
 - `prediction-view.js` restores the three-observation vector picture, fitted
   correction, and exact equal-loss circle. It exposes consistent vectors,
@@ -29,6 +31,14 @@ No build step or external JavaScript dependencies are required.
   unchanged `../shared/boosting-math.js` stump-fitting module.
 - `worked-view.js` renders response plots, gradients, candidate split tables,
   prediction updates, later fitted rounds, and the general learning loop.
+- `loss-example.js` refits loss-aware gradient boosting and the ordinary
+  residual-fitting shortcut from the same loss-optimal constant. Huber uses
+  clipped gradients and original-loss minimizing leaf corrections; asymmetric
+  squared loss uses signed weights. The normalization agrees with half-squared
+  loss at τ = 0.5.
+- `loss-view.js` shows target bars, candidate SSEs, leaf-loss curves, and
+  prediction/loss histories. The seven-point high-outcome case defaults to
+  Huber δ = 1; the original four-point data remain available.
 - `style.css` follows the course design guide and supports phone layouts.
 - `geometry.html`, `geometry.js`, and `geometry.css` preserve the earlier
   three-observation prediction-space construction as a linked supplement.
@@ -104,3 +114,28 @@ The page also links Cornell's lecture notes and the official XGBoost tutorial.
 with its hash and usage guidance in `../../design/assets.json`. The existing
 STIX math font is loaded from the Shapley explainer's local asset. No shared
 design rules are changed.
+
+## Loss comparison
+
+The seven-point example uses x = [1,2,3,4,5,6,7] and y = [0,0,1,2,3,4,15].
+At the Huber δ = 1 optimum F0 = 2, raw residual fitting selects cut 6.5;
+gradient fitting selects cut 3.5. The gradient-target means are −1 and 3/4;
+the original-loss minimizing corrections are −5/3 and 3/2. Huber can have
+an interval of minimizers; choose its midpoint deterministically.
+
+Both compared paths share the selected loss-optimal constant, stump complexity,
+learning rate, data, and round count. The residual shortcut retains ordinary
+residual targets and mean-residual updates, and is evaluated using the selected
+loss. It is not a comparator for every possible forward stagewise optimizer.
+Different targets do not guarantee a lower loss at every finite round.
+
+Loss values are sums, not MSE. Candidate SSEs are measured on each method's
+own targets, not directly ranked against one another. The earlier exact circles
+remain specific to squared error. Controls support keyboard use, and round
+changes refit from the initial model rather than reusing another loss's trees.
+
+The third dataset has identical inputs x = [1,1,1] and responses y = [0,0,10].
+For Huber δ = 1, gradient boosting remains at the optimal constant 1/2 with
+loss 9.25. The residual shortcut approaches the outcome mean 10/3, where
+Huber loss is 71/6. Since no split is possible, this isolates a persistent
+mismatch between the residual shortcut and the selected loss.

@@ -11,13 +11,15 @@
   <script src="restricted-view.js" defer></script>
   <script src="worked-example.js" defer></script>
   <script src="worked-view.js" defer></script>
+  <script src="loss-example.js" defer></script>
+  <script src="loss-view.js" defer></script>
   <script src="story.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#reading">Skip to the explanation</a>
   <header class="masthead">
     <a href="../">POLS 4728 <span>· ML &amp; AI</span></a>
-    <nav aria-label="Page navigation"><a href="#vector-geometry">Vectors</a><a href="#worked-data">Worked example</a><a href="#other-losses">Other losses</a></nav>
+    <nav aria-label="Page navigation"><a href="#vector-geometry">Vectors</a><a href="#worked-data">Worked example</a><a href="#loss-targets">Change loss</a></nav>
   </header>
   <div class="reading-progress" aria-hidden="true"><span id="progress"></span></div>
   <main>
@@ -33,8 +35,8 @@
     </section>
     <div class="story-layout" id="story">
       <aside class="stage-shell" data-example="geometry" aria-label="Interactive gradient-boosting diagram">
-        <div class="stage-top"><span id="stage-topic">The outcome vector stays fixed</span><span id="stage-count">01 / 12</span></div>
-        <div class="visual-area" id="visual-area"><div id="prediction-diagram" class="prediction-diagram" aria-label="Prediction vectors and gradient geometry"></div><div id="restricted-diagram" class="restricted-diagram" hidden aria-label="Identical-input prediction geometry"></div><div id="worked-diagram" class="worked-diagram" hidden aria-label="Gradient-boosting calculation"></div></div>
+        <div class="stage-top"><span id="stage-topic">The outcome vector stays fixed</span><span id="stage-count">01 / 16</span></div>
+        <div class="visual-area" id="visual-area"><div id="prediction-diagram" class="prediction-diagram" aria-label="Prediction vectors and gradient geometry"></div><div id="restricted-diagram" class="restricted-diagram" hidden aria-label="Identical-input prediction geometry"></div><div id="worked-diagram" class="worked-diagram" hidden aria-label="Gradient-boosting calculation"></div><div id="loss-diagram" class="loss-diagram" hidden aria-label="Loss-dependent targets, splits, leaf corrections, and fitted paths"></div></div>
         <div id="vector-readout" class="vector-readout" aria-label="Current numerical values"></div>
         <div class="controls geometry-controls" id="geometry-controls">
           <div id="geometry-path-controls">
@@ -65,12 +67,21 @@
           <label for="worked-round" id="worked-round-label" hidden>Trees added <output id="worked-round-value" for="worked-round">8</output></label>
           <input id="worked-round" type="range" min="0" max="24" step="1" value="8" hidden>
         </div>
+        <div class="controls loss-controls" id="loss-controls" hidden>
+          <label for="loss-choice">Loss <select id="loss-choice"><option value="squared">Squared error</option><option value="huber" selected>Huber</option><option value="expectile">Asymmetric squared</option></select></label>
+          <label for="loss-dataset">Data <select id="loss-dataset"><option value="outlier" selected>Seven points · high outcome</option><option value="worked">Original four points</option><option value="shared">Identical inputs</option></select></label>
+          <label for="loss-delta" id="loss-delta-label">Clipping δ <select id="loss-delta"><option value="0.5">1/2</option><option value="1" selected>1</option><option value="2">2</option></select></label>
+          <label for="loss-tau" id="loss-tau-label" hidden>Asymmetry τ <select id="loss-tau"><option value="0.2">0.2</option><option value="0.5">0.5</option><option value="0.8" selected>0.8</option></select></label>
+          <label for="loss-rate">Learning rate α <select id="loss-rate"><option value="0.25">1/4</option><option value="0.5" selected>1/2</option><option value="1">1</option></select></label>
+          <label for="loss-round">Trees already added <output id="loss-round-value" for="loss-round">0</output></label>
+          <input id="loss-round" type="range" min="0" max="24" step="1" value="0">
+        </div>
         <p class="stage-caption" id="stage-caption" aria-live="polite"></p>
         <div class="stage-nav"><button id="previous" type="button" disabled>Previous</button><span>Scroll or use the buttons</span><button id="next" type="button">Next</button></div>
       </aside>
       <article class="narrative" id="reading">
         <section class="step" id="vector-geometry" data-step="0" data-geometry-scene="0" aria-labelledby="heading-0"><div>
-          <p class="step-number">01 / 12</p><h2 id="heading-0">The observed outcomes form a fixed vector</h2>
+          <p class="step-number">01 / 16</p><h2 id="heading-0">The observed outcomes form a fixed vector</h2>
           <p>Begin with the three-observation picture. At inputs <span class="math">x = (1, 2, 3)</span>, the observed outcomes are <span class="math">y = (1, −1, 1)</span>. Every fitted function supplies three predictions:</p>
           <p class="equation math">F = (F(x₁), F(x₂), F(x₃)).</p>
           <p>Those predictions place the model at a point in prediction space. Each axis corresponds to an observation, rather than an input feature. The outcome vector <i>y</i> stays fixed while the model moves.</p>
@@ -80,7 +91,7 @@
           <p class="quiet">The zero starting function keeps this picture simple. The worked calculation below starts at the outcome mean. This three-axis view is an orthographic projection; the displayed norms and losses use the full vectors. Vector readouts are rounded for display.</p>
         </div></section>
         <section class="step" id="vector-correction" data-step="1" data-geometry-scene="1" aria-labelledby="heading-1"><div>
-          <p class="step-number">02 / 12</p><h2 id="heading-1">A tree approximates the negative gradient</h2>
+          <p class="step-number">02 / 16</p><h2 id="heading-1">A tree approximates the negative gradient</h2>
           <p>The desired change is <span class="math">−∇L(F) = y − F</span>. We cannot independently set every prediction when the next learner is a small tree. Fit a stump to these negative-gradient targets and add a scaled correction.</p>
           <p>At the zero model, the first stump predicts <span class="math">h₁ = (1, 0, 0)</span>. With learning rate <span class="math">α = ½</span>, its update is</p>
           <p class="equation math">F₁ = F₀ + ½h₁ = (½, 0, 0).</p>
@@ -89,7 +100,7 @@
           <p class="quiet">The figure uses the round and learning rate selected in the preceding view. These numbers describe its initial setting.</p>
         </div></section>
         <section class="step" id="vector-radius" data-step="2" data-geometry-scene="2" aria-labelledby="heading-2"><div>
-          <p class="step-number">03 / 12</p><h2 id="heading-2">The norm defines an equal-loss radius</h2>
+          <p class="step-number">03 / 16</p><h2 id="heading-2">The norm defines an equal-loss radius</h2>
           <p>Now look at an exact two-dimensional slice of prediction space. The starting prediction and the fixed outcome vector lie in this plane. A circle centered at <i>y</i>, with radius <span class="math">R = ‖y − F‖</span>, passes through the starting prediction.</p>
           <p>Every point on that circle has the same half-squared loss. An update that lands inside it reduces the remaining norm and the loss; an update outside it increases them. The negative gradient points directly toward the center.</p>
           <p>Adjust a candidate direction and its step length. The step slider reports <span class="math">‖Δ‖/R</span>. Both orientations of the line are shown. If <i>h</i> makes an obtuse angle with the negative gradient, reverse it to use <span class="math">−h</span>. At 90°, neither sign offers a decreasing step. A direction that points inward can still overshoot if the step is too long.</p>
@@ -99,7 +110,7 @@
         </div></section>
 
         <section class="step" id="identical-inputs" data-step="3" data-restricted-scene="0" aria-labelledby="heading-3"><div>
-          <p class="step-number">04 / 12</p><h2 id="heading-3">Identical inputs restrict every update</h2>
+          <p class="step-number">04 / 16</p><h2 id="heading-3">Identical inputs restrict every update</h2>
           <p>Suppose we have two observations with identical predictor values but different outcomes: <span class="math">x₁ = x₂ = 1</span>, with <span class="math">y = (1, 0)</span>. Any regression tree using only <i>x</i> must assign them the same prediction. So must a sum of those trees:</p>
           <p class="equation math">f = (f(x₁), f(x₂)) = (c, c).</p>
           <p>Every possible prediction lies on the 45-degree line through the origin. The target <span class="math">y = (1, 0)</span> lies off that line. We keep the same half-squared-error loss, so the negative gradient is exactly the residual <span class="math">r = y − f</span>.</p>
@@ -112,7 +123,7 @@
         </div></section>
 
         <section class="step" id="worked-data" data-step="4" data-worked-scene="0" aria-labelledby="heading-4"><div>
-          <p class="step-number">05 / 12</p><h2 id="heading-4">Start with a loss and a constant prediction</h2>
+          <p class="step-number">05 / 16</p><h2 id="heading-4">Start with a loss and a constant prediction</h2>
           <p>Apply this geometry to a full gradient-boosting calculation. We now use four observations and a mean starting prediction, following the example from section 1.4.3 of the boosting notes: one predictor <i>x</i>, with outcomes <span class="math">y = (0, 2, 1, 5)</span> at <span class="math">x = (1, 2, 3, 4)</span>. Squared-error boosting starts at the best constant prediction, the outcome mean:</p>
           <p class="equation math">F₀(x) = (0 + 2 + 1 + 5) / 4 = 2.</p>
           <p>The prediction vector is <span class="math">z₀ = (2, 2, 2, 2)</span>, and its total half-squared loss is <span class="math">½(4 + 0 + 1 + 9) = 7</span>. This loss sums over the observations; it is not a mean squared error.</p>
@@ -121,7 +132,7 @@
         </div></section>
 
         <section class="step" id="worked-gradient" data-step="5" data-worked-scene="1" aria-labelledby="heading-5"><div>
-          <p class="step-number">06 / 12</p><h2 id="heading-5">Calculate the negative gradient</h2>
+          <p class="step-number">06 / 16</p><h2 id="heading-5">Calculate the negative gradient</h2>
           <p>Write <span class="math">zᵢ = F(xᵢ)</span> and regard the total loss as a function of the four prediction values:</p>
           <p class="equation math">L(z) = ½ Σᵢ₌₁⁴ (yᵢ − zᵢ)².</p>
           <p>Hold the observed inputs and outcomes fixed. Changing the prediction <span class="math">zᵢ</span> changes its contribution to the loss, giving</p>
@@ -132,7 +143,7 @@
         </div></section>
 
         <section class="step" id="worked-first-fit" data-step="6" data-worked-scene="2" aria-labelledby="heading-6"><div>
-          <p class="step-number">07 / 12</p><h2 id="heading-6">Fit a tree to the negative gradient</h2>
+          <p class="step-number">07 / 16</p><h2 id="heading-6">Fit a tree to the negative gradient</h2>
           <p>The gradient supplies a target at each training observation. A tree supplies a correction that we can also evaluate at a new input. Here the tree is a stump: one split and two leaf values. For each candidate split, fit the mean residual on each side, then compare <span class="math">Σᵢ(rᵢ − h(xᵢ))²</span>. This is the residual-fitting SSE used to choose the tree.</p>
           <p>There are three possible training partitions, represented by cuts at 1.5, 2.5, and 3.5. Their fitted SSEs are <span class="math">26/3, 10, and 2</span>. The cut at 3.5 wins.</p>
           <p class="equation math">Left mean = (−2 + 0 − 1) / 3 = −1;<br>right mean = 3.</p>
@@ -141,7 +152,7 @@
         </div></section>
 
         <section class="step" id="worked-first-update" data-step="7" data-worked-scene="3" aria-labelledby="heading-7"><div>
-          <p class="step-number">08 / 12</p><h2 id="heading-7">Scale and add the fitted correction</h2>
+          <p class="step-number">08 / 16</p><h2 id="heading-7">Scale and add the fitted correction</h2>
           <p>With <span class="math">α = 1</span>, add the fitted correction to each current prediction:</p>
           <p class="equation math">z₁ = z₀ + h₁<br>= (2, 2, 2, 2) + (−1, −1, −1, 3)<br>= (1, 1, 1, 5).</p>
           <p>The new loss is <span class="math">½(1 + 1 + 0 + 0) = 1</span>, down from 7. Observation 2 started with a correct prediction of 2 and now receives 1. The shared correction worsens that individual prediction while improving the aggregate fit.</p>
@@ -149,7 +160,7 @@
         </div></section>
 
         <section class="step" id="worked-second-fit" data-step="8" data-worked-scene="4" aria-labelledby="heading-8"><div>
-          <p class="step-number">09 / 12</p><h2 id="heading-8">Recompute before fitting tree two</h2>
+          <p class="step-number">09 / 16</p><h2 id="heading-8">Recompute before fitting tree two</h2>
           <p>Evaluate the loss gradient at the updated predictions. It is now <span class="math">(1, −1, 0, 0)</span>, so its negative gives fresh pseudo-residuals:</p>
           <p class="equation math">y − z₁ = (−1, 1, 0, 0).</p>
           <p>Repeating the candidate comparison now gives SSEs <span class="math">2/3, 2, and 2</span>. The best cut has moved to 1.5. Its left leaf contains −1, while its right leaf predicts <span class="math">(1 + 0 + 0) / 3 = 1/3</span>.</p>
@@ -158,7 +169,7 @@
         </div></section>
 
         <section class="step" id="worked-second-update" data-step="9" data-worked-scene="5" aria-labelledby="heading-9"><div>
-          <p class="step-number">10 / 12</p><h2 id="heading-9">Add the second correction</h2>
+          <p class="step-number">10 / 16</p><h2 id="heading-9">Add the second correction</h2>
           <p>Add tree two with <span class="math">α = 1</span>:</p>
           <p class="equation math">z₂ = z₁ + h₂<br>= (0, 4/3, 4/3, 16/3).</p>
           <p>The remaining residuals are <span class="math">(0, 2/3, −1/3, −1/3)</span>, so the total half-squared loss is <span class="math">½(0 + 4/9 + 1/9 + 1/9) = 1/3</span>. Across the two updates, loss falls <span class="math">7 → 1 → 1/3</span>.</p>
@@ -166,7 +177,7 @@
           <p>Each gradient-boosting round follows the same sequence: compute a negative gradient, approximate it with a fitted tree, add a scaled correction, and recompute. These calculations establish training-loss reductions; performance on new observations still requires validation.</p>
         </div></section>
         <section class="step" id="worked-repeat" data-step="10" data-worked-scene="6" aria-labelledby="heading-10"><div>
-          <p class="step-number">11 / 12</p><h2 id="heading-10">Recompute the gradient after every tree</h2>
+          <p class="step-number">11 / 16</p><h2 id="heading-10">Recompute the gradient after every tree</h2>
           <p>Continue from the same constant model. At round <i>m</i>, evaluate the current ensemble on the training data, compute a fresh negative gradient, fit the next tree, and add its scaled correction.</p>
           <p class="equation math">rₘᵢ = yᵢ − Fₘ₋₁(xᵢ),<br>Fₘ(x) = Fₘ₋₁(x) + αhₘ(x).</p>
           <p>Move through the rounds to see the cumulative prediction. The earlier trees stay fixed; each new tree fits what the current ensemble still needs. Changing α changes the residual targets and can change later splits.</p>
@@ -174,13 +185,47 @@
           <p>This figure reports training loss. The learning rate, tree complexity, and number of rounds govern how the model grows. Performance on new observations needs validation; more rounds can fit noise.</p>
         </div></section>
         <section class="step" id="gradient-algorithm" data-step="11" data-worked-scene="7" aria-labelledby="heading-11"><div>
-          <p class="step-number">12 / 12</p><h2 id="heading-11">The loss defines the learning targets</h2>
+          <p class="step-number">12 / 16</p><h2 id="heading-11">The loss defines the learning targets</h2>
           <p>For a differentiable loss <span class="math">ℓ(y, z)</span>, gradient boosting starts from a constant that minimizes total loss, when a finite minimizer exists. Otherwise, constrain the starting constant to a finite closed interval or use a suitable penalty. Each round then computes</p>
           <p class="equation math">rₘᵢ = −∂ℓ(yᵢ, z)/∂z<br>evaluated at z = Fₘ₋₁(xᵢ).</p>
           <p>These pseudo-residuals describe the desired change at each training prediction. Fit a regression tree to them to choose its regions. Within each region, choose a leaf correction that minimizes the original loss when added to the current model. Use a learning rate <span class="math">0 &lt; α ≤ 1</span> to scale the correction tree, add it, and differentiate again.</p>
           <p>For half-squared error, both calculations simplify: pseudo-residuals are ordinary residuals, and the optimal leaf correction is their mean. For other losses, the gradient targets and final leaf values can differ.</p>
           <p>The tree is a constrained approximation to a gradient direction. Gradient boosting therefore performs stagewise optimization over functions that the chosen trees can represent.</p>
-          <p><a href="#other-losses">See how a different loss changes the gradient.</a></p>
+          <p><a href="#loss-targets">Change the loss and compare the actual fits.</a></p>
+        </div></section>
+        <section class="step" id="loss-targets" data-step="12" data-loss-scene="0" aria-labelledby="heading-12"><div>
+          <p class="step-number">13 / 16</p><h2 id="heading-12">A residual is no longer the learning target</h2>
+          <p>Keep the regression problem and change the loss. The new example has <span class="math">x = (1, …, 7)</span> and <span class="math">y = (0, 0, 1, 2, 3, 4, 15)</span>. The unusually high seventh outcome lets us see how the loss controls its influence. You can also return to the original four observations.</p>
+          <p>Write the ordinary residual as <span class="math">e = y − z</span>. Squared error gives the negative-gradient target <i>e</i>. Huber loss is quadratic near zero and linear in the tails, giving</p>
+          <p class="equation math">−∂ℓ<sub>δ</sub>/∂z = clip(e, −δ, δ).</p>
+          <p>At the Huber-optimal constant <span class="math">F₀ = 2</span>, the last residual is 13 but its target is 1 when <span class="math">δ = 1</span>. Its influence on the split search is bounded. With asymmetric squared loss, underprediction and overprediction instead receive different weights:</p>
+          <p class="equation math">−∂ℓ<sub>τ</sub>/∂z = 2τe if e ≥ 0;<br>2(1 − τ)e if e &lt; 0.</p>
+          <p>At <span class="math">τ = 0.8</span>, an equally large underprediction receives four times the gradient magnitude of an overprediction. This loss estimates an expectile, rather than a quantile. At <span class="math">τ = 0.5</span>, it becomes our half-squared loss.</p>
+          <p class="quiet">Changing the loss refits both paths from the same loss-optimal constant. At later rounds this target comparison uses the current gradient-boosted model. The earlier Euclidean circles describe squared error only.</p>
+        </div></section>
+        <section class="step" id="loss-splits" data-step="13" data-loss-scene="1" aria-labelledby="heading-13"><div>
+          <p class="step-number">14 / 16</p><h2 id="heading-13">Different targets can select a different split</h2>
+          <p>The next stump still uses least squares to approximate its training targets. Compare the split search using ordinary residuals with the split search using the selected loss’s negative gradients. Each column reports its own target-fitting SSE; their numerical scales need not agree.</p>
+          <p>At the initial seven-point Huber model with <span class="math">δ = 1</span>, raw residuals select a cut at 6.5, isolating the outcome of 15. The negative-gradient targets <span class="math">(−1, −1, −1, 0, 1, 1, 1)</span> select 3.5. Clipping changes which observations drive the partition, even though the data and current predictions are identical.</p>
+          <p>This is where the gradient calculation matters for tree structure. Averaging raw residuals and calling the result “Huber boosting” would continue to select splits for the squared-error objective.</p>
+          <p class="quiet">Cuts 3.5 and 4.5 tie in the initial Huber gradient fit; the first split wins ties in ascending order. At every round, both split searches use the same current gradient-boosted prediction. This isolates the effect of changing the targets. A gradient-selected split need not produce the largest possible one-round reduction in the original loss.</p>
+        </div></section>
+        <section class="step" id="loss-leaves" data-step="14" data-loss-scene="2" aria-labelledby="heading-14"><div>
+          <p class="step-number">15 / 16</p><h2 id="heading-14">Choose leaf values using the original loss</h2>
+          <p>The fitted gradient tree determines two regions. Its mean target in each region describes the gradient approximation, but the prediction correction has a separate job. Choose the correction <i>c</i> that minimizes the selected loss within that region:</p>
+          <p class="equation math">cⱼ = arg min<sub>c</sub> Σ<sub>i ∈ Rⱼ</sub> ℓ(yᵢ, F(xᵢ) + c).</p>
+          <p>For the initial Huber split at 3.5, the target means are −1 and 3/4. The loss-minimizing prediction corrections are instead <span class="math">−5/3</span> and <span class="math">3/2</span>. The curves show the original leaf losses and mark both values. The learning rate scales the minimizing corrections afterward.</p>
+          <p>Squared error makes both values the mean residual. Huber corrections solve <span class="math">Σ clip(eᵢ − c, −δ, δ) = 0</span>; asymmetric squared corrections solve the corresponding weighted residual equation. Changing the loss can therefore change both the tree’s regions and the sizes of its updates.</p>
+          <p class="quiet">The curves use the next gradient-selected stump at the chosen round. Huber can have an interval of minimizing corrections; the calculation chooses its midpoint.</p>
+        </div></section>
+        <section class="step" id="loss-paths" data-step="15" data-loss-scene="3" aria-labelledby="heading-15"><div>
+          <p class="step-number">16 / 16</p><h2 id="heading-15">Compare the fitted paths under the same loss</h2>
+          <p>Both methods start at the same constant and use the same learning rate and stump size. Gradient boosting fits the negative gradients and recalibrates its leaves with the chosen loss. The residual shortcut fits <span class="math">y − F</span> and adds the mean residual in each leaf.</p>
+          <p>Move through the rounds and switch losses. Under squared error, the paths coincide. Other losses can produce different splits, corrections, predictions, and training-loss histories. The graph evaluates both paths with the currently selected loss; loss values across different loss choices are not directly comparable.</p>
+          <p>These are finite sequences of greedy fits, so the gradient path need not have lower loss at every round. A large residual can still eventually be fitted under Huber loss, especially when a tree can isolate it. Clipping its gradient does not exclude that observation from the model.</p>
+          <p>Select “Identical inputs” for a sharper distinction. The three responses are <span class="math">(0, 0, 10)</span>, all at <span class="math">x = 1</span>, so every tree must give them one shared prediction. With Huber <span class="math">δ = 1</span>, the best constant is 1/2. Gradient boosting stays there. The residual shortcut moves toward the response mean, 10/3, and increases Huber loss. A zero mean residual does not imply a zero gradient for this loss.</p>
+          <p>Forward stagewise optimization can itself minimize a general loss. The comparison here isolates the ordinary least-squares residual-fitting shortcut. The useful generalization is to derive the target and leaf update from the objective we actually want to optimize.</p>
+          <p class="quiet">All displayed losses sum over the observations. Half-squared error is proportional to MSE, with identical minimizers. These are training fits; they do not establish performance on new observations.</p>
         </div></section>
       </article>
     </div>
@@ -188,7 +233,7 @@
       <p class="eyebrow">BEYOND SQUARED ERROR</p>
       <h2 id="loss-heading">Change the loss, change the gradient</h2>
       <p>Fitting ordinary residuals works for half-squared-error loss because its negative derivative is <span class="math">y − z</span>. Gradient boosting uses the derivative of the chosen loss, which need not have that form.</p>
-      <div class="table-scroll"><table class="loss-table"><caption>Two losses and their negative-gradient targets</caption><thead><tr><th scope="col">Loss</th><th scope="col">ℓ(y, z)</th><th scope="col">−∂ℓ/∂z</th></tr></thead><tbody><tr><th scope="row">Half-squared error</th><td class="math">½(y − z)²</td><td class="math">y − z</td></tr><tr><th scope="row">Exponential, y ∈ {−1, +1}</th><td class="math">exp(−yz)</td><td class="math">y exp(−yz)</td></tr></tbody></table></div>
+      <div class="table-scroll"><table class="loss-table"><caption>Losses and their negative-gradient targets (e = y − z)</caption><thead><tr><th scope="col">Loss</th><th scope="col">ℓ(y, z)</th><th scope="col">−∂ℓ/∂z</th></tr></thead><tbody><tr><th scope="row">Half-squared error</th><td class="math">½(y − z)²</td><td class="math">y − z</td></tr><tr><th scope="row">Huber</th><td class="math">½e² if |e| ≤ δ;<br>δ|e| − ½δ² otherwise</td><td class="math">clip(e, −δ, δ)</td></tr><tr><th scope="row">Asymmetric squared</th><td class="math">τe² if e ≥ 0;<br>(1 − τ)e² otherwise</td><td class="math">2τe if e ≥ 0;<br>2(1 − τ)e otherwise</td></tr><tr><th scope="row">Exponential, y ∈ {−1, +1}</th><td class="math">exp(−yz)</td><td class="math">y exp(−yz)</td></tr></tbody></table></div>
       <p>In the binary-classification row, <span class="math">z = F(x)</span> is an additive score. Its sign predicts the class. A positive observation with score 0 has target +1; with score −2, its target is <span class="math">exp(2)</span>, about 7.39. A confidently wrong prediction asks for a larger correction. These targets come from the loss derivative, rather than the difference between a class label and its score.</p>
       <p>For a tree region <span class="math">Rₘⱼ</span>, the final leaf correction is chosen using the original loss:</p>
       <p class="equation math">cₘⱼ = arg min<sub>c</sub> Σ<sub>xᵢ ∈ Rₘⱼ</sub> ℓ(yᵢ, Fₘ₋₁(xᵢ) + c).</p>
@@ -201,7 +246,7 @@
       <h3>More prediction-space geometry</h3>
       <p>For the longer three-observation sequence, <a href="geometry.html">explore the three-observation companion</a>. Its axes are training-point predictions, and its angle experiment explains why alignment and step size matter.</p>
       <div class="sources"><h3>Sources and further reading</h3>
-        <p>The worked calculation and general procedure follow sections 1.4.2–1.4.3 of the boosting notes. See also the <a href="https://courses.cs.cornell.edu/cs4780/2022fa/lectures/lecturenote19.html">Cornell notes on boosting</a> and XGBoost’s <a href="https://xgboost.readthedocs.io/en/stable/tutorials/model.html">introduction to boosted trees</a>.</p>
+        <p>The worked calculation and general procedure follow sections 1.4.2–1.4.3 of the boosting notes. The loss comparison follows <a href="https://doi.org/10.1214/aos/1013203451">Friedman’s gradient boosting formulation</a>; asymmetric squared loss uses the <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.expectile.html">expectile objective</a>. See also the <a href="https://courses.cs.cornell.edu/cs4780/2022fa/lectures/lecturenote19.html">Cornell notes on boosting</a> and XGBoost’s <a href="https://xgboost.readthedocs.io/en/stable/tutorials/model.html">introduction to boosted trees</a>.</p>
       </div>
     </section>
   </main>
