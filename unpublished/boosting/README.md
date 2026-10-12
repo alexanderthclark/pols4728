@@ -3,7 +3,7 @@
 An unpublished scrollytelling chapter about gradient boosting. Its main path
 restores the interactive observed-outcome vector, prediction
 coordinates, negative gradients, and norm/radius experiment. Three vector
-scenes lead into eight scenes developing the four-observation example from
+scenes lead into an identical-input example and eight scenes developing the four-observation example from
 sections 1.4.2–1.4.3 of the boosting notes. The chapter then explains other
 losses and a brief XGBoost extension. The longer geometry sequence remains
 available as a companion.
@@ -16,11 +16,14 @@ No build step or external JavaScript dependencies are required.
 
 - `index.html` contains the main explanation, numerical example, controls,
   general algorithm, and loss comparison.
-- `story.js` follows eleven narrative steps and handles vector experiments,
+- `story.js` follows twelve narrative steps and handles vector experiments,
   split inspection, update progress, learning rate, later rounds, and navigation.
 - `prediction-view.js` restores the three-observation vector picture, fitted
   correction, and exact equal-loss circle. It exposes consistent vectors,
   gradient norms, step lengths, and losses for all three interactions.
+- `restricted-view.js` shows two observations with identical inputs. The
+  shared-prediction control and unit-rate update expose the projection onto
+  the equal-prediction line and the nonzero perpendicular residual.
 - `worked-example.js` builds immutable gradient-boosting states using the
   unchanged `../../docs/shared/boosting-math.js` stump-fitting module.
 - `worked-view.js` renders response plots, gradients, candidate split tables,
@@ -59,6 +62,15 @@ are not inferred from the orthographic projection. Fitted-tree states and the
 candidate experiment remain independent. Neither apparent projected angles nor falling training
 loss establish predictive performance on new observations.
 
+Between the radius view and the four-observation calculation, `x = [1, 1]`
+and `y = [1, 0]` restrict every prediction and update to equal coordinates.
+At current prediction `(c, c)`, the next fitted tree is `(0.5-c, 0.5-c)`.
+Adding it with learning rate 1 reaches `(0.5, 0.5)`, with residual
+`(0.5, -0.5)`, zero subsequent tree, and irreducible half-squared loss 1/4.
+Both axes use equal, fixed scales; the minimum equal-loss circle is tangent
+to the available line. The zero start demonstrates one update, while the
+usual outcome-mean initialization already starts at the optimum.
+
 ## Checks
 
 From the repository root:
@@ -66,6 +78,7 @@ From the repository root:
 ```sh
 node --check unpublished/boosting/story.js
 node --check unpublished/boosting/prediction-view.js
+node --check unpublished/boosting/restricted-view.js
 node --check unpublished/boosting/worked-example.js
 node --check unpublished/boosting/worked-view.js
 node --check unpublished/boosting/geometry.js

@@ -3,6 +3,7 @@
   const E = window.WorkedBoostingExample;
   const W = window.WorkedBoostingView;
   const G = window.PredictionBoostingView;
+  const R = window.RestrictedBoostingView;
   const $ = id => document.getElementById(id);
   const stage = document.querySelector('.stage-shell');
   const steps = [...document.querySelectorAll('.step')];
@@ -10,6 +11,7 @@
   const mobile = () => window.matchMedia('(max-width: 800px)').matches;
   const exampleState = { rate: 1, process: 1, candidateIndex: null, round: 8 };
   const geometryState = { round: 0, rate: 0.5, progress: 1, angle: 120, length: 0.5 };
+  const restrictedState = { prediction: 0 };
   let scene = -1;
   let animation = 0;
   let scrollPending = false;
@@ -30,9 +32,9 @@
 
   function localScene() {
     const step = steps[scene];
-    return step.dataset.geometryScene !== undefined
-      ? { geometry: true, index: Number(step.dataset.geometryScene) }
-      : { geometry: false, index: Number(step.dataset.workedScene) };
+    if (step.dataset.geometryScene !== undefined) return { geometry: true, restricted: false, index: Number(step.dataset.geometryScene) };
+    if (step.dataset.restrictedScene !== undefined) return { geometry: false, restricted: true, index: Number(step.dataset.restrictedScene) };
+    return { geometry: false, restricted: false, index: Number(step.dataset.workedScene) };
   }
 
   function render(announce = true) {
@@ -43,9 +45,30 @@
     // Set their visibility before measuring the figure.
     $('geometry-controls').hidden = !current.geometry;
     $('prediction-diagram').hidden = !current.geometry;
-    $('worked-diagram').hidden = current.geometry;
-    $('worked-controls').hidden = current.geometry || index === 7;
-    $('vector-readout').hidden = !current.geometry && index === 7;
+    $('restricted-controls').hidden = !current.restricted;
+    $('restricted-diagram').hidden = !current.restricted;
+    $('worked-diagram').hidden = current.geometry || current.restricted;
+    $('worked-controls').hidden = current.geometry || current.restricted || index === 7;
+    $('vector-readout').hidden = !current.geometry && !current.restricted && index === 7;
+    if (current.restricted) {
+      $('restricted-prediction').value = String(restrictedState.prediction);
+      $('restricted-prediction-value').textContent = String(Number(restrictedState.prediction.toFixed(2)));
+      const bounds = $('visual-area').getBoundingClientRect();
+      const state = { ...restrictedState, width: bounds.width, height: bounds.height };
+      $('restricted-diagram').innerHTML = R.render(index, state, mobile());
+      readout(R.readout(index, state));
+      if (announce) $('stage-caption').textContent = R.presentation(index, state).caption;
+      stage.dataset.rate = 1;
+      stage.dataset.sharedPrediction = restrictedState.prediction;
+      stage.dataset.restrictedScene = index;
+      delete stage.dataset.geometryScene;
+      delete stage.dataset.workedScene;
+      delete stage.dataset.round;
+      delete stage.dataset.updateProgress;
+      return;
+    }
+    delete stage.dataset.restrictedScene;
+    delete stage.dataset.sharedPrediction;
     if (current.geometry) {
       $('geometry-path-controls').hidden = index !== 0;
       $('geometry-rate-label').hidden = index === 2;
@@ -129,13 +152,13 @@
     scene = index;
     stage.dataset.scene = scene;
     const current = localScene();
-    stage.dataset.example = current.geometry ? 'geometry' : 'worked';
-    $('stage-topic').textContent = (current.geometry ? G : W).topics[current.index];
+    stage.dataset.example = current.geometry ? 'geometry' : current.restricted ? 'restricted' : 'worked';
+    $('stage-topic').textContent = (current.geometry ? G : current.restricted ? R : W).topics[current.index];
     $('stage-count').textContent = `${String(scene + 1).padStart(2, '0')} / ${steps.length}`;
     $('previous').disabled = scene === 0;
     $('next').textContent = scene === steps.length - 1 ? 'Beyond squared error' : 'Next';
     steps.forEach((step, i) => step.toggleAttribute('data-active', i === scene));
-    if (!current.geometry) {
+    if (!current.geometry && !current.restricted) {
       exampleState.candidateIndex = null;
       exampleState.process = 1;
       if (animate && (current.index === 3 || current.index === 5)) animateUpdate();
@@ -218,6 +241,15 @@
   $('worked-round').addEventListener('input', () => {
     cancelUpdate();
     exampleState.round = Math.max(0, Math.min(24, Math.round(Number($('worked-round').value))));
+    render();
+  });
+
+  $('restricted-prediction').addEventListener('input', () => {
+    restrictedState.prediction = Math.max(0, Math.min(1, Number($('restricted-prediction').value)));
+    render();
+  });
+  $('restricted-fit').addEventListener('click', () => {
+    restrictedState.prediction = 0.5;
     render();
   });
 

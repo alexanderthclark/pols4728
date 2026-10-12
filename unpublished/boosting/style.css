@@ -23,6 +23,7 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
 .story-layout{max-width:1500px;margin:auto;padding:0 4vw;display:grid;grid-template-columns:minmax(300px,.78fr) minmax(0,1.22fr);gap:5vw}
 .stage-shell{grid-column:2;grid-row:1;position:sticky;top:64px;height:calc(100svh - 64px);align-self:start;display:flex;flex-direction:column;min-width:0;padding:24px 0 18px;background:#fff}
 .stage-top{display:flex;justify-content:space-between;gap:16px;font:13px/1.5 var(--sans);color:var(--muted);padding-bottom:10px;border-bottom:1px solid var(--light-rule)}
+#stage-count{flex-shrink:0;white-space:nowrap}
 .visual-area{position:relative;flex:1;min-height:270px;display:flex;align-items:center;justify-content:center;isolation:isolate}.worked-diagram{width:100%;height:100%;min-width:0}
 .vector-readout{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;min-height:55px;padding:12px 0;border-top:1px solid var(--light-rule);font:14px/1.5 var(--sans);font-variant-numeric:tabular-nums}
 .vector-readout>div{min-width:0}.vector-readout .value{display:block;font-family:'Course Math',math;font-size:20px;color:var(--ink);overflow-wrap:anywhere}.vector-readout .readout-label{font-size:12px;color:var(--muted)}
@@ -57,6 +58,13 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
 
 /* The vector picture and exact norm slice belong to the main explanation. */
 .prediction-diagram{width:100%;height:100%;min-width:0}
+.restricted-diagram{width:100%;height:100%;min-width:0}
+.stage-shell[data-example='restricted']>.vector-readout,.stage-shell[data-example='restricted']>.restricted-controls,.stage-shell[data-example='restricted']>.stage-caption,.stage-shell[data-example='restricted']>.stage-top,.stage-shell[data-example='restricted']>.stage-nav{flex-shrink:0}
+.restricted-controls{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center}
+.restricted-controls>label,.restricted-controls>input{grid-column:1/-1}
+.restricted-controls>label{justify-content:space-between}
+.restricted-controls button{font:14px/1.4 var(--sans);min-height:36px;padding:4px 12px}
+.restricted-rate{color:var(--muted)}
 .stage-shell[data-example='geometry']>.vector-readout,.stage-shell[data-example='geometry']>.geometry-controls,.stage-shell[data-example='geometry']>.stage-caption,.stage-shell[data-example='geometry']>.stage-top,.stage-shell[data-example='geometry']>.stage-nav{flex-shrink:0}
 .geometry-controls{display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px}
 .geometry-controls>div{flex:1 1 100%}
@@ -67,12 +75,19 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
 #geometry-rate-label{order:-1}
 @media(max-width:800px){
   .stage-shell[data-example='geometry']{height:60svh;min-height:500px}
+  .stage-shell[data-example='restricted']{height:62svh;min-height:520px}
   .stage-shell[data-geometry-scene='2']{height:62svh;min-height:520px}
   .stage-shell[data-example='geometry'] .visual-area{min-height:220px}
   .stage-shell[data-example='geometry'] .vector-readout>div{flex:0 0 calc(50% - 3px)}
   .stage-shell[data-example='geometry'] .vector-readout{min-height:70px}
+  .stage-shell[data-example='restricted'] .visual-area{min-height:220px}
+  .stage-shell[data-example='restricted'] .vector-readout>div{flex:0 0 calc(50% - 3px)}
+  .stage-shell[data-example='restricted'] .vector-readout{min-height:70px}
+  .restricted-controls{gap:2px 10px;padding:3px 0}
+  .restricted-controls button{font-size:12px;min-height:30px}
   .geometry-controls{gap:2px 12px;padding:3px 0}
   #geometry-angle-controls{gap:3px 14px}
   #geometry-angle-controls label{font-size:11px}
   .step[data-geometry-scene]{padding-top:20px}
+  .step[data-restricted-scene]{padding-top:20px}
 }
