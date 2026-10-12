@@ -1,4 +1,4 @@
-# Gradient boosting, one step at a time
+# Gradient Boosting
 
 A scrollytelling chapter about gradient boosting. Its main path
 restores the interactive observed-outcome vector, prediction
