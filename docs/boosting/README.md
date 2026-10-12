@@ -97,17 +97,22 @@ leaf, so any update is `(a, a)` and lies on the 45-degree line. Equal-MSE circle
 appear in their own step while the predictions remain at zero; the following
 animation fits the residual mean.
 Starting at `(0, 0)`, fitting the residual mean
-adds `(0.5, 0.5)`. MSE is `0.5*((1-f1)^2+f2^2)`, falling from 0.5 to 0.25.
+adds `(0.5, 0.5)`. With signed residuals `r_i = y_i-f_i`, MSE is
+`0.5*(r_1^2+r_2^2)`, falling from 0.5 to 0.25.
 At `(0.5, 0.5)`, the residual `(0.5, -0.5)` is perpendicular to the diagonal;
 the next residual fit is zero. A right-angle mark and tangent equal-MSE contour
 show the geometric condition. A separate ghost prediction probes both directions
 along the diagonal and returns to the midpoint. Its loss obeys
-`MSE(c,c) = 0.25 + (c-0.5)^2`, so every nonzero shared adjustment worsens MSE.
+`MSE = 0.25 + a^2` after a shared adjustment `(a,a)` from the midpoint,
+so every nonzero shared adjustment worsens MSE.
 
 The next scene changes only the loss. Predictions remain at `(0.5,0.5)` and
 residuals at `(0.5,-0.5)` throughout. The contours morph continuously from MSE
 to asymmetric squared loss with τ = 0.8, and the optimum marker moves along the
-diagonal. The equation uses fixed coefficients rather than a general τ control.
+diagonal. The equation defines the per-observation loss from the signed residual:
+`ell(r) = 0.8*r^2` when `r >= 0`, and `0.2*r^2` when `r < 0`.
+The total loss adds the two contributions. It uses fixed coefficients rather
+than a general τ control or a separate symbol for shared predictions.
 Asymmetric squared loss with τ = 0.8
 charges underprediction four times as much as overprediction. The best shared
 prediction moves to `(0.8, 0.8)`, with loss 0.16 rather than 0.25. Only after
@@ -123,7 +128,7 @@ The repeated-descent animation shows six rounds of computing targets, fitting
 the stump, and adding half its correction. Targets and the fitted tree remain
 anchored to the start of each round while its update animates; the following
 round recomputes them. Earlier prediction vertices remain visible. The shared
-prediction follows `c_(m+1) = c_m + 0.5*(0.8-c_m)`, ending at 0.7953125 after
+prediction follows `F_(m+1)(1) = F_m(1) + 0.5*(0.8-F_m(1))`, ending at 0.7953125 after
 six updates. A separate scene inspects its limiting optimum at 0.8; finite
 shrinkage steps are not depicted as exact convergence. At that optimum the
 full negative gradient `(0.32, -0.32)` is perpendicular to the diagonal, so the
@@ -138,10 +143,11 @@ targets from evaluating the learned function rather than implying gradients
 are available from inputs alone.
 
 The final opening scene provides MSE, fixed asymmetric squared loss with
-τ = 0.8, Huber δ = 0.25, and fourth-power error `e^4/4`. Its initial
+τ = 0.8, Huber δ = 0.25, and fourth-power error `r^4/4`. Its initial
 state is MSE at `(0.5, 0.5)`. A brief floating equation follows the selected
-loss. For `0 ≤ c ≤ 1`, asymmetric loss is `τ(1-c)^2 + (1-τ)c^2`, minimized at
-`c = τ`. When Huber δ < 0.5, the entire interval `[δ, 1-δ]` is optimal; the
+loss. Asymmetric loss weights positive residuals by τ and negative residuals
+by `1-τ`; its best prediction pair is `(τ,τ)` for these observations.
+When Huber δ < 0.5, every shared prediction in `[δ, 1-δ]` is optimal; the
 loss-optimal correction chooses the closest point and preserves an optimum.
 Huber and fourth-power loss generally require a different leaf correction
 from the mean fitted gradient target.

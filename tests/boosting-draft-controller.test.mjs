@@ -202,7 +202,7 @@ const restrictedVisibleWords = ui => [
 ].join(' ');
 const restrictedAnnotation = (ui, className) => new RegExp(`<text\\b[^>]*class="[^"]*\\b${className}\\b[^"]*"[^>]*>([\\s\\S]*?)<\\/text>`).exec(ui.get('restricted-diagram').innerHTML)?.[1];
 
-const openingDurations = { 1: 1200, 2: 1400, 3: 1700, 4: 2600, 5: 3600, 6: 3200, 7: 1800, 8: 2600, 9: 18000 };
+const openingDurations = { 1: 1200, 2: 1400, 3: 1700, 4: 2600, 5: 3600, 6: 5000, 7: 1800, 8: 2600, 9: 18000 };
 const finishOpening = ui => ui.advance(openingDurations[Number(ui.shell.dataset.restrictedScene)] || 0);
 const chooseRestrictedLoss = (ui, loss) => ui.click('restricted-choice-' + loss);
 const finishSharedMove = ui => ui.advance(1600);

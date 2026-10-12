@@ -63,28 +63,22 @@
     return e;
   }
 
-  function equation(state = {}, scene = 11) {
-    const spec = specification(sceneState(scene, state));
+  function equation(state = {}, scene = 11, compact = false) {
     if (scene < 3) return '';
-    if (scene < 6) return '<div class="loss-equation-definition math" role="math">MSE(f₁,f₂) = ½[(1 − f₁)² + f₂²]</div>';
-    if (scene === 6) return '<div class="loss-equation-definition math" role="math">L(c,c) = 0.8(1 − c)² + 0.2c²</div>';
     if (scene >= 7 && scene <= 10) return '';
+    const spec = scene === 6 ? specification({ loss: 'expectile', tau: .8 }) : specification(sceneState(scene, state));
     const cases = rows => `<span class="loss-equation-brace">{</span><span class="loss-equation-cases">${rows.map(([term, condition]) => `<span>${term}</span><span>${condition}</span>`).join('')}</span>`;
-    let point, shared;
+    const parameter = spec.key === 'huber' ? ` · δ = ${fmt(spec.delta)}` : '';
+    const residual = `<div class="loss-equation-residual math" role="math">rᵢ = yᵢ − fᵢ${parameter}</div>`;
+    let formula;
     if (spec.key === 'expectile') {
-      point = `<span>ℓ<sub>τ</sub>(e) =</span>${cases([['τe²', 'e ≥ 0'], ['(1 − τ)e²', 'e &lt; 0']])}`;
-      shared = `L<sub>τ</sub>(c,c) = ${fmt(1 - spec.tau)}c² + ${fmt(spec.tau)}(1 − c)²`;
+      formula = `<span>ℓ(r) =</span>${cases([[`${fmt(spec.tau)}r²`, 'r ≥ 0'], [`${fmt(1 - spec.tau)}r²`, 'r &lt; 0']])}`;
     } else if (spec.key === 'huber') {
-      point = `<span>ℓ<sub>δ</sub>(e) =</span>${cases([['½e²', '|e| ≤ δ'], ['δ(|e| − ½δ)', '|e| &gt; δ']])}`;
-      shared = `L(c,c) = ℓ<sub>δ</sub>(1 − c) + ℓ<sub>δ</sub>(−c)`;
-    } else if (spec.key === 'quartic') {
-      point = 'ℓ(e) = ¼e⁴';
-      shared = 'L(c,c) = ¼[c⁴ + (1 − c)⁴]';
-    } else {
-      return '<div class="loss-equation-definition math" role="math">MSE(f₁,f₂) = ½[(1 − f₁)² + f₂²]</div><div class="loss-equation-shared math" role="math">MSE(c,c) = ½[(1 − c)² + c²]</div><p class="loss-equation-domain">Both observations have x = 1, so f₁ = f₂ = c.</p>';
-    }
-    const parameter = spec.key === 'expectile' ? ` · τ = ${fmt(spec.tau)}` : spec.key === 'huber' ? ` · δ = ${fmt(spec.delta)}` : '';
-    return `<div class="loss-equation-definition math" role="math">${point}</div><p class="loss-equation-total math">e = y − f; L = Σ<sub>i</sub>ℓ(e<sub>i</sub>)${parameter}</p><div class="loss-equation-shared math" role="math">${shared}</div><p class="loss-equation-domain">On f₁ = f₂ = c, with 0 ≤ c ≤ 1.</p>`;
+      formula = `<span>ℓ(r) =</span>${cases([['½r²', '|r| ≤ δ'], ['δ(|r| − ½δ)', '|r| &gt; δ']])}`;
+    } else if (spec.key === 'quartic') formula = 'L = ¼(r₁⁴ + r₂⁴)';
+    else formula = 'MSE = ½(r₁² + r₂²)';
+    const total = !compact && ['expectile', 'huber'].includes(spec.key) ? '<div class="loss-equation-total math" role="math">L = ℓ(r₁) + ℓ(r₂)</div>' : '';
+    return `<div class="loss-equation-signed">${residual}<div class="loss-equation-definition math" role="math">${formula}</div>${total}</div>`;
   }
 
   const totalLoss = (prediction, spec) => target.reduce((sum, y, i) => sum + pointLoss(y - prediction[i], spec), 0);
@@ -169,7 +163,7 @@
 
   function readout(scene = 0, state = {}) {
     const q = resolve(scene, state), interval = q.optimumInterval;
-    const best = interval[0] === interval[1] ? fmt(q.optimalC) : `[${fmt(interval[0])}, ${fmt(interval[1])}]`;
+    const best = interval[0] === interval[1] ? vector(q.optimalPrediction) : `${vector([interval[0], interval[0]])} to ${vector([interval[1], interval[1]])}`;
     if (scene === 0) return [
       ['Observed outcomes y', vector(q.target), C.rust],
       ['Our predictions f', vector(q.prediction), C.blue]
@@ -218,7 +212,7 @@
       ['Raw residual y − f', vector(q.residual), C.muted],
       ['Negative gradient −∇L', vector(q.negativeGradient), C.rust],
       ['Fitted gradient target h', vector(q.nextTree), C.teal],
-      ['Best c; loss / minimum', `${best}; ${fmt(q.loss)} / ${fmt(q.minLoss)}`, C.ink]
+      ['Best predictions; loss / minimum', `${best}; ${fmt(q.loss)} / ${fmt(q.minLoss)}`, C.ink]
     ];
   }
 
@@ -239,22 +233,22 @@
       : `Round ${q.round + 1}: compute targets using observed y, fit h(x), then add ½h(x). Keep the fitted tree fixed during this update; recompute training targets at the next round.`;
     else if (scene === 10) caption = 'Inspect the limiting prediction (0.8, 0.8). The negative gradient (0.32, −0.32) is perpendicular to the shared-update line, so its fitted tree is zero. The raw residual mean is still −0.3.';
     else if (q.lossSpec.key === 'expectile') caption = atBest
-      ? `At c = τ = ${fmt(q.optimalC)}, the gradient is perpendicular to the diagonal. The fitted gradient is zero; the raw residual generally is not perpendicular.`
-      : `Raw residual fitting goes to c = 0.5. The gradient fit goes to c = τ = ${fmt(q.optimalC)}. Under this loss, those endpoints have losses ${fmt(q.rawNextLoss)} and ${fmt(q.minLoss)}.`;
-    else if (q.lossSpec.key === 'huber' && q.lossSpec.delta < .5) caption = `Every c in [${fmt(q.optimumInterval[0])}, ${fmt(q.optimumInterval[1])}] minimizes this Huber loss. The teal correction reaches the closest point of this flat minimum; a fitted gradient mean need not equal that correction.`;
-    else if (q.lossSpec.key === 'huber') caption = `Huber clips gradient components at ±${fmt(q.lossSpec.delta)}. The fitted mean is ${fmt(q.nextTree[0])}; the original-loss leaf correction is ${fmt(q.correction[0])}. The best shared prediction is 0.5, with minimum loss ${fmt(q.minLoss)}.`;
-    else if (q.lossSpec.key === 'quartic') caption = `Fourth-power loss has negative gradients e³, rather than e. The fitted mean is ${fmt(q.nextTree[0])}; the original-loss leaf correction is ${fmt(q.correction[0])}. The best shared prediction remains 0.5.`;
+      ? `At predictions ${vector(q.optimalPrediction)}, the gradient is perpendicular to the diagonal. The fitted gradient is zero; the raw residual generally is not perpendicular.`
+      : `Raw residual fitting goes to (0.5, 0.5). The gradient fit goes to ${vector(q.optimalPrediction)}. Under this loss, those endpoints have losses ${fmt(q.rawNextLoss)} and ${fmt(q.minLoss)}.`;
+    else if (q.lossSpec.key === 'huber' && q.lossSpec.delta < .5) caption = `Every shared prediction between ${vector([q.optimumInterval[0], q.optimumInterval[0]])} and ${vector([q.optimumInterval[1], q.optimumInterval[1]])} minimizes this Huber loss. The teal correction reaches the closest point of this flat minimum; a fitted gradient mean need not equal that correction.`;
+    else if (q.lossSpec.key === 'huber') caption = `Huber clips gradient components at ±${fmt(q.lossSpec.delta)}. The fitted mean is ${fmt(q.nextTree[0])}; the original-loss leaf correction is ${fmt(q.correction[0])}. The best shared prediction is (0.5, 0.5), with minimum loss ${fmt(q.minLoss)}.`;
+    else if (q.lossSpec.key === 'quartic') caption = `Fourth-power loss has negative gradients r³, rather than r. The fitted mean is ${fmt(q.nextTree[0])}; the original-loss leaf correction is ${fmt(q.correction[0])}. The best shared prediction remains (0.5, 0.5).`;
     else caption = atBest
       ? 'At (0.5, 0.5), the residual and gradient are perpendicular to the diagonal. The next fitted tree is zero; minimum loss is 0.25.'
       : `The residual and negative gradient coincide. Adding the mean residual reaches (0.5, 0.5), reducing MSE from ${fmt(q.loss)} to 0.25.`;
     if (scene === 11 && Number.isFinite(state.width) && state.width < 400) {
       if (q.lossSpec.key === 'expectile') caption = atBest
-        ? `Gradient fitting stops at c = τ = ${fmt(q.optimalC)}. The raw residual mean need not be zero.`
-        : `Residual fit: c = 0.5, loss ${fmt(q.rawNextLoss)}. Gradient fit: c = ${fmt(q.optimalC)}, loss ${fmt(q.minLoss)}.`;
+        ? `Gradient fitting stops at ${vector(q.optimalPrediction)}. The raw residual mean need not be zero.`
+        : `Residual fit: (0.5, 0.5), loss ${fmt(q.rawNextLoss)}. Gradient fit: ${vector(q.optimalPrediction)}, loss ${fmt(q.minLoss)}.`;
       else if (q.lossSpec.key === 'huber') caption = q.optimumInterval[0] !== q.optimumInterval[1]
-        ? `Best c: [${fmt(q.optimumInterval[0])}, ${fmt(q.optimumInterval[1])}]. The teal step reaches the nearest optimum; gradient fitting and leaf correction can differ.`
-        : `Huber clips at ±${fmt(q.lossSpec.delta)}. Gradient mean ${fmt(q.nextTree[0])}; leaf correction ${fmt(q.correction[0])}. Best c = 0.5.`;
-      else if (q.lossSpec.key === 'quartic') caption = `Targets are e³. Gradient mean ${fmt(q.nextTree[0])}; leaf correction ${fmt(q.correction[0])}. Best c = 0.5.`;
+        ? `Best predictions: ${vector([q.optimumInterval[0], q.optimumInterval[0]])} to ${vector([q.optimumInterval[1], q.optimumInterval[1]])}. The teal step reaches the nearest optimum; gradient fitting and leaf correction can differ.`
+        : `Huber clips at ±${fmt(q.lossSpec.delta)}. Gradient mean ${fmt(q.nextTree[0])}; leaf correction ${fmt(q.correction[0])}. Best predictions: (0.5, 0.5).`;
+      else if (q.lossSpec.key === 'quartic') caption = `Targets are r³. Gradient mean ${fmt(q.nextTree[0])}; leaf correction ${fmt(q.correction[0])}. Best predictions: (0.5, 0.5).`;
     }
     return { topic: topics[scene], caption, readout: readout(scene, state) };
   }
@@ -268,7 +262,7 @@
       'Each circle joins predictions with equal MSE.',
       'Fit the residual mean: move both predictions by ½.',
       'Every nonzero shared adjustment raises MSE.',
-      'What if underprediction costs four times as much?',
+      'Underprediction costs four times as much.',
       'Training targets need observed outcomes y.',
       'Fit a tree. Once fitted, h(x) needs x alone.'
     ];
@@ -279,22 +273,15 @@
     else if (scene === 3) status = 'MSE at (0, 0) = 0.5';
     else if (scene === 4) status = `f = ${shortVector(q.prediction)} · r = ${shortVector(q.residual)} · MSE = ${fmt(q.loss)}`;
     else if (scene === 5) status = `Baseline MSE = 0.25 · Trial MSE = ${fmt(q.trialLoss)}`;
-    else if (scene === 6) status = `f = (0.5, 0.5) · r = (0.5, −0.5) · Best c = ${fmt(q.optimalC)}`;
+    else if (scene === 6) status = `f = (0.5, 0.5) · r = (0.5, −0.5) · Best f = ${vector(q.optimalPrediction)}`;
     else if (scene === 7) status = 'Training targets = (0.8, −0.2)';
     else if (scene === 8) status = 'h(1) = 0.3 · α = ½ · Next predictions = (0.65, 0.65)';
-    else if (scene === 9) status = q.phase === 'complete' ? 'Six updates complete · current c = 0.7953125' : `Round ${q.round + 1} of 6 · ${q.phase}`;
-    else if (scene === 10) status = 'Limiting c = 0.8 · fitted h(x) = 0';
+    else if (scene === 9) status = q.phase === 'complete' ? 'Six updates complete · f = (0.7953125, 0.7953125)' : `Round ${q.round + 1} of 6 · ${q.phase}`;
+    else if (scene === 10) status = 'Limiting f = (0.8, 0.8) · fitted h(x) = 0';
     else status = `Current loss = ${fmt(q.loss)} · Minimum = ${fmt(q.minLoss)}`;
-    let displayedEquation = [3, 6, 11].includes(scene) ? equation(state, scene) : '';
-    if (scene === 11) {
-      const spec = q.lossSpec;
-      const scalar = spec.key === 'expectile' ? `L(c,c) = ${fmt(spec.tau)}(1 − c)² + ${fmt(1 - spec.tau)}c²`
-        : spec.key === 'quartic' ? 'L(c,c) = ¼[(1 − c)⁴ + c⁴]'
-          : spec.key === 'huber' ? 'ℓ(e) = ½min(e², δ²) + δmax(|e| − δ, 0)'
-            : 'MSE(c,c) = ½[(1 − c)² + c²]';
-      displayedEquation = `<div class="loss-equation-definition math" role="math">${scalar}</div>`;
-    }
-    const playgroundCaption = q.lossSpec.key === 'expectile' ? 'Asymmetric squared: underprediction costs ' + fmt(q.lossSpec.tau / (1 - q.lossSpec.tau)) + ' times as much.' : q.lossSpec.name;
+    const displayedEquation = [3, 6, 11].includes(scene) ? equation(state, scene, true) : '';
+    const underpredictionWeight = q.lossSpec.tau / (1 - q.lossSpec.tau);
+    const playgroundCaption = q.lossSpec.key === 'expectile' ? `Underprediction costs ${Math.abs(underpredictionWeight - 4) < 1e-10 ? 'four' : fmt(underpredictionWeight)} times as much.` : q.lossSpec.name;
     const processCaption = scene === 9 ? q.phase === 'target' ? 'Compute targets using observed y.'
       : q.phase === 'fit' ? 'Fit a tree to the targets.'
         : q.phase === 'update' ? 'Add ½h(x). Recompute targets.'
@@ -452,7 +439,7 @@
     } else {
       body += text([f[0] - 10, f[1] + 24], q.scene === 9 ? `f ≈ ${vector(q.prediction)}` : `f = ${shortVector(q.prediction)}`, `class="rv-small rv-label restricted-prediction-label" text-anchor="end" style="fill:${C.blue}"`);
       if ((q.scene === 6 || q.scene === 11) && q.loss > q.minLoss + 1e-12) {
-        const label = q.scene === 6 ? q.progress === 1 ? 'best: (0.8, 0.8)' : 'best shared fit' : `best: c = ${fmt(q.nextPrediction[0])}`;
+        const label = q.scene === 6 ? q.progress === 1 ? 'best: (0.8, 0.8)' : 'best shared fit' : `best: ${vector(q.nextPrediction)}`;
         body += text([best[0] - 9, best[1] - 12], label, `class="rv-math rv-label restricted-best-label" text-anchor="end" style="fill:${C.teal}"`);
       }
     }

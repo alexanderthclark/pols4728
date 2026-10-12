@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Begin with two observations, residual fitting, and orthogonality, then change the loss to discover why gradient boosting needs different targets.">
   <title>Gradient Boosting</title>
-  <link rel="stylesheet" href="style.css?v=target-tree-descent">
+  <link rel="stylesheet" href="style.css?v=signed-residual-loss">
   <script src="../shared/boosting-math.js" defer></script>
   <script src="prediction-view.js?v=iterative-updates" defer></script>
-  <script src="restricted-view.js?v=target-tree-descent" defer></script>
+  <script src="restricted-view.js?v=signed-residual-loss" defer></script>
   <script src="worked-example.js" defer></script>
   <script src="worked-view.js" defer></script>
   <script src="loss-example.js" defer></script>
   <script src="loss-view.js" defer></script>
-  <script src="story.js?v=target-tree-descent" defer></script>
+  <script src="story.js?v=signed-residual-loss" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#reading">Skip to the explanation</a>
@@ -112,8 +112,8 @@
           <h2 id="heading-3">Circles show equal MSE</h2>
           <p class="step-summary">An equal-MSE circle surrounds <span class="math">y</span>; moving inside it lowers the loss.</p>
           <details class="step-notes"><summary>Why circles?</summary><div>
-          <p>For these two observations, mean squared error is half the squared distance from our predictions to the observed outcome vector:</p>
-          <p class="equation math">MSE(f) = ½[(1 − f₁)² + f₂²].</p>
+          <p>Write each signed residual as <span class="math">rᵢ = yᵢ − fᵢ</span>. With two observations, averaging their squared residuals gives mean squared error. Each observation contributes loss <span class="math">ℓ(r) = ½r²</span>:</p>
+          <p class="equation math">MSE(f) = L(f) = Σᵢℓ(rᵢ)<br>= ½(r₁² + r₂²).</p>
           <p>Points at the same distance from <span class="math">y = (1, 0)</span> have the same MSE. Our predictions still start at <span class="math">(0, 0)</span>, with MSE <span class="math">½</span>.</p>
           </div></details>
         </div></section>
@@ -139,9 +139,9 @@
           <h2 id="heading-6">Change the cost of being wrong</h2>
           <p class="step-summary">Make underprediction four times as costly: the residual stays fixed, but the best prediction moves.</p>
           <details class="step-notes"><summary>Why this works</summary><div>
-          <p>Keep the same observations and shared predictions. Change only the loss: charge <span class="math">0.8e²</span> for underprediction and <span class="math">0.2e²</span> for overprediction, where <span class="math">e = y − f</span>.</p>
-          <p class="equation math">L(c, c) = 0.8(1 − c)² + 0.2c².</p>
-          <p>At <span class="math">c = ½</span>, this loss is <span class="math">0.25</span>. At <span class="math">c = 0.8</span>, it is <span class="math">0.16</span>. Our predictions stay at <span class="math">(½, ½)</span> while the circles change shape. The new contours touch the diagonal at <span class="math">(0.8, 0.8)</span>.</p>
+          <p>Keep the same observations and shared predictions. Change only the loss applied to each signed residual <span class="math">rᵢ = yᵢ − fᵢ</span>. A positive residual means underprediction; a negative residual means overprediction.</p>
+          <p class="equation math">ℓ(r) = 0.8r² if r ≥ 0;<br>ℓ(r) = 0.2r² if r &lt; 0;<br>L(f) = Σᵢℓ(rᵢ).</p>
+          <p>At predictions <span class="math">(0.5, 0.5)</span>, the residuals <span class="math">(0.5, −0.5)</span> give loss <span class="math">0.25</span>. At predictions <span class="math">(0.8, 0.8)</span>, the residuals <span class="math">(0.2, −0.8)</span> give loss <span class="math">0.16</span>. Our predictions stay at <span class="math">(½, ½)</span> while the circles change shape. The new contours touch the diagonal at <span class="math">(0.8, 0.8)</span>.</p>
           <p>Ordinary residual fitting would leave us at <span class="math">(½, ½)</span>. Its zero mean no longer tells us that the selected loss is minimized. We need targets that reflect how this loss charges for each error.</p>
           </div></details>
         </div></section>
@@ -151,7 +151,7 @@
           <details class="step-notes"><summary>Targets and predictions</summary><div>
           <p>Keep the predictions at <span class="math">f = (½, ½)</span>. With observed outcomes <span class="math">y = (1, 0)</span>, the ordinary residuals are <span class="math">y − f = (0.5, −0.5)</span>. The asymmetric squared loss gives different negative-gradient targets:</p>
           <p class="equation math">−∇L(f) = (0.8, −0.2).</p>
-          <p>A loss's gradient contains derivatives with respect to the predictions. Negating those derivatives gives targets pointing toward lower loss. Here, underprediction gives target <span class="math">1.6(y − f)</span>, while overprediction gives target <span class="math">0.4(y − f)</span>. For MSE in this two-observation example, the negative-gradient targets equal the ordinary residuals.</p>
+          <p>A loss's gradient contains derivatives with respect to the predictions. Negating those derivatives gives targets pointing toward lower loss. Here, the target for observation <i>i</i> is <span class="math">1.6rᵢ</span> when <span class="math">rᵢ ≥ 0</span>, and <span class="math">0.4rᵢ</span> when <span class="math">rᵢ &lt; 0</span>. For MSE in this two-observation example, the negative-gradient targets equal the ordinary residuals.</p>
           <p>Both kinds of target require the observed outcome <i>y</i>. Neither can be computed from <i>x</i> alone for a new case whose outcome is unknown. During training, we pair each input <span class="math">xᵢ</span> with its calculated target and fit a tree to learn an input-to-correction function <span class="math">h(x)</span>.</p>
           <p>Once learned, that tree evaluates a new input using <i>x</i> alone. It predicts a correction without needing the new case's outcome. The training targets and the learned tree's predictions therefore play different roles.</p>
           </div></details>
@@ -172,9 +172,9 @@
           <h2 id="heading-9">Recompute, refit, and move again</h2>
           <p class="step-summary">Repeat six half-sized updates, fitting fresh targets each time as the predictions approach <span class="math">(0.8, 0.8)</span>.</p>
           <details class="step-notes"><summary>The whole descent</summary><div>
-          <p>Start again at <span class="math">c₀ = 0.5</span>. At every round, compute the selected loss's negative-gradient targets using the current prediction and observed outcomes, fit a new tree using the inputs, and add half its correction. Earlier trees stay fixed.</p>
-          <p>For shared predictions <span class="math">f = (c, c)</span> between 0 and 1, the targets are <span class="math">(1.6(1 − c), −0.4c)</span>. Their mean is <span class="math">0.8 − c</span>, giving</p>
-          <p class="equation math">hₘ₊₁(1) = 0.8 − cₘ,<br>cₘ₊₁ = cₘ + ½(0.8 − cₘ).</p>
+          <p>Start again with <span class="math">F₀(x) = 0.5</span>. At every round, compute signed residuals <span class="math">rₘᵢ = yᵢ − Fₘ(xᵢ)</span> from the current predictions and observed outcomes. The negative-gradient target is <span class="math">1.6rₘᵢ</span> when <span class="math">rₘᵢ ≥ 0</span>, and <span class="math">0.4rₘᵢ</span> when <span class="math">rₘᵢ &lt; 0</span>. Fit a new tree using the inputs and add half its correction. Earlier trees stay fixed.</p>
+          <p>Both observations receive the same prediction <span class="math">Fₘ(1)</span>. While that prediction is between 0 and 1, the mean of their negative-gradient targets is <span class="math">0.8 − Fₘ(1)</span>. The fitted tree and next model are therefore</p>
+          <p class="equation math">hₘ₊₁(1) = 0.8 − Fₘ(1),<br>Fₘ₊₁(x) = Fₘ(x) + ½hₘ₊₁(x).</p>
           <p>The remaining distance to 0.8 halves on every round. The six updates shown take the shared prediction through <span class="math">0.65, 0.725, 0.7625, 0.78125, 0.790625, 0.7953125</span>. This finite sequence approaches 0.8; it does not reach it exactly.</p>
           <p>The resulting ensemble evaluates a new input by adding the learned functions' outputs. The outcome-dependent targets are recomputed during training, while prediction on a new case uses the fitted functions of <i>x</i>.</p>
           </div></details>
@@ -194,7 +194,7 @@
           <h2 id="heading-11">Same observations, different losses</h2>
           <p class="step-summary">Change the loss and watch its contours, targets, and shared updates.</p>
           <details class="step-notes"><summary>Why this works</summary><div>
-          <p>The target <span class="math">y = (1, 0)</span> and the attainable diagonal stay fixed. The asymmetric option uses <span class="math">τ = 0.8</span>, making underprediction four times as costly as overprediction. Its best shared prediction is <span class="math">c* = 0.8</span>.</p>
+          <p>The target <span class="math">y = (1, 0)</span> and the attainable diagonal stay fixed. Each loss is applied to signed residuals <span class="math">rᵢ = yᵢ − fᵢ</span>, then summed as <span class="math">L(f) = Σᵢℓ(rᵢ)</span>. The asymmetric option uses <span class="math">τ = 0.8</span>, making underprediction four times as costly as overprediction. Its best attainable prediction pair is <span class="math">(0.8, 0.8)</span>.</p>
           <p>Huber loss clips large gradient components. The Huber option uses <span class="math">δ = ¼</span>, so every shared prediction in <span class="math">[¼, ¾]</span> is optimal. Fourth-power error gives large errors more influence; symmetry keeps its optimum at <span class="math">(½, ½)</span>.</p>
           <p>“Fit next update” fits the negative-gradient targets, then selects the shared correction that minimizes the chosen loss. For Huber and fourth-power error, that correction can differ from the mean gradient target.</p>
           <p class="quiet">Starting at zero exposes the update. Initialization at the selected loss's best constant would already solve this two-observation example.</p>
@@ -342,10 +342,10 @@
           <h2 id="heading-24">Choose the leaf correction</h2>
           <p class="step-summary">The gradient fit chooses regions. Choose each leaf’s correction by minimizing the original loss there, then scale it by the learning rate; the mean target can differ.</p>
           <details class="step-notes"><summary>Why this works</summary><div>
-          <p>The fitted gradient tree determines two regions. Its mean target in each region describes the gradient approximation, but the prediction correction has a separate job. Choose the correction <i>c</i> that minimizes the selected loss within that region:</p>
-          <p class="equation math">cⱼ = arg min<sub>c</sub> Σ<sub>i ∈ Rⱼ</sub> ℓ(yᵢ, F(xᵢ) + c).</p>
+          <p>The fitted gradient tree determines two regions. Its mean target in each region describes the gradient approximation, but the prediction correction has a separate job. Choose the correction <span class="math">γ</span> that minimizes the selected loss within that region:</p>
+          <p class="equation math">γⱼ = arg min<sub>γ</sub> Σ<sub>i ∈ Rⱼ</sub> ℓ(yᵢ, F(xᵢ) + γ).</p>
           <p>For the initial Huber split at 3.5, the target means are −1 and 3/4. The loss-minimizing prediction corrections are instead <span class="math">−5/3</span> and <span class="math">3/2</span>. The curves show the original leaf losses and mark both values. The learning rate scales the minimizing corrections afterward.</p>
-          <p>Squared error makes both values the mean residual. Huber corrections solve <span class="math">Σ clip(eᵢ − c, −δ, δ) = 0</span>; asymmetric squared corrections solve the corresponding weighted residual equation. Changing the loss can therefore change both the tree’s regions and the sizes of its updates.</p>
+          <p>Squared error makes both values the mean residual. Huber corrections solve <span class="math">Σ clip(eᵢ − γ, −δ, δ) = 0</span>; asymmetric squared corrections solve the corresponding weighted residual equation. Changing the loss can therefore change both the tree’s regions and the sizes of its updates.</p>
           <p class="quiet">The curves use the next gradient-selected stump at the chosen round. Huber can have an interval of minimizing corrections; the calculation chooses its midpoint.</p>
           </div></details>
         </div></section>
@@ -370,9 +370,9 @@
       <div class="table-scroll"><table class="loss-table"><caption>Losses and their negative-gradient targets (e = y − z)</caption><thead><tr><th scope="col">Loss</th><th scope="col">ℓ(y, z)</th><th scope="col">−∂ℓ/∂z</th></tr></thead><tbody><tr><th scope="row">Half-squared error</th><td class="math">½(y − z)²</td><td class="math">y − z</td></tr><tr><th scope="row">Huber</th><td class="math">½e² if |e| ≤ δ;<br>δ|e| − ½δ² otherwise</td><td class="math">clip(e, −δ, δ)</td></tr><tr><th scope="row">Asymmetric squared</th><td class="math">τe² if e ≥ 0;<br>(1 − τ)e² otherwise</td><td class="math">2τe if e ≥ 0;<br>2(1 − τ)e otherwise</td></tr><tr><th scope="row">Exponential, y ∈ {−1, +1}</th><td class="math">exp(−yz)</td><td class="math">y exp(−yz)</td></tr></tbody></table></div>
       <p>In the binary-classification row, <span class="math">z = F(x)</span> is an additive score. Its sign predicts the class. A positive observation with score 0 has target +1; with score −2, its target is <span class="math">exp(2)</span>, about 7.39. A confidently wrong prediction asks for a larger correction. These targets come from the loss derivative, rather than the difference between a class label and its score.</p>
       <p>For a tree region <span class="math">Rₘⱼ</span>, the final leaf correction is chosen using the original loss:</p>
-      <p class="equation math">cₘⱼ = arg min<sub>c</sub> Σ<sub>xᵢ ∈ Rₘⱼ</sub> ℓ(yᵢ, Fₘ₋₁(xᵢ) + c).</p>
+      <p class="equation math">γₘⱼ = arg min<sub>γ</sub> Σ<sub>xᵢ ∈ Rₘⱼ</sub> ℓ(yᵢ, Fₘ₋₁(xᵢ) + γ).</p>
       <p>For exponential loss, a leaf containing only one class has no finite unpenalized minimizer: the loss approaches zero as the score grows in that class’s direction, but never reaches zero at a finite score. Constraining the correction to a finite closed interval, or adding a positive quadratic penalty, gives a finite minimizer.</p>
-      <p>The fitted pseudo-residual tree defines the regions; these corrections define <span class="math">hₘ</span>. The learning rate then scales the tree’s contribution. Squared error makes <span class="math">cₘⱼ</span> the mean residual; that shortcut does not apply to every loss.</p>
+      <p>The fitted pseudo-residual tree defines the regions; these corrections define <span class="math">hₘ</span>. The learning rate then scales the tree’s contribution. Squared error makes <span class="math">γₘⱼ</span> the mean residual; that shortcut does not apply to every loss.</p>
       <details id="xgboost"><summary>How XGBoost extends the calculation</summary>
         <p>XGBoost uses first and second derivatives to choose trees with a quadratic loss approximation and penalties on leaf values and tree complexity. For a fixed structure, with penalty <span class="math">½λΣⱼwⱼ²</span> and no L1 penalty, the leaf value that minimizes this quadratic approximation is <span class="math">wⱼ* = −Gⱼ/(Hⱼ + λ)</span>, provided <span class="math">Hⱼ + λ &gt; 0</span>. Here G and H sum the gradients and second derivatives in the leaf.</p>
         <p>For our half-squared-error loss, this becomes <span class="math">Σrᵢ/(nⱼ + λ)</span>. With λ = 0 it is the mean residual. The learning rate scales the fitted tree afterward. XGBoost is one extension of the gradient-boosting idea; the worked calculation above uses ordinary least-squares stumps.</p>

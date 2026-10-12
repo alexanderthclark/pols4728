@@ -211,8 +211,11 @@ test('loss contours morph while the midpoint and its actual residual stay fixed'
       }
     }
     assert.doesNotMatch(html, /gradient|∇/i);
-    assert.match(view.annotation(6, state).equation, /L\(c,c\) = 0\.8\(1 − c\)² \+ 0\.2c²/);
-    assert.doesNotMatch(view.annotation(6, state).equation, /ℓ|cases/);
+    const formula = view.annotation(6, state).equation;
+    assert.match(formula, /rᵢ = yᵢ − fᵢ/);
+    assert.match(formula, /ℓ\(r\) =/);
+    assert.match(formula, /<span>0\.8r²<\/span><span>r ≥ 0<\/span>/);
+    assert.match(formula, /<span>0\.2r²<\/span><span>r &lt; 0<\/span>/);
   }
   close(view.resolve(6, { progress: 1 }).minLoss, .16);
 });
@@ -238,8 +241,9 @@ test('compact midpoint residual labels clear the outcomes and stay fixed through
 });
 
 test('floating annotations stay sparse and responsive plot headroom stays stable', () => {
-  assert.equal(view.annotation(11, { loss: 'expectile', tau: .8 }).caption, 'Asymmetric squared: underprediction costs 4 times as much.');
+  assert.equal(view.annotation(11, { loss: 'expectile', tau: .8 }).caption, 'Underprediction costs four times as much.');
   assert.doesNotMatch(view.annotation(11, { loss: 'expectile', tau: .8 }).caption, /τ/);
+  assert.equal(view.annotation(6).caption, 'Underprediction costs four times as much.');
   for (const [width, height, headroom] of [[273, 520, 86], [450, 520, 86], [970, 520, 86]]) {
     let lastScale;
     for (let scene = 0; scene <= 11; scene++) {
@@ -253,7 +257,8 @@ test('floating annotations stay sparse and responsive plot headroom stays stable
       assert.equal(typeof note.status, 'string');
       if (![3, 6, 11].includes(scene)) assert.equal(note.equation, '');
       assert.ok(note.caption.split(/\s+/).length <= 12, 'Floating captions should stay brief');
-      assert.doesNotMatch(note.equation, /loss-equation-cases/);
+      assert.doesNotMatch(note.equation, /loss-equation-total|loss-equation-shared|loss-equation-domain/);
+      if (note.equation) assert.match(note.equation, /loss-equation-residual/);
       if (scene < 7) assert.doesNotMatch(JSON.stringify(note), /gradient|∇/i);
     }
   }
@@ -502,7 +507,8 @@ test('the exact limit has a nonzero perpendicular gradient and a zero fitted tre
 test('early equations display the exact two-point MSE and both axes retain half ticks', () => {
   for (const scene of [3, 4, 5]) {
     const html = view.equation({ loss: 'quartic' }, scene);
-    assert.match(html, /MSE\(f₁,f₂\) = ½\[\(1 − f₁\)² \+ f₂²\]/);
+    assert.match(html, /MSE = ½\(r₁² \+ r₂²\)/);
+    assert.match(html, /rᵢ = yᵢ − fᵢ/);
     assert.doesNotMatch(html, /MSE\(c,c\)/);
     assert.doesNotMatch(html, /ℓ|gradient|∇/i);
   }
@@ -513,6 +519,75 @@ test('early equations display the exact two-point MSE and both axes retain half 
   }
   assert.throws(() => view.resolve(-1), RangeError);
   assert.throws(() => view.resolve(12), RangeError);
+});
+
+test('displayed signed-residual equations match each loss for both residual signs', () => {
+  const residualSamples = [-2, -.75, -.1, 0, .1, .75, 2];
+  for (const state of allLosses) {
+    const html = view.equation(state, 11), compact = view.annotation(11, state).equation;
+    const spec = view.specification(state);
+    assert.match(html, /rᵢ = yᵢ − fᵢ/);
+    assert.match(compact, /rᵢ = yᵢ − fᵢ/);
+    let displayedPointLoss;
+    if (state.loss === 'expectile') {
+      const coefficients = [...html.matchAll(/<span>([0-9.]+)r²<\/span><span>(r ≥ 0|r &lt; 0)<\/span>/g)];
+      assert.equal(coefficients.length, 2);
+      const [positiveWeight, negativeWeight] = coefficients.map(match => Number(match[1]));
+      close(positiveWeight, state.tau);
+      close(negativeWeight, 1 - state.tau);
+      assert.match(html, /L = ℓ\(r₁\) \+ ℓ\(r₂\)/);
+      displayedPointLoss = r => (r >= 0 ? positiveWeight : negativeWeight) * r ** 2;
+    } else if (state.loss === 'huber') {
+      const delta = Number(/δ = ([0-9.]+)/.exec(html)[1]);
+      close(delta, state.delta);
+      assert.match(html, /<span>½r²<\/span><span>\|r\| ≤ δ<\/span>/);
+      assert.match(html, /<span>δ\(\|r\| − ½δ\)<\/span><span>\|r\| &gt; δ<\/span>/);
+      assert.match(html, /L = ℓ\(r₁\) \+ ℓ\(r₂\)/);
+      displayedPointLoss = r => Math.abs(r) <= delta ? r ** 2 / 2 : delta * (Math.abs(r) - delta / 2);
+    } else if (state.loss === 'quartic') {
+      assert.match(html, /L = ¼\(r₁⁴ \+ r₂⁴\)/);
+      displayedPointLoss = r => r ** 4 / 4;
+    } else {
+      assert.match(html, /MSE = ½\(r₁² \+ r₂²\)/);
+      displayedPointLoss = r => r ** 2 / 2;
+    }
+    for (const residual of residualSamples) close(displayedPointLoss(residual), view.pointLoss(residual, spec));
+    // Include predictions outside the outcomes' range so both positive-positive
+    // and negative-negative residual quadrants verify the signed case assignment.
+    for (const prediction of [[-.2, -.7], [.2, .8], [1.3, .4], [1, 0]]) {
+      const residuals = [1 - prediction[0], -prediction[1]];
+      const displayedTotal = residuals.reduce((sum, r) => sum + displayedPointLoss(r), 0);
+      close(displayedTotal, selectedLoss(prediction, state));
+      close(displayedTotal, view.totalLoss(prediction, spec));
+    }
+  }
+  // The morph explains the destination loss even while its contours transition.
+  for (const progress of [0, .5, 1]) {
+    assert.equal(view.annotation(6, { progress }).equation, view.annotation(11, { loss: 'expectile', tau: .8 }).equation);
+  }
+});
+
+test('public copy uses residuals and prediction pairs without introducing a shared scalar', () => {
+  const plain = html => html.replace(/<style>[^]*?<\/style>/g, '').replace(/<[^>]*>/g, ' ');
+  for (const width of [320, 970]) {
+    for (let scene = 0; scene <= 11; scene++) {
+      for (const selected of allLosses) {
+        for (const prediction of [0, .5, .8, 1]) {
+          const state = { ...selected, prediction, width, progress: 1 };
+          const publicText = [plain(view.equation(state, scene)), plain(view.annotation(scene, state).equation),
+            view.annotation(scene, state).caption, view.annotation(scene, state).status,
+            view.presentation(scene, state).caption, JSON.stringify(view.readout(scene, state)),
+            ...[...view.render(scene, state, width < 400).matchAll(/<(?:title|desc|text)\b[^>]*>([^<]*)<\/(?:title|desc|text)>/g)].map(match => match[1])].join(' ');
+          assert.doesNotMatch(publicText, /\bc\b|ℓ\(e|e[²³⁴]|L\(c,c\)|MSE\(c,c\)/, `Scene ${scene} should use residuals and prediction pairs`);
+          if (scene < 7) assert.doesNotMatch(publicText, /gradient|∇/i);
+        }
+      }
+    }
+  }
+  const interval = view.readout(11, { loss: 'huber', delta: .25 }).at(-1);
+  assert.equal(interval[0], 'Best predictions; loss / minimum');
+  assert.match(interval[1], /\(0\.25, 0\.25\) to \(0\.75, 0\.75\)/);
+  assert.match(view.render(11, { loss: 'expectile', tau: .8 }), /restricted-best-label[^>]*>best: \(0\.8, 0\.8\)/);
 });
 
 test('the loss explorer uses the requested observations and asymmetric squared loss', () => {
@@ -766,7 +841,7 @@ test('Huber captions describe selected loss and never claim all Huber gradients 
   const caption = view.presentation(11, state).caption;
   assert.doesNotMatch(caption, /residual and negative gradient coincide|half-squared loss/i);
   assert.match(caption, /Huber|clipp|gradient/i);
-  assert.match(view.presentation(11, { loss: 'huber', delta: .25 }).caption, /Every c in \[0\.25, 0\.75\]/);
+  assert.match(view.presentation(11, { loss: 'huber', delta: .25 }).caption, /Every shared prediction between \(0\.25, 0\.25\) and \(0\.75, 0\.75\)/);
 });
 
 test('the restricted-input visual runs without a module loader', () => {

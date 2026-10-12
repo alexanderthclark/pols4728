@@ -13,7 +13,7 @@
   const exampleState = { rate: 1, process: 1, candidateIndex: null, round: 8 };
   const geometryState = { round: 0, rate: 0.5, progress: 1 };
   const restrictedState = { prediction: 0.5, loss: 'squared', tau: 0.8, delta: 0.25, progress: 1 };
-  const openingDurations = { 1: 1200, 2: 1400, 3: 1700, 4: 2600, 5: 3600, 6: 3200, 7: 1800, 8: 2600, 9: 18000 };
+  const openingDurations = { 1: 1200, 2: 1400, 3: 1700, 4: 2600, 5: 3600, 6: 5000, 7: 1800, 8: 2600, 9: 18000 };
   const lossState = { loss: 'huber', dataset: 'outlier', delta: 1, tau: 0.8, rate: 0.5, round: 0 };
   let scene = -1;
   let animation = 0;
@@ -105,6 +105,7 @@
       const resolved = R.resolve(index, state);
       const annotation = R.annotation(index, state);
       const note = $('opening-annotation');
+      note.dataset.lossEquation = String(Boolean(annotation.equation));
       const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
       const roundLabel = index === 9 ? `<span class="opening-round">${resolved.phase === 'complete' ? '6 updates complete' : `Round ${resolved.round + 1} of 6`}</span>` : '';
       note.innerHTML = `${roundLabel}${annotation.caption ? `<p>${escape(annotation.caption)}</p>` : ''}${annotation.equation ? `<div class="math">${annotation.equation}</div>` : ''}`;
