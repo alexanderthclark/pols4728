@@ -154,6 +154,71 @@ test('rendered geometry exposes computed vectors and uses a loss circle only in 
   }
 });
 
+test('the initial equal-loss circle fills a readable part of short and narrow figures', () => {
+  for (const [width, height, compact] of [[288, 220, true], [346, 260, true], [734, 288, false], [640, 450, false]]) {
+    for (const angle of [0, 89, 90, 91, 120, 180]) {
+      const html = view.render(2, { width, height, angle, length: .5, round: 0 }, compact);
+      const circle = attributes(/<circle\b[^>]*class="equal-loss-circle"[^>]*>/.exec(html)[0]);
+      // A diameter of at least 60% of the figure's shorter side makes the
+      // normal half-radius trial legible without losing its true distances.
+      assert.ok(Number(circle.r) >= .3 * Math.min(width, height), `Circle should be readable at ${width}×${height}, θ=${angle}`);
+    }
+  }
+});
+
+test('the fitted camera keeps circles, long trials and direction guides inside the figure', () => {
+  for (const [width, height, compact] of [[288, 220, true], [346, 260, true], [734, 288, false], [640, 450, false]]) {
+    for (const angle of [0, 30, 89, 90, 91, 120, 180]) {
+      for (const length of [0, .5, 1, 2.5]) {
+        for (const round of [0, 2, 24]) {
+          const state = { width, height, angle, length, round, rate: 1 };
+          const html = view.render(2, state, compact);
+          const context = JSON.stringify(state);
+          const inside = (x, y, padding = 8) => {
+            assert.ok(x >= padding && x <= width - padding, `Horizontal containment: (${x},${y}) ${context}`);
+            assert.ok(y >= padding && y <= height - padding, `Vertical containment: (${x},${y}) ${context}`);
+          };
+          const circle = attributes(/<circle\b[^>]*class="equal-loss-circle"[^>]*>/.exec(html)[0]);
+          const cx = Number(circle.cx), cy = Number(circle.cy), radius = Number(circle.r);
+          inside(cx - radius, cy - radius);
+          inside(cx + radius, cy + radius);
+          for (const match of html.matchAll(/<line\b[^>]*class="prediction-(?:residual-arrow|gradient-arrow|trial-step|trial-residual|direction-guide)"[^>]*>/g)) {
+            const line = attributes(match[0]);
+            inside(Number(line.x1), Number(line.y1));
+            inside(Number(line.x2), Number(line.y2));
+          }
+          for (const match of html.matchAll(/<text\b[^>]*class="pv-math pv-direction-label"[^>]*>/g)) {
+            const label = attributes(match[0]);
+            inside(Number(label.x), Number(label.y));
+            assert.ok(Number(label.y) >= 30 && Number(label.y) <= height - 29, `Direction labels should avoid the legend and footer: ${context}`);
+          }
+        }
+      }
+    }
+  }
+});
+
+test('changing the starting round shrinks the circle at the same physical camera scale', () => {
+  for (const angle of [0, 89, 90, 91, 120, 180]) {
+    for (const length of [.5, 2.5]) {
+      for (const [width, height, compact] of [[288, 220, true], [734, 288, false]]) {
+        let reference;
+        let previousRadius = Infinity;
+        for (const round of [0, 1, 2, 8, 24]) {
+          const html = view.render(2, { width, height, angle, length, round, rate: .5 }, compact);
+          const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]);
+          const circle = attributes(/<circle\b[^>]*class="equal-loss-circle"[^>]*>/.exec(html)[0]);
+          const camera = [Number(svg['data-scale']), Number(circle.cx), Number(circle.cy)];
+          if (!reference) reference = camera;
+          else vectorClose(camera, reference);
+          assert.ok(Number(circle.r) < previousRadius, `Circle should shrink at round ${round}`);
+          previousRadius = Number(circle.r);
+        }
+      }
+    }
+  }
+});
+
 test('the geometry module runs without a module loader and keeps all three scenes responsive', () => {
   const context = { window: { BoostingMath: math } };
   runInNewContext(readFileSync(new URL('../docs/boosting/prediction-view.js', import.meta.url), 'utf8'), context);

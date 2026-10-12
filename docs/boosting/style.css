@@ -77,11 +77,19 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
 }
 .restricted-diagram{width:100%;height:100%;min-width:0}
 .stage-shell[data-example='restricted']>.vector-readout,.stage-shell[data-example='restricted']>.restricted-controls,.stage-shell[data-example='restricted']>.stage-caption,.stage-shell[data-example='restricted']>.stage-top,.stage-shell[data-example='restricted']>.stage-nav{flex-shrink:0}
-.restricted-controls{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center}
-.restricted-controls>label,.restricted-controls>input{grid-column:1/-1}
-.restricted-controls>label{justify-content:space-between}
+.restricted-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:5px 18px;align-items:start}
+.restricted-loss-label{grid-column:1;grid-row:1;padding-top:4px}
+.restricted-loss-label select{min-width:0;max-width:100%}
+.restricted-parameter{grid-column:2;grid-row:1;min-width:0}
+.restricted-parameter>label,.restricted-prediction-controls>label{justify-content:space-between}
+.restricted-weights{margin:0;color:var(--muted);font-size:11px;line-height:1.3}
+.restricted-prediction-controls,.restricted-actions{grid-column:1/-1}
+.restricted-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .restricted-controls button{font:14px/1.4 var(--sans);min-height:36px;padding:4px 12px}
 .restricted-rate{color:var(--muted)}
+.stage-shell[data-example='restricted'] .visual-area{min-height:250px}
+.stage-shell[data-example='restricted'] .vector-readout{gap:6px 16px;padding:7px 0;min-height:54px}
+.stage-shell[data-example='restricted'] .stage-caption{font-size:13px;line-height:1.4;margin:8px 0}
 .stage-shell[data-example='geometry']>.vector-readout,.stage-shell[data-example='geometry']>.geometry-controls,.stage-shell[data-example='geometry']>.stage-caption,.stage-shell[data-example='geometry']>.stage-top,.stage-shell[data-example='geometry']>.stage-nav{flex-shrink:0}
 .geometry-controls{display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px}
 .geometry-controls>div{flex:1 1 100%}
@@ -92,16 +100,22 @@ p{margin:0 0 1.2em}.math,math{font-family:'Course Math','Cambria Math',math}sub,
 #geometry-rate-label{order:-1}
 @media(max-width:800px){
   .stage-shell[data-example='geometry']{height:60svh;min-height:500px}
-  .stage-shell[data-example='restricted']{height:62svh;min-height:520px}
+  .stage-shell[data-example='restricted']{height:78svh;min-height:660px}
   .stage-shell[data-geometry-scene='2']{height:62svh;min-height:520px}
   .stage-shell[data-example='geometry'] .visual-area{min-height:220px}
   .stage-shell[data-example='geometry'] .vector-readout>div{flex:0 0 calc(50% - 3px)}
   .stage-shell[data-example='geometry'] .vector-readout{min-height:70px}
-  .stage-shell[data-example='restricted'] .visual-area{min-height:220px}
+  .stage-shell[data-example='restricted'] .visual-area{min-height:240px}
   .stage-shell[data-example='restricted'] .vector-readout>div{flex:0 0 calc(50% - 3px)}
-  .stage-shell[data-example='restricted'] .vector-readout{min-height:70px}
-  .restricted-controls{gap:2px 10px;padding:3px 0}
+  .stage-shell[data-example='restricted'] .vector-readout{min-height:70px;gap:6px}
+  .restricted-controls{gap:3px 10px;padding:3px 0}
+  .restricted-loss-label{display:block!important;padding-top:0}
+  .restricted-loss-label select{display:block;width:100%;margin-top:2px;font-size:11px;padding:2px 3px}
+  .restricted-weights{font-size:10px}
+  .restricted-actions{gap:4px 6px}
   .restricted-controls button{font-size:12px;min-height:30px}
+  .restricted-rate{font-size:12px}
+  .stage-shell[data-example='restricted'] .stage-caption{font-size:11px;line-height:1.3;margin:5px 0}
   .geometry-controls{gap:2px 12px;padding:3px 0}
   #geometry-angle-controls{gap:3px 14px}
   #geometry-angle-controls label{font-size:11px}

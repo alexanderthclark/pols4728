@@ -24,9 +24,11 @@ No build step or external JavaScript dependencies are required.
 - `prediction-view.js` restores the three-observation vector picture, fitted
   correction, and exact equal-loss circle. It exposes consistent vectors,
   gradient norms, step lengths, and losses for all three interactions.
-- `restricted-view.js` shows two observations with identical inputs. The
-  shared-prediction control and unit-rate update expose the projection onto
-  the equal-prediction line and the nonzero perpendicular residual.
+- `restricted-view.js` shows two observations with identical inputs and
+  loss contours in prediction space. Shared-prediction and loss controls compare
+  ordinary residuals with negative gradients and the loss-optimal shared tree
+  correction. It supports half-squared error, asymmetric squared error with
+  continuous τ, Huber loss, and fourth-power error.
 - `worked-example.js` builds immutable gradient-boosting states using the
   unchanged `../shared/boosting-math.js` stump-fitting module.
 - `worked-view.js` renders response plots, gradients, candidate split tables,
@@ -74,13 +76,29 @@ candidate experiment remain independent. Neither apparent projected angles nor f
 loss establish predictive performance on new observations.
 
 Between the radius view and the four-observation calculation, `x = [1, 1]`
-and `y = [1, 0]` restrict every prediction and update to equal coordinates.
-At current prediction `(c, c)`, the next fitted tree is `(0.5-c, 0.5-c)`.
-Adding it with learning rate 1 reaches `(0.5, 0.5)`, with residual
-`(0.5, -0.5)`, zero subsequent tree, and irreducible half-squared loss 1/4.
-Both axes use equal, fixed scales; the minimum equal-loss circle is tangent
-to the available line. The zero start demonstrates one update, while the
-usual outcome-mean initialization already starts at the optimum.
+and `y = [0, 1]` restrict every prediction and update to equal coordinates.
+The default is asymmetric squared error with τ = 0.8 and prediction `(0, 0)`.
+For `0 ≤ c ≤ 1`, total loss is `(1-τ)c² + τ(1-c)²`, so the best shared
+prediction is `(τ, τ)`. At `(0.5, 0.5)`, raw residuals have mean zero but the
+negative-gradient targets are `(-0.2, 0.8)` and their fitted mean is 0.3.
+At `(0.8, 0.8)` the negative gradient `(-0.32, 0.32)` is perpendicular to
+the available line, while the residual `(-0.8, 0.2)` is not.
+
+The loss selector also provides half-squared error (and asymmetric squared
+at τ = 0.5), Huber δ in {0.1, 0.25, 0.5, 1}, and fourth-power error `e^4/4`.
+For Huber δ < 0.5, the optimum is the entire interval `[δ, 1-δ]` on the
+shared-prediction line. A unit-rate loss-optimal correction moves to the closest
+point in that interval, preserving an already optimal prediction. The gradient
+targets are fitted by least squares; Huber and fourth-power error generally
+need a different shared leaf correction to minimize the original loss.
+
+Both axes use equal, fixed scales. The raw residual and negative gradient
+arrows are drawn at half length, stated in the legend, while the final shared
+correction is drawn at its actual length. Current and optimal equal-loss contours
+make the loss geometry visible; only squared error has circular contours.
+Reset and residual-mean buttons allow comparisons at the same prediction.
+The zero start demonstrates an update; initialization at the selected loss's
+best constant would already start at an optimum in this two-observation case.
 
 ## Checks
 
@@ -98,7 +116,8 @@ node --test tests/*.test.mjs
 
 Inspect a wide desktop and narrow phone viewport, navigate all main scenes,
 check vector and norm views, compare candidates, change learning rate, adjust
-update progress and rounds,
+update progress and rounds, compare the four two-observation losses, vary τ,
+and inspect both the zero start and residual-mean comparison,
 and check keyboard and reduced-motion behavior. Review the optional geometry
 link and return route. Text remains readable without JavaScript; visual states
 have accessible descriptions and numerical readouts.
@@ -130,8 +149,9 @@ loss. It is not a comparator for every possible forward stagewise optimizer.
 Different targets do not guarantee a lower loss at every finite round.
 
 Loss values are sums, not MSE. Candidate SSEs are measured on each method's
-own targets, not directly ranked against one another. The earlier exact circles
-remain specific to squared error. Controls support keyboard use, and round
+own targets, not directly ranked against one another. The three-observation exact
+circles remain specific to squared error; the two-observation view changes its
+contours with the selected loss. Controls support keyboard use, and round
 changes refit from the initial model rather than reusing another loss's trees.
 
 The third dataset has identical inputs x = [1,1,1] and responses y = [0,0,10].

@@ -12,7 +12,7 @@
   const mobile = () => window.matchMedia('(max-width: 800px)').matches;
   const exampleState = { rate: 1, process: 1, candidateIndex: null, round: 8 };
   const geometryState = { round: 0, rate: 0.5, progress: 1, angle: 120, length: 0.5 };
-  const restrictedState = { prediction: 0 };
+  const restrictedState = { prediction: 0, loss: 'expectile', tau: 0.8, delta: 0.25 };
   const lossState = { loss: 'huber', dataset: 'outlier', delta: 1, tau: 0.8, rate: 0.5, round: 0 };
   let scene = -1;
   let animation = 0;
@@ -84,6 +84,13 @@
     delete stage.dataset.lossScene;
     delete stage.dataset.loss;
     if (current.restricted) {
+      $('restricted-loss').value = restrictedState.loss;
+      $('restricted-tau').value = String(restrictedState.tau);
+      $('restricted-tau-value').textContent = String(Number(restrictedState.tau.toFixed(2)));
+      $('restricted-weights').textContent = `Underpredict ×${Number(restrictedState.tau.toFixed(2))} · Overpredict ×${Number((1 - restrictedState.tau).toFixed(2))}`;
+      $('restricted-delta').value = String(restrictedState.delta);
+      $('restricted-tau-controls').hidden = restrictedState.loss !== 'expectile';
+      $('restricted-delta-label').hidden = restrictedState.loss !== 'huber';
       $('restricted-prediction').value = String(restrictedState.prediction);
       $('restricted-prediction-value').textContent = String(Number(restrictedState.prediction.toFixed(2)));
       const bounds = $('visual-area').getBoundingClientRect();
@@ -93,6 +100,7 @@
       if (announce) $('stage-caption').textContent = R.presentation(index, state).caption;
       stage.dataset.rate = 1;
       stage.dataset.sharedPrediction = restrictedState.prediction;
+      stage.dataset.loss = restrictedState.loss;
       stage.dataset.restrictedScene = index;
       delete stage.dataset.geometryScene;
       delete stage.dataset.workedScene;
@@ -294,7 +302,27 @@
     render();
   });
   $('restricted-fit').addEventListener('click', () => {
+    restrictedState.prediction = R.resolve(0, restrictedState).nextPrediction[0];
+    render();
+  });
+  $('restricted-reset').addEventListener('click', () => {
+    restrictedState.prediction = 0;
+    render();
+  });
+  $('restricted-mean').addEventListener('click', () => {
     restrictedState.prediction = 0.5;
+    render();
+  });
+  $('restricted-loss').addEventListener('change', () => {
+    restrictedState.loss = $('restricted-loss').value;
+    render();
+  });
+  $('restricted-tau').addEventListener('input', () => {
+    restrictedState.tau = Math.max(0.05, Math.min(0.95, Number($('restricted-tau').value)));
+    render();
+  });
+  $('restricted-delta').addEventListener('change', () => {
+    restrictedState.delta = Number($('restricted-delta').value);
     render();
   });
 

@@ -55,9 +55,18 @@
           </div>
         </div>
         <div class="controls restricted-controls" id="restricted-controls" hidden>
-          <label for="restricted-prediction">Current shared prediction c <output id="restricted-prediction-value" for="restricted-prediction">0</output></label>
-          <input id="restricted-prediction" type="range" min="0" max="1" step="0.01" value="0">
-          <button id="restricted-fit" type="button">Add fitted tree</button><span class="restricted-rate math">α = 1</span>
+          <label class="restricted-loss-label" for="restricted-loss">Loss <select id="restricted-loss"><option value="squared">Squared error</option><option value="expectile" selected>Asymmetric squared</option><option value="huber">Huber</option><option value="quartic">Fourth-power error</option></select></label>
+          <div class="restricted-parameter" id="restricted-tau-controls">
+            <label for="restricted-tau">Asymmetry τ <output id="restricted-tau-value" for="restricted-tau">0.8</output></label>
+            <input id="restricted-tau" type="range" min="0.05" max="0.95" step="0.05" value="0.8" aria-describedby="restricted-weights">
+            <p class="restricted-weights" id="restricted-weights">Underpredict ×0.8 · Overpredict ×0.2</p>
+          </div>
+          <label class="restricted-parameter" id="restricted-delta-label" for="restricted-delta" hidden>Clipping δ <select id="restricted-delta"><option value="0.1">0.1</option><option value="0.25" selected>0.25</option><option value="0.5">0.5</option><option value="1">1</option></select></label>
+          <div class="restricted-prediction-controls">
+            <label for="restricted-prediction">Current shared prediction c <output id="restricted-prediction-value" for="restricted-prediction">0</output></label>
+            <input id="restricted-prediction" type="range" min="0" max="1" step="0.01" value="0">
+          </div>
+          <div class="restricted-actions"><button id="restricted-reset" type="button">Reset to (0, 0)</button><button id="restricted-mean" type="button">At residual mean</button><button id="restricted-fit" type="button">Add loss-optimal tree</button><span class="restricted-rate math">α = 1</span></div>
         </div>
         <div class="controls worked-controls" id="worked-controls" hidden>
           <label for="worked-rate">Learning rate α <select id="worked-rate"><option value="1" selected>1</option><option value="0.5">1/2</option></select></label>
@@ -110,16 +119,16 @@
         </div></section>
 
         <section class="step" id="identical-inputs" data-step="3" data-restricted-scene="0" aria-labelledby="heading-3"><div>
-          <p class="step-number">04 / 16</p><h2 id="heading-3">Identical inputs restrict every update</h2>
-          <p>Suppose we have two observations with identical predictor values but different outcomes: <span class="math">x₁ = x₂ = 1</span>, with <span class="math">y = (1, 0)</span>. Any regression tree using only <i>x</i> must assign them the same prediction. So must a sum of those trees:</p>
+          <p class="step-number">04 / 16</p><h2 id="heading-3">The loss changes the best shared prediction</h2>
+          <p>Consider just two observations: <span class="math">(x₁, y₁) = (1, 0)</span> and <span class="math">(x₂, y₂) = (1, 1)</span>. Any regression tree using only <i>x</i> must assign them the same prediction. So must a sum of those trees:</p>
           <p class="equation math">f = (f(x₁), f(x₂)) = (c, c).</p>
-          <p>Every possible prediction lies on the 45-degree line through the origin. The target <span class="math">y = (1, 0)</span> lies off that line. We keep the same half-squared-error loss, so the negative gradient is exactly the residual <span class="math">r = y − f</span>.</p>
-          <p>Start from <span class="math">f₀ = (0, 0)</span> with learning rate 1. The residual is <span class="math">(1, 0)</span>. A tree cannot split the identical inputs, so its best residual prediction is their average: <span class="math">h₁ = (½, ½)</span>. Adding this correction gives <span class="math">f₁ = (½, ½)</span>.</p>
-          <p>This is the orthogonal projection of the target onto the equal-prediction line. The remaining residual is <span class="math">(½, −½)</span>, perpendicular to every available update <span class="math">(a, a)</span>. Its mean is zero, so the next fitted tree is <span class="math">h₂ = (0, 0)</span>, even though the loss gradient is still nonzero.</p>
-          <p class="equation math">L(c, c) = ½[(1 − c)² + c²]<br>= (c − ½)² + ¼.</p>
-          <p>The best attainable half-squared training loss is ¼. Move the shared prediction <i>c</i> to inspect the residual and next fitted tree; “Add fitted tree” takes the unit-rate step to the projection. At the projection, the equal-loss circle touches the diagonal, and no tree using only <i>x</i> can move inside it.</p>
-          <p>The negative gradient tells us where we would ideally move, while the weak learner determines which directions are available. Boosting fits a representable approximation to that gradient; when the gradient itself is representable, the two directions can coincide.</p>
-          <p class="quiet">Starting at zero exposes the update. Initializing at the outcome mean would already place this model at (½, ½).</p>
+          <p>The diagonal shows every attainable prediction; the target <span class="math">y = (0, 1)</span> lies off it. Starting at <span class="math">f₀ = (0, 0)</span>, ordinary residual fitting averages <span class="math">r = (0, 1)</span> and moves to <span class="math">(½, ½)</span>. For half-squared error this is the optimum: the equal-loss circle touches the diagonal, and the remaining residual <span class="math">(−½, ½)</span> is perpendicular to every available update.</p>
+          <p>Now charge a different amount for underprediction and overprediction. With residual <span class="math">e = y − f</span>, asymmetric squared loss charges <span class="math">τe²</span> when <span class="math">e ≥ 0</span> and <span class="math">(1 − τ)e²</span> when <span class="math">e &lt; 0</span>. For shared predictions between 0 and 1:</p>
+          <p class="equation math">Lτ(c, c) = (1 − τ)c² + τ(1 − c)².</p>
+          <p>The best shared prediction is <span class="math">c* = τ</span>. At <span class="math">τ = 0.8</span>, underprediction costs four times as much as overprediction, so the optimum moves to <span class="math">(0.8, 0.8)</span>. The target and the diagonal stay fixed while the equal-loss contours change.</p>
+          <p>Click “At residual mean” to examine <span class="math">f = (0.5, 0.5)</span>. The raw residual has mean zero, but the negative gradient is <span class="math">(−0.2, 0.8)</span>. Its mean is 0.3, so a fitted tree can still improve the loss by increasing both predictions. At <span class="math">(0.8, 0.8)</span>, the negative gradient <span class="math">(−0.32, 0.32)</span> is perpendicular to the diagonal. The residual <span class="math">(−0.8, 0.2)</span> is not. It is the gradient that identifies when the available directions are exhausted.</p>
+          <p>Adjust <i>τ</i>, change the current prediction, or select another loss. Huber loss clips large gradient components; with <span class="math">δ &lt; 0.5</span>, every shared prediction in <span class="math">[δ, 1 − δ]</span> is optimal. Fourth-power error gives large errors more influence and changes the contours again, while symmetry keeps its optimum at <span class="math">(0.5, 0.5)</span>.</p>
+          <p class="quiet">“Add loss-optimal tree” fits the negative-gradient targets, then chooses the shared leaf correction that minimizes the selected loss, with learning rate 1. For Huber and fourth-power error, this final correction can differ from the mean gradient target shown below the plot. Starting at zero exposes the update; ordinary initialization at the selected loss's best constant would already be optimal here.</p>
         </div></section>
 
         <section class="step" id="worked-data" data-step="4" data-worked-scene="0" aria-labelledby="heading-4"><div>

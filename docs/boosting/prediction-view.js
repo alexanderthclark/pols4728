@@ -193,43 +193,50 @@
   function plane(q, state, compact) {
     const { W, H } = dimensions(state, compact), margin = compact ? 24 : 34;
     const initialRadius = Math.sqrt(3);
-    // The physical domain is independent of the selected boosting round. This
-    // makes the equal-loss circle shrink visibly as the residual norm falls.
-    const extentY = initialRadius * 2.65;
-    const minimumX = -2.25 * initialRadius;
-    const maximumX = initialRadius * 1.7;
-    const scale = Math.max(.01, Math.min((W - 2 * margin) / (maximumX - minimumX), (H - 2 * margin - 22) / (2 * extentY)));
+    // Fit the selected trial, rather than reserving room for every possible
+    // step. Use the initial radius for the camera so changing the starting
+    // round still visibly shrinks the circle at a fixed physical scale.
+    const referenceStep = M.orientedStepGeometry(q.angle, q.length, initialRadius).step;
+    const minimumX = -2 * initialRadius;
+    const maximumX = Math.max(initialRadius, -initialRadius + referenceStep[0]);
+    const minimumY = Math.min(-initialRadius, referenceStep[1]);
+    const maximumY = Math.max(initialRadius, referenceStep[1]);
+    // Keep the legend and footer separate from both the geometry and its
+    // endpoint labels, especially when a nearly vertical guide touches a circle.
+    const plotTop = compact ? 44 : 40, plotBottom = H - (compact ? 40 : 38);
+    const scale = Math.max(.01, Math.min((W - 2 * margin) / (maximumX - minimumX), (plotBottom - plotTop) / (maximumY - minimumY)));
     const cx = (W - (maximumX - minimumX) * scale) / 2 - minimumX * scale;
-    const cy = (H - 22) / 2;
+    const cy = (plotTop + plotBottom - (maximumY - minimumY) * scale) / 2 + maximumY * scale;
     const project = p => [cx + p[0] * scale, cy - p[1] * scale];
     const observed = project([0, 0]), base = project([-q.radius, 0]);
     const trial = project([-q.radius + q.planeStep[0], q.planeStep[1]]);
     const gradientEnd = project([-2 * q.radius, 0]);
     let body = `<circle class="equal-loss-circle" data-radius="${q.radius}" cx="${observed[0]}" cy="${observed[1]}" r="${q.radius * scale}" fill="#f8fafb" stroke="${C.rule}" stroke-width="1.3"/>`;
-    if (compact) body += text([W / 2, 14], 'g = ∇L(F); r = −g', 'class="pv-small" text-anchor="middle"');
+    body += text([W / 2 - 10, 16], compact ? 'r = −∇L(F)' : '−∇L(F) = r', `class="pv-math" text-anchor="end" style="fill:${C.teal}"`);
+    body += text([W / 2 + 10, 16], '∇L(F)', `class="pv-math" style="fill:${C.rust}"`);
     body += line(project([minimumX, 0]), project([maximumX, 0]), C.faint, 1);
     body += arrow(base, observed, C.teal, 'stroke-dasharray="5 4" class="prediction-residual-arrow"');
     body += arrow(base, gradientEnd, C.rust, 'stroke-dasharray="2 4" class="prediction-gradient-arrow"');
-    body += text([(base[0] + observed[0]) / 2, base[1] - 10], compact ? 'r' : '−∇L(F) = r', `class="pv-math" text-anchor="middle" style="fill:${C.teal}"`);
-    body += text([(base[0] + gradientEnd[0]) / 2, base[1] + 17], compact ? 'g' : '∇L(F)', `class="pv-math" text-anchor="middle" style="fill:${C.rust}"`);
     if (q.radius > 0) {
       const unit = M.orientedStepGeometry(q.angle, 1, q.radius).step;
-      const guide = M.scale(unit, .6), selectedGuide = project([-q.radius + guide[0], guide[1]]), oppositeGuide = project([-q.radius - guide[0], -guide[1]]);
-      body += line(oppositeGuide, selectedGuide, '#aaa', 1.2, 'stroke-dasharray="3 4"');
+      const selectedGuide = project([-q.radius + unit[0], unit[1]]), oppositeGuide = project([-q.radius - unit[0], -unit[1]]);
+      body += line(oppositeGuide, selectedGuide, '#aaa', 1.2, 'stroke-dasharray="3 4" class="prediction-direction-guide"');
       body += arrow(base, trial, q.angle === 90 ? C.rule : C.teal, 'stroke-width="3" class="prediction-trial-step"');
       body += line(trial, observed, C.rule, 1.2, 'stroke-dasharray="3 4" class="prediction-trial-residual"');
       if (q.length > 0) body += dot(trial, C.blue, 4.5, 'class="prediction-current"');
       const selectedName = q.orientation === -1 ? '−h' : 'h';
-      body += text([selectedGuide[0] + 6, selectedGuide[1] + (q.planeStep[1] < 0 ? compact ? 30 : 17 : compact ? -20 : -9)], selectedName, `class="pv-math" style="fill:${q.angle === 90 ? C.rule : C.teal}"`);
-      body += text([oppositeGuide[0] - 6, oppositeGuide[1] + (q.planeStep[1] < 0 ? -8 : 17)], q.orientation === -1 ? 'h' : '−h', 'class="pv-math" text-anchor="end"');
-      if (q.length > 0) body += text([clamp(trial[0] + 8, 55, W - 55), clamp(trial[1] + (q.planeStep[1] < 0 ? 17 : -11), 15, H - 29)], compact ? 'F′' : 'trial F′', `class="pv-small" style="fill:${C.blue}"`);
+      const selectedLabel = [clamp(selectedGuide[0] + 6, 12, W - (compact ? 34 : 40)), clamp(selectedGuide[1] + (unit[1] < 0 ? compact ? 30 : 17 : compact ? -20 : -9), 30, H - 29)];
+      const oppositeLabel = [clamp(oppositeGuide[0] - 6, compact ? 36 : 40, W - 12), clamp(oppositeGuide[1] + (unit[1] < 0 ? -8 : 17), 30, H - 29)];
+      body += text(selectedLabel, selectedName, `class="pv-math pv-direction-label" style="fill:${q.angle === 90 ? C.rule : C.teal}"`);
+      body += text(oppositeLabel, q.orientation === -1 ? 'h' : '−h', 'class="pv-math pv-direction-label" text-anchor="end"');
+      if (q.length > 0) body += text([clamp(trial[0] + 8, 55, W - 55), clamp(trial[1] + (q.planeStep[1] < 0 ? -11 : 19), 30, H - 29)], compact ? 'F′' : 'trial F′', `class="pv-small" style="fill:${C.blue}"`);
     }
     body += dot(base, C.blue, 4.5, 'class="prediction-base"') + diamond(observed);
     body += text([base[0] - 6, base[1] + 34], `F${sub(q.round)}`, `class="pv-math" text-anchor="end" style="fill:${C.blue}"`);
     body += text([observed[0] + 8, observed[1] + 22], compact ? 'y' : 'target y', `class="pv-math" style="fill:${C.rust}"`);
     const radiusEnd = project([q.radius * Math.SQRT1_2, q.radius * Math.SQRT1_2]);
     body += line(observed, radiusEnd, C.rule, 1.2, 'class="prediction-radius"');
-    body += text([radiusEnd[0] + 7, radiusEnd[1] - 5], `R = ${fmt(q.radius)}`, 'class="pv-small"');
+    body += text([Math.min(radiusEnd[0] + 7, W - (compact ? 75 : 88)), radiusEnd[1] - 5], `R = ${fmt(q.radius)}`, 'class="pv-small"');
     body += text([W / 2, H - 4], `Equal-loss circle: L = ½R² = ${fmt(q.beforeLoss)}`, 'class="pv-small" text-anchor="middle"');
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="prediction-title prediction-description" data-geometry="equal-loss-plane" data-scale="${scale}" data-units-per-pixel="${1 / scale}"><title id="prediction-title">${esc(topics[2])}</title><desc id="prediction-description">${esc(presentation(2, state).caption)} This is an equal-scale two-dimensional plane through the actual prediction F and target y. The trial step has norm ${fmt(q.stepNorm)}; its three-dimensional prediction is ${esc(vector(q.prediction))} and loss is ${fmt(q.loss)}.</desc>${defs}${body}</svg>`;
   }

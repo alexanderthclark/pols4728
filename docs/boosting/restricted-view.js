@@ -8,135 +8,173 @@
   'use strict';
   if (!M) throw new Error('Load BoostingMath before RestrictedBoostingView.');
 
-  const x = [1, 1], target = [1, 0], optimalPrediction = [.5, .5];
+  const x = [1, 1], target = [0, 1];
   const C = { ink: '#242424', blue: '#234e70', rust: '#a54f32', teal: '#007f73', muted: '#606060', rule: '#767676', faint: '#dedede' };
-  const topics = ['Identical inputs restrict the available directions'];
+  const topics = ['The loss changes the best shared prediction'];
   const esc = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
   const number = (value, fallback) => Number.isFinite(value) ? value : fallback;
-  const clamp = value => Math.max(0, Math.min(1, value));
-  const fmt = value => {
-    if (value === 0) return '0';
-    if (Math.abs(value) < 1e-4) return value.toExponential(2).replace(/e([+-]?\d+)/, (_, exponent) => ' × 10^' + String(Number(exponent)).replace('-', '−'));
-    return String(Number(value.toPrecision(4))).replace('-', '−');
-  };
+  const clamp = (value, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, value));
+  const fmt = value => String(Number(value.toPrecision(4))).replace('-', '−');
   const vector = values => '(' + values.map(fmt).join(', ') + ')';
+
+  function specification(state) {
+    const key = ['squared', 'expectile', 'huber', 'quartic'].includes(state.loss) ? state.loss : 'expectile';
+    const tau = clamp(number(state.tau, .8), .05, .95), delta = clamp(number(state.delta, .25), .05, 2);
+    const name = key === 'squared' ? 'Half-squared error' : key === 'expectile' ? `Asymmetric squared (τ = ${fmt(tau)})` : key === 'huber' ? `Huber (δ = ${fmt(delta)})` : 'Fourth-power error';
+    return { key, tau, delta, name };
+  }
+
+  function pointLoss(e, spec) {
+    if (spec.key === 'expectile') return (e >= 0 ? spec.tau : 1 - spec.tau) * e * e;
+    if (spec.key === 'huber') return Math.abs(e) <= spec.delta ? e * e / 2 : spec.delta * (Math.abs(e) - spec.delta / 2);
+    if (spec.key === 'quartic') return e ** 4 / 4;
+    return e * e / 2;
+  }
+
+  function negativeDerivative(e, spec) {
+    if (spec.key === 'expectile') return 2 * (e >= 0 ? spec.tau : 1 - spec.tau) * e;
+    if (spec.key === 'huber') return clamp(e, -spec.delta, spec.delta);
+    if (spec.key === 'quartic') return e ** 3;
+    return e;
+  }
+
+  const totalLoss = (prediction, spec) => target.reduce((sum, y, i) => sum + pointLoss(y - prediction[i], spec), 0);
 
   function resolve(scene = 0, state = {}) {
     if (scene !== 0) throw new RangeError('Restricted scene must be 0.');
-    const c = clamp(number(state.prediction, 0));
+    const c = clamp(number(state.prediction, 0)), lossSpec = specification(state);
     const prediction = [c, c], residual = M.sub(target, prediction);
-    // Identical predictor values leave no available split. The shared fitter
-    // therefore returns one leaf with the mean of the two residuals.
-    const tree = M.fitStump(x, residual), nextTree = tree.values.slice();
-    const nextPrediction = M.add(prediction, nextTree);
-    const optimalResidual = M.sub(target, optimalPrediction);
-    const norm = M.norm(residual), loss = M.loss(target, prediction);
-    const minLoss = M.loss(target, optimalPrediction), nextLoss = M.loss(target, nextPrediction);
-    return { scene, c, x: x.slice(), target: target.slice(), prediction, residual, gradient: M.scale(residual, -1), tree, nextTree, nextPrediction, optimalPrediction: optimalPrediction.slice(), optimalResidual, norm, loss, minLoss, nextLoss };
+    const negativeGradient = residual.map(e => negativeDerivative(e, lossSpec));
+    const tree = M.fitStump(x, negativeGradient), nextTree = tree.values.slice();
+    const optimalC = lossSpec.key === 'expectile' ? lossSpec.tau : .5;
+    const optimumInterval = lossSpec.key === 'huber' && lossSpec.delta < .5 ? [lossSpec.delta, 1 - lossSpec.delta] : [optimalC, optimalC];
+    // Use the closest optimum when the original loss has a flat minimum. A
+    // prediction already in that interval receives a zero leaf correction.
+    const nextC = clamp(c, ...optimumInterval), nextPrediction = [nextC, nextC];
+    const optimalPrediction = [optimalC, optimalC];
+    const gradientNextPrediction = M.add(prediction, nextTree), rawNextPrediction = [.5, .5];
+    const norm = M.norm(residual), loss = totalLoss(prediction, lossSpec), minLoss = totalLoss(optimalPrediction, lossSpec);
+    return { scene, c, x: x.slice(), target: target.slice(), lossSpec, prediction, residual, negativeGradient, gradient: M.scale(negativeGradient, -1), tree, nextTree,
+      correction: M.sub(nextPrediction, prediction), nextPrediction, gradientNextPrediction, rawNextPrediction, optimalC, optimalPrediction, optimumInterval,
+      optimalResidual: M.sub(target, optimalPrediction), norm, loss, minLoss, nextLoss: totalLoss(nextPrediction, lossSpec), rawNextLoss: totalLoss(rawNextPrediction, lossSpec) };
   }
 
   function readout(scene = 0, state = {}) {
-    const q = resolve(scene, state);
+    const q = resolve(scene, state), interval = q.optimumInterval;
+    const best = interval[0] === interval[1] ? fmt(q.optimalC) : `[${fmt(interval[0])}, ${fmt(interval[1])}]`;
     return [
-      ['Current prediction f = (c, c)', vector(q.prediction), C.blue],
-      ['Negative gradient r = y − f', vector(q.residual), C.rust],
-      ['Next fitted tree h', vector(q.nextTree), C.teal],
-      ['Residual norm; loss ½‖r‖²', `${fmt(q.norm)}; ${fmt(q.loss)}`, C.ink]
+      ['Raw residual y − f', vector(q.residual), C.muted],
+      ['Negative gradient −∇L', vector(q.negativeGradient), C.rust],
+      ['Fitted gradient target h', vector(q.nextTree), C.teal],
+      ['Best c; loss / minimum', `${best}; ${fmt(q.loss)} / ${fmt(q.minLoss)}`, C.ink]
     ];
   }
 
   function presentation(scene = 0, state = {}) {
-    const q = resolve(scene, state), compact = Number.isFinite(state.width) && state.width < 400;
-    const caption = q.c === .5
-      ? compact
-        ? 'At f* = (0.5, 0.5), r is perpendicular to the line. The next tree is zero; loss stays at 0.25.'
-        : 'At f* = (0.5, 0.5), the residual (0.5, −0.5) is perpendicular to every available tree direction. The next tree is zero. The equal-loss circle is tangent to the line, and the minimum attainable loss is 0.25.'
-      : compact
-        ? `Fit h = ${vector(q.nextTree)}. Adding it with α = 1 reaches f* = (0.5, 0.5); loss falls from ${fmt(q.loss)} to 0.25.`
-        : `The fitted tree is h = ${vector(q.nextTree)}, the projection of the current residual onto the line. Adding it with α = 1 reaches f* = (0.5, 0.5), reducing loss from ${fmt(q.loss)} to 0.25. The circle has radius ‖y − f‖.`;
+    const q = resolve(scene, state), atBest = Math.abs(q.loss - q.minLoss) < 1e-12;
+    let caption;
+    if (q.lossSpec.key === 'expectile') caption = atBest
+      ? `At c = τ = ${fmt(q.optimalC)}, the gradient is perpendicular to the diagonal. The fitted gradient is zero; the raw residual generally is not perpendicular.`
+      : `Raw residual fitting goes to c = 0.5. The gradient fit goes to c = τ = ${fmt(q.optimalC)}. Under this loss, those endpoints have losses ${fmt(q.rawNextLoss)} and ${fmt(q.minLoss)}.`;
+    else if (q.lossSpec.key === 'huber' && q.lossSpec.delta < .5) caption = `Every c in [${fmt(q.optimumInterval[0])}, ${fmt(q.optimumInterval[1])}] minimizes this Huber loss. The teal correction reaches the closest point of this flat minimum; a fitted gradient mean need not equal that correction.`;
+    else if (q.lossSpec.key === 'huber') caption = `Huber clips gradient components at ±${fmt(q.lossSpec.delta)}. The fitted mean is ${fmt(q.nextTree[0])}; the original-loss leaf correction is ${fmt(q.correction[0])}. The best shared prediction is 0.5, with minimum loss ${fmt(q.minLoss)}.`;
+    else if (q.lossSpec.key === 'quartic') caption = `Fourth-power loss has negative gradients e³, rather than e. The fitted mean is ${fmt(q.nextTree[0])}; the original-loss leaf correction is ${fmt(q.correction[0])}. The best shared prediction remains 0.5.`;
+    else caption = atBest
+      ? 'At (0.5, 0.5), the residual and gradient are perpendicular to the diagonal. The next fitted tree is zero; minimum loss is 0.25.'
+      : `The residual and negative gradient coincide. Adding the mean residual reaches (0.5, 0.5), reducing half-squared loss from ${fmt(q.loss)} to 0.25.`;
+    if (Number.isFinite(state.width) && state.width < 400) {
+      if (q.lossSpec.key === 'expectile') caption = atBest
+        ? `Gradient fitting stops at c = τ = ${fmt(q.optimalC)}. The raw residual mean need not be zero.`
+        : `Residual fit: c = 0.5, loss ${fmt(q.rawNextLoss)}. Gradient fit: c = ${fmt(q.optimalC)}, loss ${fmt(q.minLoss)}.`;
+      else if (q.lossSpec.key === 'huber') caption = q.optimumInterval[0] !== q.optimumInterval[1]
+        ? `Best c: [${fmt(q.optimumInterval[0])}, ${fmt(q.optimumInterval[1])}]. The teal step reaches the nearest optimum; gradient fitting and leaf correction can differ.`
+        : `Huber clips at ±${fmt(q.lossSpec.delta)}. Gradient mean ${fmt(q.nextTree[0])}; leaf correction ${fmt(q.correction[0])}. Best c = 0.5.`;
+      else if (q.lossSpec.key === 'quartic') caption = `Targets are e³. Gradient mean ${fmt(q.nextTree[0])}; leaf correction ${fmt(q.correction[0])}. Best c = 0.5.`;
+    }
     return { topic: topics[0], caption, readout: readout(scene, state) };
+  }
+
+  // A radial parameterization of a separable convex loss contour about y.
+  // The asymmetric quadratic pieces use their actual quadrant weights.
+  function contourPoint(level, angle, spec) {
+    const a = Math.cos(angle), b = Math.sin(angle);
+    let radius;
+    if (spec.key === 'squared') radius = Math.sqrt(2 * level);
+    else if (spec.key === 'expectile') radius = Math.sqrt(level / ((a > 0 ? 1 - spec.tau : spec.tau) * a * a + (b > 0 ? 1 - spec.tau : spec.tau) * b * b));
+    else if (spec.key === 'quartic') radius = Math.pow(4 * level / (a ** 4 + b ** 4), .25);
+    else {
+      let lo = 0, hi = Math.sqrt(2 * level) + level / spec.delta + spec.delta;
+      for (let i = 0; i < 50; i++) {
+        const middle = (lo + hi) / 2;
+        if (pointLoss(-middle * a, spec) + pointLoss(-middle * b, spec) > level) hi = middle;
+        else lo = middle;
+      }
+      radius = (lo + hi) / 2;
+    }
+    return [target[0] + radius * a, target[1] + radius * b];
   }
 
   const text = (p, value, attributes = '') => `<text x="${p[0]}" y="${p[1]}" ${attributes}>${esc(value)}</text>`;
   const line = (a, b, color, width = 1.3, attributes = '') => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${color}" stroke-width="${width}" ${attributes}/>`;
-  const arrow = (a, b, color, attributes = '') => line(a, b, color, 2.3, `marker-end="url(#restricted-arrow-${color.slice(1)})" ${attributes}`);
-  const styles = `<style>
-.restricted-view{width:100%;height:100%;min-width:0;color:${C.ink};font-family:var(--sans,Arial,sans-serif);font-variant-numeric:tabular-nums}
-.restricted-view svg{display:block;width:100%;height:100%;overflow:visible}
-.restricted-view text{font-size:13px;fill:${C.ink}}
-.restricted-view .rv-small{font-size:12px;fill:${C.muted}}
-.restricted-view .rv-math{font-family:var(--math,'Cambria Math',serif);font-size:16px}
-.restricted-view .rv-label{paint-order:stroke;stroke:white;stroke-width:4px;stroke-linejoin:round}
-.restricted-view.compact text{font-size:12px}
-.restricted-view.compact .rv-small{font-size:11px}
-.restricted-view.compact .rv-math{font-size:14px}
-</style>`;
+  const arrow = (a, b, color, attributes = '') => Math.hypot(b[0] - a[0], b[1] - a[1]) < .25 ? '' : line(a, b, color, 2.3, `marker-end="url(#restricted-arrow-${color.slice(1)})" ${attributes}`);
+  const styles = `<style>.restricted-view{width:100%;height:100%;min-width:0;color:${C.ink};font-family:var(--sans,Arial,sans-serif);font-variant-numeric:tabular-nums}.restricted-view svg{display:block;width:100%;height:100%;overflow:visible}.restricted-view text{font-size:13px;fill:${C.ink}}.restricted-view .rv-small{font-size:12px;fill:${C.muted}}.restricted-view .rv-math{font-family:var(--math,'Cambria Math',serif);font-size:16px}.restricted-view .rv-label{paint-order:stroke;stroke:white;stroke-width:4px;stroke-linejoin:round}.restricted-view.compact text{font-size:12px}.restricted-view.compact .rv-small{font-size:11px}.restricted-view.compact .rv-math{font-size:14px}</style>`;
 
   function plot(q, state, compact) {
-    const W = Math.max(200, number(state.width, compact ? 320 : 620));
-    const H = Math.max(180, number(state.height, compact ? 250 : 430));
-    const domain = [-1.2, 2.2], span = domain[1] - domain[0];
-    const margin = compact ? 24 : 38, top = compact ? 24 : 28, bottom = compact ? 29 : 31;
-    // Both prediction coordinates have the same domain and physical scale.
-    // Thus this circle's pixel radius is the actual residual norm times scale.
+    const W = Math.max(200, number(state.width, compact ? 320 : 620)), H = Math.max(180, number(state.height, compact ? 250 : 430));
+    const domain = [-.3, 1.3], span = domain[1] - domain[0], top = 33, bottom = compact ? 27 : 30, margin = compact ? 28 : 40;
     const scale = Math.min((W - 2 * margin) / span, (H - top - bottom) / span);
     const side = span * scale, left = (W - side) / 2, upper = top + (H - top - bottom - side) / 2;
     const project = p => [left + (p[0] - domain[0]) * scale, upper + (domain[1] - p[1]) * scale];
-    const f = project(q.prediction), y = project(q.target), best = project(q.optimalPrediction);
-    const lo = domain[0], hi = domain[1];
-    const defs = `<defs>${[C.rust, C.teal].map(color => `<marker id="restricted-arrow-${color.slice(1)}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="${color}"/></marker>`).join('')}</defs>`;
-    let body = text([W / 2, 13], 'r = negative gradient; h = fitted tree', 'class="rv-small" text-anchor="middle"');
-    body += `<circle class="restricted-loss-circle" data-radius="${q.norm}" cx="${y[0]}" cy="${y[1]}" r="${q.norm * scale}" fill="none" stroke="${C.rule}" stroke-width="1.3"/>`;
-    body += line(project([lo, 0]), project([hi, 0]), C.faint, 1.1);
-    body += line(project([0, lo]), project([0, hi]), C.faint, 1.1);
+    const f = project(q.prediction), y = project(q.target), best = project(q.nextPrediction), mean = project([.5, .5]);
+    const defs = `<defs><clipPath id="restricted-plot-clip"><rect x="${left}" y="${upper}" width="${side}" height="${side}"/></clipPath>${[C.rust, C.teal, C.muted].map(color => `<marker id="restricted-arrow-${color.slice(1)}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="${color}"/></marker>`).join('')}</defs>`;
+    let body = text([W / 2 - 9, 16], '½(y − f)', `class="rv-small" text-anchor="end" style="fill:${C.muted}"`) + text([W / 2 + 9, 16], '−½∇L', `class="rv-small" style="fill:${C.rust}"`);
+    function contour(level, color, className, dashed = false) {
+      const points = Array.from({ length: 193 }, (_, i) => project(contourPoint(level, i * Math.PI / 96, q.lossSpec)).join(',')).join(' ');
+      return `<polyline class="${className}" data-loss="${level}" points="${points}" fill="none" stroke="${color}" stroke-width="1.5" ${dashed ? 'stroke-dasharray="3 4"' : ''}/>`;
+    }
+    body += '<g clip-path="url(#restricted-plot-clip)">';
+    if (q.loss > q.minLoss + 1e-12) body += contour((q.loss + q.minLoss) / 2, C.faint, 'restricted-intermediate-contour');
+    body += contour(q.loss, C.rust, 'restricted-current-contour', true);
+    body += contour(q.minLoss, C.teal, 'restricted-optimal-contour');
+    body += '</g>';
+    body += line(project([domain[0], 0]), project([domain[1], 0]), C.faint, 1.1) + line(project([0, domain[0]]), project([0, domain[1]]), C.faint, 1.1);
     [0, 1].forEach(value => {
       const px = project([value, 0]), py = project([0, value]);
-      body += line([px[0], px[1] - 3], [px[0], px[1] + 3], C.rule, 1);
-      body += line([py[0] - 3, py[1]], [py[0] + 3, py[1]], C.rule, 1);
+      body += line([px[0], px[1] - 3], [px[0], px[1] + 3], C.rule, 1) + line([py[0] - 3, py[1]], [py[0] + 3, py[1]], C.rule, 1);
       if (value === 1) body += text([px[0], px[1] + 17], '1', 'class="rv-small" text-anchor="middle"') + text([py[0] - 8, py[1] + 4], '1', 'class="rv-small" text-anchor="end"');
     });
-    body += text([project([hi, 0])[0] - 2, project([hi, 0])[1] - 12], 'f(x₁)', 'class="rv-math" text-anchor="end"');
-    body += text([project([0, hi])[0] - 7, project([0, hi])[1] + 5], 'f(x₂)', 'class="rv-math" text-anchor="end"');
-    body += line(project([lo, lo]), project([hi, hi]), C.blue, 2, 'class="restricted-available-line"');
-    body += text([project([1.35, 1.35])[0] - 8, project([1.35, 1.35])[1] - 9], '(c, c)', `class="rv-math rv-label" text-anchor="end" style="fill:${C.blue}"`);
-    // The fixed projection residual shows the irreducible component. It is
-    // perpendicular to the allowed line even when the current f is elsewhere.
-    body += line(best, y, C.rule, 1.3, 'stroke-dasharray="2 4" class="restricted-projection-residual"');
-    const mark = compact ? 7 : 9, unit = Math.SQRT1_2;
-    const along = [unit * mark, -unit * mark], normal = [unit * mark, unit * mark];
-    body += `<path class="restricted-right-angle" d="M${best[0] + along[0]},${best[1] + along[1]}l${normal[0]},${normal[1]}l${-along[0]},${-along[1]}" fill="none" stroke="${C.rule}" stroke-width="1.1"/>`;
-    body += arrow(f, y, C.rust, 'stroke-dasharray="5 4" class="restricted-residual-arrow"');
-    body += text([(f[0] + y[0]) / 2 + 8, (f[1] + y[1]) / 2 + (q.c < .1 ? -10 : 3)], 'r', `class="rv-math rv-label" style="fill:${C.rust}"`);
-    if (q.c !== .5) {
-      body += arrow(f, best, C.teal, 'class="restricted-tree-arrow"');
-      body += text([(f[0] + best[0]) / 2 - 9, (f[1] + best[1]) / 2 - 1], 'h', `class="rv-math rv-label" text-anchor="end" style="fill:${C.teal}"`);
+    body += text([project([domain[1], 0])[0], project([domain[1], 0])[1] - 10], 'f₁', 'class="rv-math" text-anchor="end"') + text([project([0, domain[1]])[0] - 8, project([0, domain[1]])[1] + 5], 'f₂', 'class="rv-math" text-anchor="end"');
+    body += line(project([domain[0], domain[0]]), project([domain[1], domain[1]]), C.blue, 2, 'class="restricted-available-line"');
+    body += text([project([1.18, 1.18])[0] - 8, project([1.18, 1.18])[1]], 'f₁ = f₂', `class="rv-small rv-label" text-anchor="end" style="fill:${C.blue}"`);
+    if (q.optimumInterval[0] !== q.optimumInterval[1]) body += line(project(q.optimumInterval.map(() => q.optimumInterval[0])), project(q.optimumInterval.map(() => q.optimumInterval[1])), C.teal, 7, 'class="restricted-optimal-segment"');
+    const residualEnd = project(M.add(q.prediction, M.scale(q.residual, .5))), gradientEnd = project(M.add(q.prediction, M.scale(q.negativeGradient, .5)));
+    body += arrow(f, residualEnd, C.muted, 'stroke-dasharray="3 4" class="restricted-residual-arrow"');
+    body += arrow(f, gradientEnd, C.rust, 'class="restricted-gradient-arrow"');
+    body += arrow(f, best, C.teal, 'class="restricted-tree-arrow"');
+    if (q.lossSpec.key === 'expectile' && q.lossSpec.tau !== .5) {
+      body += `<circle class="restricted-mean" cx="${mean[0]}" cy="${mean[1]}" r="4" fill="white" stroke="${C.muted}" stroke-width="1.5"/>`;
+      body += text([mean[0] + 8, mean[1] + 20], compact ? 'mean' : 'residual fit', 'class="rv-small rv-label"');
     }
-    body += `<rect class="restricted-projection restricted-optimum" data-values="${q.optimalPrediction.join(',')}" data-pixel-x="${best[0]}" data-pixel-y="${best[1]}" x="${best[0] - 4}" y="${best[1] - 4}" width="8" height="8" fill="white" stroke="${C.blue}" stroke-width="1.6"/>`;
+    body += `<rect class="restricted-optimum" data-values="${q.nextPrediction.join(',')}" data-pixel-x="${best[0]}" data-pixel-y="${best[1]}" x="${best[0] - 4}" y="${best[1] - 4}" width="8" height="8" fill="white" stroke="${C.teal}" stroke-width="1.6"/>`;
     body += `<circle class="restricted-current" data-values="${q.prediction.join(',')}" cx="${f[0]}" cy="${f[1]}" r="4.5" fill="${C.blue}" stroke="white" stroke-width="1.5"/>`;
     body += `<path class="restricted-target" data-values="${q.target.join(',')}" data-pixel-x="${y[0]}" data-pixel-y="${y[1]}" d="M${y[0]},${y[1] - 6}l6,6l-6,6l-6,-6Z" fill="${C.rust}" stroke="white" stroke-width="1.5"/>`;
-    body += text([y[0] + 10, y[1] + 20], compact ? 'y' : 'y = (1, 0)', `class="rv-math rv-label" style="fill:${C.rust}"`);
-    if (q.c === .5) {
-      body += text([best[0] - 10, best[1] - 13], 'f = f*', `class="rv-math rv-label" text-anchor="end" style="fill:${C.blue}"`);
-      body += text([best[0] - 10, best[1] + 19], 'h = 0', `class="rv-small rv-label" text-anchor="end" style="fill:${C.teal}"`);
-    } else {
-      body += text([best[0] - 10, best[1] - 13], 'f*', `class="rv-math rv-label" text-anchor="end" style="fill:${C.blue}"`);
-      body += text([f[0] - 8, f[1] + 19], 'f', `class="rv-math rv-label" text-anchor="end" style="fill:${C.blue}"`);
-    }
-    body += text([W / 2, H - 5], 'Equal-loss circle centred at y; radius ‖r‖', 'class="rv-small" text-anchor="middle"');
-    const description = `${presentation(0, state).caption} The horizontal and vertical axes are the predictions for observations 1 and 2. Both observations have x = 1, so the available prediction vectors satisfy f(x₁) = f(x₂). Target y is (1, 0). Current f is ${vector(q.prediction)}, negative gradient is ${vector(q.residual)}, and next fitted tree is ${vector(q.nextTree)}. The optimal prediction is (0.5, 0.5). Both axes use the same scale.`;
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="restricted-title restricted-description" data-geometry="two-observation-prediction-space" data-x-domain="${domain.join(',')}" data-y-domain="${domain.join(',')}" data-scale="${scale}" data-units-per-pixel="${1 / scale}"><title id="restricted-title">${esc(topics[0])}</title><desc id="restricted-description">${esc(description)}</desc>${defs}${body}</svg>`;
+    body += text([y[0] + 9, y[1] - 10], compact ? 'y' : 'y = (0, 1)', `class="rv-math rv-label" style="fill:${C.rust}"`);
+    body += text([best[0] - 9, best[1] - 11], Math.abs(q.loss - q.minLoss) < 1e-12 ? 'f = f*' : 'f*', `class="rv-math rv-label" text-anchor="end" style="fill:${C.teal}"`);
+    if (Math.abs(q.loss - q.minLoss) >= 1e-12) body += text([f[0] - 8, f[1] + 19], 'f', `class="rv-math rv-label" text-anchor="end" style="fill:${C.blue}"`);
+    body += text([W / 2, H - 5], compact ? 'Dashed: current loss · Teal: minimum on diagonal' : 'Dashed contour: current loss · Teal contour: best attainable loss', 'class="rv-small" text-anchor="middle"');
+    const description = `${q.lossSpec.name}. ${presentation(0, state).caption} Two observations (x,y)=(1,0) and (1,1) constrain every prediction to the diagonal. Current prediction ${vector(q.prediction)}, raw residual ${vector(q.residual)}, negative gradient ${vector(q.negativeGradient)}, fitted gradient target ${vector(q.nextTree)}, and loss-optimal leaf correction ${vector(q.correction)}. Gradient and raw residual arrows are drawn at half their numerical lengths. Contours show total selected loss; only their portion in the displayed window is visible. Both axes have the same physical scale.`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="restricted-title restricted-description" data-geometry="two-observation-prediction-space" data-x-domain="${domain.join(',')}" data-y-domain="${domain.join(',')}" data-scale="${scale}" data-units-per-pixel="${1 / scale}" data-arrow-scale="0.5"><title id="restricted-title">${esc(topics[0])}</title><desc id="restricted-description">${esc(description)}</desc>${defs}${body}</svg>`;
   }
 
   function render(scene = 0, state = {}, compact = false) {
     const q = resolve(scene, state);
-    const attributes = {
-      'restricted-scene': scene, c: q.c, x: JSON.stringify(q.x), target: JSON.stringify(q.target), prediction: JSON.stringify(q.prediction),
-      residual: JSON.stringify(q.residual), gradient: JSON.stringify(q.gradient), 'next-tree': JSON.stringify(q.nextTree),
-      'next-prediction': JSON.stringify(q.nextPrediction), 'optimal-prediction': JSON.stringify(q.optimalPrediction),
-      norm: q.norm, loss: q.loss, 'min-loss': q.minLoss, 'next-loss': q.nextLoss
-    };
+    const attributes = { 'restricted-scene': scene, c: q.c, loss: q.loss, 'loss-key': q.lossSpec.key, tau: q.lossSpec.tau, delta: q.lossSpec.delta,
+      x: JSON.stringify(q.x), target: JSON.stringify(q.target), prediction: JSON.stringify(q.prediction), residual: JSON.stringify(q.residual), gradient: JSON.stringify(q.gradient),
+      'negative-gradient': JSON.stringify(q.negativeGradient), 'next-tree': JSON.stringify(q.nextTree), correction: JSON.stringify(q.correction),
+      'next-prediction': JSON.stringify(q.nextPrediction), 'optimal-prediction': JSON.stringify(q.optimalPrediction), 'optimum-interval': JSON.stringify(q.optimumInterval),
+      norm: q.norm, 'min-loss': q.minLoss, 'next-loss': q.nextLoss };
     return `${styles}<div class="restricted-view${compact ? ' compact' : ''}" ${Object.entries(attributes).map(([key, value]) => `data-${key}="${esc(value)}"`).join(' ')}>${plot(q, state, compact)}</div>`;
   }
 
-  return { render, readout, presentation, topics, resolve };
+  return { render, readout, presentation, topics, resolve, specification, pointLoss, negativeDerivative, totalLoss, contourPoint };
 });
