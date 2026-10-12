@@ -16,13 +16,33 @@ dependencies.
 - `story.js` renders SVG scenes, follows the narrative while scrolling, and
   handles the experiment controls. Previous/Next buttons also navigate scenes;
   left/right arrow keys work when focus is outside an interactive control.
+- `worked-example.js` builds the appended four-observation calculation from
+  section 1.4.3 of the boosting notes. It uses the shared stump-fitting module
+  without changing the earlier geometric example or the published tree page.
+- `worked-view.js` shows the four observed responses, prediction gradients,
+  candidate split tables, and two cumulative model updates.
 - `style.css` follows the course design guide. The existing STIX math font is
   loaded from the Shapley explainer's local font asset.
 
-The worked example uses `x = [1, 2, 3]`, `y = [1, -1, 1]`, an explicit zero
+The earlier geometric example uses `x = [1, 2, 3]`, `y = [1, -1, 1]`, an explicit zero
 baseline, and learning rate 0.5. Each next stump is fit to freshly computed
 residuals. Ties select the first sorted candidate threshold. Slider paths
 recompute all trees when the learning rate changes.
+
+The appended worked section uses `x = [1, 2, 3, 4]`, `y = [0, 2, 1, 5]`, and
+the mean prediction `f0 = 2`. With learning rate 1, its two stumps split at
+3.5 and then 1.5, and total half-squared loss falls from 7 to 1 to 1/3.
+The gradient has four entries because it differentiates the four predictions,
+holding observed inputs and responses fixed. Candidate tables report the SSE
+for fitting the current residuals; this differs from the model's half-squared
+loss. Shared leaf corrections can worsen an individual prediction while
+improving the aggregate objective.
+
+Selecting learning rate 0.5 rebuilds both rounds from the mean baseline and
+fits the second tree to its newly computed residuals. The loss sequence becomes
+7, 5/2, and 11/8. The second round has an exact tie between splits 1.5 and 3.5;
+the shared fitting routine deterministically chooses 1.5, the first sorted
+threshold. The two-round states, trees, and candidate rows are immutable.
 
 The three-axis picture is an orthographic projection of prediction vectors.
 Axes correspond to training observations, not input features. Its apparent
@@ -46,11 +66,13 @@ Run these commands from the repository root:
 ```sh
 node --check docs/shared/boosting-math.js
 node --check unpublished/boosting/story.js
+node --check unpublished/boosting/worked-example.js
+node --check unpublished/boosting/worked-view.js
 node --test tests/*.test.mjs
 ```
 
 For visual review, inspect a wide desktop viewport and a narrow phone viewport,
-scroll through all twelve scenes, use both sliders and the rate selector, and
+scroll through every scene, use both sliders and the rate selectors, and
 check keyboard navigation and reduced-motion settings. The text remains
 readable without JavaScript. The plot has a dynamic accessible description
 and equivalent numerical readouts.

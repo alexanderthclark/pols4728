@@ -1,6 +1,8 @@
 (function () {
   'use strict';
   const M = window.BoostingMath;
+  const E = window.WorkedBoostingExample;
+  const W = window.WorkedBoostingView;
   const $ = id => document.getElementById(id);
   const svg = $('space');
   const stage = document.querySelector('.stage-shell');
@@ -30,6 +32,8 @@
   let animation = 0;
   let displayed = { pred: zero, local: zero };
   let scrollPending = false;
+  let navigationTarget = null;
+  const exampleState = { rate: 1, process: 1, candidateIndex: null };
 
   const fmt = (n, places = 2) => Math.abs(n) < 0.00001 ? '0' : Number(n.toFixed(places)).toString().replace('-', '−');
   const vector = v => '(' + v.map(n => fmt(n, 3)).join(', ') + ')';
@@ -88,6 +92,7 @@
     return { pred, local: scene === 6 || scene === 7 ? worked[1].pred : zero };
   }
   function updateNumbers(pred = destination().pred, announce = true) {
+    if (scene >= 12) { renderWorked(announce); return; }
     if (scene === 0) readout([['Inputs', 'x = (1, 2, 3)'], ['Observed outcomes', 'y = (1, −1, 1)', colors.rust]]);
     else if (scene === 1) readout([['Prediction vector', 'F = (F(x₁), F(x₂), F(x₃))']]);
     else if (scene === 2) readout([['Target y', vector(target), colors.rust], ['Initial loss ½‖y − F₀‖²', '1.5']]);
@@ -255,24 +260,76 @@
   }
   function render() {
     if (scene === 0) return;
+    if (scene >= 12) { renderWorked(); return; }
     if (scene === 10) drawAngle();
     else drawSpace(displayed.pred, displayed.local);
+  }
+  function renderWorked(announce = true) {
+    const localScene = scene - 12;
+    const container = $('worked-diagram');
+    const bounds = $('visual-area').getBoundingClientRect();
+    const state = { ...exampleState, width: bounds.width, height: bounds.height };
+    container.innerHTML = W.render(localScene, state, mobile());
+    readout(W.readout(localScene, state));
+    if (announce) {
+      const presentation = W.presentation(localScene, state);
+      $('stage-caption').textContent = presentation.caption;
+    }
+    const fitting = localScene === 2 || localScene === 4;
+    const updating = localScene === 3 || localScene === 5;
+    $('worked-cut-label').hidden = !fitting;
+    $('worked-progress-label').hidden = !updating;
+    $('worked-progress').hidden = !updating;
+    $('worked-rate').value = String(exampleState.rate);
+    $('worked-progress').value = String(exampleState.process);
+    $('worked-progress-value').textContent = `${Math.round(100 * exampleState.process)}%`;
+    if (fitting) {
+      const fitted = E.build(exampleState.rate, 2)[localScene === 2 ? 1 : 2];
+      const winner = fitted.candidates.findIndex(row => row.threshold === fitted.tree.threshold);
+      $('worked-cut').value = String(exampleState.candidateIndex === null ? winner : exampleState.candidateIndex);
+    }
+    stage.dataset.rate = exampleState.rate;
+    stage.dataset.updateProgress = exampleState.process;
+  }
+  function animateWorkedUpdate() {
+    const start = performance.now();
+    exampleState.process = reduced.matches ? 1 : 0;
+    renderWorked();
+    if (reduced.matches) return;
+    const tick = now => {
+      const t = Math.min(1, (now - start) / 850);
+      exampleState.process = t * t * (3 - 2 * t);
+      renderWorked(false);
+      if (t < 1) animation = requestAnimationFrame(tick);
+      else { animation = 0; renderWorked(); }
+    };
+    animation = requestAnimationFrame(tick);
   }
   function changeScene(index, animate = true) {
     if (index === scene) return;
     const previous = scene;
     scene = Math.max(0, Math.min(steps.length - 1, index));
     stage.dataset.scene = scene;
-    $('stage-topic').textContent = topics[scene];
-    $('stage-count').textContent = `${String(scene + 1).padStart(2, '0')} / 12`;
+    stage.dataset.example = scene >= 12 ? 'worked' : 'geometry';
+    $('stage-topic').textContent = scene >= 12 ? W.topics[scene - 12] : topics[scene];
+    $('stage-count').textContent = `${String(scene + 1).padStart(2, '0')} / ${steps.length}`;
     $('data-intro').hidden = scene !== 0;
-    svg.toggleAttribute('hidden', scene === 0);
+    svg.toggleAttribute('hidden', scene === 0 || scene >= 12);
+    $('worked-diagram').hidden = scene < 12;
+    $('worked-controls').hidden = scene < 12;
     $('path-controls').hidden = scene !== 9;
     $('angle-controls').hidden = scene !== 10;
     $('previous').disabled = scene === 0;
-    $('next').textContent = scene === 11 ? 'XGBoost' : 'Next';
+    $('next').textContent = scene === steps.length - 1 ? 'XGBoost' : 'Next';
     steps.forEach((step, i) => step.toggleAttribute('data-active', i === scene));
     cancelAnimationFrame(animation);
+    if (scene >= 12) {
+      exampleState.candidateIndex = null;
+      exampleState.process = 1;
+      if (animate && (scene === 15 || scene === 17)) animateWorkedUpdate();
+      else renderWorked();
+      return;
+    }
     const from = displayed, to = destination();
     updateNumbers();
     // Only neighboring narrative steps interpolate. Slider rounds remain exact.
@@ -290,25 +347,45 @@
   }
   function scrollUpdate() {
     scrollPending = false;
+    // A requested scene stays selected while its smooth scroll is in flight.
+    // This also prevents a taller mobile stage from changing the reading line
+    // midway through navigation to or from the worked example.
+    if (navigationTarget && Math.abs(scrollY - navigationTarget.top) <= 2) navigationTarget = null;
     const threshold = mobile() ? stage.getBoundingClientRect().bottom + 65 : window.innerHeight * 0.52;
     let index = 0;
     steps.forEach((step, i) => { if (step.getBoundingClientRect().top <= threshold) index = i; });
-    changeScene(index);
+    if (!navigationTarget) changeScene(index);
     const range = document.documentElement.scrollHeight - innerHeight;
     $('progress').style.width = `${Math.min(100, Math.max(0, scrollY / range * 100))}%`;
   }
   function scrollToStep(index) {
-    if (index >= steps.length) { $('xgboost').scrollIntoView({ behavior: reduced.matches ? 'instant' : 'smooth' }); return; }
+    if (index >= steps.length) { navigationTarget = null; $('xgboost').scrollIntoView({ behavior: reduced.matches ? 'instant' : 'smooth' }); return; }
     index = Math.max(0, index);
-    // Keep the next heading below the pinned figure on narrow screens.
+    // Render the destination before measuring it: worked scenes use a taller
+    // pinned figure on phones. Their headings must begin below that figure.
+    changeScene(index);
     const offset = mobile() ? stage.getBoundingClientRect().height + 64 : 90;
     const y = steps[index].getBoundingClientRect().top + scrollY - offset;
+    navigationTarget = { top: y };
     window.scrollTo({ top: y, behavior: reduced.matches ? 'instant' : 'smooth' });
   }
   $('previous').addEventListener('click', () => scrollToStep(scene - 1));
   $('next').addEventListener('click', () => scrollToStep(scene + 1));
+  document.addEventListener('click', event => {
+    if (event.defaultPrevented || event.button > 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    const link = event.target.closest?.('a[href^="#"]');
+    if (!link) return;
+    const href = link.getAttribute('href');
+    const id = href.slice(1);
+    const index = id === 'story' || id === 'reading' ? 0 : steps.findIndex(step => step.id === id);
+    if (index < 0) { navigationTarget = null; return; }
+    event.preventDefault();
+    window.history?.pushState(null, '', href);
+    scrollToStep(index);
+  });
   document.addEventListener('keydown', event => {
     if (event.altKey || event.ctrlKey || event.metaKey || /^(INPUT|SELECT|TEXTAREA|BUTTON|A|SUMMARY)$/.test(event.target.tagName)) return;
+    if (/^(PageUp|PageDown|Home|End|ArrowUp|ArrowDown|Escape| )$/.test(event.key)) navigationTarget = null;
     const rect = document.querySelector('.story-layout').getBoundingClientRect();
     if (rect.top > 90 || rect.bottom < innerHeight / 2) return;
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
@@ -324,11 +401,47 @@
     displayed = destination(); updateNumbers(); render();
   });
   ['direction-angle', 'length'].forEach(id => $(id).addEventListener('input', drawAngle));
+  $('worked-rate').addEventListener('change', () => {
+    cancelAnimationFrame(animation);
+    exampleState.rate = Number($('worked-rate').value);
+    exampleState.candidateIndex = null;
+    exampleState.process = 1;
+    renderWorked();
+  });
+  $('worked-cut').addEventListener('change', () => {
+    cancelAnimationFrame(animation);
+    exampleState.candidateIndex = Number($('worked-cut').value);
+    renderWorked();
+  });
+  $('worked-progress').addEventListener('input', () => {
+    cancelAnimationFrame(animation);
+    exampleState.process = Number($('worked-progress').value);
+    renderWorked();
+  });
   window.addEventListener('scroll', () => {
     if (!scrollPending) { scrollPending = true; requestAnimationFrame(scrollUpdate); }
   }, { passive: true });
+  ['wheel', 'touchstart'].forEach(type => window.addEventListener(type, () => { navigationTarget = null; }, { passive: true }));
+  window.addEventListener('scrollend', () => {
+    // Cancelling an earlier smooth scroll can dispatch scrollend after a new
+    // navigation starts. Only the new scroll's arrival releases its target.
+    if (navigationTarget && Math.abs(scrollY - navigationTarget.top) <= 2) {
+      navigationTarget = null;
+      scrollUpdate();
+    }
+  });
   new ResizeObserver(() => render()).observe($('visual-area'));
-  window.addEventListener('resize', scrollUpdate);
+  window.addEventListener('resize', () => { navigationTarget = null; scrollUpdate(); });
+  reduced.addEventListener('change', () => {
+    cancelAnimationFrame(animation);
+    if (scene >= 12) { exampleState.process = 1; renderWorked(); }
+    else { displayed = destination(); updateNumbers(); render(); }
+  });
   changeScene(0, false);
   scrollUpdate();
+  const initialId = window.location?.hash?.slice(1);
+  if (initialId) {
+    const initialStep = initialId === 'story' || initialId === 'reading' ? 0 : steps.findIndex(step => step.id === initialId);
+    if (initialStep >= 0) requestAnimationFrame(() => scrollToStep(initialStep));
+  }
 })();

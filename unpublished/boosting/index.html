@@ -7,13 +7,15 @@
   <title>Boosting, one step at a time — POLS 4728</title>
   <link rel="stylesheet" href="style.css">
   <script src="../../docs/shared/boosting-math.js" defer></script>
+  <script src="worked-example.js" defer></script>
+  <script src="worked-view.js" defer></script>
   <script src="story.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#reading">Skip to the explanation</a>
   <header class="masthead">
     <a href="../../docs/">POLS 4728 <span>· ML &amp; AI</span></a>
-    <nav aria-label="Page navigation"><a href="../../docs/trees/">Tree partitions</a><a href="#story">The geometry</a><a href="#xgboost">XGBoost</a></nav>
+    <nav aria-label="Page navigation"><a href="#story">Geometry</a><a href="#worked-data">Worked example</a><a href="#xgboost">XGBoost</a></nav>
   </header>
   <div class="reading-progress" aria-hidden="true"><span id="progress"></span></div>
 
@@ -31,9 +33,10 @@
 
     <div class="story-layout" id="story">
       <aside class="stage-shell" aria-label="Interactive prediction-space diagram">
-        <div class="stage-top"><span id="stage-topic">Three observations</span><span id="stage-count">01 / 12</span></div>
+        <div class="stage-top"><span id="stage-topic">Three observations</span><span id="stage-count">01 / 18</span></div>
         <div class="visual-area" id="visual-area">
           <svg id="space" role="img" aria-labelledby="plot-title plot-description"></svg>
+          <div id="worked-diagram" class="worked-diagram" hidden aria-label="Four-observation worked example"></div>
           <div class="data-intro" id="data-intro">
             <table>
               <caption>A small regression problem</caption>
@@ -54,34 +57,40 @@
           <div><label for="direction-angle">Angle of h to residual <output id="angle-value" for="direction-angle">120°</output></label><input id="direction-angle" type="range" min="0" max="180" step="1" value="120"></div>
           <div><label for="length">Relative step length <output id="length-value" for="length">0.50</output></label><input id="length" type="range" min="0" max="2.5" step="0.05" value="0.5"></div>
         </div>
+        <div class="controls worked-controls" id="worked-controls" hidden>
+          <label for="worked-rate">Learning rate α <select id="worked-rate"><option value="1" selected>1</option><option value="0.5">1/2</option></select></label>
+          <label for="worked-cut" id="worked-cut-label" hidden>Inspect split <select id="worked-cut"><option value="0">1.5</option><option value="1">2.5</option><option value="2">3.5</option></select></label>
+          <label for="worked-progress" id="worked-progress-label" hidden>Correction added <output id="worked-progress-value" for="worked-progress">100%</output></label>
+          <input id="worked-progress" type="range" min="0" max="1" step="0.01" value="1" hidden>
+        </div>
         <p class="stage-caption" id="stage-caption" aria-live="polite"></p>
         <div class="stage-nav"><button id="previous" type="button" disabled>Previous</button><span>Scroll or use the buttons</span><button id="next" type="button">Next</button></div>
       </aside>
 
       <article class="narrative" id="reading">
         <section class="step" id="observations" data-step="0" aria-labelledby="heading-0"><div>
-          <p class="step-number">01 / 12</p><h2 id="heading-0">Begin with three observations</h2>
+          <p class="step-number">01 / 18</p><h2 id="heading-0">Begin with three observations</h2>
           <p>Suppose we want to predict these three outcomes from a single input <i>x</i>. Each model gives us three predictions: one for each observation.</p>
           <p>To understand boosting, we will put those predictions into a new coordinate system.</p>
-          <p>If you came from <a href="../../docs/trees/">the partition explainer</a>, notice the change: we now study prediction space, with one coordinate per observation. This page starts a new worked example.</p>
+          <p>If you came from <a href="../../docs/trees/">the partition explainer</a>, notice the change: we now study prediction space, with one coordinate per observation. The opening geometry uses three observations; a later <a href="#worked-data">worked example</a> connects it to the arithmetic of fitting trees.</p>
           <p class="quiet">We treat the outcomes as numerical regression targets throughout this example.</p>
         </div></section>
 
         <section class="step" id="coordinates" data-step="1" aria-labelledby="heading-1"><div>
-          <p class="step-number">02 / 12</p><h2 id="heading-1">One observation, one axis</h2>
+          <p class="step-number">02 / 18</p><h2 id="heading-1">One observation, one axis</h2>
           <p>The first coordinate records our prediction for observation 1. The second records our prediction for observation 2. The third records our prediction for observation 3.</p>
           <p>These axes measure predictions. The input values <i>x</i> tell a model how to predict; they are not the axes of this picture.</p>
           <p class="quiet">With <i>n</i> training observations, this space has <i>n</i> coordinates.</p>
         </div></section>
 
         <section class="step" id="target" data-step="2" aria-labelledby="heading-2"><div>
-          <p class="step-number">03 / 12</p><h2 id="heading-2">The outcomes give us a destination</h2>
+          <p class="step-number">03 / 18</p><h2 id="heading-2">The outcomes give us a destination</h2>
           <p>Place the observed outcomes at <span class="math">y = (1, −1, 1)</span>. A model that predicts all three outcomes exactly reaches this point.</p>
           <p>For squared-error loss, getting closer to this target means reducing training error. The target stays in the same place throughout the story.</p>
         </div></section>
 
         <section class="step" id="weak-learner" data-step="3" aria-labelledby="heading-3"><div>
-          <p class="step-number">04 / 12</p><h2 id="heading-3">A simple tree points partway there</h2>
+          <p class="step-number">04 / 18</p><h2 id="heading-3">A simple tree points partway there</h2>
           <p>Start with the zero function, <span class="math">F₀(x) = 0</span>. Fit a tree with just one split to the outcomes. This stump separates the first observation from the other two.</p>
           <p>Its leaves predict their respective means: 1 on the left and 0 on the right. Its prediction vector is <span class="math">h₁ = (1, 0, 0)</span>.</p>
           <p>That vector misses the target, but it supplies a useful direction.</p>
@@ -89,35 +98,35 @@
         </div></section>
 
         <section class="step" id="small-step" data-step="4" aria-labelledby="heading-4"><div>
-          <p class="step-number">05 / 12</p><h2 id="heading-4">Take a small step</h2>
+          <p class="step-number">05 / 18</p><h2 id="heading-4">Take a small step</h2>
           <p>Use a learning rate of <span class="math">α = ½</span>. Add half of the tree’s prediction to the current model.</p>
           <p class="equation math">F₁ = F₀ + ½h₁</p>
           <p>The tree supplies a direction and a proposed correction. The learning rate scales how much of that correction we use.</p>
         </div></section>
 
         <section class="step" id="remaining" data-step="5" aria-labelledby="heading-5"><div>
-          <p class="step-number">06 / 12</p><h2 id="heading-5">Look at what remains</h2>
+          <p class="step-number">06 / 18</p><h2 id="heading-5">Look at what remains</h2>
           <p>Our ensemble now predicts <span class="math">F₁ = (½, 0, 0)</span>. The outcomes have not moved.</p>
           <p>The dashed arrow connects our new prediction to the target. Its coordinates are the errors still to be corrected:</p>
           <p class="equation math">r₁ = y − F₁ = (½, −1, 1).</p>
         </div></section>
 
         <section class="step" id="recenter" data-step="6" aria-labelledby="heading-6"><div>
-          <p class="step-number">07 / 12</p><h2 id="heading-6">Make this the new origin</h2>
+          <p class="step-number">07 / 18</p><h2 id="heading-6">Make this the new origin</h2>
           <p>Place a local coordinate system at <span class="math">F₁</span>. Seen from here, the target is the remaining displacement <span class="math">y − F₁</span>.</p>
           <p>We give the next tree the same input values, but new targets: these residuals. It learns how to adjust the predictions we already have.</p>
           <p class="quiet">This is a change of viewpoint. Neither the observed outcomes nor the original training inputs change.</p>
         </div></section>
 
         <section class="step" id="next-tree" data-step="7" aria-labelledby="heading-7"><div>
-          <p class="step-number">08 / 12</p><h2 id="heading-7">Fit the next correction</h2>
+          <p class="step-number">08 / 18</p><h2 id="heading-7">Fit the next correction</h2>
           <p>The next stump chooses a different split. It groups the first two residuals together and leaves the third on its own.</p>
           <p>Its leaf means give <span class="math">h₂ = (−¼, −¼, 1)</span>. We place this correction at the ensemble’s current position and again take half the proposed step.</p>
           <p>The previous tree stays fixed. The new tree adds another function.</p>
         </div></section>
 
         <section class="step" id="add-functions" data-step="8" aria-labelledby="heading-8"><div>
-          <p class="step-number">09 / 12</p><h2 id="heading-8">The steps add up</h2>
+          <p class="step-number">09 / 18</p><h2 id="heading-8">The steps add up</h2>
           <p>Two short steps give one ensemble:</p>
           <p class="equation math">F₂ = ½h₁ + ½h₂.</p>
           <p>Adding functions adds their prediction vectors coordinate by coordinate. The path in this picture is the accumulated contribution of the trees.</p>
@@ -125,14 +134,14 @@
         </div></section>
 
         <section class="step" id="repeat" data-step="9" aria-labelledby="heading-9"><div>
-          <p class="step-number">10 / 12</p><h2 id="heading-9">Recompute. Refit. Repeat.</h2>
+          <p class="step-number">10 / 18</p><h2 id="heading-9">Recompute. Refit. Repeat.</h2>
           <p>After each step, recompute the residuals and fit a new stump. Move through the rounds to see the path approach the target.</p>
           <p>A different learning rate changes the residuals left for the next tree, so it can also change which correction that tree learns.</p>
           <p class="quiet">This plot shows training loss. Predictive performance still needs validation, and later rounds can fit noise.</p>
         </div></section>
 
         <section class="step" id="angle" data-step="10" aria-labelledby="heading-10"><div>
-          <p class="step-number">11 / 12</p><h2 id="heading-10">Choose the improving orientation</h2>
+          <p class="step-number">11 / 18</p><h2 id="heading-10">Choose the improving orientation</h2>
           <p>A candidate tree gives us a line through the current prediction. Both <span class="math">h</span> and <span class="math">−h</span> are valid trees: negate every leaf prediction to reverse its direction.</p>
           <p>If <span class="math">h</span> makes an obtuse angle with the residual, use <span class="math">−h</span>. Every nonorthogonal line has an orientation that permits a sufficiently short improving step. At exactly 90°, neither orientation helps.</p>
           <p>Adjust the line and step length in this flat view. The solid arrow automatically uses the improving orientation when one exists; the dashed arrow shows its opposite. Landing inside the circle reduces loss. Even with the correct orientation, a long step can overshoot.</p>
@@ -140,11 +149,67 @@
         </div></section>
 
         <section class="step" id="gradient" data-step="11" aria-labelledby="heading-11"><div>
-          <p class="step-number">12 / 12</p><h2 id="heading-11">That direction is the negative gradient</h2>
+          <p class="step-number">12 / 18</p><h2 id="heading-11">That direction is the negative gradient</h2>
           <p>For half-squared-error loss, the negative gradient points from our current prediction vector to the observed outcomes.</p>
           <div class="equation"><math display="block" aria-label="L of F equals one half the squared norm of y minus F"><mi>L</mi><mo>(</mo><mi mathvariant="bold">F</mi><mo>)</mo><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><msup><mrow><mo>‖</mo><mi mathvariant="bold">y</mi><mo>−</mo><mi mathvariant="bold">F</mi><mo>‖</mo></mrow><mn>2</mn></msup></math></div>
           <p class="equation math">−∇L(F) = y − F.</p>
           <p>We fit a tree to approximate that desired correction, then add a scaled copy to the current function. This is gradient descent in function space, with directions supplied by our weak learners.</p>
+          <p><a href="#worked-data">Work through the tree fitting and prediction updates.</a></p>
+        </div></section>
+
+        <section class="step" id="worked-data" data-step="12" aria-labelledby="heading-12"><div>
+          <p class="step-number">13 / 18</p><h2 id="heading-12">Work through four observations</h2>
+          <p>Now use the example from section 1.4.3 of the boosting notes: one predictor <i>x</i>, with outcomes <span class="math">y = (0, 2, 1, 5)</span> at <span class="math">x = (1, 2, 3, 4)</span>. Squared-error boosting starts at the best constant prediction, the outcome mean:</p>
+          <p class="equation math">F₀(x) = (0 + 2 + 1 + 5) / 4 = 2.</p>
+          <p>The prediction vector is <span class="math">z₀ = (2, 2, 2, 2)</span>, and its total half-squared loss is <span class="math">½(4 + 0 + 1 + 9) = 7</span>. This loss sums over the observations; it is not a mean squared error.</p>
+          <p>There are now four prediction coordinates. The figure returns to the input–response plane, where we can see the cuts and leaf values. Its axes are <i>x</i> and the response; they are different from the prediction coordinates in the earlier geometry.</p>
+          <p class="quiet">The calculations below use α = 1. Changing the example’s learning rate refits both trees to their new residuals; the earlier three-observation example stays at its own rate.</p>
+        </div></section>
+
+        <section class="step" id="worked-gradient" data-step="13" aria-labelledby="heading-13"><div>
+          <p class="step-number">14 / 18</p><h2 id="heading-13">Differentiate with respect to predictions</h2>
+          <p>Write <span class="math">zᵢ = F(xᵢ)</span> and regard the total loss as a function of the four prediction values:</p>
+          <p class="equation math">L(z) = ½ Σᵢ₌₁⁴ (yᵢ − zᵢ)².</p>
+          <p>Hold the observed inputs and outcomes fixed. Changing the prediction <span class="math">zᵢ</span> changes its contribution to the loss, giving</p>
+          <p class="equation math">∂L / ∂zᵢ = zᵢ − yᵢ.</p>
+          <p>For example, the fourth derivative is <span class="math">½ · 2(5 − z₄)(−1) = z₄ − 5</span>. Each partial derivative varies one prediction while holding the other three fixed.</p>
+          <p>At the initial model, the gradient is <span class="math">g₁ = (2, 0, 1, −3)</span>. Its negative gives the residual targets <span class="math">y − z₀ = (−2, 0, −1, 3)</span>. For observation 4, the gradient entry is <span class="math">2 − 5 = −3</span>: increasing that prediction initially reduces loss.</p>
+          <p>The derivative is with respect to a prediction, not the input <i>x</i> or a tree’s split threshold. The next step is to approximate these four desired corrections with a stump.</p>
+        </div></section>
+
+        <section class="step" id="worked-first-fit" data-step="14" aria-labelledby="heading-14"><div>
+          <p class="step-number">15 / 18</p><h2 id="heading-14">Fit the first residual stump</h2>
+          <p>A stump has only one split and two leaf values. For each candidate split, fit the mean residual on each side, then compare <span class="math">Σᵢ(rᵢ − h(xᵢ))²</span>. This is the residual-fitting SSE used to choose the tree.</p>
+          <p>There are three possible training partitions, represented by cuts at 1.5, 2.5, and 3.5. Their fitted SSEs are <span class="math">26/3, 10, and 2</span>. The cut at 3.5 wins.</p>
+          <p class="equation math">Left mean = (−2 + 0 − 1) / 3 = −1;<br>right mean = 3.</p>
+          <p>The fitted correction is <span class="math">h₁ = (−1, −1, −1, 3)</span>. It approximates the negative gradient with two shared leaf corrections. The four residual targets ask for individual changes; a stump cannot supply four independent values.</p>
+          <p class="quiet">Inspect another candidate in the figure to see its leaf means and SSE. This comparison does not replace the fitted winner in the ensemble.</p>
+        </div></section>
+
+        <section class="step" id="worked-first-update" data-step="15" aria-labelledby="heading-15"><div>
+          <p class="step-number">16 / 18</p><h2 id="heading-15">Add the first tree</h2>
+          <p>With <span class="math">α = 1</span>, add the fitted correction to each current prediction:</p>
+          <p class="equation math">z₁ = z₀ + h₁<br>= (2, 2, 2, 2) + (−1, −1, −1, 3)<br>= (1, 1, 1, 5).</p>
+          <p>The new loss is <span class="math">½(1 + 1 + 0 + 0) = 1</span>, down from 7. Observation 2 started with a correct prediction of 2 and now receives 1. The shared correction worsens that individual prediction while improving the aggregate fit.</p>
+          <p>The tree is also a descent direction: <span class="math">g₁·h₁ = −12 &lt; 0</span>. Along it, the exact loss is <span class="math">L(z₀ + αh₁) = 7 − 12α + 6α²</span>, minimized at <span class="math">α = 1</span>. A useful direction still requires an appropriate step size.</p>
+        </div></section>
+
+        <section class="step" id="worked-second-fit" data-step="16" aria-labelledby="heading-16"><div>
+          <p class="step-number">17 / 18</p><h2 id="heading-16">Recompute before fitting tree two</h2>
+          <p>The next tree keeps the same inputs and fits fresh residual targets:</p>
+          <p class="equation math">y − z₁ = (−1, 1, 0, 0).</p>
+          <p>Repeating the candidate comparison now gives SSEs <span class="math">2/3, 2, and 2</span>. The best cut has moved to 1.5. Its left leaf contains −1, while its right leaf predicts <span class="math">(1 + 0 + 0) / 3 = 1/3</span>.</p>
+          <p>The second correction is therefore <span class="math">h₂ = (−1, 1/3, 1/3, 1/3)</span>. Tree one stays fixed; tree two learns what is still missing from the ensemble.</p>
+          <p class="quiet">At α = 1/2 the residuals and second tree differ. The cuts at 1.5 and 3.5 tie; the implementation selects the first cut in increasing order.</p>
+        </div></section>
+
+        <section class="step" id="worked-second-update" data-step="17" aria-labelledby="heading-17"><div>
+          <p class="step-number">18 / 18</p><h2 id="heading-17">Add the second correction</h2>
+          <p>Add tree two with <span class="math">α = 1</span>:</p>
+          <p class="equation math">z₂ = z₁ + h₂<br>= (0, 4/3, 4/3, 16/3).</p>
+          <p>The remaining residuals are <span class="math">(0, 2/3, −1/3, −1/3)</span>, so the total half-squared loss is <span class="math">½(0 + 4/9 + 1/9 + 1/9) = 1/3</span>. Across the two updates, loss falls <span class="math">7 → 1 → 1/3</span>.</p>
+          <p>Observation 4 was exactly right after tree one. It now moves from 5 to <span class="math">16/3</span>, because it shares tree two’s right-leaf correction. Boosting reduces a total loss; it need not improve every observation on every round.</p>
+          <p>The mechanism is the same as in the geometry: compute a negative gradient, approximate it with a fitted tree, add a scaled correction, and recompute. These calculations establish training-loss reductions; performance on new observations still requires validation.</p>
           <p><a href="#xgboost">Continue to XGBoost</a></p>
         </div></section>
       </article>
@@ -170,7 +235,7 @@
         <summary>What the picture does—and does not—represent</summary>
         <p>The three-axis diagram is an orthographic view of an exact three-dimensional prediction space. Apparent lengths and angles depend on perspective; the flat angle experiment uses its own exact two-dimensional geometry. All displayed losses are calculated from the underlying vectors.</p>
         <p>A function is represented here only by its values at the training observations. Two functions can occupy the same point while making different predictions elsewhere. Approaching the training target therefore does not establish generalization. Nor does a sequence of improving steps by itself guarantee that the target is reachable by the chosen learners.</p>
-        <p>The worked example begins at zero and fits deterministic least-squares stumps. It illustrates gradient boosting with squared loss, not all of XGBoost’s training machinery. For classification, the additive function often represents a score such as log odds; probability predictions require the corresponding link function.</p>
+        <p>The three-observation geometry begins at zero; the four-observation worked example begins at the outcome mean. Both fit deterministic least-squares stumps. They illustrate gradient boosting with squared loss, not all of XGBoost’s training machinery. For classification, the additive function often represents a score such as log odds; probability predictions require the corresponding link function.</p>
       </details>
       <div class="sources">
         <h3>Sources and further reading</h3>
