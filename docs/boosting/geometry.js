@@ -31,7 +31,11 @@
   let displayed = { pred: zero, local: zero };
   let scrollPending = false;
 
-  const fmt = (n, places = 2) => Math.abs(n) < 0.00001 ? '0' : Number(n.toFixed(places)).toString().replace('-', '−');
+  const fmt = (n, places = 2) => {
+    if (n === 0) return '0';
+    if (Math.abs(n) < 10 ** -places) return n.toExponential(2).replace(/e([+-]?\d+)/, (_, exponent) => ' × 10^' + String(Number(exponent)).replace('-', '−')).replace('-', '−');
+    return Number(n.toFixed(places)).toString().replace('-', '−');
+  };
   const vector = v => '(' + v.map(n => fmt(n, 3)).join(', ') + ')';
   const lossText = n => n > 0 && n < 0.0001 ? n.toExponential(2).replace('e-', ' × 10^−') : fmt(n, 4);
   function node(tag, attributes = {}, text, parent = svg) {
@@ -270,7 +274,7 @@
     $('path-controls').hidden = scene !== 9;
     $('angle-controls').hidden = scene !== 10;
     $('previous').disabled = scene === 0;
-    $('next').textContent = scene === 11 ? 'XGBoost' : 'Next';
+    $('next').textContent = scene === 11 ? 'Main story' : 'Next';
     steps.forEach((step, i) => step.toggleAttribute('data-active', i === scene));
     cancelAnimationFrame(animation);
     const from = displayed, to = destination();
@@ -298,7 +302,7 @@
     $('progress').style.width = `${Math.min(100, Math.max(0, scrollY / range * 100))}%`;
   }
   function scrollToStep(index) {
-    if (index >= steps.length) { $('xgboost').scrollIntoView({ behavior: reduced.matches ? 'instant' : 'smooth' }); return; }
+    if (index >= steps.length) { window.location.href = 'index.html#worked-data'; return; }
     index = Math.max(0, index);
     // Keep the next heading below the pinned figure on narrow screens.
     const offset = mobile() ? stage.getBoundingClientRect().height + 64 : 90;

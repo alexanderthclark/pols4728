@@ -16,6 +16,11 @@ The [Fall 2026 Python examples](examples/2026f/README.md) accompany the code lis
 
 ## Interactive explanations
 
+The [gradient boosting story](docs/boosting/README.md), linked second on the
+course homepage, connects interactive prediction-space geometry to fitted
+tree corrections. Its identical-input example shows the limits of available
+updates, followed by a four-observation worked calculation.
+
 The [Shapley values story](docs/shapley/README.md) explains majority voting through a gradually built Hasse diagram. An optional six-path view shows where the Shapley weights come from. Its standalone website source is in `docs/shapley/`.
 
 The [local SHAP story](docs/shap/README.md) begins with the Shapley formula and

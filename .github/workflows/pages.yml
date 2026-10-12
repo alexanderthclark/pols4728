@@ -5,14 +5,12 @@ on:
     paths:
       - 'docs/**'
       - 'tests/**'
-      - 'unpublished/boosting/**'
       - '.github/workflows/pages.yml'
   pull_request:
     branches: [main]
     paths:
       - 'docs/**'
       - 'tests/**'
-      - 'unpublished/boosting/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -47,7 +45,12 @@ jobs:
           node --check docs/shap/formula.js
           node --check docs/shap/bread-peace.js
           node --check docs/shared/boosting-math.js
-          node --check unpublished/boosting/story.js
+          node --check docs/boosting/story.js
+          node --check docs/boosting/prediction-view.js
+          node --check docs/boosting/restricted-view.js
+          node --check docs/boosting/worked-example.js
+          node --check docs/boosting/worked-view.js
+          node --check docs/boosting/geometry.js
           node --check docs/trees/model.js
           node --check docs/trees/delivery.js
           node --check docs/trees/delivery-view.js
