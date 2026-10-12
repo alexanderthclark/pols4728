@@ -47,8 +47,8 @@ sub, sup { line-height: 0; }
 .title-content { width: 100%; max-width: 1100px; }
 .eyebrow { margin: 0 0 22px; color: var(--muted); font: 12px/1.5 var(--sans); letter-spacing: .13em; }
 .title-page h1 { max-width: 21ch; margin: 0 auto 18px; font-size: clamp(42px, 5.4vw, 72px); line-height: 1.06; letter-spacing: -.035em; }
-.title-art { display: block; width: min(100%, 650px); max-height: 29svh; margin: 28px auto 14px; overflow: visible; }
-.title-art-label { fill: var(--muted); font: 14px var(--sans); }
+.title-art { width: min(100%, 820px); margin: 20px auto 6px; }
+.title-art svg, .title-art img { display: block; width: 100%; height: auto; max-height: 34svh; overflow: visible; }
 .start-link { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; padding: 6px; font: 15px/1.5 var(--sans); }
 
 /* The graph and empty scroll markers share one column and one grid row. */
@@ -181,7 +181,7 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20
   .masthead, .story-layout, .reading-progress, .start-link, .skip-link, .no-script { display: none !important; }
   .title-page { min-height: 0; padding: 20px; }
   .title-page h1 { font-size: 38px; }
-  .title-art { width: 450px; }
+  .title-art { width: min(100%, 450px); }
   .afterword { padding-top: 36px; }
   footer { font-size: 12px; }
 }
