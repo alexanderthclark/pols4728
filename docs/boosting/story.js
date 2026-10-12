@@ -12,10 +12,12 @@
   const mobile = () => window.matchMedia('(max-width: 800px)').matches;
   const exampleState = { rate: 1, process: 1, candidateIndex: null, round: 8 };
   const geometryState = { round: 0, rate: 0.5, progress: 1 };
-  const restrictedState = { prediction: 0.5, loss: 'squared', tau: 0.8, delta: 0.25, progress: 0 };
+  const restrictedState = { prediction: 0.5, loss: 'squared', tau: 0.8, delta: 0.25, progress: 1 };
+  const openingDurations = { 1: 1200, 2: 1400, 3: 1700, 4: 2600, 5: 3600, 6: 3200, 7: 2400 };
   const lossState = { loss: 'huber', dataset: 'outlier', delta: 1, tau: 0.8, rate: 0.5, round: 0 };
   let scene = -1;
   let animation = 0;
+  let restrictedDestination = null;
   let scrollPending = false;
   let navigationTarget = null;
   let mobileLayout = mobile();
@@ -45,18 +47,22 @@
     if (scene < 0) return;
     const current = localScene();
     const index = current.index;
+    stage.dataset.opening = String(current.restricted);
+    $('stage-tools').hidden = current.restricted;
+    $('opening-annotation').hidden = !current.restricted;
+    $('opening-replay').hidden = !current.restricted || !openingDurations[index];
     // Controls change the available plot space, especially on a narrow screen.
     // Set their visibility before measuring the figure.
     $('geometry-controls').hidden = !current.geometry;
     $('geometry-tree-controls').hidden = !current.geometry || index !== 1;
     $('prediction-diagram').hidden = !current.geometry;
-    $('restricted-controls').hidden = !current.restricted;
+    $('restricted-controls').hidden = !current.restricted || index !== 8;
     $('restricted-diagram').hidden = !current.restricted;
     $('worked-diagram').hidden = current.geometry || current.restricted || current.loss;
     $('worked-controls').hidden = current.geometry || current.restricted || current.loss || index === 7;
     $('loss-diagram').hidden = !current.loss;
     $('loss-controls').hidden = !current.loss;
-    const hideNumbers = !current.geometry && !current.restricted && !current.loss && index === 7;
+    const hideNumbers = current.restricted || (!current.geometry && !current.loss && index === 7);
     $('vector-readout').hidden = hideNumbers;
     $('numbers').hidden = hideNumbers;
     if (current.loss) {
@@ -88,30 +94,26 @@
     delete stage.dataset.lossScene;
     delete stage.dataset.loss;
     if (current.restricted) {
-      $('restricted-loss').value = restrictedState.loss;
-      $('restricted-loss-equation').innerHTML = R.equation(restrictedState, index);
-      $('restricted-loss-equation').hidden = index < 2;
-      $('restricted-progression-controls').hidden = ![3, 5, 6].includes(index);
-      $('restricted-sandbox-controls').hidden = index !== 7;
-      $('restricted-progress').value = String(restrictedState.progress);
-      $('restricted-progress-value').textContent = `${Math.round(100 * restrictedState.progress)}%`;
-      $('restricted-play').textContent = restrictedState.progress === 1 ? 'Replay update' : 'Play update';
-      $('restricted-tau').value = String(restrictedState.tau);
-      $('restricted-tau-value').textContent = String(Number(restrictedState.tau.toFixed(2)));
-      $('restricted-weights').textContent = `Underpredict ×${Number(restrictedState.tau.toFixed(2))} · Overpredict ×${Number((1 - restrictedState.tau).toFixed(2))}`;
-      $('restricted-delta').value = String(restrictedState.delta);
-      $('restricted-tau-controls').hidden = restrictedState.loss !== 'expectile';
-      $('restricted-delta-label').hidden = restrictedState.loss !== 'huber';
-      $('restricted-prediction').value = String(restrictedState.prediction);
-      $('restricted-prediction-value').textContent = String(Number(restrictedState.prediction.toFixed(2)));
+      document.querySelectorAll('[data-restricted-loss]').forEach(button => {
+        button.setAttribute('aria-pressed', String(button.dataset.restrictedLoss === restrictedState.loss));
+      });
       const bounds = $('visual-area').getBoundingClientRect();
       const state = { ...restrictedState, width: bounds.width, height: bounds.height };
       $('restricted-diagram').innerHTML = R.render(index, state, mobile());
-      readout(R.readout(index, state));
       $('stage-caption').textContent = R.presentation(index, state).caption;
+      const annotation = R.annotation(index, state);
+      const note = $('opening-annotation');
+      const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+      note.innerHTML = `${annotation.caption ? `<p>${escape(annotation.caption)}</p>` : ''}${annotation.equation ? `<div class="math">${annotation.equation}</div>` : ''}`;
+      const p = restrictedState.progress;
+      const opacity = index === 6 ? Math.max(0, Math.min(1, p / .12, (1 - p) / .18)) : 1;
+      note.style.opacity = String(opacity);
+      note.style.transform = `translateY(${(1 - opacity) * 14}px)`;
+      note.hidden = index === 6 && p === 1;
+      if (announce) $('opening-status').textContent = annotation.status;
       stage.dataset.rate = 1;
       stage.dataset.sharedPrediction = R.resolve(index, state).prediction[0];
-      stage.dataset.loss = index < 5 ? 'squared' : index < 7 ? 'expectile' : restrictedState.loss;
+      stage.dataset.loss = index < 6 ? 'squared' : index < 8 ? 'expectile' : restrictedState.loss;
       stage.dataset.restrictedScene = index;
       delete stage.dataset.geometryScene;
       delete stage.dataset.workedScene;
@@ -177,6 +179,7 @@
     $('stage-caption').setAttribute('aria-live', 'polite');
     cancelAnimationFrame(animation);
     animation = 0;
+    restrictedDestination = null;
   }
 
   function animateUpdate() {
@@ -196,16 +199,34 @@
 
   function animateRestrictedUpdate() {
     cancelUpdate();
+    const current = localScene();
+    const duration = openingDurations[current.index];
+    if (!current.restricted || !duration) return;
     const start = performance.now();
     restrictedState.progress = reduced.matches ? 1 : 0;
     $('stage-caption').setAttribute('aria-live', reduced.matches ? 'polite' : 'off');
     render();
     if (reduced.matches) return;
     const tick = now => {
-      const t = Math.min(1, (now - start) / 1800);
+      const t = Math.min(1, (now - start) / duration);
       restrictedState.progress = t * t * (3 - 2 * t);
       if (t < 1) { render(false); animation = requestAnimationFrame(tick); }
       else { animation = 0; $('stage-caption').setAttribute('aria-live', 'polite'); render(); }
+    };
+    animation = requestAnimationFrame(tick);
+  }
+
+  function animateRestrictedPrediction(destination) {
+    cancelUpdate();
+    const from = restrictedState.prediction, start = performance.now();
+    if (reduced.matches) { restrictedState.prediction = destination; render(); return; }
+    restrictedDestination = destination;
+    const tick = now => {
+      const t = Math.min(1, (now - start) / 1600), eased = t * t * (3 - 2 * t);
+      restrictedState.prediction = from + (destination - from) * eased;
+      render(t === 1);
+      if (t < 1) animation = requestAnimationFrame(tick);
+      else { animation = 0; restrictedDestination = null; }
     };
     animation = requestAnimationFrame(tick);
   }
@@ -229,8 +250,9 @@
       if (animate && (current.index === 3 || current.index === 5)) animateUpdate();
       else render();
     } else if (current.restricted) {
-      if ([3, 5, 6].includes(current.index)) restrictedState.progress = 0;
-      render();
+      restrictedState.progress = 1;
+      if (animate && openingDurations[current.index]) animateRestrictedUpdate();
+      else render();
     } else render();
   }
 
@@ -239,10 +261,9 @@
     // Keep an explicitly requested scene selected until its scroll arrives.
     if (navigationTarget && Math.abs(scrollY - navigationTarget.top) <= 2) navigationTarget = null;
     const stageBounds = stage.getBoundingClientRect();
-    // On a phone, navigation brings the static figure into view. Keep that
-    // chosen scene while it is visible; reading below it can select new scenes.
-    if (!navigationTarget && (!mobile() || stageBounds.bottom <= 64)) {
-      const threshold = mobile() ? window.innerHeight * 0.35 : stageBounds.bottom + 32;
+    // The figure stays pinned at every size; entering a card starts its reveal.
+    if (!navigationTarget) {
+      const threshold = stageBounds.bottom + 32;
       let index = 0;
       steps.forEach((step, i) => { if (step.getBoundingClientRect().top <= threshold) index = i; });
       changeScene(index);
@@ -260,9 +281,7 @@
     index = Math.max(0, index);
     changeScene(index);
     const bounds = stage.getBoundingClientRect();
-    const requested = mobile()
-      ? bounds.top + scrollY - 64
-      : steps[index].getBoundingClientRect().top + scrollY - bounds.height - 74;
+    const requested = steps[index].getBoundingClientRect().top + scrollY - bounds.height - 74;
     // Browsers clamp scroll destinations to the available document range.
     const top = Math.max(0, Math.min(document.documentElement.scrollHeight - innerHeight, requested));
     navigationTarget = { top };
@@ -332,39 +351,22 @@
     render();
   });
 
-  $('restricted-play').addEventListener('click', animateRestrictedUpdate);
-  $('restricted-progress').addEventListener('input', () => {
-    cancelUpdate();
-    restrictedState.progress = Math.max(0, Math.min(1, Number($('restricted-progress').value)));
-    render();
-  });
-  $('restricted-prediction').addEventListener('input', () => {
-    restrictedState.prediction = Math.max(0, Math.min(1, Number($('restricted-prediction').value)));
-    render();
-  });
+  $('opening-replay').addEventListener('click', animateRestrictedUpdate);
   $('restricted-fit').addEventListener('click', () => {
-    restrictedState.prediction = R.resolve(7, restrictedState).nextPrediction[0];
-    render();
+    animateRestrictedPrediction(R.resolve(8, restrictedState).nextPrediction[0]);
   });
   $('restricted-reset').addEventListener('click', () => {
-    restrictedState.prediction = 0;
-    render();
+    animateRestrictedPrediction(0);
   });
   $('restricted-mean').addEventListener('click', () => {
-    restrictedState.prediction = 0.5;
-    render();
+    animateRestrictedPrediction(0.5);
   });
-  $('restricted-loss').addEventListener('change', () => {
-    restrictedState.loss = $('restricted-loss').value;
-    render();
-  });
-  $('restricted-tau').addEventListener('input', () => {
-    restrictedState.tau = Math.max(0.05, Math.min(0.95, Number($('restricted-tau').value)));
-    render();
-  });
-  $('restricted-delta').addEventListener('change', () => {
-    restrictedState.delta = Number($('restricted-delta').value);
-    render();
+  document.querySelectorAll('[data-restricted-loss]').forEach(button => {
+    button.addEventListener('click', () => {
+      cancelUpdate();
+      restrictedState.loss = button.dataset.restrictedLoss;
+      render();
+    });
   });
 
   $('geometry-round').addEventListener('input', () => {
@@ -414,9 +416,11 @@
   });
   reduced.addEventListener('change', () => {
     const wasAnimating = animation !== 0;
+    const destination = restrictedDestination;
     cancelUpdate();
     exampleState.process = 1;
     if (wasAnimating && localScene().restricted) restrictedState.progress = 1;
+    if (destination !== null) restrictedState.prediction = destination;
     render();
   });
   window.addEventListener('popstate', () => {

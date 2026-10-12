@@ -1,10 +1,10 @@
 # Gradient Boosting
 
-A scrollytelling chapter about gradient boosting. After the title, eight scenes
+A scrollytelling chapter about gradient boosting. After the title, nine scenes
 build one two-observation example: zero predictions, the residual vector,
-the identical-input update constraint, an animated MSE residual update,
+the identical-input update constraint, equal-MSE contours, the fitted update,
 orthogonality, a changed loss, negative-gradient targets, and a loss playground.
-Each visual idea appears in a separate step. Gradient terminology enters only after asymmetric loss exposes a
+Scrolling into a step starts its animation. Gradient terminology enters only after asymmetric loss exposes a
 limitation of raw residual fitting. Two three-observation vector scenes follow,
 then eight scenes developing the four-observation example from sections
 1.4.2–1.4.3 of the boosting notes. Four later scenes compare squared error,
@@ -12,12 +12,17 @@ Huber loss, and asymmetric squared loss through targets, splits, leaf values,
 and fitted paths. The chapter closes with exponential loss and a brief XGBoost
 extension. The longer geometry sequence remains available as a companion.
 
-The figure occupies the full story width, with a compact controls tray on
-desktop and stacked controls on phones. Each chapter has a short summary;
+The opening figure occupies the full story width with sparse floating
+annotations, no right-hand pane, no sliders, and no numerical disclosure.
+A brief fixed asymmetric-loss equation floats in during the contour change,
+then disappears. Loss buttons and three animated prediction actions support
+the final playground. Later examples retain their controls tray. Each chapter has a short summary;
 the original explanation and equations remain under “Why this works.”
 “Show numbers” reveals the numerical vectors without shrinking the plot.
-Desktop scrolling follows the cards beneath the pinned figure. Phone links
-and Previous/Next return to the figure, which scrolls naturally with the page.
+Scrolling follows the cards beneath the pinned figure at every viewport size.
+Later phone scenes use a smaller plot and a scrollable controls tray so navigation
+remains visible. Previous/Next and keyboard arrows also enter each animation;
+a small Replay button repeats it. Reduced motion shows each endpoint directly.
 
 The chapter is the second item on the course homepage. GitHub Pages publishes
 it from `docs/boosting/` after the checks pass on `main`.
@@ -28,7 +33,7 @@ No build step or external JavaScript dependencies are required.
 
 - `index.html` contains the main explanation, numerical example, controls,
   general algorithm, and loss comparison.
-- `story.js` follows twenty-two narrative steps and handles vector experiments,
+- `story.js` follows twenty-three narrative steps and handles vector experiments,
   split inspection, update progress, learning rate, later rounds, and navigation.
 - `prediction-view.js` restores the three-observation vector picture and fitted
   correction. Its reusable equal-loss circle renderer remains available outside
@@ -87,27 +92,33 @@ on new observations.
 The opening uses `x = [1, 1]` and `y = [1, 0]`. It first shows only the zero
 predictions and observed outcomes, then adds the full residual `(1, 0)`.
 The next step introduces the constraint: identical inputs reach the same tree
-leaf, so any update is `(a, a)` and lies on the 45-degree line. The fitted
-midpoint and loss contours appear only in the following step.
+leaf, so any update is `(a, a)` and lies on the 45-degree line. Equal-MSE circles
+appear in their own step while the predictions remain at zero; the following
+animation fits the residual mean.
 Starting at `(0, 0)`, fitting the residual mean
 adds `(0.5, 0.5)`. MSE is `0.5*((1-f1)^2+f2^2)`, falling from 0.5 to 0.25.
 At `(0.5, 0.5)`, the residual `(0.5, -0.5)` is perpendicular to the diagonal;
 the next residual fit is zero. A right-angle mark and tangent equal-MSE contour
-show the geometric condition.
+show the geometric condition. A separate ghost prediction probes both directions
+along the diagonal and returns to the midpoint. Its loss obeys
+`MSE(c,c) = 0.25 + (c-0.5)^2`, so every nonzero shared adjustment worsens MSE.
 
-The next scene changes only the loss. Asymmetric squared loss with τ = 0.8
+The next scene changes only the loss. Predictions remain at `(0.5,0.5)` and
+residuals at `(0.5,-0.5)` throughout. The contours morph continuously from MSE
+to asymmetric squared loss with τ = 0.8, and the optimum marker moves along the
+diagonal. The equation uses fixed coefficients rather than a general τ control.
+Asymmetric squared loss with τ = 0.8
 charges underprediction four times as much as overprediction. The best shared
 prediction moves to `(0.8, 0.8)`, with loss 0.16 rather than 0.25. Only after
 this counterexample does the following scene introduce the negative gradient:
 at `(0.5, 0.5)` it is `(0.8, -0.2)`, whose mean 0.3 supplies a useful correction.
 At the optimum it is `(0.32, -0.32)`, perpendicular to the diagonal, while the
-raw residual `(0.2, -0.8)` is not. Progress sliders and replay buttons expose
-both updates. Each scene waits at its starting prediction until Play is pressed
-or its progress slider is moved, with reduced-motion support.
+raw residual `(0.2, -0.8)` is not. Both fitted updates animate on scene entry;
+the changed-loss step keeps the prediction fixed to isolate the objective.
 
-The final opening scene provides MSE, asymmetric squared loss with continuous
-τ, Huber δ in {0.1, 0.25, 0.5, 1}, and fourth-power error `e^4/4`. Its initial
-state is MSE at `(0.5, 0.5)`. The equation beside the plot follows the selected
+The final opening scene provides MSE, fixed asymmetric squared loss with
+τ = 0.8, Huber δ = 0.25, and fourth-power error `e^4/4`. Its initial
+state is MSE at `(0.5, 0.5)`. A brief floating equation follows the selected
 loss. For `0 ≤ c ≤ 1`, asymmetric loss is `τ(1-c)^2 + (1-τ)c^2`, minimized at
 `c = τ`. When Huber δ < 0.5, the entire interval `[δ, 1-δ]` is optimal; the
 loss-optimal correction chooses the closest point and preserves an optimum.
