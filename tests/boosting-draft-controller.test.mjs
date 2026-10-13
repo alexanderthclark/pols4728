@@ -6,6 +6,7 @@ import test from 'node:test';
 
 const require = createRequire(import.meta.url);
 const math = require('../docs/shared/boosting-math.js');
+const typography = require('../docs/shared/svg-math.js');
 const example = require('../docs/boosting/worked-example.js');
 const view = require('../docs/boosting/worked-view.js');
 const restricted = require('../docs/boosting/restricted-view.js');
@@ -48,6 +49,7 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
     }
     setAttribute(name, value) { this.attrs.set(name, String(value)); if (name === 'hidden') this.hidden = true; }
     getAttribute(name) { return this.attrs.get(name); }
+    removeAttribute(name) { this.attrs.delete(name); }
     toggleAttribute(name, enabled = !this.attrs.has(name)) {
       if (enabled) this.attrs.set(name, ''); else this.attrs.delete(name);
       if (name === 'hidden') this.hidden = enabled;
@@ -56,8 +58,8 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
     appendChild(child) { this.children.push(child); return child; }
     append(...children) { this.children.push(...children); }
     replaceChildren(...children) { this.children = children; this._text = ''; }
-    set textContent(value) { this._text = String(value); this.children = []; }
-    get textContent() { return this._text + this.children.map(child => child.textContent).join(' '); }
+    set textContent(value) { this._text = String(value); this.children = []; this.innerHTML = ''; }
+    get textContent() { return this.innerHTML && this.attrs.has('aria-label') ? this.attrs.get('aria-label') : this._text + this.children.map(child => child.textContent).join(' '); }
     getBoundingClientRect() { return { top: 64, bottom: 800, width: 640, height: 450 }; }
   }
   const nodes = new Map();
@@ -104,7 +106,7 @@ function setup({ reducedMotion = false, compact = false, variableStageHeight = f
   const reduced = new Element(); reduced.matches = reducedMotion;
   const narrow = new Element(); narrow.matches = compact;
   Object.assign(win, {
-    BoostingMath: math, WorkedBoostingExample: example, WorkedBoostingView: view, RestrictedBoostingView: restricted, LossBoostingView: lossView,
+    BoostingMath: math, SvgMath: typography, WorkedBoostingExample: example, WorkedBoostingView: view, RestrictedBoostingView: restricted, LossBoostingView: lossView,
     innerHeight: 800, innerWidth: compact ? 320 : 1200, scrollY: 0,
     location: { hash },
     matchMedia: query => query.includes('reduced-motion') ? reduced : narrow,
@@ -199,7 +201,7 @@ const restrictedVisibleWords = ui => [
   ...[...ui.get('restricted-diagram').innerHTML.matchAll(/<(?:title|desc|text)\b[^>]*>([\s\S]*?)<\/(?:title|desc|text)>/g)].map(match => match[1]),
   ui.get('stage-caption').textContent, numbers(ui)
 ].join(' ');
-const restrictedAnnotation = (ui, className) => new RegExp(`<text\\b[^>]*class="[^"]*\\b${className}\\b[^"]*"[^>]*>([\\s\\S]*?)<\\/text>`).exec(ui.get('restricted-diagram').innerHTML)?.[1];
+const restrictedAnnotation = (ui, className) => new RegExp(`<text\\b[^>]*class="[^"]*\\b${className}\\b[^"]*"[^>]*>([\\s\\S]*?)<\\/text>`).exec(ui.get('restricted-diagram').innerHTML)?.[1]?.replace(/<[^>]+>/g, '');
 
 const openingDurations = { 1: 1200, 2: 1400, 3: 1700, 4: 2600, 5: 3600, 6: 5000, 7: 1800, 8: 2600, 9: 18000 };
 const finishOpening = ui => ui.advance(openingDurations[Number(ui.shell.dataset.restrictedScene)] || 0);
@@ -1207,4 +1209,36 @@ test('loss controls refit the compared paths and persist across narrative scenes
   assert.equal(ui.get('loss-round').value, '24');
   assert.equal(ui.get('loss-choice').value, 'expectile');
   assert.equal(ui.get('worked-controls').hidden, true);
+});
+
+test('native readouts retain precise values and update accessible captions on scene changes', () => {
+  const ui = setup({ reducedMotion: true });
+  ui.scrollAt(workedPhysical(5));
+  assert.match(ui.get('stage-caption').innerHTML, /<math/);
+  assert.match(ui.get('stage-caption').innerHTML, /<mfrac>/);
+  assert.match(ui.get('vector-readout').children[0].children[1].innerHTML, /<math/);
+  ui.scrollAt(lossPhysical(2));
+  assert.match(ui.get('stage-caption').innerHTML, /<munder><mo>∑<\/mo>/);
+  assert.match(ui.get('stage-caption').getAttribute('aria-label'), /Minimize Σℓ/);
+  ui.scrollAt(transitionPhysical);
+  assert.equal(ui.get('stage-caption').getAttribute('aria-label'), undefined);
+  assert.equal(ui.get('stage-caption').textContent, '');
+  ui.scrollAt(sandboxPhysical);
+  assert.match(ui.get('stage-caption').getAttribute('aria-label'), /At \(0\.5, 0\.5\), the residual/);
+  assert.match(ui.get('stage-caption').innerHTML, /<math/);
+  assert.ok(ui.get('stage-caption').textContent.length > 0);
+});
+
+test('opening status and floating captions typeset corrections without changing announced values', () => {
+  const ui = setup({ reducedMotion: true });
+  ui.scrollAt(2);
+  assert.match(ui.get('opening-status').innerHTML, /<mi>h<\/mi><mo>=<\/mo>.*<mi>a<\/mi>/);
+  assert.equal(ui.get('opening-status').getAttribute('aria-label'), 'Same x → same correction h = (a, a)');
+  ui.scrollAt(gradientFitPhysical);
+  assert.match(ui.get('opening-annotation').innerHTML, /<mi>h<\/mi><mo stretchy="false">\(<\/mo><mi>x<\/mi>/);
+  assert.match(ui.get('opening-status').innerHTML, /<mfrac>/);
+  assert.equal(ui.get('opening-status').getAttribute('aria-label'), 'h(1) = 0.3 · α = ½ · Next predictions = (0.65, 0.65)');
+  ui.scrollAt(transitionPhysical);
+  assert.equal(ui.get('opening-status').getAttribute('aria-label'), undefined);
+  assert.equal(ui.get('opening-status').textContent, 'Scroll to continue');
 });

@@ -1,4 +1,4 @@
-@font-face{font-family:'Course Math';src:url('../shapley/fonts/STIXTwoMath-Regular.ttf') format('truetype');font-display:swap}
+@font-face{font-family:'Course Math';src:url('../shared/fonts/latinmodern-math.otf') format('opentype');font-display:swap}
 :root{--ink:#242424;--blue:#234e70;--rust:#a54f32;--teal:#007f73;--muted:#606060;--rule:#767676;--light-rule:#ddd;--paper:#fff;--sans:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--serif:Georgia,'Times New Roman',serif;color-scheme:light}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:74px}
@@ -274,3 +274,7 @@ footer{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;border
   .stage-shell[data-opening='true']{display:none}
   .step[data-restricted-scene]{min-height:0;padding:24px 0}
 }
+
+/* Keep mathematical spacing independent of heading and control typography. */
+math{font-size:1em;letter-spacing:normal;font-weight:400}
+.equation,.xgb-equation{max-width:100%;overflow-x:auto;overflow-y:hidden;padding-block:.15em}.equation math,.xgb-equation math{max-width:100%}

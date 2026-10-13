@@ -5,6 +5,20 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const E = require('../docs/boosting/loss-example.js');
 const V = require('../docs/boosting/loss-view.js');
+const N = require('../docs/shared/svg-math.js').notation;
+
+test('loss captions and readout fragments lay out indexed sums without converting surrounding prose', () => {
+  const state = { loss: 'huber', dataset: 'outlier', round: 24 };
+  const caption = N.parts(V.presentation(2, state).captionParts);
+  assert.match(caption, /<munder><mo>∑<\/mo><mrow><mi>i<\/mi>/);
+  assert.match(caption, /<msub><mi>y<\/mi><mrow><mi>i<\/mi>/);
+  assert.match(caption, /<msub><mi>F<\/mi><mrow><mn>24<\/mn>/);
+  assert.doesNotMatch(caption, /<mn>i<\/mn>/);
+  const raw = V.readout(0, state), fragments = V.readoutNotation(0, state);
+  assert.equal(fragments.length, raw.length);
+  assert.match(N.parts(fragments[0].valueParts), /<math/);
+  assert.ok(V.presentation(2, state).caption.includes('Σℓ(yᵢ'));
+});
 
 test('split comparisons use the same predictions, including the last selected round', () => {
   const options = { loss: 'huber', dataset: 'outlier', rate: .5, round: 24, width: 288, height: 220 };

@@ -1,6 +1,7 @@
 (function () {
   'use strict';
   const E = window.WorkedBoostingExample;
+  const T = window.SvgMath;
   const W = window.WorkedBoostingView;
   const R = window.RestrictedBoostingView;
   const L = window.LossBoostingView;
@@ -20,13 +21,20 @@
   let navigationTarget = null;
   let mobileLayout = mobile();
 
-  function readout(items) {
-    $('vector-readout').replaceChildren(...items.map(([name, value, color]) => {
+  function readout(items, notation=[]) {
+    $('vector-readout').replaceChildren(...items.map(([name, value, color],index) => {
       const group = document.createElement('div');
       const title = document.createElement('span');
       const number = document.createElement('span');
-      title.className = 'readout-label'; title.textContent = name;
-      number.className = 'value'; number.textContent = value;
+      title.className = 'readout-label';
+      number.className = 'value';
+      if(notation[index]){
+        T.notation.setParts(title,notation[index].nameParts,name);
+        T.notation.setParts(number,notation[index].valueParts,String(value));
+      }else{
+        T.setText(title, document, name);
+        T.setText(number, document, value, { italic: false });
+      }
       if (color) number.style.color = color;
       group.append(title, number);
       return group;
@@ -65,8 +73,12 @@
     if (current.transition) {
       stage.dataset.transitionScene = index;
       for (const key of ['lossScene', 'restrictedScene', 'sharedPrediction', 'descentPhase', 'workedScene', 'updateProgress', 'loss', 'rate', 'round']) delete stage.dataset[key];
+      $('stage-caption').removeAttribute('aria-label');
       $('stage-caption').textContent = '';
-      if (announce) $('opening-status').textContent = 'Scroll to continue';
+      if (announce) {
+        $('opening-status').removeAttribute('aria-label');
+        $('opening-status').textContent = 'Scroll to continue';
+      }
       return;
     }
     if (current.loss) {
@@ -82,8 +94,8 @@
       const bounds = $('visual-area').getBoundingClientRect();
       const state = { ...lossState, width: bounds.width, height: bounds.height };
       $('loss-diagram').innerHTML = L.render(index, state, mobile());
-      readout(L.readout(index, state));
-      if (announce) $('stage-caption').textContent = L.presentation(index, state).caption;
+      readout(L.readout(index, state),L.readoutNotation(index,state));
+      if (announce){const presentation=L.presentation(index,state);T.notation.setParts($('stage-caption'),presentation.captionParts,presentation.caption);}
       stage.dataset.lossScene = index;
       stage.dataset.loss = lossState.loss;
       stage.dataset.rate = lossState.rate;
@@ -104,20 +116,21 @@
       const bounds = $('visual-area').getBoundingClientRect();
       const state = { ...restrictedState, width: bounds.width, height: bounds.height };
       $('restricted-diagram').innerHTML = R.render(index, state, mobile());
-      $('stage-caption').textContent = R.presentation(index, state).caption;
+      const presentation = R.presentation(index, state);
+      T.notation.setParts($('stage-caption'), presentation.captionParts, presentation.caption);
       const resolved = R.resolve(index, state);
       const annotation = R.annotation(index, state);
       const note = $('opening-annotation');
       note.dataset.lossEquation = String(Boolean(annotation.equation));
       const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
       const roundLabel = index === 9 ? `<span class="opening-round">${resolved.phase === 'complete' ? '6 updates complete' : `Round ${resolved.round + 1} of 6`}</span>` : '';
-      note.innerHTML = `${roundLabel}${annotation.caption ? `<p>${escape(annotation.caption)}</p>` : ''}${annotation.equation ? `<div class="math">${annotation.equation}</div>` : ''}`;
+      note.innerHTML = `${roundLabel}${annotation.caption ? `<p aria-label="${escape(annotation.caption)}">${T.notation.parts(annotation.captionParts)}</p>` : ''}${annotation.equation ? `<div class="math">${annotation.equation}</div>` : ''}`;
       const p = restrictedState.progress;
       const opacity = index === 6 ? Math.max(0, Math.min(1, p / .12, (1 - p) / .18)) : 1;
       note.style.opacity = String(opacity);
       note.style.transform = `translateY(${(1 - opacity) * 14}px)`;
       note.hidden = index === 6 && p === 1;
-      if (announce) $('opening-status').textContent = annotation.status;
+      if (announce) T.notation.setParts($('opening-status'), annotation.statusParts, annotation.status);
       stage.dataset.rate = resolved.learningRate ?? 1;
       stage.dataset.sharedPrediction = resolved.prediction[0];
       stage.dataset.loss = resolved.lossSpec.key;
@@ -153,8 +166,11 @@
     const bounds = $('visual-area').getBoundingClientRect();
     const state = { ...exampleState, width: bounds.width, height: bounds.height };
     $('worked-diagram').innerHTML = W.render(index, state, mobile());
-    readout(W.readout(index, state));
-    if (announce) $('stage-caption').textContent = W.presentation(index, state).caption;
+    readout(W.readout(index, state), W.readoutNotation(index, state));
+    if (announce) {
+      const presentation = W.presentation(index, state);
+      T.notation.setParts($('stage-caption'), presentation.captionParts, presentation.caption);
+    }
     stage.dataset.rate = exampleState.rate;
     stage.dataset.updateProgress = exampleState.process;
     stage.dataset.round = exampleState.round;

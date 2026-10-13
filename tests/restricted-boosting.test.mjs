@@ -1,3 +1,4 @@
+import { svgMathText } from './svg-math-text.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -6,6 +7,7 @@ import test from 'node:test';
 
 const require = createRequire(import.meta.url);
 const math = require('../docs/shared/boosting-math.js');
+const typography = require('../docs/shared/svg-math.js');
 const view = require('../docs/boosting/restricted-view.js');
 const close = (actual, expected, tolerance = 1e-9) => assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} should equal ${expected}`);
 const vectorClose = (actual, expected, tolerance) => {
@@ -23,6 +25,23 @@ const displayedFraction = html => {
 };
 const displayedPower = html => Number(/<msup><mi>r<\/mi><mn>(\d+)<\/mn><\/msup>/.exec(html)?.[1]);
 const indexedPowers = html => [...html.matchAll(/<msubsup><mi>r<\/mi><mn>(\d+)<\/mn><mn>(\d+)<\/mn><\/msubsup>/g)].map(match => ({ index: Number(match[1]), exponent: Number(match[2]) }));
+
+test('opening captions and status provide native tuple, correction, and power notation alongside raw summaries', () => {
+  const N = typography.notation;
+  const first = view.presentation(0);
+  assert.match(N.parts(first.captionParts), /<mi>y<\/mi><mo>=<\/mo>.*<mn>1<\/mn><mo>,<\/mo><mn>0<\/mn>/);
+  assert.match(N.parts(view.presentation(1).captionParts), /<mi>r<\/mi><mo>=<\/mo><mi>y<\/mi><mo>−<\/mo><mi>f<\/mi><mo>=<\/mo>/);
+  const fitted = view.presentation(8), fittedCaption = N.parts(fitted.captionParts);
+  assert.match(fittedCaption, /<mfrac>.*<mi>h<\/mi><mo stretchy="false">\(<\/mo><mi>x<\/mi>/);
+  assert.match(N.parts(view.annotation(8).statusParts), /<mi>α<\/mi><mo>=<\/mo><mfrac>/);
+  const quartic = N.parts(view.presentation(11, { loss: 'quartic', prediction: .2 }).captionParts);
+  assert.match(quartic, /<msup><mi>r<\/mi><mrow><mn>3<\/mn>/);
+  assert.match(quartic, /, rather than <math/);
+  assert.match(quartic, /The fitted mean is /);
+  assert.doesNotMatch(quartic.replace(/aria-label="[^"]*"/g, ''), /½|³/);
+  assert.ok(fitted.caption.includes('½h(x)'));
+  assert.equal(view.annotation(2).status, 'Same x → same correction h = (a, a)');
+});
 
 // A projection is a full least-squares fit of the target vector onto the
 // available corrections. Its geometry is independent of the reveal animation
@@ -109,9 +128,9 @@ test('the opening reveals only outcomes and starting predictions', () => {
   assert.equal(q.lossSpec.key, 'squared');
   close(q.loss, .5);
   const html = view.render();
-  assert.doesNotMatch(html, /class="restricted-available-line"/);
-  assert.match(html, /observed y = \(1, 0\)/);
-  assert.doesNotMatch(html, /gradient|∇|diagonal|correction|MSE|class="restricted-optimum"|class="restricted-residual-arrow"|\(0\.5, 0\.5\)/i);
+  assert.doesNotMatch(svgMathText(html), /class="restricted-available-line"/);
+  assert.match(svgMathText(html), /observed y = \(1, 0\)/);
+  assert.doesNotMatch(svgMathText(html), /gradient|∇|diagonal|correction|MSE|class="restricted-optimum"|class="restricted-residual-arrow"|\(0\.5, 0\.5\)/i);
   assert.doesNotMatch(view.presentation().caption, /gradient|∇/i);
 });
 
@@ -132,9 +151,9 @@ test('the residual appears before any fitted update or restriction on the update
     close(Number(arrow.y2), Number(target['data-pixel-y']));
     close((Number(arrow.x2) - Number(arrow.x1)) / Number(svg['data-scale']), 1);
     close(Number(arrow.y2) - Number(arrow.y1), 0);
-    assert.match(html, /restricted-residual-label[^>]*>r = \(1, 0\)<\/text>/);
-    assert.match(html, /restricted-prediction-label[^>]*>f = \(0, 0\)<\/text>/);
-    assert.doesNotMatch(html, /restricted-available-line|restricted-tree-arrow|restricted-optimum|restricted-.*contour|diagonal|45°|MSE|\(0\.5, 0\.5\)/);
+    assert.match(svgMathText(html), /restricted-residual-label[^>]*>r = \(1, 0\)<\/text>/);
+    assert.match(svgMathText(html), /restricted-prediction-label[^>]*>f = \(0, 0\)<\/text>/);
+    assert.doesNotMatch(svgMathText(html), /restricted-available-line|restricted-tree-arrow|restricted-optimum|restricted-.*contour|diagonal|45°|MSE|\(0\.5, 0\.5\)/);
   }
   assert.equal(view.equation(state, 0), '');
   assert.equal(view.equation(state, 1), '');
@@ -157,20 +176,20 @@ test('the identical-input restriction reveals a true 45-degree update line befor
     const angle = attributes(/<path\b[^>]*class="restricted-update-angle"[^>]*>/.exec(html)[0]);
     assert.equal(angle['data-angle-degrees'], '45');
     assert.match(angle.d, /A[^ ]+ 0 0 0/);
-    assert.match(html, /restricted-update-angle-label[^>]*>45°<\/text>/);
-    assert.match(html, />h₁ = h₂<\/text>/);
+    assert.match(svgMathText(html), /restricted-update-angle-label[^>]*>45°<\/text>/);
+    assert.match(svgMathText(html), />h₁ = h₂<\/text>/);
     assert.match(view.presentation(2, state).caption, /x = 1/);
     assert.match(view.presentation(2, state).caption, /same correction/);
     assert.match(view.presentation(2, state).caption, /45° line/);
-    assert.doesNotMatch(html, /restricted-tree-arrow|restricted-optimum|restricted-.*contour|MSE|\(0\.5, 0\.5\)/);
+    assert.doesNotMatch(svgMathText(html), /restricted-tree-arrow|restricted-optimum|restricted-.*contour|MSE|\(0\.5, 0\.5\)/);
   }
   assert.equal(view.equation({}, 2), '');
   assert.match(view.annotation(2).status, /Same x → same correction h = \(a, a\)/);
   for (let scene = 0; scene <= 6; scene++) {
     const html = view.render(scene);
-    assert.doesNotMatch(html, /gradient|∇/i);
+    assert.doesNotMatch(svgMathText(html), /gradient|∇/i);
     assert.doesNotMatch(JSON.stringify(view.presentation(scene)), /gradient|∇/i);
-    if (scene < 3) assert.doesNotMatch(html, /data-(?:next|optimal|correction|min-loss|negative-gradient)/);
+    if (scene < 3) assert.doesNotMatch(svgMathText(html), /data-(?:next|optimal|correction|min-loss|negative-gradient)/);
   }
   assert.match(view.render(7), /restricted-gradient-arrow/);
 });
@@ -192,7 +211,7 @@ test('scroll reveal draws the residual and shared-update line without moving pre
         close(Number(diagonal.opacity), progress);
         close(Number(diagonal.x2) - Number(diagonal.x1), Number(diagonal.y1) - Number(diagonal.y2));
       }
-      assert.doesNotMatch(html, /restricted-optimum|restricted-tree-arrow|restricted-.*contour/);
+      assert.doesNotMatch(svgMathText(html), /restricted-optimum|restricted-tree-arrow|restricted-.*contour/);
     }
   }
 });
@@ -216,7 +235,7 @@ test('MSE contours reveal before fitting and remain exact equal-loss circles', (
         close(Math.hypot(prediction[0] - 1, prediction[1]), Math.sqrt(2 * level));
       }
     }
-    assert.doesNotMatch(html, /restricted-optimum|restricted-tree-arrow|restricted-destination-label|data-(?:optimal|next|correction)/);
+    assert.doesNotMatch(svgMathText(html), /restricted-optimum|restricted-tree-arrow|restricted-destination-label|data-(?:optimal|next|correction)/);
   }
 });
 
@@ -231,13 +250,13 @@ test('a separate trial moves away from the midpoint and increases MSE without mo
     assert.ok(q.trialLoss >= q.loss);
     close(Number(dataValue(html, 'trial-loss')), q.trialLoss);
     vectorClose(JSON.parse(dataValue(html, 'trial-prediction')), q.trialPrediction);
-    assert.match(html, /restricted-right-angle/);
+    assert.match(svgMathText(html), /restricted-right-angle/);
     if (Math.abs(q.trialC - .5) > 1e-8) {
-      assert.match(html, /class="restricted-trial"/);
-      assert.match(html, /class="restricted-trial-contour"/);
+      assert.match(svgMathText(html), /class="restricted-trial"/);
+      assert.match(svgMathText(html), /class="restricted-trial-contour"/);
       assert.ok(q.trialLoss > .25);
-    } else assert.doesNotMatch(html, /class="restricted-trial"/);
-    assert.doesNotMatch(html, /gradient|∇/i);
+    } else assert.doesNotMatch(svgMathText(html), /class="restricted-trial"/);
+    assert.doesNotMatch(svgMathText(html), /gradient|∇/i);
   }
   vectorClose(view.resolve(5, { progress: 0 }).trialPrediction, [.5, .5]);
   vectorClose(view.resolve(5, { progress: 1 }).trialPrediction, [.5, .5]);
@@ -271,7 +290,7 @@ test('loss contours morph while the midpoint and its actual residual stay fixed'
         close(selectedLoss(prediction, { loss: 'expectile', tau }), level);
       }
     }
-    assert.doesNotMatch(html, /gradient|∇/i);
+    assert.doesNotMatch(svgMathText(html), /gradient|∇/i);
     const formula = view.annotation(6, state).equation;
     assert.match(formula, /rᵢ = yᵢ − fᵢ/);
     assert.match(formula, /ℓ\(r\) =/);
@@ -287,7 +306,7 @@ test('compact midpoint residual labels clear the outcomes and stay fixed through
     let residualPosition;
     for (const [scene, progress] of [[5, 0], [5, .25], [5, .75], [6, 0], [6, .25], [6, .5], [6, .75], [6, 1]]) {
       const html = view.render(scene, { progress, width, height: 520 }, true);
-      const labels = [...html.matchAll(/<text\b([^>]*)>([^<]*)<\/text>/g)].map(match => ({ ...attributes(match[1]), text: match[2] }));
+      const labels = [...html.matchAll(/<text\b([^>]*)>([\s\S]*?)<\/text>/g)].map(match => ({ ...attributes(match[1]), text: svgMathText(match[2]) }));
       const residual = labels.find(label => label.class.includes('restricted-residual-label'));
       const outcome = labels.find(label => label.class.includes('restricted-target-label'));
       const position = [Number(residual.x), Number(residual.y)];
@@ -343,8 +362,8 @@ test('the residual animation moves together from zero to the mean and decreases 
     const residualArrow = attributes(/<line\b[^>]*class="restricted-residual-arrow"[^>]*>/.exec(html)[0]);
     const scale = Number(svg['data-scale']);
     vectorClose([(Number(residualArrow.x2) - Number(residualArrow.x1)) / scale, (Number(residualArrow.y1) - Number(residualArrow.y2)) / scale], q.residual);
-    assert.match(html, /class="restricted-progress-path"/);
-    assert.doesNotMatch(html, /gradient|∇/i);
+    assert.match(svgMathText(html), /class="restricted-progress-path"/);
+    assert.doesNotMatch(svgMathText(html), /gradient|∇/i);
   }
   close(lastLoss, .25);
   vectorClose(view.resolve(4, { progress: -10 }).prediction, [0, 0]);
@@ -365,7 +384,7 @@ test('the MSE fit projects the actual residual onto the allowed update line at e
       vectorClose(prediction.map((value, index) => value + projection.fitted[index]), [.5, .5]);
       const optimum = attributes(/<rect\b[^>]*class="restricted-optimum"[^>]*>/.exec(html)[0]);
       vectorClose(projection.projectionFoot, [Number(optimum['data-pixel-x']), Number(optimum['data-pixel-y'])]);
-      assert.doesNotMatch(html, /gradient|∇/i);
+      assert.doesNotMatch(svgMathText(html), /gradient|∇/i);
     }
   }
 });
@@ -378,7 +397,7 @@ test('the residual progression explicitly labels its current values and the fitt
       [1, '(0.5, 0.5)', '(0.5, −0.5)']
     ]) {
       const state = { progress, width, height }, html = view.render(4, state, compact);
-      const labels = [...html.matchAll(/<text\b([^>]*)>([^<]*)<\/text>/g)].map(match => ({ ...attributes(match[1]), text: match[2] }));
+      const labels = [...html.matchAll(/<text\b([^>]*)>([\s\S]*?)<\/text>/g)].map(match => ({ ...attributes(match[1]), text: svgMathText(match[2]) }));
       const predictions = labels.filter(label => label.class.includes('restricted-prediction-label'));
       const residuals = labels.filter(label => label.class.includes('restricted-residual-label'));
       assert.equal(predictions.length, 1, 'Only one label should identify the actual prediction');
@@ -414,10 +433,10 @@ test('orthogonality is visible and the MSE contour is tangent to the constraint'
   close(q.residualMean, 0);
   close(q.loss, .25);
   const html = view.render(5, { width: 900, height: 430 });
-  assert.match(html, /class="restricted-right-angle"[^>]*data-dot-product="0"/);
-  assert.match(html, /90°/);
+  assert.match(svgMathText(html), /class="restricted-right-angle"[^>]*data-dot-product="0"/);
+  assert.match(svgMathText(html), /90°/);
   assert.match(view.presentation(5).caption, /Try moving either way: MSE increases/);
-  assert.doesNotMatch(html, /gradient|∇/i);
+  assert.doesNotMatch(svgMathText(html), /gradient|∇/i);
   // Moving either way along the diagonal increases the actual average error.
   for (const shift of [-.1, -.001, .001, .1]) assert.ok(selectedLoss([.5 + shift, .5 + shift], { loss: 'squared' }) > q.loss);
 });
@@ -549,7 +568,7 @@ test('projection guides appear only after fitting and exclude original-loss leaf
       for (const progress of [0, .5, 1]) {
         for (const loss of ['squared', 'expectile', 'huber', 'quartic']) {
           const html = view.render(scene, { progress, width, height, loss, tau: .8, delta: .25, prediction: .5 }, compact);
-          assert.doesNotMatch(html, /class="restricted-projection-(?:guide|angle)"/, `Scene ${scene} must not imply an unintroduced or different projection`);
+          assert.doesNotMatch(svgMathText(html), /class="restricted-projection-(?:guide|angle)"/, `Scene ${scene} must not imply an unintroduced or different projection`);
         }
       }
     }
@@ -586,8 +605,8 @@ test('six actual fitted-tree updates halve the remaining error without reaching 
   assert.ok(final.prediction[0] < .8);
   assert.match(view.presentation(9, { progress: 1 }).caption, /close to the optimum, not exactly there/);
   const html = view.render(9, { progress: 1 });
-  assert.match(html, /restricted-prediction-label[^>]*>f ≈ \(0\.7953, 0\.7953\)/);
-  assert.doesNotMatch(html, /restricted-prediction-label[^>]*>f = \(0\.8, 0\.8\)/);
+  assert.match(svgMathText(html), /restricted-prediction-label[^>]*>f ≈ \(0\.7953, 0\.7953\)/);
+  assert.doesNotMatch(svgMathText(html), /restricted-prediction-label[^>]*>f = \(0\.8, 0\.8\)/);
 });
 
 test('each round reveals targets, fits once, and keeps that tree frozen during its scaled update', () => {
@@ -614,7 +633,7 @@ test('each round reveals targets, fits once, and keeps that tree frozen during i
       const gradient = attributes(/<line\b[^>]*class="restricted-gradient-arrow"[^>]*>/.exec(html)[0]);
       vectorClose(gradient['data-at-values'].split(',').map(Number), q.targetPrediction);
       vectorClose(gradient['data-values'].split(',').map(Number), q.trainingTargets);
-      if (phase === 'update') assert.match(html, /restricted-target-base/);
+      if (phase === 'update') assert.match(svgMathText(html), /restricted-target-base/);
     }
   }
 });
@@ -624,7 +643,7 @@ test('compact process labels separate the fitted endpoint from the fixed trainin
     for (let round = 0; round < 6; round++) {
       for (const local of [.625, .75, .875]) {
         const html = view.render(9, { progress: (round + local) / 6, width, height: 520 }, true);
-        const labels = [...html.matchAll(/<text\b([^>]*)>([^<]*)<\/text>/g)].map(match => ({ ...attributes(match[1]), text: match[2] }));
+        const labels = [...html.matchAll(/<text\b([^>]*)>([\s\S]*?)<\/text>/g)].map(match => ({ ...attributes(match[1]), text: svgMathText(match[2]) }));
         const fitted = labels.find(label => label.class.includes('restricted-fitted-label'));
         const base = labels.find(label => label.class.includes('restricted-target-base-label'));
         assert.equal(fitted['text-anchor'], 'start');
@@ -650,29 +669,29 @@ test('the exact limit has a nonzero perpendicular gradient and a zero fitted tre
   close(q.residualMean, -.3);
   close(q.loss, .16);
   const html = view.render(10);
-  assert.match(html, /restricted-zero-fit-label[^>]*>h\(x\) = 0/);
-  assert.match(html, /restricted-right-angle[^>]*data-vector="negative-gradient"[^>]*data-dot-product="0"/);
-  assert.match(html, /restricted-prediction-label[^>]*>f = \(0\.8, 0\.8\)/);
-  assert.doesNotMatch(html, /restricted-tree-arrow/);
+  assert.match(svgMathText(html), /restricted-zero-fit-label[^>]*>h\(x\) = 0/);
+  assert.match(svgMathText(html), /restricted-right-angle[^>]*data-vector="negative-gradient"[^>]*data-dot-product="0"/);
+  assert.match(svgMathText(html), /restricted-prediction-label[^>]*>f = \(0\.8, 0\.8\)/);
+  assert.doesNotMatch(svgMathText(html), /restricted-tree-arrow/);
 });
 
 test('early equations display the exact two-point MSE and both axes retain half ticks', () => {
   for (const scene of [3, 4, 5]) {
     const html = view.equation({ loss: 'quartic' }, scene);
-    assert.match(html, /MSE = ½\(r₁² \+ r₂²\)/);
-    assert.match(html, /rᵢ = yᵢ − fᵢ/);
+    assert.match(svgMathText(html), /MSE = ½\(r₁² \+ r₂²\)/);
+    assert.match(svgMathText(html), /rᵢ = yᵢ − fᵢ/);
     const formula = equationPart(html, 'definition');
     close(displayedFraction(formula), .5);
     assert.deepEqual(indexedPowers(formula), [{ index: 1, exponent: 2 }, { index: 2, exponent: 2 }]);
     assert.match(formula, /<mi mathvariant="normal">MSE<\/mi>/);
     assert.match(formula, /<mo stretchy="true">\(<\/mo>/);
-    assert.doesNotMatch(html, /MSE\(c,c\)/);
-    assert.doesNotMatch(html, /ℓ|gradient|∇/i);
+    assert.doesNotMatch(svgMathText(html), /MSE\(c,c\)/);
+    assert.doesNotMatch(svgMathText(html), /ℓ|gradient|∇/i);
   }
   for (let scene = 0; scene <= 11; scene++) {
     const html = view.render(scene);
     assert.equal([...html.matchAll(/>½<\/text>/g)].length, 2);
-    assert.match(html, new RegExp(`<title id="restricted-title">${view.topics[scene]}</title>`));
+    assert.match(svgMathText(html), new RegExp(`<title id="restricted-title">${view.topics[scene]}</title>`));
   }
   assert.throws(() => view.resolve(-1), RangeError);
   assert.throws(() => view.resolve(12), RangeError);
@@ -683,7 +702,7 @@ test('displayed signed-residual equations match each loss for both residual sign
   for (const state of allLosses) {
     const html = view.equation(state, 11), compact = view.annotation(11, state).equation;
     const spec = view.specification(state);
-    assert.match(html, /rᵢ = yᵢ − fᵢ/);
+    assert.match(svgMathText(html), /rᵢ = yᵢ − fᵢ/);
     assert.match(compact, /rᵢ = yᵢ − fᵢ/);
     const formula = equationPart(html, 'definition');
     let displayedPointLoss;
@@ -700,7 +719,7 @@ test('displayed signed-residual equations match each loss for both residual sign
       assert.equal(negativePower, 2);
       assert.equal(positive.condition, '<mi>r</mi><mo>≥</mo><mn>0</mn>');
       assert.equal(negative.condition, '<mi>r</mi><mo>&lt;</mo><mn>0</mn>');
-      assert.match(html, /L = ℓ\(r₁\) \+ ℓ\(r₂\)/);
+      assert.match(svgMathText(html), /L = ℓ\(r₁\) \+ ℓ\(r₂\)/);
       displayedPointLoss = r => r >= 0 ? positiveWeight * r ** positivePower : negativeWeight * r ** negativePower;
     } else if (state.loss === 'huber') {
       const delta = Number(/<mi>δ<\/mi><mo>=<\/mo><mn>([0-9.]+)<\/mn>/.exec(equationPart(html, 'residual'))[1]);
@@ -717,16 +736,16 @@ test('displayed signed-residual equations match each loss for both residual sign
       assert.match(linear.term, /^<mi>δ<\/mi><mrow><mo stretchy="true">\(<\/mo>/);
       assert.match(linear.term, /<mo>−<\/mo><mfrac>/);
       assert.match(linear.term, /<\/mfrac><mi>δ<\/mi><mo stretchy="true">\)<\/mo>/);
-      assert.match(html, /L = ℓ\(r₁\) \+ ℓ\(r₂\)/);
+      assert.match(svgMathText(html), /L = ℓ\(r₁\) \+ ℓ\(r₂\)/);
       displayedPointLoss = r => Math.abs(r) <= delta ? quadraticScale * r ** exponent : delta * (Math.abs(r) - linearOffset * delta);
     } else if (state.loss === 'quartic') {
-      assert.match(html, /L = ¼\(r₁⁴ \+ r₂⁴\)/);
+      assert.match(svgMathText(html), /L = ¼\(r₁⁴ \+ r₂⁴\)/);
       const scale = displayedFraction(formula), terms = indexedPowers(formula);
       close(scale, .25);
       assert.deepEqual(terms, [{ index: 1, exponent: 4 }, { index: 2, exponent: 4 }]);
       displayedPointLoss = r => scale * r ** terms[0].exponent;
     } else {
-      assert.match(html, /MSE = ½\(r₁² \+ r₂²\)/);
+      assert.match(svgMathText(html), /MSE = ½\(r₁² \+ r₂²\)/);
       const scale = displayedFraction(formula), terms = indexedPowers(formula);
       close(scale, .5);
       assert.deepEqual(terms, [{ index: 1, exponent: 2 }, { index: 2, exponent: 2 }]);
@@ -971,7 +990,7 @@ test('every plotted contour sample has its labeled selected-loss value at respon
     for (const state of allLosses) {
       for (const c of [0, .25, .5, .8, 1]) {
         const html = view.render(11, { ...state, prediction: c, width, height }, width < 400);
-        assert.doesNotMatch(html, /NaN|Infinity|undefined/);
+        assert.doesNotMatch(svgMathText(html), /NaN|Infinity|undefined/);
         const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]);
         const scale = Number(svg['data-scale']);
         assert.ok(scale > 0);
@@ -1008,7 +1027,7 @@ test('residual and gradient arrows preserve direction with the disclosed half-le
         const svg = attributes(/<svg\b[^>]*>/.exec(html)[0]);
         const scale = Number(svg['data-scale']);
         close(Number(svg['data-arrow-scale']), .5);
-        assert.match(html, /arrows are drawn at half their numerical lengths/);
+        assert.match(svgMathText(html), /arrows are drawn at half their numerical lengths/);
         for (const [className, values, factor] of [
           ['restricted-residual-arrow', q.residual, .5],
           ['restricted-gradient-arrow', q.negativeGradient, .5],
@@ -1056,7 +1075,7 @@ test('Huber captions describe selected loss and never claim all Huber gradients 
 });
 
 test('the restricted-input visual runs without a module loader', () => {
-  const context = { window: { BoostingMath: math } };
+  const context = { window: { BoostingMath: math, SvgMath: typography } };
   runInNewContext(readFileSync(new URL('../docs/boosting/restricted-view.js', import.meta.url), 'utf8'), context);
   assert.equal(typeof context.window.RestrictedBoostingView.render, 'function');
   assert.equal(typeof context.window.RestrictedBoostingView.resolve, 'function');
