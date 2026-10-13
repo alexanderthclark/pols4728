@@ -179,7 +179,7 @@ function draw2D(parent, points, summary) {
   const showAllProjections = ['scores', 'variance'].includes(scene);
   const showBasis = current > 0;
   const extent = points === LINE_POINTS ? 3.1 : 6.2;
-  const selected = points.length - 1;
+  const selected = isPair && points === POINTS ? points.length - 2 : points.length - 1;
   if (isPair) {
     label(parent, 178, 34, 'Original coordinates', colors.ink, 20, 'middle');
     label(parent, 540, 34, ['New coordinates · ', {text:'XU',math:true}], colors.ink, 20, 'middle');
@@ -421,7 +421,7 @@ function render() {
       variance: [`Current squared score length: ${fmt(summary.scores.reduce((sum, score) => sum + score * score, 0))}. The maximum is 20 at 45°, giving sample variance `, inlineMath(`<mfrac>${mNum(20)}${mNum(4)}</mfrac>${mOp('=')}${mNum(5)}`), '.'],
       quadratic: ['Variance from the scores and from ', inlineMath(`${mTranspose(mVar('u'))}${mVar('S')}${mVar('u')}`), ` both equal ${fmt(summary.variance)}. The sample covariance matrix has all four entries equal to 2.5.`],
       maximum: `The greatest variance is 5 at 45°. The perpendicular direction at 135° has variance 0.`,
-      coordinates: ['Both coordinates preserve every point. ', covarianceNotation(summary.crossCovariance), '. At 45°, the second score is zero for everyone.'],
+      coordinates: ['Both coordinates preserve every point. ', covarianceNotation(summary.crossCovariance), points === LINE_POINTS ? '. At 45°, the second score is zero for everyone.' : '. At 45°, the score variances are 9 and 1.'],
       cloud: ['A new cloud of 24 points. ', covarianceNotation(summary.crossCovariance), '. At the principal basis, the score variances are 9 and 1.'],
       reconstruction: `One direction keeps ${fmt(100 * summary.retainedFraction, 1)}% of total variance. Squared reconstruction errors sum to ${fmt(summary.meanSquaredError * points.length)}.`,
       explore: isReconstruction
@@ -551,7 +551,7 @@ function setStep(index, animate = true) {
   const scene = steps[index].dataset.scene;
   const fallback = {
     angle: Number(steps[index].dataset.fixedAngle ?? steps[index].dataset.startAngle ?? (scene === 'residual-plane' || scene === 'line' ? 0 : scene === 'second-pc' ? -30 : 45)),
-    dataset: ['line', 'scores', 'variance', 'projection', 'quadratic', 'maximum', 'basis', 'coordinates'].includes(scene) ? 'line' : ['cloud', 'reconstruction', 'explore'].includes(scene) ? 'cloud' : 'three',
+    dataset: steps[index].dataset.example ?? (['line', 'scores', 'variance', 'projection', 'quadratic', 'maximum', 'basis', 'coordinates'].includes(scene) ? 'line' : ['cloud', 'reconstruction', 'explore'].includes(scene) ? 'cloud' : 'three'),
     view: scene === 'plane' ? 'reconstruction' : 'original',
     components: scene === 'plane' ? 2 : 1,
     camera: 25,

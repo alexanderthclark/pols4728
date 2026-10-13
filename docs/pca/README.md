@@ -1,6 +1,6 @@
 # PCA: a change of basis
 
-A nineteen-step scrollytelling lesson first defines the principal direction:
+A twenty-step scrollytelling lesson first defines the principal direction:
 `u₁ = argmax_{u: ‖u‖ = 1} Var(Xu) = argmax_{u: ‖u‖ = 1} ‖Xu‖`.
 For centered data, the same direction maximizes
 `‖Xu‖`, because variance is its squared length divided by the fixed `n − 1`.
@@ -13,6 +13,9 @@ diagonal gives `20/4 = 5`. Projection geometry, `Var(Xu) = uᵀSu`, and a full
 rotating basis develop this initial direction search.
 
 A thicker 2D cloud separates the full basis change from dimension reduction.
+A second paired view rotates all 24 observations into the new coordinates,
+with principal score variances 9 and 1 and zero covariance. The highlighted
+point retains a nonzero second score, unlike the exact-line example.
 The 3D section finds PC1 first, subtracts its contribution, then searches for
 PC2 in a face-on view of the remaining plane. Reconstruction and rank-one
 pieces connect the sequential explanation to SVD: `X = PDUᵀ`, `XU = PD`,
