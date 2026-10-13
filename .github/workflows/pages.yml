@@ -36,6 +36,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check docs/assets/coronation.js
+          node --check docs/shapley/math.mjs
           node --check docs/shapley/game.mjs
           node --check docs/shapley/story.js
           node --check docs/shapley/weight-view.js
