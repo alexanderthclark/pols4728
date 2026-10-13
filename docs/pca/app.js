@@ -37,6 +37,7 @@ let view = 'original';
 let components = 2;
 let camera = 25;
 let removal = 0;
+let targetRemoval = 0;
 let piece = 0;
 // Rotate the face-on reference frame away from the known principal axes.
 const residualPoints = coordinates(THREE_D_RESIDUAL_COORDINATES, 30);
@@ -349,13 +350,15 @@ function render() {
   $('components').value = components;
   $('camera-value').value = `${fmt(camera, 0)}°`;
   $('camera').value = camera;
-  $('removal-value').value = `${Math.round(removal * 100)}%`;
-  $('removal').value = removal * 100;
+  $('removal-value').value = targetRemoval ? 'Removed' : 'Not removed';
+  $('removal').checked = targetRemoval === 1;
   $('piece').value = piece;
   const hasEntrance = entranceFor(current) !== null;
   $('motion-controls').hidden = !hasEntrance;
   setNotation($('motion-cue'), scene === 'deflation'
-    ? `${Math.round(removal * 100)}% of PC1 removed`
+    ? Math.abs(removal - targetRemoval) > .000001
+      ? targetRemoval ? 'Removing PC1' : 'Restoring PC1'
+      : targetRemoval ? 'PC1 removed' : 'PC1 not removed'
     : steps[current].hasAttribute('data-motion-projection')
       ? 'Project the points onto the horizontal axis'
       : steps[current].hasAttribute('data-motion-camera')
@@ -383,7 +386,9 @@ function render() {
   } else if (scene === 'deflation') {
     const left = 9 * (1 - removal) ** 2;
     statistics(['PC1 variance left', 'In the plane', 'Remaining total'], [fmt(left), '1.25', fmt(left + 1.25)]);
-    caption = `${Math.round(removal * 100)}% of each PC1 score is subtracted. The remaining PC1 variance is ${fmt(left)}. At 100%, every point lies in the plane perpendicular to PC1; its total variance is 1.25.`;
+    caption = Math.abs(removal - targetRemoval) > .000001
+      ? targetRemoval ? 'Subtracting the PC1 contribution moves each point into the plane perpendicular to PC1.' : 'Restoring the PC1 contribution moves each point back to its original position.'
+      : targetRemoval ? 'PC1 is removed. Every residual lies in the plane perpendicular to PC1, with total variance 1.25.' : 'PC1 is not removed. The original cloud has PC1 variance 9 and total variance 10.25.';
   } else if (isSVD) {
     const { singularValues } = svdExample();
     const d = singularValues[piece];
@@ -443,7 +448,7 @@ function render() {
 }
 
 function remember() {
-  saved.set(current, { angle: targetAngle, dataset, view, components, camera, removal, piece });
+  saved.set(current, { angle: targetAngle, dataset, view, components, camera, removal: targetRemoval, piece });
 }
 function stopAnimation(complete = false) {
   cancelAnimationFrame(animation);
@@ -475,6 +480,34 @@ function changeAngle(value, animate = false) {
   }
   animation = requestAnimationFrame(frame);
 }
+function changeRemoval(value) {
+  stopAnimation();
+  targetRemoval = value;
+  remember();
+  const finish = () => {
+    removal = value;
+    render();
+    $('status').textContent = notationText($('caption'));
+  };
+  if (motion.matches || Math.abs(removal - value) < .000001) { finish(); return; }
+  const from = removal;
+  const start = performance.now();
+  finishAnimation = finish;
+  render();
+  function frame(time) {
+    const t = Math.min(1, (time - start) / 900);
+    const eased = t * t * (3 - 2 * t);
+    removal = from + (value - from) * eased;
+    render();
+    if (t < 1) animation = requestAnimationFrame(frame);
+    else {
+      animation = undefined;
+      finishAnimation = undefined;
+      finish();
+    }
+  }
+  animation = requestAnimationFrame(frame);
+}
 function entranceFor(index) {
   const step = steps[index];
   if (step.hasAttribute('data-motion-projection')) return { projectionMix: 0 };
@@ -487,7 +520,7 @@ function prepareEntrance() {
   const from = entranceFor(current);
   if (!from || entrancePlayed.has(current)) return;
   const to = { angle: targetAngle, projectionMix: 1, removal, camera };
-  if ('removal' in from) to.removal = 1;
+  if ('removal' in from) to.removal = targetRemoval = 1;
   const apply = state => {
     if ('angle' in state) angle = state.angle;
     if ('projectionMix' in state) projectionMix = state.projectionMix;
@@ -563,7 +596,7 @@ function setStep(index, animate = true) {
   view = state.view;
   components = state.components;
   camera = state.camera;
-  removal = state.removal;
+  removal = targetRemoval = state.removal;
   piece = state.piece;
   $('step-select').value = index;
   $('step-count').textContent = `${String(index + 1).padStart(2, '0')} / ${steps.length}`;
@@ -627,9 +660,11 @@ function readScroll() {
 }
 stages.forEach((stage, index) => {
   const local = id => stage.querySelector(`[data-control="${id}"]`);
-  const activate = () => {
+  const activate = (completeRemoval = true) => {
     if (current !== index) setStep(index, false);
-    stopAnimation();
+    const isDeflation = steps[index].dataset.scene === 'deflation';
+    stopAnimation(completeRemoval && isDeflation);
+    if (completeRemoval && isDeflation) removal = targetRemoval;
     entrancePending = undefined;
     entrancePlayed.add(index);
     projectionMix = 1;
@@ -660,14 +695,19 @@ stages.forEach((stage, index) => {
     const value = Number(event.target.value);
     activate(); changeAngle(value); remember();
   });
-  for (const id of ['angle', 'camera', 'removal']) {
+  local('removal').addEventListener('change', event => {
+    const value = event.target.checked ? 1 : 0;
+    activate(false);
+    changeRemoval(value);
+  });
+  for (const id of ['angle', 'camera']) {
     const takeControl = () => { activate(); remember(); render(); };
     local(id).addEventListener('pointerdown', takeControl);
     local(id).addEventListener('keydown', event => {
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].includes(event.key)) takeControl();
     });
   }
-  for (const id of ['removal', 'angle']) local(id).addEventListener('change', () => {
+  local('angle').addEventListener('change', () => {
     activate(); $('status').textContent = notationText($('caption'));
   });
   stage.querySelectorAll('[data-angle]').forEach(button => button.addEventListener('click', () => {
@@ -675,18 +715,17 @@ stages.forEach((stage, index) => {
     activate(); changeAngle(value, true); remember();
     $('status').textContent = `Direction set to ${targetAngle} degrees.`;
   }));
-  for (const id of ['dataset', 'view', 'components', 'camera', 'removal', 'piece']) {
-    local(id).addEventListener(['camera', 'removal'].includes(id) ? 'input' : 'change', event => {
+  for (const id of ['dataset', 'view', 'components', 'camera', 'piece']) {
+    local(id).addEventListener(id === 'camera' ? 'input' : 'change', event => {
       const value = event.target.value;
       activate();
       if (id === 'dataset') { dataset = value; view = 'original'; components = dataset === 'three' ? 2 : 1; }
       if (id === 'view') view = value;
       if (id === 'components') components = Number(value);
       if (id === 'camera') camera = Number(value);
-      if (id === 'removal') removal = Number(value) / 100;
       if (id === 'piece') piece = Number(value);
       remember(); render();
-      if (!['camera', 'removal'].includes(id)) $('status').textContent = notationText($('caption'));
+      if (id !== 'camera') $('status').textContent = notationText($('caption'));
     });
   }
 });

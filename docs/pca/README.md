@@ -82,9 +82,9 @@ u₃ = (1, 1, −2) / √6
 Removing PC1 puts every residual in `x₁ + x₂ + x₃ = 0`, with total
 sample variance 1.25. A reference basis rotated 30° away from PC2/PC3 makes
 the face-on direction search visible: PC2 occurs at φ = −30° (variance 1),
-and PC3 at 60° (variance 0.25). The removal control subtracts a fraction t of
-each PC1 score, leaving PC1 variance `9(1 − t)²`. Removing PC2 as well leaves
-only the PC3 line.
+and PC3 at 60° (variance 0.25). The removal toggle switches between the original
+cloud and the fully removed PC1 contribution, leaving total residual variance
+1.25. Removing PC2 as well leaves only the PC3 line.
 
 The residual plane differs from the retained plane. Two components span
 `x₁ + x₂ − 2x₃ = 0`, retain `40/41` (about 97.6%) of
@@ -117,15 +117,19 @@ returning to the original coordinates.
   The perpendicular second direction appears
   when the full basis is introduced, with 45°/135° principal presets. Choices
   are retained separately for each step.
-- In 3D, turn the view, subtract PC1 with a slider, rotate a direction in
+- In 3D, turn the view, remove or restore PC1 with a binary toggle, rotate a direction in
   the remaining plane, and choose how many components to retain. Select
   individual rank-one pieces and compare score columns with their normalized
   SVD patterns, using separate labelled vertical scales. The final
   explorer switches between all three datasets and coordinate/reconstruction
   views.
-  When its graphic enters view, PC1 subtraction animates from 0% to 100%,
-  visibly collapsing the points into the residual plane. Manual controls
-  interrupt the animation and retain the reader's choice.
+  When the subtraction graphic enters view, PC1 is removed in an animated
+  transition, visibly collapsing the points into the residual plane. The toggle
+  animates removal or restoration and supports reversal during a transition.
+  The chosen endpoint is retained separately from animated positions, including
+  after camera changes, resizing, or leaving and returning to the step. Labels
+  use Removed / Not removed rather than percentages. Reduced motion reaches
+  the chosen endpoint immediately.
 - Basis directions have direct labels and distinct solid, dashed, and dotted
   strokes. Original/reconstructed points use circles and crosses.
 - Desktop and phone layouts place diagrams below the narrative in normal
