@@ -21,6 +21,16 @@ PC2 in a face-on view of the remaining plane. Reconstruction and rank-one
 pieces connect the sequential explanation to SVD: `X = PDUᵀ`, `XU = PD`,
 and `Var(Xuⱼ) = dⱼ²/(n − 1)`.
 
+A closing section connects the examples to the geometric interpretation of PCA:
+full basis changes preserve distances, while dimension reduction discards score
+coordinates. It distinguishes the stretching map `u → Xu` from rotating the
+observations, explains optimal squared-error reconstruction and the global
+meaning of retained variance, and covers scale sensitivity, unusual observations,
+uncorrelated versus independent scores, and linear versus curved structure.
+Short paragraphs link back to the animated examples. The explorer's final
+navigation button leads to this section, with direct `#takeaways` links and
+browser history support.
+
 The opening title and diagrams use real text and native SVG. The page is static
 HTML, CSS, and JavaScript modules, with local Latin Modern fonts, native MathML,
 and no external runtime or build step. Static and changing expressions share

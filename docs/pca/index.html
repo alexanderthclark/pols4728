@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#FFFFFF">
   <meta name="description" content="Start with x₁ = x₂, compare the variance of Xu along familiar axes and the diagonal, then develop PCA as a change of basis. Interactive two- and three-dimensional examples for POLS 4728.">
   <title>PCA: a change of basis · POLS 4728</title>
-  <link rel="stylesheet" href="style.css?v=20261013-math-3">
-  <script type="module" src="app.js?v=20261013-cloud-coordinates"></script>
+  <link rel="stylesheet" href="style.css?v=20261013-takeaways">
+  <script type="module" src="app.js?v=20261013-takeaways"></script>
 </head>
 <body>
   <a class="skip" href="#story">Skip to the explanation</a>
@@ -165,7 +165,35 @@
           <p>Return to the exact line, the thicker 2D cloud, or the 3D cloud. Compare the original observations, their new coordinates, and their reconstructions.</p>
           <p>For the exact line, find a direction with zero score variance. For the thicker cloud, find the angle that retains the most variation in one coordinate. For the 3D cloud, compare retaining a line, a plane, and the whole basis.</p>
           <p>The calculation is the same throughout: <math><mi>X</mi><mi>u</mi></math> measures every observation along one unit direction, and <math><msup><mi>u</mi><mo>⊤</mo></msup><mi>S</mi><mi>u</mi></math> measures the variance of those scores.</p>
-          <a href="#page-title">Back to the beginning</a>
+        </section>
+        <section class="lesson-notes" id="takeaways" aria-labelledby="takeaways-title">
+          <p class="eyebrow">After the examples</p><h2 id="takeaways-title">What the simple cases teach us</h2>
+          <section class="takeaway">
+            <h3>Changing coordinates and reducing dimension are separate</h3>
+            <p>Keeping every component is an orthogonal change of coordinates: a rotation, possibly with a reflection. Distances and total variance stay the same. Dimension reduction also drops score coordinates. <a href="#cloud-coordinates">Revisit the cloud in its new basis.</a></p>
+          </section>
+          <section class="takeaway">
+            <h3>“Most spread” means greatest squared projection length</h3>
+            <p>For centered <math><mi>X</mi></math> and unit <math><mi>u</mi></math>, PC1 maximizes <math><msup><mrow><mo stretchy="false">‖</mo><mi>X</mi><mi>u</mi><mo stretchy="false">‖</mo></mrow><mn>2</mn></msup></math>, the sum of squared projection distances from the mean. In the <a href="#svd">SVD picture</a>, <math><mi>X</mi></math> sends that unit direction to the longest score vector. Changing the basis does not stretch the observations.</p>
+          </section>
+          <section class="takeaway">
+            <h3>The retained subspace gives the best squared-error reconstruction</h3>
+            <p>The first <math><mi>k</mi></math> principal directions span the <math><mi>k</mi></math>-dimensional subspace through the mean with the smallest total squared reconstruction error. On the exact line, one component loses nothing. In the thicker cloud, PC1 retains 9 of the total variance 10; dropping PC2 loses the remaining 1. <a href="#reduce-dimension">Inspect the reconstruction errors.</a></p>
+          </section>
+          <section class="takeaway">
+            <h3>Explained variance describes the whole dataset</h3>
+            <p>Retaining 90% of variance means retaining 90% of the total centered sum of squares. It does not guarantee equally accurate reconstructions for every observation, or preserve every distance. Points that differ only along a discarded direction have identical retained scores.</p>
+          </section>
+          <section class="takeaway">
+            <h3>Units and unusual observations matter</h3>
+            <p>Centering subtracts means; it does not equalize variable scales. Changing a variable’s units can change the PCs. Standardizing changes the weight given to each variable. Squared distances also give extreme observations substantial influence.</p>
+          </section>
+          <section class="takeaway">
+            <h3>Uncorrelated scores can still be related</h3>
+            <p>Principal score columns are uncorrelated, but need not be independent: nonlinear relationships can remain. PCA finds linear subspaces, so a curved pattern may be represented poorly by just a few components.</p>
+          </section>
+          <p class="quiet">Further reading: <a href="https://arxiv.org/abs/1404.1100">Shlens on PCA and SVD</a> and <a href="https://www.stat.cmu.edu/~cshalizi/uADA/15/lectures/17.pdf">Shalizi on projection and reconstruction</a>.</p>
+          <p><a href="#explore">Return to the explorer</a> · <a href="#page-title">Back to the beginning</a></p>
         </section>
       </article>
       <template id="stage-template"><div class="stage" role="group" aria-label="Interactive PCA diagram">

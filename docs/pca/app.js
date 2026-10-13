@@ -568,7 +568,7 @@ function setStep(index, animate = true) {
   $('step-select').value = index;
   $('step-count').textContent = `${String(index + 1).padStart(2, '0')} / ${steps.length}`;
   $('previous').disabled = index === 0;
-  $('next').disabled = index === steps.length - 1;
+  $('next').textContent = index === steps.length - 1 ? 'Takeaways' : 'Next';
   changeAngle(Number(steps[index].dataset.fixedAngle ?? state.angle));
   if (animate) prepareEntrance();
 }
@@ -576,6 +576,7 @@ function readingLine() {
   return Math.max(110, innerHeight * .3);
 }
 function goTo(index, push = true, focus = true) {
+  if (index >= steps.length) return goToTakeaways(push, focus);
   index = Math.max(0, Math.min(steps.length - 1, index));
   navigationUntil = performance.now() + 100;
   navigationLocked = true;
@@ -592,15 +593,34 @@ function goTo(index, push = true, focus = true) {
     heading.focus({ preventScroll: true });
   }
 }
+function goToTakeaways(push = true, focus = true) {
+  navigationUntil = performance.now() + 100;
+  navigationLocked = true;
+  setStep(steps.length - 1, false);
+  if (push && location.hash !== '#takeaways') history.pushState(null, '', '#takeaways');
+  const section = document.getElementById('takeaways');
+  const alignment = matchMedia('(max-width: 800px)').matches ? 76 : 84;
+  window.scrollTo({ top: Math.max(0, section.getBoundingClientRect().top + scrollY - alignment + 5), behavior: 'instant' });
+  if (focus) {
+    const heading = section.querySelector('h2');
+    heading.tabIndex = -1;
+    heading.focus({ preventScroll: true });
+  }
+}
 function readScroll() {
   scrollFrame = undefined;
   if (initializing) return;
   if (navigationLocked || performance.now() < navigationUntil) { maybePlayEntrance(); return; }
   const lineY = readingLine();
+  if (document.getElementById('takeaways').getBoundingClientRect().top <= lineY + 5) {
+    if (current !== steps.length - 1) setStep(steps.length - 1, false);
+    if (location.hash !== '#takeaways') history.replaceState(null, '', '#takeaways');
+    return;
+  }
   let index = 0;
   steps.forEach((step, i) => { if (step.getBoundingClientRect().top <= lineY + 5) index = i; });
-  if (index !== current) {
-    setStep(index);
+  if (index !== current || location.hash === '#takeaways') {
+    if (index !== current) setStep(index);
     if (scrollY > document.querySelector('.title-page').offsetHeight) history.replaceState(null, '', `#${steps[index].id}`);
   }
   maybePlayEntrance();
@@ -673,11 +693,14 @@ stages.forEach((stage, index) => {
 document.querySelectorAll('a[href^="#"]').forEach(link => link.addEventListener('click', event => {
   const index = steps.findIndex(step => `#${step.id}` === link.getAttribute('href'));
   if (index >= 0) { event.preventDefault(); goTo(index); }
+  else if (link.getAttribute('href') === '#takeaways') { event.preventDefault(); goToTakeaways(); }
 }));
 document.addEventListener('keydown', event => {
   if (event.altKey || event.ctrlKey || event.metaKey || event.target.closest('input, select, textarea, button, [contenteditable]')) return;
   if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
-    event.preventDefault(); goTo(current + (event.key === 'ArrowRight' ? 1 : -1));
+    event.preventDefault();
+    if (location.hash === '#takeaways' && event.key === 'ArrowLeft') goTo(steps.length - 1);
+    else goTo(current + (event.key === 'ArrowRight' ? 1 : -1));
   }
   if (['PageDown', 'PageUp', 'ArrowDown', 'ArrowUp', 'Home', 'End', ' '].includes(event.key)) navigationLocked = false;
 });
@@ -716,6 +739,7 @@ motion.addEventListener('change', () => {
 function restoreHash() {
   const index = steps.findIndex(step => `#${step.id}` === location.hash);
   if (index >= 0) goTo(index, false, false);
+  else if (location.hash === '#takeaways') goToTakeaways(false, false);
   else if (!location.hash || location.hash === '#page-title') window.scrollTo({ top: 0, behavior: 'instant' });
 }
 addEventListener('popstate', restoreHash);
