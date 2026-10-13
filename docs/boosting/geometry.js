@@ -1,6 +1,8 @@
 (function () {
   'use strict';
   const M = window.BoostingMath;
+  const T = window.SvgMath;
+  const N=T.notation,indexed=(name,index)=>N.subscript(N.variable(name),N.number(index));
   const $ = id => document.getElementById(id);
   const svg = $('space');
   const stage = document.querySelector('.stage-shell');
@@ -41,7 +43,10 @@
   function node(tag, attributes = {}, text, parent = svg) {
     const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
     Object.entries(attributes).forEach(([key, value]) => el.setAttribute(key, value));
-    if (text !== undefined) el.textContent = text;
+    if (text !== undefined) {
+      if (tag === 'text') T.setText(el, document, text, { svg: true });
+      else el.textContent = text;
+    }
     parent.appendChild(el);
     return el;
   }
@@ -72,13 +77,42 @@
       node('path', { d: 'M0 0L10 5L0 10Z', fill: color }, undefined, marker);
     });
   }
+  function labelParts(name){
+    if(name==='Target y')return ['Target ',N.part(N.variable('y'))];
+    if(name==='Initial loss ½‖y − F₀‖²')return ['Initial loss ',N.part(`${N.fraction(N.number(1),N.number(2))}${N.power(N.norm(`${N.variable('y')}${N.operator('−')}${indexed('F',0)}`),N.number(2))}`)];
+    if(name==='Residual y − F')return ['Residual ',N.part(`${N.variable('y')}${N.operator('−')}${N.variable('F')}`)];
+    if(name==='Ensemble F')return ['Ensemble ',N.part(N.variable('F'))];
+    if(name==='Tree h₁' || name==='Tree h₂')return ['Tree ',N.part(indexed('h',name.endsWith('₁')?1:2))];
+    return [name];
+  }
+  function valueParts(value){
+    const source=String(value),part=N.part;
+    if(source==='F = (F(x₁), F(x₂), F(x₃))')return [part(`${N.variable('F')}${N.operator('=')}${N.operator('(')}${[1,2,3].map(index=>N.apply(N.variable('F'),indexed('x',index))).join(N.operator(','))}${N.operator(')')}`,source)];
+    const assigned=/^([xy]) = \((.*)\)$/.exec(source);
+    if(assigned)return [part(`${N.variable(assigned[1])}${N.operator('=')}${N.tuple(assigned[2].split(',').map(item=>item.trim()))}`,source)];
+    if(source.startsWith('(') && source.endsWith(')'))return [part(N.tuple(source.slice(1,-1).split(',').map(item=>item.trim())),source)];
+    if(source.includes(' → '))return [part(source.split(' → ').map(N.number).join(N.operator('→')),source)];
+    if(/^[−-]?h$/.test(source))return [part(`${source.length>1?N.operator('−'):''}${N.variable('h')}`,source)];
+    if(source.endsWith('°'))return [part(`${N.number(source.slice(0,-1))}${N.operator('°')}`,source)];
+    if(/^[−-]?\d/.test(source))return [part(N.number(source),source)];
+    return [source];
+  }
+  function captionParts(){
+    if(scene===2)return ['The rust diamond is the fixed target ',N.part(`${N.variable('y')}${N.operator('=')}${N.tuple([1,'−1',1])}`),'.'];
+    if(scene===3)return ['The teal arrow is ',N.part(indexed('h',1)),': predictions from a stump split at ',N.part(`${N.variable('x')}${N.operator('=')}${N.number(1.5)}`),'.'];
+    if(scene===4)return ['The solid arrow uses half of ',N.part(indexed('h',1)),'. The dotted extension shows the full correction.'];
+    if(scene===6)return ['The local axes move to ',N.part(indexed('F',1)),'. The target and the current prediction stay fixed.'];
+    if(scene===7)return ['The second stump splits at ',N.part(`${N.variable('x')}${N.operator('=')}${N.number(2.5)}`),'. Half of its correction gives the next step.'];
+    if(scene===8)return ['Two scaled trees give ',N.part(`${indexed('F',2)}${N.operator('=')}${N.tuple(['0.375','−0.125','0.5'])}`),'.'];
+    return [captions[scene]];
+  }
   function readout(items) {
     $('vector-readout').replaceChildren(...items.map(([name, value, color]) => {
       const group = document.createElement('div');
       const title = document.createElement('span');
       const number = document.createElement('span');
-      title.className = 'readout-label'; title.textContent = name;
-      number.className = 'value'; number.textContent = value;
+      title.className = 'readout-label'; N.setParts(title,labelParts(name),name);
+      number.className = 'value'; N.setParts(number,valueParts(value),String(value));
       if (color) number.style.color = color;
       group.append(title, number);
       return group;
@@ -101,7 +135,7 @@
       if (scene === 7) middle = ['Tree h₂', vector(worked[2].correction), colors.teal];
       readout([['Ensemble F', vector(pred), colors.blue], middle, ['Loss', lossText(M.loss(target, pred))]]);
     }
-    if (announce) $('stage-caption').textContent = scene === 9 ? `${$('round').value} trees; learning rate ${Number($('rate').value).toFixed(2)}. Every tree is refitted to the current residuals.` : captions[scene];
+    if (announce) N.setParts($('stage-caption'),scene===9?[`${$('round').value} trees; learning rate ${Number($('rate').value).toFixed(2)}. Every tree is refitted to the current residuals.`]:captionParts(),scene===9?'':captions[scene]);
     svg.dataset.loss = M.loss(target, pred);
     svg.dataset.prediction = JSON.stringify(pred);
   }
@@ -249,7 +283,7 @@
     $('angle-value').textContent = `${angle}°`;
     $('direction-angle').setAttribute('aria-valuetext', `${angle} degrees. ${orientation}`);
     $('length-value').textContent = length.toFixed(2);
-    $('stage-caption').textContent = `${orthogonal ? 'At 90°, neither sign offers descent. ' : ''}${outcome}${orthogonal ? '' : ` Improving lengths: 0 < s < ${fmt(result.maxRelativeStep, 3)}.`}`;
+    N.setParts($('stage-caption'),[`${orthogonal ? 'At 90°, neither sign offers descent. ' : ''}${outcome}`,...(orthogonal?[]:[' Improving lengths: ',N.part(`${N.number(0)}${N.operator('<')}${N.variable('s')}${N.operator('<')}${N.number(fmt(result.maxRelativeStep,3))}`),'.'])],`${orthogonal ? 'At 90°, neither sign offers descent. ' : ''}${outcome}${orthogonal ? '' : ` Improving lengths: 0 < s < ${fmt(result.maxRelativeStep, 3)}.`}`);
     svg.dataset.loss = result.afterLoss;
     svg.dataset.angle = angle;
     svg.dataset.effectiveAngle = result.effectiveAngle;
