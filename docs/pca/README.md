@@ -89,7 +89,10 @@ returning to the original coordinates.
   above the matching inline figure. Keyboard navigation focuses the destination
   heading. Each diagram and its controls have their own accessible IDs and state.
 - The opening reveals 0°, 90°, and 45° one at a time, with fixed directions.
-  Free rotation begins after these three examples. Hollow circles mark observations; crosses
+  As each graphic enters view, the points project onto the horizontal axis,
+  then the direction visibly turns from 0° to 90°, and from 90° to 45°.
+  Scores and variance update throughout the rotation. Replay animation repeats
+  the transition. Free rotation begins after these three examples. Hollow circles mark observations; crosses
   and connecting segments show their projections. The live readout connects
   squared score length, the variance denominator, and score variance.
   The perpendicular second direction appears
@@ -101,12 +104,15 @@ returning to the original coordinates.
   SVD patterns, using separate labelled vertical scales. The final
   explorer switches between all three datasets and coordinate/reconstruction
   views.
+  When its graphic enters view, PC1 subtraction animates from 0% to 100%,
+  visibly collapsing the points into the residual plane. Manual controls
+  interrupt the animation and retain the reader's choice.
 - Basis directions have direct labels and distinct solid, dashed, and dotted
   strokes. Original/reconstructed points use circles and crosses.
 - Desktop and phone layouts place diagrams below the narrative in normal
   reading order. Fixed opening examples use compact figures and readouts;
   compact SVG labels are enlarged on phones.
-- Reduced motion disables smooth navigation and basis animation. The complete
+- Reduced motion shows each transition's endpoint immediately. The complete
   narrative and assumptions remain readable without JavaScript.
 
 The palette follows `design/tokens.json`, the web guidance in

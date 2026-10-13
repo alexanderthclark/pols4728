@@ -6,6 +6,7 @@ import {
 import { drawSVDFactors } from './svd-view.mjs';
 
 const steps = [...document.querySelectorAll('.step')];
+history.scrollRestoration = 'manual';
 const stageTemplate = document.getElementById('stage-template');
 const stages = steps.map(step => {
   const stage = stageTemplate.content.firstElementChild.cloneNode(true);
@@ -41,6 +42,10 @@ const residualPoints = coordinates(THREE_D_RESIDUAL_COORDINATES, 30);
 const measurementScenes = ['scores', 'variance', 'projection', 'quadratic', 'maximum'];
 const familiarPresets = ['scores', 'variance', 'projection', 'quadratic'];
 let animation;
+let finishAnimation;
+let entrancePending;
+let projectionMix = 1;
+const entrancePlayed = new Set();
 let scrollFrame;
 let navigationUntil = 0;
 let navigationLocked = false;
@@ -189,9 +194,10 @@ function draw2D(parent, points, summary) {
     label(parent, 70, 305, '○ Original     × Reconstruction', colors.muted, 17);
   } else if (showAllProjections) {
     points.forEach((p, i) => {
-      line(parent, map(p), map(summary.reconstruction[i]), colors.rule, 1, '3 4');
+      const projected = p.map((value, j) => value + projectionMix * (summary.reconstruction[i][j] - value));
+      line(parent, map(p), map(projected), colors.rule, 1, '3 4');
       point(parent, map(p), i === selected, true, 4.5);
-      cross(parent, map(summary.reconstruction[i]), i === selected ? colors.rust : colors.blue);
+      cross(parent, map(projected), i === selected ? colors.rust : colors.blue);
     });
   } else {
     if (['projection', 'quadratic'].includes(scene)) {
@@ -319,17 +325,26 @@ function render() {
   $('statistics').hidden = scene === 'line';
   $('angle').min = isResidual ? -90 : 0;
   $('angle').max = isResidual ? 90 : 180;
-  $('angle').value = targetAngle;
+  $('angle').value = angle;
   $('angle-label').textContent = isResidual ? 'Direction in the plane φ' : measurementScenes.includes(scene) ? 'Direction angle' : 'Direction angle θ';
   $('angle-value').value = `${fmt(angle, 0)}°`;
   $('dataset').value = dataset;
   $('view').value = view;
   $('components').value = components;
-  $('camera-value').value = `${camera}°`;
+  $('camera-value').value = `${fmt(camera, 0)}°`;
   $('camera').value = camera;
   $('removal-value').value = `${Math.round(removal * 100)}%`;
   $('removal').value = removal * 100;
   $('piece').value = piece;
+  const hasEntrance = entranceFor(current) !== null;
+  $('motion-controls').hidden = !hasEntrance;
+  $('motion-cue').textContent = scene === 'deflation'
+    ? `${Math.round(removal * 100)}% of PC1 removed`
+    : steps[current].hasAttribute('data-motion-projection')
+      ? 'Project the points onto the horizontal axis'
+      : steps[current].hasAttribute('data-motion-camera')
+        ? 'Turn the view to inspect the long axis'
+        : `${isResidual ? 'Direction in the plane' : 'Direction u'}: ${fmt(angle, 0)}°`;
   stages[current].classList.toggle('is-three', isThree);
   stages[current].classList.toggle('is-explore', isExplore);
   stages[current].querySelectorAll('[data-angle]').forEach((button, index) => {
@@ -411,8 +426,15 @@ function render() {
 function remember() {
   saved.set(current, { angle: targetAngle, dataset, view, components, camera, removal, piece });
 }
-function changeAngle(value, animate = false) {
+function stopAnimation(complete = false) {
   cancelAnimationFrame(animation);
+  animation = undefined;
+  const finish = finishAnimation;
+  finishAnimation = undefined;
+  if (complete && finish) finish();
+}
+function changeAngle(value, animate = false) {
+  stopAnimation();
   targetAngle = value;
   if (!animate || motion.matches) {
     angle = value;
@@ -421,6 +443,7 @@ function changeAngle(value, animate = false) {
   }
   const from = angle;
   const start = performance.now();
+  finishAnimation = () => { angle = value; render(); };
   // Keep the current diagram and its controls in sync during rotation.
   render();
   function frame(time) {
@@ -429,13 +452,82 @@ function changeAngle(value, animate = false) {
     angle = from + (value - from) * eased;
     render();
     if (t < 1) animation = requestAnimationFrame(frame);
+    else { animation = undefined; finishAnimation = undefined; }
   }
   animation = requestAnimationFrame(frame);
 }
-function setStep(index) {
+function entranceFor(index) {
+  const step = steps[index];
+  if (step.hasAttribute('data-motion-projection')) return { projectionMix: 0 };
+  if (step.hasAttribute('data-motion-removal')) return { removal: 0 };
+  if (step.hasAttribute('data-motion-camera')) return { camera: Number(step.dataset.motionCamera) };
+  if (step.hasAttribute('data-motion-angle-from')) return { angle: Number(step.dataset.motionAngleFrom) };
+  return null;
+}
+function prepareEntrance() {
+  const from = entranceFor(current);
+  if (!from || entrancePlayed.has(current)) return;
+  const to = { angle: targetAngle, projectionMix: 1, removal, camera };
+  if ('removal' in from) to.removal = 1;
+  const apply = state => {
+    if ('angle' in state) angle = state.angle;
+    if ('projectionMix' in state) projectionMix = state.projectionMix;
+    if ('removal' in state) removal = state.removal;
+    if ('camera' in state) camera = state.camera;
+    render();
+  };
+  const finish = () => {
+    apply(to);
+    entrancePlayed.add(current);
+    entrancePending = undefined;
+    remember();
+  };
+  if (motion.matches) { finish(); return; }
+  entrancePending = { index: current, from, to, apply, finish };
+  apply(from);
+}
+function maybePlayEntrance(force = false) {
+  const pending = entrancePending;
+  if (!pending || pending.index !== current || animation) return;
+  const rect = stages[current].querySelector('.diagram-wrap').getBoundingClientRect();
+  const visible = Math.max(0, Math.min(rect.bottom, innerHeight) - Math.max(rect.top, 76));
+  // Begin when the graphic is readable, rather than while its prose is still entering.
+  if (!force && (visible < rect.height * .65 || rect.top > innerHeight * .65)) return;
+  entrancePending = undefined;
+  entrancePlayed.add(current);
+  const index = current;
+  const start = performance.now();
+  const duration = 'removal' in pending.from || 'projectionMix' in pending.from ? 1800 : 1400;
+  finishAnimation = pending.finish;
+  function frame(time) {
+    if (current !== index) return;
+    const t = Math.min(1, (time - start) / duration);
+    const eased = t * t * (3 - 2 * t);
+    const state = {};
+    for (const key of Object.keys(pending.from)) state[key] = pending.from[key] + eased * (pending.to[key] - pending.from[key]);
+    pending.apply(state);
+    if (t < 1) animation = requestAnimationFrame(frame);
+    else {
+      animation = undefined;
+      finishAnimation = undefined;
+      pending.finish();
+      $('status').textContent = $('caption').textContent;
+    }
+  }
+  animation = requestAnimationFrame(frame);
+}
+function setStep(index, animate = true) {
   const changed = current !== index;
+  // Finish the old figure before changing the globals used by its drawing functions.
+  stopAnimation(true);
+  if (entrancePending) {
+    entrancePending.apply(entrancePending.to);
+    remember();
+  }
+  entrancePending = undefined;
   if (changed) remember();
   current = index;
+  projectionMix = 1;
   svg = $('diagram');
   const scene = steps[index].dataset.scene;
   const fallback = {
@@ -459,6 +551,7 @@ function setStep(index) {
   $('previous').disabled = index === 0;
   $('next').disabled = index === steps.length - 1;
   changeAngle(Number(steps[index].dataset.fixedAngle ?? state.angle));
+  if (animate) prepareEntrance();
 }
 function readingLine() {
   return Math.max(110, innerHeight * .3);
@@ -473,6 +566,7 @@ function goTo(index, push = true, focus = true) {
   const alignment = mobile ? 76 : 84;
   const target = steps[index].getBoundingClientRect().top + scrollY - alignment + 5;
   window.scrollTo({ top: Math.max(0, target), behavior: 'instant' });
+  requestAnimationFrame(() => maybePlayEntrance());
   if (focus) {
     const heading = steps[index].querySelector('h2');
     heading.tabIndex = -1;
@@ -481,7 +575,8 @@ function goTo(index, push = true, focus = true) {
 }
 function readScroll() {
   scrollFrame = undefined;
-  if (initializing || navigationLocked || performance.now() < navigationUntil) return;
+  if (initializing) return;
+  if (navigationLocked || performance.now() < navigationUntil) { maybePlayEntrance(); return; }
   const lineY = readingLine();
   let index = 0;
   steps.forEach((step, i) => { if (step.getBoundingClientRect().top <= lineY + 5) index = i; });
@@ -489,10 +584,18 @@ function readScroll() {
     setStep(index);
     if (scrollY > document.querySelector('.title-page').offsetHeight) history.replaceState(null, '', `#${steps[index].id}`);
   }
+  maybePlayEntrance();
 }
 stages.forEach((stage, index) => {
   const local = id => stage.querySelector(`[data-control="${id}"]`);
-  const activate = () => { if (current !== index) setStep(index); };
+  const activate = () => {
+    if (current !== index) setStep(index, false);
+    stopAnimation();
+    entrancePending = undefined;
+    entrancePlayed.add(index);
+    projectionMix = 1;
+    targetAngle = angle;
+  };
   steps.forEach((step, optionIndex) => {
     const option = document.createElement('option');
     option.value = optionIndex;
@@ -506,10 +609,25 @@ stages.forEach((stage, index) => {
   });
   local('previous').addEventListener('click', () => goTo(index - 1));
   local('next').addEventListener('click', () => goTo(index + 1));
+  local('motion-replay').addEventListener('click', () => {
+    activate();
+    targetAngle = Number(steps[index].dataset.fixedAngle ?? steps[index].dataset.startAngle ?? (steps[index].dataset.scene === 'second-pc' ? -30 : 45));
+    if (steps[index].hasAttribute('data-motion-camera')) camera = 25;
+    entrancePlayed.delete(index);
+    prepareEntrance();
+    maybePlayEntrance(true);
+  });
   local('angle').addEventListener('input', event => {
     const value = Number(event.target.value);
     activate(); changeAngle(value); remember();
   });
+  for (const id of ['angle', 'camera', 'removal']) {
+    const takeControl = () => { activate(); remember(); render(); };
+    local(id).addEventListener('pointerdown', takeControl);
+    local(id).addEventListener('keydown', event => {
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].includes(event.key)) takeControl();
+    });
+  }
   for (const id of ['removal', 'angle']) local(id).addEventListener('change', () => {
     activate(); $('status').textContent = $('caption').textContent;
   });
@@ -555,11 +673,27 @@ addEventListener('pointerdown', event => {
 addEventListener('scroll', () => { if (!scrollFrame) scrollFrame = requestAnimationFrame(readScroll); }, { passive: true });
 function renderAll() {
   const selected = current;
-  for (let index = 0; index < steps.length; index++) setStep(index);
-  setStep(selected);
+  for (let index = 0; index < steps.length; index++) setStep(index, false);
+  setStep(selected, false);
 }
-addEventListener('resize', () => { renderAll(); readScroll(); });
-motion.addEventListener('change', () => { if (motion.matches) changeAngle(targetAngle); });
+addEventListener('resize', () => {
+  const pending = entrancePending;
+  stopAnimation(true);
+  renderAll();
+  if (pending) {
+    entrancePending = pending;
+    pending.apply(pending.from);
+  } else prepareEntrance();
+  readScroll();
+});
+motion.addEventListener('change', () => {
+  if (motion.matches) {
+    stopAnimation(true);
+    if (entrancePending) entrancePending.finish();
+    angle = targetAngle;
+    render();
+  }
+});
 function restoreHash() {
   const index = steps.findIndex(step => `#${step.id}` === location.hash);
   if (index >= 0) goTo(index, false, false);
@@ -567,4 +701,9 @@ function restoreHash() {
 }
 addEventListener('popstate', restoreHash);
 renderAll();
-document.fonts.ready.then(() => { initializing = false; if (location.hash) restoreHash(); else readScroll(); });
+const pageLoaded = document.readyState === 'complete' ? Promise.resolve() : new Promise(resolve => addEventListener('load', resolve, { once: true }));
+Promise.all([document.fonts.ready, pageLoaded]).then(() => requestAnimationFrame(() => {
+  initializing = false;
+  if (location.hash) restoreHash();
+  else { prepareEntrance(); readScroll(); }
+}));
