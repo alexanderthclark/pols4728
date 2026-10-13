@@ -1,7 +1,9 @@
 # PCA: a change of basis
 
-A nineteen-step scrollytelling lesson first states the PCA objective: find
-the unit direction with greatest score variance. Five centered points exactly
+A nineteen-step scrollytelling lesson first states the PCA objective:
+`max_{‖u‖ = 1} Var(Xu)`. For centered data, the same direction maximizes
+`‖Xu‖`, because variance is its squared length divided by the fixed `n − 1`.
+Five centered points exactly
 on `x₁ = x₂` develop the horizontal, vertical, and 45° diagonal projections
 in three separate scroll steps. Each explanation sits above its own inline
 diagram in one centered column. A short explanation connects the score column to

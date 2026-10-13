@@ -37,8 +37,10 @@
       <article class="story" id="story">
         <section class="step" id="same-values" data-title="PC1: find the greatest variance" data-scene="line">
           <p class="eyebrow">01 · The first principal component</p><h2>Find the direction of greatest variance</h2>
-          <p>To find the first principal component, choose a <em>unit direction</em> u along which the projected data have the greatest variance.</p>
-          <p>Start with five centered observations on <span class="math">x₁ = x₂</span>. We will try different directions and compare their projections.</p>
+          <p>To find the first principal component, choose a <em>unit direction</em> u that maximizes the variance of the projected scores Xu:</p>
+          <div class="equation"><math display="block" aria-label="Maximize Var(Xu) over directions u with norm one"><munder><mi mathvariant="normal">max</mi><mrow><mo>‖</mo><mi>u</mi><mo>‖</mo><mo>=</mo><mn>1</mn></mrow></munder><mrow><mi mathvariant="normal">Var</mi><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>X</mi><mi>u</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></math></div>
+          <p>For centered data with n observations, <math><mrow><mi mathvariant="normal">Var</mi><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>X</mi><mi>u</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow><mo>=</mo><msup><mrow><mo>‖</mo><mi>X</mi><mi>u</mi><mo>‖</mo></mrow><mn>2</mn></msup><mo>/</mo><mrow><mo stretchy="false">(</mo><mi>n</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></math>. Since n is fixed, the same direction maximizes <span class="math">‖Xu‖</span>.</p>
+          <p>Start with five centered observations on <span class="math">x₁ = x₂</span>. Scroll to compare their projections onto different directions.</p>
         </section>
         <section class="step" id="stack-scores" data-title="First: project onto the horizontal axis" data-scene="scores" data-fixed-angle="0" data-motion-projection>
           <p class="eyebrow">02 · The horizontal direction</p><h2>First, choose u = (1, 0)ᵀ</h2>
