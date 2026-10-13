@@ -38,6 +38,7 @@ jobs:
           node --check docs/assets/coronation.js
           node --check docs/pca/model.mjs
           node --check docs/pca/app.js
+          node --check docs/pca/svd-view.mjs
           node --check docs/shapley/game.mjs
           node --check docs/shapley/story.js
           node --check docs/shapley/weight-view.js

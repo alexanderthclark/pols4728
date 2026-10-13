@@ -39,6 +39,10 @@ export function dot(a, b) {
   return a[0] * b[0] + a[1] * b[1];
 }
 
+export function dotND(a, b) {
+  return a.reduce((sum, value, index) => sum + value * b[index], 0);
+}
+
 const sumSquares = column => rawScores.reduce((sum, row) => sum + row[column] ** 2, 0);
 const primaryScale = Math.sqrt(EIGENVALUES[0] * (rawScores.length - 1) / sumSquares(0));
 const secondaryScale = Math.sqrt(EIGENVALUES[1] * (rawScores.length - 1) / sumSquares(1));
@@ -61,6 +65,50 @@ export const THREE_D_POINTS = Object.freeze(reconstructBasis(
     first * primaryScale, second * secondaryScale, rawThirdScores[index] * thirdScale,
   ]), THREE_D_BASIS,
 ).map(row => Object.freeze(row)));
+
+// Removing a unit direction subtracts its rank-one reconstruction from each
+// observation. The remaining rows all lie in the perpendicular subspace.
+export function deflate(points, u) {
+  return points.map(point => {
+    const score = dotND(point, u);
+    return point.map((value, index) => value - score * u[index]);
+  });
+}
+
+const threeDPrimaryDirection = THREE_D_BASIS.map(row => row[0]);
+const residualFirstAxis = THREE_D_BASIS.map(row => row[1]);
+const residualSecondAxis = THREE_D_BASIS.map(row => row[2]);
+
+export const THREE_D_RESIDUALS = Object.freeze(
+  deflate(THREE_D_POINTS, threeDPrimaryDirection).map(row => Object.freeze(row)),
+);
+// Coordinates in the remaining plane. Its first axis will become PC2 and its
+// second will become PC3; searching within this plane is the same 2D problem.
+export const THREE_D_RESIDUAL_COORDINATES = Object.freeze(
+  THREE_D_RESIDUALS.map(row => Object.freeze([
+    dotND(row, residualFirstAxis), dotND(row, residualSecondAxis),
+  ])),
+);
+
+export function residualDirection(angleDegrees) {
+  const [first, second] = direction(angleDegrees);
+  return residualFirstAxis.map((value, index) =>
+    first * value + second * residualSecondAxis[index]);
+}
+
+export function residualSummary(angleDegrees) {
+  const u = residualDirection(angleDegrees);
+  const v = residualDirection(angleDegrees + 90);
+  const scores = THREE_D_RESIDUALS.map(point => dotND(point, u));
+  const otherScores = THREE_D_RESIDUALS.map(point => dotND(point, v));
+  const variance = sampleVariance(scores);
+  const otherVariance = sampleVariance(otherScores);
+  return {
+    u, v, scores, otherScores, variance, otherVariance,
+    totalVariance: variance + otherVariance,
+    crossCovariance: sampleCovariance(scores, otherScores),
+  };
+}
 
 export function project(points, u) {
   return points.map(point => dot(point, u));
@@ -116,6 +164,21 @@ export function changeBasis(points, basis) {
 export function reconstructBasis(scores, basis, components = basis.length) {
   return scores.map(score => basis.map(row => row.slice(0, components)
     .reduce((sum, loading, column) => sum + loading * score[column], 0)));
+}
+
+// Expose the SVD factors for centered observations whose known orthonormal
+// principal axes are supplied as basis columns. This is a teaching example,
+// not a general SVD solver. Nonzero orthogonal score columns normalized to
+// length one give P, and their lengths give the singular values d:
+// X = P diag(d) Qᵀ, with Q = basis and scores = XQ = P diag(d).
+export function svdExample(points = THREE_D_POINTS, basis = THREE_D_BASIS) {
+  const scores = changeBasis(points, basis);
+  const singularValues = basis[0].map((_, column) => Math.sqrt(
+    scores.reduce((sum, row) => sum + row[column] ** 2, 0),
+  ));
+  const P = scores.map(row => row.map((value, column) =>
+    singularValues[column] === 0 ? 0 : value / singularValues[column]));
+  return {P, singularValues, Q: basis, scores};
 }
 
 export function pcaSummary(angleDegrees, points = POINTS) {

@@ -104,22 +104,63 @@
           <p>Rotate the retained direction. The direction with the greatest score variance also gives the smallest sum of squared perpendicular reconstruction errors. The basis change itself preserved the data; discarding a coordinate introduces the loss.</p>
           <p class="quiet">Covariance PCA depends on the variables’ units. These examples use comparable scales. Centering subtracts column means; standardizing also divides by column standard deviations and can change the principal directions.</p>
         </section>
-        <section class="step" id="three-dimensions" data-title="A cloud in three dimensions" data-scene="three-d">
-          <p class="eyebrow">11 · A 3D example</p><h2>A third variable adds another direction</h2>
-          <p>Now consider 24 centered observations with three coordinates. This constructed cloud has a long direction near <span class="math">(1, 1, 1)</span>, a shorter perpendicular direction, and a little thickness in a third direction.</p>
-          <p>We need three mutually perpendicular unit vectors. The first maximizes score variance; the second maximizes it among directions perpendicular to the first; the third completes the basis.</p>
-          <div class="equation math">U = [u₁ u₂ u₃] &nbsp; and &nbsp; Z = XU</div>
-          <p>Switch to principal coordinates to see the score variances 9, 1, and 0.25 along the three axes. Turn the view to inspect the shape. Turning the camera changes the drawing, not the data or their variances.</p>
+        <section class="step" id="three-dimensions" data-title="Find the first direction in 3D" data-scene="three-d">
+          <p class="eyebrow">11 · A 3D example</p><h2>Find one direction first</h2>
+          <p>Now give the 24 observations three coordinates. Begin with the same question as before: which unit direction gives the largest <span class="math">Var(Xu)</span>?</p>
+          <p>The first principal direction follows the cloud’s long axis: <math><msub><mi>u</mi><mn>1</mn></msub><mo>=</mo><msup><mrow><mo>(</mo><mtext>1, 1, 1</mtext><mo>)</mo></mrow><mi>⊤</mi></msup><mo>/</mo><msqrt><mn>3</mn></msqrt></math>. Its scores <span class="math">z₁ = Xu₁</span> have variance 9, out of total variance 10.25.</p>
+          <p>This finds PC1. To find the next direction, we can take away the part PC1 already describes and inspect what remains.</p>
+          <p class="quiet">Turn the camera to inspect the cloud. This changes the drawing, while the direction and its score variance stay fixed.</p>
         </section>
-        <section class="step" id="keep-a-plane" data-title="Keep a line or a plane" data-scene="plane">
-          <p class="eyebrow">12 · More than one component</p><h2>Keep two coordinates, recover a plane</h2>
-          <p>One component reconstructs a line. Two components reconstruct a plane. All three reconstruct the original 3D observations.</p>
+        <section class="step" id="remove-first" data-title="Subtract the PC1 contribution" data-scene="deflation">
+          <p class="eyebrow">12 · Remove the first component</p><h2>Subtract each point’s projection onto u₁</h2>
+          <p>PC1 describes a vector <span class="math">zᵢ₁u₁</span> for each observation. Subtract that vector to obtain a residual:</p>
+          <div class="equation math">rᵢ = xᵢ − zᵢ₁u₁<br>R = X − z₁u₁ᵀ</div>
+          <p>Move the removal control from 0% to 100%. Each point travels parallel to <span class="math">u₁</span>, until its coordinate along that direction is zero. Hollow circles mark the original observations.</p>
+          <p>At 100%, every residual satisfies <span class="math">rᵢᵀu₁ = 0</span>. All the remaining variation lies in the shaded plane through the origin, perpendicular to PC1. We have reduced the search for the next direction to a 2D problem.</p>
+          <p class="quiet">The control removes a fraction t of each PC1 score. Its remaining variance is 9(1 − t)²; at t = 1, the total residual variance is 1.25.</p>
+        </section>
+        <section class="step" id="remaining-plane" data-title="Search within the remaining plane" data-scene="residual-plane">
+          <p class="eyebrow">13 · A 2D problem again</p><h2>Look straight at the remaining plane</h2>
+          <p>These are the residual points after fully removing PC1, viewed face on. The axes <span class="math">a</span> and <span class="math">b</span> form a reference basis within this plane. Both are perpendicular to <span class="math">u₁</span>; neither was chosen to maximize variance.</p>
+          <p>Rotate a unit direction <span class="math">w</span> within the plane, and compare the variance of <span class="math">Rw</span>. For any such direction, <span class="math">u₁ᵀw = 0</span>, so removing PC1 does not change its scores:</p>
+          <div class="equation math">Rw = Xw − z₁(u₁ᵀw) = Xw</div>
+          <p>The problem is the same one we solved in 2D: find the direction with the greatest score variance. The total variance available in this plane is 1.25.</p>
+          <p class="quiet">The angle φ is measured from a within this plane. It is a new angle, separate from the earlier 2D example and from the 3D camera.</p>
+        </section>
+        <section class="step" id="second-direction" data-title="Find PC2, then PC3" data-scene="second-pc">
+          <p class="eyebrow">14 · The next principal component</p><h2>The best remaining direction is PC2</h2>
+          <p>Here the maximum occurs at φ = −30°. It gives <math><msub><mi>u</mi><mn>2</mn></msub><mo>=</mo><msup><mrow><mo>(</mo><mtext>1, −1, 0</mtext><mo>)</mo></mrow><mi>⊤</mi></msup><mo>/</mo><msqrt><mn>2</mn></msqrt></math>, with score variance 1. This is the second principal direction of the original data: the best direction perpendicular to <span class="math">u₁</span>.</p>
+          <p>PC2 describes <span class="math">1/1.25 = 80%</span> of the residual variance. Relative to the original total, it contributes <span class="math">1/10.25 ≈ 9.8%</span>. These percentages have different denominators.</p>
+          <p>Subtract the PC2 contribution as well, and the residual points lie on a line. Its direction is <math><msub><mi>u</mi><mn>3</mn></msub><mo>=</mo><msup><mrow><mo>(</mo><mtext>1, 1, −2</mtext><mo>)</mo></mrow><mi>⊤</mi></msup><mo>/</mo><msqrt><mn>6</mn></msqrt></math>, with score variance 0.25. Together, the three perpendicular directions form the full basis.</p>
+          <p class="quiet">Try the PC3 preset to see the smallest variance in this plane. Sequential removal explains the perpendicularity constraints; it is one way to understand the components.</p>
+        </section>
+        <section class="step" id="keep-a-plane" data-title="Reconstruct with PC1 and PC2" data-scene="plane">
+          <p class="eyebrow">15 · Return to the original data</p><h2>Add the first two contributions back</h2>
+          <p>To reconstruct an original observation with two components, add its PC1 and PC2 contributions:</p>
           <div class="equation math">x̂ᵢ = zᵢ₁u₁ + zᵢ₂u₂</div>
-          <p>The first two components retain <span class="math">(9 + 1)/(9 + 1 + 0.25) ≈ 97.6%</span> of the total sample variance. Discarding the third coordinate removes the cloud’s thickness perpendicular to the plane.</p>
-          <p>Change the number of retained components. This extends the same idea: choose an orthonormal basis ordered by variance, then decide how many coordinates to keep.</p>
+          <p>These reconstructed points occupy the plane spanned by <span class="math">u₁</span> and <span class="math">u₂</span>. This is a different plane from the residual plane: it includes PC1 and omits PC3.</p>
+          <p>The first two components retain <span class="math">(9 + 1)/10.25 ≈ 97.6%</span> of the original total variance. The short segments show the omitted PC3 contribution.</p>
+          <p>Change the number of retained components: one gives a line, two give a plane, and all three recover the original observations.</p>
+        </section>
+        <section class="step" id="one-piece" data-title="See the data as three pieces" data-scene="pieces">
+          <p class="eyebrow">16 · Component contributions</p><h2>Each component contributes one piece</h2>
+          <p>Select a component to see its contribution to every observation. Each piece lies along one principal direction; the observations differ only in their scores along that direction.</p>
+          <div class="equation math">X = z₁u₁ᵀ + z₂u₂ᵀ + z₃u₃ᵀ</div>
+          <p>A column of scores multiplied by a row containing its direction gives a matrix with the same shape as <span class="math">X</span>. Each of these matrices has rank one.</p>
+          <p>Subtracting PC1 removed the first piece. Keeping PC1 and PC2 adds the first two pieces. Adding all three recovers the complete data matrix. This provides a bridge to the singular value decomposition.</p>
+        </section>
+        <section class="step" id="svd" data-title="SVD: a pattern and its size" data-scene="svd">
+          <p class="eyebrow">17 · SVD intuition</p><h2>Separate each score pattern from its size</h2>
+          <p>The singular value decomposition writes the same centered data as <span class="math">X = PDUᵀ</span>. Here <span class="math">U</span> still contains the three principal directions. Multiplying by <span class="math">U</span> gives the scores we already know:</p>
+          <div class="equation math">Z = XU = PD<br>zⱼ = dⱼpⱼ</div>
+          <p>The column <span class="math">pⱼ</span> records a pattern across the 24 observations, scaled to length one. The singular value <span class="math">dⱼ</span> restores the score column’s length. Select a component and compare the two plots; their vertical scales are labelled separately.</p>
+          <p>Because the scores are centered, their sample variance is their squared length divided by <span class="math">n − 1</span>:</p>
+          <div class="equation math">Var(Xuⱼ) = dⱼ²/(n − 1)</div>
+          <p>For PC1, <math><msub><mi>d</mi><mn>1</mn></msub><mo>=</mo><msqrt><mrow><mn>23</mn><mo>×</mo><mn>9</mn></mrow></msqrt><mo>≈</mo><mn>14.39</mn></math>, so its variance is 9. Each SVD piece <span class="math">dⱼpⱼuⱼᵀ</span> is the same contribution <span class="math">zⱼuⱼᵀ</span> seen in the previous step.</p>
+          <p class="quiet">P is 24 × 3, D is 3 × 3 and diagonal, and U is 3 × 3. The columns of P are perpendicular unit patterns across observations; the columns of U are perpendicular unit directions among variables. Many texts call the right singular vector matrix V; we keep U to match our change-of-basis notation.</p>
         </section>
         <section class="step" id="explore" data-title="Compare the examples" data-scene="explore">
-          <p class="eyebrow">13 · Explore</p><h2>Directions, scores, and retained information</h2>
+          <p class="eyebrow">18 · Explore</p><h2>Directions, scores, and retained information</h2>
           <p>Return to the exact line, the thicker 2D cloud, or the 3D cloud. Compare the original observations, their new coordinates, and their reconstructions.</p>
           <p>For the exact line, find a direction with zero score variance. For the thicker cloud, find the angle that retains the most variation in one coordinate. For the 3D cloud, compare retaining a line, a plane, and the whole basis.</p>
           <p>The calculation is the same throughout: <span class="math">Xu</span> measures every observation along one unit direction, and <span class="math">uᵀSu</span> measures the variance of those scores.</p>
@@ -127,13 +168,15 @@
         </section>
       </article>
       <aside class="stage" aria-label="Interactive PCA diagram">
-        <div class="stage-top"><label for="step-select" class="sr-only">Lesson step</label><select id="step-select"></select><span id="step-count">01 / 13</span></div>
+        <div class="stage-top"><label for="step-select" class="sr-only">Lesson step</label><select id="step-select"></select><span id="step-count">01 / 18</span></div>
         <div class="diagram-wrap"><svg id="diagram" viewBox="0 0 720 450" role="img" aria-labelledby="diagram-title diagram-description"><title id="diagram-title">PCA example</title><desc id="diagram-description">Five points on x₁ = x₂.</desc></svg></div>
         <div class="stage-controls">
           <label id="data-control" hidden>Example <select id="dataset"><option value="line">Exact line · 2D</option><option value="cloud">Thicker cloud · 2D</option><option value="three">Cloud · 3D</option></select></label>
-          <div id="angle-control" hidden><label for="angle">Direction angle θ <output id="angle-value" for="angle">30°</output></label><input id="angle" type="range" min="0" max="180" step="1" value="30"><div class="angle-presets"><button data-angle="0" type="button">0°</button><button data-angle="45" type="button">45° · PC1</button><button data-angle="135" type="button">135° · PC2</button></div></div>
+          <div id="angle-control" hidden><label for="angle"><span id="angle-label">Direction angle θ</span> <output id="angle-value" for="angle">30°</output></label><input id="angle" type="range" min="0" max="180" step="1" value="30"><div class="angle-presets"><button data-angle="0" type="button">0°</button><button data-angle="45" type="button">45° · PC1</button><button data-angle="135" type="button">135° · PC2</button></div></div>
           <label id="view-control" hidden>View <select id="view"><option value="original">Original coordinates</option><option value="coordinates">New coordinates</option><option value="reconstruction">Reconstruction</option></select></label>
           <label id="components-control" hidden>Components kept <select id="components"><option value="1">1 · a line</option><option value="2" selected>2 · a plane</option><option value="3">3 · all coordinates</option></select></label>
+          <div id="removal-control" hidden><label for="removal">PC1 score removed <output id="removal-value" for="removal">0%</output></label><input id="removal" type="range" min="0" max="100" step="1" value="0"></div>
+          <label id="piece-control" hidden>Component <select id="piece"><option value="0">PC1</option><option value="1">PC2</option><option value="2">PC3</option></select></label>
           <div id="camera-control" hidden><label for="camera">Turn the 3D view <output id="camera-value" for="camera">25°</output></label><input id="camera" type="range" min="-90" max="90" step="1" value="25"></div>
         </div>
         <div id="statistics" class="statistics" hidden><div><span id="variance-label">Var(Xu)</span><output id="variance">2.50</output></div><div><span id="second-label">Var(Xv)</span><output id="second-variance">2.50</output></div><div><span id="third-label">Total variance</span><output id="third-value">5.00</output></div></div>

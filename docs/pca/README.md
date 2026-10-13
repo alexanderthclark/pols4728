@@ -1,12 +1,14 @@
 # PCA: a change of basis
 
-A thirteen-step scrollytelling lesson begins with five points exactly on
+An eighteen-step scrollytelling lesson begins with five points exactly on
 `x₁ = x₂`. Rotating a perpendicular unit basis introduces a score, the column
 `Xu`, and its sample variance. The lesson connects that variance to `uᵀSu`,
 chooses principal directions, and shows the same observations in both coordinate
 systems. A thicker 2D cloud separates a full basis change from dimension
-reduction. A 3D cloud develops the choice between retaining a line, a plane,
-and all three coordinates.
+reduction. The 3D section finds PC1 first, subtracts its contribution, then
+searches for PC2 in a face-on view of the remaining plane. Reconstruction and rank-one
+pieces connect the sequential explanation to SVD: `X = PDUᵀ`,
+`XU = PD`, and `Var(Xuⱼ) = dⱼ²/(n − 1)`.
 
 The opening title and diagrams use real text and native SVG. The page is static
 HTML, CSS, and JavaScript modules, with local Latin Modern fonts, native MathML,
@@ -53,7 +55,15 @@ u₂ = (1, −1, 0) / √2
 u₃ = (1, 1, −2) / √6
 ```
 
-Two components span `x₁ + x₂ − 2x₃ = 0`, retain `40/41` (about 97.6%) of
+Removing PC1 puts every residual in `x₁ + x₂ + x₃ = 0`, with total
+sample variance 1.25. A reference basis rotated 30° away from PC2/PC3 makes
+the face-on direction search visible: PC2 occurs at φ = −30° (variance 1),
+and PC3 at 60° (variance 0.25). The removal control subtracts a fraction t of
+each PC1 score, leaving PC1 variance `9(1 − t)²`. Removing PC2 as well leaves
+only the PC3 line.
+
+The residual plane differs from the retained plane. Two components span
+`x₁ + x₂ − 2x₃ = 0`, retain `40/41` (about 97.6%) of
 the total sample variance, and give reconstruction SSE 5.75. The third score
 is constructed from a centered quadratic function of the first score; the
 uncorrelated scores are not claimed to be independent.
@@ -74,7 +84,10 @@ returning to the original coordinates.
   beside the matching figure rather than animating across intervening chapters.
 - Rotate 2D directions with a labeled range control or the 0°, 45°, and 135°
   presets. Choices are retained separately for each step.
-- In 3D, turn the view and choose how many components to retain. The final
+- In 3D, turn the view, subtract PC1 with a slider, rotate a direction in
+  the remaining plane, and choose how many components to retain. Select
+  individual rank-one pieces and compare score columns with their normalized
+  SVD patterns, using separate labelled vertical scales. The final
   explorer switches between all three datasets and coordinate/reconstruction
   views.
 - Basis directions have direct labels and distinct solid, dashed, and dotted
@@ -94,19 +107,24 @@ These choices and visual review do not establish full accessibility compliance.
 - `index.html`: opening, complete narrative, MathML, and controls.
 - `style.css`: course typography and desktop/mobile layouts.
 - `model.mjs`: deterministic points, projections, variances, basis changes,
-  and reconstructions.
+  reconstructions, deflation, and SVD factors for the known principal basis.
+- `svd-view.mjs`: score columns, normalized patterns, and singular values.
 - `app.js`: SVG figures, controls, scroll scenes, and navigation.
 
 ```sh
 node --check docs/pca/model.mjs
 node --check docs/pca/app.js
+node --check docs/pca/svd-view.mjs
 node --test tests/pca-model.test.mjs
 node --test tests/*.test.mjs
 ```
 
-The twelve numerical tests use independently specified covariance matrices
+The seventeen numerical tests use independently specified covariance matrices
 and expected variances. They check unit direction scaling, full-basis inversion
 and distance preservation, 2D and 3D decorrelation, retained variance, and
-reconstruction loss. Browser review covers desktop and narrow layouts, the
-45°/135° cases, coordinate views, 3D camera/reconstruction controls, and
-step/history navigation.
+reconstruction loss. They also check residual orthogonality and covariance,
+sequential removal, additive component pieces, and the SVD factorization and
+variance identity. Browser review covers desktop and narrow layouts, the
+45°/135° cases, coordinate views, 3D subtraction/camera/reconstruction
+controls, residual plane angles, all three SVD columns, and step/history
+navigation.

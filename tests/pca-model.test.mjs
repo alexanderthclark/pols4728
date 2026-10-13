@@ -5,7 +5,9 @@ import {
   direction, perpendicular, dot, project, sampleVariance, covariance,
   quadraticVariance, coordinates, reconstruct, pcaSummary,
   LINE_POINTS, THREE_D_POINTS, THREE_D_BASIS, THREE_D_EIGENVALUES,
-  changeBasis, reconstructBasis,
+  changeBasis, reconstructBasis, dotND, deflate,
+  THREE_D_RESIDUALS, THREE_D_RESIDUAL_COORDINATES,
+  residualDirection, residualSummary, svdExample,
 } from '../docs/pca/model.mjs';
 
 const close = (actual, expected, label = '') => assert.ok(
@@ -209,4 +211,99 @@ test('two components retain 40/41 of 3D variance and discard squared error 5.75'
     const residual = point.map((value, column) => value - fitted[index][column]);
     close(residual.reduce((sum, value) => sum + value ** 2, 0), scores[index][2] ** 2);
   });
+});
+
+test('deflation subtracts the rank-one PC1 reconstruction and leaves a centered perpendicular plane', () => {
+  const u1 = THREE_D_BASIS.map(row => row[0]);
+  const residuals = deflate(THREE_D_POINTS, u1);
+  assert.deepEqual(residuals, THREE_D_RESIDUALS);
+  residuals.forEach((residual, index) => {
+    close(dotND(residual, u1), 0, 'residual perpendicular to PC1');
+    const score = THREE_D_POINTS[index].reduce((sum, value, column) =>
+      sum + value * u1[column], 0);
+    residual.forEach((value, column) => {
+      close(value + score * u1[column], THREE_D_POINTS[index][column], 'PC1 part plus residual');
+    });
+  });
+  [0, 1, 2].forEach(column => close(average(residuals.map(row => row[column])), 0, 'residual mean'));
+  // The helper works for unit directions in any number of coordinates.
+  assert.deepEqual(deflate([[2, 3, 4, 5]], [0, 1, 0, 0]), [[2, 0, 4, 5]]);
+});
+
+test('removing PC1 leaves exactly the original PC2 and PC3 scores', () => {
+  const residualScores = changeBasis(THREE_D_RESIDUALS, THREE_D_BASIS);
+  const originalScores = changeBasis(THREE_D_POINTS, THREE_D_BASIS);
+  residualScores.forEach((row, index) => {
+    close(row[0], 0, 'zero PC1 coordinate');
+    close(row[1], originalScores[index][1], 'unchanged PC2 coordinate');
+    close(row[2], originalScores[index][2], 'unchanged PC3 coordinate');
+    close(THREE_D_RESIDUAL_COORDINATES[index][0], row[1], 'plane first coordinate');
+    close(THREE_D_RESIDUAL_COORDINATES[index][1], row[2], 'plane second coordinate');
+  });
+  const columns = [0, 1, 2].map(column => residualScores.map(row => row[column]));
+  for (let row = 0; row < 3; row++) {
+    for (let column = 0; column < 3; column++) {
+      close(manualCovariance(columns[row], columns[column]), row === column ? [0, 1, .25][row] : 0,
+        'rank-two residual covariance');
+    }
+  }
+});
+
+test('searching the residual plane finds PC2 and preserves its total variance', () => {
+  const u1 = THREE_D_BASIS.map(row => row[0]);
+  for (let angle = -180; angle <= 180; angle += 2) {
+    const summary = residualSummary(angle);
+    const radians = angle * Math.PI / 180;
+    const expectedVariance = Math.cos(radians) ** 2 + .25 * Math.sin(radians) ** 2;
+    close(dotND(summary.u, summary.u), 1, 'unit residual direction');
+    close(dotND(summary.u, u1), 0, 'direction perpendicular to PC1');
+    close(dotND(summary.u, summary.v), 0, 'perpendicular residual axes');
+    close(summary.variance, expectedVariance, 'directional plane variance');
+    close(summary.otherVariance, 1.25 - expectedVariance, 'other plane variance');
+    close(summary.totalVariance, 1.25, 'remaining total variance');
+    close(summary.crossCovariance, -.75 * Math.cos(radians) * Math.sin(radians), 'plane cross covariance');
+    assert.ok(summary.variance >= .25 - 1e-10 && summary.variance <= 1 + 1e-10);
+    summary.scores.forEach((score, index) => close(score,
+      THREE_D_POINTS[index].reduce((sum, value, column) => sum + value * summary.u[column], 0),
+      'projecting residual or original has the same score'));
+  }
+  const pc2 = residualDirection(0);
+  pc2.forEach((value, index) => close(value, THREE_D_BASIS[index][1]));
+  close(residualSummary(0).variance, 1, 'PC2 is residual maximum');
+  close(residualSummary(90).variance, .25, 'PC3 is residual minimum');
+  const remainingLine = deflate(THREE_D_RESIDUALS, pc2);
+  const remainingScores = changeBasis(remainingLine, THREE_D_BASIS);
+  remainingScores.forEach(row => {
+    close(row[0], 0, 'PC1 removed');
+    close(row[1], 0, 'PC2 removed');
+  });
+  close(sampleVariance(remainingScores.map(row => row[2])), .25, 'only PC3 remains');
+});
+
+test('SVD singular values encode the principal score variances', () => {
+  const {P, singularValues, Q, scores} = svdExample();
+  assert.equal(P.length, THREE_D_POINTS.length);
+  assert.equal(P[0].length, 3);
+  assert.equal(Q, THREE_D_BASIS);
+  singularValues.forEach((value, column) => {
+    close(value ** 2 / (THREE_D_POINTS.length - 1), THREE_D_EIGENVALUES[column], 'd² / (n − 1)');
+    scores.forEach((row, index) => close(P[index][column] * value, row[column], 'scores = P diag(d)'));
+  });
+  for (let first = 0; first < 3; first++) {
+    close(average(P.map(row => row[first])), 0, 'centered left singular vector');
+    for (let second = 0; second < 3; second++) {
+      const columnDot = P.reduce((sum, row) => sum + row[first] * row[second], 0);
+      close(columnDot, first === second ? 1 : 0, 'orthonormal columns of P');
+    }
+  }
+});
+
+test('SVD reconstructs the cloud as three rank-one pieces, with deflation removing the first', () => {
+  const {P, singularValues, Q} = svdExample();
+  THREE_D_POINTS.forEach((point, index) => point.forEach((value, coordinate) => {
+    const pieces = singularValues.map((singularValue, component) =>
+      singularValue * P[index][component] * Q[coordinate][component]);
+    close(pieces.reduce((sum, piece) => sum + piece, 0), value, 'X = P diag(d) Qᵀ');
+    close(pieces[1] + pieces[2], THREE_D_RESIDUALS[index][coordinate], 'residual contains later pieces');
+  }));
 });
