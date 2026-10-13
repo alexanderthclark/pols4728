@@ -1,14 +1,17 @@
 # PCA: a change of basis
 
 An eighteen-step scrollytelling lesson begins with five points exactly on
-`x₁ = x₂`. Rotating a perpendicular unit basis introduces a score, the column
-`Xu`, and its sample variance. The lesson connects that variance to `uᵀSu`,
-chooses principal directions, and shows the same observations in both coordinate
-systems. A thicker 2D cloud separates a full basis change from dimension
-reduction. The 3D section finds PC1 first, subtracts its contribution, then
-searches for PC2 in a face-on view of the remaining plane. Reconstruction and rank-one
-pieces connect the sequential explanation to SVD: `X = PDUᵀ`,
-`XU = PD`, and `Var(Xuⱼ) = dⱼ²/(n − 1)`.
+`x₁ = x₂`. It introduces `Xu` through the familiar unit directions `(1, 0)`
+and `(0, 1)`, giving the original variables and sample variance 2.5. A unit
+45° direction gives scores `(x₁ + x₂)/√2` and variance 5. This motivates
+searching for a new direction before introducing projection geometry,
+`Var(Xu) = uᵀSu`, and a full rotating basis.
+
+A thicker 2D cloud separates the full basis change from dimension reduction.
+The 3D section finds PC1 first, subtracts its contribution, then searches for
+PC2 in a face-on view of the remaining plane. Reconstruction and rank-one
+pieces connect the sequential explanation to SVD: `X = PDUᵀ`, `XU = PD`,
+and `Var(Xuⱼ) = dⱼ²/(n − 1)`.
 
 The opening title and diagrams use real text and native SVG. The page is static
 HTML, CSS, and JavaScript modules, with local Latin Modern fonts, native MathML,
@@ -82,8 +85,10 @@ returning to the original coordinates.
   navigation applies outside interactive controls. Step links and browser
   Back/Forward restore the reading location. Step selection lands immediately
   beside the matching figure rather than animating across intervening chapters.
-- Rotate 2D directions with a labeled range control or the 0°, 45°, and 135°
-  presets. Choices are retained separately for each step.
+- Compare 0°, 90°, and 45° in the opening measurement scenes, using a
+  labeled range control or presets. The perpendicular second direction appears
+  when the full basis is introduced, with 45°/135° principal presets. Choices
+  are retained separately for each step.
 - In 3D, turn the view, subtract PC1 with a slider, rotate a direction in
   the remaining plane, and choose how many components to retain. Select
   individual rank-one pieces and compare score columns with their normalized

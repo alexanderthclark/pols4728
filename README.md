@@ -17,8 +17,8 @@ The [Fall 2026 Python examples](examples/2026f/README.md) accompany the code lis
 ## Interactive explanations
 
 The [PCA story](docs/pca/README.md) begins with a scatter plot on `x₁ = x₂`,
-connects a change of basis to the score column `Xu` and its variance `uᵀSu`,
-then develops thicker two-dimensional and three-dimensional examples,
+compares `Var(Xu)` along the original axes and the diagonal, then develops
+a change of basis, `uᵀSu`, and thicker two-dimensional and three-dimensional examples,
 sequential component removal, and SVD intuition.
 
 The [gradient boosting story](docs/boosting/README.md), linked second on the

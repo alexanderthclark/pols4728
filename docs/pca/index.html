@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#FFFFFF">
-  <meta name="description" content="Start with x₁ = x₂, rotate the basis, and discover why PCA maximizes the variance of Xu. Interactive two- and three-dimensional examples for POLS 4728.">
+  <meta name="description" content="Start with x₁ = x₂, compare the variance of Xu along familiar axes and the diagonal, then develop PCA as a change of basis. Interactive two- and three-dimensional examples for POLS 4728.">
   <title>PCA: a change of basis · POLS 4728</title>
   <link rel="stylesheet" href="style.css">
   <script type="module" src="app.js"></script>
@@ -41,47 +41,55 @@
           <p>We have recorded two variables, but these observations vary along only one direction. PCA asks which directions describe the variation in the data.</p>
           <p class="quiet">These variables already have mean zero. Throughout the lesson, X contains centered observations in its rows. The examples are constructed data, with no outcome variable.</p>
         </section>
-        <section class="step" id="rotate-basis" data-title="Rotate the measuring frame" data-scene="basis">
-          <p class="eyebrow">02 · Change of basis</p><h2>Turn the axes, keep the points</h2>
-          <p>The familiar coordinate directions are <span class="math">e₁ = (1, 0)ᵀ</span> and <span class="math">e₂ = (0, 1)ᵀ</span>. We can describe the same points using a different pair of perpendicular unit vectors, <span class="math">u</span> and <span class="math">v</span>.</p>
-          <p>Rotate the frame with the angle control. The observations stay where they are in the original plot; the directions along which we measure them change. This is a <em>change of basis</em>.</p>
-          <div class="equation math">u = (cos θ, sin θ)ᵀ<br>v = (−sin θ, cos θ)ᵀ</div>
-          <p class="quiet">Both arrows have length one. The same physical distance represents one unit along either axis.</p>
+        <section class="step" id="stack-scores" data-title="Xu can select a familiar variable" data-scene="scores" data-start-angle="0">
+          <p class="eyebrow">02 · Start with familiar variances</p><h2>Use u to choose a measurement</h2>
+          <p>Let X contain the five observations in its rows. Choose <span class="math">u = (1, 0)ᵀ</span>. Multiplying X by u takes the first entry of each row, so Xu is the column of x₁ values: −2, −1, 0, 1, 2.</p>
+          <div class="equation math">u = (1, 0)ᵀ ⇒ Xu = x₁<br>Var(Xu) = Var(x₁) = 2.5</div>
+          <p>Choose <span class="math">u = (0, 1)ᵀ</span> instead. Now Xu takes the second entry of each row, giving x₂. Its variance is also 2.5. Use the 0° and 90° presets to compare these two familiar measurements.</p>
+          <p>We call the entries of Xu <em>scores</em>: one measurement per observation. <span class="math">Var(Xu)</span> measures their spread across the five observations. Could a different direction give us scores with more variance?</p>
+          <p class="quiet">Both directions have length one. We will keep that length fixed when comparing directions. X is 5 × 2, u is 2 × 1, and Xu is 5 × 1.</p>
         </section>
-        <section class="step" id="one-score" data-title="Read one coordinate" data-scene="projection">
-          <p class="eyebrow">03 · A new coordinate</p><h2>Measure a point along u</h2>
-          <p>Follow the observation at (2, 2), marked with a ring. Drop a perpendicular to the line through <span class="math">u</span>. Its signed distance along that line is its new coordinate, or <em>score</em>.</p>
-          <div class="equation"><math display="block"><msub><mi>z</mi><mi>i</mi></msub><mo>=</mo><msup><msub><mi>x</mi><mi>i</mi></msub><mi>⊤</mi></msup><mi>u</mi><mo>=</mo><msub><mi>x</mi><mrow><mi>i</mi><mn>1</mn></mrow></msub><msub><mi>u</mi><mn>1</mn></msub><mo>+</mo><msub><mi>x</mi><mrow><mi>i</mi><mn>2</mn></mrow></msub><msub><mi>u</mi><mn>2</mn></msub></math></div>
-          <p>The score is one number. The projected point in the original plot is <span class="math">zᵢu</span>, a vector with two entries. Rotate to 45°: the ringed point is already on the new axis, and its score is <span class="math">2√2</span>.</p>
-          <p class="worked math" id="one-score-worked">At 30°, z = 2 cos 30° + 2 sin 30° ≈ 2.73.</p>
+        <section class="step" id="score-variance" data-title="The diagonal gives more variance" data-scene="variance" data-start-angle="45">
+          <p class="eyebrow">03 · Try the diagonal</p><h2>A 45° direction gives more variance</h2>
+          <p>The points spread along the diagonal. A unit vector pointing in that direction puts equal positive weights on both variables:</p>
+          <div class="equation"><math display="block"><mi>u</mi><mo>=</mo><msup><mrow><mo>(</mo><mfrac><mn>1</mn><msqrt><mn>2</mn></msqrt></mfrac><mo>,</mo><mfrac><mn>1</mn><msqrt><mn>2</mn></msqrt></mfrac><mo>)</mo></mrow><mi>⊤</mi></msup></math></div>
+          <p>The squared entries of this vector add to one. Each score adds the two coordinates using these weights. Because x₁ = x₂, the resulting column is:</p>
+          <div class="equation"><math display="block"><mi>X</mi><mi>u</mi><mo>=</mo><mfrac><mrow><msub><mi>x</mi><mn>1</mn></msub><mo>+</mo><msub><mi>x</mi><mn>2</mn></msub></mrow><msqrt><mn>2</mn></msqrt></mfrac><mo>=</mo><msqrt><mn>2</mn></msqrt><msub><mi>x</mi><mn>1</mn></msub></math></div>
+          <p>Scaling every entry by the same factor scales variance by that factor squared. We therefore get <span class="math">Var(Xu) = 2 Var(x₁) = 5</span>, twice the variance from either original coordinate.</p>
+          <p>Compare 0°, 90°, and 45° on the fixed score scale. Measuring along the diagonal concentrates the existing variation in one coordinate. This gives us a reason to search for a new direction.</p>
+          <p class="quiet">These scores have mean zero. Their squared values sum to 20, so their sample variance is 20/(5 − 1) = 5.</p>
         </section>
-        <section class="step" id="stack-scores" data-title="Xu is a column of scores" data-scene="scores">
-          <p class="eyebrow">04 · All the observations</p><h2>Xu stacks the new coordinates</h2>
-          <p>Apply that same dot product to every row of <span class="math">X</span>. Matrix multiplication collects the results into one column:</p>
-          <div class="equation"><math display="block"><mi>X</mi><mi>u</mi><mo>=</mo><mo>[</mo><mtable><mtr><mtd><msup><msub><mi>x</mi><mn>1</mn></msub><mi>⊤</mi></msup><mi>u</mi></mtd></mtr><mtr><mtd><mo>⋮</mo></mtd></mtr><mtr><mtd><msup><msub><mi>x</mi><mi>n</mi></msub><mi>⊤</mi></msup><mi>u</mi></mtd></mtr></mtable><mo>]</mo></math></div>
-          <p><span class="math">X</span> is <span class="math">n × 2</span>, <span class="math">u</span> is <span class="math">2 × 1</span>, and <span class="math">Xu</span> is <span class="math">n × 1</span>. Here, five observations give five scores. A direction in variable space produces a column of measurements across observations.</p>
-        </section>
-        <section class="step" id="score-variance" data-title="The variance of Xu" data-scene="variance">
-          <p class="eyebrow">05 · Measure the spread</p><h2>Some directions reveal more variation</h2>
-          <p>Looking along the horizontal axis gives scores −2, −1, 0, 1, 2, with sample variance 2.5. Looking along the line gives scores <span class="math">√2</span> times as large, with variance 5. Looking perpendicular to the line gives five zeros.</p>
-          <p>Move the angle control and watch the score strip. The quantity <span class="math">Var(Xu)</span> is the sample variance of this column of scores across the observations. Centered data make their mean zero:</p>
-          <div class="equation"><math display="block"><mi mathvariant="normal">Var</mi><mo>(</mo><mi>X</mi><mi>u</mi><mo>)</mo><mo>=</mo><mfrac><mrow><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msubsup><mi>z</mi><mi>i</mi><mn>2</mn></msubsup></mrow><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></mfrac></math></div>
-          <p class="quiet">Try 0°, 45°, and 135°. The strip uses a fixed scale, so a wider spread means a larger variance.</p>
+        <section class="step" id="one-score" data-title="Interpret a score geometrically" data-scene="projection" data-start-angle="45">
+          <p class="eyebrow">04 · What the score means</p><h2>Each score measures a point along u</h2>
+          <p>We have computed scores as weighted measurements. Write the two weights as <span class="math">u = (a, b)ᵀ</span>. Geometrically, each score is a signed distance along this unit direction. Follow the observation at (2, 2), marked with a ring.</p>
+          <div class="equation"><math display="block"><msub><mi>z</mi><mi>i</mi></msub><mo>=</mo><msup><msub><mi>x</mi><mi>i</mi></msub><mi>⊤</mi></msup><mi>u</mi><mo>=</mo><mi>a</mi><msub><mi>x</mi><mrow><mi>i</mi><mn>1</mn></mrow></msub><mo>+</mo><mi>b</mi><msub><mi>x</mi><mrow><mi>i</mi><mn>2</mn></mrow></msub></math></div>
+          <p>At 45°, this point is already on the chosen line and its score is about 2.83. Choose another angle and drop a perpendicular to the line through u. Its endpoint marks the point’s projection.</p>
+          <p>The score zᵢ is one number. The projected point <span class="math">zᵢu</span> is a vector with two entries. Xu stacks the five scalar scores into a column.</p>
+          <p class="worked math" id="one-score-worked">With u ≈ (0.707, 0.707)ᵀ, z = 2a + 2b ≈ 2.83.</p>
         </section>
         <section class="step" id="covariance-form" data-title="From Xu to uᵀSu" data-scene="quadratic">
-          <p class="eyebrow">06 · The covariance matrix</p><h2>The same variance, written with S</h2>
+          <p class="eyebrow">05 · The covariance matrix</p><h2>The same variance, written with S</h2>
           <p>The sum of squared scores is <span class="math">(Xu)ᵀ(Xu)</span>. Rearrange the multiplication and define the sample covariance matrix <span class="math">S = XᵀX/(n − 1)</span>:</p>
           <div class="equation derivation"><math display="block"><mi mathvariant="normal">Var</mi><mo>(</mo><mi>X</mi><mi>u</mi><mo>)</mo><mo>=</mo><mfrac><mrow><mo>(</mo><mi>X</mi><mi>u</mi><msup><mo>)</mo><mi>⊤</mi></msup><mo>(</mo><mi>X</mi><mi>u</mi><mo>)</mo></mrow><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></mfrac><mo>=</mo><msup><mi>u</mi><mi>⊤</mi></msup><mi>S</mi><mi>u</mi></math></div>
-          <p>For our five points, the two variances and their covariance are all 2.5. Substituting <span class="math">u = (u₁, u₂)ᵀ</span> gives:</p>
-          <div class="equation math">Var(Xu) = 2.5u₁² + 5u₁u₂ + 2.5u₂²<br>= 2.5(u₁ + u₂)²</div>
+          <p>For our five points, the two variances and their covariance are all 2.5. Substituting <span class="math">u = (a, b)ᵀ</span> gives:</p>
+          <div class="equation math">Var(Xu) = 2.5a² + 5ab + 2.5b²<br>= 2.5(a + b)²</div>
           <p>The term involving both entries of <span class="math">u</span> comes from covariance. PCA uses how the variables move together, as well as their individual variances.</p>
         </section>
         <section class="step" id="principal-direction" data-title="Choose the greatest variance" data-scene="maximum">
-          <p class="eyebrow">07 · Principal directions</p><h2>Choose u to maximize Var(Xu)</h2>
+          <p class="eyebrow">06 · Principal directions</p><h2>Choose u to maximize Var(Xu)</h2>
           <p>We compare directions of the same length: <span class="math">uᵀu = 1</span>. Otherwise doubling <span class="math">u</span> would double every score and quadruple its variance without finding a better direction.</p>
           <div class="equation math">maximize uᵀSu subject to uᵀu = 1</div>
-          <p>The maximizing direction is an eigenvector of <span class="math">S</span> with the largest eigenvalue. In this example, <span class="math">u₁ = (1, 1)ᵀ/√2</span> and <span class="math">Su₁ = 5u₁</span>. Its score variance is 5. The perpendicular direction <span class="math">u₂ = (−1, 1)ᵀ/√2</span> has variance 0.</p>
+          <p>The maximizing direction is an eigenvector of <span class="math">S</span> with the largest eigenvalue. In this example, <math><msub><mi>u</mi><mn>1</mn></msub><mo>=</mo><msup><mrow><mo>(</mo><mtext>1, 1</mtext><mo>)</mo></mrow><mi>⊤</mi></msup><mo>/</mo><msqrt><mn>2</mn></msqrt></math> and <span class="math">Su₁ = 5u₁</span>. Its score variance is 5. The perpendicular direction <math><msub><mi>u</mi><mn>2</mn></msub><mo>=</mo><msup><mrow><mo>(</mo><mtext>−1, 1</mtext><mo>)</mo></mrow><mi>⊤</mi></msup><mo>/</mo><msqrt><mn>2</mn></msqrt></math> has variance 0.</p>
           <p>These are the first and second <em>principal directions</em>. Their score columns are the principal components. Reversing an arrow changes the signs of the scores, but leaves the variance unchanged.</p>
+        </section>
+        <section class="step" id="rotate-basis" data-title="Build a basis around the chosen direction" data-scene="basis" data-start-angle="45">
+          <p class="eyebrow">07 · Change of basis</p><h2>Build a measuring frame around u</h2>
+          <p>We found a direction that reveals more variance. To describe a point completely, pair that unit direction u with a perpendicular unit direction v. Each point now has two scores, one along each direction.</p>
+          <p>We can rotate this measuring frame through any angle θ. A unit arrow at angle θ has horizontal entry cos θ and vertical entry sin θ. Turning it 90° counterclockwise gives the perpendicular arrow:</p>
+          <div class="equation math">u = (cos θ, sin θ)ᵀ<br>v = (−sin θ, cos θ)ᵀ</div>
+          <p>At θ = 0°, these are the familiar coordinate directions (1, 0)ᵀ and (0, 1)ᵀ. At 45°, u follows the data and v crosses the line. The first scores have variance 5; the second scores are all zero.</p>
+          <p>Rotate the frame with the control. The observations stay fixed in the original plot; the directions along which we measure them change. This is a <em>change of basis</em>.</p>
+          <p class="quiet">Both arrows have length one. Across this perpendicular pair, the score variances always add to 5. The new basis redistributes the existing variation between two coordinates.</p>
         </section>
         <section class="step" id="new-coordinates" data-title="The full change of basis" data-scene="coordinates">
           <p class="eyebrow">08 · Keep both coordinates</p><h2>The same points in the new basis</h2>

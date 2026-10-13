@@ -22,6 +22,8 @@ let removal = 0;
 let piece = 0;
 // Rotate the face-on reference frame away from the known principal axes.
 const residualPoints = coordinates(THREE_D_RESIDUAL_COORDINATES, 30);
+const measurementScenes = ['scores', 'variance', 'projection', 'quadratic', 'maximum'];
+const familiarPresets = ['scores', 'variance', 'projection', 'quadratic'];
 let animation;
 let scrollFrame;
 let navigationUntil = 0;
@@ -157,7 +159,7 @@ function draw2D(parent, points, summary) {
     line(parent, map([-2.7, -2.7]), map([2.7, 2.7]), colors.light, 1.5, '4 5');
     if (!showBasis) label(parent, map([1.6, 2.4])[0], map([1.6, 2.4])[1], 'x₁ = x₂', colors.ink, 21);
   }
-  if (showBasis) basis(parent, map, summary.u, summary.v, extent - .3, !isReconstruction);
+  if (showBasis) basis(parent, map, summary.u, summary.v, extent - .3, !isReconstruction && !measurementScenes.includes(scene));
   if (isReconstruction) {
     points.forEach((p, i) => {
       line(parent, map(p), map(summary.reconstruction[i]), colors.rule, 1, '3 3');
@@ -166,7 +168,7 @@ function draw2D(parent, points, summary) {
     });
     label(parent, 70, 305, '○ Original observation     × Reconstructed from one score', colors.muted, 17);
   } else {
-    if (isStrip || isScores) {
+    if (['projection', 'quadratic'].includes(scene)) {
       points.forEach((p, i) => {
         if (scene !== 'projection' || i === selected) {
           line(parent, map(p), map(summary.reconstruction[i]), colors.rule, 1, '3 4');
@@ -174,7 +176,7 @@ function draw2D(parent, points, summary) {
         }
       });
     }
-    points.forEach((p, i) => point(parent, map(p), current >= 2 && i === selected, false, points.length > 5 ? 4 : 5));
+    points.forEach((p, i) => point(parent, map(p), scene !== 'line' && i === selected, false, points.length > 5 ? 4 : 5));
   }
   if (scene === 'basis') label(parent, 360, 430, 'The axes turn. The observations stay fixed.', colors.muted, 20, 'middle');
   if (isStrip) scoreStrip(parent, summary.scores, 386, 'One score per observation · Xu');
@@ -285,11 +287,11 @@ function render() {
   $('camera-control').hidden = !isThree || isResidual || isSVD;
   $('removal-control').hidden = scene !== 'deflation';
   $('piece-control').hidden = !['pieces', 'svd'].includes(scene);
-  $('statistics').hidden = current < 4;
+  $('statistics').hidden = scene === 'line';
   $('angle').min = isResidual ? -90 : 0;
   $('angle').max = isResidual ? 90 : 180;
   $('angle').value = targetAngle;
-  $('angle-label').textContent = isResidual ? 'Direction in the plane φ' : 'Direction angle θ';
+  $('angle-label').textContent = isResidual ? 'Direction in the plane φ' : measurementScenes.includes(scene) ? 'Direction angle' : 'Direction angle θ';
   $('angle-value').value = `${fmt(angle, 0)}°`;
   $('dataset').value = dataset;
   $('view').value = view;
@@ -302,10 +304,11 @@ function render() {
   document.querySelector('.stage').classList.toggle('is-three', isThree);
   document.querySelector('.stage').classList.toggle('is-explore', isExplore);
   document.querySelectorAll('[data-angle]').forEach((button, index) => {
-    const degrees = (isResidual ? [-30, 0, 60] : [0, 45, 135])[index];
+    const degrees = (isResidual ? [-30, 0, 60] : familiarPresets.includes(scene) ? [0, 90, 45] : [0, 45, 135])[index];
     button.dataset.angle = degrees;
     button.setAttribute('aria-pressed', String(Math.abs(targetAngle - degrees) < .1));
-    button.textContent = `${String(degrees).replace('-', '−')}°${isResidual ? (index === 0 ? ' · PC2' : index === 2 ? ' · PC3' : '') : current >= 6 && degrees !== 0 ? ` · PC${index}` : ''}`;
+    const suffix = isResidual ? (index === 0 ? ' · PC2' : index === 2 ? ' · PC3' : '') : familiarPresets.includes(scene) ? [' · x₁', ' · x₂', ' · diagonal'][index] : ['maximum', 'basis', 'coordinates', 'cloud', 'reconstruction', 'explore'].includes(scene) && degrees !== 0 ? ` · PC${index}` : '';
+    button.textContent = `${String(degrees).replace('-', '−')}°${suffix}`;
   });
   let caption;
   function statistics(labels, values) {
@@ -347,14 +350,15 @@ function render() {
     $('second-variance').value = fmt(summary.otherVariance);
     $('third-label').textContent = isReconstruction ? 'Variance kept' : 'Total variance';
     $('third-value').value = isReconstruction ? `${fmt(summary.retainedFraction * 100, 1)}%` : fmt(summary.totalVariance);
+    if (measurementScenes.includes(scene)) statistics(['Var(Xu)', 'Var(x₁)', 'Var(x₂)'], [fmt(summary.variance), fmt(sampleVariance(points.map(p => p[0]))), fmt(sampleVariance(points.map(p => p[1])))]);
     const captions = {
       line: 'Five centered observations lie exactly on x₁ = x₂. Both axes use the same unit scale.',
       basis: `u = (${fmt(summary.u[0])}, ${fmt(summary.u[1])})ᵀ. Solid u and dashed v are perpendicular unit directions.`,
       projection: `The ringed point has score ${fmt(summary.scores.at(-1))}. The dashed perpendicular ends at its projection onto u.`,
-      scores: `The five entries of Xu are ${summary.scores.map(value => fmt(value)).join(', ')}. Each entry measures one observation along u.`,
-      variance: `The scores have mean zero. Their squared values sum to ${fmt(summary.variance * (points.length - 1))}; divide by n − 1 = ${points.length - 1} to get ${fmt(summary.variance)}.`,
+      scores: `u = (${fmt(summary.u[0])}, ${fmt(summary.u[1])})ᵀ gives Xu = [${summary.scores.map(value => fmt(value)).join(', ')}]ᵀ, with variance ${fmt(summary.variance)}. At 0° this selects x₁; at 90° it selects x₂.`,
+      variance: `At ${fmt(angle, 0)}°, u = (${fmt(summary.u[0])}, ${fmt(summary.u[1])})ᵀ and Var(Xu) = ${fmt(summary.variance)}. Both original variables have variance 2.50. At 45°, each score is √2 times its original coordinate, giving variance 5.`,
       quadratic: `Variance from the scores and from uᵀSu both equal ${fmt(summary.variance)}. The sample covariance matrix has all four entries equal to 2.5.`,
-      maximum: `The greatest variance is 5 at 45°. The perpendicular direction at 135° has variance 0. The total stays 5.`,
+      maximum: `The greatest variance is 5 at 45°. The perpendicular direction at 135° has variance 0.`,
       coordinates: `Both coordinates preserve every point. Cov(Xu, Xv) = ${fmt(summary.crossCovariance)}. At 45°, the second score is zero for everyone.`,
       cloud: `A new cloud of 24 points. Cov(Xu, Xv) = ${fmt(summary.crossCovariance)}. At the principal basis, the score variances are 9 and 1.`,
       reconstruction: `One direction keeps ${fmt(100 * summary.retainedFraction, 1)}% of total variance. Squared reconstruction errors sum to ${fmt(summary.meanSquaredError * points.length)}.`,
@@ -365,7 +369,7 @@ function render() {
     caption = captions[scene];
   }
   $('caption').textContent = caption;
-  if (scene === 'projection') $('one-score-worked').textContent = `At ${fmt(angle, 0)}°, z = 2 cos ${fmt(angle, 0)}° + 2 sin ${fmt(angle, 0)}° ≈ ${fmt(2 * summary.u[0] + 2 * summary.u[1])}.`;
+  if (scene === 'projection') $('one-score-worked').textContent = `With u ≈ (${fmt(summary.u[0], 3)}, ${fmt(summary.u[1], 3)})ᵀ, z = 2a + 2b ≈ ${fmt(summary.scores.at(-1))}.`;
   svg.replaceChildren(el('title', { id: 'diagram-title' }, steps[current].dataset.title), el('desc', { id: 'diagram-description' }, caption));
   const drawing = add(svg, 'g', { 'aria-hidden': 'true' });
   if (isSVD) drawSVDFactors(drawing, { add, line, label, point, colors, fmt }, piece);
@@ -404,8 +408,8 @@ function setStep(index, animate = true) {
   current = index;
   const scene = steps[index].dataset.scene;
   const fallback = {
-    angle: scene === 'residual-plane' ? 0 : scene === 'second-pc' ? -30 : index === 0 || index === 4 ? 0 : index < 6 ? 30 : 45,
-    dataset: index < 8 ? 'line' : index < 10 || scene === 'explore' ? 'cloud' : 'three',
+    angle: scene === 'residual-plane' ? 0 : scene === 'second-pc' ? -30 : scene === 'line' ? 0 : Number(steps[index].dataset.startAngle ?? 45),
+    dataset: ['line', 'scores', 'variance', 'projection', 'quadratic', 'maximum', 'basis', 'coordinates'].includes(scene) ? 'line' : ['cloud', 'reconstruction', 'explore'].includes(scene) ? 'cloud' : 'three',
     view: scene === 'plane' ? 'reconstruction' : 'original',
     components: scene === 'plane' ? 2 : 1,
     camera: 25,
