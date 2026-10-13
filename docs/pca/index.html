@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#FFFFFF">
+  <meta name="description" content="Start with x₁ = x₂, rotate the basis, and discover why PCA maximizes the variance of Xu. Interactive two- and three-dimensional examples for POLS 4728.">
+  <title>PCA: a change of basis · POLS 4728</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#story">Skip to the explanation</a>
+  <header class="masthead">
+    <a href="../">POLS 4728 <span>· ML &amp; AI</span></a>
+    <nav aria-label="Lesson navigation"><a href="#same-values">Explanation</a><a href="#a-cloud">More dimensions</a><a href="#explore">Explore</a></nav>
+  </header>
+  <main>
+    <section class="title-page" aria-labelledby="page-title">
+      <p class="eyebrow">Principal component analysis</p>
+      <h1 id="page-title">PCA: a change of basis</h1>
+      <p class="subtitle">The same observations, measured along new directions.</p>
+      <svg class="title-diagram" viewBox="0 0 640 245" role="img" aria-labelledby="cover-title cover-description">
+        <title id="cover-title">Two ways to describe the same five points</title>
+        <desc id="cover-description">Five points on the line x₁ equals x₂. In a basis aligned with the line, all five points have a zero second coordinate.</desc>
+        <g stroke="#767676" stroke-width="1" fill="none"><path d="M50 125H255M150 225V25"/><path d="M389 125H605M495 225V25"/></g>
+        <g fill="#606060" font-size="18"><text x="239" y="148">x₁</text><text x="159" y="38">x₂</text><text x="587" y="148">z₁</text><text x="504" y="38">z₂</text></g>
+        <path d="M82 193L218 57" stroke="#234E70" stroke-width="1.5" stroke-dasharray="5 5" fill="none"/>
+        <g fill="#234E70"><circle cx="90" cy="185" r="5"/><circle cx="120" cy="155" r="5"/><circle cx="150" cy="125" r="5"/><circle cx="180" cy="95" r="5"/><circle cx="210" cy="65" r="5"/><circle cx="410.15" cy="125" r="5"/><circle cx="452.57" cy="125" r="5"/><circle cx="495" cy="125" r="5"/><circle cx="537.43" cy="125" r="5"/><circle cx="579.85" cy="125" r="5"/></g>
+        <path d="M297 125H348M340 117L348 125L340 133" stroke="#242424" stroke-width="1.5" fill="none"/>
+        <g fill="#606060" font-size="17" text-anchor="middle"><text x="150" y="244">Original coordinates</text><text x="495" y="244">Principal coordinates</text></g>
+      </svg>
+      <a class="start-link" href="#same-values">Start with x₁ = x₂ <span aria-hidden="true">↓</span></a>
+      <p class="quiet">Scroll, use Previous and Next, or choose a lesson step.</p>
+    </section>
+    <div class="scrolly" id="lesson">
+      <article class="story" id="story">
+        <section class="step" id="same-values" data-title="Two variables, one line" data-scene="line">
+          <p class="eyebrow">01 · A simple example</p><h2>Two variables with the same values</h2>
+          <p>Begin with five observations: (−2, −2), (−1, −1), (0, 0), (1, 1), and (2, 2). Every point lies on the line <span class="math">x₁ = x₂</span>. Knowing either coordinate tells us the other.</p>
+          <p>We have recorded two variables, but these observations vary along only one direction. PCA asks which directions describe the variation in the data.</p>
+          <p class="quiet">These variables already have mean zero. Throughout the lesson, X contains centered observations in its rows. The examples are constructed data, with no outcome variable.</p>
+        </section>
+        <section class="step" id="rotate-basis" data-title="Rotate the measuring frame" data-scene="basis">
+          <p class="eyebrow">02 · Change of basis</p><h2>Turn the axes, keep the points</h2>
+          <p>The familiar coordinate directions are <span class="math">e₁ = (1, 0)ᵀ</span> and <span class="math">e₂ = (0, 1)ᵀ</span>. We can describe the same points using a different pair of perpendicular unit vectors, <span class="math">u</span> and <span class="math">v</span>.</p>
+          <p>Rotate the frame with the angle control. The observations stay where they are in the original plot; the directions along which we measure them change. This is a <em>change of basis</em>.</p>
+          <div class="equation math">u = (cos θ, sin θ)ᵀ<br>v = (−sin θ, cos θ)ᵀ</div>
+          <p class="quiet">Both arrows have length one. The same physical distance represents one unit along either axis.</p>
+        </section>
+        <section class="step" id="one-score" data-title="Read one coordinate" data-scene="projection">
+          <p class="eyebrow">03 · A new coordinate</p><h2>Measure a point along u</h2>
+          <p>Follow the observation at (2, 2), marked with a ring. Drop a perpendicular to the line through <span class="math">u</span>. Its signed distance along that line is its new coordinate, or <em>score</em>.</p>
+          <div class="equation"><math display="block"><msub><mi>z</mi><mi>i</mi></msub><mo>=</mo><msup><msub><mi>x</mi><mi>i</mi></msub><mi>⊤</mi></msup><mi>u</mi><mo>=</mo><msub><mi>x</mi><mrow><mi>i</mi><mn>1</mn></mrow></msub><msub><mi>u</mi><mn>1</mn></msub><mo>+</mo><msub><mi>x</mi><mrow><mi>i</mi><mn>2</mn></mrow></msub><msub><mi>u</mi><mn>2</mn></msub></math></div>
+          <p>The score is one number. The projected point in the original plot is <span class="math">zᵢu</span>, a vector with two entries. Rotate to 45°: the ringed point is already on the new axis, and its score is <span class="math">2√2</span>.</p>
+          <p class="worked math" id="one-score-worked">At 30°, z = 2 cos 30° + 2 sin 30° ≈ 2.73.</p>
+        </section>
+        <section class="step" id="stack-scores" data-title="Xu is a column of scores" data-scene="scores">
+          <p class="eyebrow">04 · All the observations</p><h2>Xu stacks the new coordinates</h2>
+          <p>Apply that same dot product to every row of <span class="math">X</span>. Matrix multiplication collects the results into one column:</p>
+          <div class="equation"><math display="block"><mi>X</mi><mi>u</mi><mo>=</mo><mo>[</mo><mtable><mtr><mtd><msup><msub><mi>x</mi><mn>1</mn></msub><mi>⊤</mi></msup><mi>u</mi></mtd></mtr><mtr><mtd><mo>⋮</mo></mtd></mtr><mtr><mtd><msup><msub><mi>x</mi><mi>n</mi></msub><mi>⊤</mi></msup><mi>u</mi></mtd></mtr></mtable><mo>]</mo></math></div>
+          <p><span class="math">X</span> is <span class="math">n × 2</span>, <span class="math">u</span> is <span class="math">2 × 1</span>, and <span class="math">Xu</span> is <span class="math">n × 1</span>. Here, five observations give five scores. A direction in variable space produces a column of measurements across observations.</p>
+        </section>
+        <section class="step" id="score-variance" data-title="The variance of Xu" data-scene="variance">
+          <p class="eyebrow">05 · Measure the spread</p><h2>Some directions reveal more variation</h2>
+          <p>Looking along the horizontal axis gives scores −2, −1, 0, 1, 2, with sample variance 2.5. Looking along the line gives scores <span class="math">√2</span> times as large, with variance 5. Looking perpendicular to the line gives five zeros.</p>
+          <p>Move the angle control and watch the score strip. The quantity <span class="math">Var(Xu)</span> is the sample variance of this column of scores across the observations. Centered data make their mean zero:</p>
+          <div class="equation"><math display="block"><mi mathvariant="normal">Var</mi><mo>(</mo><mi>X</mi><mi>u</mi><mo>)</mo><mo>=</mo><mfrac><mrow><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msubsup><mi>z</mi><mi>i</mi><mn>2</mn></msubsup></mrow><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></mfrac></math></div>
+          <p class="quiet">Try 0°, 45°, and 135°. The strip uses a fixed scale, so a wider spread means a larger variance.</p>
+        </section>
+        <section class="step" id="covariance-form" data-title="From Xu to uᵀSu" data-scene="quadratic">
+          <p class="eyebrow">06 · The covariance matrix</p><h2>The same variance, written with S</h2>
+          <p>The sum of squared scores is <span class="math">(Xu)ᵀ(Xu)</span>. Rearrange the multiplication and define the sample covariance matrix <span class="math">S = XᵀX/(n − 1)</span>:</p>
+          <div class="equation derivation"><math display="block"><mi mathvariant="normal">Var</mi><mo>(</mo><mi>X</mi><mi>u</mi><mo>)</mo><mo>=</mo><mfrac><mrow><mo>(</mo><mi>X</mi><mi>u</mi><msup><mo>)</mo><mi>⊤</mi></msup><mo>(</mo><mi>X</mi><mi>u</mi><mo>)</mo></mrow><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></mfrac><mo>=</mo><msup><mi>u</mi><mi>⊤</mi></msup><mi>S</mi><mi>u</mi></math></div>
+          <p>For our five points, the two variances and their covariance are all 2.5. Substituting <span class="math">u = (u₁, u₂)ᵀ</span> gives:</p>
+          <div class="equation math">Var(Xu) = 2.5u₁² + 5u₁u₂ + 2.5u₂²<br>= 2.5(u₁ + u₂)²</div>
+          <p>The term involving both entries of <span class="math">u</span> comes from covariance. PCA uses how the variables move together, as well as their individual variances.</p>
+        </section>
+        <section class="step" id="principal-direction" data-title="Choose the greatest variance" data-scene="maximum">
+          <p class="eyebrow">07 · Principal directions</p><h2>Choose u to maximize Var(Xu)</h2>
+          <p>We compare directions of the same length: <span class="math">uᵀu = 1</span>. Otherwise doubling <span class="math">u</span> would double every score and quadruple its variance without finding a better direction.</p>
+          <div class="equation math">maximize uᵀSu subject to uᵀu = 1</div>
+          <p>The maximizing direction is an eigenvector of <span class="math">S</span> with the largest eigenvalue. In this example, <span class="math">u₁ = (1, 1)ᵀ/√2</span> and <span class="math">Su₁ = 5u₁</span>. Its score variance is 5. The perpendicular direction <span class="math">u₂ = (−1, 1)ᵀ/√2</span> has variance 0.</p>
+          <p>These are the first and second <em>principal directions</em>. Their score columns are the principal components. Reversing an arrow changes the signs of the scores, but leaves the variance unchanged.</p>
+        </section>
+        <section class="step" id="new-coordinates" data-title="The full change of basis" data-scene="coordinates">
+          <p class="eyebrow">08 · Keep both coordinates</p><h2>The same points in the new basis</h2>
+          <p>Put the two principal directions into the columns of <span class="math">U = [u₁ u₂]</span>. Multiplying by this matrix gives both new coordinates at once:</p>
+          <div class="equation math">Z = XU<br>X = ZUᵀ</div>
+          <p>The paired plots use equal units. The diagonal line becomes a horizontal line because its second coordinate is zero. The distances between observations stay the same.</p>
+          <p>Keeping the full orthonormal basis preserves the data. Here, even the first score alone describes every observation, because the second score is always zero.</p>
+        </section>
+        <section class="step" id="a-cloud" data-title="Add variation off the line" data-scene="cloud">
+          <p class="eyebrow">09 · A more complicated 2D example</p><h2>Now give the line some thickness</h2>
+          <p>Replace the five points with a cloud of 24 centered observations. The variables still tend to move together, but now knowing one does not determine the other.</p>
+          <div class="equation math">S = <span class="matrix"><span>5</span><span>4</span><span>4</span><span>5</span></span></div>
+          <p>The principal directions still lie at 45° and 135°. Their score variances are now 9 and 1. In the principal basis, the score covariance is zero; the two diagonal entries add to the same total variance, 10.</p>
+          <p class="quiet">For a general angle, Var(Xu) = 5 + 4 sin(2θ). Rotate the frame to see variation shift between coordinates. Zero covariance does not establish independence.</p>
+        </section>
+        <section class="step" id="reduce-dimension" data-title="Discard one coordinate" data-scene="reconstruction">
+          <p class="eyebrow">10 · Dimension reduction</p><h2>Dropping a coordinate loses information</h2>
+          <p>Keep the first score and set the second to zero. Reconstruct each observation as <span class="math">x̂ᵢ = zᵢ₁u₁</span>. The reconstructed points lie on the first principal axis; the short segments show the differences from the original observations.</p>
+          <p>At the principal basis, retaining one component keeps <span class="math">9/(9 + 1) = 90%</span> of the total sample variance. The remaining 10% describes variation perpendicular to that axis.</p>
+          <p>Rotate the retained direction. The direction with the greatest score variance also gives the smallest sum of squared perpendicular reconstruction errors. The basis change itself preserved the data; discarding a coordinate introduces the loss.</p>
+          <p class="quiet">Covariance PCA depends on the variables’ units. These examples use comparable scales. Centering subtracts column means; standardizing also divides by column standard deviations and can change the principal directions.</p>
+        </section>
+        <section class="step" id="three-dimensions" data-title="A cloud in three dimensions" data-scene="three-d">
+          <p class="eyebrow">11 · A 3D example</p><h2>A third variable adds another direction</h2>
+          <p>Now consider 24 centered observations with three coordinates. This constructed cloud has a long direction near <span class="math">(1, 1, 1)</span>, a shorter perpendicular direction, and a little thickness in a third direction.</p>
+          <p>We need three mutually perpendicular unit vectors. The first maximizes score variance; the second maximizes it among directions perpendicular to the first; the third completes the basis.</p>
+          <div class="equation math">U = [u₁ u₂ u₃] &nbsp; and &nbsp; Z = XU</div>
+          <p>Switch to principal coordinates to see the score variances 9, 1, and 0.25 along the three axes. Turn the view to inspect the shape. Turning the camera changes the drawing, not the data or their variances.</p>
+        </section>
+        <section class="step" id="keep-a-plane" data-title="Keep a line or a plane" data-scene="plane">
+          <p class="eyebrow">12 · More than one component</p><h2>Keep two coordinates, recover a plane</h2>
+          <p>One component reconstructs a line. Two components reconstruct a plane. All three reconstruct the original 3D observations.</p>
+          <div class="equation math">x̂ᵢ = zᵢ₁u₁ + zᵢ₂u₂</div>
+          <p>The first two components retain <span class="math">(9 + 1)/(9 + 1 + 0.25) ≈ 97.6%</span> of the total sample variance. Discarding the third coordinate removes the cloud’s thickness perpendicular to the plane.</p>
+          <p>Change the number of retained components. This extends the same idea: choose an orthonormal basis ordered by variance, then decide how many coordinates to keep.</p>
+        </section>
+        <section class="step" id="explore" data-title="Compare the examples" data-scene="explore">
+          <p class="eyebrow">13 · Explore</p><h2>Directions, scores, and retained information</h2>
+          <p>Return to the exact line, the thicker 2D cloud, or the 3D cloud. Compare the original observations, their new coordinates, and their reconstructions.</p>
+          <p>For the exact line, find a direction with zero score variance. For the thicker cloud, find the angle that retains the most variation in one coordinate. For the 3D cloud, compare retaining a line, a plane, and the whole basis.</p>
+          <p>The calculation is the same throughout: <span class="math">Xu</span> measures every observation along one unit direction, and <span class="math">uᵀSu</span> measures the variance of those scores.</p>
+          <a href="#page-title">Back to the beginning</a>
+        </section>
+      </article>
+      <aside class="stage" aria-label="Interactive PCA diagram">
+        <div class="stage-top"><label for="step-select" class="sr-only">Lesson step</label><select id="step-select"></select><span id="step-count">01 / 13</span></div>
+        <div class="diagram-wrap"><svg id="diagram" viewBox="0 0 720 450" role="img" aria-labelledby="diagram-title diagram-description"><title id="diagram-title">PCA example</title><desc id="diagram-description">Five points on x₁ = x₂.</desc></svg></div>
+        <div class="stage-controls">
+          <label id="data-control" hidden>Example <select id="dataset"><option value="line">Exact line · 2D</option><option value="cloud">Thicker cloud · 2D</option><option value="three">Cloud · 3D</option></select></label>
+          <div id="angle-control" hidden><label for="angle">Direction angle θ <output id="angle-value" for="angle">30°</output></label><input id="angle" type="range" min="0" max="180" step="1" value="30"><div class="angle-presets"><button data-angle="0" type="button">0°</button><button data-angle="45" type="button">45° · PC1</button><button data-angle="135" type="button">135° · PC2</button></div></div>
+          <label id="view-control" hidden>View <select id="view"><option value="original">Original coordinates</option><option value="coordinates">New coordinates</option><option value="reconstruction">Reconstruction</option></select></label>
+          <label id="components-control" hidden>Components kept <select id="components"><option value="1">1 · a line</option><option value="2" selected>2 · a plane</option><option value="3">3 · all coordinates</option></select></label>
+          <div id="camera-control" hidden><label for="camera">Turn the 3D view <output id="camera-value" for="camera">25°</output></label><input id="camera" type="range" min="-90" max="90" step="1" value="25"></div>
+        </div>
+        <div id="statistics" class="statistics" hidden><div><span id="variance-label">Var(Xu)</span><output id="variance">2.50</output></div><div><span id="second-label">Var(Xv)</span><output id="second-variance">2.50</output></div><div><span id="third-label">Total variance</span><output id="third-value">5.00</output></div></div>
+        <p id="caption" class="caption">Five centered observations lie exactly on x₁ = x₂.</p>
+        <p id="status" class="sr-only" aria-live="polite" aria-atomic="true"></p>
+        <div class="stage-nav"><button id="previous" type="button" disabled>Previous</button><span>Scroll to continue</span><button id="next" type="button">Next</button></div>
+      </aside>
+    </div>
+  </main>
+  <footer><p>Constructed examples · Sample variances use n − 1.</p><a href="../">POLS 4728 home</a></footer>
+  <noscript><style>.stage,.title-page > .quiet{display:none}.scrolly{display:block;max-width:46rem}.step{min-height:0;padding:2rem 0}</style><p class="no-script">The complete explanation is readable without JavaScript. Enable it to rotate the basis and explore the diagrams.</p></noscript>
+</body>
+</html>

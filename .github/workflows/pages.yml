@@ -36,6 +36,8 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check docs/assets/coronation.js
+          node --check docs/pca/model.mjs
+          node --check docs/pca/app.js
           node --check docs/shapley/game.mjs
           node --check docs/shapley/story.js
           node --check docs/shapley/weight-view.js
@@ -62,7 +64,7 @@ jobs:
           node --check docs/trees/title-picture.js
           node --check docs/trees/title-motion.js
           node --check docs/trees/story.js
-      - name: Check Shapley, SHAP, trees, and boosting calculations
+      - name: Check interactive lesson calculations
         run: node --test tests/*.test.mjs
 
   deploy:

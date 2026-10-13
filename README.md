@@ -16,6 +16,10 @@ The [Fall 2026 Python examples](examples/2026f/README.md) accompany the code lis
 
 ## Interactive explanations
 
+The [PCA story](docs/pca/README.md) begins with a scatter plot on `x₁ = x₂`,
+connects a change of basis to the score column `Xu` and its variance `uᵀSu`,
+then develops thicker two-dimensional and three-dimensional examples.
+
 The [gradient boosting story](docs/boosting/README.md), linked second on the
 course homepage, connects interactive prediction-space geometry to fitted
 tree corrections. Its identical-input example shows the limits of available
