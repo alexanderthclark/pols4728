@@ -19,6 +19,7 @@ let camera = 25;
 let animation;
 let scrollFrame;
 let navigationUntil = 0;
+let navigationLocked = false;
 
 function fmt(value, digits = 2) {
   return (Math.abs(value) < .000001 ? 0 : value).toFixed(digits).replace('-', '−');
@@ -356,6 +357,7 @@ function readingLine() {
 function goTo(index, push = true, focus = true) {
   index = Math.max(0, Math.min(steps.length - 1, index));
   navigationUntil = performance.now() + 100;
+  navigationLocked = true;
   setStep(index);
   if (push && location.hash !== `#${steps[index].id}`) history.pushState(null, '', `#${steps[index].id}`);
   const mobile = matchMedia('(max-width: 800px)').matches;
@@ -370,7 +372,7 @@ function goTo(index, push = true, focus = true) {
 }
 function readScroll() {
   scrollFrame = undefined;
-  if (performance.now() < navigationUntil) return;
+  if (navigationLocked || performance.now() < navigationUntil) return;
   const lineY = readingLine();
   let index = 0;
   steps.forEach((step, i) => { if (step.getBoundingClientRect().top <= lineY + 5) index = i; });
@@ -415,7 +417,17 @@ document.addEventListener('keydown', event => {
   if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
     event.preventDefault(); goTo(current + (event.key === 'ArrowRight' ? 1 : -1));
   }
+  if (['PageDown', 'PageUp', 'ArrowDown', 'ArrowUp', 'Home', 'End', ' '].includes(event.key)) navigationLocked = false;
 });
+// A selected chapter stays selected through browser focus/scroll anchoring.
+// Intentional wheel, swipe, or page-key scrolling returns control to the story.
+addEventListener('wheel', () => { navigationLocked = false; }, { passive: true });
+addEventListener('touchmove', event => {
+  if (!event.target.closest('input, select, button')) navigationLocked = false;
+}, { passive: true });
+addEventListener('pointerdown', event => {
+  if (event.clientX >= document.documentElement.clientWidth) navigationLocked = false;
+}, { passive: true });
 addEventListener('scroll', () => { if (!scrollFrame) scrollFrame = requestAnimationFrame(readScroll); }, { passive: true });
 addEventListener('resize', () => { render(); readScroll(); });
 motion.addEventListener('change', () => { if (motion.matches) changeAngle(targetAngle); });
