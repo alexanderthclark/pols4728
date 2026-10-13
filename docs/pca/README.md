@@ -1,7 +1,8 @@
 # PCA: a change of basis
 
-A nineteen-step scrollytelling lesson first states the PCA objective:
-`max_{‖u‖ = 1} Var(Xu)`. For centered data, the same direction maximizes
+A nineteen-step scrollytelling lesson first defines the principal direction:
+`u₁ = argmax_{u: ‖u‖ = 1} Var(Xu) = argmax_{u: ‖u‖ = 1} ‖Xu‖`.
+For centered data, the same direction maximizes
 `‖Xu‖`, because variance is its squared length divided by the fixed `n − 1`.
 Five centered points exactly
 on `x₁ = x₂` develop the horizontal, vertical, and 45° diagonal projections
