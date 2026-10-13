@@ -1,11 +1,12 @@
 # PCA: a change of basis
 
-An eighteen-step scrollytelling lesson begins with five points exactly on
-`x₁ = x₂`. It introduces `Xu` through the familiar unit directions `(1, 0)`
-and `(0, 1)`, giving the original variables and sample variance 2.5. A unit
-45° direction gives scores `(x₁ + x₂)/√2` and variance 5. This motivates
-searching for a new direction before introducing projection geometry,
-`Var(Xu) = uᵀSu`, and a full rotating basis.
+An eighteen-step scrollytelling lesson first states the PCA objective: find
+the unit direction with greatest score variance. Five centered points exactly
+on `x₁ = x₂` let readers compare projections onto the original axes and the
+45° diagonal. A short explanation connects the live score column to
+`Var(Xu) = ‖Xu‖²/(n − 1)`: the original axes give `10/4 = 2.5`, while the
+diagonal gives `20/4 = 5`. Projection geometry, `Var(Xu) = uᵀSu`, and a full
+rotating basis develop this initial direction search.
 
 A thicker 2D cloud separates the full basis change from dimension reduction.
 The 3D section finds PC1 first, subtracts its contribution, then searches for
@@ -86,7 +87,10 @@ returning to the original coordinates.
   Back/Forward restore the reading location. Step selection lands immediately
   beside the matching figure rather than animating across intervening chapters.
 - Compare 0°, 90°, and 45° in the opening measurement scenes, using a
-  labeled range control or presets. The perpendicular second direction appears
+  labeled range control or presets. Hollow circles mark observations; crosses
+  and connecting segments show their projections. The live readout connects
+  squared score length, the variance denominator, and score variance.
+  The perpendicular second direction appears
   when the full basis is introduced, with 45°/135° principal presets. Choices
   are retained separately for each step.
 - In 3D, turn the view, subtract PC1 with a slider, rotate a direction in

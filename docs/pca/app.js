@@ -89,12 +89,15 @@ function basis(parent, map, u, v, length, second = true, names = ['u', 'v']) {
   line(parent, end(u, -1), end(u), colors.blue, 1.3);
   arrow(parent, origin, map(u), colors.blue);
   const firstLabel = names[0] === 'w' ? map(u) : end(u);
-  label(parent, firstLabel[0] + 12, firstLabel[1] - 5, names[0], colors.blue, 21);
+  // Keep a near-vertical direction label apart from the original y-axis label.
+  const firstVertical = Math.abs(u[0]) < .25 && u[1] > 0;
+  label(parent, firstLabel[0] + (firstVertical ? -16 : 12), firstLabel[1] - 5, names[0], colors.blue, 21, firstVertical ? 'end' : 'start');
   if (second) {
     line(parent, end(v, -1), end(v), colors.rust, 1.3, '6 5');
     arrow(parent, origin, map(v), colors.rust, '6 5');
     const secondLabel = names[0] === 'w' ? map(v) : end(v);
-    label(parent, secondLabel[0] + 10, secondLabel[1] - 6, names[1], colors.rust, 21);
+    const secondVertical = Math.abs(v[0]) < .25 && v[1] > 0;
+    label(parent, secondLabel[0] + (secondVertical ? -16 : 10), secondLabel[1] - 6, names[1], colors.rust, 21, secondVertical ? 'end' : 'start');
   }
 }
 function scoreStrip(parent, scores, y, title) {
@@ -136,6 +139,7 @@ function draw2D(parent, points, summary) {
   const isCurve = ['maximum', 'cloud', 'reconstruction', 'explore'].includes(scene) && !isPair;
   const isStrip = ['projection', 'variance', 'quadratic'].includes(scene);
   const isScores = scene === 'scores';
+  const showAllProjections = ['scores', 'variance'].includes(scene);
   const showBasis = current > 0;
   const extent = points === LINE_POINTS ? 3.1 : 6.2;
   const selected = points.length - 1;
@@ -167,6 +171,12 @@ function draw2D(parent, points, summary) {
       cross(parent, map(summary.reconstruction[i]));
     });
     label(parent, 70, 305, '○ Original observation     × Reconstructed from one score', colors.muted, 17);
+  } else if (showAllProjections) {
+    points.forEach((p, i) => {
+      line(parent, map(p), map(summary.reconstruction[i]), colors.rule, 1, '3 4');
+      point(parent, map(p), i === selected, true, 4.5);
+      cross(parent, map(summary.reconstruction[i]), i === selected ? colors.rust : colors.blue);
+    });
   } else {
     if (['projection', 'quadratic'].includes(scene)) {
       points.forEach((p, i) => {
@@ -181,10 +191,13 @@ function draw2D(parent, points, summary) {
   if (scene === 'basis') label(parent, 360, 430, 'The axes turn. The observations stay fixed.', colors.muted, 20, 'middle');
   if (isStrip) scoreStrip(parent, summary.scores, 386, 'One score per observation · Xu');
   if (isScores) {
+    label(parent, 233, 32, 'Data and projections', colors.ink, 19, 'middle');
     label(parent, 565, 75, 'Xu', colors.blue, 28, 'middle');
     add(parent, 'path', { d: 'M514 98H502V327H514M614 98H626V327H614', stroke: colors.ink, 'stroke-width': 1.3, fill: 'none' });
     summary.scores.forEach((value, i) => label(parent, 564, 131 + i * 44, fmt(value), i === selected ? colors.rust : colors.ink, 23, 'middle'));
-    label(parent, 360, 428, 'A direction has 2 entries. Its score column has 5.', colors.muted, 19, 'middle');
+    const squaredLength = summary.scores.reduce((sum, score) => sum + score * score, 0);
+    label(parent, 565, 370, `‖Xu‖² = ${fmt(squaredLength)}`, colors.ink, 21, 'middle');
+    label(parent, 360, 428, '○ Data point     × Projection onto u', colors.muted, 18, 'middle');
   }
   if (isCurve) varianceCurve(parent, summary, points);
 }
@@ -350,13 +363,13 @@ function render() {
     $('second-variance').value = fmt(summary.otherVariance);
     $('third-label').textContent = isReconstruction ? 'Variance kept' : 'Total variance';
     $('third-value').value = isReconstruction ? `${fmt(summary.retainedFraction * 100, 1)}%` : fmt(summary.totalVariance);
-    if (measurementScenes.includes(scene)) statistics(['Var(Xu)', 'Var(x₁)', 'Var(x₂)'], [fmt(summary.variance), fmt(sampleVariance(points.map(p => p[0]))), fmt(sampleVariance(points.map(p => p[1])))]);
+    if (measurementScenes.includes(scene)) statistics(['‖Xu‖²', 'n − 1', 'Var(Xu)'], [fmt(summary.scores.reduce((sum, score) => sum + score * score, 0)), String(points.length - 1), fmt(summary.variance)]);
     const captions = {
-      line: 'Five centered observations lie exactly on x₁ = x₂. Both axes use the same unit scale.',
+      line: 'Five centered points on x₁ = x₂. PC1 comes from the unit direction with the greatest variance of projected scores.',
       basis: `u = (${fmt(summary.u[0])}, ${fmt(summary.u[1])})ᵀ. Solid u and dashed v are perpendicular unit directions.`,
       projection: `The ringed point has score ${fmt(summary.scores.at(-1))}. The dashed perpendicular ends at its projection onto u.`,
-      scores: `u = (${fmt(summary.u[0])}, ${fmt(summary.u[1])})ᵀ gives Xu = [${summary.scores.map(value => fmt(value)).join(', ')}]ᵀ, with variance ${fmt(summary.variance)}. At 0° this selects x₁; at 90° it selects x₂.`,
-      variance: `At ${fmt(angle, 0)}°, u = (${fmt(summary.u[0])}, ${fmt(summary.u[1])})ᵀ and Var(Xu) = ${fmt(summary.variance)}. Both original variables have variance 2.50. At 45°, each score is √2 times its original coordinate, giving variance 5.`,
+      scores: `u = (${fmt(summary.u[0])}, ${fmt(summary.u[1])})ᵀ. Squared score length ${fmt(summary.scores.reduce((sum, score) => sum + score * score, 0))} divided by 4 gives variance ${fmt(summary.variance)}. The circles are data points; crosses are their projections.`,
+      variance: `Current squared score length: ${fmt(summary.scores.reduce((sum, score) => sum + score * score, 0))}. The maximum is 20 at 45°, giving sample variance 20/4 = 5.`,
       quadratic: `Variance from the scores and from uᵀSu both equal ${fmt(summary.variance)}. The sample covariance matrix has all four entries equal to 2.5.`,
       maximum: `The greatest variance is 5 at 45°. The perpendicular direction at 135° has variance 0.`,
       coordinates: `Both coordinates preserve every point. Cov(Xu, Xv) = ${fmt(summary.crossCovariance)}. At 45°, the second score is zero for everyone.`,
@@ -370,7 +383,8 @@ function render() {
   }
   $('caption').textContent = caption;
   if (scene === 'projection') $('one-score-worked').textContent = `With u ≈ (${fmt(summary.u[0], 3)}, ${fmt(summary.u[1], 3)})ᵀ, z = 2a + 2b ≈ ${fmt(summary.scores.at(-1))}.`;
-  svg.replaceChildren(el('title', { id: 'diagram-title' }, steps[current].dataset.title), el('desc', { id: 'diagram-description' }, caption));
+  const description = ['scores', 'variance'].includes(scene) ? `${caption} Xu contains the scores ${summary.scores.map(value => fmt(value)).join(', ')}.` : caption;
+  svg.replaceChildren(el('title', { id: 'diagram-title' }, steps[current].dataset.title), el('desc', { id: 'diagram-description' }, description));
   const drawing = add(svg, 'g', { 'aria-hidden': 'true' });
   if (isSVD) drawSVDFactors(drawing, { add, line, label, point, colors, fmt }, piece);
   else if (isResidual) drawResidualPlane(drawing, summary);
