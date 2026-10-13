@@ -4,7 +4,7 @@ import {
   pcaSummary, coordinates, changeBasis, reconstructBasis, sampleVariance,
 } from './model.mjs';
 import { drawSVDFactors } from './svd-view.mjs?v=20261013-math';
-import { mVar, mNum, mOp, mSub, mSup, mTranspose, mNorm, mTuple, mFunction, inlineMath, setNotation, notationText } from './notation.mjs';
+import { mVar, mNum, mOp, mSub, mSup, mTranspose, mNorm, mTuple, mFunction, inlineMath, setNotation, notationText } from './notation.mjs?v=20261013-math-2';
 
 const steps = [...document.querySelectorAll('.step')];
 history.scrollRestoration = 'manual';
