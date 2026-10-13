@@ -19,7 +19,10 @@ and `Var(Xuⱼ) = dⱼ²/(n − 1)`.
 
 The opening title and diagrams use real text and native SVG. The page is static
 HTML, CSS, and JavaScript modules, with local Latin Modern fonts, native MathML,
-and no external runtime or build step.
+and no external runtime or build step. Static and changing expressions share
+structured MathML; `notation.mjs` builds the changing labels and captions.
+SVG labels use real positioned subscripts and superscripts, with italic
+variables in the same mathematical font as the equations.
 
 ## Preview
 

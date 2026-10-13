@@ -36,6 +36,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check docs/assets/coronation.js
+          node --check docs/pca/notation.mjs
           node --check docs/pca/model.mjs
           node --check docs/pca/app.js
           node --check docs/pca/svd-view.mjs

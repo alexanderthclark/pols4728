@@ -5,7 +5,7 @@ import { svdExample } from './model.mjs';
 export function drawSVDFactors(parent, helpers, componentIndex) {
   const { add, line, label, colors, fmt } = helpers;
   const { scores, P, singularValues } = svdExample();
-  const subscript = ['₁', '₂', '₃'][componentIndex];
+  const index = String(componentIndex + 1);
   const color = [colors.blue, colors.rust, colors.teal][componentIndex];
   const singularValue = singularValues[componentIndex];
   const top = 147;
@@ -13,6 +13,10 @@ export function drawSVDFactors(parent, helpers, componentIndex) {
   const zero = (top + bottom) / 2;
 
   label(parent, 360, 36, 'Separate a score pattern from its size', colors.ink, 21, 'middle');
+
+  // The shared SVG label helper keeps prose upright and variables italic,
+  // placing genuine subscripts rather than Unicode subscript characters.
+  const indexed = text => ({ text, math: true, sub: index });
 
   function columnPlot({ left, right, values, range, ticks, title, scale, length }) {
     const center = (left + right) / 2;
@@ -48,19 +52,19 @@ export function drawSVDFactors(parent, helpers, componentIndex) {
     left: 98, right: 312,
     values: scores.map(row => row[componentIndex]),
     range: 6, ticks: [-6, 0, 6],
-    title: `Scores z${subscript} = Xu${subscript}`,
+    title: ['Scores ', indexed('z'), ' = ', indexed('Xu')],
     scale: 'Scale: −6 to 6',
-    length: `Length d${subscript} = ${fmt(singularValue)}`,
+    length: ['Length ', indexed('d'), ` = ${fmt(singularValue)}`],
   });
   columnPlot({
     left: 460, right: 674,
     values: P.map(row => row[componentIndex]),
     // PC3 reaches about 0.514, so ±0.6 gives every dot honest headroom.
     range: .6, ticks: [-.5, 0, .5],
-    title: `Unit pattern p${subscript}`,
+    title: ['Unit pattern ', indexed('p')],
     scale: 'Scale: −0.6 to 0.6',
     length: 'Length = 1',
   });
   label(parent, 360, 435,
-    `z${subscript} = ${fmt(singularValue)} p${subscript}`, colors.ink, 22, 'middle');
+    [indexed('z'), ` = ${fmt(singularValue)} `, indexed('p')], colors.ink, 22, 'middle');
 }

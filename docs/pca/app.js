@@ -3,7 +3,8 @@ import {
   THREE_D_RESIDUAL_COORDINATES, svdExample,
   pcaSummary, coordinates, changeBasis, reconstructBasis, sampleVariance,
 } from './model.mjs';
-import { drawSVDFactors } from './svd-view.mjs';
+import { drawSVDFactors } from './svd-view.mjs?v=20261013-math';
+import { mVar, mNum, mOp, mSub, mSup, mTranspose, mNorm, mTuple, mFunction, inlineMath, setNotation, notationText } from './notation.mjs';
 
 const steps = [...document.querySelectorAll('.step')];
 history.scrollRestoration = 'manual';
@@ -54,6 +55,12 @@ let initializing = true;
 function fmt(value, digits = 2) {
   return (Math.abs(value) < .000001 ? 0 : value).toFixed(digits).replace('-', '−');
 }
+const xu = () => `${mVar('X')}${mVar('u')}`;
+const xv = () => `${mVar('X')}${mVar('v')}`;
+const indexed = (symbol, index) => mSub(mVar(symbol), mNum(index));
+const directionNotation = (u, digits = 2, operator = '=') => inlineMath(`${mVar('u')}${mOp(operator)}${mTranspose(mTuple(u.map(value => fmt(value, digits))))}`);
+const varianceNotation = body => inlineMath(mFunction('Var', body));
+const covarianceNotation = value => inlineMath(`${mFunction('Cov', `${xu()}${mOp(',')}${xv()}`)}${mOp('=')}${mNum(fmt(value))}`);
 function el(name, attributes = {}, text) {
   const node = document.createElementNS('http://www.w3.org/2000/svg', name);
   for (const [key, value] of Object.entries(attributes)) node.setAttribute(key, value);
@@ -70,7 +77,15 @@ function line(parent, a, b, color = colors.rule, width = 1, dash = '') {
 }
 function label(parent, x, y, text, color = colors.muted, size = 18, anchor = 'start') {
   const compact = matchMedia('(max-width: 800px)').matches;
-  return add(parent, 'text', { x, y, fill: color, 'font-size': compact ? Math.max(28, size * 1.55) : size, 'text-anchor': anchor }, text);
+  const node = add(parent, 'text', { x, y, fill: color, 'font-size': compact ? Math.max(28, size * 1.55) : size, 'text-anchor': anchor });
+  for (const run of Array.isArray(text) ? text : [text]) {
+    if (typeof run === 'string') { add(node, 'tspan', {}, run); continue; }
+    add(node, 'tspan', { ...(run.math ? { class: 'math-symbol', 'font-style': run.italic === false ? 'normal' : 'italic' } : {}) }, run.text);
+    for (const [script, shift] of [['sub', 'sub'], ['sup', 'super']]) {
+      if (run[script] !== undefined) add(node, 'tspan', { class: 'math-script', 'font-size': '.7em', 'baseline-shift': shift }, run[script]);
+    }
+  }
+  return node;
 }
 function arrow(parent, a, b, color, dash = '') {
   line(parent, a, b, color, 2.2, dash);
@@ -91,8 +106,9 @@ function plot(parent, cx, cy, scale, extent, names = ['x₁', 'x₂'], ticks = t
   const map = p => [cx + scale * p[0], cy - scale * p[1]];
   line(parent, map([-extent, 0]), map([extent, 0]), colors.rule);
   line(parent, map([0, -extent]), map([0, extent]), colors.rule);
-  label(parent, cx + scale * extent - 4, cy + 24, names[0], colors.muted, 19, 'end');
-  label(parent, cx + 9, cy - scale * extent + 8, names[1], colors.muted, 19);
+  const axisRuns = name => [{ text: name[0], math: true, ...(name.length > 1 ? { sub: name.slice(1).replace('₁', '1').replace('₂', '2').replace('₃', '3') } : {}) }];
+  label(parent, cx + scale * extent - 4, cy + 24, axisRuns(names[0]), colors.muted, 19, 'end');
+  label(parent, cx + 9, cy - scale * extent + 8, axisRuns(names[1]), colors.muted, 19);
   if (ticks) {
     const values = extent < 4 ? [-2, -1, 1, 2] : [-4, -2, 2, 4];
     for (const v of values) {
@@ -112,13 +128,13 @@ function basis(parent, map, u, v, length, second = true, names = ['u', 'v']) {
   const firstLabel = names[0] === 'w' ? map(u) : end(u);
   // Keep a near-vertical direction label apart from the original y-axis label.
   const firstVertical = Math.abs(u[0]) < .25 && u[1] > 0;
-  label(parent, firstLabel[0] + (firstVertical ? -16 : 12), firstLabel[1] - 5, names[0], colors.blue, 21, firstVertical ? 'end' : 'start');
+  label(parent, firstLabel[0] + (firstVertical ? -16 : 12), firstLabel[1] - 5, [{text:names[0],math:true}], colors.blue, 21, firstVertical ? 'end' : 'start');
   if (second) {
     line(parent, end(v, -1), end(v), colors.rust, 1.3, '6 5');
     arrow(parent, origin, map(v), colors.rust, '6 5');
     const secondLabel = names[0] === 'w' ? map(v) : end(v);
     const secondVertical = Math.abs(v[0]) < .25 && v[1] > 0;
-    label(parent, secondLabel[0] + (secondVertical ? -16 : 10), secondLabel[1] - 6, names[1], colors.rust, 21, secondVertical ? 'end' : 'start');
+    label(parent, secondLabel[0] + (secondVertical ? -16 : 10), secondLabel[1] - 6, [{text:names[1].replace('⊥', ''),math:true,...(names[1].includes('⊥') ? {sup:'⊥'} : {})}], colors.rust, 21, secondVertical ? 'end' : 'start');
   }
 }
 function scoreStrip(parent, scores, y, title) {
@@ -166,7 +182,7 @@ function draw2D(parent, points, summary) {
   const selected = points.length - 1;
   if (isPair) {
     label(parent, 178, 34, 'Original coordinates', colors.ink, 20, 'middle');
-    label(parent, 540, 34, 'New coordinates · XU', colors.ink, 20, 'middle');
+    label(parent, 540, 34, ['New coordinates · ', {text:'XU',math:true}], colors.ink, 20, 'middle');
     const scale = points === LINE_POINTS ? 43 : 23;
     const left = plot(parent, 178, 226, scale, extent);
     const right = plot(parent, 540, 226, scale, extent, ['z₁', 'z₂']);
@@ -182,7 +198,7 @@ function draw2D(parent, points, summary) {
   const map = plot(parent, cx, cy, scale, extent);
   if (points === LINE_POINTS) {
     line(parent, map([-2.7, -2.7]), map([2.7, 2.7]), colors.light, 1.5, '4 5');
-    if (!showBasis) label(parent, map([1.6, 2.4])[0], map([1.6, 2.4])[1], 'x₁ = x₂', colors.ink, 21);
+    if (!showBasis) label(parent, map([1.6, 2.4])[0], map([1.6, 2.4])[1], [{text:'x',math:true,sub:'1'}, ' = ', {text:'x',math:true,sub:'2'}], colors.ink, 21);
   }
   if (showBasis) basis(parent, map, summary.u, summary.v, extent - .3, !isReconstruction && !measurementScenes.includes(scene));
   if (isReconstruction) {
@@ -211,15 +227,15 @@ function draw2D(parent, points, summary) {
     points.forEach((p, i) => point(parent, map(p), scene !== 'line' && i === selected, false, points.length > 5 ? 4 : 5));
   }
   if (scene === 'basis') label(parent, 360, 430, 'The axes turn. The observations stay fixed.', colors.muted, 20, 'middle');
-  if (isStrip) scoreStrip(parent, summary.scores, 386, 'One score per observation · Xu');
+  if (isStrip) scoreStrip(parent, summary.scores, 386, ['One score per observation · ', {text:'Xu',math:true}]);
   if (isScores) {
     label(parent, 233, 32, 'Data and projections', colors.ink, 19, 'middle');
-    label(parent, 565, 75, 'Xu', colors.blue, 28, 'middle');
+    label(parent, 565, 75, [{text:'Xu',math:true}], colors.blue, 28, 'middle');
     add(parent, 'path', { d: 'M514 98H502V327H514M614 98H626V327H614', stroke: colors.ink, 'stroke-width': 1.3, fill: 'none' });
     summary.scores.forEach((value, i) => label(parent, 564, 131 + i * 44, fmt(value), i === selected ? colors.rust : colors.ink, 23, 'middle'));
     const squaredLength = summary.scores.reduce((sum, score) => sum + score * score, 0);
-    label(parent, 565, 370, `‖Xu‖² = ${fmt(squaredLength)}`, colors.ink, 21, 'middle');
-    label(parent, 360, 428, '○ Data point     × Projection onto u', colors.muted, 18, 'middle');
+    label(parent, 565, 370, ['‖', {text:'Xu',math:true}, {text:'‖',sup:'2'}, ` = ${fmt(squaredLength)}`], colors.ink, 21, 'middle');
+    label(parent, 360, 428, ['○ Data point     × Projection onto ', {text:'u',math:true}], colors.muted, 18, 'middle');
   }
   if (isCurve) varianceCurve(parent, summary, points);
 }
@@ -255,9 +271,9 @@ function draw3D(parent) {
   const titles = {
     'three-d': 'Find PC1 · the direction of greatest variance',
     deflation: 'Subtract the projection along PC1',
-    pieces: `The PC${piece + 1} contribution · one piece of X`,
   };
-  label(parent, 360, 40, titles[scene] || (isCoordinates ? 'Principal coordinates · Z = XU' : isReconstruction ? 'Reconstruct the original observations' : 'Original cloud · three coordinates'), colors.ink, 21, 'middle');
+  const title = scene === 'pieces' ? [`The PC${piece + 1} contribution · one piece of `, {text:'X',math:true}] : titles[scene] || (isCoordinates ? ['Principal coordinates · ', {text:'Z',math:true}, ' = ', {text:'XU',math:true}] : isReconstruction ? 'Reconstruct the original observations' : 'Original cloud · three coordinates');
+  label(parent, 360, 40, title, colors.ink, 21, 'middle');
   if (isDeflation || (isReconstruction && components === 2)) {
     const axes = isDeflation ? [cols[1], cols[2]] : [cols[0], cols[1]];
     const extents = isDeflation ? [2.8, 2.3] : [5.9, 2];
@@ -269,7 +285,7 @@ function draw3D(parent) {
     const d = [0, 0, 0]; d[j] = 5.7;
     const end = project3D(d);
     line(parent, project3D(d.map(v => -v)), end, colors.light, 1);
-    label(parent, end[0] + 10, end[1] + 5, axisNames[j], colors.muted, 19);
+    label(parent, end[0] + 10, end[1] + 5, [{text:axisNames[j][0],math:true,sub:String(j + 1)}], colors.muted, 19);
   });
   const axisColors = [colors.blue, colors.rust, colors.teal];
   if (!isCoordinates) cols.forEach((u, j) => {
@@ -278,7 +294,7 @@ function draw3D(parent) {
     const dash = ['', '6 5', '2 4'][j];
     line(parent, project3D(u.map(v => v * (j === 0 ? -6 : -3))), end, axisColors[j], 1.3, dash);
     arrow(parent, project3D([0, 0, 0]), project3D(u), axisColors[j], dash);
-    label(parent, end[0] + 12, end[1] - 7, `u${['₁', '₂', '₃'][j]}`, axisColors[j], 21);
+    label(parent, end[0] + 12, end[1] - 7, [{text:'u',math:true,sub:String(j + 1)}], axisColors[j], 21);
   });
   if (isDeflation || isPiece) {
     THREE_D_POINTS.forEach((p, i) => {
@@ -326,7 +342,7 @@ function render() {
   $('angle').min = isResidual ? -90 : 0;
   $('angle').max = isResidual ? 90 : 180;
   $('angle').value = angle;
-  $('angle-label').textContent = isResidual ? 'Direction in the plane φ' : measurementScenes.includes(scene) ? 'Direction angle' : 'Direction angle θ';
+  setNotation($('angle-label'), isResidual ? ['Direction in the plane ', inlineMath(mVar('φ'))] : measurementScenes.includes(scene) ? 'Direction angle' : ['Direction angle ', inlineMath(mVar('θ'))]);
   $('angle-value').value = `${fmt(angle, 0)}°`;
   $('dataset').value = dataset;
   $('view').value = view;
@@ -338,13 +354,13 @@ function render() {
   $('piece').value = piece;
   const hasEntrance = entranceFor(current) !== null;
   $('motion-controls').hidden = !hasEntrance;
-  $('motion-cue').textContent = scene === 'deflation'
+  setNotation($('motion-cue'), scene === 'deflation'
     ? `${Math.round(removal * 100)}% of PC1 removed`
     : steps[current].hasAttribute('data-motion-projection')
       ? 'Project the points onto the horizontal axis'
       : steps[current].hasAttribute('data-motion-camera')
         ? 'Turn the view to inspect the long axis'
-        : `${isResidual ? 'Direction in the plane' : 'Direction u'}: ${fmt(angle, 0)}°`;
+        : isResidual ? `Direction in the plane: ${fmt(angle, 0)}°` : ['Direction ', inlineMath(mVar('u')), `: ${fmt(angle, 0)}°`]);
   stages[current].classList.toggle('is-three', isThree);
   stages[current].classList.toggle('is-explore', isExplore);
   stages[current].querySelectorAll('[data-angle]').forEach((button, index) => {
@@ -352,16 +368,18 @@ function render() {
     button.dataset.angle = degrees;
     button.setAttribute('aria-pressed', String(Math.abs(targetAngle - degrees) < .1));
     const suffix = isResidual ? (index === 0 ? ' · PC2' : index === 2 ? ' · PC3' : '') : familiarPresets.includes(scene) ? [' · x₁', ' · x₂', ' · diagonal'][index] : ['maximum', 'basis', 'coordinates', 'cloud', 'reconstruction', 'explore'].includes(scene) && degrees !== 0 ? ` · PC${index}` : '';
-    button.textContent = `${String(degrees).replace('-', '−')}°${suffix}`;
+    setNotation(button, familiarPresets.includes(scene) && !isResidual && index < 2
+      ? [`${String(degrees).replace('-', '−')}° · `, inlineMath(indexed('x', index + 1))]
+      : `${String(degrees).replace('-', '−')}°${suffix}`);
   });
   let caption;
   function statistics(labels, values) {
-    ['variance-label', 'second-label', 'third-label'].forEach((id, i) => { $(id).textContent = labels[i]; });
+    ['variance-label', 'second-label', 'third-label'].forEach((id, i) => { setNotation($(id), labels[i]); });
     ['variance', 'second-variance', 'third-value'].forEach((id, i) => { $(id).value = values[i]; });
   }
   if (isResidual) {
-    statistics(['Var(Rw)', 'Other direction', 'Residual total'], [fmt(summary.variance), fmt(summary.otherVariance), '1.25']);
-    caption = `The fully deflated cloud viewed face on. At φ = ${fmt(angle, 0)}°, score variance is ${fmt(summary.variance)}; perpendicular variance is ${fmt(summary.otherVariance)}. The maximum is 1 at −30° (PC2); PC3 is perpendicular at 60°, with variance 0.25.`;
+    statistics([varianceNotation(`${mVar('R')}${mVar('w')}`), 'Other direction', 'Residual total'], [fmt(summary.variance), fmt(summary.otherVariance), '1.25']);
+    caption = ['The fully deflated cloud viewed face on. At ', inlineMath(`${mVar('φ')}${mOp('=')}${mNum(fmt(angle, 0))}${mOp('°')}`), `, score variance is ${fmt(summary.variance)}; perpendicular variance is ${fmt(summary.otherVariance)}. The maximum is 1 at −30° (PC2); PC3 is perpendicular at 60°, with variance 0.25.`];
   } else if (scene === 'deflation') {
     const left = 9 * (1 - removal) ** 2;
     statistics(['PC1 variance left', 'In the plane', 'Remaining total'], [fmt(left), '1.25', fmt(left + 1.25)]);
@@ -369,52 +387,53 @@ function render() {
   } else if (isSVD) {
     const { singularValues } = svdExample();
     const d = singularValues[piece];
-    statistics([`Length d${['₁', '₂', '₃'][piece]}`, 'Length of pⱼ', 'Score variance'], [fmt(d), '1.00', fmt(d * d / 23)]);
-    caption = `PC${piece + 1}: zⱼ = dⱼpⱼ. The score column has length ${fmt(d)}; its normalized pattern has length 1. Their plots have different labelled vertical scales. Squared length divided by 23 gives score variance ${fmt(d * d / 23)}.`;
+    statistics([['Length ', inlineMath(indexed('d', piece + 1))], ['Length of ', inlineMath(mSub(mVar('p'), mVar('j')))], 'Score variance'], [fmt(d), '1.00', fmt(d * d / 23)]);
+    caption = [`PC${piece + 1}: `, inlineMath(`${mSub(mVar('z'), mVar('j'))}${mOp('=')}${mSub(mVar('d'), mVar('j'))}${mSub(mVar('p'), mVar('j'))}`), `. The score column has length ${fmt(d)}; its normalized pattern has length 1. Their plots have different labelled vertical scales. Squared length divided by 23 gives score variance ${fmt(d * d / 23)}.`];
   } else if (isThree) {
     const three = threeSummary();
     const isReconstruction = scene === 'plane' || (isExplore && view === 'reconstruction');
     if (scene === 'pieces') {
       statistics(['Piece variance', 'Original total', 'Share of total'], [fmt(three.variances[piece]), '10.25', `${fmt(three.variances[piece] / three.total * 100, 1)}%`]);
-      caption = `Crosses show each observation’s PC${piece + 1} contribution zᵢ${['₁', '₂', '₃'][piece]}u${['₁', '₂', '₃'][piece]}. It lies along one direction and contributes variance ${fmt(three.variances[piece])}. The three pieces add to the original hollow-circle observations.`;
+      caption = [`Crosses show each observation’s PC${piece + 1} contribution `, inlineMath(`${mSub(mVar('z'), `${mVar('i')}${mNum(piece + 1)}`)}${indexed('u', piece + 1)}`), `. It lies along one direction and contributes variance ${fmt(three.variances[piece])}. The three pieces add to the original hollow-circle observations.`];
     } else if (scene === 'three-d') {
-      statistics(['Var(Xu₁)', 'Remaining', 'Original total'], ['9.00', '1.25', '10.25']);
-      caption = 'Begin with PC1 alone: u₁ = (1, 1, 1)ᵀ/√3, with score variance 9. The original total is 10.25, so 1.25 remains in directions perpendicular to PC1.';
+      statistics([varianceNotation(`${mVar('X')}${indexed('u', 1)}`), 'Remaining', 'Original total'], ['9.00', '1.25', '10.25']);
+      caption = ['Begin with PC1 alone: ', inlineMath(`${indexed('u', 1)}${mOp('=')}<mfrac>${mTranspose(mTuple([1, 1, 1]))}<msqrt>${mNum(3)}</msqrt></mfrac>`), ', with score variance 9. The original total is 10.25, so 1.25 remains in directions perpendicular to PC1.'];
     } else {
-      statistics(['Var(PC1)', 'Var(PC2)', isReconstruction ? 'Variance kept' : 'Var(PC3)'], ['9.00', '1.00', isReconstruction ? `${fmt(three.retained * 100, 1)}%` : '0.25']);
+      statistics([varianceNotation(`${mVar('X')}${indexed('u', 1)}`), varianceNotation(`${mVar('X')}${indexed('u', 2)}`), isReconstruction ? 'Variance kept' : varianceNotation(`${mVar('X')}${indexed('u', 3)}`)], ['9.00', '1.00', isReconstruction ? `${fmt(three.retained * 100, 1)}%` : '0.25']);
       caption = isReconstruction
         ? `${components} component${components > 1 ? 's' : ''} retain${components > 1 ? '' : 's'} ${fmt(100 * three.retained, 1)}% of original variance 10.25. ${components === 1 ? 'The retained line follows PC1.' : components === 2 ? 'The retained plane contains PC1 and PC2; the residual plane from subtraction was perpendicular to PC1.' : 'All three components recover the original points.'}`
         : 'Three perpendicular principal directions. Their score variances are 9, 1, and 0.25; the full basis preserves all the observations.';
     }
   } else {
     const isReconstruction = scene === 'reconstruction' || (isExplore && view === 'reconstruction');
-    $('variance-label').textContent = 'Var(Xu)';
-    $('second-label').textContent = 'Var(Xv)';
+    setNotation($('variance-label'), varianceNotation(xu()));
+    setNotation($('second-label'), varianceNotation(xv()));
     $('variance').value = fmt(summary.variance);
     $('second-variance').value = fmt(summary.otherVariance);
     $('third-label').textContent = isReconstruction ? 'Variance kept' : 'Total variance';
     $('third-value').value = isReconstruction ? `${fmt(summary.retainedFraction * 100, 1)}%` : fmt(summary.totalVariance);
-    if (measurementScenes.includes(scene)) statistics(['‖Xu‖²', 'n − 1', 'Var(Xu)'], [fmt(summary.scores.reduce((sum, score) => sum + score * score, 0)), String(points.length - 1), fmt(summary.variance)]);
+    if (measurementScenes.includes(scene)) statistics([inlineMath(mSup(mNorm(xu()), mNum(2))), inlineMath(`${mVar('n')}${mOp('−')}${mNum(1)}`), varianceNotation(xu())], [fmt(summary.scores.reduce((sum, score) => sum + score * score, 0)), String(points.length - 1), fmt(summary.variance)]);
     const captions = {
-      line: 'Five centered points on x₁ = x₂. PC1 comes from the unit direction with the greatest variance of projected scores.',
-      basis: `u = (${fmt(summary.u[0])}, ${fmt(summary.u[1])})ᵀ. Solid u and dashed v are perpendicular unit directions.`,
-      projection: `The ringed point has score ${fmt(summary.scores.at(-1))}. The dashed perpendicular ends at its projection onto u.`,
-      scores: `u = (${fmt(summary.u[0])}, ${fmt(summary.u[1])})ᵀ. Squared score length ${fmt(summary.scores.reduce((sum, score) => sum + score * score, 0))} divided by 4 gives variance ${fmt(summary.variance)}. The circles are data points; crosses are their projections.`,
-      variance: `Current squared score length: ${fmt(summary.scores.reduce((sum, score) => sum + score * score, 0))}. The maximum is 20 at 45°, giving sample variance 20/4 = 5.`,
-      quadratic: `Variance from the scores and from uᵀSu both equal ${fmt(summary.variance)}. The sample covariance matrix has all four entries equal to 2.5.`,
+      line: ['Five centered points on ', inlineMath(`${indexed('x', 1)}${mOp('=')}${indexed('x', 2)}`), '. PC1 comes from the unit direction with the greatest variance of projected scores.'],
+      basis: [directionNotation(summary.u), '. Solid ', inlineMath(mVar('u')), ' and dashed ', inlineMath(mVar('v')), ' are perpendicular unit directions.'],
+      projection: [`The ringed point has score ${fmt(summary.scores.at(-1))}. The dashed perpendicular ends at its projection onto `, inlineMath(mVar('u')), '.'],
+      scores: [directionNotation(summary.u), `. Squared score length ${fmt(summary.scores.reduce((sum, score) => sum + score * score, 0))} divided by 4 gives variance ${fmt(summary.variance)}. The circles are data points; crosses are their projections.`],
+      variance: [`Current squared score length: ${fmt(summary.scores.reduce((sum, score) => sum + score * score, 0))}. The maximum is 20 at 45°, giving sample variance `, inlineMath(`<mfrac>${mNum(20)}${mNum(4)}</mfrac>${mOp('=')}${mNum(5)}`), '.'],
+      quadratic: ['Variance from the scores and from ', inlineMath(`${mTranspose(mVar('u'))}${mVar('S')}${mVar('u')}`), ` both equal ${fmt(summary.variance)}. The sample covariance matrix has all four entries equal to 2.5.`],
       maximum: `The greatest variance is 5 at 45°. The perpendicular direction at 135° has variance 0.`,
-      coordinates: `Both coordinates preserve every point. Cov(Xu, Xv) = ${fmt(summary.crossCovariance)}. At 45°, the second score is zero for everyone.`,
-      cloud: `A new cloud of 24 points. Cov(Xu, Xv) = ${fmt(summary.crossCovariance)}. At the principal basis, the score variances are 9 and 1.`,
+      coordinates: ['Both coordinates preserve every point. ', covarianceNotation(summary.crossCovariance), '. At 45°, the second score is zero for everyone.'],
+      cloud: ['A new cloud of 24 points. ', covarianceNotation(summary.crossCovariance), '. At the principal basis, the score variances are 9 and 1.'],
       reconstruction: `One direction keeps ${fmt(100 * summary.retainedFraction, 1)}% of total variance. Squared reconstruction errors sum to ${fmt(summary.meanSquaredError * points.length)}.`,
       explore: isReconstruction
         ? `One coordinate keeps ${fmt(100 * summary.retainedFraction, 1)}% of total variance. Reconstruction SSE = ${fmt(summary.meanSquaredError * points.length)}.`
-        : `Var(Xu) = ${fmt(summary.variance)}; Var(Xv) = ${fmt(summary.otherVariance)}; covariance = ${fmt(summary.crossCovariance)}. Total variance stays ${fmt(summary.totalVariance)}.`,
+        : [inlineMath(`${mFunction('Var', xu())}${mOp('=')}${mNum(fmt(summary.variance))}`), '; ', inlineMath(`${mFunction('Var', xv())}${mOp('=')}${mNum(fmt(summary.otherVariance))}`), `; covariance = ${fmt(summary.crossCovariance)}. Total variance stays ${fmt(summary.totalVariance)}.`],
     };
     caption = captions[scene];
   }
-  $('caption').textContent = caption;
-  if (scene === 'projection') $('one-score-worked').textContent = `With u ≈ (${fmt(summary.u[0], 3)}, ${fmt(summary.u[1], 3)})ᵀ, z = 2a + 2b ≈ ${fmt(summary.scores.at(-1))}.`;
-  const description = ['scores', 'variance'].includes(scene) ? `${caption} Xu contains the scores ${summary.scores.map(value => fmt(value)).join(', ')}.` : caption;
+  setNotation($('caption'), caption);
+  if (scene === 'projection') setNotation($('one-score-worked'), ['With ', directionNotation(summary.u, 3, '≈'), ', ', inlineMath(`${mVar('z')}${mOp('=')}${mNum(2)}${mVar('a')}${mOp('+')}${mNum(2)}${mVar('b')}${mOp('≈')}${mNum(fmt(summary.scores.at(-1)))}`), '.']);
+  const captionText = notationText($('caption'));
+  const description = ['scores', 'variance'].includes(scene) ? `${captionText} Xu contains the scores ${summary.scores.map(value => fmt(value)).join(', ')}.` : captionText;
   svg.replaceChildren(el('title', { id: `${steps[current].id}-diagram-title` }, steps[current].dataset.title), el('desc', { id: `${steps[current].id}-diagram-description` }, description));
   const drawing = add(svg, 'g', { 'aria-hidden': 'true' });
   if (isSVD) drawSVDFactors(drawing, { add, line, label, point, colors, fmt }, piece);
@@ -511,7 +530,7 @@ function maybePlayEntrance(force = false) {
       animation = undefined;
       finishAnimation = undefined;
       pending.finish();
-      $('status').textContent = $('caption').textContent;
+      $('status').textContent = notationText($('caption'));
     }
   }
   animation = requestAnimationFrame(frame);
@@ -629,7 +648,7 @@ stages.forEach((stage, index) => {
     });
   }
   for (const id of ['removal', 'angle']) local(id).addEventListener('change', () => {
-    activate(); $('status').textContent = $('caption').textContent;
+    activate(); $('status').textContent = notationText($('caption'));
   });
   stage.querySelectorAll('[data-angle]').forEach(button => button.addEventListener('click', () => {
     const value = Number(button.dataset.angle);
@@ -647,7 +666,7 @@ stages.forEach((stage, index) => {
       if (id === 'removal') removal = Number(value) / 100;
       if (id === 'piece') piece = Number(value);
       remember(); render();
-      if (!['camera', 'removal'].includes(id)) $('status').textContent = $('caption').textContent;
+      if (!['camera', 'removal'].includes(id)) $('status').textContent = notationText($('caption'));
     });
   }
 });
