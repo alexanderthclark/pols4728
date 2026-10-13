@@ -42,7 +42,7 @@
         </section>
         <section class="step" id="stack-scores" data-title="First: project onto the horizontal axis" data-scene="scores" data-fixed-angle="0" data-motion-projection>
           <p class="eyebrow">02 · The horizontal direction</p><h2>First, choose u = (1, 0)ᵀ</h2>
-          <p>The score column <span class="math">Xu = x₁</span> contains one signed projection per observation. For centered data, <math><mi mathvariant="normal">Var</mi><mo>(</mo><mi>X</mi><mi>u</mi><mo>)</mo><mo>=</mo><msup><mrow><mo>‖</mo><mi>X</mi><mi>u</mi><mo>‖</mo></mrow><mn>2</mn></msup><mo>/</mo><mrow><mo>(</mo><mi>n</mi><mo>−</mo><mn>1</mn><mo>)</mo></mrow></math>. Here that is <span class="math">10/4 = 2.5</span>.</p>
+          <p>The score column <span class="math">Xu = x₁</span> contains one signed projection per observation. For centered data, <math><mrow><mi mathvariant="normal">Var</mi><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>X</mi><mi>u</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow><mo>=</mo><msup><mrow><mo>‖</mo><mi>X</mi><mi>u</mi><mo>‖</mo></mrow><mn>2</mn></msup><mo>/</mo><mrow><mo>(</mo><mi>n</mi><mo>−</mo><mn>1</mn><mo>)</mo></mrow></math>. Here that is <span class="math">10/4 = 2.5</span>.</p>
         </section>
         <section class="step" id="vertical-scores" data-title="Next: project onto the vertical axis" data-scene="scores" data-fixed-angle="90" data-motion-angle-from="0">
           <p class="eyebrow">03 · The vertical direction</p><h2>Next, choose u = (0, 1)ᵀ</h2>
@@ -64,7 +64,7 @@
         <section class="step" id="covariance-form" data-title="From Xu to uᵀSu" data-scene="quadratic">
           <p class="eyebrow">06 · The covariance matrix</p><h2>The same variance, written with S</h2>
           <p>The sum of squared scores is <span class="math">(Xu)ᵀ(Xu)</span>. Rearrange the multiplication and define the sample covariance matrix <span class="math">S = XᵀX/(n − 1)</span>:</p>
-          <div class="equation derivation"><math display="block"><mi mathvariant="normal">Var</mi><mo>(</mo><mi>X</mi><mi>u</mi><mo>)</mo><mo>=</mo><mfrac><mrow><mo>(</mo><mi>X</mi><mi>u</mi><msup><mo>)</mo><mi>⊤</mi></msup><mo>(</mo><mi>X</mi><mi>u</mi><mo>)</mo></mrow><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></mfrac><mo>=</mo><msup><mi>u</mi><mi>⊤</mi></msup><mi>S</mi><mi>u</mi></math></div>
+          <div class="equation derivation"><math display="block"><mrow><mi mathvariant="normal">Var</mi><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>X</mi><mi>u</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow><mo>=</mo><mfrac><mrow><msup><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>X</mi><mi>u</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow><mi>⊤</mi></msup><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>X</mi><mi>u</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></mfrac><mo>=</mo><msup><mi>u</mi><mi>⊤</mi></msup><mi>S</mi><mi>u</mi></math></div>
           <p>For our five points, the two variances and their covariance are all 2.5. Substituting <span class="math">u = (a, b)ᵀ</span> gives:</p>
           <div class="equation math">Var(Xu) = 2.5a² + 5ab + 2.5b²<br>= 2.5(a + b)²</div>
           <p>The term involving both entries of <span class="math">u</span> comes from covariance. PCA uses how the variables move together, as well as their individual variances.</p>
