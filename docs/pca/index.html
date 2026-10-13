@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#FFFFFF">
   <meta name="description" content="Start with x₁ = x₂, compare the variance of Xu along familiar axes and the diagonal, then develop PCA as a change of basis. Interactive two- and three-dimensional examples for POLS 4728.">
   <title>PCA: a change of basis · POLS 4728</title>
-  <link rel="stylesheet" href="style.css?v=20261013-removal-inline">
-  <script type="module" src="app.js?v=20261013-removal-toggle"></script>
+  <link rel="stylesheet" href="style.css?v=20261013-removal-animation">
+  <script type="module" src="app.js?v=20261013-removal-animation"></script>
 </head>
 <body>
   <a class="skip" href="#story">Skip to the explanation</a>
@@ -116,7 +116,7 @@
           <p class="eyebrow">14 · Remove the first component</p><h2>Subtract each point’s projection onto <math><msub><mi>u</mi><mn>1</mn></msub></math></h2>
           <p>PC1 describes a vector <math><msub><mi>z</mi><mrow><mi>i</mi><mn>1</mn></mrow></msub><msub><mi>u</mi><mn>1</mn></msub></math> for each observation. Subtract that vector to obtain a residual:</p>
           <div class="equation"><math display="block"><mtable columnalign="right center left" columnspacing="0.2em 0.2em"><mtr><mtd><msub><mi>r</mi><mi>i</mi></msub></mtd><mtd><mo>=</mo></mtd><mtd><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><msub><mi>z</mi><mrow><mi>i</mi><mn>1</mn></mrow></msub><msub><mi>u</mi><mn>1</mn></msub></mtd></mtr><mtr><mtd><mi>R</mi></mtd><mtd><mo>=</mo></mtd><mtd><mi>X</mi><mo>−</mo><msub><mi>z</mi><mn>1</mn></msub><msup><msub><mi>u</mi><mn>1</mn></msub><mo>⊤</mo></msup></mtd></mtr></mtable></math></div>
-          <p>Watch each point travel parallel to <math><msub><mi>u</mi><mn>1</mn></msub></math>, until its coordinate along that direction is zero. Hollow circles mark the original observations. Toggle the PC1 contribution between removed and not removed to compare the two clouds.</p>
+          <p>Watch each point travel parallel to <math><msub><mi>u</mi><mn>1</mn></msub></math>, until its coordinate along that direction is zero. Hollow circles mark the original observations. Replay the animation to see the subtraction again.</p>
           <p>When PC1 is removed, every residual satisfies <math><msup><msub><mi>r</mi><mi>i</mi></msub><mo>⊤</mo></msup><msub><mi>u</mi><mn>1</mn></msub><mo>=</mo><mn>0</mn></math>. All the remaining variation lies in the shaded plane through the origin, perpendicular to PC1. We have reduced the search for the next direction to a 2D problem.</p>
           <p class="quiet">The original total variance is 10.25. Removing the PC1 contribution leaves total residual variance 1.25.</p>
         </section>
@@ -204,7 +204,6 @@
           <div id="angle-control" hidden><label for="angle"><span id="angle-label">Direction angle <math><mi>θ</mi></math></span> <output id="angle-value" for="angle">30°</output></label><input id="angle" type="range" min="0" max="180" step="1" value="30"><div class="angle-presets"><button data-angle="0" type="button">0°</button><button data-angle="45" type="button">45° · PC1</button><button data-angle="135" type="button">135° · PC2</button></div></div>
           <label id="view-control" hidden>View <select id="view"><option value="original">Original coordinates</option><option value="coordinates">New coordinates</option><option value="reconstruction">Reconstruction</option></select></label>
           <label id="components-control" hidden>Components kept <select id="components"><option value="1">1 · a line</option><option value="2" selected>2 · a plane</option><option value="3">3 · all coordinates</option></select></label>
-          <div id="removal-control" class="removal-toggle" hidden><label for="removal"><span>PC1 contribution</span><span class="removal-choice"><output id="removal-value" for="removal">Not removed</output><input id="removal" type="checkbox" role="switch" aria-label="Remove PC1"></span></label></div>
           <label id="piece-control" hidden>Component <select id="piece"><option value="0">PC1</option><option value="1">PC2</option><option value="2">PC3</option></select></label>
           <div id="camera-control" hidden><label for="camera">Turn the 3D view <output id="camera-value" for="camera">25°</output></label><input id="camera" type="range" min="-90" max="90" step="1" value="25"></div>
         </div>

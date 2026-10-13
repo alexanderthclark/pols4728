@@ -337,7 +337,6 @@ function render() {
   $('view-control').hidden = !isExplore;
   $('components-control').hidden = !(scene === 'plane' || (isExplore && isThree && view === 'reconstruction'));
   $('camera-control').hidden = !isThree || isResidual || isSVD;
-  $('removal-control').hidden = scene !== 'deflation';
   $('piece-control').hidden = !['pieces', 'svd'].includes(scene);
   $('statistics').hidden = scene === 'line';
   $('angle').min = isResidual ? -90 : 0;
@@ -350,15 +349,11 @@ function render() {
   $('components').value = components;
   $('camera-value').value = `${fmt(camera, 0)}°`;
   $('camera').value = camera;
-  $('removal-value').value = targetRemoval ? 'Removed' : 'Not removed';
-  $('removal').checked = targetRemoval === 1;
   $('piece').value = piece;
   const hasEntrance = entranceFor(current) !== null;
   $('motion-controls').hidden = !hasEntrance;
   setNotation($('motion-cue'), scene === 'deflation'
-    ? Math.abs(removal - targetRemoval) > .000001
-      ? targetRemoval ? 'Removing PC1' : 'Restoring PC1'
-      : targetRemoval ? 'PC1 removed' : 'PC1 not removed'
+    ? removal < 1 ? 'Removing PC1' : 'PC1 removed'
     : steps[current].hasAttribute('data-motion-projection')
       ? 'Project the points onto the horizontal axis'
       : steps[current].hasAttribute('data-motion-camera')
@@ -386,9 +381,9 @@ function render() {
   } else if (scene === 'deflation') {
     const left = 9 * (1 - removal) ** 2;
     statistics(['PC1 variance left', 'In the plane', 'Remaining total'], [fmt(left), '1.25', fmt(left + 1.25)]);
-    caption = Math.abs(removal - targetRemoval) > .000001
-      ? targetRemoval ? 'Subtracting the PC1 contribution moves each point into the plane perpendicular to PC1.' : 'Restoring the PC1 contribution moves each point back to its original position.'
-      : targetRemoval ? 'PC1 is removed. Every residual lies in the plane perpendicular to PC1, with total variance 1.25.' : 'PC1 is not removed. The original cloud has PC1 variance 9 and total variance 10.25.';
+    caption = removal < 1
+      ? 'Subtracting the PC1 contribution moves each point into the plane perpendicular to PC1.'
+      : 'PC1 is removed. Every residual lies in the plane perpendicular to PC1, with total variance 1.25.';
   } else if (isSVD) {
     const { singularValues } = svdExample();
     const d = singularValues[piece];
@@ -477,34 +472,6 @@ function changeAngle(value, animate = false) {
     render();
     if (t < 1) animation = requestAnimationFrame(frame);
     else { animation = undefined; finishAnimation = undefined; }
-  }
-  animation = requestAnimationFrame(frame);
-}
-function changeRemoval(value) {
-  stopAnimation();
-  targetRemoval = value;
-  remember();
-  const finish = () => {
-    removal = value;
-    render();
-    $('status').textContent = notationText($('caption'));
-  };
-  if (motion.matches || Math.abs(removal - value) < .000001) { finish(); return; }
-  const from = removal;
-  const start = performance.now();
-  finishAnimation = finish;
-  render();
-  function frame(time) {
-    const t = Math.min(1, (time - start) / 900);
-    const eased = t * t * (3 - 2 * t);
-    removal = from + (value - from) * eased;
-    render();
-    if (t < 1) animation = requestAnimationFrame(frame);
-    else {
-      animation = undefined;
-      finishAnimation = undefined;
-      finish();
-    }
   }
   animation = requestAnimationFrame(frame);
 }
@@ -660,11 +627,11 @@ function readScroll() {
 }
 stages.forEach((stage, index) => {
   const local = id => stage.querySelector(`[data-control="${id}"]`);
-  const activate = (completeRemoval = true) => {
+  const activate = () => {
     if (current !== index) setStep(index, false);
     const isDeflation = steps[index].dataset.scene === 'deflation';
-    stopAnimation(completeRemoval && isDeflation);
-    if (completeRemoval && isDeflation) removal = targetRemoval;
+    stopAnimation(isDeflation);
+    if (isDeflation) removal = targetRemoval;
     entrancePending = undefined;
     entrancePlayed.add(index);
     projectionMix = 1;
@@ -694,11 +661,6 @@ stages.forEach((stage, index) => {
   local('angle').addEventListener('input', event => {
     const value = Number(event.target.value);
     activate(); changeAngle(value); remember();
-  });
-  local('removal').addEventListener('change', event => {
-    const value = event.target.checked ? 1 : 0;
-    activate(false);
-    changeRemoval(value);
   });
   for (const id of ['angle', 'camera']) {
     const takeControl = () => { activate(); remember(); render(); };
