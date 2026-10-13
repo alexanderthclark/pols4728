@@ -5,9 +5,25 @@ import {
 } from './model.mjs';
 import { drawSVDFactors } from './svd-view.mjs';
 
-const $ = id => document.getElementById(id);
 const steps = [...document.querySelectorAll('.step')];
-const svg = $('diagram');
+const stageTemplate = document.getElementById('stage-template');
+const stages = steps.map(step => {
+  const stage = stageTemplate.content.firstElementChild.cloneNode(true);
+  stage.setAttribute('aria-label', `${step.dataset.title}: interactive diagram`);
+  stage.querySelectorAll('[id]').forEach(node => {
+    node.dataset.control = node.id;
+    node.id = `${step.id}-${node.id}`;
+  });
+  for (const attribute of ['for', 'aria-labelledby']) {
+    stage.querySelectorAll(`[${attribute}]`).forEach(node => {
+      node.setAttribute(attribute, node.getAttribute(attribute).split(' ').map(id => `${step.id}-${id}`).join(' '));
+    });
+  }
+  step.append(stage);
+  return stage;
+});
+const $ = id => stages[current].querySelector(`[data-control="${id}"]`) || document.getElementById(id);
+let svg;
 const colors = { ink: '#242424', blue: '#234E70', rust: '#A54F32', teal: '#007F73', muted: '#606060', rule: '#767676', light: '#d6d6d6' };
 const motion = matchMedia('(prefers-reduced-motion: reduce)');
 const saved = new Map();
@@ -170,7 +186,7 @@ function draw2D(parent, points, summary) {
       point(parent, map(p), i === selected, true, 4);
       cross(parent, map(summary.reconstruction[i]));
     });
-    label(parent, 70, 305, '○ Original observation     × Reconstructed from one score', colors.muted, 17);
+    label(parent, 70, 305, '○ Original     × Reconstruction', colors.muted, 17);
   } else if (showAllProjections) {
     points.forEach((p, i) => {
       line(parent, map(p), map(summary.reconstruction[i]), colors.rule, 1, '3 4');
@@ -203,7 +219,7 @@ function draw2D(parent, points, summary) {
 }
 
 function drawResidualPlane(parent, summary) {
-  label(parent, 360, 32, 'Residual plane · viewed face on', colors.ink, 21, 'middle');
+  label(parent, 360, 40, 'Residual plane · viewed face on', colors.ink, 21, 'middle');
   const map = plot(parent, 360, 179, 57, 2.35, ['a', 'b']);
   basis(parent, map, summary.u, summary.v, 2.2, true, ['w', 'w⊥']);
   residualPoints.forEach(p => point(parent, map(p), false, false, 4.5));
@@ -235,7 +251,7 @@ function draw3D(parent) {
     deflation: 'Subtract the projection along PC1',
     pieces: `The PC${piece + 1} contribution · one piece of X`,
   };
-  label(parent, 360, 32, titles[scene] || (isCoordinates ? 'Principal coordinates · Z = XU' : isReconstruction ? 'Reconstruct the original observations' : 'Original cloud · three coordinates'), colors.ink, 21, 'middle');
+  label(parent, 360, 40, titles[scene] || (isCoordinates ? 'Principal coordinates · Z = XU' : isReconstruction ? 'Reconstruct the original observations' : 'Original cloud · three coordinates'), colors.ink, 21, 'middle');
   if (isDeflation || (isReconstruction && components === 2)) {
     const axes = isDeflation ? [cols[1], cols[2]] : [cols[0], cols[1]];
     const extents = isDeflation ? [2.8, 2.3] : [5.9, 2];
@@ -293,7 +309,7 @@ function render() {
   const isExplore = scene === 'explore';
   const points = isResidual ? residualPoints : dataset === 'line' ? LINE_POINTS : POINTS;
   const summary = pcaSummary(angle, points);
-  $('angle-control').hidden = (isThree && !isResidual) || current === 0;
+  $('angle-control').hidden = (isThree && !isResidual) || scene === 'line' || steps[current].hasAttribute('data-fixed-angle');
   $('data-control').hidden = !isExplore;
   $('view-control').hidden = !isExplore;
   $('components-control').hidden = !(scene === 'plane' || (isExplore && isThree && view === 'reconstruction'));
@@ -314,9 +330,9 @@ function render() {
   $('removal-value').value = `${Math.round(removal * 100)}%`;
   $('removal').value = removal * 100;
   $('piece').value = piece;
-  document.querySelector('.stage').classList.toggle('is-three', isThree);
-  document.querySelector('.stage').classList.toggle('is-explore', isExplore);
-  document.querySelectorAll('[data-angle]').forEach((button, index) => {
+  stages[current].classList.toggle('is-three', isThree);
+  stages[current].classList.toggle('is-explore', isExplore);
+  stages[current].querySelectorAll('[data-angle]').forEach((button, index) => {
     const degrees = (isResidual ? [-30, 0, 60] : familiarPresets.includes(scene) ? [0, 90, 45] : [0, 45, 135])[index];
     button.dataset.angle = degrees;
     button.setAttribute('aria-pressed', String(Math.abs(targetAngle - degrees) < .1));
@@ -384,7 +400,7 @@ function render() {
   $('caption').textContent = caption;
   if (scene === 'projection') $('one-score-worked').textContent = `With u ≈ (${fmt(summary.u[0], 3)}, ${fmt(summary.u[1], 3)})ᵀ, z = 2a + 2b ≈ ${fmt(summary.scores.at(-1))}.`;
   const description = ['scores', 'variance'].includes(scene) ? `${caption} Xu contains the scores ${summary.scores.map(value => fmt(value)).join(', ')}.` : caption;
-  svg.replaceChildren(el('title', { id: 'diagram-title' }, steps[current].dataset.title), el('desc', { id: 'diagram-description' }, description));
+  svg.replaceChildren(el('title', { id: `${steps[current].id}-diagram-title` }, steps[current].dataset.title), el('desc', { id: `${steps[current].id}-diagram-description` }, description));
   const drawing = add(svg, 'g', { 'aria-hidden': 'true' });
   if (isSVD) drawSVDFactors(drawing, { add, line, label, point, colors, fmt }, piece);
   else if (isResidual) drawResidualPlane(drawing, summary);
@@ -405,7 +421,7 @@ function changeAngle(value, animate = false) {
   }
   const from = angle;
   const start = performance.now();
-  // Update scene layout before navigation measures the sticky figure.
+  // Keep the current diagram and its controls in sync during rotation.
   render();
   function frame(time) {
     const t = Math.min(1, (time - start) / 450);
@@ -416,13 +432,14 @@ function changeAngle(value, animate = false) {
   }
   animation = requestAnimationFrame(frame);
 }
-function setStep(index, animate = true) {
+function setStep(index) {
   const changed = current !== index;
   if (changed) remember();
   current = index;
+  svg = $('diagram');
   const scene = steps[index].dataset.scene;
   const fallback = {
-    angle: scene === 'residual-plane' ? 0 : scene === 'second-pc' ? -30 : scene === 'line' ? 0 : Number(steps[index].dataset.startAngle ?? 45),
+    angle: Number(steps[index].dataset.fixedAngle ?? steps[index].dataset.startAngle ?? (scene === 'residual-plane' || scene === 'line' ? 0 : scene === 'second-pc' ? -30 : 45)),
     dataset: ['line', 'scores', 'variance', 'projection', 'quadratic', 'maximum', 'basis', 'coordinates'].includes(scene) ? 'line' : ['cloud', 'reconstruction', 'explore'].includes(scene) ? 'cloud' : 'three',
     view: scene === 'plane' ? 'reconstruction' : 'original',
     components: scene === 'plane' ? 2 : 1,
@@ -441,13 +458,10 @@ function setStep(index, animate = true) {
   $('step-count').textContent = `${String(index + 1).padStart(2, '0')} / ${steps.length}`;
   $('previous').disabled = index === 0;
   $('next').disabled = index === steps.length - 1;
-  changeAngle(state.angle, animate && changed && dataset !== 'three');
+  changeAngle(Number(steps[index].dataset.fixedAngle ?? state.angle));
 }
 function readingLine() {
-  const stage = document.querySelector('.stage');
-  const mobile = matchMedia('(max-width: 800px)').matches;
-  const sticky = getComputedStyle(stage).position === 'sticky';
-  return mobile && sticky ? parseFloat(getComputedStyle(stage).top) + stage.offsetHeight + 22 : Math.max(100, innerHeight * .38);
+  return Math.max(110, innerHeight * .3);
 }
 function goTo(index, push = true, focus = true) {
   index = Math.max(0, Math.min(steps.length - 1, index));
@@ -456,7 +470,7 @@ function goTo(index, push = true, focus = true) {
   setStep(index);
   if (push && location.hash !== `#${steps[index].id}`) history.pushState(null, '', `#${steps[index].id}`);
   const mobile = matchMedia('(max-width: 800px)').matches;
-  const alignment = mobile ? readingLine() : 84;
+  const alignment = mobile ? 76 : 84;
   const target = steps[index].getBoundingClientRect().top + scrollY - alignment + 5;
   window.scrollTo({ top: Math.max(0, target), behavior: 'instant' });
   if (focus) {
@@ -476,36 +490,49 @@ function readScroll() {
     if (scrollY > document.querySelector('.title-page').offsetHeight) history.replaceState(null, '', `#${steps[index].id}`);
   }
 }
-steps.forEach((step, index) => {
-  const option = document.createElement('option');
-  option.value = index;
-  option.textContent = `${String(index + 1).padStart(2, '0')} · ${step.dataset.title}`;
-  $('step-select').append(option);
-});
-$('step-select').addEventListener('change', event => goTo(Number(event.target.value), true, false));
-$('previous').addEventListener('click', () => goTo(current - 1, true, false));
-$('next').addEventListener('click', () => goTo(current + 1, true, false));
-$('angle').addEventListener('input', event => { changeAngle(Number(event.target.value)); remember(); });
-$('removal').addEventListener('change', () => { $('status').textContent = $('caption').textContent; });
-$('angle').addEventListener('change', () => { $('status').textContent = $('caption').textContent; });
-document.querySelectorAll('[data-angle]').forEach(button => button.addEventListener('click', () => {
-  changeAngle(Number(button.dataset.angle), true);
-  remember();
-  $('status').textContent = `Direction set to ${targetAngle} degrees.`;
-}));
-for (const id of ['dataset', 'view', 'components', 'camera', 'removal', 'piece']) {
-  $(id).addEventListener(['camera', 'removal'].includes(id) ? 'input' : 'change', event => {
-    const value = event.target.value;
-    if (id === 'dataset') { dataset = value; view = 'original'; components = dataset === 'three' ? 2 : 1; }
-    if (id === 'view') view = value;
-    if (id === 'components') components = Number(value);
-    if (id === 'camera') camera = Number(value);
-    if (id === 'removal') removal = Number(value) / 100;
-    if (id === 'piece') piece = Number(value);
-    remember(); render();
-    if (!['camera', 'removal'].includes(id)) $('status').textContent = $('caption').textContent;
+stages.forEach((stage, index) => {
+  const local = id => stage.querySelector(`[data-control="${id}"]`);
+  const activate = () => { if (current !== index) setStep(index); };
+  steps.forEach((step, optionIndex) => {
+    const option = document.createElement('option');
+    option.value = optionIndex;
+    option.textContent = `${String(optionIndex + 1).padStart(2, '0')} · ${step.dataset.title}`;
+    local('step-select').append(option);
   });
-}
+  local('step-select').addEventListener('change', event => {
+    const destination = Number(event.target.value);
+    local('step-select').value = index;
+    goTo(destination);
+  });
+  local('previous').addEventListener('click', () => goTo(index - 1));
+  local('next').addEventListener('click', () => goTo(index + 1));
+  local('angle').addEventListener('input', event => {
+    const value = Number(event.target.value);
+    activate(); changeAngle(value); remember();
+  });
+  for (const id of ['removal', 'angle']) local(id).addEventListener('change', () => {
+    activate(); $('status').textContent = $('caption').textContent;
+  });
+  stage.querySelectorAll('[data-angle]').forEach(button => button.addEventListener('click', () => {
+    const value = Number(button.dataset.angle);
+    activate(); changeAngle(value, true); remember();
+    $('status').textContent = `Direction set to ${targetAngle} degrees.`;
+  }));
+  for (const id of ['dataset', 'view', 'components', 'camera', 'removal', 'piece']) {
+    local(id).addEventListener(['camera', 'removal'].includes(id) ? 'input' : 'change', event => {
+      const value = event.target.value;
+      activate();
+      if (id === 'dataset') { dataset = value; view = 'original'; components = dataset === 'three' ? 2 : 1; }
+      if (id === 'view') view = value;
+      if (id === 'components') components = Number(value);
+      if (id === 'camera') camera = Number(value);
+      if (id === 'removal') removal = Number(value) / 100;
+      if (id === 'piece') piece = Number(value);
+      remember(); render();
+      if (!['camera', 'removal'].includes(id)) $('status').textContent = $('caption').textContent;
+    });
+  }
+});
 document.querySelectorAll('a[href^="#"]').forEach(link => link.addEventListener('click', event => {
   const index = steps.findIndex(step => `#${step.id}` === link.getAttribute('href'));
   if (index >= 0) { event.preventDefault(); goTo(index); }
@@ -517,8 +544,7 @@ document.addEventListener('keydown', event => {
   }
   if (['PageDown', 'PageUp', 'ArrowDown', 'ArrowUp', 'Home', 'End', ' '].includes(event.key)) navigationLocked = false;
 });
-// A selected chapter stays selected through browser focus/scroll anchoring.
-// Intentional wheel, swipe, or page-key scrolling returns control to the story.
+// Preserve an explicit chapter selection until the reader scrolls intentionally.
 addEventListener('wheel', () => { navigationLocked = false; }, { passive: true });
 addEventListener('touchmove', event => {
   if (!event.target.closest('input, select, button')) navigationLocked = false;
@@ -527,7 +553,12 @@ addEventListener('pointerdown', event => {
   if (event.clientX >= document.documentElement.clientWidth) navigationLocked = false;
 }, { passive: true });
 addEventListener('scroll', () => { if (!scrollFrame) scrollFrame = requestAnimationFrame(readScroll); }, { passive: true });
-addEventListener('resize', () => { render(); readScroll(); });
+function renderAll() {
+  const selected = current;
+  for (let index = 0; index < steps.length; index++) setStep(index);
+  setStep(selected);
+}
+addEventListener('resize', () => { renderAll(); readScroll(); });
 motion.addEventListener('change', () => { if (motion.matches) changeAngle(targetAngle); });
 function restoreHash() {
   const index = steps.findIndex(step => `#${step.id}` === location.hash);
@@ -535,5 +566,5 @@ function restoreHash() {
   else if (!location.hash || location.hash === '#page-title') window.scrollTo({ top: 0, behavior: 'instant' });
 }
 addEventListener('popstate', restoreHash);
-setStep(0, false);
+renderAll();
 document.fonts.ready.then(() => { initializing = false; if (location.hash) restoreHash(); else readScroll(); });

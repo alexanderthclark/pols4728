@@ -40,29 +40,29 @@
           <p>To find the first principal component, choose a <em>unit direction</em> u along which the projected data have the greatest variance.</p>
           <p>Start with five centered observations on <span class="math">x₁ = x₂</span>. We will try different directions and compare their projections.</p>
         </section>
-        <section class="step" id="stack-scores" data-title="Try directions and compare projections" data-scene="scores" data-start-angle="0">
-          <p class="eyebrow">02 · Try a unit direction</p><h2>Project the data onto u</h2>
-          <p>Xu lists one signed projection score per observation. For centered data, its variance is proportional to the <em>squared length</em> of this score column:</p>
-          <div class="equation"><math display="block"><mi mathvariant="normal">Var</mi><mo>(</mo><mi>X</mi><mi>u</mi><mo>)</mo><mo>=</mo><mfrac><mrow><msup><mrow><mo>‖</mo><mi>X</mi><mi>u</mi><mo>‖</mo></mrow><mn>2</mn></msup></mrow><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></mfrac></math></div>
-          <p>At 0°, <span class="math">Xu = x₁</span>; at 90°, <span class="math">Xu = x₂</span>. Try these directions and the 45° diagonal. Which gives the largest squared score length?</p>
-          <p class="quiet">X has observations in its rows. Here n = 5, so sample variance divides by 4. All candidate directions have length one.</p>
+        <section class="step" id="stack-scores" data-title="First: project onto the horizontal axis" data-scene="scores" data-fixed-angle="0">
+          <p class="eyebrow">02 · The horizontal direction</p><h2>First, choose u = (1, 0)ᵀ</h2>
+          <p>The score column <span class="math">Xu = x₁</span> contains one signed projection per observation. For centered data, <math><mi mathvariant="normal">Var</mi><mo>(</mo><mi>X</mi><mi>u</mi><mo>)</mo><mo>=</mo><msup><mrow><mo>‖</mo><mi>X</mi><mi>u</mi><mo>‖</mo></mrow><mn>2</mn></msup><mo>/</mo><mrow><mo>(</mo><mi>n</mi><mo>−</mo><mn>1</mn><mo>)</mo></mrow></math>. Here that is <span class="math">10/4 = 2.5</span>.</p>
         </section>
-        <section class="step" id="score-variance" data-title="The diagonal maximizes score length" data-scene="variance" data-start-angle="45">
-          <p class="eyebrow">03 · Find the first component</p><h2>The diagonal gives the largest score length</h2>
-          <p>Along either original axis, <span class="math">‖Xu‖² = 10</span>. Along the 45° diagonal, <span class="math">‖Xu‖² = 20</span>.</p>
-          <div class="equation math">Original axes: Var(Xu) = 10/4 = 2.5<br>45° diagonal: Var(Xu) = 20/4 = 5</div>
-          <p>At 45°, every point already lies on the chosen line. Projection cannot make any point farther from the origin, so this direction gives the maximum. It defines the first principal component.</p>
-          <p class="quiet">Squared score length means adding the squared distances from zero: ‖Xu‖² = ∑ᵢ zᵢ².</p>
+        <section class="step" id="vertical-scores" data-title="Next: project onto the vertical axis" data-scene="scores" data-fixed-angle="90">
+          <p class="eyebrow">03 · The vertical direction</p><h2>Next, choose u = (0, 1)ᵀ</h2>
+          <p>Now project onto the vertical axis. This selects <span class="math">Xu = x₂</span>. Because x₁ = x₂, the score column has the same squared length, 10, and the same variance, <span class="math">10/4 = 2.5</span>.</p>
+          <p class="quiet">Could another unit direction give greater variance? Scroll to try the diagonal.</p>
+        </section>
+        <section class="step" id="score-variance" data-title="Then: project onto the diagonal" data-scene="scores" data-fixed-angle="45">
+          <p class="eyebrow">04 · The diagonal direction</p><h2>The 45° direction gives more variance</h2>
+          <p>Choose the unit vector <math><mi>u</mi><mo>=</mo><msup><mrow><mo>(</mo><mtext>1, 1</mtext><mo>)</mo></mrow><mi>⊤</mi></msup><mo>/</mo><msqrt><mn>2</mn></msqrt></math>. Its score column has squared length 20, giving variance <span class="math">20/4 = 5</span>: twice the variance along either original axis.</p>
+          <p>Every point already lies on this line. Projection cannot make any point farther from the origin, so this direction gives the maximum. It defines the first principal component.</p>
         </section>
         <section class="step" id="one-score" data-title="Read one projection score" data-scene="projection" data-start-angle="45">
-          <p class="eyebrow">04 · Read one score</p><h2>A score is a signed distance along u</h2>
+          <p class="eyebrow">05 · Read one score</p><h2>A score is a signed distance along u</h2>
           <p>Follow the ringed point at (2, 2). Its score is the signed distance from the origin to its projection. For <span class="math">u = (a, b)ᵀ</span>:</p>
           <div class="equation"><math display="block"><msub><mi>z</mi><mi>i</mi></msub><mo>=</mo><msup><msub><mi>x</mi><mi>i</mi></msub><mi>⊤</mi></msup><mi>u</mi><mo>=</mo><mi>a</mi><msub><mi>x</mi><mrow><mi>i</mi><mn>1</mn></mrow></msub><mo>+</mo><mi>b</mi><msub><mi>x</mi><mrow><mi>i</mi><mn>2</mn></mrow></msub></math></div>
           <p>The scalar score is zᵢ; the projected point is the vector <span class="math">zᵢu</span>. Xu collects all five scalar scores.</p>
           <p class="worked math" id="one-score-worked">With u ≈ (0.707, 0.707)ᵀ, z = 2a + 2b ≈ 2.83.</p>
         </section>
         <section class="step" id="covariance-form" data-title="From Xu to uᵀSu" data-scene="quadratic">
-          <p class="eyebrow">05 · The covariance matrix</p><h2>The same variance, written with S</h2>
+          <p class="eyebrow">06 · The covariance matrix</p><h2>The same variance, written with S</h2>
           <p>The sum of squared scores is <span class="math">(Xu)ᵀ(Xu)</span>. Rearrange the multiplication and define the sample covariance matrix <span class="math">S = XᵀX/(n − 1)</span>:</p>
           <div class="equation derivation"><math display="block"><mi mathvariant="normal">Var</mi><mo>(</mo><mi>X</mi><mi>u</mi><mo>)</mo><mo>=</mo><mfrac><mrow><mo>(</mo><mi>X</mi><mi>u</mi><msup><mo>)</mo><mi>⊤</mi></msup><mo>(</mo><mi>X</mi><mi>u</mi><mo>)</mo></mrow><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></mfrac><mo>=</mo><msup><mi>u</mi><mi>⊤</mi></msup><mi>S</mi><mi>u</mi></math></div>
           <p>For our five points, the two variances and their covariance are all 2.5. Substituting <span class="math">u = (a, b)ᵀ</span> gives:</p>
@@ -70,14 +70,14 @@
           <p>The term involving both entries of <span class="math">u</span> comes from covariance. PCA uses how the variables move together, as well as their individual variances.</p>
         </section>
         <section class="step" id="principal-direction" data-title="Choose the greatest variance" data-scene="maximum">
-          <p class="eyebrow">06 · Principal directions</p><h2>Choose u to maximize Var(Xu)</h2>
+          <p class="eyebrow">07 · Principal directions</p><h2>Choose u to maximize Var(Xu)</h2>
           <p>We compare directions of the same length: <span class="math">uᵀu = 1</span>. Otherwise doubling <span class="math">u</span> would double every score and quadruple its variance without finding a better direction.</p>
           <div class="equation math">maximize uᵀSu subject to uᵀu = 1</div>
           <p>The maximizing direction is an eigenvector of <span class="math">S</span> with the largest eigenvalue. In this example, <math><msub><mi>u</mi><mn>1</mn></msub><mo>=</mo><msup><mrow><mo>(</mo><mtext>1, 1</mtext><mo>)</mo></mrow><mi>⊤</mi></msup><mo>/</mo><msqrt><mn>2</mn></msqrt></math> and <span class="math">Su₁ = 5u₁</span>. Its score variance is 5. The perpendicular direction <math><msub><mi>u</mi><mn>2</mn></msub><mo>=</mo><msup><mrow><mo>(</mo><mtext>−1, 1</mtext><mo>)</mo></mrow><mi>⊤</mi></msup><mo>/</mo><msqrt><mn>2</mn></msqrt></math> has variance 0.</p>
           <p>These are the first and second <em>principal directions</em>. Their score columns are the principal components. Reversing an arrow changes the signs of the scores, but leaves the variance unchanged.</p>
         </section>
         <section class="step" id="rotate-basis" data-title="Build a basis around the chosen direction" data-scene="basis" data-start-angle="45">
-          <p class="eyebrow">07 · Change of basis</p><h2>Build a measuring frame around u</h2>
+          <p class="eyebrow">08 · Change of basis</p><h2>Build a measuring frame around u</h2>
           <p>We found a direction that reveals more variance. To describe a point completely, pair that unit direction u with a perpendicular unit direction v. Each point now has two scores, one along each direction.</p>
           <p>We can rotate this measuring frame through any angle θ. A unit arrow at angle θ has horizontal entry cos θ and vertical entry sin θ. Turning it 90° counterclockwise gives the perpendicular arrow:</p>
           <div class="equation math">u = (cos θ, sin θ)ᵀ<br>v = (−sin θ, cos θ)ᵀ</div>
@@ -86,35 +86,35 @@
           <p class="quiet">Both arrows have length one. Across this perpendicular pair, the score variances always add to 5. The new basis redistributes the existing variation between two coordinates.</p>
         </section>
         <section class="step" id="new-coordinates" data-title="The full change of basis" data-scene="coordinates">
-          <p class="eyebrow">08 · Keep both coordinates</p><h2>The same points in the new basis</h2>
+          <p class="eyebrow">09 · Keep both coordinates</p><h2>The same points in the new basis</h2>
           <p>Put the two principal directions into the columns of <span class="math">U = [u₁ u₂]</span>. Multiplying by this matrix gives both new coordinates at once:</p>
           <div class="equation math">Z = XU<br>X = ZUᵀ</div>
           <p>The paired plots use equal units. The diagonal line becomes a horizontal line because its second coordinate is zero. The distances between observations stay the same.</p>
           <p>Keeping the full orthonormal basis preserves the data. Here, even the first score alone describes every observation, because the second score is always zero.</p>
         </section>
         <section class="step" id="a-cloud" data-title="Add variation off the line" data-scene="cloud">
-          <p class="eyebrow">09 · A more complicated 2D example</p><h2>Now give the line some thickness</h2>
+          <p class="eyebrow">10 · A more complicated 2D example</p><h2>Now give the line some thickness</h2>
           <p>Replace the five points with a cloud of 24 centered observations. The variables still tend to move together, but now knowing one does not determine the other.</p>
           <div class="equation math">S = <span class="matrix"><span>5</span><span>4</span><span>4</span><span>5</span></span></div>
           <p>The principal directions still lie at 45° and 135°. Their score variances are now 9 and 1. In the principal basis, the score covariance is zero; the two diagonal entries add to the same total variance, 10.</p>
           <p class="quiet">For a general angle, Var(Xu) = 5 + 4 sin(2θ). Rotate the frame to see variation shift between coordinates. Zero covariance does not establish independence.</p>
         </section>
         <section class="step" id="reduce-dimension" data-title="Discard one coordinate" data-scene="reconstruction">
-          <p class="eyebrow">10 · Dimension reduction</p><h2>Dropping a coordinate loses information</h2>
+          <p class="eyebrow">11 · Dimension reduction</p><h2>Dropping a coordinate loses information</h2>
           <p>Keep the first score and set the second to zero. Reconstruct each observation as <span class="math">x̂ᵢ = zᵢ₁u₁</span>. The reconstructed points lie on the first principal axis; the short segments show the differences from the original observations.</p>
           <p>At the principal basis, retaining one component keeps <span class="math">9/(9 + 1) = 90%</span> of the total sample variance. The remaining 10% describes variation perpendicular to that axis.</p>
           <p>Rotate the retained direction. The direction with the greatest score variance also gives the smallest sum of squared perpendicular reconstruction errors. The basis change itself preserved the data; discarding a coordinate introduces the loss.</p>
           <p class="quiet">Covariance PCA depends on the variables’ units. These examples use comparable scales. Centering subtracts column means; standardizing also divides by column standard deviations and can change the principal directions.</p>
         </section>
         <section class="step" id="three-dimensions" data-title="Find the first direction in 3D" data-scene="three-d">
-          <p class="eyebrow">11 · A 3D example</p><h2>Find one direction first</h2>
+          <p class="eyebrow">12 · A 3D example</p><h2>Find one direction first</h2>
           <p>Now give the 24 observations three coordinates. Begin with the same question as before: which unit direction gives the largest <span class="math">Var(Xu)</span>?</p>
           <p>The first principal direction follows the cloud’s long axis: <math><msub><mi>u</mi><mn>1</mn></msub><mo>=</mo><msup><mrow><mo>(</mo><mtext>1, 1, 1</mtext><mo>)</mo></mrow><mi>⊤</mi></msup><mo>/</mo><msqrt><mn>3</mn></msqrt></math>. Its scores <span class="math">z₁ = Xu₁</span> have variance 9, out of total variance 10.25.</p>
           <p>This finds PC1. To find the next direction, we can take away the part PC1 already describes and inspect what remains.</p>
           <p class="quiet">Turn the camera to inspect the cloud. This changes the drawing, while the direction and its score variance stay fixed.</p>
         </section>
         <section class="step" id="remove-first" data-title="Subtract the PC1 contribution" data-scene="deflation">
-          <p class="eyebrow">12 · Remove the first component</p><h2>Subtract each point’s projection onto u₁</h2>
+          <p class="eyebrow">13 · Remove the first component</p><h2>Subtract each point’s projection onto u₁</h2>
           <p>PC1 describes a vector <span class="math">zᵢ₁u₁</span> for each observation. Subtract that vector to obtain a residual:</p>
           <div class="equation math">rᵢ = xᵢ − zᵢ₁u₁<br>R = X − z₁u₁ᵀ</div>
           <p>Move the removal control from 0% to 100%. Each point travels parallel to <span class="math">u₁</span>, until its coordinate along that direction is zero. Hollow circles mark the original observations.</p>
@@ -122,7 +122,7 @@
           <p class="quiet">The control removes a fraction t of each PC1 score. Its remaining variance is 9(1 − t)²; at t = 1, the total residual variance is 1.25.</p>
         </section>
         <section class="step" id="remaining-plane" data-title="Search within the remaining plane" data-scene="residual-plane">
-          <p class="eyebrow">13 · A 2D problem again</p><h2>Look straight at the remaining plane</h2>
+          <p class="eyebrow">14 · A 2D problem again</p><h2>Look straight at the remaining plane</h2>
           <p>These are the residual points after fully removing PC1, viewed face on. The axes <span class="math">a</span> and <span class="math">b</span> form a reference basis within this plane. Both are perpendicular to <span class="math">u₁</span>; neither was chosen to maximize variance.</p>
           <p>Rotate a unit direction <span class="math">w</span> within the plane, and compare the variance of <span class="math">Rw</span>. For any such direction, <span class="math">u₁ᵀw = 0</span>, so removing PC1 does not change its scores:</p>
           <div class="equation math">Rw = Xw − z₁(u₁ᵀw) = Xw</div>
@@ -130,14 +130,14 @@
           <p class="quiet">The angle φ is measured from a within this plane. It is a new angle, separate from the earlier 2D example and from the 3D camera.</p>
         </section>
         <section class="step" id="second-direction" data-title="Find PC2, then PC3" data-scene="second-pc">
-          <p class="eyebrow">14 · The next principal component</p><h2>The best remaining direction is PC2</h2>
+          <p class="eyebrow">15 · The next principal component</p><h2>The best remaining direction is PC2</h2>
           <p>Here the maximum occurs at φ = −30°. It gives <math><msub><mi>u</mi><mn>2</mn></msub><mo>=</mo><msup><mrow><mo>(</mo><mtext>1, −1, 0</mtext><mo>)</mo></mrow><mi>⊤</mi></msup><mo>/</mo><msqrt><mn>2</mn></msqrt></math>, with score variance 1. This is the second principal direction of the original data: the best direction perpendicular to <span class="math">u₁</span>.</p>
           <p>PC2 describes <span class="math">1/1.25 = 80%</span> of the residual variance. Relative to the original total, it contributes <span class="math">1/10.25 ≈ 9.8%</span>. These percentages have different denominators.</p>
           <p>Subtract the PC2 contribution as well, and the residual points lie on a line. Its direction is <math><msub><mi>u</mi><mn>3</mn></msub><mo>=</mo><msup><mrow><mo>(</mo><mtext>1, 1, −2</mtext><mo>)</mo></mrow><mi>⊤</mi></msup><mo>/</mo><msqrt><mn>6</mn></msqrt></math>, with score variance 0.25. Together, the three perpendicular directions form the full basis.</p>
           <p class="quiet">Try the PC3 preset to see the smallest variance in this plane. Sequential removal explains the perpendicularity constraints; it is one way to understand the components.</p>
         </section>
         <section class="step" id="keep-a-plane" data-title="Reconstruct with PC1 and PC2" data-scene="plane">
-          <p class="eyebrow">15 · Return to the original data</p><h2>Add the first two contributions back</h2>
+          <p class="eyebrow">16 · Return to the original data</p><h2>Add the first two contributions back</h2>
           <p>To reconstruct an original observation with two components, add its PC1 and PC2 contributions:</p>
           <div class="equation math">x̂ᵢ = zᵢ₁u₁ + zᵢ₂u₂</div>
           <p>These reconstructed points occupy the plane spanned by <span class="math">u₁</span> and <span class="math">u₂</span>. This is a different plane from the residual plane: it includes PC1 and omits PC3.</p>
@@ -145,14 +145,14 @@
           <p>Change the number of retained components: one gives a line, two give a plane, and all three recover the original observations.</p>
         </section>
         <section class="step" id="one-piece" data-title="See the data as three pieces" data-scene="pieces">
-          <p class="eyebrow">16 · Component contributions</p><h2>Each component contributes one piece</h2>
+          <p class="eyebrow">17 · Component contributions</p><h2>Each component contributes one piece</h2>
           <p>Select a component to see its contribution to every observation. Each piece lies along one principal direction; the observations differ only in their scores along that direction.</p>
           <div class="equation math">X = z₁u₁ᵀ + z₂u₂ᵀ + z₃u₃ᵀ</div>
           <p>A column of scores multiplied by a row containing its direction gives a matrix with the same shape as <span class="math">X</span>. Each of these matrices has rank one.</p>
           <p>Subtracting PC1 removed the first piece. Keeping PC1 and PC2 adds the first two pieces. Adding all three recovers the complete data matrix. This provides a bridge to the singular value decomposition.</p>
         </section>
         <section class="step" id="svd" data-title="SVD: a pattern and its size" data-scene="svd">
-          <p class="eyebrow">17 · SVD intuition</p><h2>Separate each score pattern from its size</h2>
+          <p class="eyebrow">18 · SVD intuition</p><h2>Separate each score pattern from its size</h2>
           <p>The singular value decomposition writes the same centered data as <span class="math">X = PDUᵀ</span>. Here <span class="math">U</span> still contains the three principal directions. Multiplying by <span class="math">U</span> gives the scores we already know:</p>
           <div class="equation math">Z = XU = PD<br>zⱼ = dⱼpⱼ</div>
           <p>The column <span class="math">pⱼ</span> records a pattern across the 24 observations, scaled to length one. The singular value <span class="math">dⱼ</span> restores the score column’s length. Select a component and compare the two plots; their vertical scales are labelled separately.</p>
@@ -162,15 +162,15 @@
           <p class="quiet">P is 24 × 3, D is 3 × 3 and diagonal, and U is 3 × 3. The columns of P are perpendicular unit patterns across observations; the columns of U are perpendicular unit directions among variables. Many texts call the right singular vector matrix V; we keep U to match our change-of-basis notation.</p>
         </section>
         <section class="step" id="explore" data-title="Compare the examples" data-scene="explore">
-          <p class="eyebrow">18 · Explore</p><h2>Directions, scores, and retained information</h2>
+          <p class="eyebrow">19 · Explore</p><h2>Directions, scores, and retained information</h2>
           <p>Return to the exact line, the thicker 2D cloud, or the 3D cloud. Compare the original observations, their new coordinates, and their reconstructions.</p>
           <p>For the exact line, find a direction with zero score variance. For the thicker cloud, find the angle that retains the most variation in one coordinate. For the 3D cloud, compare retaining a line, a plane, and the whole basis.</p>
           <p>The calculation is the same throughout: <span class="math">Xu</span> measures every observation along one unit direction, and <span class="math">uᵀSu</span> measures the variance of those scores.</p>
           <a href="#page-title">Back to the beginning</a>
         </section>
       </article>
-      <aside class="stage" aria-label="Interactive PCA diagram">
-        <div class="stage-top"><label for="step-select" class="sr-only">Lesson step</label><select id="step-select"></select><span id="step-count">01 / 18</span></div>
+      <template id="stage-template"><div class="stage" role="group" aria-label="Interactive PCA diagram">
+        <div class="stage-top"><label for="step-select" class="sr-only">Lesson step</label><select id="step-select"></select><span id="step-count">01 / 19</span></div>
         <div class="diagram-wrap"><svg id="diagram" viewBox="0 0 720 450" role="img" aria-labelledby="diagram-title diagram-description"><title id="diagram-title">PCA example</title><desc id="diagram-description">Five points on x₁ = x₂.</desc></svg></div>
         <div class="stage-controls">
           <label id="data-control" hidden>Example <select id="dataset"><option value="line">Exact line · 2D</option><option value="cloud">Thicker cloud · 2D</option><option value="three">Cloud · 3D</option></select></label>
@@ -185,7 +185,7 @@
         <p id="caption" class="caption">Five centered observations lie exactly on x₁ = x₂.</p>
         <p id="status" class="sr-only" aria-live="polite" aria-atomic="true"></p>
         <div class="stage-nav"><button id="previous" type="button" disabled>Previous</button><span>Scroll to continue</span><button id="next" type="button">Next</button></div>
-      </aside>
+      </div></template>
     </div>
   </main>
   <footer><p>Constructed examples · Sample variances use n − 1.</p><a href="../">POLS 4728 home</a></footer>

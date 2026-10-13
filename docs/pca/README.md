@@ -1,9 +1,10 @@
 # PCA: a change of basis
 
-An eighteen-step scrollytelling lesson first states the PCA objective: find
+A nineteen-step scrollytelling lesson first states the PCA objective: find
 the unit direction with greatest score variance. Five centered points exactly
-on `x₁ = x₂` let readers compare projections onto the original axes and the
-45° diagonal. A short explanation connects the live score column to
+on `x₁ = x₂` develop the horizontal, vertical, and 45° diagonal projections
+in three separate scroll steps. Each explanation sits above its own inline
+diagram in one centered column. A short explanation connects the score column to
 `Var(Xu) = ‖Xu‖²/(n − 1)`: the original axes give `10/4 = 2.5`, while the
 diagonal gives `20/4 = 5`. Projection geometry, `Var(Xu) = uᵀSu`, and a full
 rotating basis develop this initial direction search.
@@ -82,12 +83,13 @@ returning to the original coordinates.
 
 ## Interaction and access
 
-- Scroll, choose a named lesson step, or use Previous/Next. Left/right arrow
+- Scroll through one column, choose a named lesson step, or use Previous/Next. Left/right arrow
   navigation applies outside interactive controls. Step links and browser
   Back/Forward restore the reading location. Step selection lands immediately
-  beside the matching figure rather than animating across intervening chapters.
-- Compare 0°, 90°, and 45° in the opening measurement scenes, using a
-  labeled range control or presets. Hollow circles mark observations; crosses
+  above the matching inline figure. Keyboard navigation focuses the destination
+  heading. Each diagram and its controls have their own accessible IDs and state.
+- The opening reveals 0°, 90°, and 45° one at a time, with fixed directions.
+  Free rotation begins after these three examples. Hollow circles mark observations; crosses
   and connecting segments show their projections. The live readout connects
   squared score length, the variance denominator, and score variance.
   The perpendicular second direction appears
@@ -101,8 +103,9 @@ returning to the original coordinates.
   views.
 - Basis directions have direct labels and distinct solid, dashed, and dotted
   strokes. Original/reconstructed points use circles and crosses.
-- Phone layouts pin a shorter diagram above the narrative; short landscape
-  viewports let it scroll normally. Compact SVG labels are enlarged.
+- Desktop and phone layouts place diagrams below the narrative in normal
+  reading order. Fixed opening examples use compact figures and readouts;
+  compact SVG labels are enlarged on phones.
 - Reduced motion disables smooth navigation and basis animation. The complete
   narrative and assumptions remain readable without JavaScript.
 

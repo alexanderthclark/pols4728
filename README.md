@@ -17,8 +17,9 @@ The [Fall 2026 Python examples](examples/2026f/README.md) accompany the code lis
 ## Interactive explanations
 
 The [PCA story](docs/pca/README.md) starts with the maximum-variance objective
-and a scatter plot on `x₁ = x₂`. Live projections connect `‖Xu‖²` to
-`Var(Xu)` along the original axes and the diagonal, then develop
+and a scatter plot on `x₁ = x₂`. A single-column scroll sequence reveals the
+horizontal, vertical, and diagonal projections one at a time, connecting
+`‖Xu‖²` to `Var(Xu)`. Later steps develop
 a change of basis, `uᵀSu`, and thicker two-dimensional and three-dimensional examples,
 sequential component removal, and SVD intuition.
 
