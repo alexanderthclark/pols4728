@@ -1,9 +1,9 @@
 (function (root, factory) {
   'use strict';
-  const api = factory(root.DeliveryExample || (typeof require === 'function' ? require('./delivery.js') : null));
+  const api = factory(root.DeliveryExample || (typeof require === 'function' ? require('./delivery.js') : null), root.SvgMath || (typeof require === 'function' ? require('../shared/svg-math.js') : null));
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.DeliveryView = api;
-})(typeof window !== 'undefined' ? window : globalThis, function (D) {
+})(typeof window !== 'undefined' ? window : globalThis, function (D, T) {
   'use strict';
   const C = { ink:'#242424', muted:'#606060', blue:'#234E70', rust:'#A54F32', teal:'#007F73', grid:'#e8e8e8' };
   const topics = ['Predict delivery time', 'Fit the first correction', 'Add it to the prediction', 'Fit the remaining mistakes', 'Add a second correction', 'Keep correcting the remaining errors'];
@@ -19,9 +19,12 @@
   const fmt=n=>Math.abs(n)<1e-9?'0':String(Number(n.toFixed(2))).replace('-', '−');
   const signed=n=>n>0?'+'+fmt(n):fmt(n);
   const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
+  const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${T.svg(s)}</text>`;
   const line=(x1,y1,x2,y2,color=C.grid,width=1,extra='')=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" ${extra}/>`;
   const circle=(x,y,r,color,extra='')=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${color}" ${extra}/>`;
+  const N=T.notation, indexed=(name,index)=>N.subscript(N.variable(name),N.number(index));
+  const initialEquation=()=>`${N.apply(indexed('F',0),N.variable('x'))}${N.operator('=')}${N.bar(N.variable('y'))}${N.operator('=')}${N.number(12)}`;
+  const updateEquation=(round,amount)=>`${indexed('F',round)}${N.operator('=')}${indexed('F',round-1)}${N.operator('+')}${N.number(amount)}${N.operator('×')}${indexed('h',round)}`;
   const mix=(a,b,t)=>a+(b-a)*t;
   const sub=n=>String(n).split('').map(d=>'₀₁₂₃₄₅₆₇₈₉'[Number(d)]).join('');
   const precise=n=>n===0?'0':String(Number(n.toPrecision(5))).replace('-', '−');
@@ -77,6 +80,29 @@
     }
     const round=scene===2?1:2, amount=updateAmount(state), mse=D.mse(D.x.map(x=>D.predict(round,x,amount)));
     return `F${sub(round)} = F${sub(round-1)} + ${fmt(amount)} × h${sub(round)} · training MSE = ${fmt(mse)}${scene===4 && p>=3?' (was 3.75)':''}`;
+  }
+  function readoutParts(scene,state={}) {
+    const p=phase(state),trial=candidate(scene,state),part=N.part;
+    if(scene===0)return Number.isFinite(state.process) && state.process<=0?['Delivery time vs distance']:[part(initialEquation(),'F₀(x) = ȳ = 12')];
+    if(scene===1 || scene===3){
+      const round=scene===1?1:2,r=trial||D.rounds[round-1];
+      if(trial)return ['Candidate cut ',part(N.number(fmt(r.threshold))),' km · leaf means ',part(`${N.number(signed(r.left))}${N.operator(',')}${N.number(signed(r.right))}`),' · residual SSE = ',part(N.number(fmt(r.sse)))];
+      if(p<1){
+        if(scene===1)return p<=.3?[part(initialEquation(),'F₀(x) = ȳ = 12')]:[part(`${N.variable('r')}${N.operator('=')}${N.variable('y')}${N.operator('−')}${indexed('F',0)}`,'r = y − F₀')];
+        return ['New residual = old residual − ',part(indexed('h',1)),'; the prediction ',part(indexed('F',1)),' stays fixed.'];
+      }
+      if(p<2)return ['Residuals now use ',part(indexed('F',round-1)),`. Next, separate them at ${fmt(r.threshold)} km.`];
+      if(p<3)return ['Within each leaf, average the residuals to obtain ',part(indexed('h',round)),'.'];
+      const cases=`<mrow><mo stretchy="true">{</mo><mtable columnalign="left" columnspacing=".6em" rowspacing=".2em"><mtr><mtd>${N.number(signed(r.left))}</mtd><mtd><mtext>if</mtext><mspace width=".3em"/>${N.variable('x')}${N.operator('≤')}${N.number(fmt(r.threshold))}</mtd></mtr><mtr><mtd>${N.number(signed(r.right))}</mtd><mtd><mtext>if</mtext><mspace width=".3em"/>${N.variable('x')}${N.operator('>')}${N.number(fmt(r.threshold))}</mtd></mtr></mtable></mrow>`;
+      return [part(`${indexed('h',round)}${N.operator('=')}${cases}`,readout(scene,state))];
+    }
+    if(scene===5){
+      const {round,amount}=continuationState(state.continuation),shownRound=Math.max(3,round),mse=D.mse(D.x.map(x=>D.predict(round,x,amount)));
+      const equation=round===2 || amount===0?[part(indexed('F',shownRound-1)),' · Inspect ',part(indexed('h',shownRound)),', fitted to ',part(`${N.variable('y')}${N.operator('−')}${indexed('F',shownRound-1)}`)]:[part(updateEquation(round,precise(amount)))];
+      return [...equation,' · training MSE = ',part(N.number(mseText(mse)))];
+    }
+    const round=scene===2?1:2,amount=updateAmount(state),mse=D.mse(D.x.map(x=>D.predict(round,x,amount)));
+    return [part(updateEquation(round,fmt(amount))),' · training MSE = ',part(N.number(fmt(mse))),scene===4 && p>=3?' (was 3.75)':''];
   }
   function render(scene,state={},compact=false) {
     const W=compact?420:780,H=compact?378:550;
@@ -318,5 +344,5 @@
     }
     return wrap(out);
   }
-  return {render,readout,topics,captions,processLabels,processMax,continuationState,continuationProgress};
+  return {render,readout,readoutParts,topics,captions,processLabels,processMax,continuationState,continuationProgress};
 });

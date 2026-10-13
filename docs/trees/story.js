@@ -1,10 +1,13 @@
 (function (root, factory) {
   'use strict';
-  const api = factory(root.DeliveryView || (typeof require === 'function' ? require('./delivery-view.js') : null), root.DeliveryExample || (typeof require === 'function' ? require('./delivery.js') : null), root.GrowthView || (typeof require === 'function' ? require('./growth-view.js') : null));
+  const api = factory(root.DeliveryView || (typeof require === 'function' ? require('./delivery-view.js') : null), root.DeliveryExample || (typeof require === 'function' ? require('./delivery.js') : null), root.GrowthView || (typeof require === 'function' ? require('./growth-view.js') : null), root.SvgMath || (typeof require === 'function' ? require('../shared/svg-math.js') : null));
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root.document) api.init(root.document, root);
-})(typeof window !== 'undefined' ? window : globalThis, function (D, B, G) {
+})(typeof window !== 'undefined' ? window : globalThis, function (D, B, G, T) {
   'use strict';
+  const N=T.notation,indexed=(name,index)=>N.subscript(N.variable(name),N.number(index));
+  const fitEquation=round=>`${indexed('h',round)}${N.operator('←')}${N.apply('fit',`${N.variable('y')}${N.operator('−')}${indexed('F',round-1)}`,true)}`;
+  const addEquation=round=>`${indexed('F',round)}${N.operator('=')}${indexed('F',round-1)}${N.operator('+')}${indexed('h',round)}`;
   const sceneHeadings = [
     'Predict delivery time', 'Fit a tree to the residuals', 'Add the first correction',
     'Fit the new residuals', 'Add the second correction', 'Keep fitting the residuals'
@@ -42,6 +45,15 @@
   function readout(scene, state = {}) {
     return scene < 6 ? D.readout(scene, state) : scene === 6 ? G.transitionReadout() : G.readout(scene-7,state);
   }
+  function equationParts(scene,state,presentation){
+    if(!presentation.equation)return [''];
+    if(scene>=7)return presentation.equationParts || [presentation.equation];
+    if(scene===0)return [N.part(`${N.apply(indexed('F',0),N.variable('x'))}${N.operator('=')}${N.bar(N.variable('y'))}${N.operator('=')}${N.number(12)}`)];
+    if(scene===1 || scene===3)return [N.part(fitEquation(scene===1?1:2))];
+    if(scene===2 || scene===4)return [N.part(addEquation(scene===2?1:2))];
+    const current=D.continuationState(state.continuation),round=Math.max(3,current.round);
+    return [N.part(current.round===2 || current.amount===0?fitEquation(round):addEquation(round))];
+  }
 
   function init(doc,win) {
     const get=id=>doc.getElementById(id);
@@ -60,7 +72,7 @@
       const presentation=scenePresentation(scene,state);
       get('visual-heading').hidden=false;
       get('visual-heading').textContent=presentation.heading;
-      get('stage-equation').textContent=presentation.equation;
+      N.setParts(get('stage-equation'),equationParts(scene,state,presentation),presentation.equation);
       get('stage-equation').hidden=scene===6;
       get('stage-count').textContent=`${String(scene+1).padStart(2,'0')} / ${String(steps.length).padStart(2,'0')}`;
       get('stage-caption').textContent=presentation.takeaway;
@@ -90,7 +102,8 @@
       if(processScene){
         const maximum=D.processMax(scene),labels=D.processLabels(scene), stage=Math.min(maximum,Math.ceil(state.process));
         const label=`${stage} / ${maximum} · ${labels[stage]}`;
-        if(get('process-label').textContent!==label)get('process-label').textContent=label;
+        if(scene===0 && stage===1)N.setParts(get('process-label'),[`${stage} / ${maximum} · `,...equationParts(0,{process:1},scenePresentation(0,{process:1}))],label);
+        else if(get('process-label').textContent!==label){get('process-label').textContent=label;get('process-label').removeAttribute?.('aria-label');}
         get('process-progress').value=state.process;
         get('process-progress').max=maximum;
         get('process-progress').setAttribute('aria-valuetext',labels[stage]);
@@ -103,9 +116,10 @@
         const index=state.candidateIndex===null?winner:state.candidateIndex,row=candidates[index];
         get('candidate-cut').value=index;
         get('candidate-value').textContent=`${fmt(row.threshold)} km`;
-        get('candidate-description').textContent=`Leaf means: ${fmt(row.left)}, ${fmt(row.right)} min. Residual SSE: ${fmt(row.sse)} min². ${index===winner?'Lowest among the seven candidate splits.':`Best split: ${fmt(candidates[winner].threshold)} km, SSE ${fmt(candidates[winner].sse)} min².`}`;
+        const candidateDescription=`Leaf means: ${fmt(row.left)}, ${fmt(row.right)} min. Residual SSE: ${fmt(row.sse)} min². ${index===winner?'Lowest among the seven candidate splits.':`Best split: ${fmt(candidates[winner].threshold)} km, SSE ${fmt(candidates[winner].sse)} min².`}`;
+        N.setParts(get('candidate-description'),N.replaceParts(candidateDescription,[['min²',N.power('<mtext>min</mtext>',N.number(2))]]),candidateDescription);
       }
-      get('calculation').textContent=readout(scene,state);
+      N.setParts(get('calculation'),scene<6?D.readoutParts(scene,state):[readout(scene,state)],readout(scene,state));
       get('calculation').hidden=scene===6;
       get('previous').disabled=scene===0;
       get('next').disabled=scene===steps.length-1;

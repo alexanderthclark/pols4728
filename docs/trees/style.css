@@ -1,6 +1,6 @@
 @font-face {
   font-family: 'Course Math';
-  src: url('../shapley/fonts/STIXTwoMath-Regular.ttf') format('truetype');
+  src: url('../shared/fonts/latinmodern-math.otf') format('opentype');
   font-display: swap;
 }
 
@@ -185,3 +185,6 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20
   .afterword { padding-top: 36px; }
   footer { font-size: 12px; }
 }
+
+/* Keep mathematical spacing independent of heading and control typography. */
+math{font-size:1em;letter-spacing:normal;font-weight:400}

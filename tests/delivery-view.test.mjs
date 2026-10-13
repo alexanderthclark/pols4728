@@ -1,3 +1,4 @@
+import { svgMathText } from './svg-math-text.mjs';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import test from 'node:test';
@@ -7,6 +8,7 @@ const model = require('../docs/trees/delivery.js');
 const view = require('../docs/trees/delivery-view.js');
 const story = require('../docs/trees/story.js');
 const growth = require('../docs/trees/growth-view.js');
+const notation = require('../docs/shared/svg-math.js').notation;
 const attributes = tag => Object.fromEntries(Array.from(tag.matchAll(/([\w-]+)="([^"]*)"/g), match => [match[1], match[2]]));
 const groups = svg => Array.from(svg.matchAll(/<g\b([^>]*)>([\s\S]*?)<\/g>/g), match => ({ ...attributes(match[1]), contents: match[2] }));
 const numbers = value => value === '' ? [] : value.split(',').map(Number);
@@ -15,6 +17,20 @@ const curve = (svg, name) => {
   assert.ok(group, `Missing ${name} curve`);
   return { values: numbers(group['data-values']), cuts: numbers(group['data-cuts']) };
 };
+
+test('delivery calculations use native equations, accents, scripts, and piecewise corrections', () => {
+  const initial = notation.parts(view.readoutParts(0));
+  assert.match(initial, /<msub><mi>F<\/mi><mrow><mn>0<\/mn>/);
+  assert.match(initial, /<mover accent="true"><mi>y<\/mi>/);
+  const leaves = notation.parts(view.readoutParts(1, { process: 3 }));
+  assert.match(leaves, /<mtable[^>]*columnalign="left"/);
+  assert.match(leaves, /<mn>−3<\/mn>.*<mi>x<\/mi><mo>≤<\/mo><mn>8<\/mn>/);
+  assert.match(leaves, /<mn>\+5<\/mn>.*<mi>x<\/mi><mo>&gt;<\/mo><mn>8<\/mn>/);
+  const continuation = notation.parts(view.readoutParts(5, { continuation: 1 }));
+  assert.match(continuation, /<msub><mi>F<\/mi><mrow><mn>8<\/mn>/);
+  assert.match(continuation, /training MSE = <math/);
+  assert.doesNotMatch([initial, leaves, continuation].join('').replace(/aria-label="[^"]*"/g, ''), /[₀₁₂₃₄₅₆₇₈₉]/);
+});
 
 test('the residual fitting and update scenes keep fixed axes and aligned observation distances', () => {
   for (const compact of [false, true]) {
@@ -137,10 +153,10 @@ test('all ten integrated scenes render and route to the correct numerical sequen
       const expected = scene < 6 ? view.render(scene, state, compact) : scene === 6 ? growth.renderTransition(compact) : growth.render(scene - 7, state, compact);
       assert.equal(svg, expected);
       assert.equal(story.readout(scene, state), scene < 6 ? view.readout(scene, state) : scene === 6 ? growth.transitionReadout() : growth.readout(scene - 7, state));
-      assert.doesNotMatch(svg, /NaN|Infinity|undefined/);
+      assert.doesNotMatch(svgMathText(svg), /NaN|Infinity|undefined/);
       if (scene !== 6) {
-        assert.match(svg, /<title\b[^>]*>[^<]+<\/title>/);
-        assert.match(svg, /<desc\b[^>]*>[^<]+<\/desc>/);
+        assert.match(svgMathText(svg), /<title\b[^>]*>[^<]+<\/title>/);
+        assert.match(svgMathText(svg), /<desc\b[^>]*>[^<]+<\/desc>/);
       }
       for (const [, value] of svg.matchAll(/\s(?:x|y|x1|y1|x2|y2|cx|cy|width|height|r)="([^"]+)"/g)) {
         assert.ok(Number.isFinite(Number(value)), `Scene ${scene} contains invalid geometry: ${value}`);
@@ -185,7 +201,7 @@ test('continuation keeps observed outcomes above residuals on the original scale
       const { round, amount } = view.continuationState(continuation);
       const predictions = model.x.map(x => model.predict(round, x, amount));
       assert.deepEqual(numbers(residuals['data-values']), model.rounds[Math.max(3, round)-1].residual);
-      assert.doesNotMatch(svg, /data-residual-reference|data-residual-stems/);
+      assert.doesNotMatch(svgMathText(svg), /data-residual-reference|data-residual-stems/);
       assert.deepEqual(curve(svg, 'reference'), { values: [6, 10, 18], cuts: [3.5, 8] });
       const current = curve(svg, 'prediction');
       assert.deepEqual(current.cuts, [3.5, 8]);
@@ -198,7 +214,7 @@ test('third update repairs the overshoot and later displayed MSE remains strictl
   const third = curve(view.render(5, { continuation: .45 }), 'prediction');
   third.values.forEach((value, i) => assert.ok(Math.abs(value - [6.6, 10.6, 17][i]) < 1e-12));
   assert.match(view.readout(5, { continuation: .45 }), /training MSE = 0\.15$/);
-  assert.match(view.render(5, { continuation: .45 }), /h₃: \+0\.6 at x ≤ 8; −1 at x &gt; 8/);
+  assert.match(svgMathText(view.render(5, { continuation: .45 })), /h₃: \+0\.6 at x ≤ 8; −1 at x &gt; 8/);
   assert.match(view.readout(5), /training MSE = 0\.000048$/);
   let lastMSE = Infinity;
   for (let tick = 0; tick <= 100; tick++) {
@@ -255,7 +271,7 @@ test('the opening reveals the mean on a single observed-outcome plot without res
       const panels = groups(svg);
       assert.equal(panels.filter(group => group['data-axis']).length, 1);
       assert.equal(panels.find(group => group['data-axis'])['data-axis'], 'Time (min)');
-      assert.doesNotMatch(svg, /data-points="residuals"|data-axis="Residual|MSE/);
+      assert.doesNotMatch(svgMathText(svg), /data-points="residuals"|data-axis="Residual|MSE/);
       assert.deepEqual(numbers(panels.find(group => group['data-points'] === 'observations')['data-values']), model.y);
       assert.equal(panels.some(group => group['data-curve'] === 'prediction'), process > 0);
       if (process > 0) assert.deepEqual(curve(svg, 'prediction'), { values: [12], cuts: [] });
