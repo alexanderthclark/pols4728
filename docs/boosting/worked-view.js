@@ -1,10 +1,11 @@
 (function (root, factory) {
   'use strict';
   const example = root && root.WorkedBoostingExample || (typeof require === 'function' ? require('./worked-example.js') : null);
-  const api = factory(example);
+  const typography = root && root.SvgMath || (typeof require === 'function' ? require('../shared/svg-math.js') : null);
+  const api = factory(example, typography);
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root) root.WorkedBoostingView = api;
-})(typeof window !== 'undefined' ? window : globalThis, function (E) {
+})(typeof window !== 'undefined' ? window : globalThis, function (E, T) {
   'use strict';
   if (!E) throw new Error('Load WorkedBoostingExample before WorkedBoostingView.');
 
@@ -29,13 +30,41 @@
   const intermediate = value => Math.abs(value) < 1e-10 ? '0' : String(Number(value.toFixed(3))).replace('-', '−');
   const concise = value => value === 0 ? '0' : String(Number(value.toPrecision(4))).replace('-', '−');
   const predictionFormat = q => q.repeat && q.round > 2 ? concise : q.updating && q.progress > 0 && q.progress < 1 ? intermediate : fmt;
-  const text = (x, y, value, attributes = '') => `<text x="${x}" y="${y}" ${attributes}>${esc(value)}</text>`;
+  const text = (x, y, value, attributes = '') => `<text x="${x}" y="${y}" ${attributes}>${T.svg(value)}</text>`;
   const line = (x1, y1, x2, y2, color, width = 1, attributes = '') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" ${attributes}/>`;
   const circle = (x, y, color, attributes = '', radius = 4) => `<circle cx="${x}" cy="${y}" r="${radius}" fill="${color}" stroke="white" stroke-width="1.2" ${attributes}/>`;
   const cutText = value => String(value).replace('-', '−');
   const rateOf = state => state.rate === .5 ? .5 : 1;
   const progressOf = state => Number.isFinite(state.process) ? clamp(state.process) : 1;
   const roundOf = state => Number.isFinite(state.round) ? Math.max(0, Math.min(24, Math.round(state.round))) : 8;
+
+
+  // Native MathML keeps the numerical display and the lesson's notation in the
+  // same mathematical typeface, with real fractions, indices, and operators.
+  const mId = value => `<mi>${esc(value)}</mi>`;
+  const mOp = value => `<mo>${esc(value)}</mo>`;
+  const mRow = value => `<mrow>${value}</mrow>`;
+  const mNum = (value, formatter = fmt) => {
+    const label = typeof value === 'number' ? formatter(value) : String(value);
+    const fraction = /^(−|-)?(\d+)\/(\d+)$/.exec(label);
+    if (fraction) return `${fraction[1] ? mOp('−') : ''}<mfrac><mn>${fraction[2]}</mn><mn>${fraction[3]}</mn></mfrac>`;
+    const scientific = /^(−|-)?(\d+(?:\.\d+)?)e([+−-]?\d+)$/.exec(label);
+    if (scientific) return `${scientific[1] ? mOp('−') : ''}<mn>${scientific[2]}</mn>${mOp('×')}<msup><mn>10</mn>${mRow(`${scientific[3].startsWith('-') || scientific[3].startsWith('−') ? mOp('−') : ''}<mn>${scientific[3].replace(/^[+−-]/, '')}</mn>`)}</msup>`;
+    return `${label.startsWith('-') || label.startsWith('−') ? mOp('−') : ''}<mn>${esc(label.replace(/^[−-]/, ''))}</mn>`;
+  };
+  const mIndex = (name, index) => `<msub>${mId(name)}${mRow(index)}</msub>`;
+  const mPower = (base, exponent) => `<msup>${mRow(base)}${mNum(exponent)}</msup>`;
+  const mFence = (value, opening = '(', closing = ')') => mRow(`<mo stretchy="false" lspace="0em" rspace="0em">${esc(opening)}</mo>${value}<mo stretchy="false" lspace="0em" rspace="0em">${esc(closing)}</mo>`);
+  const mFraction = (numerator, denominator) => `<mfrac>${mRow(numerator)}${mRow(denominator)}</mfrac>`;
+  const mCall = (name, argument) => mRow(name + mFence(argument));
+  const mSum = (lower = '', upper = '') => lower ? `<${upper ? 'munderover' : 'munder'}><mo movablelimits="true">∑</mo>${mRow(lower)}${upper ? mRow(upper) : ''}</${upper ? 'munderover' : 'munder'}>` : '<mo movablelimits="true">∑</mo>';
+  const mDerivative = (loss, coordinate) => mFraction(mOp('∂') + loss, mOp('∂') + coordinate);
+  const mMath = (value, block = false) => `<math${block ? ' display="block"' : ''}>${value}</math>`;
+  const mRound = (name, round) => mIndex(name, mNum(round));
+  const mI = name => mIndex(name, mId('i'));
+  const mAt = (name, index) => mIndex(name, index);
+  const mEquation = value => `<p class="worked-equation">${mMath(value, true)}</p>`;
+  const N = T.notation;
 
   function situation(scene, state) {
     const repeat = scene === 6;
@@ -73,8 +102,29 @@
     ];
   }
 
+
+  function readoutNotation(scene, state = {}) {
+    const q = situation(scene, state);
+    const loss = mNum(.5) + mSum(mId('i')) + mPower(mFence(mI('y') + mOp('−') + mI('z')), 2);
+    return readout(scene, state).map(([name, value]) => {
+      const nameParts = N.replaceParts(name, [
+        ['½Σ(yᵢ − zᵢ)²', loss],
+        ['∇L(z)', mOp('∇') + mCall(mId('L'), mId('z'))],
+        [`F${sub(q.round)}`, mRound('F', q.round)],
+        [`F${sub(q.round - 1)}`, mRound('F', q.round - 1)],
+        ['F₀', mRound('F', 0)], ['α', mId('α')]
+      ]);
+      let body;
+      if (value.startsWith('(') && value.endsWith(')')) body = mFence(value.slice(1, -1).split(',').map(item => mNum(item.trim())).join(mOp(',')));
+      else if (value.startsWith('x = ')) body = mId('x') + mOp('=') + mNum(value.slice(4));
+      else if (value.includes(' → ')) body = value.split(' → ').map(item => mNum(item)).join(mOp('→'));
+      else body = mNum(value);
+      return { nameParts, valueParts: [N.part(body, value)] };
+    });
+  }
+
   function presentation(scene, state = {}) {
-    if (scene === 7) return { topic: topics[scene], caption: captions[scene], readout: [] };
+    if (scene === 7) return { topic: topics[scene], caption: captions[scene], captionParts: [captions[scene]], readout: [] };
     const q = situation(scene, state);
     let caption = captions[scene];
     if (scene === 3 && q.rate === 1 && q.progress === 1) caption = 'The error at x = 2 grows from 0 to 1, while total half-squared loss falls from 7 to 1.';
@@ -83,7 +133,20 @@
     if (scene === 4 && q.rate === .5 && !q.candidate) caption = 'With α = 1/2, cuts 1.5 and 3.5 tie. The first cut, 1.5, is selected.';
     if (scene === 6) caption = `${q.round} ${q.round === 1 ? 'tree' : 'trees'} at α = ${fmt(q.rate)}. Each new tree is refitted to the current negative gradient y − F.`;
     if (q.rate === .5 && scene >= 2 && scene <= 5) caption += ' The prose numbers use α = 1.';
-    return { topic: topics[scene], caption, readout: readout(scene, state) };
+    const replacements = [
+      ['yᵢ − zᵢ', mI('y') + mOp('−') + mI('z')],
+      ['zᵢ', mI('z')],
+      ['y − F₁', mId('y') + mOp('−') + mRound('F', 1)],
+      ['y − F', mId('y') + mOp('−') + mId('F')],
+      ['x = 2', mId('x') + mOp('=') + mNum(2)],
+      ['x = 4', mId('x') + mOp('=') + mNum(4)],
+      [`α = ${fmt(q.rate)}`, mId('α') + mOp('=') + mNum(q.rate)],
+      ['α = 1/2', mId('α') + mOp('=') + mNum(.5)],
+      ['α = 1', mId('α') + mOp('=') + mNum(1)],
+      ['−1/3', mNum('−1/3')], ['1/3', mNum('1/3')],
+      ['y', mId('y')]
+    ];
+    return { topic: topics[scene], caption, captionParts: N.replaceParts(caption, replacements), readout: readout(scene, state) };
   }
 
   const scopedStyle = `<style>
@@ -204,51 +267,68 @@
   }
 
   function gradientTable(q, compact) {
-    const header = compact ? '<th scope="col">i</th><th scope="col">zᵢ</th><th scope="col">yᵢ</th><th scope="col">gᵢ</th><th scope="col">rᵢ</th>' : '<th scope="col">i</th><th scope="col">zᵢ = F₀(xᵢ)</th><th scope="col">yᵢ</th><th scope="col">gᵢ = zᵢ − yᵢ</th><th scope="col">rᵢ = −gᵢ</th>';
-    return '<table class="worked-table worked-gradient"><caption>One derivative for each prediction coordinate</caption><thead><tr>' + header + '</tr></thead><tbody>' + E.x.map((_, i) => `<tr><th scope="row">${i + 1}</th><td>${fmt(E.baseline)}</td><td>${fmt(E.y[i])}</td><td>${fmt(q.states[0].gradient[i])}</td><td>${fmt(q.states[0].residual[i])}</td></tr>`).join('') + '</tbody></table>';
+    const expressions = compact
+      ? [mId('i'), mI('z'), mI('y'), mI('g'), mI('r')]
+      : [mId('i'), mI('z') + mOp('=') + mCall(mRound('F', 0), mI('x')), mI('y'), mI('g') + mOp('=') + mI('z') + mOp('−') + mI('y'), mI('r') + mOp('=') + mOp('−') + mI('g')];
+    const header = expressions.map(expression => `<th scope="col">${mMath(expression)}</th>`).join('');
+    return '<table class="worked-table worked-gradient"><caption>One derivative for each prediction coordinate</caption><thead><tr>' + header + '</tr></thead><tbody>' + E.x.map((_, i) => `<tr><th scope="row">${i + 1}</th>${[E.baseline, E.y[i], q.states[0].gradient[i], q.states[0].residual[i]].map(value => `<td>${mMath(mNum(value))}</td>`).join('')}</tr>`).join('') + '</tbody></table>';
   }
 
   function candidateTable(q, compact) {
-    const headers = compact ? ['Cut x','Left','Right','SSE'] : ['Cut x','Left mean','Right mean','Residual SSE'];
-    return '<table class="worked-table worked-candidates"><caption>Residual SSE = Σ(rᵢ − h(xᵢ))²; * = minimum</caption><thead><tr>' + headers.map(value => `<th scope="col">${value}</th>`).join('') + '</tr></thead><tbody>' + q.current.candidates.map((candidate, index) => {
+    const headers = compact ? [`Cut ${mMath(mId('x'))}`,'Left','Right','SSE'] : [`Cut ${mMath(mId('x'))}`,'Left mean','Right mean','Residual SSE'];
+    const sse = '<mi mathvariant="normal">SSE</mi>' + mOp('=') + mSum() + mPower(mFence(mI('r') + mOp('−') + mCall(mId('h'), mI('x'))), 2);
+    return '<table class="worked-table worked-candidates"><caption>Residual ' + mMath(sse) + '; * = minimum</caption><thead><tr>' + headers.map(value => `<th scope="col">${value}</th>`).join('') + '</tr></thead><tbody>' + q.current.candidates.map((candidate, index) => {
       const best = Math.abs(candidate.sse - q.current.tree.sse) < 1e-9;
       const selected = q.chosen === candidate || (!q.candidate && candidate.threshold === q.current.tree.threshold);
-      return `<tr class="${best ? 'worked-best' : ''}${selected ? ' worked-selected' : ''}" data-candidate="${index}" data-candidate-sse="${candidate.sse}"${selected ? ' aria-current="true"' : ''}><th scope="row">${cutText(candidate.threshold)}${best ? ' *' : ''}</th><td>${fmt(candidate.left)}</td><td>${fmt(candidate.right)}</td><td>${fmt(candidate.sse)}</td></tr>`;
+      return `<tr class="${best ? 'worked-best' : ''}${selected ? ' worked-selected' : ''}" data-candidate="${index}" data-candidate-sse="${candidate.sse}"${selected ? ' aria-current="true"' : ''}><th scope="row">${mMath(mNum(cutText(candidate.threshold)))}${best ? ' *' : ''}</th>${[candidate.left, candidate.right, candidate.sse].map(value => `<td>${mMath(mNum(value))}</td>`).join('')}</tr>`;
     }).join('') + '</tbody></table>';
   }
 
   function leafCalculation(q) {
     return '<div class="worked-leaves" aria-label="Leaf means">' + [true, false].map(left => {
       const values = q.before.residual.filter((_, i) => (E.x[i] <= q.chosen.threshold) === left);
-      const numerator = values.map(fmt).join(' + ').replace(/\+ −/g, '− ');
+      const numerator = values.map((value, index) => index ? mOp(value < 0 ? '−' : '+') + mNum(Math.abs(value)) : mNum(value)).join('');
       const mean = left ? q.chosen.left : q.chosen.right;
-      const equation = values.length === 1 ? fmt(mean) : `(${numerator}) / ${values.length} = ${fmt(mean)}`;
-      return `<span class="worked-leaf"><small>${left ? 'Left' : 'Right'} leaf: ${values.length} ${values.length === 1 ? 'point' : 'points'}</small><span>${esc(equation)}</span></span>`;
+      const equation = values.length === 1 ? mNum(mean) : mFraction(numerator, mNum(values.length)) + mOp('=') + mNum(mean);
+      return `<span class="worked-leaf"><small>${left ? 'Left' : 'Right'} leaf: ${values.length} ${values.length === 1 ? 'point' : 'points'}</small><span>${mMath(equation)}</span></span>`;
     }).join('') + '</div>';
   }
 
   function valueTable(q, compact) {
     const shownFormat = predictionFormat(q);
     const residual = E.y.map((value, i) => value - q.prediction[i]);
-    return `<table class="worked-table worked-values"><thead><tr><th scope="col">Input x</th>${E.x.map(value => `<th scope="col">${fmt(value)}</th>`).join('')}</tr></thead><tbody>${compact ? '' : `<tr><th scope="row">Fixed y</th>${E.y.map(value => `<td>${fmt(value)}</td>`).join('')}</tr>`}<tr class="worked-predictions"><th scope="row">F${sub(q.round)}</th>${q.prediction.map(value => `<td>${shownFormat(value)}</td>`).join('')}</tr><tr><th scope="row">y − F${sub(q.round)}</th>${residual.map(value => `<td>${shownFormat(value)}</td>`).join('')}</tr></tbody></table>`;
+    return `<table class="worked-table worked-values"><thead><tr><th scope="col">Input ${mMath(mId('x'))}</th>${E.x.map(value => `<th scope="col">${mMath(mNum(value))}</th>`).join('')}</tr></thead><tbody>${compact ? '' : `<tr><th scope="row">Fixed ${mMath(mId('y'))}</th>${E.y.map(value => `<td>${mMath(mNum(value))}</td>`).join('')}</tr>`}<tr class="worked-predictions"><th scope="row">${mMath(mRound('F', q.round))}</th>${q.prediction.map(value => `<td>${mMath(mNum(value, shownFormat))}</td>`).join('')}</tr><tr><th scope="row">${mMath(mId('y') + mOp('−') + mRound('F', q.round))}</th>${residual.map(value => `<td>${mMath(mNum(value, shownFormat))}</td>`).join('')}</tr></tbody></table>`;
   }
 
   function render(scene, state = {}, compact = false) {
     if (!Number.isInteger(scene) || scene < 0 || scene > 7) throw new RangeError('Worked scene must be an integer from 0 to 7.');
-    if (scene === 7) return scopedStyle + `<div class="worked-view${compact ? ' compact' : ''}" data-worked-scene="7"><ol class="worked-loop" aria-label="Gradient boosting at round m"><li><strong>Predict</strong><span class="loop-math">zᵢ = Fₘ₋₁(xᵢ)</span></li><li><strong>Differentiate the loss</strong><span class="loop-math">rₘᵢ = −∂ℓ(yᵢ, z) / ∂z | z = zᵢ</span></li><li><strong>Fit a tree to these targets</strong><span class="loop-detail">A squared-error fit to rₘᵢ defines the leaves Rₘⱼ.</span></li><li><strong>Choose leaf corrections and add</strong><span class="loop-math">cₘⱼ = arg min<sub>c</sub> Σ<sub>xᵢ∈Rₘⱼ</sub> ℓ(yᵢ, zᵢ + c)</span><span class="loop-math">hₘ(x) = Σⱼ cₘⱼ 1{x∈Rₘⱼ}</span><span class="loop-math">Fₘ = Fₘ₋₁ + α hₘ, &nbsp; 0 &lt; α ≤ 1</span></li><li><strong>Recompute and repeat</strong><span class="loop-detail">Use Fₘ to calculate the next negative gradients.</span></li></ol><p class="worked-note">For squared error, cₘⱼ is the leaf’s mean residual. Other losses can require different corrections. When no finite minimizer exists, constrain the correction to a finite closed interval or use a suitable penalty.</p></div>`;
+    if (scene === 7) {
+      const m = mId('m'), j = mId('j'), previous = m + mOp('−') + mNum(1), mi = m + mId('i'), mj = m + j;
+      const loss = mCall(mId('ℓ'), mI('y') + mOp(',') + mId('z'));
+      const leafLoss = mCall(mId('ℓ'), mI('y') + mOp(',') + mI('z') + mOp('+') + mId('c'));
+      const argmin = `<munder><mo movablelimits="true">arg min</mo>${mId('c')}</munder>`;
+      const region = mI('x') + mOp('∈') + mAt('R', mj);
+      const correction = mAt('c', mj) + mOp('=') + argmin + mSum(region) + leafLoss;
+      const tree = mCall(mAt('h', m), mId('x')) + mOp('=') + mSum(j) + mAt('c', mj) + mNum(1) + mFence(mId('x') + mOp('∈') + mAt('R', mj), '{', '}');
+      const evaluatedDerivative = `<msub>${mRow(mDerivative(loss, mId('z')) + '<mo stretchy="true" lspace="0.1em" rspace="0em">|</mo>')}${mRow(mId('z') + mOp('=') + mI('z'))}</msub>`;
+      const gradient = mAt('r', mi) + mOp('=') + mOp('−') + evaluatedDerivative;
+      return scopedStyle + `<div class="worked-view${compact ? ' compact' : ''}" data-worked-scene="7"><ol class="worked-loop" aria-label="Gradient boosting at round m"><li><strong>Predict</strong><span class="loop-math">${mMath(mI('z') + mOp('=') + mCall(mAt('F', previous), mI('x')))}</span></li><li><strong>Differentiate the loss</strong><span class="loop-math">${mMath(gradient)}</span></li><li><strong>Fit a tree to these targets</strong><span class="loop-detail">A squared-error fit to ${mMath(mAt('r', mi))} defines the leaves ${mMath(mAt('R', mj))}.</span></li><li><strong>Choose leaf corrections and add</strong><span class="loop-math">${mMath(correction)}</span><span class="loop-math">${mMath(tree)}</span><span class="loop-math">${mMath(mAt('F', m) + mOp('=') + mAt('F', previous) + mOp('+') + mId('α') + mAt('h', m))}, &nbsp; ${mMath(mNum(0) + mOp('<') + mId('α') + mOp('≤') + mNum(1))}</span></li><li><strong>Recompute and repeat</strong><span class="loop-detail">Use ${mMath(mAt('F', m))} to calculate the next negative gradients.</span></li></ol><p class="worked-note">For squared error, ${mMath(mAt('c', mj))} is the leaf’s mean residual. Other losses can require different corrections. When no finite minimizer exists, constrain the correction to a finite closed interval or use a suitable penalty.</p></div>`;
+    }
     const q = situation(scene, state);
     let body;
     if (scene === 1) {
-      body = '<p class="worked-equation">L(z) = ½ Σ(yᵢ − zᵢ)²</p><p class="worked-equation">gᵢ = ∂L / ∂zᵢ = zᵢ − yᵢ</p>' + gradientTable(q, compact) + '<p class="worked-note">zᵢ = F₀(xᵢ); rᵢ = −gᵢ. Differentiate the predictions z, with x fixed.</p>';
+      const loss = mCall(mId('L'), mId('z')) + mOp('=') + mNum(.5) + mSum() + mPower(mFence(mI('y') + mOp('−') + mI('z')), 2);
+      const derivative = mI('g') + mOp('=') + mDerivative(mId('L'), mI('z')) + mOp('=') + mI('z') + mOp('−') + mI('y');
+      body = mEquation(loss) + mEquation(derivative) + gradientTable(q, compact) + `<p class="worked-note">${mMath(mI('z') + mOp('=') + mCall(mRound('F', 0), mI('x')))}; ${mMath(mI('r') + mOp('=') + mOp('−') + mI('g'))}. Differentiate the predictions ${mMath(mId('z'))}, with ${mMath(mId('x'))} fixed.</p>`;
     } else {
       body = plot(scene, q, compact, state);
-      if (scene === 0) body += '<p class="worked-equation">F₀(x) = (0 + 2 + 1 + 5) / 4 = 2</p>';
-      else if (scene === 6) body += `<p class="worked-equation">F${sub(q.round)}(x) = 2 + α Σ<sub>m=1</sub><sup>${q.round}</sup> hₘ(x)</p>`;
+      if (scene === 0) body += mEquation(mCall(mRound('F', 0), mId('x')) + mOp('=') + mFraction([0, 2, 1, 5].map(value => mNum(value)).join(mOp('+')), mNum(4)) + mOp('=') + mNum(2));
+      else if (scene === 6) body += mEquation(mCall(mRound('F', q.round), mId('x')) + mOp('=') + mNum(2) + mOp('+') + mId('α') + mSum(mId('m') + mOp('=') + mNum(1), mNum(q.round)) + mCall(mAt('h', mId('m')), mId('x')));
       else if (q.fitting) body += leafCalculation(q) + candidateTable(q, compact);
-      else body += `<p class="worked-equation">F${sub(q.round)} = F${sub(q.round - 1)} + ${predictionFormat(q)(q.rate * q.progress)} h${sub(q.round)}</p>` + valueTable(q, compact);
+      else body += mEquation(mRound('F', q.round) + mOp('=') + mRound('F', q.round - 1) + mOp('+') + mNum(predictionFormat(q)(q.rate * q.progress)) + mRound('h', q.round)) + valueTable(q, compact);
     }
     return scopedStyle + `<div class="worked-view${compact ? ' compact' : ''}" data-worked-scene="${scene}" data-rate="${q.rate}">${body}</div>`;
   }
 
-  return { render, readout, presentation, topics, captions };
+  return { render, readout, readoutNotation, presentation, topics, captions };
 });

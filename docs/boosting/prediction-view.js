@@ -1,10 +1,11 @@
 (function (root, factory) {
   'use strict';
   const math = root && root.BoostingMath || (typeof require === 'function' ? require('../shared/boosting-math.js') : null);
-  const api = factory(math);
+  const typography = root && root.SvgMath || (typeof require === 'function' ? require('../shared/svg-math.js') : null);
+  const api = factory(math, typography);
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root) root.PredictionBoostingView = api;
-})(typeof window !== 'undefined' ? window : globalThis, function (M) {
+})(typeof window !== 'undefined' ? window : globalThis, function (M, T) {
   'use strict';
   if (!M) throw new Error('Load BoostingMath before PredictionBoostingView.');
 
@@ -21,6 +22,9 @@
   const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
   const number = (value, fallback) => Number.isFinite(value) ? value : fallback;
   const sub = value => String(value).replace(/\d/g, digit => '₀₁₂₃₄₅₆₇₈₉'[digit]);
+  const N=T.notation,indexed=(name,index)=>N.subscript(N.variable(name),N.number(index));
+  const prime=()=>N.power(N.variable('F'),N.operator('′'));
+  const labelMarkup=q=>q.scene===0?indexed('F',q.round):q.scene===1 && q.progress===1?indexed('F',q.round+1):prime();
   const predictionLabel = q => q.scene === 0 ? `F${sub(q.round)}` : q.scene === 1 && q.progress === 1 ? `F${sub(q.round + 1)}` : 'F′';
 
   // A deterministic plane through F and y. Its orthonormal basis preserves
@@ -81,6 +85,18 @@
       [scene === 1 ? 'Loss before → after; residual norm' : scene === 2 ? 'Trial norm; trial loss' : 'Residual norm; loss ½‖r‖²', scene === 1 ? `${fmt(q.beforeLoss)} → ${fmt(q.loss)}; ${fmt(q.norm)}` : `${fmt(q.norm)}; ${fmt(q.loss)}`, C.ink]
     ];
   }
+  function readoutNotation(scene,state={}){
+    const q=resolve(scene,state);
+    const replacements=[
+      ['∇L(F) = F − y',`${N.operator('∇')}${N.apply(N.variable('L'),N.variable('F'))}${N.operator('=')}${N.variable('F')}${N.operator('−')}${N.variable('y')}`],
+      ['½‖r‖²',`${N.fraction(N.number(1),N.number(2))}${N.power(N.norm(N.variable('r')),N.number(2))}`],
+      [predictionLabel(q),labelMarkup(q)],[`F${sub(q.round)}`,indexed('F',q.round)],['F′',prime()],['y',N.variable('y')]
+    ];
+    return readout(scene,state).map(([name,value])=>{
+      const body=value.startsWith('(') && value.endsWith(')')?N.tuple(value.slice(1,-1).split(',').map(item=>item.trim())):value.split('; ').map(item=>item.split(' → ').map(N.number).join(N.operator('→'))).join(N.operator(';'));
+      return {nameParts:N.replaceParts(name,replacements),valueParts:[N.part(body,value)]};
+    });
+  }
 
   // L(F + Δ) − L(F) = ½R²s(s − 2|cos θ|). Classify the
   // dimensionless geometry so small positive losses retain their true sign.
@@ -112,10 +128,21 @@
         caption = `${q.radius === 0 ? 'The residual is zero.' : q.angle === 90 ? 'Neither orientation offers descent.' : `Use ${q.orientation === -1 ? '−h' : 'h'} (${fmt(q.effectiveAngle)}°).`} ${outcome}: ${fmt(q.beforeLoss)} → ${fmt(q.loss)}. Starting R = ${fmt(q.radius)}.`;
       }
     }
-    return { topic: topics[scene], caption, readout: readout(scene, state) };
+    const replacements=[
+      [`h${sub(q.round+1)} = ${vector(q.tree.values)}`,`${indexed('h',q.round+1)}${N.operator('=')}${N.tuple(q.tree.values.map(fmt))}`],
+      [`${fmt(q.progress)} × αh${sub(q.round+1)}`,`${N.number(fmt(q.progress))}${N.operator('×')}${N.variable('α')}${indexed('h',q.round+1)}`],
+      [`R = ‖y − F‖ = ${fmt(q.radius)}`,`${N.variable('R')}${N.operator('=')}${N.norm(`${N.variable('y')}${N.operator('−')}${N.variable('F')}`)}${N.operator('=')}${N.number(fmt(q.radius))}`],
+      [`L(F) = ${fmt(q.beforeLoss)}`,`${N.apply(N.variable('L'),N.variable('F'))}${N.operator('=')}${N.number(fmt(q.beforeLoss))}`],
+      [`α = ${fmt(q.rate)}`,`${N.variable('α')}${N.operator('=')}${N.number(fmt(q.rate))}`],
+      [`R = ${fmt(q.radius)}`,`${N.variable('R')}${N.operator('=')}${N.number(fmt(q.radius))}`],
+      [`${fmt(q.beforeLoss)} → ${fmt(q.loss)}`,`${N.number(fmt(q.beforeLoss))}${N.operator('→')}${N.number(fmt(q.loss))}`],
+      [`F${sub(q.round)} → ${predictionLabel(q)}`,`${indexed('F',q.round)}${N.operator('→')}${labelMarkup(q)}`],
+      ['y − F',`${N.variable('y')}${N.operator('−')}${N.variable('F')}`],['−h',`${N.operator('−')}${N.variable('h')}`],['h',N.variable('h')],['y',N.variable('y')]
+    ];
+    return { topic: topics[scene], caption, captionParts:N.replaceParts(caption,replacements), readout: readout(scene, state) };
   }
 
-  const text = (p, value, attributes = '') => `<text x="${p[0]}" y="${p[1]}" ${attributes}>${esc(value)}</text>`;
+  const text = (p, value, attributes = '') => `<text x="${p[0]}" y="${p[1]}" ${attributes}>${T.svg(value)}</text>`;
   const line = (a, b, color, width = 1.3, attributes = '') => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${color}" ${attributes.includes('stroke-width=') ? '' : `stroke-width="${width}"`} ${attributes}/>`;
   const dot = (p, color, radius = 4.5, attributes = '') => `<circle cx="${p[0]}" cy="${p[1]}" r="${radius}" fill="${color}" stroke="white" stroke-width="1.5" ${attributes}/>`;
   const diamond = p => `<path class="prediction-target" data-x="${p[0]}" data-y="${p[1]}" d="M${p[0]},${p[1] - 6}l6,6l-6,6l-6,-6Z" fill="${C.rust}" stroke="white" stroke-width="1.5"/>`;
@@ -254,5 +281,5 @@
     return `${styles}<div class="prediction-view${compact ? ' compact' : ''}" ${Object.entries(attributes).map(([key, value]) => `data-${key}="${esc(value)}"`).join(' ')}>${scene === 2 ? plane(q, state, compact) : space(q, state, compact)}</div>`;
   }
 
-  return { render, readout, presentation, topics, resolve, basisForResidual };
+  return { render, readout, readoutNotation, presentation, topics, resolve, basisForResidual };
 });

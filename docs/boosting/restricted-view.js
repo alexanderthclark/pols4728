@@ -1,10 +1,11 @@
 (function (root, factory) {
   'use strict';
   const math = root && root.BoostingMath || (typeof require === 'function' ? require('../shared/boosting-math.js') : null);
-  const api = factory(math);
+  const typography = root && root.SvgMath || (typeof require === 'function' ? require('../shared/svg-math.js') : null);
+  const api = factory(math, typography);
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root) root.RestrictedBoostingView = api;
-})(typeof window !== 'undefined' ? window : globalThis, function (M) {
+})(typeof window !== 'undefined' ? window : globalThis, function (M, T) {
   'use strict';
   if (!M) throw new Error('Load BoostingMath before RestrictedBoostingView.');
 
@@ -30,6 +31,37 @@
   const fmt = value => String(Number(value.toPrecision(4))).replace('-', '−');
   const vector = values => '(' + values.map(fmt).join(', ') + ')';
   const shortVector = values => '(' + values.map(value => String(Number(value.toFixed(2))).replace('-', '−')).join(', ') + ')';
+  const N = T.notation;
+  const variable = N.variable, operator = N.operator;
+  const treeApplication = argument => N.apply(variable('h'), argument);
+  const residualBody = () => `${variable('y')}${operator('−')}${variable('f')}`;
+
+  // These fragments belong to the authored captions and status lines. Keep
+  // their source strings intact for descriptions and numerical comparisons.
+  function mathParts(source) {
+    const numeral = '[+−-]?\\d+(?:\\.\\d+)?(?:e[+−-]?\\d+)?';
+    const tuplePattern = new RegExp(`\\((?:${numeral}|a)(?:,\\s*(?:${numeral}|a))+\\)`, 'g');
+    const tupleBody = tuple => N.row(`${operator('(')}${tuple.slice(1, -1).split(',').map(value => value.trim() === 'a' ? variable('a') : N.number(value.trim())).join(operator(','))}${operator(')')}`);
+    const replacements = [];
+    for (const match of source.matchAll(tuplePattern)) {
+      const tuple = match[0];
+      const body = tupleBody(tuple);
+      replacements.push([`r = y − f = ${tuple}`, `${variable('r')}${operator('=')}${residualBody()}${operator('=')}${body}`]);
+      for (const name of ['f', 'r', 'y', 'h']) replacements.push([`${name} = ${tuple}`, `${variable(name)}${operator('=')}${body}`]);
+      const after = source.slice(match.index + tuple.length);
+      const scalar = new RegExp(`^ = (${numeral})`).exec(after);
+      if (scalar) replacements.push([`${tuple}${scalar[0]}`, `${body}${operator('=')}${N.number(scalar[1])}`]);
+      replacements.push([tuple, body]);
+    }
+    for (const match of source.matchAll(new RegExp(`(x|α|τ|δ|MSE|h\\(1\\)|h\\(x\\)) = (${numeral}|½)`, 'g'))) {
+      const name = match[1], body = name === 'MSE' ? '<mi mathvariant="normal">MSE</mi>' : name === 'h(1)' ? treeApplication(N.number(1)) : name === 'h(x)' ? treeApplication(variable('x')) : variable(name);
+      replacements.push([match[0], `${body}${operator('=')}${match[2] === '½' ? N.fraction(N.number(1), N.number(2)) : N.number(match[2])}`]);
+    }
+    for (const match of source.matchAll(new RegExp(`±(${numeral})`, 'g'))) replacements.push([match[0], `${operator('±')}${N.number(match[1])}`]);
+    replacements.push(['½h(x)', `${N.fraction(N.number(1), N.number(2))}${treeApplication(variable('x'))}`], ['h(x)', treeApplication(variable('x'))], ['r³', N.power(variable('r'), N.number(3))], ['r = y − f', `${variable('r')}${operator('=')}${residualBody()}`], ['y − f', residualBody()]);
+    for (const name of ['y', 'f', 'r', 'x', 'h', 'α', 'τ', 'δ']) replacements.push([name, variable(name)]);
+    return N.replaceParts(source, replacements);
+  }
 
   function specification(state) {
     const key = ['squared', 'expectile', 'huber', 'quartic'].includes(state.loss) ? state.loss : 'expectile';
@@ -271,7 +303,7 @@
         : `Huber clips at ±${fmt(q.lossSpec.delta)}. Gradient mean ${fmt(q.nextTree[0])}; leaf correction ${fmt(q.correction[0])}. Best predictions: (0.5, 0.5).`;
       else if (q.lossSpec.key === 'quartic') caption = `Targets are r³. Gradient mean ${fmt(q.nextTree[0])}; leaf correction ${fmt(q.correction[0])}. Best predictions: (0.5, 0.5).`;
     }
-    return { topic: topics[scene], caption, readout: readout(scene, state) };
+    return { topic: topics[scene], caption, captionParts: mathParts(caption), readout: readout(scene, state) };
   }
 
   function annotation(scene = 0, state = {}) {
@@ -308,7 +340,8 @@
         : q.phase === 'update' ? 'Add half the projection. Recompute targets.'
           : 'Still approaching the optimum.'
       : scene === 10 ? 'At the limit, perpendicular targets have zero projection.' : captions[scene];
-    return { equation: displayedEquation, caption: scene === 11 ? playgroundCaption : processCaption, status };
+    const caption = scene === 11 ? playgroundCaption : processCaption;
+    return { equation: displayedEquation, caption, captionParts: mathParts(caption), status, statusParts: mathParts(status) };
   }
 
   // A radial parameterization of a separable convex loss contour about y.
@@ -331,7 +364,7 @@
     return [target[0] + radius * a, target[1] + radius * b];
   }
 
-  const text = (p, value, attributes = '') => `<text x="${p[0]}" y="${p[1]}" ${attributes}>${esc(value)}</text>`;
+  const text = (p, value, attributes = '') => `<text x="${p[0]}" y="${p[1]}" ${attributes}>${T.svg(value)}</text>`;
   const line = (a, b, color, width = 1.3, attributes = '') => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${color}" stroke-width="${width}" ${attributes}/>`;
   const arrow = (a, b, color, attributes = '') => Math.hypot(b[0] - a[0], b[1] - a[1]) < .25 ? '' : line(a, b, color, 2.3, `marker-end="url(#restricted-arrow-${color.slice(1)})" ${attributes}`);
   const styles = `<style>.restricted-view{width:100%;height:100%;min-width:0;color:${C.ink};font-family:var(--sans,Arial,sans-serif);font-variant-numeric:tabular-nums}.restricted-view svg{display:block;width:100%;height:100%;overflow:visible}.restricted-view text{font-size:13px;fill:${C.ink}}.restricted-view .rv-small{font-size:12px;fill:${C.muted}}.restricted-view .rv-math{font-family:var(--math,'Cambria Math',serif);font-size:16px}.restricted-view .rv-label{paint-order:stroke;stroke:white;stroke-width:4px;stroke-linejoin:round}.restricted-view.compact text{font-size:12px}.restricted-view.compact .rv-small{font-size:11px}.restricted-view.compact .rv-math{font-size:14px}</style>`;

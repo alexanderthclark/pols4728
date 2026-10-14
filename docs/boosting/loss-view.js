@@ -1,10 +1,11 @@
 (function (root, factory) {
   'use strict';
   const example = root && root.LossBoostingExample || (typeof require === 'function' ? require('./loss-example.js') : null);
-  const api = factory(example);
+  const typography = root && root.SvgMath || (typeof require === 'function' ? require('../shared/svg-math.js') : null);
+  const api = factory(example, typography);
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root) root.LossBoostingView = api;
-})(typeof window !== 'undefined' ? window : globalThis, function (E) {
+})(typeof window !== 'undefined' ? window : globalThis, function (E, T) {
   'use strict';
   if (!E) throw new Error('Load LossBoostingExample before LossBoostingView.');
 
@@ -18,6 +19,8 @@
   const fullVector = values => '(' + values.map(full).join(', ') + ')';
   const sub = value => String(value).replace(/\d/g, digit => '₀₁₂₃₄₅₆₇₈₉'[digit]);
   const signed = value => value > 0 ? '+' + fmt(value) : fmt(value);
+  const N=T.notation,indexed=(name,index)=>N.subscript(N.variable(name),typeof index==='number'?N.number(index):N.variable(index));
+  const gradient=()=>`${N.operator('−')}${N.operator('∇')}${N.variable('ℓ')}`;
   const lossName = options => options.loss === 'squared' ? 'Half-squared loss' : options.loss === 'expectile' ? `Expectile loss (τ = ${fmt(options.tau)})` : `Huber loss (δ = ${fmt(options.delta)})`;
   let cachedKey, cachedModel;
 
@@ -61,6 +64,17 @@
       ['Residual path: chosen-loss total', fmt(q.residual.loss), C.rust]
     ];
   }
+  function readoutNotation(scene,state={}){
+    return readout(scene,state).map(([name,value])=>{
+      const nameParts=N.replaceParts(name,[['y − F',`${N.variable('y')}${N.operator('−')}${N.variable('F')}`],['−∇ℓ',gradient()]]);
+      let body;
+      if(value.startsWith('(') && value.endsWith(')'))body=N.tuple(value.slice(1,-1).split(',').map(item=>item.trim()));
+      else if(value.startsWith('x = '))body=`${N.variable('x')}${N.operator('=')}${N.number(value.slice(4))}`;
+      else if(value.includes('; '))body=value.split('; ').map(N.number).join(N.operator(';'));
+      else if(/^[+−-]?\d/.test(value))body=N.number(value);
+      return {nameParts,valueParts:body?[N.part(body,value)]:[value]};
+    });
+  }
 
   function presentation(scene, state = {}) {
     validateScene(scene);
@@ -77,7 +91,17 @@
     } else {
       caption = `After ${q.round} ${q.round === 1 ? 'tree' : 'trees'}, both paths use ${lossName(q.options).toLowerCase()} to measure performance and share its optimal initial constant. The gradient path fits −∇ℓ and calibrates leaves; the residual path fits y − F and uses residual means.`;
     }
-    return { topic: topics[scene], caption, readout: readout(scene, state) };
+    const lossSum=N.sum(N.variable('i'),N.apply(N.variable('ℓ'),`${indexed('y','i')}${N.operator(',')}${N.apply(indexed('F',q.round),indexed('x','i'))}${N.operator('+')}${N.variable('c')}`));
+    const replacements=[
+      [`Σℓ(yᵢ, F${sub(q.round)}(xᵢ) + c)`,lossSum],
+      [`F${sub(q.round)}`,indexed('F',q.round)],
+      [`c = ${fmt(q.tree.left)}`,`${N.variable('c')}${N.operator('=')}${N.number(fmt(q.tree.left))}`],
+      [`α = ${fmt(q.options.rate)}`,`${N.variable('α')}${N.operator('=')}${N.number(fmt(q.options.rate))}`],
+      [`τ = ${fmt(q.options.tau)}`,`${N.variable('τ')}${N.operator('=')}${N.number(fmt(q.options.tau))}`],
+      [`δ = ${fmt(q.options.delta)}`,`${N.variable('δ')}${N.operator('=')}${N.number(fmt(q.options.delta))}`],
+      ['αc',`${N.variable('α')}${N.variable('c')}`],['−∇ℓ',gradient()],['y − F',`${N.variable('y')}${N.operator('−')}${N.variable('F')}`],['c',N.variable('c')]
+    ];
+    return { topic: topics[scene], caption, captionParts:N.replaceParts(caption,replacements), readout: readout(scene, state) };
   }
 
   const styles = `<style>
@@ -103,7 +127,7 @@
 .loss-view.compact .loss-table thead th{font-size:10px}
 </style>`;
 
-  const text = (x, y, value, attributes = '') => `<text x="${x}" y="${y}" ${attributes}>${esc(value)}</text>`;
+  const text = (x, y, value, attributes = '') => `<text x="${x}" y="${y}" ${attributes}>${T.svg(value)}</text>`;
   const line = (x1, y1, x2, y2, color, width = 1, attributes = '') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" ${attributes}/>`;
   const dot = (x, y, color, radius = 3.5, attributes = '') => `<circle cx="${x}" cy="${y}" r="${radius}" fill="${color}" stroke="white" stroke-width="1.2" ${attributes}/>`;
   const diamond = (x, y, color, radius = 4) => `<path d="M${x},${y - radius}l${radius},${radius}l${-radius},${radius}l${-radius},${-radius}Z" fill="white" stroke="${color}" stroke-width="1.5"/>`;
@@ -156,14 +180,14 @@
   }
 
   function splitTables(q, compact, state) {
-    if (q.shared) return `<table class="loss-table loss-leaf-corrections"><caption>All x = 1: no split is available; one shared region</caption><thead><tr><th scope="col">Fit targets</th><th scope="col">Target mean</th><th scope="col">Added leaf c</th></tr></thead><tbody><tr><th scope="row">Negative gradient</th><td>${fmt(q.tree.targetLeft)}</td><td>${fmt(q.tree.left)}</td></tr><tr><th scope="row">Raw residual</th><td>${fmt(q.rawTree.targetLeft)}</td><td>${fmt(q.rawTree.left)}</td></tr></tbody></table><p class="loss-equation">h(x) = c for every observation</p><p class="loss-note">Gradient leaves use the original-loss optimum. The residual shortcut uses the raw residual mean.</p>`;
+    if (q.shared) return `<table class="loss-table loss-leaf-corrections"><caption>All ${N.math(`${N.variable('x')}${N.operator('=')}${N.number(1)}`,'x = 1')}: no split is available; one shared region</caption><thead><tr><th scope="col">Fit targets</th><th scope="col">Target mean</th><th scope="col">Added leaf ${N.math(N.variable('c'),'c')}</th></tr></thead><tbody><tr><th scope="row">Negative gradient</th><td>${fmt(q.tree.targetLeft)}</td><td>${fmt(q.tree.left)}</td></tr><tr><th scope="row">Raw residual</th><td>${fmt(q.rawTree.targetLeft)}</td><td>${fmt(q.rawTree.left)}</td></tr></tbody></table><p class="loss-equation">${N.math(`${N.apply(N.variable('h'),N.variable('x'))}${N.operator('=')}${N.variable('c')}`,'h(x) = c')} for every observation</p><p class="loss-note">Gradient leaves use the original-loss optimum. The residual shortcut uses the raw residual mean.</p>`;
     const shortened = number(state.height, 400) < 245;
     const rows = q.after.candidates.map((candidate, index) => {
       const raw = q.rawCandidates[index], gradientBest = candidate.threshold === q.tree.threshold, rawBest = raw.threshold === q.rawTree.threshold;
       return `<tr data-cut="${candidate.threshold}"><th scope="row">${fmt(candidate.threshold)}</th><td class="${gradientBest ? 'loss-gradient-best' : ''}" data-gradient-sse="${candidate.sse}" aria-label="${esc(`Gradient target SSE ${full(candidate.sse)}${gradientBest ? ', selected' : ''}`)}">${fmt(candidate.sse)}${gradientBest ? ' ●' : ''}</td><td class="${rawBest ? 'loss-residual-best' : ''}" data-residual-sse="${raw.sse}" aria-label="${esc(`Residual SSE ${full(raw.sse)}${rawBest ? ', selected' : ''}`)}">${fmt(raw.sse)}${rawBest ? ' ◇' : ''}</td></tr>`;
     }).join('');
-    const candidates = `<table class="loss-table loss-candidates"><caption>Fit at F${sub(q.round)}; ● / ◇ = selected</caption><thead><tr><th scope="col">Cut x</th><th scope="col">${compact ? 'Gradient SSE' : 'Gradient-target SSE'}</th><th scope="col">Residual SSE</th></tr></thead><tbody>${rows}</tbody></table>`;
-    const leaves = `<table class="loss-table loss-leaf-corrections"><caption>Gradient-selected leaves, cut ${fmt(q.tree.threshold)}</caption><thead><tr><th scope="col">Leaf</th><th scope="col">Mean −∇ℓ</th><th scope="col">Optimal c</th></tr></thead><tbody><tr><th scope="row">Left</th><td>${fmt(q.tree.targetLeft)}</td><td>${fmt(q.tree.left)}</td></tr><tr><th scope="row">Right</th><td>${fmt(q.tree.targetRight)}</td><td>${fmt(q.tree.right)}</td></tr></tbody></table>`;
+    const candidates = `<table class="loss-table loss-candidates"><caption aria-label="Fit at F${sub(q.round)}; selected cuts">Fit at ${N.math(indexed('F',q.round),`F${sub(q.round)}`)}; ● / ◇ = selected</caption><thead><tr><th scope="col">Cut ${N.math(N.variable('x'),'x')}</th><th scope="col">${compact ? 'Gradient SSE' : 'Gradient-target SSE'}</th><th scope="col">Residual SSE</th></tr></thead><tbody>${rows}</tbody></table>`;
+    const leaves = `<table class="loss-table loss-leaf-corrections"><caption>Gradient-selected leaves, cut ${fmt(q.tree.threshold)}</caption><thead><tr><th scope="col">Leaf</th><th scope="col">Mean ${N.math(gradient(),'−∇ℓ')}</th><th scope="col">Optimal ${N.math(N.variable('c'),'c')}</th></tr></thead><tbody><tr><th scope="row">Left</th><td>${fmt(q.tree.targetLeft)}</td><td>${fmt(q.tree.left)}</td></tr><tr><th scope="row">Right</th><td>${fmt(q.tree.targetRight)}</td><td>${fmt(q.tree.right)}</td></tr></tbody></table>`;
     const description = q.after.candidates.map((candidate, index) => `Cut ${full(candidate.threshold)}: gradient target SSE ${full(candidate.sse)}, residual SSE ${full(q.rawCandidates[index].sse)}.`).join(' ');
     return candidates + (shortened ? '' : leaves) + `<span class="loss-sr-only">All candidate target-fitting errors at the same current predictions: ${esc(description)}</span>`;
   }
@@ -260,9 +284,9 @@
     if (scene === 0) body = targetPlot(q, state, compact) + '<p class="loss-note">Hollow diamonds: raw residuals. Filled circles: negative gradients. Same scale.</p>';
     if (scene === 1) body = splitTables(q, compact, state) + (q.shared ? '' : '<p class="loss-note">Compare cuts within each column; its targets define its SSE scale.</p>');
     if (scene === 2) body = correctionPlot(q, state, compact) + `<p class="loss-note">◇ Mean gradient target &nbsp; ● Loss optimum.${q.shared ? ' Rust ◇: residual mean.' : ' Separate vertical scales.'}</p>`;
-    if (scene === 3) body = trajectories(q, state, compact) + '<p class="loss-note">Black dots: fixed y. Same starting constant, observations, tree depth, and learning rate.</p>';
+    if (scene === 3) body = trajectories(q, state, compact) + `<p class="loss-note">Black dots: fixed ${N.math(N.variable('y'),'y')}. Same starting constant, observations, tree depth, and learning rate.</p>`;
     return styles + `<div class="loss-view${compact ? ' compact' : ''}" data-loss-scene="${scene}" data-loss="${esc(q.options.loss)}" data-round="${q.round}">${body}</div>`;
   }
 
-  return { topics, render, presentation, readout };
+  return { topics, render, presentation, readout, readoutNotation };
 });
