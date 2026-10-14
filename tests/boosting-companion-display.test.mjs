@@ -5,6 +5,7 @@ import { runInNewContext } from 'node:vm';
 import test from 'node:test';
 
 const math = createRequire(import.meta.url)('../docs/shared/boosting-math.js');
+const typography = createRequire(import.meta.url)('../docs/shared/svg-math.js');
 const html = readFileSync(new URL('../docs/boosting/geometry.html', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../docs/boosting/geometry.js', import.meta.url), 'utf8');
 
@@ -12,7 +13,7 @@ const source = readFileSync(new URL('../docs/boosting/geometry.js', import.meta.
 // harness supplies events and numerical state without claiming layout coverage.
 function setup() {
   class Element {
-    constructor() { this.listeners = new Map(); this.attrs = {}; this.dataset = {}; this.style = {}; this.children = []; this.value = ''; this._text = ''; }
+    constructor(tagName = 'SPAN') { this.tagName = tagName; this.listeners = new Map(); this.attrs = {}; this.dataset = {}; this.style = {}; this.children = []; this.value = ''; this._text = ''; }
     addEventListener(type, callback) { this.listeners.set(type, callback); }
     emit(type) { this.listeners.get(type)?.({ target: this }); }
     setAttribute(name, value) { this.attrs[name] = String(value); }
@@ -28,7 +29,7 @@ function setup() {
   nodes.get('rate').value = '.5';
   nodes.get('round').value = '16';
   const shell = new Element(), window = new Element(), document = new Element();
-  Object.assign(window, { BoostingMath: math, innerHeight: 800, scrollY: 0,
+  Object.assign(window, { BoostingMath: math, SvgMath: typography, innerHeight: 800, scrollY: 0,
     matchMedia: query => ({ matches: query.includes('reduced-motion') }) });
   const steps = Array.from({ length: 12 }, (_, index) => {
     const step = new Element();
@@ -37,7 +38,7 @@ function setup() {
   });
   Object.assign(document, { getElementById: id => nodes.get(id),
     querySelector: () => shell, querySelectorAll: () => steps,
-    createElement: () => new Element(), createElementNS: () => new Element(),
+    createElement: name => new Element(name), createElementNS: (_, name) => new Element(name),
     documentElement: { scrollHeight: 15000 } });
   const frames = [];
   const context = { window, document, performance: { now: () => 0 },
@@ -64,9 +65,13 @@ test('companion late-round readouts preserve a small residual and positive train
   const prediction = JSON.parse(svg.dataset.prediction);
   assert.equal(1 - prediction[0], 2 ** -23);
   assert.equal(-1 - prediction[1], -(2 ** -23));
-  const rows = ui.get('vector-readout').children.map(child => child.textContent);
+  const rows = ui.get('vector-readout').children.map(child => child.children[1].attrs['aria-label']);
   assert.match(rows[1], /1\.19 × 10\^−7, −1\.19 × 10\^−7, 0/);
   assert.match(rows[2], /1\.42 × 10\^−14/);
+  const mathematicalValues = ui.get('vector-readout').children.map(group => group.children[1].innerHTML).join('');
+  assert.match(mathematicalValues, /<msup><mn>10<\/mn><mrow><mn>−7<\/mn><\/mrow><\/msup>/);
+  assert.match(mathematicalValues, /<msup><mn>10<\/mn><mrow><mn>−14<\/mn><\/mrow><\/msup>/);
+  assert.ok(ui.get('space').children.some(child => child.children.some(span => span.attrs['baseline-shift'] === 'sub')));
   assert.match(html, /Vector readouts are rounded for display/);
 });
 
@@ -74,7 +79,7 @@ test('companion exact zero entries remain zero', () => {
   const ui = setup();
   ui.scene(9);
   ui.control('round', 0);
-  const rows = ui.get('vector-readout').children.map(child => child.textContent);
+  const rows = ui.get('vector-readout').children.map(child => child.children[1].attrs['aria-label']);
   assert.match(rows[0], /\(0, 0, 0\)/);
   assert.match(rows[1], /\(1, −1, 1\)/);
   assert.equal(Number(ui.get('space').dataset.loss), 1.5);
