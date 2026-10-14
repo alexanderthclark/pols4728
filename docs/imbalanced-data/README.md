@@ -1,13 +1,13 @@
 # Imbalanced Data
 
 The opening title includes the transparent monochrome high-wire cartoon in
-`assets/high-wire.png`, preserving the full pole, wire, and proportions.
+`assets/high-wire-refined.png`, with lower arms and a clearer grip on the pole. The original remains available in `assets/high-wire.png`.
 
 A buildless scrollytelling lesson based on Alexander Clark's Applied Issues and Logistic Regression notes. Serve `` with any static web server. No runtime dependencies or external data calls.
 
-The title and one setup screen lead directly to a persistent log-odds plot. Two grouped class ratios, with 1% and 50% positives, lie on the true straight line. Equal-probability random sampling preserves the relationship in expectation; negative-only retention moves all true logits upward by the same amount; prior correction moves them back down. The rare-events connection cites King and Zeng (2001), separating sampling correction from finite-sample bias.
+The title leads directly to seven scrolling stages: the model's linear log-odds assumption, probabilities as within-group counts, cancellation of the common total, negative-only retention, expansion of the logarithm, the intercept shift, and prior correction. Large fractions lead into two grouped class ratios with 1% and 50% positives. Retaining a share s of negatives adds −log(s) to the true log odds; the sampled group total also cancels. Expected count bars thin as the reader scrolls. Two points illustrate the assumed line rather than test linearity. Equal-probability sampling remains in expanded notes. The rare-events connection cites King and Zeng (2001), separating sampling correction from finite-sample bias.
 
-The next chapter fits an intentionally misspecified linear logistic model to an exact synthetic population with curved true log odds. Its slope changes from 2.230 to 1.933 after retaining all positives and 10% of negatives. Intercept correction cannot recover the full-data fit. Inverse-selection weighting does recover its objective. Results minimize population cross entropy, rather than simulating a random sample.
+The next chapter gives a quicker, two-stage comparison for an intentionally misspecified linear logistic model with curved true log odds. Its slope changes from 2.230 to 1.933 after retaining all positives and 10% of negatives. Intercept correction cannot recover the full-data fit. Inverse-selection weighting does recover its objective. Results minimize population cross entropy, rather than simulating a random sample; complete assumptions and tables remain in expanded notes.
 
 Four new slides show executed finite-sample logistic regressions before the decision-tree chapter: the two random training datasets, the correctly specified fit, the curved fit, and 500 further independent downsampling draws from each fixed dataset. Both fits are unpenalized; every negative has a 10% retention probability and every positive is kept. Coefficients and untouched-test log loss are displayed. The repeated-draw range describes conditional downsampling variation, not a population confidence interval. Raw counts, results, repeated-fit CSV, and the calculation script are downloadable.
 
@@ -16,6 +16,8 @@ Decision-tree split ranking follows the executed runs. A routes 50% of positives
 `scrolly.js` drives reversible, full-width pinned chapters. `logistic-scenes.js` renders the grouped log-odds walkthrough. `misspec-model.js` solves the expected-loss fits; `misspec-scenes.js` presents them. `tree-model.js` and `tree-scenes.js` provide entropy calculations and keyboard-operable controls. Motion can be switched off; expanded chapter notes preserve prose and numerical tables.
 
 From the repository root, run `node --test tests/imbalanced-*.test.mjs`. These check the sampling identity, exact numerical fit score equations, correctly specified control, equal sampling, independent cross entropy, inverse-selection weighting, and independent child-count gains.
+
+`node --test tests/imbalanced-scenes.test.mjs` checks intermediate and completed animation frames at narrow and wide sizes, comparing rendered logits and coefficient labels against independently computed counts and line geometry.
 
 `sampling-data.js` contains the recorded experiment results; `sampling-scenes.js` renders the numerical-results slides.
 

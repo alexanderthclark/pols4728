@@ -10,19 +10,19 @@
     {
       "path": "docs/shap/assets/bread-peace-characters.png",
       "role": "explanatory illustration",
-      "description": "Compact bread-loaf and circular peace-symbol characters with expressive faces and stick limbs, drawn in the course’s monochrome outlined style.",
+      "description": "Compact bread-loaf and circular peace-symbol characters with expressive faces and stick limbs, drawn in the course\u2019s monochrome outlined style.",
       "sha256": "685ef6ffe179f8dd334bbc3c88399dbdc57c148b7f815bfbb899bde962afd3b0",
       "usage": "SHAP story transition introducing the stylized Bread and Peace prediction model. Preserve proportions and transparent background; equation and citation remain real text."
     },
     {
       "path": "docs/shap/assets/earnings-germany-characters.png",
       "role": "explanatory illustration",
-      "description": "Two oversized round body-and-face characters with stick limbs and no separate torsos stand on a shallow tilted map of divided Germany. The smiling western character wears a top hat; the frowning eastern character wears a patched cap and worn shoes. The artwork uses the course’s monochrome outlined style.",
+      "description": "Two oversized round body-and-face characters with stick limbs and no separate torsos stand on a shallow tilted map of divided Germany. The smiling western character wears a top hat; the frowning eastern character wears a patched cap and worn shoes. The artwork uses the course\u2019s monochrome outlined style.",
       "sha256": "2237e2ed40a115db5bd17b7d76c0e07b80ba9870a09a905ede541ea226283e87",
       "usage": "Centered transition before the SHAP earnings interaction example. The map is an institutional analogy, not an empirical earnings model. Preserve proportions, transparency, and native map credit.",
       "references": [
         {
-          "title": "IEG-Maps, Map 360: Länder der Bundesrepublik 1989",
+          "title": "IEG-Maps, Map 360: L\u00e4nder der Bundesrepublik 1989",
           "creators": "Andreas Kunz and Joachim Robert Moeschl",
           "url": "https://www.ieg-maps.uni-mainz.de/mapsp/mapp989d.htm",
           "referenceLicense": "CC BY-NC 4.0 International",
@@ -70,7 +70,7 @@
       "role": "homepage-coronation-decoration",
       "description": "The Columbia crown in Columbia blue, with subtle face shading, a thin lower-right extrusion, and an edge highlight.",
       "sha256": "7f44b9a161586e9444f020a2958be1f53433dee10831bdbc04b9626c72d719d8",
-      "usage": "User-approved colored decoration for the homepage’s one-time idle coronation. The original monochrome course logo and its proportions remain intact; coronation.js changes only eyes, the I’s expression, and the crown. The colored crown is a purposeful exception to the default monochrome artwork guidance.",
+      "usage": "User-approved colored decoration for the homepage\u2019s one-time idle coronation. The original monochrome course logo and its proportions remain intact; coronation.js changes only eyes, the I\u2019s expression, and the crown. The colored crown is a purposeful exception to the default monochrome artwork guidance.",
       "references": [
         {
           "title": "Columbia University header artwork",
@@ -84,7 +84,14 @@
       "role": "imbalanced-data-title-illustration",
       "description": "A round, torso-less figure walks a high wire while holding a long balancing pole. Sparse monochrome outlines on a transparent field.",
       "sha256": "d8370e3af5d8ad2d84cb63304c551905a299b106c6172d3aaf00121a89824336",
-      "usage": "Opening title of the Imbalanced Data explainer. Preserve the full pole and wire, original proportions, transparency, and clear space; keep the title as real HTML text."
+      "usage": "Earlier Imbalanced Data title illustration, retained as a variant. The current title uses high-wire-refined.png. Preserve full composition, transparency, proportions, and clear space."
+    },
+    {
+      "path": "docs/imbalanced-data/assets/high-wire-refined.png",
+      "role": "imbalanced-data-title-illustration",
+      "description": "A round, torso-less figure walks a high wire, holding a bowed balancing pole with lowered arms and clear mitten grips below the round face. Sparse monochrome outlines on a transparent field.",
+      "sha256": "4b6e2e6a9316bce416a0ca34c2615a8199ebb33a70087f62a97a621d75ad7087",
+      "usage": "Opening title of the Imbalanced Data explainer. Preserve full composition, transparency, proportions, and clear space; title remains real HTML text."
     }
   ]
 }
