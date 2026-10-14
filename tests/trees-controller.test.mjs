@@ -19,10 +19,13 @@ function setup(reducedMotion = false) {
       this.hidden = false; this.disabled = false; this.innerHTML = ''; this._open = false;
       this.classList = { toggle() {} };
     }
+    set textContent(value) { this._text = String(value); this.innerHTML = ''; }
+    get textContent() { return this.innerHTML.includes('<math') && this.attrs.has('aria-label') ? this.attrs.get('aria-label') : this._text; }
     addEventListener(type, listener) { this.listeners.set(type, [...(this.listeners.get(type) || []), listener]); }
     emit(type) { for (const listener of this.listeners.get(type) || []) listener({ type, target: this, preventDefault() {} }); }
     setAttribute(name, value) { this.attrs.set(name, String(value)); }
     getAttribute(name) { return this.attrs.get(name); }
+    removeAttribute(name) { this.attrs.delete(name); }
     get open() { return this._open; }
     set open(value) {
       if (this._open !== Boolean(value)) { this._open = Boolean(value); domTasks.push(() => this.emit('toggle')); }

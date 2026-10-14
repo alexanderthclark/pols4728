@@ -1,3 +1,4 @@
+import { svgMathText } from './svg-math-text.mjs';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import test from 'node:test';
@@ -17,7 +18,7 @@ test('growth figures keep displayed predictions, scores and counts at the commit
     assert.ok(Math.abs(Number(panel['data-mse'])-independentMSE)<1e-10);
     assert.equal(Number(panel['data-split-count']),stage);
     assert.equal(Number(panel['data-region-count']),expected.regionCount);
-    assert.doesNotMatch(svg,/NaN|Infinity|undefined|data-probe|role="button"/);
+    assert.doesNotMatch(svgMathText(svg),/NaN|Infinity|undefined|data-probe|role="button"/);
     assert.equal((svg.match(/data-observation="/g)||[]).length,16);
     for(const [,value] of svg.matchAll(/\s(?:x|y|x1|y1|x2|y2|cx|cy|width|height|r)="([^"]+)"/g))assert.ok(Number.isFinite(Number(value)));
     const pending=[...svg.matchAll(/<line\b[^>]*data-pending="true"[^>]*>/g)].map(m=>attrs(m[0]));
@@ -38,7 +39,7 @@ test('final comparison uses equal split budgets and the two distinct computed fi
     assert.deepEqual(map[0]['data-predictions'].split(',').map(Number),model.treeStages[4].predictions);
     assert.deepEqual(map[1]['data-predictions'].split(',').map(Number),model.boostStages[4].predictions);
     assert.notEqual(map[0]['data-predictions'],map[1]['data-predictions']);
-    assert.match(svg,/Training MSE 1\.625/);assert.match(svg,/Training MSE 1\.618/);
+    assert.match(svgMathText(svg),/Training MSE 1\.625/);assert.match(svgMathText(svg),/Training MSE 1\.618/);
     assert.equal((svg.match(/data-observation="/g)||[]).length,32);
   }
 });
@@ -54,8 +55,8 @@ test('fitted maps use one fixed quantitative scale with readable labels',()=>{
   const seenColors=new Map();
   for(const compact of [false,true])for(const scene of [0,1,2])for(const growth of [0,1,2,3,4]){
     const svg=view.render(scene,{growth},compact);
-    assert.match(svg,/data-color-scale="8,24" data-color-quantity="observed-y,predicted-F"/);
-    assert.match(svg,/Minutes: points y · regions F/);
+    assert.match(svgMathText(svg),/data-color-scale="8,24" data-color-quantity="observed-y,predicted-F"/);
+    assert.match(svgMathText(svg),/Minutes: points y · regions F/);
     const cells=[...svg.matchAll(/<rect\b[^>]*data-region="[^>]*>/g)].map(m=>attrs(m[0]));
     const labels=[...svg.matchAll(/<text\b[^>]*class="prediction"[^>]*>/g)].map(m=>attrs(m[0]));
     assert.equal(cells.length,labels.length);
@@ -73,10 +74,10 @@ test('fitted maps use one fixed quantitative scale with readable labels',()=>{
 test('transition contains only brief text introducing the two-predictor comparison',()=>{
   for(const compact of [false,true]){
     const html=view.renderTransition(compact);
-    assert.match(html,/distance and number of stops/);
-    assert.match(html,/16 new deliveries/);
-    assert.match(html,/one tree and a sum of stumps/);
-    assert.doesNotMatch(html,/<svg|<canvas|<img|data-color-scale|data-observation|<button|<input/);
+    assert.match(svgMathText(html),/distance and number of stops/);
+    assert.match(svgMathText(html),/16 new deliveries/);
+    assert.match(svgMathText(html),/one tree and a sum of stumps/);
+    assert.doesNotMatch(svgMathText(html),/<svg|<canvas|<img|data-color-scale|data-observation|<button|<input/);
     assert.equal(view.transitionPresentation().equation,'');
     assert.equal(view.transitionPresentation().takeaway,'');
     assert.equal(view.transitionReadout(),'');
@@ -92,8 +93,8 @@ test('colored delivery markers and accessible tooltips use committed y, F, and r
     const overlays=[...svg.matchAll(/<g class="growth-observation"[^>]*>([\s\S]*?)<\/g><\/g>/g)];
     assert.equal(maps.length,displayed.length);
     assert.equal(overlays.length,displayed.length*16);
-    assert.match(svg,/\.observation-tooltip\{visibility:hidden;pointer-events:none\}/);
-    assert.match(svg,/\.growth-observation:hover \.observation-tooltip,\.growth-observation:focus \.observation-tooltip\{visibility:visible\}/);
+    assert.match(svgMathText(svg),/\.observation-tooltip\{visibility:hidden;pointer-events:none\}/);
+    assert.match(svgMathText(svg),/\.growth-observation:hover \.observation-tooltip,\.growth-observation:focus \.observation-tooltip\{visibility:visible\}/);
     assert.ok(svg.indexOf('class="growth-observation"')>svg.lastIndexOf('class="prediction"'));
     maps.forEach((map,k)=>{
       const points=[...map[1].matchAll(/<circle[^>]*data-observation="[^>]*>/g)].map(m=>attrs(m[0]));
@@ -111,9 +112,9 @@ test('colored delivery markers and accessible tooltips use committed y, F, and r
         assert.match(target['aria-label'],/Prediction F .* Residual y minus F/);
         const display=value=>String(Number(value.toFixed(2))).replace('-', '−');
         const residualDisplay=`${residual>0?'+':''}${display(residual)}`;
-        assert.ok(overlay.includes(`Observed y = ${observed.y} min`));
-        assert.ok(overlay.includes(`Prediction F = ${display(prediction)} min`));
-        assert.ok(overlay.includes(`y − F = ${residualDisplay} min`));
+        assert.ok(svgMathText(overlay).includes(`Observed y = ${observed.y} min`));
+        assert.ok(svgMathText(overlay).includes(`Prediction F = ${display(prediction)} min`));
+        assert.ok(svgMathText(overlay).includes(`y − F = ${residualDisplay} min`));
         const tooltip=attrs(overlay.match(/<rect[^>]*>/)[0]);
         const [width,height]=svg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/).slice(1).map(Number);
         assert.ok(Number(tooltip.x)>=0 && Number(tooltip.x)+Number(tooltip.width)<=width);

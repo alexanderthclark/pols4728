@@ -2,11 +2,12 @@
   'use strict';
   const api = factory(
     root.TreePartitions || (typeof require === 'function' ? require('./model.js') : null),
-    root.GrowthExample || (typeof require === 'function' ? require('./growth.js') : null)
+    root.GrowthExample || (typeof require === 'function' ? require('./growth.js') : null),
+    root.SvgMath || (typeof require === 'function' ? require('../shared/svg-math.js') : null)
   );
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.GrowthView = api;
-})(typeof window !== 'undefined' ? window : globalThis, function (P, G) {
+})(typeof window !== 'undefined' ? window : globalThis, function (P, G, T) {
   'use strict';
   const C = { ink: '#242424', muted: '#606060', blue: '#234E70', rust: '#A54F32', teal: '#007F73', rule: '#767676' };
   const clamp = (v, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, v));
@@ -14,7 +15,8 @@
   const fmt = (v, digits = 1) => String(Number(v.toFixed(digits))).replace('-', '−');
   const signed = v => `${v > 0 ? '+' : ''}${fmt(v, 2)}`;
   const sub = n => String(n).split('').map(d => '₀₁₂₃₄₅₆₇₈₉'[Number(d)]).join('');
-  const text = (x, y, label, attrs = '') => `<text x="${x}" y="${y}" ${attrs}>${esc(label)}</text>`;
+  const text = (x, y, label, attrs = '') => `<text x="${x}" y="${y}" ${attrs}>${T.svg(label)}</text>`;
+  const N=T.notation,indexed=(name,index)=>N.subscript(N.variable(name),N.number(index));
   const line = (x1, y1, x2, y2, color = C.rule, width = 1, attrs = '') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" ${attrs}/>`;
   const stages = scene => scene === 0 ? G.treeStages : G.boostStages;
   const max = scene => scene === 2 ? 0 : stages(scene).length - 1;
@@ -78,6 +80,7 @@
     return {
       heading: 'Add one stump at a time',
       equation: n === 0 ? `F₀ = ${fmt(G.baseline, 2)}` : `F${sub(n)} = F${sub(n - 1)} + h${sub(n)}`,
+      equationParts: [N.part(n === 0 ? `${indexed('F',0)}${N.operator('=')}${N.number(fmt(G.baseline,2))}` : `${indexed('F',n)}${N.operator('=')}${indexed('F',n-1)}${N.operator('+')}${indexed('h',n)}`)],
       takeaway: s.next ? 'Fit a stump to the current residuals. Its cut crosses the whole input space.'
         : n === max(1) ? 'The four stump cuts cross, creating nine regions in the sum.'
           : 'Each stump adjusts both sides of a new cut, including previously formed regions.'
