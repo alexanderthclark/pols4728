@@ -29,7 +29,7 @@ cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
 pipeline = Pipeline([
     ("sample", "passthrough"),
     ("forest", RandomForestClassifier(
-        n_estimators=100, random_state=42, n_jobs=1,
+        n_estimators=100, criterion="entropy", random_state=42, n_jobs=1,
     )),
 ])
 common = {
@@ -52,7 +52,7 @@ search.fit(X_train, y_train)
 # Explicit sampling settings avoid ambiguity across imblearn versions.
 balanced_search = GridSearchCV(
     BalancedRandomForestClassifier(
-        n_estimators=100, sampling_strategy="all",
+        n_estimators=100, criterion="entropy", sampling_strategy="all",
         replacement=True, bootstrap=False,
         random_state=42, n_jobs=1,
     ),

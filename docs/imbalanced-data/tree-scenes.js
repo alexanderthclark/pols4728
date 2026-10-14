@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const M = window.TreeBalance;
-  const colors = {A:'#234e70', B:'#a54f32', ink:'#242424', muted:'#606060', line:'#d5d8da'};
+  const colors = window.TreeColors;
   const clamp = x => Math.max(0, Math.min(1, x));
   const ease = x => {x = clamp(x); return x*x*(3-2*x);};
   const pct = x => `${(100*x).toFixed(1)}%`;
@@ -13,23 +13,23 @@
     const width = narrow ? 360 : 800;
     const left = narrow ? 50 : 78, right = width - (narrow ? 24 : 45);
     // Same normalization for both candidates: their order cannot change.
-    const max = cutoff === null ? 1 : .0025;
+    const max = cutoff === null ? 1 : .03;
     const x = v => left + v/max * (right-left);
-    let body = text(left,25,cutoff === null ? 'Share of parent Gini removed' : 'Gini decrease at 1% positives',colors.muted,'start',narrow?15:19);
-    (cutoff === null ? [0,.25,.5,.75,1] : [0,.001,.002]).forEach(v => {
+    let body = text(left,25,cutoff === null ? 'Share of parent entropy removed' : 'Entropy gain at 1% positives (nats)',colors.muted,'start',narrow?15:19);
+    (cutoff === null ? [0,.25,.5,.75,1] : [0,.01,.02,.03]).forEach(v => {
       body += line(x(v),60,x(v),232) + text(x(v),256,cutoff === null ? `${100*v}%` : v.toFixed(3),colors.muted,'middle',narrow?13:17);
     });
     ['A','B'].forEach((name,i) => {
       const r = M.evaluate(name,p), y = 89 + i*95;
       const v = cutoff === null ? r.relativeGain : r.gain;
       const winner = M.choose(p,cutoff??0) === name;
-      body += `<rect x="${left}" y="${y}" width="${x(v)-left}" height="24" fill="${colors[name]}" ${name==='B'?'fill-opacity=".72"':''}/>`;
+      body += `<rect x="${left}" y="${y}" width="${x(v)-left}" height="24" fill="${colors[name]}" data-split="${name}"/>`;
       body += text(left-17,y+20,name,colors[name],'end',22);
       body += text(left,y-12,`Δ${name} = ${r.gain.toFixed(6)}${winner?' · chosen':''}`,colors[name],'start',narrow?16:21);
     });
     if (cutoff !== null) {
       body += line(x(cutoff),48,x(cutoff),233,colors.ink,'stroke-width="2" stroke-dasharray="5 4"');
-      const anchor = cutoff > .0013 ? 'end' : 'start';
+      const anchor = cutoff > .015 ? 'end' : 'start';
       body += text(x(cutoff)+(anchor==='end'?-5:5),48,`cutoff ${cutoff.toFixed(4)}`,colors.ink,anchor,narrow?13:17);
     }
     const winner = M.choose(p,cutoff??0);
@@ -37,59 +37,41 @@
     return svg(body,`Training positives ${pct(p)}. A gain ${M.evaluate('A',p).gain.toFixed(6)}. B gain ${M.evaluate('B',p).gain.toFixed(6)}. ${winner?`Choose ${winner}.`:'Do not split.'}`,width);
   }
 
-  function candidates(narrow) {
-    if(narrow) {
-      let body = text(12,27,'Fraction of each class sent left',colors.muted,'start',17);
-      [['A','10% of positives','0% of negatives'],['B','90% of positives','10% of negatives']].forEach(([name,pos,neg],i)=>{
-        const y=72+i*113;
-        body+=text(12,y,`Split ${name}`,colors[name],'start',23)+text(110,y,pos)+text(110,y+31,neg);
-        body+=line(12,y+54,348,y+54);
-      });
-      return svg(body+text(12,313,'Same rules before and after sampling',colors.muted,'start',17),'A sends 10% of positives and no negatives left. B sends 90% of positives and 10% of negatives left.',360,335);
-    }
-    let body='';
-    [['A','10% positives','0% negatives'],['B','90% positives','10% negatives']].forEach(([name,pos,neg],i)=>{
-      const cx=200+i*400;
-      body += text(cx,28,`Candidate ${name}`,colors[name],'middle',24);
-      body += `<rect x="${cx-83}" y="48" width="166" height="45" rx="2" fill="white" stroke="${colors[name]}" stroke-width="2"/>`;
-      body += text(cx,77,`Split on X${name}`,colors[name],'middle',21);
-      body += line(cx,93,cx-94,161,colors[name])+line(cx,93,cx+94,161,colors[name]);
-      body += text(cx-94,188,'Left',colors[name],'middle',21)+text(cx+94,188,'Right',colors[name],'middle',21);
-      body += text(cx-94,223,pos,colors.ink,'middle',18)+text(cx-94,250,neg,colors.ink,'middle',18);
-      body += text(cx+94,223,'Everyone else',colors.muted,'middle',18);
-    });
-    return svg(body+text(400,306,'These within-class routing rates stay fixed.',colors.muted,'middle',20),'Two candidate tree splits with fixed class-conditional routing rates.');
-  }
-
   const story = [
-    ['Two candidate splits. One root node.', 'Use a new example with Gini impurity. A isolates a small, pure positive group. B separates most positives from most negatives. Both splits are admissible; sampling is random within each class.'],
-    ['At 1% positives, the tree chooses A.', 'The tree computes both Gini decreases and takes the larger one. A removes more impurity than B under the original class mixture, even though B captures many more positives.'],
-    ['Balancing reverses the ranking.', 'Keep the same split rules and increase the positive share toward 50%. B overtakes A. The preferred split changes even with exact population calculations, so sampling noise is not needed for this result.'],
-    ['A cutoff does not reorder the candidates.', 'Return to 1% positives and move min_impurity_decrease. Raising the cutoff can rule out B while A survives. It cannot select B over the larger-gain A when both are otherwise admissible.'],
-    ['Raise the cutoff again: no split.', 'Once the cutoff exceeds A’s gain, neither split is accepted. A gain cutoff can choose A or stop here; rebalancing can make B the best split. Other constraints, such as minimum leaf size, can change which candidates are admissible.']
+    ['Two splits. Four leaf balances.', 'Both candidates split the same cases. The right leaf gets everyone not sent left.'],
+    ['Remove negatives. Keep every positive.', 'Randomly thin negatives in every branch. A’s left leaf stays 100% positive; its right leaf becomes more positive as negatives disappear.'],
+    ['Now see the same experiment in entropy space.', 'Return to the original 1% positives. Connect the two leaf proportions on H(p); the vertical gap at the parent is the split’s information gain.'],
+    ['The same thinning moves the chords.', 'Repeat the removal of negatives. The routing rules stay fixed, but the leaf proportions move and B’s entropy reduction overtakes A’s.'],
+    ['A cutoff does not reorder the candidates.', 'Return to 1% positives. A gain cutoff can exclude B while A survives; it cannot reorder the two candidates.'],
+    ['Raise the cutoff further.', 'Once the cutoff exceeds A’s gain, neither split is accepted. The cutoff can choose A or stop; rebalancing can make B the best split.']
   ];
   window.ImbalanceScenes.trees = progress => {
-    const z = Math.max(0,Math.min(4,progress));
-    const stage = z < .8 ? 0 : z < 1.15 ? 1 : z < 2.65 ? 2 : z < 3.7 ? 3 : 4;
-    const p = stage === 2 ? .01 * Math.pow(50,ease((z-1.15)/.85)) : .01;
-    const cutoff = stage >= 3 ? .0022*ease((z-2.65)/1.35) : null;
+    const z = Math.max(0,Math.min(5,progress));
+    const stage = Math.round(z);
+    const retention = stage === 1 || stage === 3 ? Math.pow(99,-ease((z-(stage-.5))/.5)) : 1;
+    const p = 1/(1+99*retention);
+    const cutoff = stage === 4 ? .02*ease((z-3.5)/.5) : stage === 5 ? .02+.01*ease((z-4.5)/.5) : null;
     const a=M.evaluate('A',p),b=M.evaluate('B',p);
-    return {stage,eyebrow:'05 / Decision trees',title:story[stage][0],description:story[stage][1],
-      svg:stage===0?candidates(innerWidth<=650):gainFigure(p,cutoff,innerWidth<=650),
-      equation:stage===0?'Δ = I(p) − q I(pL) − (1 − q) I(pR)':'ΔA '+(a.gain>b.gain?'>':'<')+' ΔB · '+(stage>=3?'gains fixed; cutoff moves':'same candidates; class balance changes'),
-      note:stage===0?'I(p) = 2p(1 − p); q is the share sent left; pL and pR are child positive shares.':stage>=3?'Root-node example. Hold all other constraints fixed.':'Bars divide both gains by the same parent impurity. Values above bars are the raw gains.'};
+    const remainingNegatives=(9900*retention).toLocaleString('en-US',{maximumFractionDigits:1});
+    const aRightShare=(100*a.pRight).toFixed(3).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,'');
+    return {stage,eyebrow:'04 / Decision trees',title:story[stage][0],description:story[stage][1],
+      svg:stage===0?window.TreeLeaves.figure(.01,innerWidth<=650):stage===1?window.TreeRebalance.figure(retention,innerWidth<=650):stage<=3?window.TreeEntropyChords.figure(p,innerWidth<=650):gainFigure(p,cutoff,innerWidth<=650),
+      equation:stage===0?'':stage===1?`A right: 50 / (50 + ${remainingNegatives}) = ${aRightShare}%`:stage<=3?'Vertical gap = information gain':'ΔA '+(a.gain>b.gain?'>':'<')+' ΔB · gains fixed; cutoff moves',
+      note:stage===0?'Original sample: 100 positives and 9,900 negatives. Scroll to remove negatives.':stage===1?'Positive counts stay fixed. The changing denominator changes each mixed leaf’s positive share. Expected counts shown.':stage>=4?'Root-node example. Hold all other constraints fixed.':'Chord height is the average leaf entropy, weighted by the number of cases in each leaf.'};
   };
 
   const prior=document.getElementById('tree-prior'), cutoff=document.getElementById('tree-cutoff');
   function updatePrior() {
     const p=Number(prior.value)/100;
+    document.getElementById('tree-leaf-chart').innerHTML=window.TreeLeaves.figure(p,innerWidth<=650);
+    document.getElementById('tree-chord-chart').innerHTML=window.TreeEntropyChords.figure(p,innerWidth<=650);
     document.getElementById('tree-prior-value').textContent=pct(p);
     document.getElementById('tree-prior-chart').innerHTML=gainFigure(p,null,innerWidth<=650);
     document.getElementById('tree-detail-body').innerHTML=['A','B'].map(name=>{
       const r=M.evaluate(name,p);
-      return `<tr><th scope="row">${name}</th><td>${pct(r.q)}</td><td>${pct(r.pLeft)}</td><td>${pct(r.pRight)}</td><td>${r.gain.toFixed(6)}</td></tr>`;
+      return `<tr><th scope="row" style="color:${colors[name]}">${name}</th><td>${pct(r.q)}</td><td>${pct(r.pLeft)}</td><td>${pct(r.pRight)}</td><td>${r.gain.toFixed(6)}</td></tr>`;
     }).join('');
-    document.getElementById('tree-prior-status').textContent=`At ${pct(p)} positives, split ${M.choose(p)} has the larger gain. Parent Gini: ${M.gini(p).toFixed(6)}.`;
+    document.getElementById('tree-prior-status').textContent=`At ${pct(p)} positives, split ${M.choose(p)} has the larger gain. Parent entropy: ${M.entropy(p).toFixed(6)} nats.`;
   }
   function updateCutoff() {
     const c=Number(cutoff.value);

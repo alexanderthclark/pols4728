@@ -62,10 +62,9 @@ jobs:
           node --check docs/trees/title-picture.js
           node --check docs/trees/title-motion.js
           node --check docs/trees/story.js
-          node --check docs/imbalanced-data/model.js
-          node --check docs/imbalanced-data/app.js
-          node --check docs/imbalanced-data/chapter-scenes.js
-          node --check docs/imbalanced-data/scrolly.js
+          for file in docs/imbalanced-data/*.js; do
+            node --check "$file"
+          done
       - name: Check interactive lesson calculations
         run: node --test tests/*.test.mjs
 
