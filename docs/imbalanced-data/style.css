@@ -19,6 +19,7 @@ nav a{text-decoration:none}
 nav a:hover{text-decoration:underline}
 .title-slide{min-height:calc(100svh - 76px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;scroll-margin-top:0;text-align:center}
 .title-slide h1{font-size:clamp(52px,7vw,100px);line-height:1.12;font-weight:400;margin:0}
+.title-art{display:block;width:min(100%,580px);height:auto;max-height:36svh;object-fit:contain;margin-top:28px}
 .title-begin{margin-top:40px;font-size:17px;text-decoration:none}
 .title-begin:hover{text-decoration:underline}
 .title-begin span{margin-left:12px}
