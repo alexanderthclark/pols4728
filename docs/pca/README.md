@@ -1,7 +1,7 @@
 # PCA: a change of basis
 
 A nineteen-step scrollytelling lesson first defines the principal direction:
-`u₁ = argmax_{u: ‖u‖ = 1} Var(Xu) = argmax_{u: ‖u‖ = 1} ‖Xu‖`.
+`u₁ := argmax_{u: ‖u‖ = 1} Var(Xu) = argmax_{u: ‖u‖ = 1} ‖Xu‖`.
 For centered data, the same direction maximizes score length because variance is
 its squared length divided by the fixed `n − 1`. Each short explanation sits
 above its animated diagram in one centered column. The main sequence introduces
