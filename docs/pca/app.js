@@ -5,6 +5,7 @@ import {
 } from './model.mjs';
 import { drawSVDFactors } from './svd-view.mjs?v=20261014-storyboard';
 import { drawResidualTransition, drawThirdDirection } from './storyboard-3d.mjs?v=20261014-storyboard';
+import { assembleComponents } from './storyboard-geometry.mjs?v=20261014-scroll';
 import { mVar, mNum, mOp, mSub, mSup, mTranspose, mNorm, mTuple, mFunction, inlineMath, setNotation, notationText } from './notation.mjs?v=20261013-math-2';
 
 const steps = [...document.querySelectorAll('.step')];
@@ -61,6 +62,7 @@ let secondRemoval = 1;
 let reconstructionMix = 1;
 let reconstructionStart;
 let svdMix = 1;
+let assemblyMix = 1;
 const entrancePlayed = new Set();
 let scrollFrame;
 let navigationUntil = 0;
@@ -264,7 +266,7 @@ function draw2D(parent, points, summary) {
     }
     points.forEach((p, i) => point(parent, map(p), scene !== 'line' && i === selected, false, points.length > 5 ? 4 : 5));
   }
-  if (scene === 'basis') label(parent, 360, 430, 'Add a second measurement, perpendicular to the first', colors.muted, 20, 'middle');
+  if (scene === 'basis') label(parent, 360, 430, 'Add a perpendicular direction', colors.muted, 20, 'middle');
   if (scene === 'projection') {
     const projected = map(summary.reconstruction[selected]);
     label(parent, projected[0] + 16, projected[1] + 42, [{text:'z',math:true,sub:'i'}, ` = ${fmt(summary.scores[selected])}`], colors.rust, 24, 'middle');
@@ -297,11 +299,14 @@ function draw3D(parent) {
   const isCoordinates = scene === 'explore' && view === 'coordinates';
   const isReconstruction = scene === 'plane' || (scene === 'explore' && view === 'reconstruction');
   const isDeflation = scene === 'deflation';
-  const isPiece = scene === 'pieces';
+  const isAssembly = scene === 'pieces';
+  const isPiece = scene === 'explore' && view === 'pieces';
+  const assembly = isAssembly ? assembleComponents(THREE_D_POINTS, THREE_D_BASIS, assemblyMix) : null;
   const cols = [0, 1, 2].map(j => THREE_D_BASIS.map(row => row[j]));
   let displayed = isCoordinates ? scores : THREE_D_POINTS;
   if (isDeflation) displayed = THREE_D_POINTS.map((p, i) => p.map((v, j) => (1 - removal) * v + removal * THREE_D_RESIDUALS[i][j]));
   if (isPiece) displayed = scores.map(row => cols[piece].map(v => row[piece] * v));
+  if (isAssembly) displayed = assembly.points;
   const target = reconstructBasis(scores, THREE_D_BASIS, components);
   const reconstructed = target.map((p, i) => p.map((v, j) => {
     const start = reconstructionStart || THREE_D_POINTS;
@@ -319,7 +324,8 @@ function draw3D(parent) {
     'three-d': 'Find PC1 · the direction of greatest variance',
     deflation: 'Subtract the projection along PC1',
   };
-  const title = scene === 'pieces' ? [`The PC${piece + 1} contribution · one piece of `, {text:'X',math:true}] : titles[scene] || (isCoordinates ? ['Principal coordinates · ', {text:'Z',math:true}, ' = ', {text:'XU',math:true}] : isReconstruction ? 'Reconstruct the original observations' : 'Original cloud · three coordinates');
+  const title = isAssembly ? assemblyMix === 1 ? 'All three pieces recover the data' : `Add the PC${assembly.active + 1} contribution`
+    : isPiece ? [`The PC${piece + 1} contribution · one piece of `, {text:'X',math:true}] : titles[scene] || (isCoordinates ? ['Principal coordinates · ', {text:'Z',math:true}, ' = ', {text:'XU',math:true}] : isReconstruction ? 'Reconstruct the original observations' : 'Original cloud · three coordinates');
   label(parent, 360, 40, title, colors.ink, 21, 'middle');
   if (isDeflation || (isReconstruction && components === 2)) {
     const axes = isDeflation ? [cols[1], cols[2]] : [cols[0], cols[1]];
@@ -336,28 +342,32 @@ function draw3D(parent) {
   });
   const axisColors = [colors.blue, colors.rust, colors.teal];
   if (!isCoordinates) cols.forEach((u, j) => {
-    if ((['three-d', 'deflation'].includes(scene) && j !== 0) || (isPiece && j !== piece)) return;
+    if ((['three-d', 'deflation'].includes(scene) && j !== 0) || (isPiece && j !== piece) || (isAssembly && j > assembly.active)) return;
     const end = project3D(u.map(v => v * (j === 0 ? 6 : 3)));
     const dash = ['', '6 5', '2 4'][j];
     line(parent, project3D(u.map(v => v * (j === 0 ? -6 : -3))), end, axisColors[j], 1.3, dash);
     arrow(parent, project3D([0, 0, 0]), project3D(u), axisColors[j], dash);
-    label(parent, end[0] + 12, end[1] - 7, [{text:'u',math:true,sub:String(j + 1)}], axisColors[j], 21);
+    label(parent, end[0] + 12, isAssembly ? Math.max(80, end[1] - 7) : end[1] - 7, [{text:'u',math:true,sub:String(j + 1)}], axisColors[j], 21);
   });
-  if (isDeflation || isPiece) {
+  if (isDeflation || isPiece || isAssembly) {
     THREE_D_POINTS.forEach((p, i) => {
       if (isDeflation) line(parent, project3D(p), project3D(displayed[i]), colors.rule, 1, '3 4');
       point(parent, project3D(p), false, true, 4);
     });
+  }
+  if (isAssembly && assemblyMix < 1) {
+    const before = scores.map(row => cols[0].map((_, d) => row.reduce((sum, score, j) => sum + (j < assembly.active ? score * cols[j][d] : 0), 0)));
+    before.forEach((p, i) => line(parent, project3D(p), project3D(displayed[i]), axisColors[assembly.active], 1, '3 4'));
   }
   displayed.map((p, i) => ({ p, i })).sort((a, b) => depth(b.p) - depth(a.p)).forEach(({ p, i }) => {
     if (isReconstruction) {
       line(parent, project3D(p), project3D(reconstructed[i]), colors.rule, 1, '3 3');
       point(parent, project3D(p), false, true, 4);
       cross(parent, project3D(reconstructed[i]), i === 20 ? colors.rust : colors.blue);
-    } else if (isPiece) cross(parent, project3D(p), axisColors[piece]);
+    } else if (isPiece || isAssembly) cross(parent, project3D(p), axisColors[isAssembly ? assembly.active : piece]);
     else point(parent, project3D(p), i === 20, false, 4.5);
   });
-  const legend = isDeflation ? '○ Original     ● After subtraction' : isPiece ? '○ Original     × Selected contribution' : isReconstruction ? `○ Original     × Reconstruction · ${components} kept` : scene === 'three-d' ? 'PC1 variance = 9 · total variance = 10.25' : 'Turning the camera preserves score variance';
+  const legend = isDeflation ? '○ Original     ● After subtraction' : isAssembly ? '○ Original     × Sum of contributions' : isPiece ? '○ Original     × Selected contribution' : isReconstruction ? `○ Original     × Reconstruction · ${components} kept` : scene === 'three-d' ? 'PC1 variance = 9 · total variance = 10.25' : 'Turning the camera preserves score variance';
   label(parent, 360, 401, legend, colors.muted, 18, 'middle');
   if (isDeflation) label(parent, 360, 435, 'Shaded plane: perpendicular to PC1', colors.ink, 18, 'middle');
   if (scene === 'plane' && components === 2) label(parent, 360, 435, 'Shaded plane: spanned by PC1 and PC2', colors.ink, 18, 'middle');
@@ -402,16 +412,18 @@ function render() {
   const scene = steps[current].dataset.scene;
   const isThree = dataset === 'three';
   const isResidual = ['residual-plane', 'second-pc', 'third-pc'].includes(scene);
-  const isSVD = scene === 'svd';
   const isExplore = scene === 'explore';
+  const isSVD = scene === 'svd' || (isExplore && isThree && view === 'svd');
   const points = isResidual ? residualPoints : dataset === 'line' ? LINE_POINTS : POINTS;
   const summary = pcaSummary(angle, points);
-  $('angle-control').hidden = (isThree && !isResidual) || ['line', 'basis', 'reconstruction', 'third-pc'].includes(scene) || steps[current].hasAttribute('data-fixed-angle') || (scene === 'residual-plane' && faceOn < 1);
+  stages[current].querySelector('.stage-controls').hidden = !isExplore;
+  $('angle-control').hidden = !isExplore || isThree;
   $('data-control').hidden = !isExplore;
   $('view-control').hidden = !isExplore;
-  $('components-control').hidden = !(scene === 'plane' || (isExplore && isThree && view === 'reconstruction'));
-  $('camera-control').hidden = !isThree || isResidual || isSVD;
-  $('piece-control').hidden = !['pieces', 'svd'].includes(scene);
+  $('components-control').hidden = !(isExplore && isThree && view === 'reconstruction');
+  $('camera-control').hidden = !isExplore || !isThree || isSVD;
+  $('piece-control').hidden = !(isExplore && isThree && ['pieces', 'svd'].includes(view));
+  $('view').querySelectorAll('[data-three-only]').forEach(option => { option.hidden = option.disabled = !isThree; });
   $('statistics').hidden = !isExplore;
   $('variance-budget').hidden = true;
   $('score-calculation').hidden = true;
@@ -432,9 +444,10 @@ function render() {
     : scene === 'reconstruction' ? dropMix < 1 ? 'Discarding the second coordinate' : 'Second coordinate discarded'
     : scene === 'residual-plane' ? faceOn < 1 ? 'Turning to face the residual plane' : 'The same residuals, viewed face on'
     : scene === 'third-pc' ? secondRemoval < 1 ? 'Subtracting PC2' : 'Only PC3 remains'
-    : scene === 'svd' ? svdMix < 1 ? 'Scale the unit pattern' : 'The pattern has become the score column'
+    : isSVD ? svdMix < 1 ? 'Scale the unit pattern' : 'The pattern has become the score column'
     : scene === 'plane' ? reconstructionMix < 1 ? 'Projecting onto the retained subspace' : 'Original observations reconstructed'
     : scene === 'coordinates' ? coordinateMix < 1 ? 'Expressing the same points in the new basis' : 'All coordinates kept'
+    : scene === 'pieces' ? assemblyMix < 1 ? `Adding PC${assembleComponents(THREE_D_POINTS, THREE_D_BASIS, assemblyMix).active + 1}` : 'All three contributions added'
     : scene === 'deflation'
     ? removal < 1 ? 'Removing PC1' : 'PC1 removed'
     : steps[current].hasAttribute('data-motion-projection')
@@ -471,11 +484,11 @@ function render() {
     const { singularValues } = svdExample();
     const d = singularValues[piece];
     statistics([['Length ', inlineMath(indexed('d', piece + 1))], ['Length of ', inlineMath(mSub(mVar('p'), mVar('j')))], 'Score variance'], [fmt(d), '1.00', fmt(d * d / 23)]);
-    caption = [`PC${piece + 1}: `, inlineMath(`${mSub(mVar('z'), mVar('j'))}${mOp('=')}${mSub(mVar('d'), mVar('j'))}${mSub(mVar('p'), mVar('j'))}`), `. The score column has length ${fmt(d)}; its normalized pattern has length 1. Their plots have different labelled vertical scales. Squared length divided by 23 gives score variance ${fmt(d * d / 23)}.`];
+    caption = [`PC${piece + 1}: `, inlineMath(`${mSub(mVar('z'), mVar('j'))}${mOp('=')}${mSub(mVar('d'), mVar('j'))}${mSub(mVar('p'), mVar('j'))}`), `. The score column has length ${fmt(d)}; its normalized pattern has length 1. Both use the same vertical scale. Squared length divided by 23 gives score variance ${fmt(d * d / 23)}.`];
   } else if (isThree) {
     const three = threeSummary();
     const isReconstruction = scene === 'plane' || (isExplore && view === 'reconstruction');
-    if (scene === 'pieces') {
+    if (isExplore && view === 'pieces') {
       statistics(['Piece variance', 'Original total', 'Share of total'], [fmt(three.variances[piece]), '10.25', `${fmt(three.variances[piece] / three.total * 100, 1)}%`]);
       caption = [`Crosses show each observation’s PC${piece + 1} contribution `, inlineMath(`${mSub(mVar('z'), `${mVar('i')}${mNum(piece + 1)}`)}${indexed('u', piece + 1)}`), `. It lies along one direction and contributes variance ${fmt(three.variances[piece])}. The three pieces add to the original hollow-circle observations.`];
     } else if (scene === 'three-d') {
@@ -518,7 +531,7 @@ function render() {
     $('score-calculation').hidden = false;
     setNotation($('score-calculation'), inlineMath(`${mFunction('Var', xu())}${mOp('=')}<mfrac>${mNum(fmt(squared))}${mNum(points.length - 1)}</mfrac>${mOp('=')}${mNum(fmt(summary.variance))}`));
     $('score-calculation').style.opacity = steps[current].hasAttribute('data-motion-projection') ? Math.max(0, (projectionMix - .65) / .35) : 1;
-  } else if (scene === 'svd') {
+  } else if (isSVD) {
     const d = svdExample().singularValues[piece];
     $('score-calculation').hidden = false;
     $('score-calculation').style.opacity = Math.max(0, (svdMix - .75) / .25);
@@ -569,6 +582,11 @@ function render() {
         { label: 'Omitted coordinates left', value: tail, color: colors.teal },
         { label: 'Discarded', value: 10.25 - kept - tail, removed: true },
       ], 10.25);
+    } else if (scene === 'pieces') {
+      const { weights } = assembleComponents(THREE_D_POINTS, THREE_D_BASIS, assemblyMix);
+      const parts = three.variances.map((value, j) => ({ label: `PC${j + 1} added`, value: value * weights[j] ** 2, color: [colors.blue, colors.rust, colors.teal][j] }));
+      parts.push({ label: 'Not yet recovered', value: 10.25 - parts.reduce((sum, part) => sum + part.value, 0), removed: true });
+      varianceBudget(parts, 10.25);
     } else varianceBudget(three.variances.map((value, j) => ({ label: `PC${j + 1}`, value, color: [colors.blue, colors.rust, colors.teal][j] })), 10.25);
   }
   const brief = {
@@ -579,13 +597,14 @@ function render() {
     reconstruction: dropMix < 1 ? 'Only the second coordinate changes.' : 'One component retains 9 of the original total variance 10: 90%.',
     'three-d': 'PC1 captures 9 of the original total variance 10.25.',
     deflation: removal < 1 ? 'Points move parallel to PC1; the camera stays fixed.' : 'PC1 is gone. The remaining variance is 1.25.',
-    'residual-plane': faceOn < 1 ? 'Only the view changes; the residual points stay fixed.' : 'Turn the direction within this plane to compare projected variance.',
+    'residual-plane': faceOn < 1 ? 'Only the view changes; the residual points stay fixed.' : 'Next, the direction rotates within this plane to find PC2.',
     'second-pc': 'The maximum is PC2. Its perpendicular direction within the plane is PC3.',
     'third-pc': secondRemoval < 1 ? 'Subtract PC2 along parallel paths.' : 'Only the PC3 contribution remains, with variance 0.25.',
     plane: reconstructionMix < 1 ? 'Return to the original cloud, then omit the unused contributions.' : `${components} component${components === 1 ? '' : 's'} retain ${fmt(100 * threeSummary().retained, 1)}% of the original total variance.`,
+    pieces: assemblyMix < 1 ? 'Each new contribution moves the points along its principal direction.' : 'The sum of all three contributions recovers every original observation.',
     svd: 'Each observation keeps its place in the pattern while its score is scaled.',
   };
-  setNotation($('caption'), brief[scene] || caption);
+  setNotation($('caption'), (isSVD ? brief.svd : brief[scene]) || caption);
   $('variance-budget').style.opacity = scene === 'coordinates' ? Math.max(0, Math.min(1, (coordinateMix - .6) / .4)) : 1;
   const captionText = notationText($('caption'));
   const description = ['scores', 'variance'].includes(scene) ? `${captionText} Xu contains the scores ${summary.scores.map(value => fmt(value)).join(', ')}.` : captionText;
@@ -651,6 +670,7 @@ function animateReconstruction(startPoints) {
 }
 function entranceFor(index) {
   const step = steps[index];
+  if (step.dataset.scene === 'explore' && dataset === 'three' && view === 'svd') return { svdMix: 0 };
   if (step.hasAttribute('data-motion-basis')) return { basisReveal: 0 };
   if (step.hasAttribute('data-motion-coordinates')) return { coordinateMix: 0 };
   if (step.hasAttribute('data-motion-drop')) return { dropMix: 0 };
@@ -658,6 +678,7 @@ function entranceFor(index) {
   if (step.hasAttribute('data-motion-second-removal')) return { secondRemoval: 0 };
   if (step.hasAttribute('data-motion-reconstruction')) return { reconstructionMix: 0 };
   if (step.hasAttribute('data-motion-svd')) return { svdMix: 0 };
+  if (step.hasAttribute('data-motion-assembly')) return { assemblyMix: 0 };
   if (step.hasAttribute('data-motion-projection')) return { projectionMix: 0 };
   if (step.hasAttribute('data-motion-removal')) return { removal: 0 };
   if (step.hasAttribute('data-motion-camera')) return { camera: Number(step.dataset.motionCamera) };
@@ -667,7 +688,7 @@ function entranceFor(index) {
 function prepareEntrance() {
   const from = entranceFor(current);
   if (!from || entrancePlayed.has(current)) return;
-  const to = { angle: targetAngle, projectionMix: 1, removal, camera, basisReveal: 1, coordinateMix: 1, dropMix: 1, faceOn: 1, secondRemoval: 1, reconstructionMix: 1, svdMix: 1 };
+  const to = { angle: targetAngle, projectionMix: 1, removal, camera, basisReveal: 1, coordinateMix: 1, dropMix: 1, faceOn: 1, secondRemoval: 1, reconstructionMix: 1, svdMix: 1, assemblyMix: 1 };
   if ('removal' in from) to.removal = targetRemoval = 1;
   const apply = state => {
     if ('angle' in state) angle = state.angle;
@@ -681,6 +702,7 @@ function prepareEntrance() {
     if ('secondRemoval' in state) secondRemoval = state.secondRemoval;
     if ('reconstructionMix' in state) reconstructionMix = state.reconstructionMix;
     if ('svdMix' in state) svdMix = state.svdMix;
+    if ('assemblyMix' in state) assemblyMix = state.assemblyMix;
     render();
   };
   const finish = () => {
@@ -704,12 +726,12 @@ function maybePlayEntrance(force = false) {
   entrancePlayed.add(current);
   const index = current;
   const start = performance.now();
-  const duration = 'faceOn' in pending.from ? 2400 : 'basisReveal' in pending.from ? 1400 : 2000;
+  const duration = 'assemblyMix' in pending.from ? 6000 : 'faceOn' in pending.from ? 2400 : 'basisReveal' in pending.from ? 1400 : 2000;
   finishAnimation = pending.finish;
   function frame(time) {
     if (current !== index) return;
     const t = Math.min(1, (time - start) / duration);
-    const eased = t * t * (3 - 2 * t);
+    const eased = 'assemblyMix' in pending.from ? t : t * t * (3 - 2 * t);
     const state = {};
     for (const key of Object.keys(pending.from)) state[key] = pending.from[key] + eased * (pending.to[key] - pending.from[key]);
     pending.apply(state);
@@ -737,7 +759,7 @@ function setStep(index, animate = true) {
   if (changed) remember();
   current = index;
   projectionMix = 1;
-  basisReveal = coordinateMix = dropMix = faceOn = secondRemoval = reconstructionMix = svdMix = 1;
+  basisReveal = coordinateMix = dropMix = faceOn = secondRemoval = reconstructionMix = svdMix = assemblyMix = 1;
   reconstructionStart = undefined;
   svg = $('diagram');
   const scene = steps[index].dataset.scene;
@@ -750,7 +772,10 @@ function setStep(index, animate = true) {
     removal: 0,
     piece: 0,
   };
-  const state = { ...(saved.get(index) || fallback) };
+  // The guided story always returns to its authored demonstration. Only the
+  // final explorer preserves manual choices between visits.
+  const state = { ...(scene === 'explore' ? saved.get(index) || fallback : fallback) };
+  if (scene === 'deflation') state.removal = 1;
   if (scene === 'residual-plane' && sourceScene === 'deflation' && !entrancePlayed.has(index)) state.camera = sourceCamera;
   dataset = state.dataset;
   view = state.view;
@@ -830,7 +855,7 @@ stages.forEach((stage, index) => {
     stopAnimation(true);
     if (entrancePending) entrancePending.finish();
     removal = targetRemoval;
-    basisReveal = coordinateMix = dropMix = faceOn = secondRemoval = reconstructionMix = svdMix = 1;
+    basisReveal = coordinateMix = dropMix = faceOn = secondRemoval = reconstructionMix = svdMix = assemblyMix = 1;
     entrancePending = undefined;
     entrancePlayed.add(index);
     projectionMix = 1;
@@ -891,7 +916,7 @@ stages.forEach((stage, index) => {
       if (id === 'piece') piece = Number(value);
       remember(); render();
       if (previousReconstruction) animateReconstruction(previousReconstruction);
-      if (id === 'piece' && steps[index].dataset.scene === 'svd') {
+      if ((id === 'piece' || id === 'view') && dataset === 'three' && view === 'svd') {
         entrancePlayed.delete(index);
         prepareEntrance();
         maybePlayEntrance(true);

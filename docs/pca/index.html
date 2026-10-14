@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#FFFFFF">
   <meta name="description" content="Start with x₁ = x₂, compare the variance of Xu along familiar axes and the diagonal, then develop PCA as a change of basis. Interactive two- and three-dimensional examples for POLS 4728.">
   <title>PCA: a change of basis · POLS 4728</title>
-  <link rel="stylesheet" href="style.css?v=20261014-storyboard">
-  <script type="module" src="app.js?v=20261014-storyboard"></script>
+  <link rel="stylesheet" href="style.css?v=20261014-scroll">
+  <script type="module" src="app.js?v=20261014-scroll"></script>
 </head>
 <body>
   <a class="skip" href="#story">Skip to the explanation</a>
@@ -107,9 +107,9 @@
           <p>Return to the original cloud and reconstruct each point from PC1 and PC2. This retained plane contains both directions; the earlier residual plane was perpendicular to PC1. The segments show the omitted PC3 contribution.</p>
           <div class="equation"><math display="block"><msub><mover accent="true"><mi>x</mi><mo>^</mo></mover><mi>i</mi></msub><mo>=</mo><msub><mi>z</mi><mrow><mi>i</mi><mn>1</mn></mrow></msub><msub><mi>u</mi><mn>1</mn></msub><mo>+</mo><msub><mi>z</mi><mrow><mi>i</mi><mn>2</mn></mrow></msub><msub><mi>u</mi><mn>2</mn></msub></math></div>
         </section>
-        <section class="step" id="one-piece" data-title="See the data as three pieces" data-scene="pieces">
+        <section class="step" id="one-piece" data-title="See the data as three pieces" data-scene="pieces" data-motion-assembly>
           <p class="eyebrow">17 · Component contributions</p><h2>Each component contributes one piece</h2>
-          <p>Each component contributes a score column times a direction. Subtracting PC1 removed the first piece; keeping PC1 and PC2 adds the first two. Adding all three recovers the complete data matrix.</p>
+          <p>Build the data one contribution at a time: PC1, then PC2, then PC3. Each adds a score column times a direction. The three pieces together recover every original observation.</p>
           <div class="equation"><math display="block"><mi>X</mi><mo>=</mo><msub><mi>z</mi><mn>1</mn></msub><msup><msub><mi>u</mi><mn>1</mn></msub><mo>⊤</mo></msup><mo>+</mo><msub><mi>z</mi><mn>2</mn></msub><msup><msub><mi>u</mi><mn>2</mn></msub><mo>⊤</mo></msup><mo>+</mo><msub><mi>z</mi><mn>3</mn></msub><msup><msub><mi>u</mi><mn>3</mn></msub><mo>⊤</mo></msup></math></div>
         </section>
         <section class="step" id="svd" data-title="SVD: a pattern and its size" data-scene="svd" data-motion-svd>
@@ -210,7 +210,7 @@
         <div class="stage-controls">
           <label id="data-control" hidden>Example <select id="dataset"><option value="line">Exact line · 2D</option><option value="cloud">Thicker cloud · 2D</option><option value="three">Cloud · 3D</option></select></label>
           <div id="angle-control" hidden><label for="angle"><span id="angle-label">Direction angle <math><mi>θ</mi></math></span> <output id="angle-value" for="angle">30°</output></label><input id="angle" type="range" min="0" max="180" step="1" value="30"><div class="angle-presets"><button data-angle="0" type="button">0°</button><button data-angle="45" type="button">45° · PC1</button><button data-angle="135" type="button">135° · PC2</button></div></div>
-          <label id="view-control" hidden>View <select id="view"><option value="original">Original coordinates</option><option value="coordinates">New coordinates</option><option value="reconstruction">Reconstruction</option></select></label>
+          <label id="view-control" hidden>View <select id="view"><option value="original">Original coordinates</option><option value="coordinates">New coordinates</option><option value="reconstruction">Reconstruction</option><option value="pieces" data-three-only hidden disabled>Component contributions</option><option value="svd" data-three-only hidden disabled>SVD pattern and scores</option></select></label>
           <label id="components-control" hidden>Components kept <select id="components"><option value="1">1 · a line</option><option value="2" selected>2 · a plane</option><option value="3">3 · all coordinates</option></select></label>
           <label id="piece-control" hidden>Component <select id="piece"><option value="0">PC1</option><option value="1">PC2</option><option value="2">PC3</option></select></label>
           <div id="camera-control" hidden><label for="camera">Turn the 3D view <output id="camera-value" for="camera">25°</output></label><input id="camera" type="range" min="-90" max="90" step="1" value="25"></div>

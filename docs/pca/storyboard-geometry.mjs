@@ -1,4 +1,4 @@
-import { THREE_D_BASIS, dotND } from './model.mjs';
+import { THREE_D_BASIS, dotND, changeBasis, reconstructBasis } from './model.mjs';
 
 // The remaining plane uses a reference basis 30° away from PC2 and PC3.
 // Its coordinates therefore agree with coordinates(residualScores, 30).
@@ -19,6 +19,23 @@ const cross = (a, b) => [
   a[2] * b[0] - a[0] * b[2],
   a[0] * b[1] - a[1] * b[0],
 ];
+
+/**
+ * Assemble three score-column × direction pieces in an orthonormal basis.
+ * Each third of progress adds one component over its first 70%, then holds.
+ * Observation order, the source points, and the supplied basis stay unchanged.
+ */
+export function assembleComponents(points, basis, progress) {
+  const phase = clamp(progress) * 3;
+  const active = Math.min(2, Math.floor(phase));
+  const weights = [0, 1, 2].map(component => {
+    const amount = clamp((phase - component) / .7);
+    return amount * amount * (3 - 2 * amount);
+  });
+  const scores = changeBasis(points, basis).map(row =>
+    row.map((value, component) => value * weights[component]));
+  return { points: reconstructBasis(scores, basis), weights, active };
+}
 
 // Quaternion operations rotate a complete orthonormal camera frame. Mixing
 // screen coordinates directly would deform the plane between its endpoints.

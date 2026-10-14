@@ -13,7 +13,7 @@ one idea per beat, with at most one principal display equation.
 | 6–7 | Hold PC1 fixed, add its perpendicular direction, and express the same observations in the new basis. |
 | 8–10 | Introduce the thicker 2D cloud, repeat the full basis change, then discard the second score while holding the principal basis fixed. |
 | 11–15 | Find PC1 in 3D, subtract its contribution, turn the residual plane face-on, find PC2 within it, and subtract PC2 to reveal the PC3 line. |
-| 16–18 | Return to the original cloud, reconstruct with retained components, inspect additive component pieces, and scale a unit SVD pattern into its score column. |
+| 16–18 | Return to the original cloud, reconstruct with two retained components, automatically add PC1 then PC2 then PC3, and scale a unit SVD pattern into its score column. |
 | 19 | Compare the examples in the explorer. |
 
 The variance budget uses the original dataset's total as a fixed reference.
@@ -148,11 +148,17 @@ returning to the original coordinates.
   collapses its residual points onto the PC3 line. The highlighted observation
   remains identifiable through these operations.
 - Returning to the original 3D cloud introduces the retained reconstruction
-  plane. Choose how many components to keep or inspect individual rank-one
-  pieces. The SVD animation scales a unit pattern into the actual score column
-  on one fixed vertical scale, rather than changing scales between views.
-  The final explorer switches among all three datasets and their coordinate
-  or reconstruction views.
+  plane. The next animation adds PC1, then PC2, then PC3 along their respective
+  directions, pausing after each contribution. A fixed camera and variance
+  budget show how the pieces recover the complete observations. The guided
+  SVD animation uses PC1 and scales a unit pattern into its actual score column
+  on one fixed vertical scale.
+- The guided sequence has no sliders, angle presets, or model selectors.
+  Scrolling brings each authored demonstration into view and starts playback;
+  Replay remains available. The final explorer holds the manual angle, camera,
+  and reconstruction controls, plus individual 3D contributions and all three
+  SVD patterns. Guided scenes always restore their authored basis and camera;
+  the explorer preserves the reader's choices.
 - Animations begin when their figures enter view. Replay animation repeats the
   transition. Completed endpoints persist after camera changes, resizing, or
   leaving and returning to a step. Component subtraction has no removal slider
@@ -195,5 +201,6 @@ sequential removal, additive component pieces, and the SVD factorization and
 variance identity. Browser review covers desktop and narrow layouts, the
 45°/135° cases, the single-score and full-column sequence, fixed-basis
 coordinate dropping, variance budgets, 3D subtraction and face-on camera motion,
-PC2 removal, reconstruction controls, residual plane angles, all three SVD
+PC2 removal, sequential component assembly, explorer reconstruction controls,
+residual plane angles, all three SVD
 columns on a fixed scale, optional disclosures, and step/history navigation.

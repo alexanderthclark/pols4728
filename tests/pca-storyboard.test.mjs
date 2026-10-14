@@ -6,7 +6,7 @@ import {
 } from '../docs/pca/model.mjs';
 import {
   RESIDUAL_BASIS, residualCamera, projectWithCamera,
-  projectResidualPoint, residualPointAt,
+  projectResidualPoint, residualPointAt, assembleComponents,
 } from '../docs/pca/storyboard-geometry.mjs';
 
 const close = (actual, expected, label = '') => assert.ok(
@@ -127,4 +127,69 @@ test('camera motion and subtraction clamp at their endpoints and never mutate ob
   assert.deepEqual(mutablePoint, pointBefore);
   assert.deepEqual(THREE_D_POINTS, pointsBefore);
   assert.deepEqual(THREE_D_RESIDUALS, residualsBefore);
+});
+
+test('component assembly starts at the origin and reaches each successive reconstruction', () => {
+  const endpoints = [
+    { progress: 0, weights: [0, 0, 0], active: 0 },
+    { progress: 1 / 3, weights: [1, 0, 0], active: 1 },
+    { progress: 2 / 3, weights: [1, 1, 0], active: 2 },
+    { progress: 1, weights: [1, 1, 1], active: 2 },
+  ];
+  for (const expected of endpoints) {
+    const assembled = assembleComponents(THREE_D_POINTS, THREE_D_BASIS, expected.progress);
+    assert.deepEqual(assembled.weights, expected.weights);
+    assert.equal(assembled.active, expected.active);
+    assembled.points.forEach((point, i) => {
+      const expectedPoint = [0, 1, 2].map(coordinate => axes.reduce((sum, axis, component) =>
+        sum + expected.weights[component] * dotND(THREE_D_POINTS[i], axis) * axis[coordinate], 0));
+      closePoint(point, expectedPoint, 'sum of completed rank-one contributions');
+      if (expected.progress === 1) closePoint(point, THREE_D_POINTS[i], 'full reconstruction');
+    });
+  }
+});
+
+test('each assembly phase moves only along its component and pauses before the next', () => {
+  for (let component = 0; component < 3; component++) {
+    const start = assembleComponents(THREE_D_POINTS, THREE_D_BASIS, component / 3);
+    const halfway = assembleComponents(THREE_D_POINTS, THREE_D_BASIS, (component + .35) / 3);
+    const held = assembleComponents(THREE_D_POINTS, THREE_D_BASIS, (component + .8) / 3);
+    const heldLater = assembleComponents(THREE_D_POINTS, THREE_D_BASIS, (component + .95) / 3);
+    assert.equal(halfway.active, component);
+    halfway.weights.forEach((weight, j) => close(weight, j < component ? 1 : j === component ? .5 : 0, 'smoothstep midpoint'));
+    halfway.points.forEach((point, i) => {
+      const movement = point.map((value, j) => value - start.points[i][j]);
+      axes.forEach((axis, j) => close(dotND(movement, axis),
+        j === component ? .5 * dotND(THREE_D_POINTS[i], axis) : 0, 'only the active direction changes'));
+      closePoint(held.points[i], heldLater.points[i], 'phase holds its completed contribution');
+    });
+  }
+});
+
+test('assembly variance is the sum of squared component weights times original score variances', () => {
+  const bases = [THREE_D_BASIS, [[0, 1, 0], [0, 0, 1], [1, 0, 0]]];
+  for (const basis of bases) {
+    const columns = [0, 1, 2].map(j => basis.map(row => row[j]));
+    const originalVariances = columns.map(axis => sampleVariance(THREE_D_POINTS.map(point => dotND(point, axis))));
+    for (let frame = 0; frame <= 60; frame++) {
+      const assembled = assembleComponents(THREE_D_POINTS, basis, frame / 60);
+      const variance = [0, 1, 2].reduce((sum, j) =>
+        sum + sampleVariance(assembled.points.map(point => point[j])), 0);
+      const expected = assembled.weights.reduce((sum, weight, j) =>
+        sum + weight ** 2 * originalVariances[j], 0);
+      close(variance, expected, 'variance budget throughout the assembly');
+    }
+  }
+});
+
+test('assembly clamps progress and never mutates points or basis', () => {
+  const points = structuredClone(THREE_D_POINTS);
+  const basis = structuredClone(THREE_D_BASIS);
+  const pointsBefore = structuredClone(points);
+  const basisBefore = structuredClone(basis);
+  for (const amount of [-10, -.1, 0, .5, 1, 1.1, 10]) {
+    assert.deepEqual(assembleComponents(points, basis, amount), assembleComponents(points, basis, Math.max(0, Math.min(1, amount))));
+  }
+  assert.deepEqual(points, pointsBefore);
+  assert.deepEqual(basis, basisBefore);
 });
