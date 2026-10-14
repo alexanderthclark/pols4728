@@ -4,11 +4,37 @@
 
 A separate opening page places the real-text title above a registered monochrome illustration of three torso-free stick figures putting their ballots into one box labeled VOTE at once. “A voting application” appears at the bottom of the cover. The cover and story share the course guide’s ink, muted, and blue palette, with the full illustration preserved on desktop and phones. Serif headings use regular weight; prose introduces definitions in italics and leaves numerical conclusions in regular text. The masthead reads “Shapley values.” **Start the explanation** leads to the first teaching scene; **Back to the beginning** returns to the cover. The cover does not add a scene or change the seventeen-stage sequence.
 
-The first eight frames use plain-language groups, outcomes, paths, and weights. A concluding bridge names the existing node numbers as the value function `v(S)`: one for coalitions with at least two voters, zero otherwise. Scrolling through that bridge replaces each pass/fail payoff row with `v(group) = payoff` as the rule reaches the reading position; scrolling back restores the familiar labels. Only then do six formula frames introduce `N`, `n`, and `i` and connect the general Shapley formula to the diagram, explaining the summation range, marginal contribution, arrangements before the joining voter, arrangements after, division by all orders, and the completed weighted sum. The complete diagram stays visible, and selecting a coalition changes the example edge and its counts. Math uses native MathML, without an external rendering dependency.
+The first eight frames use plain-language groups, outcomes, paths, and weights. A concluding bridge names the existing node numbers as the value function `v(S)`: one for coalitions with at least two voters, zero otherwise. Entering that frame replaces each pass/fail payoff row with `v(group) = payoff`; returning to an earlier frame restores the familiar labels. Only then do six formula frames introduce `N`, `n`, and `i` and connect the general Shapley formula to the diagram, explaining the summation range, marginal contribution, arrangements before the joining voter, arrangements after, division by all orders, and the completed weighted sum. The complete diagram stays visible, and selecting a coalition changes the example edge and its counts. Math uses native MathML, without an external rendering dependency.
 
 At “Put the pieces together,” click a weight or **See the six paths behind these weights**. The optional panel displays all six Hasse diagrams in a three-column grid on wide screens, two columns on medium screens, and a scrolling column on phones. It highlights paths containing the selected joining edge and emphasizes that edge with a thicker arrow. The other paths remain faded. A’s two zero-contribution terms select different pairs of paths.
 
-The interactive explorer also supports B and C, coalition and edge inspection, and order replay. Calculation terms open the same explanation for the selected voter. Closing the panel returns keyboard focus to its trigger; opening it pauses any active replay. Reduced-motion preferences are respected by the story.
+The interactive explorer also supports B and C, coalition and edge inspection, and order replay. The player selector and inspection result stay beneath the diagram in the main scene. **More exploration** opens replay and detailed edge controls; choosing an order or edge closes the panel so the result is visible. Calculation terms open the six-path explanation for the selected voter. Closing either panel returns keyboard focus to its trigger; opening one pauses any active replay. Reduced-motion preferences are respected by the story.
+
+## Single-column presentation
+
+One full-width visual stage stays in view while scrolling changes the picture,
+equation, title, and caption. Each of the seventeen captions contains 16–31 words.
+The title and caption sit beneath the visual, with Previous/Next controls and a
+step count. Left/Right arrow keys also navigate while a form control or dialog
+is not active. The original opening title page remains the entry point.
+
+The six-order scene visits accounting paths as the reader scrolls through it;
+its compact buttons also select any order. Entering the value-function scene
+names the existing coalition values and puts the rule beneath the diagram.
+Formula scenes keep the picture and equation together, highlighting the current
+factor. Short phone screens prioritize the equation in these scenes.
+
+The active caption retains its original controls and MathML nodes. Original
+sections provide the scroll track and stable hash destinations; links focus the
+new caption heading. Optional context, methods, sources, and longer exploration
+controls open in a keyboard-accessible native dialog. The state selector retains its selection between visits; moving controls does not
+recreate their DOM nodes. A restrained caption transition
+is disabled when reduced motion is requested. Annotations retain stable positions in the visual.
+Without JavaScript, the source captions and equations remain readable in order.
+
+Browser review covers all seventeen scenes at 1440×900, 1366×650, 768×900,
+390×844, 320×700, and 320×568, including diagram/caption separation, detail-panel
+focus, keyboard navigation, coalition selection, replay, and the state selector.
 
 ## Electoral College example
 
@@ -59,7 +85,8 @@ Open `http://localhost:8765/shapley/`. A web server is required because the page
 - `style.css` styles the opening page, story, Hasse diagram, and optional panel.
 - `assets/voters-ballot-box.png` is the registered opening illustration; the title and application label remain real text in the page.
 - `game.mjs` calculates coalition values, joining edges, all accounting orders, edge frequencies, and Shapley values.
-- `story.js` handles scroll stages and the three-voter explorer.
+- `story.js` handles scroll stages, caption placement, navigation, detail dialogs, and the three-voter explorer.
+- `presentation.css` gives the complete story its responsive single-column layout.
 - `electoral-college.mjs` provides exact weighted voting calculations and the current allocation/results.
 - `electoral-view.js` and `electoral.css` draw the pivotal tally and all-state power comparison.
 - `weight-view.js` draws the six-diagram explanation from the game’s orders and edges.

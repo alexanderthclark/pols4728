@@ -104,12 +104,17 @@ export function createElectoralView(results) {
 
   function drawScatter(width) {
     const compact = width < 400;
-    const desiredHeight = compact ? 160 : Math.min(308, Math.round(width * .53));
+    const presentation = document.body.classList.contains('is-presentation');
+    const desiredHeight = presentation ? 440 : compact ? 160 : Math.min(308, Math.round(width * .53));
     const otherHeight = [...powerScene.children].filter(child => child !== scatter).reduce((sum, child) => {
       const style = getComputedStyle(child);
       return sum + child.getBoundingClientRect().height + parseFloat(style.marginTop) + parseFloat(style.marginBottom);
     }, 0);
-    const availableHeight = element.parentElement?.clientHeight;
+    const parent = element.parentElement;
+    const siblings = presentation ? [...parent.children].filter(child => child !== element &&
+      getComputedStyle(child).display !== 'none' && getComputedStyle(child).position !== 'absolute') : [];
+    const siblingHeight = siblings.reduce((sum, child) => sum + child.getBoundingClientRect().height, 0);
+    const availableHeight = parent?.clientHeight - siblingHeight - (siblings.length ? parseFloat(getComputedStyle(parent).gap) || 0 : 0);
     const height = availableHeight ? Math.max(150, Math.min(desiredHeight, Math.floor(availableHeight - otherHeight - 2))) : desiredHeight;
     const bounds = { left: 44, right: width - 18, top: 30, bottom: height - 38 };
     const x = votes => bounds.left + votes / 60 * (bounds.right - bounds.left);

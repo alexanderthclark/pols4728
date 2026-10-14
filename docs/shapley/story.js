@@ -80,6 +80,71 @@ weightTrigger.addEventListener('click', () => explainWeight('0-1', weightTrigger
 steps[6].querySelector('.step-content').append(weightTrigger);
 document.querySelectorAll('[data-explain-weight]').forEach(button => button.addEventListener('click', () => explainWeight(button.dataset.explainWeight, button)));
 
+// Keep one stable picture and caption on screen; sections provide the scroll track.
+// Move the actual nodes so their controls and event listeners retain their state.
+const sceneContents = steps.map(step => step.querySelector('.step-content'));
+const sceneCaption = document.createElement('div');
+sceneCaption.id = 'scene-caption'; sceneCaption.className = 'scene-caption';
+const navigation = document.createElement('nav');
+navigation.id = 'scene-navigation'; navigation.setAttribute('aria-label', 'Story steps');
+navigation.innerHTML = '<button type="button" id="scene-previous">Previous</button><span id="scene-position"></span><button type="button" id="scene-next">Next</button>';
+stage.append(sceneCaption, navigation);
+const sceneEquations = new Map();
+for (const index of [8, 16]) {
+  const equation = sceneContents[index].querySelector('.value-definition');
+  if (!equation) continue;
+  const holder = document.createElement('div');
+  holder.className = 'scene-equation'; holder.dataset.scene = String(index);
+  holder.hidden = true; holder.append(equation); stageViz.append(holder);
+  sceneEquations.set(index, holder);
+}
+const detailDialog = document.createElement('dialog');
+detailDialog.id = 'scene-detail-dialog'; detailDialog.className = 'scene-detail-dialog';
+detailDialog.setAttribute('aria-labelledby', 'scene-detail-title');
+detailDialog.innerHTML = '<div class="scene-detail-top"><h2 id="scene-detail-title">More detail</h2><button type="button" id="scene-detail-close">Close</button></div><div id="scene-detail-body"></div>';
+document.body.append(detailDialog);
+let detailTrigger = null;
+const sceneDetails = new Map();
+function closeSceneDetails() {
+  if (!detailDialog.open) return;
+  detailDialog.close();
+}
+detailDialog.addEventListener('close', () => {
+  const content = detailDialog.querySelector('#scene-detail-body').firstElementChild;
+  if (content) { content.hidden = true; sceneContents[Number(content.dataset.scene)].append(content); }
+  detailTrigger?.focus({ preventScroll: true });
+});
+$('#scene-detail-close').addEventListener('click', closeSceneDetails);
+for (const [index, content] of sceneContents.entries()) {
+  let details = content.querySelector('.scene-detail-content');
+  if (index === 7) {
+    if (!details) { details = document.createElement('div'); details.className = 'scene-detail-content'; content.append(details); }
+    details.append(controls);
+    content.append(controls.querySelector('.player-selector'));
+    const inspection = controls.querySelector('#edge-detail');
+    inspection.className = 'explore-inspection'; inspection.hidden = true; content.append(inspection);
+  }
+  if (index === 15 && details) {
+    const equation = content.querySelector(':scope > .value-definition');
+    if (equation) details.querySelector('p').after(equation);
+  }
+  if (!details) continue;
+  details.hidden = true; details.dataset.scene = String(index); sceneDetails.set(index, details);
+  const trigger = document.createElement('button');
+  trigger.type = 'button'; trigger.className = 'scene-detail-trigger';
+  trigger.textContent = index === 7 ? 'More exploration' : 'More detail';
+  trigger.setAttribute('aria-haspopup', 'dialog'); trigger.setAttribute('aria-controls', 'scene-detail-dialog');
+  trigger.addEventListener('click', () => {
+    stopPlayback(); detailTrigger = trigger;
+    $('#scene-detail-title').textContent = content.querySelector('h2').textContent;
+    details.hidden = false; $('#scene-detail-body').append(details); detailDialog.showModal();
+    $('#scene-detail-close').focus();
+  });
+  content.append(trigger);
+}
+sceneContents.forEach(content => { content.hidden = true; });
+document.body.classList.add('is-presentation');
+
 let current = -1, selectedPlayer = 0, removedPlayer = 0, inspectedEdge = null, pathState = null, playbackTimer = null, scrollFrame = 0, nodeNotationVisible = false;
 const kickers = ['01 / THE RULE', '02 / THE REMOVAL PUZZLE', '03 / THE SMALLEST GROUPS', '04 / ADD THE PAIRS', '05 / THE COMPLETE DIAGRAM', '06 / COUNT THE ORDERS', '07 / THE WEIGHTED AVERAGE', '08 / THE HASSE DIAGRAM', '09 / THE VALUE FUNCTION', '10 / THE SUMMATION', '11 / THE CONTRIBUTION', '12 / BEFORE A', '13 / AFTER A', '14 / THE WEIGHT', '15 / THE SHAPLEY VALUE', '16 / THE ELECTORAL COLLEGE', '17 / POWER RELATIVE TO VOTES'];
 const counts = ['3 voters · 2 votes to pass', '2 votes still pass', '4 groups · 3 edges', '7 groups · 9 edges', '8 groups · 12 edges', '6 imagined orders', '4 terms · 1 Shapley value', 'Majority voting · 3 voters', '0 means failure · 1 means success', 'i = A · n = 3', 'One joining edge', 'Order the voters in S', 'Order the remaining voters', 'Matching orders / all orders', 'Four edges · one weighted sum', '51 blocs · 270 votes to win', 'Exact values · 2024 / 2028 allocation'];
@@ -124,6 +189,11 @@ function updateRemoval() {
 }
 function showStep(index) {
   if (index === current) return;
+  closeSceneDetails();
+  if (current >= 0) {
+    sceneContents[current].hidden = true;
+    steps[current].append(sceneContents[current]);
+  }
   stopPlayback(); current = index; inspectedEdge = null; stage.dataset.scene = current;
   const inFormula = current >= 9 && current < 15;
   const inElectoral = current >= 15;
@@ -138,10 +208,17 @@ function showStep(index) {
   $('#stage-kicker').textContent = kickers[current]; $('#stage-count').textContent = counts[current];
   $('#graph-container').setAttribute('aria-hidden', String(current < 2 || inElectoral));
   controls.hidden = current !== 7; calc.hidden = current < 6 || current >= 8;
+  $('#edge-detail').hidden = true;
   formulaView.element.hidden = !inFormula;
   if (inFormula) formulaView.update(current - 9);
   electoralView.element.hidden = !inElectoral;
   if (inElectoral) electoralView.update(current - 15);
+  for (const [scene, equation] of sceneEquations) equation.hidden = scene !== current;
+  sceneContents[current].hidden = false; sceneCaption.append(sceneContents[current]);
+  $('#scene-position').textContent = `${current + 1} / ${steps.length}`;
+  $('#scene-previous').textContent = current === 0 ? 'Title' : 'Previous';
+  $('#scene-next').textContent = current === steps.length - 1 ? 'Back to title' : 'Next';
+  if (current === 8) setNodeNotation(true);
   updateRemoval();
   nodeEls.forEach(b => { b.disabled = current !== 7; b.classList.remove('is-inspected'); });
   if (current === 4) pathState = { orderIndex: 2, count: 3 };
@@ -207,21 +284,25 @@ function updateCalculation() {
 function updateSelectedControls() { document.querySelectorAll('[data-select-player]').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.selectPlayer) === selectedPlayer))); }
 function selectPlayer(i) {
   stopPlayback(); selectedPlayer = i; inspectedEdge = null; nodeEls.forEach(b => b.classList.remove('is-inspected'));
+  $('#edge-detail').hidden = true;
   updateSelectedControls(); updateGraph(); updateCalculation(); updateCaption();
 }
 function inspectEdge(id) {
   stopPlayback(); inspectedEdge = id; const e = game.edges.find(e => e.id === id);
   nodeEls.forEach((b, mask) => b.classList.toggle('is-inspected', mask === e.from || mask === e.to));
   updateGraph(); updateCalculation(); updateCaption();
-  $('#edge-detail').textContent = `Adding ${e.player}: value ${game.nodes[e.from].value} → ${game.nodes[e.to].value}. Contribution ${e.delta}, weight ${e.count}/${game.totalOrders}. Weighted contribution: ${fraction(e.delta * e.weight)}.`;
+  $('#edge-detail').textContent = `${game.nodes[e.from].label} → ${game.nodes[e.to].label}: contribution ${e.delta}; weight ${e.count}/${game.totalOrders}. Weighted credit: ${fraction(e.delta * e.weight)}.`;
+  $('#edge-detail').hidden = false; closeSceneDetails();
 }
 function inspectNode(mask) {
   stopPlayback(); inspectedEdge = null; nodeEls.forEach((b, i) => b.classList.toggle('is-inspected', i === mask));
   const node = game.nodes[mask]; updateGraph(); updateCalculation(); updateCaption();
-  $('#edge-detail').textContent = `${node.label} contains ${node.size} ${node.size === 1 ? 'voter' : 'voters'}. ${node.value ? 'At least two supporters: the proposal passes.' : 'Fewer than two supporters: the proposal fails.'} Value: ${node.value}.`;
+  $('#edge-detail').textContent = `${node.label}: ${node.size} ${node.size === 1 ? 'voter' : 'voters'}, ${node.value ? 'passes' : 'fails'}. Value: ${node.value}.`;
+  $('#edge-detail').hidden = false;
 }
 function playOrder(orderIndex, animate = true) {
   stopPlayback(); inspectedEdge = null; nodeEls.forEach(b => b.classList.remove('is-inspected'));
+  $('#edge-detail').hidden = true;
   pathState = { orderIndex, count: animate && !reduced.matches ? 0 : 3 }; const replay = $('#replay');
   if (current === 7) { replay.disabled = pathState.count < 3; replay.textContent = pathState.count < 3 ? 'Playing…' : 'Replay'; }
   const render = () => { updateGraph(); updateCaption(); }; updateCalculation(); render();
@@ -242,15 +323,13 @@ document.querySelectorAll('[data-compare-order]').forEach(b => b.addEventListene
   playOrder(Number(b.dataset.compareOrder));
 }));
 document.querySelectorAll('[data-show-order]').forEach(b => b.addEventListener('click', () => playOrder(Number(b.dataset.showOrder))));
-$('#replay').addEventListener('click', () => playOrder(Number($('#order-select').value)));
-$('#order-select').addEventListener('change', () => playOrder(Number($('#order-select').value), false));
+$('#replay').addEventListener('click', () => { playOrder(Number($('#order-select').value)); closeSceneDetails(); });
+$('#order-select').addEventListener('change', () => { playOrder(Number($('#order-select').value), false); closeSceneDetails(); });
 function updateScroll() {
   scrollFrame = 0; const header = mobile.matches ? 54 : 68;
-  const anchor = mobile.matches ? Math.min(innerHeight - 80, header + stage.getBoundingClientRect().height + 80) : innerHeight * .53;
+  const anchor = header + 2;
   let index = 0; for (let i = 0; i < steps.length; i++) if (steps[i].getBoundingClientRect().top <= anchor) index = i;
   showStep(index);
-  // Name the existing payoffs when the rule reaches the reader's scroll position.
-  if (current === 8) setNodeNotation(steps[8].querySelector('.value-definition').getBoundingClientRect().top <= anchor);
   // Scrolling through this passage visits all six accounting paths, then
   // gathers them into the four weighted joining edges. Buttons can replay any.
   if (current === 5) {
@@ -263,7 +342,8 @@ function updateScroll() {
       updateGraph(); updateCaption();
     }
   }
-  const start = $('.story').offsetTop, end = steps.at(-1).offsetTop;
+  const start = scrollY + steps[0].getBoundingClientRect().top - header;
+  const end = scrollY + steps.at(-1).getBoundingClientRect().bottom - header;
   const percentage = Math.max(0, Math.min(100, (scrollY - start) / Math.max(1, end - start) * 100));
   $('#progress-fill').style.width = `${percentage}%`;
 }
@@ -276,13 +356,13 @@ function goToStep(index, focusDestination = false) {
   showStep(index);
   requestAnimationFrame(() => {
     const header = mobile.matches ? 54 : 68;
-    const offset = mobile.matches ? header + stage.getBoundingClientRect().height + 15 : header + 30;
-    const top = mobile.matches ? scrollY + steps[index].querySelector('.step-content').getBoundingClientRect().top : steps[index].offsetTop;
-    window.scrollTo({ top: top - offset, behavior: 'instant' });
+    const top = scrollY + steps[index].getBoundingClientRect().top;
+    window.scrollTo({ top: top - header, behavior: 'instant' });
     updateScroll();
     if (focusDestination) {
-      steps[index].setAttribute('tabindex', '-1');
-      steps[index].focus({ preventScroll: true });
+      const heading = sceneContents[index].querySelector('h2');
+      heading.setAttribute('tabindex', '-1');
+      heading.focus({ preventScroll: true });
     }
   });
 }
@@ -295,6 +375,20 @@ function goToBeginning(focusDestination = false) {
   updateScroll();
   if (focusDestination) $('#beginning').focus({ preventScroll: true });
 }
+function navigateScene(index) {
+  if (index < 0 || index >= steps.length) {
+    history.replaceState(null, '', '#beginning'); goToBeginning(true); return;
+  }
+  history.replaceState(null, '', `#${steps[index].id}`); goToStep(index, true);
+}
+$('#scene-previous').addEventListener('click', () => navigateScene(current - 1));
+$('#scene-next').addEventListener('click', () => navigateScene(current + 1));
+document.addEventListener('keydown', event => {
+  if (detailDialog.open || document.querySelector('#weight-dialog[open]') || event.target.closest('input, select, textarea, [contenteditable], dialog')) return;
+  if (scrollY < $('.story').offsetTop - innerHeight / 2) return;
+  if (event.key === 'ArrowRight') { event.preventDefault(); navigateScene(current + 1); }
+  if (event.key === 'ArrowLeft') { event.preventDefault(); navigateScene(current - 1); }
+});
 document.querySelectorAll('a[href^="#"]').forEach(link => link.addEventListener('click', event => {
   const hash = link.getAttribute('href'), index = stepForHash(hash);
   if (hash === '#beginning') {
@@ -326,3 +420,15 @@ new ResizeObserver(entries => {
     el.setAttribute('width', 44 * scale); el.setAttribute('height', 34 * scale);
   });
 }).observe($('#graph-canvas'));
+
+function sizeVisual() {
+  const gap = parseFloat(getComputedStyle(stageViz).gap) || 0;
+  const companions = [$('#graph-caption'), calc, formulaView.element, ...sceneEquations.values()]
+    .filter(element => !element.hidden && getComputedStyle(element).display !== 'none' && element.getBoundingClientRect().height > 0);
+  const reserved = companions.reduce((sum, element) => sum + element.getBoundingClientRect().height + gap, 0);
+  stageViz.style.setProperty('--graph-height', `${Math.max(70, stageViz.clientHeight - reserved - 8)}px`);
+  if (current >= 15) electoralView.update(current - 15);
+}
+const visualObserver = new ResizeObserver(sizeVisual);
+[stageViz, $('#graph-caption'), calc, formulaView.element, sceneCaption].forEach(element => visualObserver.observe(element));
+sizeVisual();
