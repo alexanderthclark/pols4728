@@ -3,7 +3,8 @@ import {
   THREE_D_RESIDUAL_COORDINATES, svdExample,
   pcaSummary, coordinates, changeBasis, reconstructBasis, sampleVariance,
 } from './model.mjs';
-import { drawSVDFactors } from './svd-view.mjs?v=20261013-math';
+import { drawSVDFactors } from './svd-view.mjs?v=20261014-storyboard';
+import { drawResidualTransition, drawThirdDirection } from './storyboard-3d.mjs?v=20261014-storyboard';
 import { mVar, mNum, mOp, mSub, mSup, mTranspose, mNorm, mTuple, mFunction, inlineMath, setNotation, notationText } from './notation.mjs?v=20261013-math-2';
 
 const steps = [...document.querySelectorAll('.step')];
@@ -22,6 +23,11 @@ const stages = steps.map(step => {
     });
   }
   step.append(stage);
+  const calculation = document.createElement('div');
+  calculation.className = 'score-calculation';
+  calculation.dataset.control = 'score-calculation';
+  calculation.hidden = true;
+  stage.querySelector('.diagram-wrap').after(calculation);
   return stage;
 });
 const $ = id => stages[current].querySelector(`[data-control="${id}"]`) || document.getElementById(id);
@@ -47,6 +53,14 @@ let animation;
 let finishAnimation;
 let entrancePending;
 let projectionMix = 1;
+let basisReveal = 1;
+let coordinateMix = 1;
+let dropMix = 1;
+let faceOn = 1;
+let secondRemoval = 1;
+let reconstructionMix = 1;
+let reconstructionStart;
+let svdMix = 1;
 const entrancePlayed = new Set();
 let scrollFrame;
 let navigationUntil = 0;
@@ -121,21 +135,23 @@ function plot(parent, cx, cy, scale, extent, names = ['x₁', 'x₂'], ticks = t
   }
   return map;
 }
-function basis(parent, map, u, v, length, second = true, names = ['u', 'v']) {
+function basis(parent, map, u, v, length, second = true, names = ['u', 'v'], reveal = 1, palette = [colors.blue, colors.rust]) {
   const origin = map([0, 0]);
   const end = (direction, sign = 1) => map(direction.map(value => value * length * sign));
-  line(parent, end(u, -1), end(u), colors.blue, 1.3);
-  arrow(parent, origin, map(u), colors.blue);
+  line(parent, end(u, -1), end(u), palette[0], 1.3);
+  arrow(parent, origin, map(u), palette[0]);
   const firstLabel = names[0] === 'w' ? map(u) : end(u);
   // Keep a near-vertical direction label apart from the original y-axis label.
   const firstVertical = Math.abs(u[0]) < .25 && u[1] > 0;
-  label(parent, firstLabel[0] + (firstVertical ? -16 : 12), firstLabel[1] - 5, [{text:names[0],math:true}], colors.blue, 21, firstVertical ? 'end' : 'start');
+  label(parent, firstLabel[0] + (firstVertical ? -16 : 12), firstLabel[1] - 5, [{text:names[0],math:true}], palette[0], 21, firstVertical ? 'end' : 'start');
   if (second) {
-    line(parent, end(v, -1), end(v), colors.rust, 1.3, '6 5');
-    arrow(parent, origin, map(v), colors.rust, '6 5');
+    const growing = v.map(value => value * reveal);
+    const group = add(parent, 'g', { opacity: reveal });
+    line(group, end(growing, -1), end(growing), palette[1], 1.3, '6 5');
+    arrow(group, origin, map(growing), palette[1], '6 5');
     const secondLabel = names[0] === 'w' ? map(v) : end(v);
     const secondVertical = Math.abs(v[0]) < .25 && v[1] > 0;
-    label(parent, secondLabel[0] + (secondVertical ? -16 : 10), secondLabel[1] - 6, [{text:names[1].replace('⊥', ''),math:true,...(names[1].includes('⊥') ? {sup:'⊥'} : {})}], colors.rust, 21, secondVertical ? 'end' : 'start');
+    label(group, secondLabel[0] + (secondVertical ? -16 : 10), secondLabel[1] - 6, [{text:names[1].replace('⊥', ''),math:true,...(names[1].includes('⊥') ? {sup:'⊥'} : {})}], palette[1], 21, secondVertical ? 'end' : 'start');
   }
 }
 function scoreStrip(parent, scores, y, title) {
@@ -174,8 +190,8 @@ function draw2D(parent, points, summary) {
   const scene = steps[current].dataset.scene;
   const isPair = scene === 'coordinates' || (scene === 'explore' && view === 'coordinates');
   const isReconstruction = scene === 'reconstruction' || (scene === 'explore' && view === 'reconstruction');
-  const isCurve = ['maximum', 'cloud', 'reconstruction', 'explore'].includes(scene) && !isPair;
-  const isStrip = ['projection', 'variance', 'quadratic'].includes(scene);
+  const isCurve = ['maximum', 'explore'].includes(scene) && !isPair;
+  const isStrip = ['variance', 'quadratic'].includes(scene);
   const isScores = scene === 'scores';
   const showAllProjections = ['scores', 'variance'].includes(scene);
   const showBasis = current > 0;
@@ -183,14 +199,34 @@ function draw2D(parent, points, summary) {
   const selected = isPair && points === POINTS ? points.length - 2 : points.length - 1;
   if (isPair) {
     label(parent, 178, 34, 'Original coordinates', colors.ink, 20, 'middle');
-    label(parent, 540, 34, ['New coordinates · ', {text:'XU',math:true}], colors.ink, 20, 'middle');
+    label(parent, 540, 34, coordinateMix < 1 ? 'Changing coordinates' : ['New coordinates · ', {text:'XU',math:true}], colors.ink, 20, 'middle');
     const scale = points === LINE_POINTS ? 43 : 23;
     const left = plot(parent, 178, 226, scale, extent);
-    const right = plot(parent, 540, 226, scale, extent, ['z₁', 'z₂']);
+    const right = plot(parent, 540, 226, scale, extent, coordinateMix < 1 ? [' ', ' '] : ['z₁', 'z₂']);
     basis(parent, left, summary.u, summary.v, extent - .4);
     points.forEach((p, i) => point(parent, left(p), i === selected, false, points.length > 5 ? 4 : 5));
-    coordinates(points, angle).forEach((p, i) => point(parent, right(p), i === selected, false, points.length > 5 ? 4 : 5));
-    label(parent, 360, 415, `Ringed point: (${fmt(points[selected][0])}, ${fmt(points[selected][1])}) → (${fmt(summary.scores[selected])}, ${fmt(summary.otherScores[selected])})`, colors.ink, 18, 'middle');
+    coordinates(points, angle * coordinateMix).forEach((p, i) => point(parent, right(p), i === selected, false, points.length > 5 ? 4 : 5));
+    label(parent, 360, 415, coordinateMix < 1 ? 'The same points, expressed in the chosen basis' : 'Every distance is preserved', colors.ink, 18, 'middle');
+    return;
+  }
+  if (scene === 'reconstruction') {
+    const left = plot(parent, 178, 226, 23, extent);
+    const right = plot(parent, 540, 226, 23, extent, ['z₁', 'z₂']);
+    label(parent, 178, 34, 'Reconstruction', colors.ink, 20, 'middle');
+    label(parent, 540, 34, 'Second score → 0', colors.ink, 20, 'middle');
+    basis(parent, left, summary.u, summary.v, extent - .4, false);
+    points.forEach((p, i) => {
+      const moving = p.map((v, j) => v + dropMix * (summary.reconstruction[i][j] - v));
+      const z = [summary.scores[i], summary.otherScores[i]];
+      const collapsed = [z[0], (1 - dropMix) * z[1]];
+      line(parent, left(p), left(moving), colors.rule, 1, '3 4');
+      point(parent, left(p), false, true, 3.8);
+      cross(parent, left(moving), i === selected ? colors.rust : colors.blue);
+      line(parent, right(z), right(collapsed), colors.rule, 1, '3 4');
+      point(parent, right(z), false, true, 3.8);
+      point(parent, right(collapsed), i === selected, false, 4);
+    });
+    label(parent, 360, 415, 'The first coordinate stays fixed; the second goes to zero', colors.ink, 18, 'middle');
     return;
   }
   const cx = isScores ? 233 : 360;
@@ -201,7 +237,7 @@ function draw2D(parent, points, summary) {
     line(parent, map([-2.7, -2.7]), map([2.7, 2.7]), colors.light, 1.5, '4 5');
     if (!showBasis) label(parent, map([1.6, 2.4])[0], map([1.6, 2.4])[1], [{text:'x',math:true,sub:'1'}, ' = ', {text:'x',math:true,sub:'2'}], colors.ink, 21);
   }
-  if (showBasis) basis(parent, map, summary.u, summary.v, extent - .3, !isReconstruction && !measurementScenes.includes(scene));
+  if (showBasis) basis(parent, map, summary.u, summary.v, extent - .3, !isReconstruction && !measurementScenes.includes(scene), ['u', 'v'], scene === 'basis' ? basisReveal : 1);
   if (isReconstruction) {
     points.forEach((p, i) => {
       line(parent, map(p), map(summary.reconstruction[i]), colors.rule, 1, '3 3');
@@ -220,32 +256,38 @@ function draw2D(parent, points, summary) {
     if (['projection', 'quadratic'].includes(scene)) {
       points.forEach((p, i) => {
         if (scene !== 'projection' || i === selected) {
-          line(parent, map(p), map(summary.reconstruction[i]), colors.rule, 1, '3 4');
-          if (scene === 'projection') cross(parent, map(summary.reconstruction[i]), colors.rust);
+          const projected = p.map((value, j) => value + projectionMix * (summary.reconstruction[i][j] - value));
+          line(parent, map(p), map(projected), colors.rule, 1, '3 4');
+          if (scene === 'projection') cross(parent, map(projected), colors.rust);
         }
       });
     }
     points.forEach((p, i) => point(parent, map(p), scene !== 'line' && i === selected, false, points.length > 5 ? 4 : 5));
   }
-  if (scene === 'basis') label(parent, 360, 430, 'The axes turn. The observations stay fixed.', colors.muted, 20, 'middle');
+  if (scene === 'basis') label(parent, 360, 430, 'Add a second measurement, perpendicular to the first', colors.muted, 20, 'middle');
+  if (scene === 'projection') {
+    const projected = map(summary.reconstruction[selected]);
+    label(parent, projected[0] + 16, projected[1] + 42, [{text:'z',math:true,sub:'i'}, ` = ${fmt(summary.scores[selected])}`], colors.rust, 24, 'middle');
+    label(parent, 360, 416, 'One point → one signed score', colors.ink, 21, 'middle');
+  }
   if (isStrip) scoreStrip(parent, summary.scores, 386, ['One score per observation · ', {text:'Xu',math:true}]);
   if (isScores) {
     label(parent, 233, 32, 'Data and projections', colors.ink, 19, 'middle');
     label(parent, 565, 75, [{text:'Xu',math:true}], colors.blue, 28, 'middle');
     add(parent, 'path', { d: 'M514 98H502V327H514M614 98H626V327H614', stroke: colors.ink, 'stroke-width': 1.3, fill: 'none' });
-    summary.scores.forEach((value, i) => label(parent, 564, 131 + i * 44, fmt(value), i === selected ? colors.rust : colors.ink, 23, 'middle'));
-    const squaredLength = summary.scores.reduce((sum, score) => sum + score * score, 0);
-    label(parent, 565, 370, ['‖', {text:'Xu',math:true}, {text:'‖',sup:'2'}, ` = ${fmt(squaredLength)}`], colors.ink, 21, 'middle');
+    summary.scores.forEach((value, i) => {
+      const row = add(parent, 'g', { opacity: steps[current].hasAttribute('data-motion-projection') ? Math.max(0, Math.min(1, projectionMix * 2 - i * .2)) : 1 });
+      label(row, 564, 131 + i * 44, fmt(value), i === selected ? colors.rust : colors.ink, 23, 'middle');
+    });
     label(parent, 360, 428, ['○ Data point     × Projection onto ', {text:'u',math:true}], colors.muted, 18, 'middle');
   }
   if (isCurve) varianceCurve(parent, summary, points);
 }
 
 function drawResidualPlane(parent, summary) {
-  label(parent, 360, 40, 'Residual plane · viewed face on', colors.ink, 21, 'middle');
   const map = plot(parent, 360, 179, 57, 2.35, ['a', 'b']);
-  basis(parent, map, summary.u, summary.v, 2.2, true, ['w', 'w⊥']);
-  residualPoints.forEach(p => point(parent, map(p), false, false, 4.5));
+  basis(parent, map, summary.u, summary.v, 2.2, true, ['w', 'w⊥'], 1, [colors.rust, colors.teal]);
+  residualPoints.forEach((p, i) => point(parent, map(p), i === 20, false, 4.5));
   varianceCurve(parent, summary, residualPoints, -90, 90);
 }
 
@@ -260,7 +302,11 @@ function draw3D(parent) {
   let displayed = isCoordinates ? scores : THREE_D_POINTS;
   if (isDeflation) displayed = THREE_D_POINTS.map((p, i) => p.map((v, j) => (1 - removal) * v + removal * THREE_D_RESIDUALS[i][j]));
   if (isPiece) displayed = scores.map(row => cols[piece].map(v => row[piece] * v));
-  const reconstructed = reconstructBasis(scores, THREE_D_BASIS, components);
+  const target = reconstructBasis(scores, THREE_D_BASIS, components);
+  const reconstructed = target.map((p, i) => p.map((v, j) => {
+    const start = reconstructionStart || THREE_D_POINTS;
+    return start[i][j] + reconstructionMix * (v - start[i][j]);
+  }));
   const yaw = camera * Math.PI / 180;
   const pitch = 22 * Math.PI / 180;
   const scale = 31;
@@ -307,9 +353,9 @@ function draw3D(parent) {
     if (isReconstruction) {
       line(parent, project3D(p), project3D(reconstructed[i]), colors.rule, 1, '3 3');
       point(parent, project3D(p), false, true, 4);
-      cross(parent, project3D(reconstructed[i]));
+      cross(parent, project3D(reconstructed[i]), i === 20 ? colors.rust : colors.blue);
     } else if (isPiece) cross(parent, project3D(p), axisColors[piece]);
-    else point(parent, project3D(p), false, false, 4.5);
+    else point(parent, project3D(p), i === 20, false, 4.5);
   });
   const legend = isDeflation ? '○ Original     ● After subtraction' : isPiece ? '○ Original     × Selected contribution' : isReconstruction ? `○ Original     × Reconstruction · ${components} kept` : scene === 'three-d' ? 'PC1 variance = 9 · total variance = 10.25' : 'Turning the camera preserves score variance';
   label(parent, 360, 401, legend, colors.muted, 18, 'middle');
@@ -324,21 +370,51 @@ function threeSummary() {
   const retained = variances.slice(0, components).reduce((a, b) => a + b, 0) / total;
   return { variances, total, retained };
 }
+function varianceBudget(parts, total) {
+  const budget = $('variance-budget');
+  budget.hidden = false;
+  budget.replaceChildren();
+  const heading = document.createElement('p');
+  heading.className = 'budget-heading';
+  heading.textContent = `Original total variance: ${fmt(total, total % 1 ? 2 : 0)}`;
+  const track = document.createElement('div');
+  track.className = 'budget-track';
+  track.setAttribute('aria-hidden', 'true');
+  const key = document.createElement('div');
+  key.className = 'budget-key';
+  for (const part of parts) {
+    const segment = document.createElement('span');
+    segment.style.width = `${Math.max(0, part.value) / total * 100}%`;
+    segment.style.backgroundColor = part.color || colors.blue;
+    if (part.removed) segment.className = 'budget-omitted';
+    track.append(segment);
+    const item = document.createElement('div');
+    const name = document.createElement('span');
+    setNotation(name, part.label);
+    const value = document.createElement('output');
+    value.value = fmt(part.value);
+    item.append(name, value);
+    key.append(item);
+  }
+  budget.append(heading, track, key);
+}
 function render() {
   const scene = steps[current].dataset.scene;
   const isThree = dataset === 'three';
-  const isResidual = ['residual-plane', 'second-pc'].includes(scene);
+  const isResidual = ['residual-plane', 'second-pc', 'third-pc'].includes(scene);
   const isSVD = scene === 'svd';
   const isExplore = scene === 'explore';
   const points = isResidual ? residualPoints : dataset === 'line' ? LINE_POINTS : POINTS;
   const summary = pcaSummary(angle, points);
-  $('angle-control').hidden = (isThree && !isResidual) || scene === 'line' || steps[current].hasAttribute('data-fixed-angle');
+  $('angle-control').hidden = (isThree && !isResidual) || ['line', 'basis', 'reconstruction', 'third-pc'].includes(scene) || steps[current].hasAttribute('data-fixed-angle') || (scene === 'residual-plane' && faceOn < 1);
   $('data-control').hidden = !isExplore;
   $('view-control').hidden = !isExplore;
   $('components-control').hidden = !(scene === 'plane' || (isExplore && isThree && view === 'reconstruction'));
   $('camera-control').hidden = !isThree || isResidual || isSVD;
   $('piece-control').hidden = !['pieces', 'svd'].includes(scene);
-  $('statistics').hidden = scene === 'line';
+  $('statistics').hidden = !isExplore;
+  $('variance-budget').hidden = true;
+  $('score-calculation').hidden = true;
   $('angle').min = isResidual ? -90 : 0;
   $('angle').max = isResidual ? 90 : 180;
   $('angle').value = angle;
@@ -352,10 +428,17 @@ function render() {
   $('piece').value = piece;
   const hasEntrance = entranceFor(current) !== null;
   $('motion-controls').hidden = !hasEntrance;
-  setNotation($('motion-cue'), scene === 'deflation'
+  setNotation($('motion-cue'), scene === 'basis' ? 'Add a perpendicular direction'
+    : scene === 'reconstruction' ? dropMix < 1 ? 'Discarding the second coordinate' : 'Second coordinate discarded'
+    : scene === 'residual-plane' ? faceOn < 1 ? 'Turning to face the residual plane' : 'The same residuals, viewed face on'
+    : scene === 'third-pc' ? secondRemoval < 1 ? 'Subtracting PC2' : 'Only PC3 remains'
+    : scene === 'svd' ? svdMix < 1 ? 'Scale the unit pattern' : 'The pattern has become the score column'
+    : scene === 'plane' ? reconstructionMix < 1 ? 'Projecting onto the retained subspace' : 'Original observations reconstructed'
+    : scene === 'coordinates' ? coordinateMix < 1 ? 'Expressing the same points in the new basis' : 'All coordinates kept'
+    : scene === 'deflation'
     ? removal < 1 ? 'Removing PC1' : 'PC1 removed'
     : steps[current].hasAttribute('data-motion-projection')
-      ? 'Project the points onto the horizontal axis'
+      ? scene === 'projection' ? 'Follow one point to its signed score' : 'Collect one score per observation'
       : steps[current].hasAttribute('data-motion-camera')
         ? 'Turn the view to inspect the long axis'
         : isResidual ? `Direction in the plane: ${fmt(angle, 0)}°` : ['Direction ', inlineMath(mVar('u')), `: ${fmt(angle, 0)}°`]);
@@ -430,13 +513,87 @@ function render() {
     };
     caption = captions[scene];
   }
-  setNotation($('caption'), caption);
-  if (scene === 'projection') setNotation($('one-score-worked'), ['With ', directionNotation(summary.u, 3, '≈'), ', ', inlineMath(`${mVar('z')}${mOp('=')}${mNum(2)}${mVar('a')}${mOp('+')}${mNum(2)}${mVar('b')}${mOp('≈')}${mNum(fmt(summary.scores.at(-1)))}`), '.']);
+  if (scene === 'scores') {
+    const squared = summary.scores.reduce((sum, value) => sum + value * value, 0);
+    $('score-calculation').hidden = false;
+    setNotation($('score-calculation'), inlineMath(`${mFunction('Var', xu())}${mOp('=')}<mfrac>${mNum(fmt(squared))}${mNum(points.length - 1)}</mfrac>${mOp('=')}${mNum(fmt(summary.variance))}`));
+    $('score-calculation').style.opacity = steps[current].hasAttribute('data-motion-projection') ? Math.max(0, (projectionMix - .65) / .35) : 1;
+  } else if (scene === 'svd') {
+    const d = svdExample().singularValues[piece];
+    $('score-calculation').hidden = false;
+    $('score-calculation').style.opacity = Math.max(0, (svdMix - .75) / .25);
+    setNotation($('score-calculation'), inlineMath(`${mFunction('Var', `${mVar('X')}${indexed('u', piece + 1)}`)}${mOp('=')}<mfrac>${mSup(indexed('d', piece + 1), mNum(2))}${mNum(23)}</mfrac>${mOp('=')}${mNum(fmt(d * d / 23))}`));
+  }
+  if (['basis', 'cloud', 'coordinates'].includes(scene)) {
+    const values = summary;
+    varianceBudget([
+      { label: varianceNotation(xu()), value: values.variance, color: colors.blue },
+      { label: varianceNotation(xv()), value: values.otherVariance, color: colors.rust },
+    ], summary.totalVariance);
+  } else if (scene === 'reconstruction') {
+    const left = summary.otherVariance * (1 - dropMix) ** 2;
+    varianceBudget([
+      { label: 'First coordinate kept', value: summary.variance, color: colors.blue },
+      { label: 'Second coordinate left', value: left, color: colors.rust },
+      { label: 'Discarded', value: summary.otherVariance - left, removed: true },
+    ], summary.totalVariance);
+  } else if (scene === 'deflation') {
+    const left = 9 * (1 - removal) ** 2;
+    varianceBudget([
+      { label: 'PC1 left', value: left, color: colors.blue },
+      { label: 'In the plane', value: 1.25, color: colors.rust },
+      { label: 'Removed', value: 9 - left, removed: true },
+    ], 10.25);
+  } else if (isResidual) {
+    const third = scene === 'third-pc';
+    const first = third ? (1 - secondRemoval) ** 2 : summary.variance;
+    const second = third ? .25 : summary.otherVariance;
+    varianceBudget([
+      { label: third ? 'PC2 left' : varianceNotation(`${mVar('R')}${mVar('w')}`), value: first, color: colors.rust },
+      { label: third ? 'PC3' : 'Perpendicular direction', value: second, color: colors.teal },
+      { label: 'Removed', value: 10.25 - first - second, removed: true },
+    ], 10.25);
+  } else if (isThree && !isExplore && !isSVD) {
+    const three = threeSummary();
+    if (scene === 'plane') {
+      const scores = changeBasis(THREE_D_POINTS, THREE_D_BASIS);
+      const target = reconstructBasis(scores, THREE_D_BASIS, components);
+      const start = reconstructionStart || THREE_D_POINTS;
+      const moving = target.map((p, i) => p.map((v, j) => start[i][j] + reconstructionMix * (v - start[i][j])));
+      const movingScores = changeBasis(moving, THREE_D_BASIS);
+      const remaining = [0, 1, 2].map(j => sampleVariance(movingScores.map(p => p[j])));
+      const kept = remaining.slice(0, components).reduce((a, b) => a + b, 0);
+      const tail = remaining.slice(components).reduce((a, b) => a + b, 0);
+      varianceBudget([
+        { label: `${components} component${components === 1 ? '' : 's'} kept`, value: kept, color: colors.blue },
+        { label: 'Omitted coordinates left', value: tail, color: colors.teal },
+        { label: 'Discarded', value: 10.25 - kept - tail, removed: true },
+      ], 10.25);
+    } else varianceBudget(three.variances.map((value, j) => ({ label: `PC${j + 1}`, value, color: [colors.blue, colors.rust, colors.teal][j] })), 10.25);
+  }
+  const brief = {
+    line: 'The observations are centered: their mean is the origin.',
+    basis: 'Both perpendicular unit directions together describe each point.',
+    coordinates: 'The total stays fixed while variation shifts between coordinates.',
+    cloud: 'Both principal coordinates now contain variation.',
+    reconstruction: dropMix < 1 ? 'Only the second coordinate changes.' : 'One component retains 9 of the original total variance 10: 90%.',
+    'three-d': 'PC1 captures 9 of the original total variance 10.25.',
+    deflation: removal < 1 ? 'Points move parallel to PC1; the camera stays fixed.' : 'PC1 is gone. The remaining variance is 1.25.',
+    'residual-plane': faceOn < 1 ? 'Only the view changes; the residual points stay fixed.' : 'Turn the direction within this plane to compare projected variance.',
+    'second-pc': 'The maximum is PC2. Its perpendicular direction within the plane is PC3.',
+    'third-pc': secondRemoval < 1 ? 'Subtract PC2 along parallel paths.' : 'Only the PC3 contribution remains, with variance 0.25.',
+    plane: reconstructionMix < 1 ? 'Return to the original cloud, then omit the unused contributions.' : `${components} component${components === 1 ? '' : 's'} retain ${fmt(100 * threeSummary().retained, 1)}% of the original total variance.`,
+    svd: 'Each observation keeps its place in the pattern while its score is scaled.',
+  };
+  setNotation($('caption'), brief[scene] || caption);
+  $('variance-budget').style.opacity = scene === 'coordinates' ? Math.max(0, Math.min(1, (coordinateMix - .6) / .4)) : 1;
   const captionText = notationText($('caption'));
   const description = ['scores', 'variance'].includes(scene) ? `${captionText} Xu contains the scores ${summary.scores.map(value => fmt(value)).join(', ')}.` : captionText;
   svg.replaceChildren(el('title', { id: `${steps[current].id}-diagram-title` }, steps[current].dataset.title), el('desc', { id: `${steps[current].id}-diagram-description` }, description));
   const drawing = add(svg, 'g', { 'aria-hidden': 'true' });
-  if (isSVD) drawSVDFactors(drawing, { add, line, label, point, colors, fmt }, piece);
+  if (isSVD) drawSVDFactors(drawing, { add, line, label, point, colors, fmt }, piece, svdMix);
+  else if (scene === 'third-pc') drawThirdDirection(drawing, { progress: secondRemoval, selected: 20 });
+  else if (scene === 'residual-plane' && faceOn < 1) drawResidualTransition(drawing, { progress: faceOn, camera, selected: 20 });
   else if (isResidual) drawResidualPlane(drawing, summary);
   else if (isThree) draw3D(drawing);
   else draw2D(drawing, points, summary);
@@ -475,8 +632,32 @@ function changeAngle(value, animate = false) {
   }
   animation = requestAnimationFrame(frame);
 }
+function animateReconstruction(startPoints) {
+  reconstructionStart = startPoints;
+  const finish = () => { reconstructionMix = 1; render(); };
+  if (motion.matches) { finish(); return; }
+  reconstructionMix = 0;
+  const start = performance.now();
+  finishAnimation = finish;
+  render();
+  function frame(time) {
+    const t = Math.min(1, (time - start) / 1600);
+    reconstructionMix = t * t * (3 - 2 * t);
+    render();
+    if (t < 1) animation = requestAnimationFrame(frame);
+    else { animation = undefined; finishAnimation = undefined; finish(); }
+  }
+  animation = requestAnimationFrame(frame);
+}
 function entranceFor(index) {
   const step = steps[index];
+  if (step.hasAttribute('data-motion-basis')) return { basisReveal: 0 };
+  if (step.hasAttribute('data-motion-coordinates')) return { coordinateMix: 0 };
+  if (step.hasAttribute('data-motion-drop')) return { dropMix: 0 };
+  if (step.hasAttribute('data-motion-face-on')) return { faceOn: 0 };
+  if (step.hasAttribute('data-motion-second-removal')) return { secondRemoval: 0 };
+  if (step.hasAttribute('data-motion-reconstruction')) return { reconstructionMix: 0 };
+  if (step.hasAttribute('data-motion-svd')) return { svdMix: 0 };
   if (step.hasAttribute('data-motion-projection')) return { projectionMix: 0 };
   if (step.hasAttribute('data-motion-removal')) return { removal: 0 };
   if (step.hasAttribute('data-motion-camera')) return { camera: Number(step.dataset.motionCamera) };
@@ -486,13 +667,20 @@ function entranceFor(index) {
 function prepareEntrance() {
   const from = entranceFor(current);
   if (!from || entrancePlayed.has(current)) return;
-  const to = { angle: targetAngle, projectionMix: 1, removal, camera };
+  const to = { angle: targetAngle, projectionMix: 1, removal, camera, basisReveal: 1, coordinateMix: 1, dropMix: 1, faceOn: 1, secondRemoval: 1, reconstructionMix: 1, svdMix: 1 };
   if ('removal' in from) to.removal = targetRemoval = 1;
   const apply = state => {
     if ('angle' in state) angle = state.angle;
     if ('projectionMix' in state) projectionMix = state.projectionMix;
     if ('removal' in state) removal = state.removal;
     if ('camera' in state) camera = state.camera;
+    if ('basisReveal' in state) basisReveal = state.basisReveal;
+    if ('coordinateMix' in state) coordinateMix = state.coordinateMix;
+    if ('dropMix' in state) dropMix = state.dropMix;
+    if ('faceOn' in state) faceOn = state.faceOn;
+    if ('secondRemoval' in state) secondRemoval = state.secondRemoval;
+    if ('reconstructionMix' in state) reconstructionMix = state.reconstructionMix;
+    if ('svdMix' in state) svdMix = state.svdMix;
     render();
   };
   const finish = () => {
@@ -516,7 +704,7 @@ function maybePlayEntrance(force = false) {
   entrancePlayed.add(current);
   const index = current;
   const start = performance.now();
-  const duration = 'removal' in pending.from || 'projectionMix' in pending.from ? 1800 : 1400;
+  const duration = 'faceOn' in pending.from ? 2400 : 'basisReveal' in pending.from ? 1400 : 2000;
   finishAnimation = pending.finish;
   function frame(time) {
     if (current !== index) return;
@@ -537,6 +725,8 @@ function maybePlayEntrance(force = false) {
 }
 function setStep(index, animate = true) {
   const changed = current !== index;
+  const sourceCamera = camera;
+  const sourceScene = steps[current].dataset.scene;
   // Finish the old figure before changing the globals used by its drawing functions.
   stopAnimation(true);
   if (entrancePending) {
@@ -547,6 +737,8 @@ function setStep(index, animate = true) {
   if (changed) remember();
   current = index;
   projectionMix = 1;
+  basisReveal = coordinateMix = dropMix = faceOn = secondRemoval = reconstructionMix = svdMix = 1;
+  reconstructionStart = undefined;
   svg = $('diagram');
   const scene = steps[index].dataset.scene;
   const fallback = {
@@ -554,11 +746,12 @@ function setStep(index, animate = true) {
     dataset: steps[index].dataset.example ?? (['line', 'scores', 'variance', 'projection', 'quadratic', 'maximum', 'basis', 'coordinates'].includes(scene) ? 'line' : ['cloud', 'reconstruction', 'explore'].includes(scene) ? 'cloud' : 'three'),
     view: scene === 'plane' ? 'reconstruction' : 'original',
     components: scene === 'plane' ? 2 : 1,
-    camera: 25,
+    camera: scene === 'residual-plane' && sourceScene === 'deflation' ? sourceCamera : scene === 'plane' ? -25 : 25,
     removal: 0,
     piece: 0,
   };
-  const state = saved.get(index) || fallback;
+  const state = { ...(saved.get(index) || fallback) };
+  if (scene === 'residual-plane' && sourceScene === 'deflation' && !entrancePlayed.has(index)) state.camera = sourceCamera;
   dataset = state.dataset;
   view = state.view;
   components = state.components;
@@ -612,6 +805,11 @@ function readScroll() {
   if (initializing) return;
   if (navigationLocked || performance.now() < navigationUntil) { maybePlayEntrance(); return; }
   const lineY = readingLine();
+  const details = document.getElementById('mathematical-details');
+  if (details.getBoundingClientRect().top <= lineY + 5) {
+    if (!document.getElementById(location.hash.slice(1))?.closest('#mathematical-details')) history.replaceState(null, '', '#mathematical-details');
+    return;
+  }
   if (document.getElementById('takeaways').getBoundingClientRect().top <= lineY + 5) {
     if (current !== steps.length - 1) setStep(steps.length - 1, false);
     if (location.hash !== '#takeaways') history.replaceState(null, '', '#takeaways');
@@ -629,9 +827,10 @@ stages.forEach((stage, index) => {
   const local = id => stage.querySelector(`[data-control="${id}"]`);
   const activate = () => {
     if (current !== index) setStep(index, false);
-    const isDeflation = steps[index].dataset.scene === 'deflation';
-    stopAnimation(isDeflation);
-    if (isDeflation) removal = targetRemoval;
+    stopAnimation(true);
+    if (entrancePending) entrancePending.finish();
+    removal = targetRemoval;
+    basisReveal = coordinateMix = dropMix = faceOn = secondRemoval = reconstructionMix = svdMix = 1;
     entrancePending = undefined;
     entrancePlayed.add(index);
     projectionMix = 1;
@@ -653,6 +852,8 @@ stages.forEach((stage, index) => {
   local('motion-replay').addEventListener('click', () => {
     activate();
     targetAngle = Number(steps[index].dataset.fixedAngle ?? steps[index].dataset.startAngle ?? (steps[index].dataset.scene === 'second-pc' ? -30 : 45));
+    if (!steps[index].hasAttribute('data-motion-angle-from')) angle = targetAngle;
+    reconstructionStart = undefined;
     if (steps[index].hasAttribute('data-motion-camera')) camera = 25;
     entrancePlayed.delete(index);
     prepareEntrance();
@@ -681,12 +882,20 @@ stages.forEach((stage, index) => {
     local(id).addEventListener(id === 'camera' ? 'input' : 'change', event => {
       const value = event.target.value;
       activate();
+      const previousReconstruction = id === 'components' && steps[index].dataset.scene === 'plane'
+        ? reconstructBasis(changeBasis(THREE_D_POINTS, THREE_D_BASIS), THREE_D_BASIS, components) : null;
       if (id === 'dataset') { dataset = value; view = 'original'; components = dataset === 'three' ? 2 : 1; }
       if (id === 'view') view = value;
       if (id === 'components') components = Number(value);
       if (id === 'camera') camera = Number(value);
       if (id === 'piece') piece = Number(value);
       remember(); render();
+      if (previousReconstruction) animateReconstruction(previousReconstruction);
+      if (id === 'piece' && steps[index].dataset.scene === 'svd') {
+        entrancePlayed.delete(index);
+        prepareEntrance();
+        maybePlayEntrance(true);
+      }
       if (id !== 'camera') $('status').textContent = notationText($('caption'));
     });
   }
@@ -695,6 +904,10 @@ document.querySelectorAll('a[href^="#"]').forEach(link => link.addEventListener(
   const index = steps.findIndex(step => `#${step.id}` === link.getAttribute('href'));
   if (index >= 0) { event.preventDefault(); goTo(index); }
   else if (link.getAttribute('href') === '#takeaways') { event.preventDefault(); goToTakeaways(); }
+  else {
+    const detail = document.getElementById(link.getAttribute('href').slice(1));
+    if (detail?.tagName === 'DETAILS') detail.open = true;
+  }
 }));
 document.addEventListener('keydown', event => {
   if (event.altKey || event.ctrlKey || event.metaKey || event.target.closest('input, select, textarea, button, [contenteditable]')) return;
@@ -741,6 +954,12 @@ function restoreHash() {
   const index = steps.findIndex(step => `#${step.id}` === location.hash);
   if (index >= 0) goTo(index, false, false);
   else if (location.hash === '#takeaways') goToTakeaways(false, false);
+  else if (document.getElementById(location.hash.slice(1))?.closest('#mathematical-details')) {
+    const target = document.getElementById(location.hash.slice(1));
+    if (target.tagName === 'DETAILS') target.open = true;
+    navigationLocked = true;
+    target.scrollIntoView({ block: 'start', behavior: 'instant' });
+  }
   else if (!location.hash || location.hash === '#page-title') window.scrollTo({ top: 0, behavior: 'instant' });
 }
 addEventListener('popstate', restoreHash);

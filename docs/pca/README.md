@@ -1,25 +1,33 @@
 # PCA: a change of basis
 
-A twenty-step scrollytelling lesson first defines the principal direction:
+A nineteen-step scrollytelling lesson first defines the principal direction:
 `u₁ = argmax_{u: ‖u‖ = 1} Var(Xu) = argmax_{u: ‖u‖ = 1} ‖Xu‖`.
-For centered data, the same direction maximizes
-`‖Xu‖`, because variance is its squared length divided by the fixed `n − 1`.
-Five centered points exactly
-on `x₁ = x₂` develop the horizontal, vertical, and 45° diagonal projections
-in three separate scroll steps. Each explanation sits above its own inline
-diagram in one centered column. A short explanation connects the score column to
-`Var(Xu) = ‖Xu‖²/(n − 1)`: the original axes give `10/4 = 2.5`, while the
-diagonal gives `20/4 = 5`. Projection geometry, `Var(Xu) = uᵀSu`, and a full
-rotating basis develop this initial direction search.
+For centered data, the same direction maximizes score length because variance is
+its squared length divided by the fixed `n − 1`. Each short explanation sits
+above its animated diagram in one centered column. The main sequence introduces
+one idea per beat, with at most one principal display equation.
 
-A thicker 2D cloud separates the full basis change from dimension reduction.
-A second paired view rotates all 24 observations into the new coordinates,
-with principal score variances 9 and 1 and zero covariance. The highlighted
-point retains a nonzero second score, unlike the exact-line example.
-The 3D section finds PC1 first, subtracts its contribution, then searches for
-PC2 in a face-on view of the remaining plane. Reconstruction and rank-one
-pieces connect the sequential explanation to SVD: `X = PDUᵀ`, `XU = PD`,
-and `Var(Xuⱼ) = dⱼ²/(n − 1)`.
+| Steps | Development |
+| --- | --- |
+| 1–5 | State the goal, follow one point to its signed horizontal score, collect all five scores in `Xu`, then compare horizontal, vertical, and diagonal directions separately. |
+| 6–7 | Hold PC1 fixed, add its perpendicular direction, and express the same observations in the new basis. |
+| 8–10 | Introduce the thicker 2D cloud, repeat the full basis change, then discard the second score while holding the principal basis fixed. |
+| 11–15 | Find PC1 in 3D, subtract its contribution, turn the residual plane face-on, find PC2 within it, and subtract PC2 to reveal the PC3 line. |
+| 16–18 | Return to the original cloud, reconstruct with retained components, inspect additive component pieces, and scale a unit SVD pattern into its score column. |
+| 19 | Compare the examples in the explorer. |
+
+The variance budget uses the original dataset's total as a fixed reference.
+A full basis change redistributes variance between coordinates without changing
+that total. During dimension reduction or component subtraction, the removed
+portion remains visible alongside the retained portion. Thus the budget still
+accounts for the original total, while the remaining data have less variance.
+
+The thicker cloud has principal score variances 9 and 1, with zero covariance.
+Its second score is nonzero, unlike the exact-line example. The 3D sequence
+keeps the residual plane used to search for PC2 distinct from the plane spanned
+by PC1 and PC2 used to reconstruct the original observations. Reconstruction
+and rank-one pieces connect to SVD through `zⱼ = dⱼpⱼ`: a unit-length pattern
+scaled by a singular value gives the corresponding score column.
 
 A closing section connects the examples to the geometric interpretation of PCA:
 full basis changes preserve distances, while dimension reduction discards score
@@ -30,6 +38,14 @@ uncorrelated versus independent scores, and linear versus curved structure.
 Short paragraphs link back to the animated examples. The explorer's final
 navigation button leads to this section, with direct `#takeaways` links and
 browser history support.
+
+An optional `#mathematical-details` section follows the takeaways. Five native
+expandable disclosures preserve the covariance derivation, eigenvectors and
+explained variance, the 2D cloud's variance formula, exact 3D directions and
+residual calculations, and the full SVD with matrix dimensions. The original
+`#covariance-form` and `#principal-direction` anchors remain available. This
+keeps `Var(Xu) = uᵀSu`, `X = PDUᵀ`, `XU = PD`, and
+`Var(Xuⱼ) = dⱼ²/(n − 1)` available without interrupting the geometric sequence.
 
 The opening title and diagrams use real text and native SVG. The page is static
 HTML, CSS, and JavaScript modules, with local Latin Modern fonts, native MathML,
@@ -46,9 +62,19 @@ From the repository root:
 python3 -m http.server 8898 --bind 127.0.0.1 --directory docs
 ```
 
-Open <http://127.0.0.1:8898/pca/>. GitHub Pages publishes the `docs/` site after
-checks pass on `main`; the new lesson's published path is
-<https://alexanderthclark.github.io/pols4728/pca/> after merging.
+Open <http://127.0.0.1:8898/pca/>. During the storyboard review, the revised
+preview uses port 8898 and the saved earlier version uses
+<http://127.0.0.1:8899/pca/>. The earlier work is committed at `4b42c2f` and
+preserved on `codex/pca-storyboard-baseline`, so the revision can be compared
+or reverted without losing the preceding changes. To inspect the page changes:
+
+```sh
+git diff codex/pca-storyboard-baseline -- docs/pca
+```
+
+GitHub Pages publishes the `docs/` site after checks pass on `main`; the new
+lesson's published path is <https://alexanderthclark.github.io/pols4728/pca/>
+after merging. Local previews do not merge or publish the revision.
 
 ## Examples and conventions
 
@@ -107,28 +133,30 @@ returning to the original coordinates.
   Back/Forward restore the reading location. Step selection lands immediately
   above the matching inline figure. Keyboard navigation focuses the destination
   heading. Each diagram and its controls have their own accessible IDs and state.
-- The opening reveals 0°, 90°, and 45° one at a time, with fixed directions.
-  As each graphic enters view, the points project onto the horizontal axis,
-  then the direction visibly turns from 0° to 90°, and from 90° to 45°.
-  Scores and variance update throughout the rotation. Replay animation repeats
-  the transition. Free rotation begins after these three examples. Hollow circles mark observations; crosses
-  and connecting segments show their projections. The live readout connects
-  squared score length, the variance denominator, and score variance.
-  The perpendicular second direction appears
-  when the full basis is introduced, with 45°/135° principal presets. Choices
-  are retained separately for each step.
-- In 3D, turn the view, watch PC1 subtraction, rotate a direction in
-  the remaining plane, and choose how many components to retain. Select
-  individual rank-one pieces and compare score columns with their normalized
-  SVD patterns, using separate labelled vertical scales. The final
-  explorer switches between all three datasets and coordinate/reconstruction
-  views.
-  When the subtraction graphic enters view, PC1 is removed in an animated
-  transition, visibly collapsing the points into the residual plane. Replay
-  animation repeats the subtraction. The fully removed endpoint is retained
-  separately from animated positions, including after camera changes, resizing,
-  or leaving and returning to the step. Reduced motion reaches that endpoint
-  immediately.
+- The opening follows one highlighted observation to its signed horizontal
+  score before building the full `Xu` column. Horizontal, vertical, and diagonal
+  comparisons remain separate scroll beats. Hollow circles mark observations;
+  crosses and connecting segments mark projections. One calculation connects
+  squared score length, the sample-variance denominator, and score variance.
+- Adding the second basis direction keeps PC1 fixed. The paired coordinate
+  views preserve every point and use equal units. In the reduction step, the
+  basis stays fixed while the second coordinate shrinks to zero, so the motion
+  demonstrates discarding a coordinate rather than finding a direction.
+- In 3D, PC1 subtraction collapses the points into the perpendicular residual
+  plane. A rigid camera rotation turns that same plane and its points face-on.
+  The search for PC2 then takes place within the plane; a second subtraction
+  collapses its residual points onto the PC3 line. The highlighted observation
+  remains identifiable through these operations.
+- Returning to the original 3D cloud introduces the retained reconstruction
+  plane. Choose how many components to keep or inspect individual rank-one
+  pieces. The SVD animation scales a unit pattern into the actual score column
+  on one fixed vertical scale, rather than changing scales between views.
+  The final explorer switches among all three datasets and their coordinate
+  or reconstruction views.
+- Animations begin when their figures enter view. Replay animation repeats the
+  transition. Completed endpoints persist after camera changes, resizing, or
+  leaving and returning to a step. Component subtraction has no removal slider
+  or toggle. Reduced motion displays each endpoint immediately.
 - Basis directions have direct labels and distinct solid, dashed, and dotted
   strokes. Original/reconstructed points use circles and crosses.
 - Desktop and phone layouts place diagrams below the narrative in normal
@@ -144,7 +172,7 @@ These choices and visual review do not establish full accessibility compliance.
 
 ## Files and validation
 
-- `index.html`: opening, complete narrative, MathML, and controls.
+- `index.html`: opening, nineteen narrative beats, takeaways, optional mathematical details, MathML, and controls.
 - `style.css`: course typography and desktop/mobile layouts.
 - `model.mjs`: deterministic points, projections, variances, basis changes,
   reconstructions, deflation, and SVD factors for the known principal basis.
@@ -159,12 +187,13 @@ node --test tests/pca-model.test.mjs
 node --test tests/*.test.mjs
 ```
 
-The seventeen numerical tests use independently specified covariance matrices
+The numerical tests use independently specified covariance matrices
 and expected variances. They check unit direction scaling, full-basis inversion
 and distance preservation, 2D and 3D decorrelation, retained variance, and
 reconstruction loss. They also check residual orthogonality and covariance,
 sequential removal, additive component pieces, and the SVD factorization and
 variance identity. Browser review covers desktop and narrow layouts, the
-45°/135° cases, coordinate views, 3D subtraction/camera/reconstruction
-controls, residual plane angles, all three SVD columns, and step/history
-navigation.
+45°/135° cases, the single-score and full-column sequence, fixed-basis
+coordinate dropping, variance budgets, 3D subtraction and face-on camera motion,
+PC2 removal, reconstruction controls, residual plane angles, all three SVD
+columns on a fixed scale, optional disclosures, and step/history navigation.
