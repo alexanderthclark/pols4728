@@ -62,7 +62,11 @@ jobs:
           node --check docs/trees/title-picture.js
           node --check docs/trees/title-motion.js
           node --check docs/trees/story.js
-      - name: Check Shapley, SHAP, trees, and boosting calculations
+          node --check docs/imbalanced-data/model.js
+          node --check docs/imbalanced-data/app.js
+          node --check docs/imbalanced-data/chapter-scenes.js
+          node --check docs/imbalanced-data/scrolly.js
+      - name: Check interactive lesson calculations
         run: node --test tests/*.test.mjs
 
   deploy:

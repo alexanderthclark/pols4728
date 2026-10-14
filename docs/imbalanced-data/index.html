@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="An interactive lesson on logistic correction, efficient training, and why balancing can change what a model learns.">
+  <title>Imbalanced Data · POLS 4728</title>
+  <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="scrolly.css"><script defer src="model.js"></script><script defer src="app.js"></script><script defer src="chapter-scenes.js"></script><script defer src="tree-model.js"></script><script defer src="tree-scenes.js"></script><script defer src="scrolly.js"></script>
+</head>
+<body>
+  <a class="skip" href="#story">Skip to lesson</a>
+  <header><a class="wordmark" href="#title">POLS 4728 <span>Machine learning and AI</span></a><nav aria-label="Chapters"><a href="#step-1">Correction</a><a href="#step-10">Efficiency</a><a href="#step-13">Learning</a><a href="#trees">Trees</a><a href="#imblearn">imblearn</a></nav></header>
+  <main>
+    <section class="title-slide" id="title" aria-labelledby="title-heading">
+      <h1 id="title-heading">Imbalanced Data</h1>
+      <a class="title-begin" href="#step-0">Begin <span aria-hidden="true">↓</span></a>
+    </section>
+    <article class="lesson" id="story">
+<section class="step opening" id="step-0" data-step="0">
+<div class="step-copy"><p class="eyebrow">Applied issues / Imbalanced data</p><h2>What balancing changes</h2><p class="lede">Keep the positive cases, discard many negatives, and a logistic regression’s predicted probabilities rise. Has it learned anything new?</p><p>First, follow why the probabilities change and how to correct them. Then separate training efficiency from changes in what a model learns. A decision-tree example shows how balancing can reverse the ranking of candidate splits; a final imblearn example puts resampling inside cross-validation.</p><p class="scroll-cue">Scroll to animate the argument. Scroll back to retrace it.</p><a class="start-link" href="#step-1">Begin with the correction ↓</a></div>
+
+</section>
+<section class="scroll-chapter" data-chapter="logistic" data-stages="8" style="--stages:8" aria-label="Logistic correction">
+<div class="scroll-markers" aria-hidden="true"><span class="scroll-marker" id="step-1" data-stage="0"></span><span class="scroll-marker" id="step-2" data-stage="1"></span><span class="scroll-marker" id="step-3" data-stage="2"></span><span class="scroll-marker" id="step-4" data-stage="3"></span><span class="scroll-marker" id="step-5" data-stage="4"></span><span class="scroll-marker" id="step-6" data-stage="5"></span><span class="scroll-marker" id="step-7" data-stage="6"></span><span class="scroll-marker" id="step-8" data-stage="7"></span></div>
+<div class="scene">
+<div class="scene-copy"><p class="eyebrow" data-scene="eyebrow">Logistic correction</p><h2 data-scene="title"></h2><p class="description" data-scene="description"></p></div>
+<div class="scene-canvas" data-scene="canvas"></div>
+<div class="scene-equation" data-scene="equation"></div>
+<p class="scene-note" data-scene="note"></p>
+<div class="scene-footer"><div class="scene-dots" aria-label="Jump to an animation stage"></div><span class="scene-count" data-scene="count"></span><button class="motion-toggle" type="button" aria-pressed="true">Motion on</button><span class="scene-scroll">Scroll to continue ↓</span></div>
+<div class="scene-progress" aria-hidden="true"><span></span></div>
+</div>
+</section>
+<details class="chapter-notes"><summary>Read the full logistic correction explanation</summary><div class="note-step"><p class="eyebrow">01 / Logistic correction · 1 of 9</p><h3>Start with the population.</h3><p>Let <i>p</i>(<i>x</i>) be the probability of a positive outcome at a given value of the predictor. Our example has exactly linear log odds:</p><div class="equation">logit <i>p</i>(<i>x</i>) = β(<i>x</i> − 1)<br><small>β = log(99) ≈ 4.60</small></div><p>At <i>x</i> = 0, 1, and 2, the probabilities are 1%, 50%, and 99%. Most observations have <i>x</i> = 0, so the overall event rate is only 2.47%.</p><p class="small">This illustrative population has 98% of observations at <i>x</i> = 0 and 1% at each other level. The curves interpolate between those three levels.</p></div><div class="note-step"><p class="eyebrow">01 / Logistic correction · 2 of 9</p><h3>Hold x fixed. Count the two classes.</h3><p>Focus on <i>x</i> = 0. In an illustrative group of 10,000 observations at this value of <i>x</i>, there are 100 positives and 9,900 negatives.</p><p>The probability divides the positive count by the <strong>total</strong> count.</p><div class="equation emphasis">p(0) = 100 / (100 + 9,900) = 1%</div></div><div class="note-step"><p class="eyebrow">01 / Logistic correction · 3 of 9</p><h3>Keep positives. Retain 10% of negatives.</h3><p>Keep every positive and randomly retain one tenth of the negatives. Use the same retention fraction, <i>s</i> = 0.10, at every value of <i>x</i>.</p><p>At <i>x</i> = 0, the expected retained counts are now 100 positives and 990 negatives. No new positive observations have been added. There are fewer negatives in the denominator.</p><div class="equation emphasis">q(0) = 100 / (100 + 990) ≈ 9.17%</div><p class="small"><i>q</i>(<i>x</i>) denotes the probability in the retained sample. These are expected counts; a random sample will vary.</p></div><div class="note-step"><p class="eyebrow">01 / Logistic correction · 4 of 9</p><h3>The odds make the change simpler.</h3><p>Odds divide positives by <strong>negatives</strong>, instead of by the total. The positive count is unchanged. The negative count is ten times smaller.</p></div><div class="note-step"><p class="eyebrow">01 / Logistic correction · 5 of 9</p><h3>The multiplier is the same at every x.</h3><p>Nothing in that factor of ten depended on <i>x</i>. At every value of the predictor, we keep all positives and one tenth of negatives.</p><div class="equation emphasis">q(x) / (1 − q(x)) = p(x) / [s(1 − p(x))]</div><p>So the sampled odds are always the population odds divided by <i>s</i>. With <i>s</i> = 0.10, every row gets the same ×10 multiplier.</p></div><div class="note-step"><p class="eyebrow">01 / Logistic correction · 6 of 9</p><h3>Logs turn multiplication into addition.</h3><p>A logit is the logarithm of the odds. Apply the rule log(<i>a</i> × <i>b</i>) = log <i>a</i> + log <i>b</i>.</p><div class="equation">log(sample odds) = log(population odds) + log(10)</div><p>Because log(10) ≈ 2.30, <strong>every log-odds value rises by 2.30</strong>.</p></div><div class="note-step"><p class="eyebrow">01 / Logistic correction · 7 of 9</p><h3>That is why the line shifts.</h3><p>The sampled log odds equal the original line plus a constant:</p><div class="equation emphasis">logit q(x) = β(x − 1) + log(10)</div><p>A constant addition changes the height of the line. It does not change how much the line rises when <i>x</i> increases. <strong>The intercept changes; the slope stays the same.</strong></p><p class="small">These are the exact population and sampled relationships in this correctly specified logistic example, rather than two noisy fitted estimates.</p></div><div class="note-step"><p class="eyebrow">01 / Logistic correction · 8 of 9</p><h3>Undo the addition.</h3><p>Subtract the 2.30 we added. In general the upward sampling shift is −log <i>s</i>, so the correction adds log <i>s</i> back:</p><div class="equation emphasis">logit p(x) = logit q(x) + log s</div><p>With <i>s</i> = 0.10, log <i>s</i> ≈ −2.30. The line returns to its original position. Convert those corrected log odds to probabilities, and the prediction at <i>x</i> = 0 returns from 9.17% to 1%.</p></div></details>
+<section class="step " id="step-9" data-step="9">
+<div class="step-copy"><p class="eyebrow">01 / Logistic correction · 9 of 9</p><h2>Now change the sampling fraction.</h2><p>Try retaining a different share of negatives. Switch between probabilities and log odds. The curves bend on the probability scale, but the shift is constant on the log-odds scale.</p><p>A fixed intercept correction preserves every score’s order, so it leaves the ROC curve and AUC unchanged. A different threshold can still change who gets flagged.</p><details><summary>What the correction assumes</summary><p>The exact odds identity requires selection to depend only on the class, with the same inclusion probability at every <i>x</i>. It does not require linear log odds. For a correctly specified, unpenalized logistic model, random sampling within classes also preserves the population slopes; estimates approach those slopes as data grow. Separate finite-sample fits need not match.</p><p>Misspecification, penalties, and feature-dependent selection can defeat an intercept-only repair of a fitted model. The correction also does not fix finite-sample bias or separation.</p></details><details><summary>When both classes are sampled</summary><p>If the inclusion probabilities are <i>s</i><sub>1</sub> for positives and <i>s</i><sub>0</sub> for negatives, add log(<i>s</i><sub>0</sub>/<i>s</i><sub>1</sub>) to the sampled log odds. Equivalently, add logit(π) − logit(ρ), where π and ρ are the population and sampled event rates.</p></details></div>
+<div class="inline-panel" data-visual="logistic" data-mode="interactive" aria-label="Experiment with sampling and correction"></div>
+</section>
+<section class="scroll-chapter" data-chapter="efficiency" data-stages="3" style="--stages:3" aria-label="Training efficiency">
+<div class="scroll-markers" aria-hidden="true"><span class="scroll-marker" id="step-10" data-stage="0"></span><span class="scroll-marker" id="step-11" data-stage="1"></span><span class="scroll-marker" id="step-12" data-stage="2"></span></div>
+<div class="scene">
+<div class="scene-copy"><p class="eyebrow" data-scene="eyebrow">Training efficiency</p><h2 data-scene="title"></h2><p class="description" data-scene="description"></p></div>
+<div class="scene-canvas" data-scene="canvas"></div>
+<div class="scene-equation" data-scene="equation"></div>
+<p class="scene-note" data-scene="note"></p>
+<div class="scene-footer"><div class="scene-dots" aria-label="Jump to an animation stage"></div><span class="scene-count" data-scene="count"></span><button class="motion-toggle" type="button" aria-pressed="true">Motion on</button><span class="scene-scroll">Scroll to continue ↓</span></div>
+<div class="scene-progress" aria-hidden="true"><span></span></div>
+</div>
+</section>
+<details class="chapter-notes"><summary>Read the full training efficiency explanation</summary><div class="note-step"><p class="eyebrow">02 / The efficiency argument</p><h3>Spend less time on the common class.</h3>
+        <p>Now consider one million training observations with 1% positives: 10,000 events and 990,000 non-events.</p>
+        <p>Keep all 10,000 events and randomly retain 10,000 non-events. One pass now processes 20,000 examples instead of a million—a <strong>50-fold reduction</strong> in example visits.</p>
+        <p>That can free time for tuning, richer models, or more refits. It is a computational argument, with a statistical price: we discarded information from the majority class.</p>
+        <p class="small">This compares examples per pass, not measured wall-clock speed. Scanning and sampling the original data still have a cost.</p></div><div class="note-step"><p class="eyebrow">02 / A fixed update budget</p><h3>Give each batch more rare examples.</h3>
+        <p>At 1% prevalence, a random batch of 128 contains just 1.28 positive examples on average. About 28% of such batches contain none.</p>
+        <p>Sampling from a 50/50 distribution gives 64 positives on average. It changes how often training encounters the rare class and can change the variability of its updates.</p>
+        <p class="small">Repeated visits are not new information. Upweighting the loss on the full data also changes influence, but does not by itself reduce how many examples must be processed.</p></div><div class="note-step"><p class="eyebrow">02 → 03 / The fork in the argument</p><h3>Which destination are we optimizing for?</h3>
+        <div class="equation">Natural loss: 0.01 L<sub>1</sub> + 0.99 L<sub>0</sub><br>Balanced loss: 0.50 L<sub>1</sub> + 0.50 L<sub>0</sub></div>
+        <p>Unweighted balancing changes the objective. Each class now has equal influence, regardless of its prevalence.</p>
+        <p>To keep the natural objective under 50/50 sampling, weight positive losses by 0.02 and negative losses by 1.98. In expectation, that recovers the original loss.</p>
+        <p class="small">Efficient sampling and changing priorities can be separated. Sampling affects which examples get visited; loss weights determine their contribution. Whether the resulting updates are more efficient depends on the problem.</p></div></details>
+<section class="scroll-chapter" data-chapter="learning" data-stages="4" style="--stages:4" aria-label="What gets learned">
+<div class="scroll-markers" aria-hidden="true"><span class="scroll-marker" id="step-13" data-stage="0"></span><span class="scroll-marker" id="step-14" data-stage="1"></span><span class="scroll-marker" id="step-15" data-stage="2"></span><span class="scroll-marker" id="step-16" data-stage="3"></span></div>
+<div class="scene">
+<div class="scene-copy"><p class="eyebrow" data-scene="eyebrow">What gets learned</p><h2 data-scene="title"></h2><p class="description" data-scene="description"></p></div>
+<div class="scene-canvas" data-scene="canvas"></div>
+<div class="scene-equation" data-scene="equation"></div>
+<p class="scene-note" data-scene="note"></p>
+<div class="scene-footer"><div class="scene-dots" aria-label="Jump to an animation stage"></div><span class="scene-count" data-scene="count"></span><button class="motion-toggle" type="button" aria-pressed="true">Motion on</button><span class="scene-scroll">Scroll to continue ↓</span></div>
+<div class="scene-progress" aria-hidden="true"><span></span></div>
+</div>
+</section>
+<details class="chapter-notes"><summary>Read the full what gets learned explanation</summary><div class="note-step"><p class="eyebrow">03 / The learning argument</p><h3>Unlimited compute. Limited capacity.</h3>
+        <p>Imagine a model that may use <strong>only one binary signal</strong>. It can split on A or B, then assign the best probability to each branch.</p>
+        <p>A is a narrow signal: it fires for 50% of positives but only 0.1% of negatives. B is broader: it fires for 90% of positives and 10% of negatives.</p>
+        <p>We can optimize both models exactly. There are no unfinished training runs here—only a choice about which signal earns the model’s single slot.</p>
+        <p class="small">Synthetic population, 1% positive prevalence. The signals can be generated independently conditional on the label. Their conditional rates stay fixed as we change the loss weights.</p></div><div class="note-step"><p class="eyebrow">03 / Optimize the natural loss</p><h3>The narrow signal wins.</h3>
+        <p>Under the natural 1/99 class mixture, model A has lower optimized log loss. Its very low false-positive rate makes it valuable for estimating probabilities in this rare-event population.</p>
+        <p>Training longer will not make this objective prefer B. A is already the global optimum within our two-model family.</p>
+        <p class="small">Each candidate’s two leaf probabilities are also optimized. The figure uses exact expected cross-entropy, measured in nats; lower is better.</p></div><div class="note-step"><p class="eyebrow">03 / Optimize the balanced loss</p><h3>Now the broader signal wins.</h3>
+        <p>Give positives and negatives equal influence. Model B now has lower optimized log loss, so the model spends its one slot on B.</p>
+        <p>This is a change in learned structure. B catches more positives, while admitting more negatives. Its AUC is 0.90, compared with about 0.75 for A.</p>
+        <p>Move the influence slider. The preferred signal changes well before the classes reach 50/50. Equal balance is a candidate to try, not a privileged optimum.</p></div><div class="note-step"><p class="eyebrow">03 / Beyond an intercept</p><h3>A correction cannot restore a discarded signal.</h3>
+        <p>Correct B’s probabilities back to 1% prevalence. Its AUC stays 0.90. The correction restores the prior within its leaves; it does not make the model use A.</p>
+        <p>Nor can changing a threshold on model A reproduce model B. They rank some observations in the opposite order. The ROC curves cross: neither signal wins at every false-positive rate.</p>
+        <p class="small">This demonstrates a possible benefit at convergence for a model with restricted capacity. It does not prove that balancing always improves flexible models or their learned representations.</p></div></details>
+<section class="step" id="step-17" data-step="17"><div class="step-copy"><p class="eyebrow">04 / Better according to what?</p><h2>The gain has a price.</h2>
+        <p>Flag the higher-score branch of each model. A has about 83% precision and 50% recall. B has about 8% precision and 90% recall.</p>
+        <p>The balanced objective improves AUC and the best balanced accuracy in this example, while the corrected B model has worse natural-population log loss. More false alarms may be worth it—or may make B unusable.</p>
+        <p>Evaluate on untouched data at the deployment prevalence. Tune sampling, weighting, and thresholds inside training folds. Choose a metric or explicit cost that reflects the decision.</p>
+        <p class="small">The operating points shown flag signal = 1. They are not both obtained by thresholding the corrected probabilities at 0.5. A balanced training distribution is not a balanced test population.</p></div><div class="inline-panel" data-visual="trade" data-mode="" aria-label="Interactive lesson figure"></div></section>
+<section class="scroll-chapter" id="trees" data-chapter="trees" data-stages="5" style="--stages:5" aria-label="Decision trees and split ranking">
+<div class="scroll-markers" aria-hidden="true"><span class="scroll-marker" id="tree-stage-0" data-stage="0"></span><span class="scroll-marker" id="tree-stage-1" data-stage="1"></span><span class="scroll-marker" id="tree-stage-2" data-stage="2"></span><span class="scroll-marker" id="tree-stage-3" data-stage="3"></span><span class="scroll-marker" id="tree-stage-4" data-stage="4"></span></div>
+<div class="scene"><div class="scene-copy"><p class="eyebrow" data-scene="eyebrow">Decision trees</p><h2 data-scene="title"></h2><p class="description" data-scene="description"></p></div>
+<div class="scene-canvas" data-scene="canvas"></div><div class="scene-equation" data-scene="equation"></div><p class="scene-note" data-scene="note"></p>
+<div class="scene-footer"><div class="scene-dots" aria-label="Jump to a tree animation stage"></div><span class="scene-count" data-scene="count"></span><button class="motion-toggle" type="button" aria-pressed="true">Motion on</button><span class="scene-scroll">Scroll to continue ↓</span></div><div class="scene-progress" aria-hidden="true"><span></span></div></div></section>
+<details class="chapter-notes"><summary>Read the complete decision-tree argument and calculations</summary>
+<div class="note-step"><h3>Changing the class mixture changes the preferred split</h3>
+<p>This is a new numerical example, using Gini impurity rather than the preceding log-loss example. At the root, two binary features supply the two candidate splits. A sends 10% of positives and 0% of negatives left. B sends 90% of positives and 10% of negatives left. A joint distribution exists: generate the two features independently conditional on the label. Treat the stated proportions as population quantities; random finite samples fluctuate around them.</p>
+<p>Write p for the positive proportion at the parent, q for the proportion sent left, and p<sub>L</sub>, p<sub>R</sub> for the positive proportions in the two children. The Gini decrease is</p>
+<div class="equation">I(p) = 2p(1 − p)<br>Δ = I(p) − q I(p<sub>L</sub>) − (1 − q) I(p<sub>R</sub>)<br>= 2q(1 − q)(p<sub>L</sub> − p<sub>R</sub>)².</div>
+<p>If a split sends fraction a of positives and fraction b of negatives left, then q = pa + (1 − p)b, p<sub>L</sub> = pa/q, and p<sub>R</sub> = p(1 − a)/(1 − q). Class-uniform downsampling preserves a and b in the retained population, while changing p, q, and the child proportions. The two gains need not change by the same factor.</p>
+<table class="comparison"><caption>Same candidate splits, different training mixtures</caption><thead><tr><th scope="col">Positive share</th><th scope="col">Gain A</th><th scope="col">Gain B</th><th scope="col">Chosen</th></tr></thead><tbody><tr><th scope="row">1%</th><td>0.001962</td><td>0.001302</td><td>A</td></tr><tr><th scope="row">50%</th><td>0.026316</td><td>0.320000</td><td>B</td></tr></tbody></table>
+<p>For example, take 100 positives and 9,900 negatives. A has left counts (10, 0) and right counts (90, 9,900); B has (90, 990) and (10, 8,910). Retain all positives and 1/99 of negatives. The expected negative counts become 100 in A’s right child, and 10 and 90 in B’s children. The table follows directly from the weighted child impurities. No extra positive information has been created.</p></div>
+<div class="note-step"><h3>Ranking and stopping are different decisions</h3><p>At 1% positives, Δ<sub>A</sub> &gt; Δ<sub>B</sub>. With both candidates otherwise admissible, any minimum-gain cutoff that lets B pass also lets A pass. The greedy tree still chooses A. A cutoff above A’s gain makes the tree stop. There is no cutoff that selects B here.</p>
+<p>Scikit-learn’s <code>min_impurity_decrease</code> compares the gain multiplied by the node’s share of the full training sample. At this root that factor is one. At any fixed node it is common to its candidate splits, so it cannot reverse their ranking.</p>
+<p>Other hyperparameters can change the candidate set. Here A’s tiny left leaf occupies 0.1% of the original sample: setting <code>min_samples_leaf</code> to 1% excludes A while allowing B. More depth may recover distinctions later. These possibilities do not imply that a global hyperparameter grid reproduces rebalancing throughout a tree. The grid searches outputs of a greedy procedure; it does not enumerate all possible tree structures.</p></div>
+<div class="note-step"><h3>What this establishes for a forest</h3><p>For a stump, these two partitions yield ROC AUCs of 0.55 and 0.90, respectively. Changing A’s prediction threshold cannot recover a distinction among observations that A puts in the same leaf. A’s pure positive leaf can still be useful: a higher AUC does not make B preferable for every operating cost.</p><p>The same split-ranking mechanism operates inside random-forest trees whenever both candidates are considered. It is a possibility result about a learning algorithm, not a theorem that balancing improves a fully tuned forest. Feature subsampling, deeper trees, and finite-sample variability affect the final ensemble. Class weighting can target the same rebalanced population criterion without discarding observations, although the fitted forests need not be identical.</p></div>
+</details>
+<section class="step" id="tree-playground"><div class="step-copy"><p class="eyebrow">05 / Try the two changes separately</p><h2>Change the balance. Then move the cutoff.</h2><p>The first control recomputes both gains as the training mixture changes. The second keeps the original 1% mixture and both gains fixed. The two experiments isolate the distinction between ranking candidate splits and deciding whether to split.</p></div>
+<div class="tree-labs">
+<div class="tree-lab"><h3>1. Change the class balance</h3><label class="control-top" for="tree-prior">Training positives <output id="tree-prior-value" for="tree-prior">1.0%</output></label><input type="range" id="tree-prior" min="1" max="50" step="0.1" value="1"><div class="tree-presets"><button type="button" class="preset" data-tree-prior="1">Original: 1%</button><button type="button" class="preset" data-tree-prior="50">Balanced: 50%</button></div><div id="tree-prior-chart"></div><p class="panel-note" id="tree-prior-status" role="status"></p><details><summary>Inspect child shares and gains</summary><table class="comparison"><thead><tr><th scope="col">Split</th><th scope="col">q</th><th scope="col">p<sub>L</sub></th><th scope="col">p<sub>R</sub></th><th scope="col">Δ</th></tr></thead><tbody id="tree-detail-body"></tbody></table><p>Bar length is Δ / I(p). Dividing both gains by the same positive number preserves their ordering.</p></details></div>
+<div class="tree-lab"><h3>2. Keep 1% positives; move the cutoff</h3><label class="control-top" for="tree-cutoff">Minimum Gini decrease <output id="tree-cutoff-value" for="tree-cutoff">0.0000</output></label><input type="range" id="tree-cutoff" min="0" max="0.0025" step="0.0001" value="0"><p class="small">All other constraints stay fixed. Both splits remain available.</p><div id="tree-cutoff-chart"></div><p class="panel-note" id="tree-cutoff-status" role="status"></p><p class="small">No position of this slider selects B: its gain stays below A’s.</p></div>
+</div></section>
+<section class="step" id="imblearn"><div class="step-copy"><p class="eyebrow">06 / Resampling in Python</p><h2>The basics of imblearn</h2><p>Install the package as <code>imbalanced-learn</code>; import it as <code>imblearn</code>. Its samplers change the training rows and labels together with <code>fit_resample(X, y)</code>. Resampling is a model choice to evaluate, rather than a requirement imposed by rare labels.</p>
+<pre><code>python -m pip install scikit-learn imbalanced-learn</code></pre>
+<div class="table-scroll"><table class="comparison"><thead><tr><th scope="col">Tool</th><th scope="col">What it does</th></tr></thead><tbody>
+<tr><th scope="row"><code>RandomUnderSampler</code></th><td>Randomly retains fewer majority observations. The direct analogue of the thinning in this lesson.</td></tr>
+<tr><th scope="row"><code>RandomOverSampler</code></th><td>Its basic form repeats minority observations. Repetition adds influence, not independent information.</td></tr>
+<tr><th scope="row"><code>SMOTE</code></th><td>Interpolates minority examples using neighbors. This changes feature geometry as well as class counts; the preceding class-only sampling correction does not directly apply.</td></tr>
+<tr><th scope="row"><code>BalancedRandomForestClassifier</code></th><td>Constructs a class-balanced draw for each tree, allowing different trees to use different majority observations.</td></tr></tbody></table></div>
+<p>For binary undersampling, <code>sampling_strategy</code> is the desired minority / majority count ratio after resampling. <code>1.0</code> means 50% minority, <code>0.25</code> means 20%, and <code>0.1</code> means about 9.1%. It is not the fraction of majority cases retained. A requested ratio below the original ratio cannot be achieved by removing majority cases.</p>
+<h3>Put the sampler inside cross-validation</h3><p>First hold out the test set at its natural class mix. Then pass an <code>imblearn.pipeline.Pipeline</code> to <code>GridSearchCV</code>. Each fit resamples its training fold; the validation fold and later test predictions keep all their rows. The ordinary scikit-learn pipeline does not implement sampler steps.</p>
+<p>On a separate synthetic dataset, the runnable example compares no resampling with several undersampling ratios and tunes tree depth and leaf size together. It also tunes a balanced forest separately. Average precision selects the model in cross-validation; only that selected model is evaluated on the test set.</p>
+<p class="code-link"><a href="imblearn_demo.py" download>imblearn_demo.py</a></p>
+<details class="code-example"><summary>Read the complete runnable example</summary><pre><code>&quot;&quot;&quot;Compare resampling choices using untouched validation folds and test data.
+
+Install: python -m pip install scikit-learn imbalanced-learn
+Run: python imblearn_demo.py
+&quot;&quot;&quot;
+from collections import Counter
+
+from imblearn.ensemble import BalancedRandomForestClassifier
+from imblearn.pipeline import Pipeline
+from imblearn.under_sampling import RandomUnderSampler
+from sklearn.datasets import make_classification
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import average_precision_score, roc_auc_score
+from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_split
+
+
+X, y = make_classification(
+    n_samples=4000, n_features=10, n_informative=5,
+    n_redundant=2, weights=[0.97, 0.03], flip_y=0,
+    random_state=42,
+)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, stratify=y, random_state=42,
+)
+cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+
+# A sampler changes BOTH X and y. Use imblearn&#x27;s Pipeline.
+# GridSearchCV calls fit on each training fold; validation is not resampled.
+pipeline = Pipeline([
+    (&quot;sample&quot;, &quot;passthrough&quot;),
+    (&quot;forest&quot;, RandomForestClassifier(
+        n_estimators=100, random_state=42, n_jobs=1,
+    )),
+])
+common = {
+    &quot;forest__max_depth&quot;: [4, None],
+    &quot;forest__min_samples_leaf&quot;: [1, 5],
+}
+grid = [
+    {**common, &quot;sample&quot;: [&quot;passthrough&quot;]},
+    {**common,
+     &quot;sample&quot;: [RandomUnderSampler(random_state=42)],
+     &quot;sample__sampling_strategy&quot;: [0.1, 0.25, 1.0]},
+]
+search = GridSearchCV(
+    pipeline, grid, cv=cv, scoring=&quot;average_precision&quot;,
+    n_jobs=-1, refit=True, error_score=&quot;raise&quot;,
+)
+search.fit(X_train, y_train)
+
+# A separate comparison: the forest creates a fresh balanced draw per tree.
+# Explicit sampling settings avoid ambiguity across imblearn versions.
+balanced_search = GridSearchCV(
+    BalancedRandomForestClassifier(
+        n_estimators=100, sampling_strategy=&quot;all&quot;,
+        replacement=True, bootstrap=False,
+        random_state=42, n_jobs=1,
+    ),
+    {&quot;max_depth&quot;: [4, None], &quot;min_samples_leaf&quot;: [1, 5]},
+    cv=cv, scoring=&quot;average_precision&quot;, n_jobs=-1,
+    refit=True, error_score=&quot;raise&quot;,
+)
+balanced_search.fit(X_train, y_train)
+
+print(&quot;Training counts:&quot;, Counter(y_train))
+print(&quot;Untouched test counts:&quot;, Counter(y_test))
+for label, result in [
+    (&quot;Resampling pipeline&quot;, search),
+    (&quot;Balanced forest&quot;, balanced_search),
+]:
+    print(label, &quot;best CV average precision:&quot;, round(result.best_score_, 4))
+    print(&quot;Parameters:&quot;, result.best_params_)
+
+# Choose the method on CV results, then evaluate that choice once on test data.
+selected = max([search, balanced_search], key=lambda result: result.best_score_)
+score = selected.predict_proba(X_test)[:, 1]
+print(&quot;Selected model test AP:&quot;, round(average_precision_score(y_test, score), 4))
+print(&quot;Selected model test ROC AUC:&quot;, round(roc_auc_score(y_test, score), 4))
+# AP and ROC AUC assess scores, not a chosen classification threshold.
+# Tune thresholds or calibrate probabilities using separate training-only folds.
+</code></pre></details>
+<h3>One undersample per fit, or a new draw per tree?</h3><p>A <code>RandomUnderSampler → RandomForestClassifier</code> pipeline makes one retained training pool for that fit. Its forest then draws trees from that pool. A balanced forest instead builds a new balanced sample for every tree. In the example, <code>sampling_strategy="all"</code>, <code>replacement=True</code>, and <code>bootstrap=False</code> make the internal sampling explicit: draw with replacement from each class, without a second bootstrap stage.</p>
+<p>A balanced training sample changes score levels as well as possible partitions. If calibrated probabilities matter, check them on data at deployment prevalence and calibrate using training-only validation data. A prior correction of arbitrary fitted forest scores is not a calibration guarantee. Choose a classification threshold separately when the actual task requires decisions.</p>
+<details class="sources"><summary>Decision-tree and imblearn references</summary><p>The split-reversal example is an exact synthetic calculation, not a reported empirical forest result.</p><ul><li><a href="https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html">DecisionTreeClassifier: impurity decrease and leaf constraints</a></li><li><a href="https://imbalanced-learn.org/stable/references/generated/imblearn.under_sampling.RandomUnderSampler.html">RandomUnderSampler and sampling_strategy</a></li><li><a href="https://imbalanced-learn.org/stable/references/generated/imblearn.pipeline.Pipeline.html">imblearn Pipeline</a> and <a href="https://imbalanced-learn.org/stable/common_pitfalls.html">resampling pitfalls</a></li><li><a href="https://imbalanced-learn.org/stable/references/generated/imblearn.ensemble.BalancedRandomForestClassifier.html">BalancedRandomForestClassifier</a></li><li><a href="https://imbalanced-learn.org/stable/over_sampling.html">Random oversampling and SMOTE</a></li></ul></details>
+</div></section>
+<section class="step" id="step-18" data-step="18"><div class="step-copy"><p class="eyebrow">The practical judgment</p><h2>Balance for a reason.</h2>
+        <ol class="takeaways"><li><strong>For probabilities:</strong> account for how sampling changed the prior. A threshold problem alone need not require retraining.</li><li><strong>For efficiency:</strong> test whether a smaller training set gives useful results sooner. Keep informative negatives.</li><li><strong>For learning:</strong> balancing can change which split a greedy tree prefers, even when both candidates clear the impurity cutoff. Compare sampling choices on untouched validation data.</li></ol>
+        <p>I would treat balancing as a tuning choice, not a ritual. A rare label by itself is not evidence that a model cannot learn.</p>
+        <details><summary>Where this extends and corrects the notes</summary><p>The notes’ intercept correction has the correct sign. “Unbiased” is too strong for finite-sample logistic estimates. The exact odds correction and the correctly specified logistic slope result need separate assumptions. The one-signal example develops the learning argument without relying on incomplete optimization.</p></details>
+        <details class="sources"><summary>Sources and scope</summary><p>Based on Alexander Clark’s <em>Applied Issues</em> notes, “Imbalanced Data” and “Logistic Regression.” All interactive populations here are illustrative.</p><p><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4258397/" target="_blank" rel="noopener">Fithian &amp; Hastie (2014)</a>, §2: case-control odds correction and the consequences of misspecification.</p><p><a href="https://proceedings.mlr.press/v97/byrd19a.html" target="_blank" rel="noopener">Byrd &amp; Lipton (2019)</a>: weighting effects can diminish with extended training in some settings.</p><p><a href="https://arxiv.org/abs/1910.09217" target="_blank" rel="noopener">Kang et al. (2020)</a>: representation learning and classifier balancing can have different effects. These results caution against a universal neural-network claim.</p><p>The stump calculations enumerate both permitted models and optimize each leaf analytically. AUC gives half credit to ties; balanced accuracy is (recall + specificity)/2.</p></details>
+        <a href="#title" class="start-link">Back to the beginning ↑</a></div></section>
+</article>
+</main>
+<noscript><style>.scroll-chapter{display:none}</style><p class="noscript">The lesson text is available above. Enable JavaScript for the interactive figures.</p></noscript>
+</body></html>
