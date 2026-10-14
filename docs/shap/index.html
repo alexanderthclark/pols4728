@@ -54,52 +54,52 @@
             <li>Same Shapley formula; new value function.</li>
           </ul>
           <div class="static-formula"><math display="block" aria-label="The Shapley value of feature i in the prediction game v sub x equals the sum over all subsets S of the feature universe F excluding i, of the size of S factorial times m minus the size of S minus one factorial, divided by m factorial, multiplied by v sub x of S with i added minus v sub x of S."><mrow>
-            <msub><mi>φ</mi><mi>i</mi></msub><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>v</mi><mi>x</mi></msub><mo stretchy="false">)</mo><mo>=</mo>
+            <msub><mi>ϕ</mi><mi>i</mi></msub><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>v</mi><mi>x</mi></msub><mo stretchy="false">)</mo><mo>=</mo>
             <munder><mo>∑</mo><mrow><mi>S</mi><mo>⊆</mo><mi>F</mi><mo>∖</mo><mo stretchy="false">{</mo><mi>i</mi><mo stretchy="false">}</mo></mrow></munder>
             <mfrac><mrow><mo stretchy="false">|</mo><mi>S</mi><mo stretchy="false">|</mo><mo>!</mo><mo stretchy="false">(</mo><mi>m</mi><mo>−</mo><mo stretchy="false">|</mo><mi>S</mi><mo stretchy="false">|</mo><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo>!</mo></mrow><mrow><mi>m</mi><mo>!</mo></mrow></mfrac>
             <mo stretchy="false">[</mo><msub><mi>v</mi><mi>x</mi></msub><mo>⁡</mo><mo stretchy="false">(</mo><mi>S</mi><mo>∪</mo><mo stretchy="false">{</mo><mi>i</mi><mo stretchy="false">}</mo><mo stretchy="false">)</mo><mo>−</mo><msub><mi>v</mi><mi>x</mi></msub><mo>⁡</mo><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo><mo stretchy="false">]</mo>
           </mrow></math></div>
-          <p class="formula-focus-note"><var>F</var>: all features; <span class="math-text">m = |F|</span>.</p>
+          <p class="formula-focus-note"><math class="math-text"><mrow><mi>F</mi></mrow></math>: all features; <math class="math-text"><mrow><mi>m</mi><mo>=</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">|</mo><mi>F</mi><mo stretchy="false" lspace="0em" rspace="0em">|</mo></mrow></mrow></math>.</p>
           <p class="scroll-prompt">Scroll to highlight each part, or use Next.</p>
         </div></section>
         <section class="step formula-step" id="observation-symbol" data-step="1" aria-labelledby="observation-symbol-heading"><div class="step-content">
-          <p class="step-number">2 / 20 · The observation x</p><h2 id="observation-symbol-heading">The observation <var>x</var></h2>
+          <p class="step-number">2 / 20 · The observation <math class="math-text"><mrow><mi>x</mi></mrow></math></p><h2 id="observation-symbol-heading">The observation <math class="math-text"><mrow><mi>x</mi></mrow></math></h2>
           <ul class="slide-points">
-            <li><var>x</var>: one complete input row.</li>
+            <li><math class="math-text"><mrow><mi>x</mi></mrow></math>: one complete input row.</li>
             <li>Its values supply every fixed feature.</li>
             <li>Same observation throughout each explanation.</li>
           </ul>
         </div></section>
         <section class="step formula-step" id="prediction-symbol" data-step="2" aria-labelledby="prediction-symbol-heading"><div class="step-content">
-          <p class="step-number">3 / 20 · The prediction ŷ</p><h2 id="prediction-symbol-heading">The prediction <span class="math-text">ŷ</span></h2>
+          <p class="step-number">3 / 20 · The prediction <math class="math-text"><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover></mrow></math></p><h2 id="prediction-symbol-heading">The prediction <math class="math-text"><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover></mrow></math></h2>
           <ul class="slide-points">
-            <li><span class="math-text">ŷ(x)</span>: fitted-model prediction for the complete row <var>x</var>.</li>
-            <li><var>y</var>: observed outcome.</li>
+            <li><math class="math-text"><mrow><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>x</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow></mrow></math>: fitted-model prediction for the complete row <math class="math-text"><mrow><mi>x</mi></mrow></math>.</li>
+            <li><math class="math-text"><mrow><mi>y</mi></mrow></math>: observed outcome.</li>
             <li>Hold the fitted model fixed.</li>
           </ul>
         </div></section>
         <section class="step formula-step" id="joining-feature" data-step="3" aria-labelledby="joining-feature-heading"><div class="step-content">
-          <p class="step-number">4 / 20 · Before and after feature i</p><h2 id="joining-feature-heading">Before and after feature <var>i</var></h2>
+          <p class="step-number">4 / 20 · Before and after feature <math class="math-text"><mrow><mi>i</mi></mrow></math></p><h2 id="joining-feature-heading">Before and after feature <math class="math-text"><mrow><mi>i</mi></mrow></math></h2>
           <p class="formula-comparison-summary">Both values average the same model’s predictions.</p>
           <div class="formula-comparison" role="group" aria-label="Compare average predictions before and after revealing feature i">
             <div class="formula-comparison-case">
               <p class="formula-comparison-label">Before</p>
               <math display="block" aria-label="v sub x of S"><mrow><msub><mi>v</mi><mi>x</mi></msub><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo></mrow></math>
-              <p class="formula-comparison-detail"><var>i</var>: background values</p>
+              <p class="formula-comparison-detail"><math class="math-text"><mrow><mi>i</mi></mrow></math>: background values</p>
             </div>
             <div class="formula-comparison-case">
               <p class="formula-comparison-label">After</p>
               <math display="block" aria-label="v sub x of S union the set containing i"><mrow><msub><mi>v</mi><mi>x</mi></msub><mo stretchy="false">(</mo><mi>S</mi><mo>∪</mo><mo stretchy="false">{</mo><mi>i</mi><mo stretchy="false">}</mo><mo stretchy="false">)</mo></mrow></math>
-              <p class="formula-comparison-detail"><var>i</var>: value from <var>x</var></p>
+              <p class="formula-comparison-detail"><math class="math-text"><mrow><mi>i</mi></mrow></math>: value from <math class="math-text"><mrow><mi>x</mi></mrow></math></p>
             </div>
           </div>
-          <p class="formula-comparison-definition"><var>S</var>: features fixed to <var>x</var>. Unfixed inputs: background rows.</p>
-          <p class="formula-focus-note"><var>i</var>: the additional feature. No retraining.</p>
+          <p class="formula-comparison-definition"><math class="math-text"><mrow><mi>S</mi></mrow></math>: features fixed to <math class="math-text"><mrow><mi>x</mi></mrow></math>. Unfixed inputs: background rows.</p>
+          <p class="formula-focus-note"><math class="math-text"><mrow><mi>i</mi></mrow></math>: the additional feature. No retraining.</p>
         </div></section>
         <section class="step formula-step" id="feature-credit" data-step="4" aria-labelledby="feature-credit-heading"><div class="step-content">
-          <p class="step-number">5 / 20 · The feature’s credit</p><h2 id="feature-credit-heading">Credit for feature <var>i</var></h2>
+          <p class="step-number">5 / 20 · The feature’s credit</p><h2 id="feature-credit-heading">Credit for feature <math class="math-text"><mrow><mi>i</mi></mrow></math></h2>
           <ul class="slide-points">
-            <li><span class="math-text">ϕ<sub>i</sub>(x)</span>: feature <var>i</var>’s credit.</li>
+            <li><math class="math-text"><mrow><mrow><msub><mi>ϕ</mi><mi>i</mi></msub><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>x</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow></mrow></math>: feature <math class="math-text"><mrow><mi>i</mi></mrow></math>’s credit.</li>
             <li>Average its marginal across orders.</li>
             <li>Measured in prediction units.</li>
           </ul>
@@ -122,7 +122,7 @@
           <p class="step-number">7 / 20 · Three correlations</p><h2 id="ols-model-heading">Bread and Peace</h2>
           <ul class="slide-points">
             <li>Bread and peace → vote share.</li>
-            <li>Features and observed <var>y</var>: mean 0, SD 1.</li>
+            <li>Features and observed <math class="math-text"><mrow><mi>y</mi></mrow></math>: mean 0, SD 1.</li>
             <li>Chosen correlations; <a href="https://www.cambridge.org/core/journals/ps-political-science-and-politics/article/abs/obamas-reelection-prospects-under-bread-and-peace-voting-in-the-2012-us-presidential-election/085A6DB3D1D1310250B5E2566AB352CF">stylized Hibbs model</a>.</li>
           </ul>
         </div></section>
@@ -145,23 +145,23 @@
         <section class="step" id="ols-income-first" data-step="9" aria-labelledby="ols-income-first-heading"><div class="step-content">
           <p class="step-number">10 / 20 · Bread first</p><h2 id="ols-income-first-heading">Bread first</h2>
           <ul class="slide-points">
-            <li>Start at <span class="math-text">ŷ(0, 0) = 0</span>.</li>
-            <li>Bread joins <span class="math-text">∅</span>.</li>
-            <li>Peace joins <span class="math-text">{bread}</span>.</li>
+            <li>Start at <math class="math-text"><mrow><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mn>0</mn><mo>,</mo><mn>0</mn><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow></math>.</li>
+            <li>Bread joins <math class="math-text"><mrow><mo>∅</mo></mrow></math>.</li>
+            <li>Peace joins <math class="math-text"><mrow><mrow><mo stretchy="false" lspace="0em" rspace="0em">{</mo><mtext>bread</mtext><mo stretchy="false" lspace="0em" rspace="0em">}</mo></mrow></mrow></math>.</li>
           </ul>
         </div></section>
         <section class="step" id="ols-fatalities-first" data-step="10" aria-labelledby="ols-fatalities-first-heading"><div class="step-content">
           <p class="step-number">11 / 20 · Peace first</p><h2 id="ols-fatalities-first-heading">Peace first</h2>
           <ul class="slide-points">
             <li>Restart at the same zero baseline.</li>
-            <li>Peace joins <span class="math-text">∅</span>.</li>
-            <li>Bread joins <span class="math-text">{peace}</span>.</li>
+            <li>Peace joins <math class="math-text"><mrow><mo>∅</mo></mrow></math>.</li>
+            <li>Bread joins <math class="math-text"><mrow><mrow><mo stretchy="false" lspace="0em" rspace="0em">{</mo><mtext>peace</mtext><mo stretchy="false" lspace="0em" rspace="0em">}</mo></mrow></mrow></math>.</li>
           </ul>
         </div></section>
         <section class="step" id="ols-shap" data-step="11" aria-labelledby="ols-shap-heading"><div class="step-content">
           <p class="step-number">12 / 20 · The two-feature SHAP values</p><h2 id="ols-shap-heading">Average the two orders</h2>
           <ul class="slide-points">
-            <li>Two orders; weight <span class="math-text">1/2</span> each.</li>
+            <li>Two orders; weight <math class="math-text"><mrow><mfrac><mrow><mn>1</mn></mrow><mrow><mn>2</mn></mrow></mfrac></mrow></math> each.</li>
             <li>Average each feature’s two marginals.</li>
             <li>Baseline + SHAP values = prediction.</li>
           </ul>
@@ -186,7 +186,7 @@
             <li>Neighborhood: −1…+1; changes ability’s marginal.</li>
             <li>Output: yearly earnings ($1,000).</li>
           </ul>
-          <div class="static-observation"><p><span class="math-text">f(x) = ŷ(x)</span>: the same earnings prediction rule.</p><div class="prediction-equation earnings-equation" role="math" aria-label="f of x equals 40 plus 10 times ability plus 24 times ability times neighborhood plus 4 times experience">
+          <div class="static-observation"><p><math class="math-text"><mrow><mrow><mi>f</mi><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>x</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow><mo>=</mo><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>x</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow></mrow></math>: the same earnings prediction rule.</p><div class="prediction-equation earnings-equation" role="math" aria-label="f of x equals 40 plus 10 times ability plus 24 times ability times neighborhood plus 4 times experience">
             <math class="prediction-line" aria-hidden="true"><mrow><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mn>40</mn><mo>+</mo><mn>10</mn><mo>×</mo><mtext>ability</mtext></mrow></math>
             <span class="prediction-term"><math class="prediction-line" aria-hidden="true"><mrow><mo>+</mo><mn>24</mn><mo>×</mo><mtext>ability</mtext></mrow></math>
             <math class="prediction-line" aria-hidden="true"><mrow><mo>×</mo><mtext>neighborhood</mtext></mrow></math></span>
@@ -196,7 +196,7 @@
         <section class="step" id="background" data-step="14" aria-labelledby="background-heading"><div class="step-content">
           <p class="step-number">15 / 20 · The term vₓ(S)</p><h2 id="background-heading">Start at the baseline</h2>
           <ul class="slide-points">
-            <li><span class="math-text">S = ∅</span>: nothing fixed.</li>
+            <li><math class="math-text"><mrow><mi>S</mi><mo>=</mo><mo>∅</mo></mrow></math>: nothing fixed.</li>
             <li>Average eight reference predictions.</li>
             <li>Baseline: <span data-fact="baselineDollars">$47,000</span>.</li>
           </ul>
@@ -204,7 +204,7 @@
         <section class="step" id="reveal-ability" data-step="15" aria-labelledby="ability-heading"><div class="step-content">
           <p class="step-number">16 / 20 · The term vₓ(S ∪ {i})</p><h2 id="ability-heading">Add ability</h2>
           <ul class="slide-points">
-            <li><span class="math-text">S = ∅</span>; <span class="math-text">i = ability</span>.</li>
+            <li><math class="math-text"><mrow><mi>S</mi><mo>=</mo><mo>∅</mo></mrow></math>; <math class="math-text"><mrow><mi>i</mi><mo>=</mo><mtext>ability</mtext></mrow></math>.</li>
             <li>Copy ability = <span data-fact="ability">1</span> into every row.</li>
             <li>Marginal: <span data-fact="abilityFirstDollars">+$5,000</span>.</li>
           </ul>
@@ -212,7 +212,7 @@
         <section class="step" id="neighborhood-first" data-step="16" aria-labelledby="neighborhood-heading"><div class="step-content">
           <p class="step-number">17 / 20 · The difference vₓ(S ∪ {i}) − vₓ(S)</p><h2 id="neighborhood-heading">Change the preceding group</h2>
           <ul class="slide-points">
-            <li><span class="math-text feature-set">S = {neighborhood}</span>; <span class="math-text">i = ability</span>.</li>
+            <li><math class="math-text feature-set"><mrow><mi>S</mi><mo>=</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">{</mo><mtext>neighborhood</mtext><mo stretchy="false" lspace="0em" rspace="0em">}</mo></mrow></mrow></math>; <math class="math-text"><mrow><mi>i</mi><mo>=</mo><mtext>ability</mtext></mrow></math>.</li>
             <li>Keep neighborhood fixed; add ability.</li>
             <li>Marginal: <span data-fact="abilityAfterDollars">−$7,000</span>.</li>
           </ul>
@@ -220,8 +220,8 @@
         <section class="step" id="weights" data-step="17" aria-labelledby="weights-heading"><div class="step-content">
           <p class="step-number">18 / 20 · The factorial weight</p><h2 id="weights-heading">Count the orders</h2>
           <ul class="slide-points">
-            <li>Three features → <span class="math-text">3! = 6</span> orders.</li>
-            <li>Weight = fraction with this preceding <var>S</var>.</li>
+            <li>Three features → <math class="math-text"><mrow><mrow><mn>3</mn><mo>!</mo></mrow><mo>=</mo><mn>6</mn></mrow></math> orders.</li>
+            <li>Weight = fraction with this preceding <math class="math-text"><mrow><mi>S</mi></mrow></math>.</li>
             <li>Open the six orders to count them.</li>
           </ul>
         </div></section>
@@ -230,7 +230,7 @@
           <ul class="slide-points">
             <li id="average-definition">Ability: average six orders.</li>
             <li id="average-context">Before neighborhood: +$5,000. After: −$7,000.</li>
-            <li id="average-interpretation">Each weight <span class="math-text">3/6</span> → −$1,000.</li>
+            <li id="average-interpretation">Each weight <math class="math-text"><mrow><mfrac><mrow><mn>3</mn></mrow><mrow><mn>6</mn></mrow></mfrac></mrow></math> → −$1,000.</li>
           </ul>
         </div></section>
         <section class="step" id="waterfall" data-step="19" aria-labelledby="waterfall-heading"><div class="step-content">
@@ -245,50 +245,50 @@
     </div>
     <section class="method" id="method" aria-labelledby="method-heading">
       <h2 id="method-heading">The calculation we have been doing</h2>
-      <p>For an observation <var>x</var> and a revealed feature group <var>S</var>, copy that observation’s values for the group into every background row. Keep the unrevealed values from the same row, predict with the fixed model, and average. The earnings example uses eight equally weighted reference rows:</p>
+      <p>For an observation <math class="math-text"><mrow><mi>x</mi></mrow></math> and a revealed feature group <math class="math-text"><mrow><mi>S</mi></mrow></math>, copy that observation’s values for the group into every background row. Keep the unrevealed values from the same row, predict with the fixed model, and average. The earnings example uses eight equally weighted reference rows:</p>
       <div class="equation"><math display="block" aria-label="v sub x of S equals one over eight times the sum from r equals one to eight of f of x S, b r outside S"><mrow><msub><mi>v</mi><mi>x</mi></msub><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mn>8</mn></mfrac><munderover><mo>∑</mo><mrow><mi>r</mi><mo>=</mo><mn>1</mn></mrow><mn>8</mn></munderover><mi>f</mi><mo stretchy="false">(</mo><msub><mi>x</mi><mi>S</mi></msub><mo>,</mo><msubsup><mi>b</mi><mrow><mo>−</mo><mi>S</mi></mrow><mrow><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo></mrow></msubsup><mo stretchy="false">)</mo></mrow></math></div>
-      <p>Here <span class="math-text">b<sup>(r)</sup></span> is reference row <var>r</var>, <span class="math-text">x<sub>S</sub></span> supplies the observation’s values for columns in <var>S</var>, and <span class="math-text">−S</span> denotes all the other columns. Together, <span class="math-text">(x<sub>S</sub>, b<sup>(r)</sup><sub>−S</sub>)</span> specifies one complete hybrid input row, with every value in its original column.</p>
-      <p>Revealing feature <var>i</var> changes this average by <span class="math-text">v<sub>x</sub>(S ∪ {i}) − v<sub>x</sub>(S)</span>. Its SHAP value averages that marginal contribution across equally weighted feature orders, exactly as in the earlier <a href="../shapley/">Shapley story</a>.</p>
+      <p>Here <math class="math-text"><mrow><msup><mi>b</mi><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>r</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></msup></mrow></math> is reference row <math class="math-text"><mrow><mi>r</mi></mrow></math>, <math class="math-text"><mrow><msub><mi>x</mi><mi>S</mi></msub></mrow></math> supplies the observation’s values for columns in <math class="math-text"><mrow><mi>S</mi></mrow></math>, and <math class="math-text"><mrow><mo>−</mo><mi>S</mi></mrow></math> denotes all the other columns. Together, <math class="math-text"><mrow><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><msub><mi>x</mi><mi>S</mi></msub><mo>,</mo><msubsup><mi>b</mi><mrow><mo>−</mo><mi>S</mi></mrow><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>r</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></msubsup><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow></math> specifies one complete hybrid input row, with every value in its original column.</p>
+      <p>Revealing feature <math class="math-text"><mrow><mi>i</mi></mrow></math> changes this average by <math class="math-text"><mrow><mrow><msub><mi>v</mi><mi>x</mi></msub><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>S</mi><mo>∪</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">{</mo><mi>i</mi><mo stretchy="false" lspace="0em" rspace="0em">}</mo></mrow><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow><mo>−</mo><mrow><msub><mi>v</mi><mi>x</mi></msub><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>S</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow></mrow></math>. Its SHAP value averages that marginal contribution across equally weighted feature orders, exactly as in the earlier <a href="../shapley/">Shapley story</a>.</p>
       <p>Both examples use interventional background replacement: average over all reference rows, rather than filtering them to observations that match the revealed characteristics. Excluded columns stay together from the same reference row, preserving their dependence with one another; they are not conditioned on the fixed inputs. Changing the background or masking rule can change the explanation.</p>
       <details><summary>Notation and the prediction game</summary>
-        <p>The observation <var>x</var> is a complete input row, with every feature value known. A fitted model <var>f</var> predicts its outcome: <span class="math-text">ŷ(x) = f(x)</span>. The observed outcome <var>y</var> is used in fitting; the explanation concerns the model’s prediction. It does not compare that prediction with an observed outcome.</p>
-        <p>The feature universe <var>F</var> has <var>m</var> members. The preceding group <var>S</var> contains features already fixed to <var>x</var>; feature <var>i</var> is the additional feature, outside <var>S</var>. The value <span class="math-text">v<sub>x</sub>(S)</span> is the average of the fixed model’s predictions over hybrid rows. Included columns take their values from <var>x</var>; excluded columns take theirs from the background. This averaging is what we mean by integrating out the excluded features. Every model call still uses every input column.</p>
-        <p>With nothing fixed, <span class="math-text">v<sub>x</sub>(∅)</span> is the background average prediction. With everything fixed, every hybrid row equals <var>x</var>, so <span class="math-text">v<sub>x</sub>(F) = ŷ(x)</span>. Adding no feature leaves a group unchanged: <span class="math-text">S ∪ ∅ = S</span>.</p>
-        <p>With the model and background held fixed, <span class="math-text">ϕ<sub>i</sub>(x)</span> is shorthand for <span class="math-text">ϕ<sub>i</sub>(v<sub>x</sub>)</span>. It gives feature <var>i</var>’s credit relative to the background average, in prediction units. Repeat the calculation for each feature to recover the prediction as baseline plus contributions.</p>
+        <p>The observation <math class="math-text"><mrow><mi>x</mi></mrow></math> is a complete input row, with every feature value known. A fitted model <math class="math-text"><mrow><mi>f</mi></mrow></math> predicts its outcome: <math class="math-text"><mrow><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>x</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow><mo>=</mo><mrow><mi>f</mi><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>x</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow></mrow></math>. The observed outcome <math class="math-text"><mrow><mi>y</mi></mrow></math> is used in fitting; the explanation concerns the model’s prediction. It does not compare that prediction with an observed outcome.</p>
+        <p>The feature universe <math class="math-text"><mrow><mi>F</mi></mrow></math> has <math class="math-text"><mrow><mi>m</mi></mrow></math> members. The preceding group <math class="math-text"><mrow><mi>S</mi></mrow></math> contains features already fixed to <math class="math-text"><mrow><mi>x</mi></mrow></math>; feature <math class="math-text"><mrow><mi>i</mi></mrow></math> is the additional feature, outside <math class="math-text"><mrow><mi>S</mi></mrow></math>. The value <math class="math-text"><mrow><mrow><msub><mi>v</mi><mi>x</mi></msub><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>S</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow></mrow></math> is the average of the fixed model’s predictions over hybrid rows. Included columns take their values from <math class="math-text"><mrow><mi>x</mi></mrow></math>; excluded columns take theirs from the background. This averaging is what we mean by integrating out the excluded features. Every model call still uses every input column.</p>
+        <p>With nothing fixed, <math class="math-text"><mrow><mrow><msub><mi>v</mi><mi>x</mi></msub><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mo>∅</mo><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow></mrow></math> is the background average prediction. With everything fixed, every hybrid row equals <math class="math-text"><mrow><mi>x</mi></mrow></math>, so <math class="math-text"><mrow><mrow><msub><mi>v</mi><mi>x</mi></msub><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>F</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow><mo>=</mo><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>x</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow></mrow></math>. Adding no feature leaves a group unchanged: <math class="math-text"><mrow><mi>S</mi><mo>∪</mo><mo>∅</mo><mo>=</mo><mi>S</mi></mrow></math>.</p>
+        <p>With the model and background held fixed, <math class="math-text"><mrow><mrow><msub><mi>ϕ</mi><mi>i</mi></msub><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>x</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow></mrow></math> is shorthand for <math class="math-text"><mrow><mrow><msub><mi>ϕ</mi><mi>i</mi></msub><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><msub><mi>v</mi><mi>x</mi></msub><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow></mrow></math>. It gives feature <math class="math-text"><mrow><mi>i</mi></mrow></math>’s credit relative to the background average, in prediction units. Repeat the calculation for each feature to recover the prediction as baseline plus contributions.</p>
       </details>
       <details><summary>Derive the three OLS fits</summary>
-        <p>The Bread and Peace warm-up uses bread, peace, and observed incumbent-party two-party vote share: each has mean zero and SD one. Bread is standardized real income growth. Peace is minus standardized war fatalities, so higher peace means fewer fatalities. The stipulated correlations are bread–peace <span class="math-text">ρ = +0.5</span>, bread–vote <span class="math-text">+0.75</span>, and peace–vote <span class="math-text">+0.75</span>. In a standardized univariate regression, the slope equals the feature–outcome correlation, giving bread-only and peace-only slopes of <span class="math-text">+0.75</span>.</p>
-        <p>For each bivariate slope, subtract the feature correlation times the other feature’s outcome correlation, then divide by <span class="math-text">1 − ρ²</span>:</p>
+        <p>The Bread and Peace warm-up uses bread, peace, and observed incumbent-party two-party vote share: each has mean zero and SD one. Bread is standardized real income growth. Peace is minus standardized war fatalities, so higher peace means fewer fatalities. The stipulated correlations are bread–peace <math class="math-text"><mrow><mi>ρ</mi><mo>=</mo><mo>+</mo><mn>0.5</mn></mrow></math>, bread–vote <math class="math-text"><mrow><mo>+</mo><mn>0.75</mn></mrow></math>, and peace–vote <math class="math-text"><mrow><mo>+</mo><mn>0.75</mn></mrow></math>. In a standardized univariate regression, the slope equals the feature–outcome correlation, giving bread-only and peace-only slopes of <math class="math-text"><mrow><mo>+</mo><mn>0.75</mn></mrow></math>.</p>
+        <p>For each bivariate slope, subtract the feature correlation times the other feature’s outcome correlation, then divide by <math class="math-text"><mrow><mn>1</mn><mo>−</mo><msup><mi>ρ</mi><mn>2</mn></msup></mrow></math>:</p>
         <div class="ols-coefficients">
             <div class="ols-coefficient" role="math" aria-label="The bread slope is 0.75 minus 0.5 times 0.75, divided by one minus 0.5 squared, which equals 0.5"><math aria-hidden="true"><mrow><msub><mi>b</mi><mtext>bread</mtext></msub><mo>=</mo></mrow></math><math aria-hidden="true"><mrow><mfrac><mrow><mn>0.75</mn><mo>−</mo><mo stretchy="false">(</mo><mn>0.5</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>0.75</mn><mo stretchy="false">)</mo></mrow><mrow><mn>1</mn><mo>−</mo><msup><mrow><mo stretchy="false">(</mo><mn>0.5</mn><mo stretchy="false">)</mo></mrow><mn>2</mn></msup></mrow></mfrac><mo>=</mo><mn>0.5</mn></mrow></math></div>
             <div class="ols-coefficient" role="math" aria-label="The peace slope is 0.75 minus 0.5 times 0.75, divided by one minus 0.5 squared, which equals 0.5"><math aria-hidden="true"><mrow><msub><mi>b</mi><mtext>peace</mtext></msub><mo>=</mo></mrow></math><math aria-hidden="true"><mrow><mfrac><mrow><mn>0.75</mn><mo>−</mo><mo stretchy="false">(</mo><mn>0.5</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>0.75</mn><mo stretchy="false">)</mo></mrow><mrow><mn>1</mn><mo>−</mo><msup><mrow><mo stretchy="false">(</mo><mn>0.5</mn><mo stretchy="false">)</mo></mrow><mn>2</mn></msup></mrow></mfrac><mo>=</mo><mn>0.5</mn></mrow></math></div>
           </div>
-        <p>The fitted bivariate equation is <span class="math-text feature-set">ŷ(x) = 0.5 × bread + 0.5 × peace</span>. Centering makes all three intercepts zero. Predictions use the outcome’s SD units; they are not themselves rescaled to SD one. A peace value of +1 means one SD fewer war fatalities than average.</p>
-        <p>Refitting without peace produces <span class="math-text">0.75 = 0.5 + (0.5)(0.5)</span>: the full-model bread coefficient plus the omitted-variable term. SHAP keeps the bivariate coefficients fixed and changes which inputs are averaged. With this additive model and overall background means of zero, a feature’s marginal is the same in either order, despite the correlation between the features.</p>
+        <p>The fitted bivariate equation is <span class="math-text feature-set" role="math" aria-label="y hat of x equals 0.5 times bread plus 0.5 times peace"><math aria-hidden="true"><mrow><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>x</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow><mo>=</mo><mn>0.5</mn><mo>×</mo><mtext>bread</mtext></mrow></math> <math aria-hidden="true"><mrow><mo>+</mo><mn>0.5</mn><mo>×</mo><mtext>peace</mtext></mrow></math></span>. Centering makes all three intercepts zero. Predictions use the outcome’s SD units; they are not themselves rescaled to SD one. A peace value of +1 means one SD fewer war fatalities than average.</p>
+        <p>Refitting without peace produces <math class="math-text"><mrow><mn>0.75</mn><mo>=</mo><mn>0.5</mn><mo>+</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mn>0.5</mn><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow><mo>⁢</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mn>0.5</mn><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow></math>: the full-model bread coefficient plus the omitted-variable term. SHAP keeps the bivariate coefficients fixed and changes which inputs are averaged. With this additive model and overall background means of zero, a feature’s marginal is the same in either order, despite the correlation between the features.</p>
         <p>This is a teaching example inspired by <a href="https://link.springer.com/article/10.1023/A:1005292312412">Douglas Hibbs’s Bread and Peace model</a>. The correlations and election profiles are constructed, rather than estimated from historical elections. Hibbs’s original specification also estimates income-growth time weights; this warm-up uses direct two-feature OLS and reverses the standardized war-fatalities measure to define peace.</p>
       </details>
       <details><summary>The earnings model and its reference people</summary>
-        <p>Call the fixed prediction rule <var>f</var>, so <span class="math-text">f(x) = ŷ(x)</span>. In a machine-learning application, training inputs <var>X</var> and outcomes <var>y</var> are used to fit it once. Here we supply a transparent earnings equation so every prediction can be checked. The explanation procedure holds that equation fixed:</p>
+        <p>Call the fixed prediction rule <math class="math-text"><mrow><mi>f</mi></mrow></math>, so <math class="math-text"><mrow><mrow><mi>f</mi><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>x</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow><mo>=</mo><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>x</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow></mrow></math>. In a machine-learning application, training inputs <math class="math-text"><mrow><mi>X</mi></mrow></math> and outcomes <math class="math-text"><mrow><mi>y</mi></mrow></math> are used to fit it once. Here we supply a transparent earnings equation so every prediction can be checked. The explanation procedure holds that equation fixed:</p>
         <div class="prediction-equation earnings-equation" role="math" aria-label="f of x equals 40 plus 10 times ability plus 24 times ability times neighborhood plus 4 times experience">
             <math class="prediction-line" aria-hidden="true"><mrow><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mn>40</mn><mo>+</mo><mn>10</mn><mo>×</mo><mtext>ability</mtext></mrow></math>
             <span class="prediction-term"><math class="prediction-line" aria-hidden="true"><mrow><mo>+</mo><mn>24</mn><mo>×</mo><mtext>ability</mtext></mrow></math>
             <math class="prediction-line" aria-hidden="true"><mrow><mo>×</mo><mtext>neighborhood</mtext></mrow></math></span>
             <math class="prediction-line" aria-hidden="true"><mrow><mo>+</mo><mn>4</mn><mo>×</mo><mtext>experience</mtext></mrow></math>
           </div>
-        <p>The three features are ability, neighborhood opportunity (written as neighborhood), and experience. Ability and experience range from 0 to 1; neighborhood opportunity ranges from −1 to +1. The interaction <span class="math-text">ability × neighborhood</span> is computed inside <var>f</var>, rather than treated as a fourth player. It can outweigh ability’s positive main term in an adverse neighborhood.</p>
+        <p>The three features are ability, neighborhood opportunity (written as neighborhood), and experience. Ability and experience range from 0 to 1; neighborhood opportunity ranges from −1 to +1. The interaction <math class="math-text"><mrow><mtext>ability</mtext><mo>×</mo><mtext>neighborhood</mtext></mrow></math> is computed inside <math class="math-text"><mrow><mi>f</mi></mrow></math>, rather than treated as a fourth player. It can outweigh ability’s positive main term in an adverse neighborhood.</p>
         <p>The eight equally weighted background rows cover every endpoint combination: low or high ability, adverse or favorable neighborhood, and low or high experience. Their average prediction is <span data-fact="baselineDollars">$47,000</span>. They define our reference distribution; their observed outcomes are not needed for the calculation. Zero is a legitimate input value, rather than a marker for an excluded feature.</p>
         <p data-fact="contextInterpretation">Here the adverse context makes revealing this person’s ability lower the averaged prediction. This sign reversal comes from the interaction in our equation.</p>
         <p>The equation and reference people are constructed for teaching. SHAP assigns credit for its prediction; it does not estimate a causal effect of changing a person’s features. Choosing another person changes the coalition values and credits while the equation, background, and baseline stay fixed.</p>
       </details>
       <details><summary>How the factorial weights count orders</summary>
-        <p>For three features, there are <span class="math-text">3! = 6</span> equally weighted revealing orders. A particular preceding group <var>S</var> appears in <span class="math-text">|S|!(3 − |S| − 1)!</span> of them: arrange the features in <var>S</var> before feature <var>i</var>, and the remaining features after it. Divide this count by six to get its weight.</p>
-        <p>The empty group gets <span class="math-text">0!2!/3! = 2/6</span>; each one-feature group gets <span class="math-text">1!1!/3! = 1/6</span>; the two-feature group gets <span class="math-text">2!0!/3! = 2/6</span>. These weights sum to one across the four preceding groups that exclude <var>i</var>.</p>
-        <p>In the earnings example, ability’s marginal depends on whether neighborhood is already fixed, and neighborhood’s depends on whether ability is already fixed. Experience’s position does not affect those marginals because experience enters additively. Each of the two contexts has total weight <span class="math-text">3/6</span>. Experience itself has the same marginal in all six orders, giving total weight one.</p>
+        <p>For three features, there are <math class="math-text"><mrow><mrow><mn>3</mn><mo>!</mo></mrow><mo>=</mo><mn>6</mn></mrow></math> equally weighted revealing orders. A particular preceding group <math class="math-text"><mrow><mi>S</mi></mrow></math> appears in <math class="math-text"><mrow><mrow><mrow><mo stretchy="false" lspace="0em" rspace="0em">|</mo><mi>S</mi><mo stretchy="false" lspace="0em" rspace="0em">|</mo></mrow><mo>!</mo></mrow><mo>⁢</mo><mrow><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mn>3</mn><mo>−</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">|</mo><mi>S</mi><mo stretchy="false" lspace="0em" rspace="0em">|</mo></mrow><mo>−</mo><mn>1</mn><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow><mo>!</mo></mrow></mrow></math> of them: arrange the features in <math class="math-text"><mrow><mi>S</mi></mrow></math> before feature <math class="math-text"><mrow><mi>i</mi></mrow></math>, and the remaining features after it. Divide this count by six to get its weight.</p>
+        <p>The empty group gets <math class="math-text"><mrow><mfrac><mrow><mrow><mn>0</mn><mo>!</mo></mrow><mo>⁢</mo><mrow><mn>2</mn><mo>!</mo></mrow></mrow><mrow><mrow><mn>3</mn><mo>!</mo></mrow></mrow></mfrac><mo>=</mo><mfrac><mrow><mn>2</mn></mrow><mrow><mn>6</mn></mrow></mfrac></mrow></math>; each one-feature group gets <math class="math-text"><mrow><mfrac><mrow><mrow><mn>1</mn><mo>!</mo></mrow><mo>⁢</mo><mrow><mn>1</mn><mo>!</mo></mrow></mrow><mrow><mrow><mn>3</mn><mo>!</mo></mrow></mrow></mfrac><mo>=</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mn>6</mn></mrow></mfrac></mrow></math>; the two-feature group gets <math class="math-text"><mrow><mfrac><mrow><mrow><mn>2</mn><mo>!</mo></mrow><mo>⁢</mo><mrow><mn>0</mn><mo>!</mo></mrow></mrow><mrow><mrow><mn>3</mn><mo>!</mo></mrow></mrow></mfrac><mo>=</mo><mfrac><mrow><mn>2</mn></mrow><mrow><mn>6</mn></mrow></mfrac></mrow></math>. These weights sum to one across the four preceding groups that exclude <math class="math-text"><mrow><mi>i</mi></mrow></math>.</p>
+        <p>In the earnings example, ability’s marginal depends on whether neighborhood is already fixed, and neighborhood’s depends on whether ability is already fixed. Experience’s position does not affect those marginals because experience enters additively. Each of the two contexts has total weight <math class="math-text"><mrow><mfrac><mrow><mn>3</mn></mrow><mrow><mn>6</mn></mrow></mfrac></mrow></math>. Experience itself has the same marginal in all six orders, giving total weight one.</p>
       </details>
       <details><summary>Why refitting and conditional averaging are different</summary><p>Removing peace and refitting OLS changes the bread coefficient. The omitted-variable identity compares that new coefficient with the full-model coefficient. Our SHAP calculation instead keeps the full fitted model and averages over the background peace distribution.</p><p>Conditional SHAP is another possible game: it averages excluded features using their distribution conditional on the included values. Correlated features can then share credit differently, even in a linear model. That still keeps the prediction model fixed; it is not refitting a reduced model. See <a href="https://shap.readthedocs.io/en/latest/generated/shap.LinearExplainer.html">SHAP’s linear-model explanation</a>.</p><p>In the linear OLS warm-up, averaging predictions equals predicting with excluded features at their overall background means. The row-averaging definition also works for nonlinear and interaction models, where substituting a single mean row need not reproduce the average prediction.</p></details>
-      <details id="coalition-explorer" class="requires-javascript"><summary>Explore vₓ(S) with a data table</summary>
+      <details id="coalition-explorer" class="requires-javascript"><summary>Explore <math class="math-text"><mrow><mrow><msub><mi>v</mi><mi>x</mi></msub><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>S</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow></mrow></math> with a data table</summary>
         <p>Include a column to copy this person’s value into every row. Exclude it to keep the original background values. All three input columns remain in the table and in the model.</p>
-        <fieldset id="coalition-controls"><legend>Features included in S</legend><label><input type="checkbox" value="0"> Ability</label><label><input type="checkbox" value="1"> Neighborhood opportunity</label><label><input type="checkbox" value="2"> Experience</label></fieldset>
+        <fieldset id="coalition-controls"><legend>Features included in <math class="math-text"><mrow><mi>S</mi></mrow></math></legend><label><input type="checkbox" value="0"> Ability</label><label><input type="checkbox" value="1"> Neighborhood opportunity</label><label><input type="checkbox" value="2"> Experience</label></fieldset>
         <div id="coalition-table" class="table-scroll" tabindex="0" aria-label="Hybrid input rows for the selected feature group"></div>
         <p id="coalition-value" aria-live="polite"></p>
       </details>
