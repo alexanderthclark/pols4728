@@ -1,14 +1,47 @@
 # Shapley values for credit assignment
 
-“Shapley values for credit assignment” is a fifteen-stage scrolling explanation of Shapley values for three voters. All three support a proposal that needs two votes to pass. The coalition diagram grows from the empty set and singletons into the complete Hasse diagram, then connects joining contributions to the six equally likely accounting orders.
+“Shapley values for credit assignment” is a seventeen-stage scrolling explanation of Shapley values, beginning with three voters. All three support a proposal that needs two votes to pass. The coalition diagram grows from the empty set and singletons into the complete Hasse diagram, then connects joining contributions to the six equally likely accounting orders.
 
-A separate opening page places the real-text title above a registered monochrome illustration of three torso-free stick figures putting their ballots into one box labeled VOTE at once. “A voting application” appears at the bottom of the cover. The cover and story share the course guide’s ink, muted, and blue palette, with the full illustration preserved on desktop and phones. Serif headings use regular weight; prose introduces definitions in italics and leaves numerical conclusions in regular text. The masthead reads “Shapley values.” **Start the explanation** leads to the first teaching scene; **Back to the beginning** returns to the cover. The cover does not add a scene or change the fifteen-stage sequence.
+A separate opening page places the real-text title above a registered monochrome illustration of three torso-free stick figures putting their ballots into one box labeled VOTE at once. “A voting application” appears at the bottom of the cover. The cover and story share the course guide’s ink, muted, and blue palette, with the full illustration preserved on desktop and phones. Serif headings use regular weight; prose introduces definitions in italics and leaves numerical conclusions in regular text. The masthead reads “Shapley values.” **Start the explanation** leads to the first teaching scene; **Back to the beginning** returns to the cover. The cover does not add a scene or change the seventeen-stage sequence.
 
 The first eight frames use plain-language groups, outcomes, paths, and weights. A concluding bridge names the existing node numbers as the value function `v(S)`: one for coalitions with at least two voters, zero otherwise. Scrolling through that bridge replaces each pass/fail payoff row with `v(group) = payoff` as the rule reaches the reading position; scrolling back restores the familiar labels. Only then do six formula frames introduce `N`, `n`, and `i` and connect the general Shapley formula to the diagram, explaining the summation range, marginal contribution, arrangements before the joining voter, arrangements after, division by all orders, and the completed weighted sum. The complete diagram stays visible, and selecting a coalition changes the example edge and its counts. Math uses native MathML, without an external rendering dependency.
 
 At “Put the pieces together,” click a weight or **See the six paths behind these weights**. The optional panel displays all six Hasse diagrams in a three-column grid on wide screens, two columns on medium screens, and a scrolling column on phones. It highlights paths containing the selected joining edge and emphasizes that edge with a thicker arrow. The other paths remain faded. A’s two zero-contribution terms select different pairs of paths.
 
 The interactive explorer also supports B and C, coalition and edge inspection, and order replay. Calculation terms open the same explanation for the selected voter. Closing the panel returns keyboard focus to its trigger; opening it pauses any active replay. Reduced-motion preferences are respected by the story.
+
+## Electoral College example
+
+The final two scenes change the value function to a weighted voting game with
+50 states and DC as players. The 2024/2028 allocation has 538 electoral votes and
+a quota of 270. A cumulative tally illustrates one accounting order in which
+California is pivotal; the scene contains no coalition diagram.
+
+The final scatterplot shows every state's Shapley–Shubik index divided by its
+electoral vote share, `R_i = phi_i / (w_i / 538)`, against its electoral votes.
+A dashed reference at 1 denotes proportional power. States with equal weights
+have identical indices and overlap; the native state selector gives every state
+and DC an individual numerical readout. The chart's vertical range magnifies
+the modest departure from proportionality and is labeled in ratio units.
+
+This implements option 1: an exact combinatorial calculation for the full
+college. `exactWeightedVotingPower` counts coalitions by size and total weight,
+then weights pivotal coalitions by the factorial arrangements before and after
+the joining state. Integer arithmetic preserves exact counts and the denominator
+is 51!. The browser uses precomputed exact results; decimals are rounded only
+for display. It does not enumerate permutations or estimate power by simulation.
+
+California receives about 10.8037% of pivotal credit for 10.0372% of the votes
+(a 7.64% relative premium). Texas's premium is 4.14%; Florida and New York also
+exceed proportional power. Every other state and DC falls below the reference.
+These are state-bloc indices under uniform accounting orders, including a bloc
+simplification for Maine and Nebraska. They do not incorporate partisan lean,
+swing-state probabilities, population, or individual voters' power. The adjusted
+ratios do not sum to one; the unadjusted Shapley values do.
+
+Sources: [National Archives allocations](https://www.archives.gov/electoral-college/allocation),
+[Shapley and Shubik (1954)](https://doi.org/10.2307/1951053), and
+[Mann and Shapley (1962), *Evaluating the Electoral College Exactly*](https://www.rand.org/pubs/research_memoranda/RM3158.html).
 
 ## Run locally
 
@@ -26,7 +59,9 @@ Open `http://localhost:8765/shapley/`. A web server is required because the page
 - `style.css` styles the opening page, story, Hasse diagram, and optional panel.
 - `assets/voters-ballot-box.png` is the registered opening illustration; the title and application label remain real text in the page.
 - `game.mjs` calculates coalition values, joining edges, all accounting orders, edge frequencies, and Shapley values.
-- `story.js` handles scroll stages and the final explorer.
+- `story.js` handles scroll stages and the three-voter explorer.
+- `electoral-college.mjs` provides exact weighted voting calculations and the current allocation/results.
+- `electoral-view.js` and `electoral.css` draw the pivotal tally and all-state power comparison.
 - `weight-view.js` draws the six-diagram explanation from the game’s orders and edges.
 - `formula-view.js` and `formula.css` connect the final formula to selected edges, factorial counts, and complete orders.
 - `fonts/` contains the locally served STIX Two Math font and its SIL Open Font License, from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/stixtwomath).
@@ -34,7 +69,7 @@ Open `http://localhost:8765/shapley/`. A web server is required because the page
 Run the mathematical regression checks with Node.js:
 
 ```sh
-node --test tests/shapley-game.test.mjs
+node --test tests/shapley-game.test.mjs tests/electoral-college.test.mjs
 ```
 
 These checks cover all joining-edge frequencies, the partition of orders for each voter, the distinction between zero-contribution edges, the independent arrangements before and after a joining voter, and a weighted-voting example with unequal Shapley values. Browser checks cover the original explorer and optional weight panel, formula stages and coalition selection, and phone layouts.

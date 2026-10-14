@@ -1,6 +1,8 @@
 import { majority as game, fraction } from './game.mjs';
 import { createWeightView } from './weight-view.js';
 import { createFormulaView } from './formula-view.js';
+import { electoralResults } from './electoral-college.mjs';
+import { createElectoralView } from './electoral-view.js';
 
 const $ = selector => document.querySelector(selector);
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -79,14 +81,17 @@ steps[6].querySelector('.step-content').append(weightTrigger);
 document.querySelectorAll('[data-explain-weight]').forEach(button => button.addEventListener('click', () => explainWeight(button.dataset.explainWeight, button)));
 
 let current = -1, selectedPlayer = 0, removedPlayer = 0, inspectedEdge = null, pathState = null, playbackTimer = null, scrollFrame = 0, nodeNotationVisible = false;
-const kickers = ['01 / THE RULE', '02 / THE REMOVAL PUZZLE', '03 / THE SMALLEST GROUPS', '04 / ADD THE PAIRS', '05 / THE COMPLETE DIAGRAM', '06 / COUNT THE ORDERS', '07 / THE WEIGHTED AVERAGE', '08 / THE HASSE DIAGRAM', '09 / THE VALUE FUNCTION', '10 / THE SUMMATION', '11 / THE CONTRIBUTION', '12 / BEFORE A', '13 / AFTER A', '14 / THE WEIGHT', '15 / THE SHAPLEY VALUE'];
-const counts = ['3 voters · 2 votes to pass', '2 votes still pass', '4 groups · 3 edges', '7 groups · 9 edges', '8 groups · 12 edges', '6 imagined orders', '4 terms · 1 Shapley value', 'Majority voting · 3 voters', '0 means failure · 1 means success', 'i = A · n = 3', 'One joining edge', 'Order the voters in S', 'Order the remaining voters', 'Matching orders / all orders', 'Four edges · one weighted sum'];
+const kickers = ['01 / THE RULE', '02 / THE REMOVAL PUZZLE', '03 / THE SMALLEST GROUPS', '04 / ADD THE PAIRS', '05 / THE COMPLETE DIAGRAM', '06 / COUNT THE ORDERS', '07 / THE WEIGHTED AVERAGE', '08 / THE HASSE DIAGRAM', '09 / THE VALUE FUNCTION', '10 / THE SUMMATION', '11 / THE CONTRIBUTION', '12 / BEFORE A', '13 / AFTER A', '14 / THE WEIGHT', '15 / THE SHAPLEY VALUE', '16 / THE ELECTORAL COLLEGE', '17 / POWER RELATIVE TO VOTES'];
+const counts = ['3 voters · 2 votes to pass', '2 votes still pass', '4 groups · 3 edges', '7 groups · 9 edges', '8 groups · 12 edges', '6 imagined orders', '4 terms · 1 Shapley value', 'Majority voting · 3 voters', '0 means failure · 1 means success', 'i = A · n = 3', 'One joining edge', 'Order the voters in S', 'Order the remaining voters', 'Matching orders / all orders', 'Four edges · one weighted sum', '51 blocs · 270 votes to win', 'Exact values · 2024 / 2028 allocation'];
 const formulaView = createFormulaView(game, {
   onCoalitionChange: () => { updateGraph(); updateCaption(); },
   onExplainWeight: explainWeight
 });
 formulaView.element.hidden = true;
 stageViz.append(formulaView.element);
+const electoralView = createElectoralView(electoralResults);
+electoralView.element.hidden = true;
+stageViz.append(electoralView.element);
 function explainWeight(edgeId, source) {
   // Keep the story still while its optional explanation is open.
   clearTimeout(playbackTimer); playbackTimer = null;
@@ -120,19 +125,23 @@ function updateRemoval() {
 function showStep(index) {
   if (index === current) return;
   stopPlayback(); current = index; inspectedEdge = null; stage.dataset.scene = current;
-  const inFormula = current >= 9;
+  const inFormula = current >= 9 && current < 15;
+  const inElectoral = current >= 15;
   stage.classList.toggle('is-formula-scene', inFormula);
+  stage.classList.toggle('is-electoral-scene', inElectoral);
   stage.classList.toggle('is-value-function-scene', current === 8);
   if (current !== 8) setNodeNotation(false);
-  stage.setAttribute('aria-label', current < 2 ? 'Voting illustration' : current === 8 ? 'Coalition diagram and voting rule' : inFormula ? 'Coalition diagram and Shapley formula' : 'Coalition diagram and Shapley calculation');
+  stage.setAttribute('aria-label', inElectoral ? (current === 15 ? 'A pivotal Electoral College state' : 'Electoral College power relative to vote share') : current < 2 ? 'Voting illustration' : current === 8 ? 'Coalition diagram and voting rule' : inFormula ? 'Coalition diagram and Shapley formula' : 'Coalition diagram and Shapley calculation');
   $('#voters').setAttribute('aria-hidden', String(current >= 2));
   $('#outcome').setAttribute('aria-hidden', String(current >= 2));
   steps.forEach((s, i) => s.classList.toggle('is-active', i === current));
   $('#stage-kicker').textContent = kickers[current]; $('#stage-count').textContent = counts[current];
-  $('#graph-container').setAttribute('aria-hidden', String(current < 2));
+  $('#graph-container').setAttribute('aria-hidden', String(current < 2 || inElectoral));
   controls.hidden = current !== 7; calc.hidden = current < 6 || current >= 8;
   formulaView.element.hidden = !inFormula;
   if (inFormula) formulaView.update(current - 9);
+  electoralView.element.hidden = !inElectoral;
+  if (inElectoral) electoralView.update(current - 15);
   updateRemoval();
   nodeEls.forEach(b => { b.disabled = current !== 7; b.classList.remove('is-inspected'); });
   if (current === 4) pathState = { orderIndex: 2, count: 3 };
@@ -140,7 +149,7 @@ function showStep(index) {
   updateSelectedControls(); updateGraph(); updateCalculation(); updateCaption();
 }
 function updateGraph() {
-  const inFormula = current >= 9;
+  const inFormula = current >= 9 && current < 15;
   const selectedFormulaEdge = inFormula ? formulaView.edge : null;
   const allFormulaEdges = inFormula && (formulaView.phase === 0 || formulaView.phase === 5);
   const maxSize = current === 2 ? 1 : current === 3 ? 2 : 3;
@@ -173,7 +182,7 @@ function updateGraph() {
   document.querySelectorAll('[data-show-order]').forEach(b => b.classList.toggle('is-current', !!pathState && Number(b.dataset.showOrder) === pathState.orderIndex));
 }
 function updateCaption() {
-  const captions = ['Every voter supports the proposal.', `Removing ${game.players[removedPlayer]} leaves two votes. The outcome stays at 1.`, '0 means the group fails. 1 means it passes.', 'The highlighted edge changes failure (0) to success (1).', 'Every path ends at the same full group.', 'Edge labels: contribution above, fraction of orders below.', 'Click a term to see which of the six paths give it its weight.', 'Click a term to explain its weight, or inspect an edge below.', 'The value function names the numbers already on the nodes.', 'Four coalitions without A. Four starting nodes.', 'The bracket measures the change along the selected edge.', 'Hold the coalition fixed; count its internal orders.', 'The minus one removes A from the remaining voters.', 'The factorial ratio is the fraction of paths using this edge.', 'The formula adds the same four weighted contributions.'];
+  const captions = ['Every voter supports the proposal.', `Removing ${game.players[removedPlayer]} leaves two votes. The outcome stays at 1.`, '0 means the group fails. 1 means it passes.', 'The highlighted edge changes failure (0) to success (1).', 'Every path ends at the same full group.', 'Edge labels: contribution above, fraction of orders below.', 'Click a term to see which of the six paths give it its weight.', 'Click a term to explain its weight, or inspect an edge below.', 'The value function names the numbers already on the nodes.', 'Four coalitions without A. Four starting nodes.', 'The bracket measures the change along the selected edge.', 'Hold the coalition fixed; count its internal orders.', 'The minus one removes A from the remaining voters.', 'The factorial ratio is the fraction of paths using this edge.', 'The formula adds the same four weighted contributions.', 'The state that first reaches 270 receives the contribution of one.', 'A ratio of one means power proportional to electoral vote share.'];
   const text = current === 8 && nodeNotationVisible ? 'The labels now write the same numbers as the value function.' : captions[current];
   $('#stage-bottom').innerHTML = `<span class="legend-mark"></span><span>${text}</span>`;
   const caption = $('#graph-caption');
@@ -271,7 +280,10 @@ function goToStep(index, focusDestination = false) {
     const top = mobile.matches ? scrollY + steps[index].querySelector('.step-content').getBoundingClientRect().top : steps[index].offsetTop;
     window.scrollTo({ top: top - offset, behavior: 'instant' });
     updateScroll();
-    if (focusDestination && index === 0) steps[index].focus({ preventScroll: true });
+    if (focusDestination) {
+      steps[index].setAttribute('tabindex', '-1');
+      steps[index].focus({ preventScroll: true });
+    }
   });
 }
 function stepForHash(hash) {
