@@ -78,6 +78,13 @@
           "usage": "Original crown path and base geometry; local blue shading and depth support the requested decorative animation."
         }
       ]
+    },
+    {
+      "path": "docs/imbalanced-data/assets/high-wire.png",
+      "role": "imbalanced-data-title-illustration",
+      "description": "A round, torso-less figure walks a high wire while holding a long balancing pole. Sparse monochrome outlines on a transparent field.",
+      "sha256": "d8370e3af5d8ad2d84cb63304c551905a299b106c6172d3aaf00121a89824336",
+      "usage": "Opening title of the Imbalanced Data explainer. Preserve the full pole and wire, original proportions, transparency, and clear space; keep the title as real HTML text."
     }
   ]
 }

@@ -1,8 +1,8 @@
 # Imbalanced Data
 
 A scrolling lesson based on Alexander Clark's Applied Issues notes. The
-text-only opening title leads into three pinned, full-width chapters, with
-the explanation above each figure. Scroll position continuously changes the
+opening title includes a high-wire cartoon and leads into three pinned,
+full-width chapters, with the explanation above each figure. Scroll position continuously changes the
 geometry; scrolling backward reverses the argument. No build step, external
 JavaScript dependency, or external data call is required.
 
@@ -45,8 +45,9 @@ python3 -m http.server 8765 --directory docs
 
 All asset paths are relative, so the page also works under
 `/pols4728/imbalanced-data/`. The existing GitHub Pages workflow publishes
-`docs/` after checks pass on `main`. After merging and deployment, the course
-homepage links to `https://alexanderthclark.github.io/pols4728/imbalanced-data/`.
+`docs/` after checks pass on `main`. The lesson is available directly at
+`https://alexanderthclark.github.io/pols4728/imbalanced-data/` and is intentionally
+not linked from the course homepage.
 
 ## Source and validation
 
