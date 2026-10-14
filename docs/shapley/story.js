@@ -147,7 +147,7 @@ sceneContents.forEach(content => { content.hidden = true; });
 document.body.classList.add('is-presentation');
 
 let current = -1, selectedPlayer = 0, removedPlayer = 0, inspectedEdge = null, pathState = null, playbackTimer = null, scrollFrame = 0, nodeNotationVisible = false;
-const kickers = ['01 / THE RULE', '02 / THE REMOVAL PUZZLE', '03 / THE SMALLEST GROUPS', '04 / ADD THE PAIRS', '05 / THE COMPLETE DIAGRAM', '06 / COUNT THE ORDERS', '07 / THE WEIGHTED AVERAGE', '08 / THE HASSE DIAGRAM', '09 / THE VALUE FUNCTION', '10 / THE SUMMATION', '11 / THE CONTRIBUTION', '12 / BEFORE A', '13 / AFTER A', '14 / THE WEIGHT', '15 / THE SHAPLEY VALUE', '16 / THE ELECTORAL COLLEGE', '17 / ELECTORAL GEOGRAPHY', '18 / AREA FOR ELECTORAL VOTES', '19 / AREA FOR PIVOTAL POWER'];
+const kickers = ['01 / THE RULE', '02 / THE REMOVAL PUZZLE', '03 / THE SMALLEST GROUPS', '04 / ADD THE PAIRS', '05 / THE COMPLETE DIAGRAM', '06 / COUNT THE ORDERS', '07 / THE WEIGHTED AVERAGE', '08 / THE HASSE DIAGRAM', '09 / THE VALUE FUNCTION', '10 / THE SUMMATION', '11 / THE CONTRIBUTION', '12 / BEFORE A', '13 / AFTER A', '14 / THE WEIGHT', '15 / THE SHAPLEY VALUE', '16 / THE ELECTORAL COLLEGE', '17 / ELECTORAL GEOGRAPHY', '18 / ELECTORAL VOTES', '19 / SHAPLEY-ADJUSTED VOTES'];
 const counts = ['3 voters · 2 votes to pass', '2 votes still pass', '4 groups · 3 edges', '7 groups · 9 edges', '8 groups · 12 edges', '6 imagined orders', '4 terms · 1 Shapley value', 'Majority voting · 3 voters', '0 means failure · 1 means success', 'i = A · n = 3', 'One joining edge', 'Order the voters in S', 'Order the remaining voters', 'Matching orders / all orders', 'Four edges · one weighted sum', '51 blocs · 270 votes to win', '50 states + DC · 2024 / 2028', '538 electoral votes', '538 adjusted votes'];
 const formulaView = createFormulaView(game, {
   onCoalitionChange: () => { updateGraph(); updateCaption(); },
@@ -158,7 +158,9 @@ stageViz.append(formulaView.element);
 const electoralView = createElectoralView(electoralResults);
 electoralView.element.hidden = true;
 stageViz.append(electoralView.element);
-const electoralMapView = createElectoralMapView(electoralResults);
+const electoralMapView = createElectoralMapView(electoralResults, {
+  onPhaseChange: phase => navigateScene(16 + phase)
+});
 electoralMapView.element.hidden = true;
 stageViz.append(electoralMapView.element);
 function explainWeight(edgeId, source) {
@@ -207,7 +209,7 @@ function showStep(index) {
   stage.classList.toggle('is-electoral-map-scene', inElectoralMap);
   stage.classList.toggle('is-value-function-scene', current === 8);
   if (current !== 8) setNodeNotation(false);
-  stage.setAttribute('aria-label', inElectoral ? (current === 15 ? 'A pivotal Electoral College state' : 'Electoral College geography and area cartograms') : current < 2 ? 'Voting illustration' : current === 8 ? 'Coalition diagram and voting rule' : inFormula ? 'Coalition diagram and Shapley formula' : 'Coalition diagram and Shapley calculation');
+  stage.setAttribute('aria-label', inElectoral ? (current === 15 ? 'A pivotal Electoral College state' : 'Electoral College geography, electoral votes, and Shapley-adjusted votes') : current < 2 ? 'Voting illustration' : current === 8 ? 'Coalition diagram and voting rule' : inFormula ? 'Coalition diagram and Shapley formula' : 'Coalition diagram and Shapley calculation');
   $('#voters').setAttribute('aria-hidden', String(current >= 2));
   $('#outcome').setAttribute('aria-hidden', String(current >= 2));
   steps.forEach((s, i) => s.classList.toggle('is-active', i === current));
@@ -275,7 +277,7 @@ function updateGraph() {
   document.querySelectorAll('[data-show-order]').forEach(b => b.classList.toggle('is-current', !!pathState && Number(b.dataset.showOrder) === pathState.orderIndex));
 }
 function updateCaption() {
-  const captions = ['Every voter supports the proposal.', `Removing ${game.players[removedPlayer]} leaves two votes. The outcome stays at 1.`, '0 means the group fails. 1 means it passes.', 'The highlighted edge changes failure (0) to success (1).', 'Every path ends at the same full group.', 'Edge labels: contribution above, fraction of orders below.', 'Click a term to see which of the six paths give it its weight.', 'Click a term to explain its weight, or inspect an edge below.', 'The value function names the numbers already on the nodes.', 'Four coalitions without A. Four starting nodes.', 'The bracket measures the change along the selected edge.', 'Hold the coalition fixed; count its internal orders.', 'The minus one removes A from the remaining voters.', 'The factorial ratio is the fraction of paths using this edge.', 'The formula adds the same four weighted contributions.', 'The state that first reaches 270 receives the contribution of one.', 'Geographic shapes show where the electoral votes are.', 'State area is proportional to electoral votes.', 'State area is proportional to 538 times its Shapley value.'];
+  const captions = ['Every voter supports the proposal.', `Removing ${game.players[removedPlayer]} leaves two votes. The outcome stays at 1.`, '0 means the group fails. 1 means it passes.', 'The highlighted edge changes failure (0) to success (1).', 'Every path ends at the same full group.', 'Edge labels: contribution above, fraction of orders below.', 'Click a term to see which of the six paths give it its weight.', 'Click a term to explain its weight, or inspect an edge below.', 'The value function names the numbers already on the nodes.', 'Four coalitions without A. Four starting nodes.', 'The bracket measures the change along the selected edge.', 'Hold the coalition fixed; count its internal orders.', 'The minus one removes A from the remaining voters.', 'The factorial ratio is the fraction of paths using this edge.', 'The formula adds the same four weighted contributions.', 'The state that first reaches 270 receives the contribution of one.', 'Geographic shapes show where the electoral votes are.', 'One square represents one electoral vote.', 'One square represents one Shapley-adjusted vote; boundary squares can be fractional.'];
   const text = current === 8 && nodeNotationVisible ? 'The labels now write the same numbers as the value function.' : captions[current];
   $('#stage-bottom').innerHTML = `<span class="legend-mark"></span><span>${text}</span>`;
   const caption = $('#graph-caption');

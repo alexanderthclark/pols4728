@@ -13,7 +13,7 @@ The interactive explorer also supports B and C, coalition and edge inspection, a
 ## Single-column presentation
 
 One full-width visual stage stays in view while scrolling changes the picture,
-equation, title, and caption. Each of the nineteen captions contains 16–31 words.
+equation, title, and caption. Each of the nineteen captions stays brief.
 The title and caption sit beneath the visual, with Previous/Next controls and a
 step count. Left/Right arrow keys also navigate while a form control or dialog
 is not active. The original opening title page remains the entry point.
@@ -45,32 +45,40 @@ California is pivotal, followed by a three-map sequence:
 
 1. A geographic Albers USA state map labels the electoral votes, with Alaska
    and Hawaii in insets and callouts for small northeastern jurisdictions.
-2. State shapes morph into a continuous electoral-vote cartogram. The mainland
-   keeps shared borders; each state's area is proportional to its electoral votes.
-3. Shapes morph into a cartogram of adjusted votes, `a_i = 538 × phi_i`.
+2. State shapes morph into a square-cell electoral-vote cartogram. Its 538
+   complete squares each represent one electoral vote, grouped into connected
+   state shapes in an approximate U.S. layout.
+3. Boundary cells grow or shrink into a cartogram of adjusted votes, `a_i = 538 × phi_i`.
    These adjusted votes still sum to 538. Equivalently,
    `a_i = w_i × [phi_i / (w_i / 538)]`.
 
 The map uses the same coordinate system and on-screen scale in every phase.
 Space for captions, the final equation, and controls is reserved across the
 sequence, including short phones; layout changes cannot magnify or hide the
-small power premium. An optional dashed electoral-area outline helps compare
-the final shapes. State selection, labels, and numeric readouts stay linked.
+small power premium. The selected state's electoral-area outline stays visible
+in the final view; a checkbox adds all the other baseline outlines. A persistent
+three-stage control navigates Geography, Electoral votes, and Shapley votes,
+updating the story caption and hash together. State selection, labels, and numeric readouts stay linked.
 Forward/reverse morphs, replay, interruption, resizing, and reduced motion are
 supported. Phone layouts prioritize state abbreviations and the numeric selector.
 
 The boundary data come from Census-derived U.S. Atlas 3.0.1. The published page
 imports local precomputed geometry and requires no external map service.
-`scripts/generate-electoral-map.py` rebuilds the geometry offline from the
-vendored topology, exact voting-power data, and a continuous area-cartogram
-solver. Full provenance, dependencies, and the source license are documented in
+The geographic geometry comes from `scripts/generate-electoral-map.py` and the
+vendored topology. The square-cell layout is generated separately, then
+`electoral-map-geometry.mjs` places both maps in the same coordinate frame.
+Full provenance, dependencies, and the source license are documented in
 [`data/shapley/README.md`](../../data/shapley/README.md).
 
-The geometric approximation has less than 0.1% relative area error per state.
-Every state polygon is valid, and the generator verifies no overlaps across
-41 sampled endpoints/intermediate frames. Tiny offshore islands are omitted;
-Rhode Island uses its mainland outline. Alaska and Hawaii remain separate,
-shape-preserving insets using the same vote-area scale as the mainland.
+Whole and fractional squares use the same area unit in both cartograms.
+California adds four complete squares and a fraction of a fifth; Texas adds
+one and a fraction, while Florida and New York each add a fraction. Every
+other state and DC loses a fraction of one boundary square. Interpolating one
+dimension of each changing square preserves the national filled area throughout
+the second morph. Independent tests check exact state counts, connected shapes,
+fractional areas, the common scale, and no cell overlap across 41 sampled frames.
+Tiny offshore islands are omitted from the geographic map; Rhode Island uses
+its mainland outline. Alaska and Hawaii remain separate insets.
 
 The voting-power calculation itself is exact. `exactWeightedVotingPower` counts
 coalitions by size and electoral total, then weights pivotal coalitions by the
@@ -88,7 +96,7 @@ swing-state probabilities, population, or individual voters' power.
 Sources: [National Archives allocations](https://www.archives.gov/electoral-college/allocation),
 [Shapley and Shubik (1954)](https://doi.org/10.2307/1951053),
 [Mann and Shapley (1962)](https://www.rand.org/pubs/research_memoranda/RM3158.html),
-and [Dougenik, Chrisman, and Niemeyer (1985)](https://doi.org/10.1111/j.0033-0124.1985.00075.x).
+and [U.S. Atlas](https://github.com/topojson/us-atlas).
 
 ## Run locally
 
@@ -111,7 +119,9 @@ Open `http://localhost:8765/shapley/`. A web server is required because the page
 - `electoral-college.mjs` provides exact weighted voting calculations and the current allocation/results.
 - `electoral-view.js` and `electoral.css` draw the pivotal tally.
 - `electoral-map-view.js` and `electoral-map.css` animate the geographic/electoral/adjusted maps.
-- `electoral-map-data.mjs` stores the compatible local map geometry.
+- `electoral-map-data.mjs` stores the local geographic map geometry.
+- `electoral-tile-data.mjs` stores complete and fractional square-cell cartograms.
+- `electoral-map-geometry.mjs` aligns map endpoints and calculates exposed cell edges.
 - `weight-view.js` draws the six-diagram explanation from the game’s orders and edges.
 - `formula-view.js` and `formula.css` connect the final formula to selected edges, factorial counts, and complete orders.
 - `fonts/` contains the locally served STIX Two Math font and its SIL Open Font License, from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/stixtwomath).
@@ -119,7 +129,7 @@ Open `http://localhost:8765/shapley/`. A web server is required because the page
 Run the mathematical regression checks with Node.js:
 
 ```sh
-node --test tests/shapley-game.test.mjs tests/electoral-college.test.mjs tests/electoral-map.test.mjs
+node --test tests/shapley-game.test.mjs tests/electoral-college.test.mjs tests/electoral-map.test.mjs tests/electoral-tile.test.mjs
 ```
 
 These checks cover all joining-edge frequencies, the partition of orders for each voter, the distinction between zero-contribution edges, the independent arrangements before and after a joining voter, and a weighted-voting example with unequal Shapley values. Browser checks cover the original explorer and optional weight panel, formula stages and coalition selection, and phone layouts.

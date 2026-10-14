@@ -1,19 +1,27 @@
 /* Shared coordinates preserve the actual size of the Shapley adjustment. */
 .cartogram-view{--cartogram-rust:#a54f32;display:flex;flex:1 1 0;flex-direction:column;align-self:center;gap:8px;width:100%;max-width:1200px;min-width:0;min-height:0;color:var(--ink)}
 .cartogram-view[hidden]{display:none}
+.cartogram-phases{flex:0 0 auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;width:100%;max-width:660px;min-height:44px;margin:0 auto}
+.cartogram-phases button{min-width:0;min-height:44px;padding:7px 10px;border:0;border-bottom:2px solid transparent;border-radius:0;background:#fff;color:var(--muted);font-size:13px;line-height:1.25;white-space:nowrap}
+.cartogram-phases button:hover{background:var(--blue-faint);color:var(--blue)}
+.cartogram-phases button.is-active,.cartogram-phases button[aria-current="step"]{border-bottom-color:var(--blue);background:var(--blue-faint);color:var(--blue);font-weight:600}
 .cartogram-key{flex:0 0 auto;display:flex;justify-content:space-between;align-items:baseline;gap:15px;width:100%;padding:0 7px;font-size:12px;line-height:1.4;color:var(--muted)}
 .cartogram-measure{color:var(--blue)}
 .cartogram-total{white-space:nowrap;font-variant-numeric:tabular-nums}
 .cartogram-canvas{flex:1 1 0;min-height:100px;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .cartogram-map{display:block;width:100%;height:100%;max-height:100%;overflow:visible;font-family:var(--font);--cartogram-label-size:15px}
-.cartogram-state{fill:var(--blue-soft,#edf1f4);stroke:var(--blue);stroke-width:.9;stroke-linejoin:round;vector-effect:non-scaling-stroke;cursor:pointer}
+.cartogram-state{fill:var(--blue-soft,#edf1f4);stroke:none;stroke-width:.9;stroke-linejoin:round;vector-effect:non-scaling-stroke;cursor:pointer}
 .cartogram-state:hover{fill:#dce5ec}
-.cartogram-state.is-selected{fill:#f5e9e4;stroke:var(--cartogram-rust);stroke-width:2;}
+.cartogram-state.is-selected{fill:#f5e9e4}
 .cartogram-state:focus-visible{outline:none;stroke:var(--ink);stroke-width:3;stroke-dasharray:4 2}
-.cartogram-baseline{opacity:0;pointer-events:none}
-.cartogram-baseline path{fill:none;stroke:var(--rule);stroke-width:1.1;stroke-dasharray:4 3;stroke-linejoin:round;vector-effect:non-scaling-stroke}
-.cartogram-view[data-phase="2"].has-baseline .cartogram-baseline{opacity:.8}
-.cartogram-view.is-morphing .cartogram-baseline{opacity:0}
+.cartogram-border{fill:none;stroke:var(--blue);stroke-width:.9;stroke-linejoin:miter;vector-effect:non-scaling-stroke;pointer-events:none}
+.cartogram-border.is-selected{stroke:var(--cartogram-rust);stroke-width:2}
+.cartogram-baseline{opacity:1;pointer-events:none}
+.cartogram-baseline path{opacity:0;fill:none;stroke:var(--rule);stroke-width:1.1;stroke-dasharray:4 3;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.cartogram-view[data-phase="2"].has-baseline .cartogram-baseline path{opacity:.75}
+.cartogram-view[data-phase="2"] .cartogram-baseline path.is-selected{opacity:1;stroke:var(--blue);stroke-width:1.6;stroke-dasharray:5 3}
+.cartogram-cell-grid{fill:none;stroke:#fff;stroke-width:.6;stroke-linejoin:round;vector-effect:non-scaling-stroke;pointer-events:none}
+.cartogram-cell-grid path,.cartogram-cell-grid line{fill:none;stroke:#fff;stroke-width:.6;vector-effect:non-scaling-stroke;pointer-events:none}
 .cartogram-label-leader{stroke:var(--rule);stroke-width:.8;vector-effect:non-scaling-stroke;pointer-events:none}
 .cartogram-label{font-size:var(--cartogram-label-size);fill:var(--blue);paint-order:stroke;stroke:#fff;stroke-width:2px;stroke-linejoin:round;cursor:pointer}
 .cartogram-abbreviation{font-weight:600}
@@ -42,6 +50,8 @@
 .is-presentation .stage-shell.is-electoral-map-scene .cartogram-view{margin:0 auto;flex:1 1 0;max-width:1200px;min-height:0}
 @media(max-width:760px){
   .cartogram-view{gap:6px}
+  .cartogram-phases{gap:2px}
+  .cartogram-phases button{padding:6px 3px;font-size:11px}
   .cartogram-key{gap:7px;padding:0;font-size:10px;line-height:1.35}
   .cartogram-key .cartogram-total{white-space:normal;text-align:right;max-width:105px}
   .cartogram-controls{gap:7px;max-width:560px;align-items:stretch}
@@ -60,6 +70,7 @@
   .cartogram-view.is-compact .cartogram-label-value{display:none}
 }
 @media(max-width:370px){
+  .cartogram-phases button{font-size:10px;padding:6px 2px}
   .cartogram-key{font-size:9px}
   .cartogram-state-control label{font-size:9px;max-width:48px}
   .cartogram-state-control select{font-size:11px;padding:6px}
@@ -85,6 +96,7 @@
 }
 @media(max-width:760px) and (max-height:650px){
   .is-presentation .stage-shell.is-electoral-map-scene .scene-equation{display:none!important}
+  .cartogram-view{gap:5px}
   .cartogram-controls{align-items:center}
   .cartogram-state-control label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
   .cartogram-state-control{flex-basis:150px}
@@ -94,8 +106,15 @@
   .cartogram-outline-control{min-height:44px;max-width:none}
   .cartogram-outline-control span{font-size:0}
   .cartogram-outline-control span::after{content:'Compare';font-size:10px}
+  .cartogram-readout{min-height:26px;padding-top:5px}
+  .cartogram-readout dt{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+  .cartogram-readout dd{font-size:16px}
 }
 @media(max-width:760px){.is-presentation .stage-shell.is-electoral-map-scene .stage-top{height:30px;min-height:30px}}
 /* The smallest screens use the selector for labels that cannot fit the map. */
 .cartogram-view.is-tiny .cartogram-label:not(.is-major):not(.is-selected),
 .cartogram-view.is-tiny .cartogram-label-leader:not(.is-major):not(.is-selected){display:none}
+@media(max-width:760px) and (max-height:650px){
+  .cartogram-view.is-tiny .cartogram-label:not(.is-selected),
+  .cartogram-view.is-tiny .cartogram-label-leader:not(.is-selected){display:none}
+}

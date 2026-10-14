@@ -1,5 +1,10 @@
 # Electoral College map geometry
 
+The published lesson uses the geographic outlines from the first dataset below
+and the square-cell cartograms described in the final section. The earlier
+continuous cartogram endpoints remain in the geographic dataset as a validated
+authoring reference; the page does not display them.
+
 `us-states-albers-10m.json` is U.S. Atlas 3.0.1's projected state TopoJSON,
 downloaded from
 <https://cdn.jsdelivr.net/npm/us-atlas@3.0.1/states-albers-10m.json>.
@@ -43,3 +48,29 @@ each independently to its bounding box.
 Coordinates are stored as base-36 zigzag deltas in hundredths of a pixel. The
 module decodes them to ordinary arrays of `[x, y]` points when imported. This
 reduces the download size without changing the data exposed to the view.
+
+## Square-cell cartogram
+
+`electoral-tile-layout.json` is an editable, original layout with exactly 538
+unit cells. Each state's cells form one connected polyomino without holes;
+the mainland also forms one connected outline without holes. The state
+positions and stepped U.S. silhouette are illustrative geography. Alaska and
+Hawaii are separate insets. The counts use the 2024/2028 allocation rather
+than the historical allocation of the visual reference.
+
+Run `python scripts/generate-electoral-tiles.py` to generate
+`docs/shapley/electoral-tile-data.mjs`. It reads the same exact Shapley results
+as the continuous-map generator. Both square-cell phases use the fixed area
+unit of one electoral vote. The adjusted map clips a fraction from one
+boundary square in every shrinking state. California, Texas, Florida, and
+New York grow into nine reserved coastal grid positions, including partial
+squares. These fractions represent adjusted voting power, not actual
+fractional electors.
+
+The generated data include matching rectangle lists for a direct morph.
+Unused coastal rectangles start with zero width; all changed rectangles
+vary in only one dimension. Total filled area therefore remains 538
+throughout interpolation. The generator verifies connected, valid polygons
+without holes, exact target areas, and no overlaps at 21 interpolation
+frames. The browser-facing data contain 538 original cells, 547 matched
+rectangle slots, 496 full adjusted squares, and 51 partial adjusted squares.
