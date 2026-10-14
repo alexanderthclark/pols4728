@@ -1,6 +1,7 @@
 import { majority as game, fraction } from './game.mjs';
 import { createWeightView } from './weight-view.js';
 import { createFormulaView } from './formula-view.js';
+import { coalition, escape, math, number, operator, order, quotient, row, valueApplication, variable } from './math.mjs';
 
 const $ = selector => document.querySelector(selector);
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -8,8 +9,7 @@ const mobile = window.matchMedia('(max-width: 760px)');
 const stage = $('.stage-shell');
 const stageViz = $('#stage-viz');
 const svgNS = 'http://www.w3.org/2000/svg';
-const escapeMath = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-const payoffMath = node => `<math class="coalition-value-formula"><mrow><mi>v</mi><mo>⁡</mo><mrow><mo stretchy="false">(</mo>${node.members.length ? `<mrow><mo stretchy="false">{</mo>${node.members.map(player => `<mi mathvariant="normal">${escapeMath(player)}</mi>`).join('<mo>,</mo>')}<mo stretchy="false">}</mo></mrow>` : '<mo lspace="0" rspace="0">∅</mo>'}<mo stretchy="false">)</mo></mrow><mo>=</mo><mn>${node.value}</mn></mrow></math>`;
+const payoffMath = node => math(row(valueApplication(node), operator('='), number(node.value)), { className: 'coalition-value-formula' });
 const steps = [...document.querySelectorAll('.step')];
 const weightView = createWeightView(game);
 steps.forEach((step, i) => { if (!step.id) step.id = `scene-${i + 1}`; });
@@ -38,21 +38,26 @@ for (const edge of game.edges) {
   const group = svg('g', { class: 'graph-edge', 'data-edge': edge.id });
   const line = svg('path', { d: `M${start[0]},${start[1]} L${end[0]},${end[1]}`, class: 'edge-line', 'marker-end': 'url(#arrow-neutral)' });
   const label = svg('g', { class: 'edge-label', transform: `translate(${(start[0] + end[0]) / 2},${(start[1] + end[1]) / 2})` });
-  label.append(svg('rect', { x: -31, y: -19, width: 62, height: 37, rx: 4 }));
-  label.append(svg('text', { class: 'edge-delta', 'text-anchor': 'middle', y: -1 }, edge.delta ? `+${edge.delta}` : '0'));
-  label.append(svg('text', { class: 'edge-weight', 'text-anchor': 'middle', y: 13 }, `${edge.count}/${game.totalOrders}`));
-  group.append(line, label); graphSvg.append(group); edgeEls.set(edge.id, { group, line });
+  const background = svg('rect', { x: -31, y: -19, width: 62, height: 37, rx: 4 });
+  const delta = svg('text', { class: 'edge-delta', 'text-anchor': 'middle', y: -1, style: 'font-family:var(--math);font-weight:400' }, edge.delta ? `+${edge.delta}` : '0');
+  label.append(background, delta);
+  const weight = svg('g', { class: 'edge-weight', 'aria-label': `${edge.count} out of ${game.totalOrders}`, style: 'font-family:var(--math);color:var(--muted)' });
+  weight.append(svg('text', { 'text-anchor': 'middle', y: 1, 'font-size': '.8em' }, edge.count));
+  weight.append(svg('line', { x1: -8, x2: 8, y1: 6, y2: 6, stroke: 'currentColor', 'stroke-width': 1 }));
+  weight.append(svg('text', { 'text-anchor': 'middle', y: 20, 'font-size': '.8em' }, game.totalOrders));
+  label.append(weight);
+  group.append(line, label); graphSvg.append(group); edgeEls.set(edge.id, { group, line, background, delta });
 }
 for (const node of game.nodes) {
   const [x, y] = positions[node.mask], button = document.createElement('button');
   button.type = 'button'; button.className = `coalition-node ${node.value ? 'is-winning' : ''}`; button.dataset.mask = node.mask;
   button.style.left = `${100 * x / 680}%`; button.style.top = `${100 * y / 510}%`; button.disabled = true;
   button.setAttribute('aria-label', `${node.members.length ? node.members.join(' and ') : 'Empty coalition'}: ${node.value ? 'Pass' : 'Fail'}, value ${node.value}`);
-  button.innerHTML = `<span class="coalition-set">${node.label}</span><span class="coalition-payoff" aria-hidden="true"><span class="coalition-value">${node.value ? 'PASS' : 'FAIL'} <b>${node.value}</b></span>${payoffMath(node)}</span>`;
+  button.innerHTML = `<span class="coalition-set">${math(coalition(node.members))}</span><span class="coalition-payoff" aria-hidden="true"><span class="coalition-value">${node.value ? 'PASS' : 'FAIL'} <b>${node.value}</b></span>${payoffMath(node)}</span>`;
   button.addEventListener('click', () => inspectNode(node.mask)); $('#graph-nodes').append(button); nodeEls.set(node.mask, button);
 }
 const calc = document.createElement('div'); calc.className = 'calculation'; calc.hidden = true;
-calc.innerHTML = `<div class="calculation-heading"><span>CONTRIBUTION × WEIGHT</span><span id="credit-label">A’s credit</span></div><div class="terms" id="terms"></div><div class="calculation-total"><span id="total-label">Shapley value of A</span><strong id="total-value">1/3</strong></div>`;
+calc.innerHTML = `<div class="calculation-heading"><span>CONTRIBUTION × WEIGHT</span><span id="credit-label">A’s credit</span></div><div class="terms" id="terms"></div><div class="calculation-total"><span id="total-label">Shapley value of A</span><strong id="total-value">${math(number('1/3'))}</strong></div>`;
 stageViz.append(calc);
 const controls = document.createElement('div'); controls.className = 'explore-controls'; controls.hidden = true;
 controls.innerHTML = `<div class="player-selector" role="group" aria-label="Select a voter"><span>Follow a voter</span>${game.players.map((p, i) => `<button type="button" data-select-player="${i}" aria-pressed="${i === 0}">${p}</button>`).join('')}</div><div class="replay-controls"><label for="order-select">Imagined order</label><div class="replay-row"><select id="order-select">${game.orders.map((o, i) => `<option value="${i}">${o.label}</option>`).join('')}</select><button type="button" id="replay">Replay</button></div></div><div class="edge-inspector"><span class="eyebrow">Inspect an edge</span><div id="edge-choices"></div><p id="edge-detail" aria-live="polite"></p></div>`;
@@ -61,14 +66,14 @@ const voteControls = document.createElement('div'); voteControls.className = 're
 voteControls.innerHTML = `<span>Try removing</span>${game.players.map((p, i) => `<button type="button" data-remove-player="${i}" aria-pressed="${i === 0}">${p}</button>`).join('')}`;
 steps[1].querySelector('.step-content').append(voteControls);
 const compare = document.createElement('div'); compare.className = 'order-comparison';
-compare.innerHTML = `<span>Compare imagined orders</span><div><button type="button" data-compare-order="2" aria-pressed="true">B → A → C</button><button type="button" data-compare-order="0" aria-pressed="false">A → B → C</button></div><p class="small-note">These are accounting orders, not the actual chronology of voting.</p>`;
+compare.innerHTML = `<span>Compare imagined orders</span><div><button type="button" data-compare-order="2" aria-pressed="true" aria-label="B then A then C">${math(order(game.orders[2].order.map(i => game.players[i])))}</button><button type="button" data-compare-order="0" aria-pressed="false" aria-label="A then B then C">${math(order(game.orders[0].order.map(i => game.players[i])))}</button></div><p class="small-note">These are accounting orders, not the actual chronology of voting.</p>`;
 steps[4].querySelector('.step-content').append(compare);
 const list = document.createElement('div'); list.className = 'orders-list';
-list.innerHTML = `<div class="orders-list-heading"><span>IMAGINED ORDER</span><span>A JOINS AFTER</span></div>${game.orders.map((o, i) => { const e = o.path.find(e => e.playerIndex === 0); return `<button type="button" data-show-order="${i}"><span>${o.label}</span><span>${game.nodes[e.from].label}</span></button>`; }).join('')}`;
+list.innerHTML = `<div class="orders-list-heading"><span>IMAGINED ORDER</span><span>A JOINS AFTER</span></div>${game.orders.map((o, i) => { const e = o.path.find(e => e.playerIndex === 0); return `<button type="button" data-show-order="${i}"><span>${math(order(o.order.map(i => game.players[i])))}</span><span>${math(coalition(game.nodes[e.from].members))}</span></button>`; }).join('')}`;
 steps[5].querySelector('.step-content').append(list);
-steps[5].querySelector('.step-content').insertAdjacentHTML('beforeend', '<p class="small-note">A is first, second, or third in two orders each. Every arrival position receives total weight 1/3.</p>');
+steps[5].querySelector('.step-content').insertAdjacentHTML('beforeend', `<p class="small-note">A is first, second, or third in two orders each. Every arrival position receives total weight ${math(number('1/3'))}.</p>`);
 const weights = document.createElement('div'); weights.className = 'weights-summary';
-weights.innerHTML = `<span class="eyebrow">BEFORE A JOINS</span><div>${[0, 2, 4, 6].map(mask => { const e = game.edges.find(e => e.from === mask && e.playerIndex === 0); return `<button type="button" data-explain-weight="${e.id}" aria-haspopup="dialog" aria-controls="weight-dialog" aria-label="Explain A joining ${game.nodes[mask].label}, weight ${e.count} out of 6"><b>${game.nodes[mask].label}</b><span>${e.count} of 6</span></button>`; }).join('')}</div>`;
+weights.innerHTML = `<span class="eyebrow">BEFORE A JOINS</span><div>${[0, 2, 4, 6].map(mask => { const e = game.edges.find(e => e.from === mask && e.playerIndex === 0); return `<button type="button" data-explain-weight="${e.id}" aria-haspopup="dialog" aria-controls="weight-dialog" aria-label="Explain A joining ${game.nodes[mask].label}, weight ${e.count} out of 6"><b>${math(coalition(game.nodes[mask].members))}</b><span>${e.count} of 6</span></button>`; }).join('')}</div>`;
 steps[6].querySelector('.step-content').append(weights);
 const weightTrigger = document.createElement('button');
 weightTrigger.type = 'button'; weightTrigger.className = 'weight-explainer-trigger';
@@ -128,7 +133,8 @@ function showStep(index) {
   $('#voters').setAttribute('aria-hidden', String(current >= 2));
   $('#outcome').setAttribute('aria-hidden', String(current >= 2));
   steps.forEach((s, i) => s.classList.toggle('is-active', i === current));
-  $('#stage-kicker').textContent = kickers[current]; $('#stage-count').textContent = counts[current];
+  $('#stage-kicker').textContent = kickers[current];
+  $('#stage-count').innerHTML = current === 9 ? `${math(row(variable('i'), operator('='), variable('A', true)))} · ${math(row(variable('n'), operator('='), number(3)))}` : current === 11 ? `Order the voters in ${math(variable('S'))}` : escape(counts[current]);
   $('#graph-container').setAttribute('aria-hidden', String(current < 2));
   controls.hidden = current !== 7; calc.hidden = current < 6 || current >= 8;
   formulaView.element.hidden = !inFormula;
@@ -164,7 +170,11 @@ function updateGraph() {
     el.group.classList.toggle('is-visible', visible); el.group.classList.toggle('is-highlighted', active);
     el.group.classList.toggle('is-decisive', active && e.delta !== 0);
     el.group.classList.toggle('show-label', active && current >= 3);
-    el.group.classList.toggle('show-weight', current >= 5 && !order && (!inFormula || formulaView.phase >= 4));
+    const hasWeight = current >= 5 && !order && (!inFormula || formulaView.phase >= 4);
+    el.group.classList.toggle('show-weight', hasWeight);
+    el.delta.setAttribute('y', hasWeight ? -14 : -1);
+    el.background.setAttribute('y', hasWeight ? -36 : -19);
+    el.background.setAttribute('height', hasWeight ? 64 : 37);
     el.group.classList.toggle('is-inspected', e.id === inspectedEdge);
     el.line.setAttribute('marker-end', active ? 'url(#arrow-active)' : 'url(#arrow-neutral)');
     el.line.style.strokeWidth = current >= 5 && !order && active ? 2 + e.weight * 7 : active ? 3 : 1.35;
@@ -180,18 +190,18 @@ function updateCaption() {
   if (pathState) {
     const o = game.orders[pathState.orderIndex], decisive = o.path.find(e => e.delta === 1), finished = pathState.count === 3;
     const joining = o.path[Math.max(0, pathState.count - 1)].player;
-    caption.innerHTML = `<span class="path-order">${o.label}</span><span>${finished ? `${decisive.player} supplies the deciding vote: +1` : `Adding ${joining}…`}</span>`;
-  } else if (current === 3) caption.innerHTML = '<span class="path-order">{B} → {A, B}</span><span>A changes failure to success: +1</span>';
+    caption.innerHTML = `<span class="path-order">${math(order(o.order.map(i => game.players[i])))}</span><span>${finished ? `${escape(decisive.player)} supplies the deciding vote: ${math(row(operator('+'), number(1)))}` : `Adding ${joining}…`}</span>`;
+  } else if (current === 3) caption.innerHTML = `<span class="path-order">${math(row(coalition(game.nodes[2].members), operator('→'), coalition(game.nodes[3].members)))}</span><span>A changes failure to success: ${math(row(operator('+'), number(1)))}</span>`;
   else if (current === 5) caption.innerHTML = `<span class="path-order">Follow ${game.players[selectedPlayer]}</span><span>Four joining edges. Six equally weighted orders.</span>`;
   else caption.innerHTML = '';
 }
 function updateCalculation() {
   const player = game.players[selectedPlayer];
   const edges = game.edges.filter(e => e.playerIndex === selectedPlayer).sort((a, b) => game.nodes[a.from].size - game.nodes[b.from].size || a.from - b.from);
-  $('#credit-label').textContent = `${player}’s credit`; $('#total-label').textContent = `Shapley value of ${player}`; $('#total-value').textContent = fraction(game.shares[selectedPlayer]);
-  $('#terms').innerHTML = edges.map(e => `<button type="button" class="term ${e.delta ? 'is-nonzero' : ''}" data-term-edge="${e.id}" ${current >= 6 ? '' : 'disabled'} aria-haspopup="dialog" aria-controls="weight-dialog" aria-label="Explain ${player} joining ${game.nodes[e.from].label}: contribution ${e.delta}, weight ${e.count} out of 6"><span class="term-coalition">${game.nodes[e.from].label}</span><span class="term-product">${e.delta} <span>×</span> ${e.count}/${game.totalOrders}</span></button>`).join('<span class="term-plus" aria-hidden="true">+</span>');
+  $('#credit-label').textContent = `${player}’s credit`; $('#total-label').textContent = `Shapley value of ${player}`; $('#total-value').innerHTML = math(number(fraction(game.shares[selectedPlayer])));
+  $('#terms').innerHTML = edges.map(e => `<button type="button" class="term ${e.delta ? 'is-nonzero' : ''}" data-term-edge="${e.id}" ${current >= 6 ? '' : 'disabled'} aria-haspopup="dialog" aria-controls="weight-dialog" aria-label="Explain ${player} joining ${game.nodes[e.from].label}: contribution ${e.delta}, weight ${e.count} out of 6"><span class="term-coalition">${math(coalition(game.nodes[e.from].members))}</span><span class="term-product">${math(row(number(e.delta), operator('×'), quotient(number(e.count), number(game.totalOrders))))}</span></button>`).join(`<span class="term-plus" aria-hidden="true">${math(operator('+'), { hidden: true })}</span>`);
   document.querySelectorAll('[data-term-edge]').forEach(b => b.addEventListener('click', () => explainWeight(b.dataset.termEdge, b)));
-  $('#edge-choices').innerHTML = edges.map(e => `<button type="button" data-inspect-edge="${e.id}" aria-pressed="${e.id === inspectedEdge}">${game.nodes[e.from].label} → ${game.nodes[e.to].label}</button>`).join('');
+  $('#edge-choices').innerHTML = edges.map(e => `<button type="button" data-inspect-edge="${e.id}" aria-pressed="${e.id === inspectedEdge}">${math(row(coalition(game.nodes[e.from].members), operator('→'), coalition(game.nodes[e.to].members)))}</button>`).join('');
   document.querySelectorAll('[data-inspect-edge]').forEach(b => b.addEventListener('click', () => inspectEdge(b.dataset.inspectEdge)));
   if (current === 7 && !inspectedEdge) $('#edge-detail').textContent = `Select one of ${player}’s joining edges to see its contribution and weight.`;
 }
@@ -204,12 +214,12 @@ function inspectEdge(id) {
   stopPlayback(); inspectedEdge = id; const e = game.edges.find(e => e.id === id);
   nodeEls.forEach((b, mask) => b.classList.toggle('is-inspected', mask === e.from || mask === e.to));
   updateGraph(); updateCalculation(); updateCaption();
-  $('#edge-detail').textContent = `Adding ${e.player}: value ${game.nodes[e.from].value} → ${game.nodes[e.to].value}. Contribution ${e.delta}, weight ${e.count}/${game.totalOrders}. Weighted contribution: ${fraction(e.delta * e.weight)}.`;
+  $('#edge-detail').innerHTML = `Adding ${escape(e.player)}: value ${math(row(number(game.nodes[e.from].value), operator('→'), number(game.nodes[e.to].value)))}. Contribution ${math(number(e.delta))}, weight ${math(quotient(number(e.count), number(game.totalOrders)))}. Weighted contribution: ${math(number(fraction(e.delta * e.weight)))}.`;
 }
 function inspectNode(mask) {
   stopPlayback(); inspectedEdge = null; nodeEls.forEach((b, i) => b.classList.toggle('is-inspected', i === mask));
   const node = game.nodes[mask]; updateGraph(); updateCalculation(); updateCaption();
-  $('#edge-detail').textContent = `${node.label} contains ${node.size} ${node.size === 1 ? 'voter' : 'voters'}. ${node.value ? 'At least two supporters: the proposal passes.' : 'Fewer than two supporters: the proposal fails.'} Value: ${node.value}.`;
+  $('#edge-detail').innerHTML = `${math(coalition(node.members))} contains ${node.size} ${node.size === 1 ? 'voter' : 'voters'}. ${node.value ? 'At least two supporters: the proposal passes.' : 'Fewer than two supporters: the proposal fails.'} Value: ${math(number(node.value))}.`;
 }
 function playOrder(orderIndex, animate = true) {
   stopPlayback(); inspectedEdge = null; nodeEls.forEach(b => b.classList.remove('is-inspected'));

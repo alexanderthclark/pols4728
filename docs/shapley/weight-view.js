@@ -1,4 +1,5 @@
 import { matchingOrders } from './game.mjs';
+import { coalition, escape, math, number, operator, order as orderMarkup, quotient, row } from './math.mjs';
 
 // All miniatures share the same geometry so an edge stays in the same place.
 const points = { 0: [160, 20], 1: [58, 83], 2: [160, 83], 4: [262, 83], 3: [58, 147], 5: [160, 147], 6: [262, 147], 7: [160, 211] };
@@ -16,7 +17,7 @@ function miniature(game, order, edge, index, matches) {
   figure.dataset.order = order.label;
   const heading = document.createElement('figcaption');
   heading.className = 'miniature-heading';
-  const label = document.createElement('span'); label.className = 'miniature-order'; label.textContent = order.label;
+  const label = document.createElement('span'); label.className = 'miniature-order'; label.innerHTML = math(orderMarkup(order.order.map(i => game.players[i]))); label.setAttribute('aria-label', order.label);
   const status = document.createElement('span'); status.className = 'miniature-status'; status.textContent = matches ? '● Uses this edge' : 'Different joining edge';
   heading.append(label, status); figure.append(heading);
   const drawing = mark('svg', { viewBox: '0 0 320 238', class: 'miniature-svg', role: 'img', 'aria-labelledby': `miniature-title-${index} miniature-description-${index}` });
@@ -46,12 +47,16 @@ function miniature(game, order, edge, index, matches) {
     const width = node.size === 3 ? 120 : node.size === 2 ? 96 : 80;
     const group = mark('g', { class: `mini-node${inPath.has(node.mask) ? ' is-on-path' : ''}`, transform: `translate(${x},${y})` });
     group.append(mark('rect', { x: -width / 2, y: -14, width, height: 28, rx: 3 }));
-    group.append(mark('text', { 'text-anchor': 'middle', 'dominant-baseline': 'central' }, `${node.label.replaceAll(', ', ',')} · ${node.value}`));
+    const notation = mark('foreignObject', { x: -width / 2 + 4, y: -14, width: width - 8, height: 28, 'aria-hidden': 'true' });
+    const label = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
+    label.setAttribute('style', `display:flex;align-items:center;justify-content:center;height:100%;font-size:15px;color:var(--${inPath.has(node.mask) ? 'ink' : 'muted'})`);
+    label.innerHTML = math(row(coalition(node.members), operator('·'), number(node.value)), { hidden: true });
+    notation.append(label); group.append(notation);
     drawing.append(group);
   }
   figure.append(drawing);
   const detail = document.createElement('p'); detail.className = 'miniature-detail';
-  detail.textContent = `${edge.player} joins ${game.nodes[joining.from].label} · contribution ${joining.delta > 0 ? '+' : ''}${joining.delta}`;
+  detail.innerHTML = `${escape(edge.player)} joins ${math(coalition(game.nodes[joining.from].members))} · contribution ${math(row(joining.delta > 0 ? operator('+') : '', number(joining.delta)))}`;
   figure.append(detail);
   return figure;
 }
@@ -70,15 +75,16 @@ export function createWeightView(game) {
     const matches = matchingOrders(game, edgeId);
     dialog.dataset.edge = edgeId;
     dialog.dataset.matchCount = matches.length;
-    document.querySelector('#weight-view-title').textContent = `Where ${edge.count}/${game.totalOrders} comes from`;
-    const context = edge.from === 0 ? 'the empty coalition' : game.nodes[edge.from].label;
-    document.querySelector('#weight-view-caption').textContent = `${edge.player} joins ${context} in ${matches.length} of the ${game.totalOrders} orders. Contribution: ${game.nodes[edge.to].value} − ${game.nodes[edge.from].value} = ${edge.delta}. Weight: ${edge.count}/${game.totalOrders}.`;
+    document.querySelector('#weight-view-title').innerHTML = `Where ${math(quotient(number(edge.count), number(game.totalOrders)))} comes from`;
+    const context = edge.from === 0 ? 'the empty coalition' : math(coalition(game.nodes[edge.from].members));
+    document.querySelector('#weight-view-caption').innerHTML = `${escape(edge.player)} joins ${context} in ${matches.length} of the ${game.totalOrders} orders. Contribution: ${math(row(number(game.nodes[edge.to].value), operator('−'), number(game.nodes[edge.from].value), operator('='), number(edge.delta)))}. Weight: ${math(quotient(number(edge.count), number(game.totalOrders)))}.`;
     document.querySelector('#weight-player-label').textContent = `Before ${edge.player} joins`;
     const buttons = document.querySelector('#weight-edge-buttons'); buttons.replaceChildren();
     for (const candidate of game.edges.filter(e => e.playerIndex === edge.playerIndex).sort((a, b) => game.nodes[a.from].size - game.nodes[b.from].size || a.from - b.from)) {
       const button = document.createElement('button'); button.type = 'button'; button.dataset.weightEdge = candidate.id;
       button.setAttribute('aria-pressed', String(candidate.id === edgeId));
-      button.textContent = `${game.nodes[candidate.from].label} · ${candidate.count}/${game.totalOrders}`;
+      button.setAttribute('aria-label', `${game.nodes[candidate.from].label}, weight ${candidate.count} out of ${game.totalOrders}`);
+      button.innerHTML = math(row(coalition(game.nodes[candidate.from].members), operator('·'), quotient(number(candidate.count), number(game.totalOrders))));
       button.addEventListener('click', () => {
         render(candidate.id);
         document.querySelector(`[data-weight-edge="${candidate.id}"]`).focus({ preventScroll: true });
