@@ -4,7 +4,7 @@
   const blue='#234e70', orange='#a54f32', teal='#007f73', grid='#e4e7e9';
   const pct=(x,d=1)=>(100*x).toFixed(d)+'%';
   const num=x=>Math.round(x).toLocaleString('en-US');
-  const samplePi=.0247, balancedS=samplePi/(1-samplePi);
+  const samplePi=.0149, balancedS=samplePi/(1-samplePi);
   function svg(content,label,height=300){return `<svg class="chart" viewBox="0 0 620 ${height}" role="img" aria-label="${label}">${content}</svg>`;}
   function linePath(points){return points.map((p,i)=>(i?'L':'M')+p[0].toFixed(2)+','+p[1].toFixed(2)).join(' ');}
   function chartAxes(yLabel,xLabel,xTicks,yTicks,fx,fy,height=300){let s='';yTicks.forEach(t=>{s+=`<line x1="62" y1="${fy(t.v)}" x2="585" y2="${fy(t.v)}" stroke="${grid}"/><text x="51" y="${fy(t.v)+5}" text-anchor="end">${t.label}</text>`;});xTicks.forEach(t=>{s+=`<text x="${fx(t.v)}" y="${height-27}" text-anchor="middle">${t.label}</text>`;});return s+`<text x="62" y="20" class="title">${yLabel}</text><text x="585" y="${height-2}" text-anchor="end">${xLabel}</text>`;}
@@ -60,22 +60,22 @@
   function refreshLogistic({state,$,mode}){
     const s=state.s, log=state.scale==='log', showSample=mode!=='population', corrected=mode==='correction'||mode==='interactive';
     if(mode==='interactive'){['prob','log'].forEach(v=>$(v).setAttribute('aria-pressed',String(v===state.scale)));$('retained').textContent=pct(s,s<.01?2:1);}
-    const fx=x=>62+x/2*523, fy=y=>log?248-(y+5)/17*214:248-y*214;
-    let c=chartAxes(log?'Log odds':'Event probability','Predictor x',[0,1,2].map(v=>({v,label:v})),(log?[-4,0,4,8,12]:[0,.25,.5,.75,1]).map(v=>({v,label:log?v:pct(v,0)})),fx,fy);
+    const fx=x=>62+x*523, fy=y=>log?248-(y+5)/13*214:248-y*214;
+    let c=chartAxes(log?'Log odds':'Event probability','Predictor x',[0,1].map(v=>({v,label:v})),(log?[-4,0,4,8]:[0,.25,.5,.75,1]).map(v=>({v,label:log?v:pct(v,0)})),fx,fy);
     const p=x=>M.sigmoid(Math.log(99)*(x-1)), q=x=>M.sampledProbability(p(x),1,s);
-    const path=f=>linePath(Array.from({length:101},(_,j)=>{const x=j/50;const y=f(x);return[fx(x),fy(log?M.logit(y):y)];}));
+    const path=f=>linePath(Array.from({length:101},(_,j)=>{const x=j/100;const y=f(x);return[fx(x),fy(log?M.logit(y):y)];}));
     c+=`<path d="${path(p)}" fill="none" stroke="${blue}" stroke-width="3"/>`;
     if(showSample)c+=`<path d="${path(q)}" fill="none" stroke="${orange}" stroke-width="3"/>`;
     if(corrected)c+=`<path d="${path(x=>M.correctedProbability(q(x),1,s))}" fill="none" stroke="${teal}" stroke-width="3" stroke-dasharray="7 5"/>`;
-    [0,1,2].forEach(x=>{c+=`<circle cx="${fx(x)}" cy="${fy(log?M.logit(p(x)):p(x))}" r="5" fill="${corrected?teal:blue}"/>`;if(showSample)c+=`<circle cx="${fx(x)}" cy="${fy(log?M.logit(q(x)):q(x))}" r="5" fill="${orange}"/>`;});
+    [0,1].forEach(x=>{c+=`<circle cx="${fx(x)}" cy="${fy(log?M.logit(p(x)):p(x))}" r="5" fill="${corrected?teal:blue}"/>`;if(showSample)c+=`<circle cx="${fx(x)}" cy="${fy(log?M.logit(q(x)):q(x))}" r="5" fill="${orange}"/>`;});
     if(log&&s<1&&showSample){
       const x=fx(1)+18,top=fy(-Math.log(s)),bottom=fy(0);
       c+=`<path d="M${x-5},${top} H${x+5} M${x},${top} V${bottom} M${x-5},${bottom} H${x+5}" fill="none" stroke="${corrected?teal:orange}" stroke-width="2"/><text x="${fx(1)-12}" y="${top-14}" text-anchor="end" style="fill:${corrected?teal:orange}">${corrected?'correction −':'shift +'}${(-Math.log(s)).toFixed(2)}</text>`;
     }
-    $('figure').innerHTML=svg(c,`${log?'Log odds':'Probabilities'} at x 0, 1, 2. ${showSample?`Sampled log odds increase by ${(-Math.log(s)).toFixed(2)}.`:''} ${corrected?'Corrected curve matches population.':''}`);
+    $('figure').innerHTML=svg(c,`${log?'Log odds':'Probabilities'} at x 0 and 1. ${showSample?`Sampled log odds increase by ${(-Math.log(s)).toFixed(2)}.`:''} ${corrected?'Corrected curve matches population.':''}`);
     const rho=M.sampledProbability(samplePi,1,s);
-    $('metrics').innerHTML=mode==='population'?`<div><span>Probability at x = 0</span><strong>1%</strong></div><div><span>Probability at x = 1</span><strong>50%</strong></div><div><span>Probability at x = 2</span><strong>99%</strong></div>`:`<div><span>Negative retention</span><strong>${pct(s,s<.01?2:1)}</strong></div><div><span>Added log odds</span><strong>+${(-Math.log(s)).toFixed(2)}</strong></div><div><span>Sample event rate, overall</span><strong>${pct(rho)}</strong></div>`;
-    $('formula').textContent=mode==='population'?'The overall event rate is 2.47%; these three x values are not equally common.':corrected?`Sampled intercept + log(s) = −log(99) ≈ −4.60`:'Sampled intercept = −log(99) + log(10) ≈ −2.29';
+    $('metrics').innerHTML=mode==='population'?`<div><span>Probability at x = 0</span><strong>1%</strong></div><div><span>Probability at x = 1</span><strong>50%</strong></div>`:`<div><span>Negative retention</span><strong>${pct(s,s<.01?2:1)}</strong></div><div><span>Added log odds</span><strong>+${(-Math.log(s)).toFixed(2)}</strong></div><div><span>Sample event rate, overall</span><strong>${pct(rho)}</strong></div>`;
+    $('formula').textContent=mode==='population'?'These two x values are not equally common; most population cases have x = 0.':corrected?`Sampled intercept + log(s) = −log(99) ≈ −4.60`:'Sampled intercept = −log(99) + log(10) ≈ −2.29';
     $('note').textContent=mode==='population'?'A probability is conditional on x. A rare event overall can still be common at some values of x.':corrected?`At x = 0: ${pct(q(0),2)} sampled → ${pct(M.correctedProbability(q(0),1,s),0)} corrected. The correction preserves score order.`:'Every x gets the same addition. The orange line has the same slope as the blue line.';
   }
   function refreshEfficiency({state,$}){const e=M.efficiency(.01,1e6,state.batch);if($('batch-value'))$('batch-value').textContent=num(state.batch);const i=state.step;let c='';

@@ -15,11 +15,11 @@
     const negativeCount = mix(990000, 10000, t);
     const visits = negativeCount + 10000;
     const width = 560, left = 76, positiveWidth = width * .01, negativeWidth = width * negativeCount / 1000000;
-    const content = text(left, 30, "Keep all 10,000 positive cases", C.blue) +
-      rect(left, 48, positiveWidth, 34, C.blue) +
-      text(left, 115, `${number(negativeCount)} negative cases retained`, C.orange) +
+    const content = text(left, 30, "Keep all 10,000 positive cases", C.orange) +
+      rect(left, 48, positiveWidth, 34, C.orange) +
+      text(left, 115, `${number(negativeCount)} negative cases retained`, C.blue) +
       rect(left, 135, width * .99, 34, C.grid) +
-      rect(left, 135, negativeWidth, 34, C.orange) +
+      rect(left, 135, negativeWidth, 34, C.blue) +
       text(left, 197, "Pale = original negative pool", C.muted, 17) +
       text(left, 245, number(visits), C.ink, 37) +
       text(left, 276, "example visits per pass", C.muted, 18) +
@@ -33,20 +33,20 @@
     let tiles = "";
     for (let i = 0; i < 128; i++) {
       const x = 56 + (i % 16) * 18, y = 58 + Math.floor(i / 16) * 18;
-      tiles += rect(x, y, 15, 15, C.orange);
+      tiles += rect(x, y, 15, 15, C.blue);
       const share = clamp(expected - i);
-      if (share > 0) tiles += rect(x, y, 15 * share, 15, C.blue);
+      if (share > 0) tiles += rect(x, y, 15 * share, 15, C.orange);
     }
     const zero = Math.pow(1 - pi, 128);
     const zeroText = zero < .00001 ? "< 0.001%" : `${(100 * zero).toFixed(1)}%`;
     const content = text(56, 30, "128 independent draws", C.ink, 21) + tiles +
-      text(386, 79, expected.toFixed(expected < 10 ? 2 : 1), C.blue, 38) +
+      text(386, 79, expected.toFixed(expected < 10 ? 2 : 1), C.orange, 38) +
       text(386, 108, "expected positive cases", C.muted, 18) +
-      text(386, 151, zeroText, C.orange, 31) +
+      text(386, 151, zeroText, C.blue, 31) +
       text(386, 181, "chance of no positives", C.muted, 18) +
       text(56, 222, `Positive influence in the unweighted loss: ${(pi * 100).toFixed(1)}%`, C.ink, 20) +
-      rect(56, 239, 606, 20, C.orange) + rect(56, 239, 606 * pi, 20, C.blue) +
-      text(56, 288, "Blue = positive · Orange = negative", C.muted, 17);
+      rect(56, 239, 606, 20, C.blue) + rect(56, 239, 606 * pi, 20, C.orange) +
+      text(56, 288, "Orange = positive · Blue = negative", C.muted, 17);
     return svg(content, `In a batch of 128 independent draws, ${expected.toFixed(2)} positives are expected. The chance of no positives is ${zeroText}. Positive cases have ${(100 * pi).toFixed(1)} percent influence in the unweighted training loss.`);
   }
 
@@ -56,7 +56,7 @@
       const thin = clamp(p / .75);
       const retainedNegatives = mix(990000, 10000, thin);
       return {
-        eyebrow: "02 / Training efficiency",
+        eyebrow: "More examples / Training efficiency",
         title: "Stop revisiting so many common cases.",
         description: "Keep every positive and shrink the negative pool. A balanced pass visits 20,000 examples instead of one million. This saves visits; it also discards negative-case diversity.",
         equation: `10,000 positives + ${number(retainedNegatives)} negatives = ${number(retainedNegatives + 10000)} visits per pass`,
@@ -67,7 +67,7 @@
     const pi = mix(.01, .5, p - 1);
     const final = p > 1.8;
     return {
-      eyebrow: "02 / Training efficiency",
+      eyebrow: "More examples / Training efficiency",
       title: final ? "Choose which objective the faster batches serve." : "Give each batch more positive examples.",
       description: final
         ? "Unweighted balancing gives each class equal influence. Importance weights can target the original population loss while changing how examples are sampled. These are different training choices."
@@ -170,7 +170,7 @@
     const p = Math.max(0, Math.min(3, Number(progress) || 0));
     if (p < 1) {
       return {
-        eyebrow: "03 / What the model learns",
+        eyebrow: "More examples / What the model learns",
         title: p < .5 ? "Unlimited compute still leaves a one-signal model." : "At the natural prevalence, A wins.",
         description: p < .5
           ? "This deliberately restricted model must choose one binary signal. A finds fewer positives with very few false alarms. B finds more positives but produces many more false alarms."
@@ -183,7 +183,7 @@
     if (p <= 2) {
       const pi = .01 * Math.pow(50, clamp(p - 1)), winner = M.bestStump(pi).name;
       return {
-        eyebrow: "03 / What the model learns",
+        eyebrow: "More examples / What the model learns",
         title: winner === "A" ? "Change the influence of positive cases." : "The new objective selects B.",
         description: "Move toward equal class influence. The optimal one-signal model switches from A to B. This change survives exact optimization: balancing changes which compromises the loss rewards.",
         equation: `Positive influence ${(100 * pi).toFixed(1)}% → lowest optimized loss: signal ${winner}`,
@@ -193,7 +193,7 @@
     }
     const reveal = clamp((p - 2) / .9);
     return {
-      eyebrow: "03 / What the model learns",
+      eyebrow: "More examples / What the model learns",
       title: "Correct the probabilities. Keep the learned structure.",
       description: "Balancing selected B. Correcting its probabilities preserves B’s ranking. Its ROC area is higher, while its operating point admits more false alarms. Whether that helps depends on your goal.",
       equation: "AUC(A) = 0.7495 · AUC(B) = 0.9000 · Correction preserves each ranking",
