@@ -38,6 +38,8 @@ jobs:
           node --check docs/assets/coronation.js
           node --check docs/shapley/electoral-college.mjs
           node --check docs/shapley/electoral-view.js
+          node --check docs/shapley/electoral-map-view.js
+          node --check docs/shapley/electoral-map-data.mjs
           node --check docs/shapley/game.mjs
           node --check docs/shapley/story.js
           node --check docs/shapley/weight-view.js

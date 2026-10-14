@@ -3,6 +3,7 @@ import { createWeightView } from './weight-view.js';
 import { createFormulaView } from './formula-view.js';
 import { electoralResults } from './electoral-college.mjs';
 import { createElectoralView } from './electoral-view.js';
+import { createElectoralMapView } from './electoral-map-view.js';
 
 const $ = selector => document.querySelector(selector);
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -90,7 +91,7 @@ navigation.id = 'scene-navigation'; navigation.setAttribute('aria-label', 'Story
 navigation.innerHTML = '<button type="button" id="scene-previous">Previous</button><span id="scene-position"></span><button type="button" id="scene-next">Next</button>';
 stage.append(sceneCaption, navigation);
 const sceneEquations = new Map();
-for (const index of [8, 16]) {
+for (const index of [8, 18]) {
   const equation = sceneContents[index].querySelector('.value-definition');
   if (!equation) continue;
   const holder = document.createElement('div');
@@ -146,8 +147,8 @@ sceneContents.forEach(content => { content.hidden = true; });
 document.body.classList.add('is-presentation');
 
 let current = -1, selectedPlayer = 0, removedPlayer = 0, inspectedEdge = null, pathState = null, playbackTimer = null, scrollFrame = 0, nodeNotationVisible = false;
-const kickers = ['01 / THE RULE', '02 / THE REMOVAL PUZZLE', '03 / THE SMALLEST GROUPS', '04 / ADD THE PAIRS', '05 / THE COMPLETE DIAGRAM', '06 / COUNT THE ORDERS', '07 / THE WEIGHTED AVERAGE', '08 / THE HASSE DIAGRAM', '09 / THE VALUE FUNCTION', '10 / THE SUMMATION', '11 / THE CONTRIBUTION', '12 / BEFORE A', '13 / AFTER A', '14 / THE WEIGHT', '15 / THE SHAPLEY VALUE', '16 / THE ELECTORAL COLLEGE', '17 / POWER RELATIVE TO VOTES'];
-const counts = ['3 voters · 2 votes to pass', '2 votes still pass', '4 groups · 3 edges', '7 groups · 9 edges', '8 groups · 12 edges', '6 imagined orders', '4 terms · 1 Shapley value', 'Majority voting · 3 voters', '0 means failure · 1 means success', 'i = A · n = 3', 'One joining edge', 'Order the voters in S', 'Order the remaining voters', 'Matching orders / all orders', 'Four edges · one weighted sum', '51 blocs · 270 votes to win', 'Exact values · 2024 / 2028 allocation'];
+const kickers = ['01 / THE RULE', '02 / THE REMOVAL PUZZLE', '03 / THE SMALLEST GROUPS', '04 / ADD THE PAIRS', '05 / THE COMPLETE DIAGRAM', '06 / COUNT THE ORDERS', '07 / THE WEIGHTED AVERAGE', '08 / THE HASSE DIAGRAM', '09 / THE VALUE FUNCTION', '10 / THE SUMMATION', '11 / THE CONTRIBUTION', '12 / BEFORE A', '13 / AFTER A', '14 / THE WEIGHT', '15 / THE SHAPLEY VALUE', '16 / THE ELECTORAL COLLEGE', '17 / ELECTORAL GEOGRAPHY', '18 / AREA FOR ELECTORAL VOTES', '19 / AREA FOR PIVOTAL POWER'];
+const counts = ['3 voters · 2 votes to pass', '2 votes still pass', '4 groups · 3 edges', '7 groups · 9 edges', '8 groups · 12 edges', '6 imagined orders', '4 terms · 1 Shapley value', 'Majority voting · 3 voters', '0 means failure · 1 means success', 'i = A · n = 3', 'One joining edge', 'Order the voters in S', 'Order the remaining voters', 'Matching orders / all orders', 'Four edges · one weighted sum', '51 blocs · 270 votes to win', '50 states + DC · 2024 / 2028', '538 electoral votes', '538 adjusted votes'];
 const formulaView = createFormulaView(game, {
   onCoalitionChange: () => { updateGraph(); updateCaption(); },
   onExplainWeight: explainWeight
@@ -157,6 +158,9 @@ stageViz.append(formulaView.element);
 const electoralView = createElectoralView(electoralResults);
 electoralView.element.hidden = true;
 stageViz.append(electoralView.element);
+const electoralMapView = createElectoralMapView(electoralResults);
+electoralMapView.element.hidden = true;
+stageViz.append(electoralMapView.element);
 function explainWeight(edgeId, source) {
   // Keep the story still while its optional explanation is open.
   clearTimeout(playbackTimer); playbackTimer = null;
@@ -197,11 +201,13 @@ function showStep(index) {
   stopPlayback(); current = index; inspectedEdge = null; stage.dataset.scene = current;
   const inFormula = current >= 9 && current < 15;
   const inElectoral = current >= 15;
+  const inElectoralMap = current >= 16;
   stage.classList.toggle('is-formula-scene', inFormula);
   stage.classList.toggle('is-electoral-scene', inElectoral);
+  stage.classList.toggle('is-electoral-map-scene', inElectoralMap);
   stage.classList.toggle('is-value-function-scene', current === 8);
   if (current !== 8) setNodeNotation(false);
-  stage.setAttribute('aria-label', inElectoral ? (current === 15 ? 'A pivotal Electoral College state' : 'Electoral College power relative to vote share') : current < 2 ? 'Voting illustration' : current === 8 ? 'Coalition diagram and voting rule' : inFormula ? 'Coalition diagram and Shapley formula' : 'Coalition diagram and Shapley calculation');
+  stage.setAttribute('aria-label', inElectoral ? (current === 15 ? 'A pivotal Electoral College state' : 'Electoral College geography and area cartograms') : current < 2 ? 'Voting illustration' : current === 8 ? 'Coalition diagram and voting rule' : inFormula ? 'Coalition diagram and Shapley formula' : 'Coalition diagram and Shapley calculation');
   $('#voters').setAttribute('aria-hidden', String(current >= 2));
   $('#outcome').setAttribute('aria-hidden', String(current >= 2));
   steps.forEach((s, i) => s.classList.toggle('is-active', i === current));
@@ -211,10 +217,20 @@ function showStep(index) {
   $('#edge-detail').hidden = true;
   formulaView.element.hidden = !inFormula;
   if (inFormula) formulaView.update(current - 9);
-  electoralView.element.hidden = !inElectoral;
-  if (inElectoral) electoralView.update(current - 15);
-  for (const [scene, equation] of sceneEquations) equation.hidden = scene !== current;
+  electoralView.element.hidden = current !== 15;
+  if (current === 15) electoralView.update(0);
+  electoralMapView.element.hidden = !inElectoralMap;
+  if (inElectoralMap) electoralMapView.update(current - 16);
+  else electoralMapView.pause();
+  for (const [scene, equation] of sceneEquations) {
+    // Reserve the final equation's space across all maps, preserving screen scale.
+    const reserve = scene === 18 && inElectoralMap;
+    equation.hidden = scene !== current && !reserve;
+    equation.style.visibility = reserve && current !== 18 ? 'hidden' : '';
+    equation.setAttribute('aria-hidden', String(scene !== current));
+  }
   sceneContents[current].hidden = false; sceneCaption.append(sceneContents[current]);
+  reserveMapCaptionHeight();
   $('#scene-position').textContent = `${current + 1} / ${steps.length}`;
   $('#scene-previous').textContent = current === 0 ? 'Title' : 'Previous';
   $('#scene-next').textContent = current === steps.length - 1 ? 'Back to title' : 'Next';
@@ -259,7 +275,7 @@ function updateGraph() {
   document.querySelectorAll('[data-show-order]').forEach(b => b.classList.toggle('is-current', !!pathState && Number(b.dataset.showOrder) === pathState.orderIndex));
 }
 function updateCaption() {
-  const captions = ['Every voter supports the proposal.', `Removing ${game.players[removedPlayer]} leaves two votes. The outcome stays at 1.`, '0 means the group fails. 1 means it passes.', 'The highlighted edge changes failure (0) to success (1).', 'Every path ends at the same full group.', 'Edge labels: contribution above, fraction of orders below.', 'Click a term to see which of the six paths give it its weight.', 'Click a term to explain its weight, or inspect an edge below.', 'The value function names the numbers already on the nodes.', 'Four coalitions without A. Four starting nodes.', 'The bracket measures the change along the selected edge.', 'Hold the coalition fixed; count its internal orders.', 'The minus one removes A from the remaining voters.', 'The factorial ratio is the fraction of paths using this edge.', 'The formula adds the same four weighted contributions.', 'The state that first reaches 270 receives the contribution of one.', 'A ratio of one means power proportional to electoral vote share.'];
+  const captions = ['Every voter supports the proposal.', `Removing ${game.players[removedPlayer]} leaves two votes. The outcome stays at 1.`, '0 means the group fails. 1 means it passes.', 'The highlighted edge changes failure (0) to success (1).', 'Every path ends at the same full group.', 'Edge labels: contribution above, fraction of orders below.', 'Click a term to see which of the six paths give it its weight.', 'Click a term to explain its weight, or inspect an edge below.', 'The value function names the numbers already on the nodes.', 'Four coalitions without A. Four starting nodes.', 'The bracket measures the change along the selected edge.', 'Hold the coalition fixed; count its internal orders.', 'The minus one removes A from the remaining voters.', 'The factorial ratio is the fraction of paths using this edge.', 'The formula adds the same four weighted contributions.', 'The state that first reaches 270 receives the contribution of one.', 'Geographic shapes show where the electoral votes are.', 'State area is proportional to electoral votes.', 'State area is proportional to 538 times its Shapley value.'];
   const text = current === 8 && nodeNotationVisible ? 'The labels now write the same numbers as the value function.' : captions[current];
   $('#stage-bottom').innerHTML = `<span class="legend-mark"></span><span>${text}</span>`;
   const caption = $('#graph-caption');
@@ -349,6 +365,8 @@ function updateScroll() {
 }
 window.addEventListener('scroll', () => { if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScroll); }, { passive: true });
 window.addEventListener('resize', updateScroll);
+window.addEventListener('resize', reserveMapCaptionHeight);
+document.fonts.ready.then(reserveMapCaptionHeight);
 reduced.addEventListener('change', () => { stopPlayback(); updateGraph(); updateCaption(); });
 showStep(0); updateScroll();
 
@@ -384,7 +402,7 @@ function navigateScene(index) {
 $('#scene-previous').addEventListener('click', () => navigateScene(current - 1));
 $('#scene-next').addEventListener('click', () => navigateScene(current + 1));
 document.addEventListener('keydown', event => {
-  if (detailDialog.open || document.querySelector('#weight-dialog[open]') || event.target.closest('input, select, textarea, [contenteditable], dialog')) return;
+  if (event.defaultPrevented || detailDialog.open || document.querySelector('#weight-dialog[open]') || event.target.closest('input, select, textarea, [contenteditable], dialog')) return;
   if (scrollY < $('.story').offsetTop - innerHeight / 2) return;
   if (event.key === 'ArrowRight') { event.preventDefault(); navigateScene(current + 1); }
   if (event.key === 'ArrowLeft') { event.preventDefault(); navigateScene(current - 1); }
@@ -427,7 +445,21 @@ function sizeVisual() {
     .filter(element => !element.hidden && getComputedStyle(element).display !== 'none' && element.getBoundingClientRect().height > 0);
   const reserved = companions.reduce((sum, element) => sum + element.getBoundingClientRect().height + gap, 0);
   stageViz.style.setProperty('--graph-height', `${Math.max(70, stageViz.clientHeight - reserved - 8)}px`);
-  if (current >= 15) electoralView.update(current - 15);
+  if (current === 15) electoralView.update(0);
+  if (current >= 16) electoralMapView.resize();
+}
+function reserveMapCaptionHeight() {
+  if (current < 16) { sceneCaption.style.minHeight = ''; return; }
+  let height = 0;
+  for (const content of sceneContents.slice(16)) {
+    const copy = content.cloneNode(true);
+    copy.hidden = false; copy.setAttribute('aria-hidden', 'true');
+    Object.assign(copy.style, { position: 'absolute', visibility: 'hidden', width: `${sceneCaption.clientWidth}px`, pointerEvents: 'none' });
+    sceneCaption.append(copy);
+    height = Math.max(height, copy.getBoundingClientRect().height);
+    copy.remove();
+  }
+  sceneCaption.style.minHeight = `${Math.ceil(height)}px`;
 }
 const visualObserver = new ResizeObserver(sizeVisual);
 [stageViz, $('#graph-caption'), calc, formulaView.element, sceneCaption].forEach(element => visualObserver.observe(element));
