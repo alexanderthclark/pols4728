@@ -166,3 +166,31 @@ input[type=range]{width:100%;accent-color:var(--blue);height:28px;margin:3px 0 8
  .signal-table,.comparison,.count-table,.derivation{font-size:10pt}
  details{display:block}details>*{display:block}
 }
+
+/* Decision-tree appendix follows the existing course typography and palette. */
+.tree-labs{max-width:900px;margin:auto;display:grid;gap:48px}
+.tree-lab{border-top:1px solid var(--line);padding:24px 0 0}
+.tree-lab h3,#imblearn h3{font-weight:400;font-size:28px;line-height:1.3;margin:0 0 22px}
+.tree-presets{display:flex;gap:12px;margin:0 0 12px}
+.tree-chart{display:block;width:100%;height:auto;font-family:var(--serif)}
+.tree-lab .tree-chart{max-height:350px}
+.tree-lab .panel-note{margin:0 0 18px}
+.tree-lab details{margin-top:18px}
+#imblearn h3{margin-top:36px}
+pre{overflow:auto;padding:20px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font:14px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:4}
+code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.83em;overflow-wrap:anywhere}
+pre code{font-size:inherit;overflow-wrap:normal}
+.code-link{text-align:right;font-family:monospace}
+.table-scroll{max-width:100%;overflow-x:auto}
+#imblearn .comparison{font-size:17px;line-height:1.5}
+#imblearn .comparison th{width:38%;font-size:15px}
+#imblearn .comparison td{text-align:left}
+#imblearn .comparison code{font-size:13px}
+.tree-lab caption,.chapter-notes caption{text-align:left;padding:0 0 14px;font-size:16px}
+@media(max-width:1000px){header .wordmark span{display:none}}
+@media(max-width:650px){
+ header{gap:10px}header nav{gap:12px;overflow-x:auto;white-space:nowrap;font-size:13px}header .wordmark{font-size:13px}
+ .tree-lab{padding-top:22px}.tree-lab h3,#imblearn h3{font-size:25px}
+ .tree-lab .tree-chart{max-height:none}#imblearn .comparison{font-size:15px}#imblearn .comparison th{font-size:13px;width:40%}#imblearn .comparison code{font-size:12px}
+ pre{font-size:12px}.tree-lab .comparison{font-size:13px}
+}

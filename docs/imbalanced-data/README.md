@@ -80,3 +80,10 @@ probabilities, optimized losses computed independently from joint class/branch
 probabilities, model selection, AUC, population precision, and batch
 composition. The PR workflow also checks all four JavaScript files for syntax
 errors and runs these checks with the existing lesson tests.
+
+
+The appended decision-tree chapter uses a separate Gini example: A routes 10% of positives and 0% of negatives left; B routes 90% and 10%. Exact calculations select A at 1% training prevalence and B at 50%. A second animation and slider hold the original gains fixed while moving `min_impurity_decrease`; A or no split can result, never B. The text distinguishes candidate admissibility (`min_samples_leaf`) from gain ranking and states the limited implication for deep forests. Existing logistic, efficiency, and log-loss chapters remain intact.
+
+`tree-model.js` computes Gini gains and child shares. `tree-scenes.js` adds five reversible scroll stages and two keyboard-operable playgrounds. `node --test tests/imbalanced-tree.test.mjs` verifies the results against independent integer child counts. The new imblearn section introduces samplers, binary sampling ratios, fold-local pipelines, and per-tree balanced forests. `imblearn_demo.py` is a complete downloadable CV example with an untouched test set and explicit forest sampling settings.
+
+This update's chart SVGs were inspected at desktop and phone sizes. Full browser interaction QA was unavailable in the editing environment.
