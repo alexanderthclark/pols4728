@@ -144,7 +144,6 @@ function scoreCollection() {
     heading: revealBetween(t, .32, .48),
     column: revealBetween(t, .48, .66),
     legend: revealBetween(t, .72, .9),
-    variance: revealBetween(t, .84, 1),
   };
 }
 const xu = () => `${mVar('X')}${mVar('u')}`;
@@ -622,18 +621,7 @@ function render() {
     $('score-calculation').style.opacity = 1;
     const collection = scoreCollection();
     if (collection.collecting) {
-      const readouts = document.createElement('div');
-      readouts.className = 'score-transition';
-      const single = inlineMath(`${xu()}${mOp('=')}${indexed('x', 1)}`);
-      [single, formula].forEach((notation, i) => {
-        const span = document.createElement('span');
-        const opacity = i === 0 ? 1 - collection.variance : collection.variance;
-        span.style.opacity = opacity;
-        span.setAttribute('aria-hidden', String(opacity < .5));
-        setNotation(span, notation);
-        readouts.append(span);
-      });
-      $('score-calculation').replaceChildren(readouts);
+      setNotation($('score-calculation'), inlineMath(`${xu()}${mOp('=')}${indexed('x', 1)}`));
     } else setNotation($('score-calculation'), formula);
   } else if (isSVD) {
     const d = svdExample().singularValues[piece];

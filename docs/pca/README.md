@@ -148,8 +148,9 @@ returning to the original coordinates.
 - The opening follows one highlighted observation to its signed horizontal
   score before building the full `Xu` column. The collection scene preserves
   that highlighted projection, slides the same plot left, and then adds the
-  other projections and score entries. A shared readout crossfades from the
-  horizontal identity `Xu = x₁` to the variance calculation. Horizontal,
+  other projections and score entries. Both horizontal scenes keep the title
+  `u = (1,0)ᵀ`, with no explanatory prose beneath it. The identity `Xu = x₁`
+  appears after the first projection and stays visible through collection. Horizontal,
   vertical, and diagonal comparisons remain separate scroll beats. Hollow circles mark observations;
   crosses and connecting segments mark projections. One calculation connects
   squared score length, the sample-variance denominator, and score variance.

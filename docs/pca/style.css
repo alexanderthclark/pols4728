@@ -29,6 +29,3 @@
 @media print{.variance-budget,.score-calculation{display:none}#mathematical-details{padding:14px 0}.math-details summary{color:var(--ink);font-size:14pt}}
 
 .stage-controls>label{min-width:0}
-
-/* Keep the single score and variance expression in the same fixed readout slot. */
-.score-transition{display:grid;place-items:center}.score-transition>span{grid-area:1/1;white-space:nowrap}
