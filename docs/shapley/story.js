@@ -206,6 +206,7 @@ function showStep(index) {
   const inElectoralMap = current >= 16;
   stage.classList.toggle('is-formula-scene', inFormula);
   stage.classList.toggle('is-electoral-scene', inElectoral);
+  document.body.classList.toggle('is-electoral-section', inElectoral);
   stage.classList.toggle('is-electoral-map-scene', inElectoralMap);
   stage.classList.toggle('is-value-function-scene', current === 8);
   if (current !== 8) setNodeNotation(false);

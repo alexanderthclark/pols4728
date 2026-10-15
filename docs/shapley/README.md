@@ -55,7 +55,9 @@ California is pivotal, followed by a three-map sequence:
 The map uses the same coordinate system and on-screen scale in every phase.
 Space for captions, the final equation, and controls is reserved across the
 sequence, including short phones; layout changes cannot magnify or hide the
-small power premium. The selected state's electoral-area outline stays visible
+small power premium. Electoral scenes use neutral grays throughout, with
+selection marked by a darker fill and thicker outline, avoiding party colors.
+The selected state's electoral-area outline stays visible
 in the final view; a checkbox adds all the other baseline outlines. A persistent
 three-stage control navigates Geography, Electoral votes, and Shapley votes,
 updating the story caption and hash together. State selection, labels, and numeric readouts stay linked.
