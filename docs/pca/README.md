@@ -3,9 +3,12 @@
 A nineteen-step scrollytelling lesson first defines the principal direction:
 `u₁ := argmax_{‖u‖ = 1} Var(Xu) = argmax_{‖u‖ = 1} ‖Xu‖`.
 For centered data, the same direction maximizes score length because variance is
-its squared length divided by the fixed `n − 1`. Each short explanation sits
-above its animated diagram in one centered column. The main sequence introduces
-one idea per beat, with at most one principal display equation.
+its squared length divided by the fixed `n − 1`. The first eighteen steps share
+one pinned visual stage in a centered column, with a short explanation above
+the diagram. Scrolling advances the geometric operation; scrolling backward
+reverses it. The main sequence introduces one idea per beat, with at most one
+principal display equation. The final explorer and reference notes return to
+ordinary document flow.
 
 | Steps | Development |
 | --- | --- |
@@ -62,14 +65,16 @@ From the repository root:
 python3 -m http.server 8898 --bind 127.0.0.1 --directory docs
 ```
 
-Open <http://127.0.0.1:8898/pca/>. During the storyboard review, the revised
-preview uses port 8898 and the saved earlier version uses
-<http://127.0.0.1:8899/pca/>. The earlier work is committed at `4b42c2f` and
-preserved on `codex/pca-storyboard-baseline`, so the revision can be compared
-or reverted without losing the preceding changes. To inspect the page changes:
+Open <http://127.0.0.1:8898/pca/>. During the pinned-stage review, the revised
+preview uses port 8898 and the saved preceding version uses
+<http://127.0.0.1:8900/pca/>. All preceding work is committed at `4d61884` and
+preserved on `codex/pca-before-cinema`, so this presentation change can be
+compared or reverted independently. The earlier storyboard baseline at
+`4b42c2f` remains available on `codex/pca-storyboard-baseline` and at
+<http://127.0.0.1:8899/pca/>. To inspect the pinned-stage changes:
 
 ```sh
-git diff codex/pca-storyboard-baseline -- docs/pca
+git diff codex/pca-before-cinema -- docs/pca
 ```
 
 GitHub Pages publishes the `docs/` site after checks pass on `main`; the new
@@ -128,11 +133,18 @@ returning to the original coordinates.
 
 ## Interaction and access
 
-- Scroll through one column, choose a named lesson step, or use Previous/Next. Left/right arrow
-  navigation applies outside interactive controls. Step links and browser
-  Back/Forward restore the reading location. Step selection lands immediately
-  above the matching inline figure. Keyboard navigation focuses the destination
-  heading. Each diagram and its controls have their own accessible IDs and state.
+- Scroll through the pinned, single-column sequence or use Previous/Next.
+  Left/right arrow navigation applies outside interactive controls. Step links
+  and browser Back/Forward restore the scene and reading location. Keyboard
+  navigation focuses the visible destination heading; resizing preserves that
+  focus. Each diagram and its controls retain their own accessible IDs and state.
+- The first eighteen explanations occupy the same area above one shared plot
+  stage. The largest prose height is measured for the current viewport, so
+  changing to a shorter explanation does not shift the plot. Original narrative
+  sections retain the chapter anchors and scroll distances; their source text
+  remains the fallback for printing and reading without JavaScript. The explorer,
+  takeaways, and mathematical notes remain in normal reading order after the
+  pinned sequence releases.
 - The opening follows one highlighted observation to its signed horizontal
   score before building the full `Xu` column. Horizontal, vertical, and diagonal
   comparisons remain separate scroll beats. Hollow circles mark observations;
@@ -154,20 +166,21 @@ returning to the original coordinates.
   SVD animation uses PC1 and scales a unit pattern into its actual score column
   on one fixed vertical scale.
 - The guided sequence has no sliders, angle presets, or model selectors.
-  Scrolling brings each authored demonstration into view and starts playback;
-  Replay remains available. The final explorer holds the manual angle, camera,
-  and reconstruction controls, plus individual 3D contributions and all three
-  SVD patterns. Guided scenes always restore their authored basis and camera;
-  the explorer preserves the reader's choices.
-- Animations begin when their figures enter view. Replay animation repeats the
-  transition. Completed endpoints persist after camera changes, resizing, or
-  leaving and returning to a step. Component subtraction has no removal slider
-  or toggle. Reduced motion displays each endpoint immediately.
+  Scrolling controls each authored demonstration directly and reversibly.
+  Each scene holds its starting state briefly, eases through its operation,
+  then holds the completed state. Replay and Previous/Next provide timed
+  playback until the reader resumes scrolling. The final explorer holds the
+  manual angle, camera, and reconstruction controls, plus individual 3D
+  contributions and all three SVD patterns. Guided scenes always restore their
+  authored basis and camera; the explorer preserves the reader's choices.
+- Replay repeats the transition on the fixed stage. Resizing preserves the
+  guided scene's proportional scroll position, while ordinary scrolling can
+  revisit any intermediate state. Component subtraction has no removal slider
+  or toggle. Reduced motion displays each scene's completed endpoint immediately.
 - Basis directions have direct labels and distinct solid, dashed, and dotted
   strokes. Original/reconstructed points use circles and crosses.
-- Desktop and phone layouts place diagrams below the narrative in normal
-  reading order. Fixed opening examples use compact figures and readouts;
-  compact SVG labels are enlarged on phones.
+- Desktop and phone layouts keep short explanations above the diagram in one
+  column, with compact readouts below it. SVG labels are enlarged on phones.
 - Reduced motion shows each transition's endpoint immediately. The complete
   narrative and assumptions remain readable without JavaScript.
 
@@ -180,10 +193,16 @@ These choices and visual review do not establish full accessibility compliance.
 
 - `index.html`: opening, nineteen narrative beats, takeaways, optional mathematical details, MathML, and controls.
 - `style.css`: course typography and desktop/mobile layouts.
+- `cinema.css`: the shared pinned stage, stable caption space, viewport fitting,
+  and print fallback.
 - `model.mjs`: deterministic points, projections, variances, basis changes,
   reconstructions, deflation, and SVD factors for the known principal basis.
 - `svd-view.mjs`: score columns, normalized patterns, and singular values.
 - `app.js`: SVG figures, controls, scroll scenes, and navigation.
+- `scroll-timeline.mjs`: pure scroll-to-scene mapping with reversible progress,
+  start/end holds, and smooth interpolation between them.
+- `tests/pca-scroll-timeline.test.mjs`: scene boundaries, clamped sequence ends,
+  interpolation, reverse scrolling, proportional resizing, and invalid inputs.
 
 ```sh
 node --check docs/pca/model.mjs
@@ -193,8 +212,8 @@ node --test tests/pca-model.test.mjs
 node --test tests/*.test.mjs
 ```
 
-The numerical tests use independently specified covariance matrices
-and expected variances. They check unit direction scaling, full-basis inversion
+The full repository suite has 275 tests. The numerical tests use independently
+specified covariance matrices and expected variances. They check unit direction scaling, full-basis inversion
 and distance preservation, 2D and 3D decorrelation, retained variance, and
 reconstruction loss. They also check residual orthogonality and covariance,
 sequential removal, additive component pieces, and the SVD factorization and
@@ -204,3 +223,6 @@ coordinate dropping, variance budgets, 3D subtraction and face-on camera motion,
 PC2 removal, sequential component assembly, explorer reconstruction controls,
 residual plane angles, all three SVD
 columns on a fixed scale, optional disclosures, and step/history navigation.
+Pinned-stage review also checks a stationary plot across scroll positions,
+forward and reverse geometric motion, Replay followed by scrolling, responsive
+caption measurements, visible heading focus, and release into the explorer.

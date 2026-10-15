@@ -6,6 +6,7 @@ import {
 import { drawSVDFactors } from './svd-view.mjs?v=20261014-storyboard';
 import { drawResidualTransition, drawThirdDirection } from './storyboard-3d.mjs?v=20261014-storyboard';
 import { assembleComponents } from './storyboard-geometry.mjs?v=20261014-scroll';
+import { scrollSceneAt } from './scroll-timeline.mjs?v=20261014-cinema';
 import { mVar, mNum, mOp, mSub, mSup, mTranspose, mNorm, mTuple, mFunction, inlineMath, setNotation, notationText } from './notation.mjs?v=20261013-math-2';
 
 const steps = [...document.querySelectorAll('.step')];
@@ -31,6 +32,62 @@ const stages = steps.map(step => {
   stage.querySelector('.diagram-wrap').after(calculation);
   return stage;
 });
+// One pinned screen serves the guided story. The original sections retain their
+// anchors and scroll distances; the explorer and reference notes stay in flow.
+const guidedCount = steps.findIndex(step => step.dataset.scene === 'explore');
+const movieCopies = steps.slice(0, guidedCount).map(step => [...step.children]
+  .filter(node => !node.classList.contains('stage')).map(node => node.cloneNode(true)));
+const movieSequence = document.createElement('div');
+movieSequence.className = 'movie-sequence';
+const movieShell = document.createElement('div');
+movieShell.className = 'movie-shell';
+movieShell.setAttribute('aria-label', 'PCA scrolling story');
+const movieCopy = document.createElement('div');
+movieCopy.className = 'movie-copy';
+const movieStage = document.createElement('div');
+movieStage.className = 'movie-stage';
+const movieTrack = document.createElement('div');
+movieTrack.className = 'movie-track';
+steps[0].before(movieSequence);
+movieSequence.append(movieShell, movieTrack);
+movieShell.append(movieCopy, movieStage);
+steps.slice(0, guidedCount).forEach(step => { movieTrack.append(step); step.setAttribute('aria-hidden', 'true'); });
+document.body.classList.add('is-cinematic');
+let shownMovieStep = -1;
+let scrubTransition;
+let scrubProgress = -1;
+let scrubLocal = .12;
+let inGuidedSequence = false;
+function setMovieCopy(index, animate = false) {
+  const content = document.createElement('div');
+  content.className = 'movie-copy-content';
+  content.append(...movieCopies[index].map(node => node.cloneNode(true)));
+  movieCopy.replaceChildren(content);
+  const heading = content.querySelector('h2');
+  heading.id = 'movie-heading';
+  movieCopy.setAttribute('aria-labelledby', heading.id);
+  if (animate && !motion.matches) content.animate([{ opacity: .25, transform: 'translateY(6px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 240, easing: 'ease-out' });
+}
+function showMovieStep(index) {
+  for (const stage of movieStage.children) steps[shownMovieStep].append(stage);
+  if (index >= guidedCount) return;
+  shownMovieStep = index;
+  setMovieCopy(index, !initializing);
+  movieStage.append(stages[index]);
+}
+function measureMovieCopy() {
+  // Reserve the largest prose height once per viewport, so the plot never
+  // moves when a shorter caption replaces a longer one.
+  movieCopy.style.height = 'auto';
+  let height = 0;
+  for (const copy of movieCopies) {
+    movieCopy.replaceChildren(...copy.map(node => node.cloneNode(true)));
+    height = Math.max(height, movieCopy.getBoundingClientRect().height);
+  }
+  movieCopy.style.height = '';
+  movieShell.style.setProperty('--movie-copy-height', `${Math.ceil(height)}px`);
+  if (shownMovieStep >= 0) setMovieCopy(shownMovieStep);
+}
 const $ = id => stages[current].querySelector(`[data-control="${id}"]`) || document.getElementById(id);
 let svg;
 const colors = { ink: '#242424', blue: '#234E70', rust: '#A54F32', teal: '#007F73', muted: '#606060', rule: '#767676', light: '#d6d6d6' };
@@ -690,6 +747,7 @@ function prepareEntrance() {
   if (!from || entrancePlayed.has(current)) return;
   const to = { angle: targetAngle, projectionMix: 1, removal, camera, basisReveal: 1, coordinateMix: 1, dropMix: 1, faceOn: 1, secondRemoval: 1, reconstructionMix: 1, svdMix: 1, assemblyMix: 1 };
   if ('removal' in from) to.removal = targetRemoval = 1;
+  if ('camera' in from) to.camera = 25;
   const apply = state => {
     if ('angle' in state) angle = state.angle;
     if ('projectionMix' in state) projectionMix = state.projectionMix;
@@ -758,6 +816,9 @@ function setStep(index, animate = true) {
   entrancePending = undefined;
   if (changed) remember();
   current = index;
+  scrubTransition = undefined;
+  scrubProgress = -1;
+  showMovieStep(index);
   projectionMix = 1;
   basisReveal = coordinateMix = dropMix = faceOn = secondRemoval = reconstructionMix = svdMix = assemblyMix = 1;
   reconstructionStart = undefined;
@@ -793,25 +854,38 @@ function setStep(index, animate = true) {
 function readingLine() {
   return Math.max(110, innerHeight * .3);
 }
+function goToCover(push = true) {
+  stopAnimation(true);
+  if (entrancePending) entrancePending.finish();
+  navigationLocked = false;
+  navigationUntil = 0;
+  inGuidedSequence = false;
+  if (push && location.hash !== '#page-title') history.pushState(null, '', '#page-title');
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
 function goTo(index, push = true, focus = true) {
   if (index >= steps.length) return goToTakeaways(push, focus);
   index = Math.max(0, Math.min(steps.length - 1, index));
   navigationUntil = performance.now() + 100;
   navigationLocked = true;
+  entrancePlayed.delete(index);
   setStep(index);
+  inGuidedSequence = index < guidedCount;
+  scrubLocal = .12;
   if (push && location.hash !== `#${steps[index].id}`) history.pushState(null, '', `#${steps[index].id}`);
   const mobile = matchMedia('(max-width: 800px)').matches;
-  const alignment = mobile ? 76 : 84;
-  const target = steps[index].getBoundingClientRect().top + scrollY - alignment + 5;
+  const alignment = index < guidedCount ? document.querySelector('.masthead').getBoundingClientRect().height : mobile ? 76 : 84;
+  const target = steps[index].getBoundingClientRect().top + scrollY - alignment + (index < guidedCount ? steps[index].getBoundingClientRect().height * .12 : 5);
   window.scrollTo({ top: Math.max(0, target), behavior: 'instant' });
-  requestAnimationFrame(() => maybePlayEntrance());
+  requestAnimationFrame(() => maybePlayEntrance(index < guidedCount));
   if (focus) {
-    const heading = steps[index].querySelector('h2');
+    const heading = index < guidedCount ? movieCopy.querySelector('h2') : steps[index].querySelector('h2');
     heading.tabIndex = -1;
     heading.focus({ preventScroll: true });
   }
 }
 function goToTakeaways(push = true, focus = true) {
+  inGuidedSequence = false;
   navigationUntil = performance.now() + 100;
   navigationLocked = true;
   setStep(steps.length - 1, false);
@@ -832,14 +906,48 @@ function readScroll() {
   const lineY = readingLine();
   const details = document.getElementById('mathematical-details');
   if (details.getBoundingClientRect().top <= lineY + 5) {
+    inGuidedSequence = false;
     if (!document.getElementById(location.hash.slice(1))?.closest('#mathematical-details')) history.replaceState(null, '', '#mathematical-details');
     return;
   }
   if (document.getElementById('takeaways').getBoundingClientRect().top <= lineY + 5) {
+    inGuidedSequence = false;
     if (current !== steps.length - 1) setStep(steps.length - 1, false);
     if (location.hash !== '#takeaways') history.replaceState(null, '', '#takeaways');
     return;
   }
+  if (steps[guidedCount].getBoundingClientRect().top > lineY + 5) {
+    const offset = document.querySelector('.masthead').getBoundingClientRect().height - movieSequence.getBoundingClientRect().top;
+    inGuidedSequence = offset >= 0;
+    const state = scrollSceneAt(offset, steps[0].getBoundingClientRect().height, guidedCount);
+    scrubLocal = state.local;
+    if (state.index !== current) setStep(state.index, false);
+    stopAnimation();
+    if (motion.matches) {
+      if (scrubProgress !== 1) {
+        entrancePlayed.delete(current);
+        prepareEntrance();
+        scrubProgress = 1;
+      }
+    } else {
+      if (!scrubTransition) {
+        scrubProgress = -1;
+        entrancePlayed.delete(current);
+        prepareEntrance();
+        scrubTransition = entrancePending;
+        entrancePending = undefined;
+      }
+      if (scrubTransition && Math.abs(state.progress - scrubProgress) > .00001) {
+        const values = {};
+        for (const key of Object.keys(scrubTransition.from)) values[key] = scrubTransition.from[key] + state.progress * (scrubTransition.to[key] - scrubTransition.from[key]);
+        scrubTransition.apply(values);
+      }
+      scrubProgress = state.progress;
+    }
+    if (offset >= 0 && location.hash !== `#${steps[current].id}`) history.replaceState(null, '', `#${steps[current].id}`);
+    return;
+  }
+  inGuidedSequence = false;
   let index = 0;
   steps.forEach((step, i) => { if (step.getBoundingClientRect().top <= lineY + 5) index = i; });
   if (index !== current || location.hash === '#takeaways') {
@@ -876,6 +984,8 @@ stages.forEach((stage, index) => {
   local('next').addEventListener('click', () => goTo(index + 1));
   local('motion-replay').addEventListener('click', () => {
     activate();
+    navigationLocked = true;
+    scrubTransition = undefined;
     targetAngle = Number(steps[index].dataset.fixedAngle ?? steps[index].dataset.startAngle ?? (steps[index].dataset.scene === 'second-pc' ? -30 : 45));
     if (!steps[index].hasAttribute('data-motion-angle-from')) angle = targetAngle;
     reconstructionStart = undefined;
@@ -929,6 +1039,7 @@ document.querySelectorAll('a[href^="#"]').forEach(link => link.addEventListener(
   const index = steps.findIndex(step => `#${step.id}` === link.getAttribute('href'));
   if (index >= 0) { event.preventDefault(); goTo(index); }
   else if (link.getAttribute('href') === '#takeaways') { event.preventDefault(); goToTakeaways(); }
+  else if (link.getAttribute('href') === '#page-title') { event.preventDefault(); goToCover(); }
   else {
     const detail = document.getElementById(link.getAttribute('href').slice(1));
     if (detail?.tagName === 'DETAILS') detail.open = true;
@@ -958,39 +1069,59 @@ function renderAll() {
   setStep(selected, false);
 }
 addEventListener('resize', () => {
-  const pending = entrancePending;
+  const index = current;
+  const preserveGuidedPosition = inGuidedSequence;
+  const local = scrubLocal;
+  const locked = navigationLocked;
+  const focusCopy = movieCopy.contains(document.activeElement);
   stopAnimation(true);
+  if (entrancePending) entrancePending.finish();
   renderAll();
-  if (pending) {
-    entrancePending = pending;
-    pending.apply(pending.from);
-  } else prepareEntrance();
-  readScroll();
+  measureMovieCopy();
+  if (index < guidedCount && preserveGuidedPosition) {
+    const top = steps[index].getBoundingClientRect().top + scrollY - document.querySelector('.masthead').getBoundingClientRect().height;
+    window.scrollTo({ top: Math.max(0, top + local * steps[index].getBoundingClientRect().height), behavior: 'instant' });
+    navigationLocked = locked;
+    navigationUntil = locked ? performance.now() + 100 : 0;
+  }
+  if (focusCopy) {
+    const heading = movieCopy.querySelector('h2');
+    heading.tabIndex = -1;
+    heading.focus({ preventScroll: true });
+  }
+  if (!locked) readScroll();
 });
 motion.addEventListener('change', () => {
   if (motion.matches) {
     stopAnimation(true);
     if (entrancePending) entrancePending.finish();
     angle = targetAngle;
+    if (current < guidedCount) { entrancePlayed.delete(current); prepareEntrance(); }
     render();
   }
+  scrubProgress = -1;
+  scrubTransition = undefined;
+  readScroll();
 });
 function restoreHash() {
   const index = steps.findIndex(step => `#${step.id}` === location.hash);
   if (index >= 0) goTo(index, false, false);
   else if (location.hash === '#takeaways') goToTakeaways(false, false);
   else if (document.getElementById(location.hash.slice(1))?.closest('#mathematical-details')) {
+    inGuidedSequence = false;
+    stopAnimation(true);
     const target = document.getElementById(location.hash.slice(1));
     if (target.tagName === 'DETAILS') target.open = true;
     navigationLocked = true;
     target.scrollIntoView({ block: 'start', behavior: 'instant' });
   }
-  else if (!location.hash || location.hash === '#page-title') window.scrollTo({ top: 0, behavior: 'instant' });
+  else if (!location.hash || location.hash === '#page-title') goToCover(false);
 }
 addEventListener('popstate', restoreHash);
 renderAll();
 const pageLoaded = document.readyState === 'complete' ? Promise.resolve() : new Promise(resolve => addEventListener('load', resolve, { once: true }));
 Promise.all([document.fonts.ready, pageLoaded]).then(() => requestAnimationFrame(() => {
+  measureMovieCopy();
   initializing = false;
   if (location.hash) restoreHash();
   else { prepareEntrance(); readScroll(); }
