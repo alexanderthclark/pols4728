@@ -324,11 +324,6 @@ function draw2D(parent, points, summary) {
     points.forEach((p, i) => point(parent, map(p), scene !== 'line' && i === selected, false, points.length > 5 ? 4 : 5));
   }
   if (scene === 'basis') label(parent, 360, 430, 'Add a perpendicular direction', colors.muted, 20, 'middle');
-  if (scene === 'projection') {
-    const projected = map(summary.reconstruction[selected]);
-    label(parent, projected[0] + 16, projected[1] + 42, [{text:'z',math:true,sub:'i'}, ` = ${fmt(summary.scores[selected])}`], colors.rust, 24, 'middle');
-    label(parent, 360, 416, 'One point → one signed score', colors.ink, 21, 'middle');
-  }
   if (isStrip) scoreStrip(parent, summary.scores, 386, ['One score per observation · ', {text:'Xu',math:true}]);
   if (isScores) {
     label(parent, 233, 32, 'Data and projections', colors.ink, 19, 'middle');
@@ -583,7 +578,13 @@ function render() {
     };
     caption = captions[scene];
   }
-  if (scene === 'scores') {
+  if (scene === 'projection') {
+    // Keep the signed score in the reserved readout, clear of axis labels and
+    // tick marks even when the plot is scaled down in a narrow viewport.
+    $('score-calculation').hidden = false;
+    $('score-calculation').style.opacity = Math.max(0, (projectionMix - .65) / .35);
+    setNotation($('score-calculation'), inlineMath(`${mSub(mVar('z'), mVar('i'))}${mOp('=')}${mNum(fmt(summary.scores.at(-1)))}`));
+  } else if (scene === 'scores') {
     const squared = summary.scores.reduce((sum, value) => sum + value * value, 0);
     $('score-calculation').hidden = false;
     setNotation($('score-calculation'), inlineMath(`${mFunction('Var', xu())}${mOp('=')}<mfrac>${mNum(fmt(squared))}${mNum(points.length - 1)}</mfrac>${mOp('=')}${mNum(fmt(summary.variance))}`));
