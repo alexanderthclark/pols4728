@@ -77,6 +77,12 @@
   font-size: 1em;
 }
 
+.is-cinematic .movie-copy .horizontal-punchline {
+  padding-top: 12px;
+  text-align: center;
+  font-size: 24px;
+}
+
 .is-cinematic .movie-stage,
 .is-cinematic .movie-stage > .stage {
   min-width: 0;

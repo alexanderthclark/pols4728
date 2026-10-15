@@ -613,21 +613,18 @@ function render() {
     };
     caption = captions[scene];
   }
-  if (scene === 'projection') {
-    // Selecting the horizontal unit direction returns the first data column.
-    // Keep this identity clear of the axis labels and carry it into collection.
-    $('score-calculation').hidden = false;
-    $('score-calculation').style.opacity = Math.max(0, (projectionMix - .65) / .35);
-    setNotation($('score-calculation'), inlineMath(`${xu()}${mOp('=')}${indexed('x', 1)}`));
-  } else if (scene === 'scores') {
+  const horizontalPunchline = movieCopy.querySelector('.horizontal-punchline');
+  if (horizontalPunchline) {
+    const opacity = scene === 'projection' ? Math.max(0, (projectionMix - .65) / .35) : 1;
+    horizontalPunchline.style.opacity = opacity;
+    horizontalPunchline.setAttribute('aria-hidden', String(opacity < .05));
+  }
+  if (scene === 'scores' && !scoreCollection().collecting) {
     const squared = summary.scores.reduce((sum, value) => sum + value * value, 0);
     $('score-calculation').hidden = false;
     const formula = inlineMath(`${mFunction('Var', xu())}${mOp('=')}<mfrac>${mNum(fmt(squared))}${mNum(points.length - 1)}</mfrac>${mOp('=')}${mNum(fmt(summary.variance))}`);
     $('score-calculation').style.opacity = 1;
-    const collection = scoreCollection();
-    if (collection.collecting) {
-      setNotation($('score-calculation'), inlineMath(`${xu()}${mOp('=')}${indexed('x', 1)}`));
-    } else setNotation($('score-calculation'), formula);
+    setNotation($('score-calculation'), formula);
   } else if (isSVD) {
     const d = svdExample().singularValues[piece];
     $('score-calculation').hidden = false;
