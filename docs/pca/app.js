@@ -610,11 +610,11 @@ function render() {
     caption = captions[scene];
   }
   if (scene === 'projection') {
-    // Keep the signed score in the reserved readout, clear of axis labels and
-    // tick marks even when the plot is scaled down in a narrow viewport.
+    // Selecting the horizontal unit direction returns the first data column.
+    // Keep this identity clear of the axis labels and carry it into collection.
     $('score-calculation').hidden = false;
     $('score-calculation').style.opacity = Math.max(0, (projectionMix - .65) / .35);
-    setNotation($('score-calculation'), inlineMath(`${mSub(mVar('z'), mVar('i'))}${mOp('=')}${mNum(fmt(summary.scores.at(-1)))}`));
+    setNotation($('score-calculation'), inlineMath(`${xu()}${mOp('=')}${indexed('x', 1)}`));
   } else if (scene === 'scores') {
     const squared = summary.scores.reduce((sum, value) => sum + value * value, 0);
     $('score-calculation').hidden = false;
@@ -624,7 +624,7 @@ function render() {
     if (collection.collecting) {
       const readouts = document.createElement('div');
       readouts.className = 'score-transition';
-      const single = inlineMath(`${mSub(mVar('z'), mVar('i'))}${mOp('=')}${mNum(fmt(summary.scores.at(-1)))}`);
+      const single = inlineMath(`${xu()}${mOp('=')}${indexed('x', 1)}`);
       [single, formula].forEach((notation, i) => {
         const span = document.createElement('span');
         const opacity = i === 0 ? 1 - collection.variance : collection.variance;

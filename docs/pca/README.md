@@ -149,8 +149,8 @@ returning to the original coordinates.
   score before building the full `Xu` column. The collection scene preserves
   that highlighted projection, slides the same plot left, and then adds the
   other projections and score entries. A shared readout crossfades from the
-  single score to the variance calculation. Horizontal, vertical, and diagonal
-  comparisons remain separate scroll beats. Hollow circles mark observations;
+  horizontal identity `Xu = x₁` to the variance calculation. Horizontal,
+  vertical, and diagonal comparisons remain separate scroll beats. Hollow circles mark observations;
   crosses and connecting segments mark projections. One calculation connects
   squared score length, the sample-variance denominator, and score variance.
 - Adding the second basis direction keeps PC1 fixed. The paired coordinate
