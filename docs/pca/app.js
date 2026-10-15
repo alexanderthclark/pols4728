@@ -329,14 +329,16 @@ function draw2D(parent, points, summary) {
       // Preserve it while making room, then project the remaining observations.
       const amount = collection.collecting ? i === selected ? 1 : collection.projections : projectionMix;
       const projected = p.map((value, j) => value + amount * (summary.reconstruction[i][j] - value));
-      const marks = add(parent, 'g', { opacity: collection.collecting && i !== selected ? revealBetween(collection.t, .32, .38) : 1 });
+      const markOpacity = collection.collecting && i !== selected ? revealBetween(collection.t, .32, .38) : 1;
+      const marks = add(parent, 'g', { opacity: markOpacity });
       line(marks, map(p), map(projected), colors.rule, 1, '3 4');
-      cross(marks, map(projected), i === selected ? colors.rust : colors.blue);
       const hollow = collection.collecting ? collection.projections : 1;
       const original = point(parent, map(p), i === selected, false, 5 - .5 * hollow);
       original.setAttribute('fill', `rgb(${[35, 78, 112].map(channel => channel + hollow * (255 - channel)).join(',')})`);
       original.setAttribute('stroke', `rgb(${[35, 78, 112].map(channel => channel + hollow * (118 - channel)).join(',')})`);
       original.setAttribute('stroke-width', .7 + .7 * hollow);
+      // Both marks must remain visible when an observation lies on the axis.
+      cross(add(parent, 'g', { opacity: markOpacity }), map(projected), i === selected ? colors.rust : colors.blue);
     });
   } else {
     if (['projection', 'quadratic'].includes(scene)) {
@@ -363,7 +365,10 @@ function draw2D(parent, points, summary) {
       label(row, 564, 131 + i * 44, fmt(value), i === selected ? colors.rust : colors.ink, 23, 'middle');
     });
     const legend = add(parent, 'g', { opacity: collection.legend });
-    label(legend, 360, 428, ['○ Data point     × Projection onto ', {text:'u',math:true}], colors.muted, 18, 'middle');
+    point(legend, [158, 420], false, true, 4.5);
+    label(legend, 174, 428, 'Observation', colors.muted, 18);
+    cross(legend, [392, 420]);
+    label(legend, 408, 428, 'Projection', colors.muted, 18);
   }
   if (isCurve) varianceCurve(parent, summary, points);
 }
