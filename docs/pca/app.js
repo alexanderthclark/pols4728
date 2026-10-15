@@ -6,7 +6,7 @@ import {
 import { drawSVDFactors } from './svd-view.mjs?v=20261014-storyboard';
 import { drawResidualTransition, drawThirdDirection } from './storyboard-3d.mjs?v=20261014-storyboard';
 import { assembleComponents } from './storyboard-geometry.mjs?v=20261014-scroll';
-import { scrollSceneAt } from './scroll-timeline.mjs?v=20261014-cinema';
+import { scrollSceneAt, scrollLocalAtProgress } from './scroll-timeline.mjs?v=20261015-continuity';
 import { mVar, mNum, mOp, mSub, mSup, mTranspose, mNorm, mTuple, mFunction, inlineMath, setNotation, notationText } from './notation.mjs?v=20261013-math-2';
 
 const steps = [...document.querySelectorAll('.step')];
@@ -57,6 +57,7 @@ let shownMovieStep = -1;
 let scrubTransition;
 let scrubProgress = -1;
 let scrubLocal = .12;
+let timedScrollProgress;
 let inGuidedSequence = false;
 function setMovieCopy(index, animate = false) {
   const content = document.createElement('div');
@@ -129,6 +130,23 @@ let initializing = true;
 function fmt(value, digits = 2) {
   return (Math.abs(value) < .000001 ? 0 : value).toFixed(digits).replace('-', '−');
 }
+function revealBetween(value, start, end) {
+  const t = Math.max(0, Math.min(1, (value - start) / (end - start)));
+  return t * t * (3 - 2 * t);
+}
+function scoreCollection() {
+  const collecting = steps[current].dataset.scene === 'scores' && steps[current].hasAttribute('data-motion-projection');
+  const t = collecting ? projectionMix : 1;
+  return {
+    collecting, t,
+    shift: revealBetween(t, 0, .32),
+    projections: revealBetween(t, .32, .72),
+    heading: revealBetween(t, .32, .48),
+    column: revealBetween(t, .48, .66),
+    legend: revealBetween(t, .72, .9),
+    variance: revealBetween(t, .84, 1),
+  };
+}
 const xu = () => `${mVar('X')}${mVar('u')}`;
 const xv = () => `${mVar('X')}${mVar('v')}`;
 const indexed = (symbol, index) => mSub(mVar(symbol), mNum(index));
@@ -169,8 +187,9 @@ function arrow(parent, a, b, color, dash = '') {
   line(parent, wing(-.45), b, color, 2.2);
 }
 function point(parent, position, selected = false, hollow = false, radius = 5) {
-  add(parent, 'circle', { cx: position[0], cy: position[1], r: radius, fill: hollow ? '#fff' : colors.blue, stroke: hollow ? colors.rule : colors.blue, 'stroke-width': hollow ? 1.4 : .7 });
+  const node = add(parent, 'circle', { cx: position[0], cy: position[1], r: radius, fill: hollow ? '#fff' : colors.blue, stroke: hollow ? colors.rule : colors.blue, 'stroke-width': hollow ? 1.4 : .7 });
   if (selected) add(parent, 'circle', { cx: position[0], cy: position[1], r: radius + 5, fill: 'none', stroke: colors.rust, 'stroke-width': 2 });
+  return node;
 }
 function cross(parent, position, color = colors.blue) {
   line(parent, [position[0] - 4, position[1] - 4], [position[0] + 4, position[1] + 4], color, 2);
@@ -252,6 +271,7 @@ function draw2D(parent, points, summary) {
   const isCurve = ['maximum', 'explore'].includes(scene) && !isPair;
   const isStrip = ['variance', 'quadratic'].includes(scene);
   const isScores = scene === 'scores';
+  const collection = scoreCollection();
   const showAllProjections = ['scores', 'variance'].includes(scene);
   const showBasis = current > 0;
   const extent = points === LINE_POINTS ? 3.1 : 6.2;
@@ -288,7 +308,7 @@ function draw2D(parent, points, summary) {
     label(parent, 360, 415, 'The first coordinate stays fixed; the second goes to zero', colors.ink, 18, 'middle');
     return;
   }
-  const cx = isScores ? 233 : 360;
+  const cx = isScores ? 360 - 127 * collection.shift : 360;
   const cy = isCurve || isStrip ? 174 : 220;
   const scale = points === LINE_POINTS ? (isCurve || isStrip ? 43 : 52) : 22;
   const map = plot(parent, cx, cy, scale, extent);
@@ -306,10 +326,18 @@ function draw2D(parent, points, summary) {
     label(parent, 70, 305, '○ Original     × Reconstruction', colors.muted, 17);
   } else if (showAllProjections) {
     points.forEach((p, i) => {
-      const projected = p.map((value, j) => value + projectionMix * (summary.reconstruction[i][j] - value));
-      line(parent, map(p), map(projected), colors.rule, 1, '3 4');
-      point(parent, map(p), i === selected, true, 4.5);
-      cross(parent, map(projected), i === selected ? colors.rust : colors.blue);
+      // The highlighted projection is already complete in the preceding scene.
+      // Preserve it while making room, then project the remaining observations.
+      const amount = collection.collecting ? i === selected ? 1 : collection.projections : projectionMix;
+      const projected = p.map((value, j) => value + amount * (summary.reconstruction[i][j] - value));
+      const marks = add(parent, 'g', { opacity: collection.collecting && i !== selected ? revealBetween(collection.t, .32, .38) : 1 });
+      line(marks, map(p), map(projected), colors.rule, 1, '3 4');
+      cross(marks, map(projected), i === selected ? colors.rust : colors.blue);
+      const hollow = collection.collecting ? collection.projections : 1;
+      const original = point(parent, map(p), i === selected, false, 5 - .5 * hollow);
+      original.setAttribute('fill', `rgb(${[35, 78, 112].map(channel => channel + hollow * (255 - channel)).join(',')})`);
+      original.setAttribute('stroke', `rgb(${[35, 78, 112].map(channel => channel + hollow * (118 - channel)).join(',')})`);
+      original.setAttribute('stroke-width', .7 + .7 * hollow);
     });
   } else {
     if (['projection', 'quadratic'].includes(scene)) {
@@ -326,14 +354,17 @@ function draw2D(parent, points, summary) {
   if (scene === 'basis') label(parent, 360, 430, 'Add a perpendicular direction', colors.muted, 20, 'middle');
   if (isStrip) scoreStrip(parent, summary.scores, 386, ['One score per observation · ', {text:'Xu',math:true}]);
   if (isScores) {
-    label(parent, 233, 32, 'Data and projections', colors.ink, 19, 'middle');
-    label(parent, 565, 75, [{text:'Xu',math:true}], colors.blue, 28, 'middle');
-    add(parent, 'path', { d: 'M514 98H502V327H514M614 98H626V327H614', stroke: colors.ink, 'stroke-width': 1.3, fill: 'none' });
+    const heading = add(parent, 'g', { opacity: collection.heading });
+    label(heading, cx, 32, 'Data and projections', colors.ink, 19, 'middle');
+    const column = add(parent, 'g', { opacity: collection.column });
+    label(column, 565, 75, [{text:'Xu',math:true}], colors.blue, 28, 'middle');
+    add(column, 'path', { d: 'M514 98H502V327H514M614 98H626V327H614', stroke: colors.ink, 'stroke-width': 1.3, fill: 'none' });
     summary.scores.forEach((value, i) => {
-      const row = add(parent, 'g', { opacity: steps[current].hasAttribute('data-motion-projection') ? Math.max(0, Math.min(1, projectionMix * 2 - i * .2)) : 1 });
+      const row = add(column, 'g', { opacity: !collection.collecting || i === selected ? 1 : revealBetween(collection.t, .62 + i * .035, .78 + i * .035) });
       label(row, 564, 131 + i * 44, fmt(value), i === selected ? colors.rust : colors.ink, 23, 'middle');
     });
-    label(parent, 360, 428, ['○ Data point     × Projection onto ', {text:'u',math:true}], colors.muted, 18, 'middle');
+    const legend = add(parent, 'g', { opacity: collection.legend });
+    label(legend, 360, 428, ['○ Data point     × Projection onto ', {text:'u',math:true}], colors.muted, 18, 'middle');
   }
   if (isCurve) varianceCurve(parent, summary, points);
 }
@@ -587,8 +618,23 @@ function render() {
   } else if (scene === 'scores') {
     const squared = summary.scores.reduce((sum, value) => sum + value * value, 0);
     $('score-calculation').hidden = false;
-    setNotation($('score-calculation'), inlineMath(`${mFunction('Var', xu())}${mOp('=')}<mfrac>${mNum(fmt(squared))}${mNum(points.length - 1)}</mfrac>${mOp('=')}${mNum(fmt(summary.variance))}`));
-    $('score-calculation').style.opacity = steps[current].hasAttribute('data-motion-projection') ? Math.max(0, (projectionMix - .65) / .35) : 1;
+    const formula = inlineMath(`${mFunction('Var', xu())}${mOp('=')}<mfrac>${mNum(fmt(squared))}${mNum(points.length - 1)}</mfrac>${mOp('=')}${mNum(fmt(summary.variance))}`);
+    $('score-calculation').style.opacity = 1;
+    const collection = scoreCollection();
+    if (collection.collecting) {
+      const readouts = document.createElement('div');
+      readouts.className = 'score-transition';
+      const single = inlineMath(`${mSub(mVar('z'), mVar('i'))}${mOp('=')}${mNum(fmt(summary.scores.at(-1)))}`);
+      [single, formula].forEach((notation, i) => {
+        const span = document.createElement('span');
+        const opacity = i === 0 ? 1 - collection.variance : collection.variance;
+        span.style.opacity = opacity;
+        span.setAttribute('aria-hidden', String(opacity < .5));
+        setNotation(span, notation);
+        readouts.append(span);
+      });
+      $('score-calculation').replaceChildren(readouts);
+    } else setNotation($('score-calculation'), formula);
   } else if (isSVD) {
     const d = svdExample().singularValues[piece];
     $('score-calculation').hidden = false;
@@ -786,11 +832,16 @@ function maybePlayEntrance(force = false) {
   const index = current;
   const start = performance.now();
   const duration = 'assemblyMix' in pending.from ? 6000 : 'faceOn' in pending.from ? 2400 : 'basisReveal' in pending.from ? 1400 : 2000;
-  finishAnimation = pending.finish;
+  if (index < guidedCount) timedScrollProgress = 0;
+  finishAnimation = () => {
+    if (index < guidedCount) timedScrollProgress = 1;
+    pending.finish();
+  };
   function frame(time) {
     if (current !== index) return;
     const t = Math.min(1, (time - start) / duration);
     const eased = 'assemblyMix' in pending.from ? t : t * t * (3 - 2 * t);
+    if (index < guidedCount) timedScrollProgress = eased;
     const state = {};
     for (const key of Object.keys(pending.from)) state[key] = pending.from[key] + eased * (pending.to[key] - pending.from[key]);
     pending.apply(state);
@@ -819,6 +870,7 @@ function setStep(index, animate = true) {
   current = index;
   scrubTransition = undefined;
   scrubProgress = -1;
+  timedScrollProgress = undefined;
   showMovieStep(index);
   projectionMix = 1;
   basisReveal = coordinateMix = dropMix = faceOn = secondRemoval = reconstructionMix = svdMix = assemblyMix = 1;
@@ -855,12 +907,31 @@ function setStep(index, animate = true) {
 function readingLine() {
   return Math.max(110, innerHeight * .3);
 }
+function releaseNavigation() {
+  if (navigationLocked && current < guidedCount && timedScrollProgress !== undefined) {
+    // Timed playback and scrolling share the same playhead. Resume at the frame
+    // the reader just watched, rather than at the chapter's initial scroll mark.
+    const local = scrollLocalAtProgress(timedScrollProgress);
+    stopAnimation();
+    const top = steps[current].getBoundingClientRect().top + scrollY - document.querySelector('.masthead').getBoundingClientRect().height;
+    const height = steps[current].getBoundingClientRect().height;
+    // Passive wheel/touch handlers may run after the browser has already moved
+    // the document. Preserve that movement as well as the displayed playhead.
+    const alreadyScrolled = scrollY - (top + scrubLocal * height);
+    scrubLocal = local;
+    window.scrollTo({ top: top + local * height + alreadyScrolled, behavior: 'instant' });
+  }
+  timedScrollProgress = undefined;
+  navigationLocked = false;
+  navigationUntil = 0;
+}
 function goToCover(push = true) {
   stopAnimation(true);
   if (entrancePending) entrancePending.finish();
   navigationLocked = false;
   navigationUntil = 0;
   inGuidedSequence = false;
+  timedScrollProgress = undefined;
   if (push && location.hash !== '#page-title') history.pushState(null, '', '#page-title');
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
@@ -1047,18 +1118,22 @@ document.querySelectorAll('a[href^="#"]').forEach(link => link.addEventListener(
   }
 }));
 document.addEventListener('keydown', event => {
-  if (event.altKey || event.ctrlKey || event.metaKey || event.target.closest('input, select, textarea, button, [contenteditable]')) return;
+  if (event.altKey || event.ctrlKey || event.metaKey || event.target.closest('input, select, textarea, [contenteditable]')) return;
+  if (event.target.closest('button')) {
+    if (['PageDown', 'PageUp', 'ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) releaseNavigation();
+    return;
+  }
   if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
     event.preventDefault();
     if (location.hash === '#takeaways' && event.key === 'ArrowLeft') goTo(steps.length - 1);
     else goTo(current + (event.key === 'ArrowRight' ? 1 : -1));
   }
-  if (['PageDown', 'PageUp', 'ArrowDown', 'ArrowUp', 'Home', 'End', ' '].includes(event.key)) navigationLocked = false;
+  if (['PageDown', 'PageUp', 'ArrowDown', 'ArrowUp', 'Home', 'End', ' '].includes(event.key)) releaseNavigation();
 });
 // Preserve an explicit chapter selection until the reader scrolls intentionally.
-addEventListener('wheel', () => { navigationLocked = false; }, { passive: true });
+addEventListener('wheel', releaseNavigation, { passive: true });
 addEventListener('touchmove', event => {
-  if (!event.target.closest('input, select, button')) navigationLocked = false;
+  if (!event.target.closest('input, select, button')) releaseNavigation();
 }, { passive: true });
 addEventListener('pointerdown', event => {
   if (event.clientX >= document.documentElement.clientWidth) navigationLocked = false;
@@ -1084,6 +1159,7 @@ addEventListener('resize', () => {
     window.scrollTo({ top: Math.max(0, top + local * steps[index].getBoundingClientRect().height), behavior: 'instant' });
     navigationLocked = locked;
     navigationUntil = locked ? performance.now() + 100 : 0;
+    if (locked) timedScrollProgress = 1;
   }
   if (focusCopy) {
     const heading = movieCopy.querySelector('h2');

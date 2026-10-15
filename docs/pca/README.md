@@ -146,7 +146,10 @@ returning to the original coordinates.
   takeaways, and mathematical notes remain in normal reading order after the
   pinned sequence releases.
 - The opening follows one highlighted observation to its signed horizontal
-  score before building the full `Xu` column. Horizontal, vertical, and diagonal
+  score before building the full `Xu` column. The collection scene preserves
+  that highlighted projection, slides the same plot left, and then adds the
+  other projections and score entries. A shared readout crossfades from the
+  single score to the variance calculation. Horizontal, vertical, and diagonal
   comparisons remain separate scroll beats. Hollow circles mark observations;
   crosses and connecting segments mark projections. One calculation connects
   squared score length, the sample-variance denominator, and score variance.
@@ -169,8 +172,9 @@ returning to the original coordinates.
   Scrolling controls each authored demonstration directly and reversibly.
   Each scene holds its starting state briefly, eases through its operation,
   then holds the completed state. Replay and Previous/Next provide timed
-  playback until the reader resumes scrolling. The final explorer holds the
-  manual angle, camera, and reconstruction controls, plus individual 3D
+  playback until the reader resumes scrolling. The handoff aligns the scroll
+  position with the frame already shown, including interrupted playback. The
+  final explorer holds the manual angle, camera, and reconstruction controls, plus individual 3D
   contributions and all three SVD patterns. Guided scenes always restore their
   authored basis and camera; the explorer preserves the reader's choices.
 - Replay repeats the transition on the fixed stage. Resizing preserves the
@@ -212,7 +216,7 @@ node --test tests/pca-model.test.mjs
 node --test tests/*.test.mjs
 ```
 
-The full repository suite has 275 tests. The numerical tests use independently
+The full repository suite has 279 tests. The numerical tests use independently
 specified covariance matrices and expected variances. They check unit direction scaling, full-basis inversion
 and distance preservation, 2D and 3D decorrelation, retained variance, and
 reconstruction loss. They also check residual orthogonality and covariance,
