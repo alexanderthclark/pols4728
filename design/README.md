@@ -84,6 +84,47 @@ readable figures, and usable source code. It must preserve the text's intellectu
 substance. Clear writing explains difficult ideas without removing the difficulty
 that belongs to the subject.
 
+## Scrollytelling and interactive explainers
+
+Every course visual explainer is a working scrollytelling experience unless the
+user explicitly requests another format. Scrolling is part of the explanation:
+pin a key diagram or equation while the reader's progress constructs it,
+transforms it, or brings in important new explanatory text. A long illustrated
+document, entrance fades alone, or an animation that runs on a timer after arrival
+does not satisfy this requirement. Storyboards and prototypes must include a
+working demonstration of the intended scroll-driven motion, not just describe it.
+
+Plan each scene around a learning point. Specify the pinned visual or equation,
+the scroll interval, the visual transformation, the text revealed at each stage,
+and the completed state. Let scroll position control meaningful intermediate
+states; scrolling backward must revisit them. Keep identities, scales, and color
+roles stable across related scenes so readers can follow the same observations
+through a transformation. Introduce notation as the explanation needs it, and
+hold the diagram still long enough for the accompanying text to be read.
+
+Make each lesson self-contained. Reuse a source example's setup where useful,
+preserving its wording where appropriate, but do not mention its original
+assignment, quiz, or question number in a standalone explainer. Explain the
+concrete example before introducing a general method when that sequence helps
+the reader understand why the method is needed.
+
+On narrow screens, retain a compact pinned diagram or equation and usable space
+for the changing text. Adapt the composition and labels to the viewport instead
+of silently replacing the experience with a static document. On short screens,
+a pinned equation can anchor a smaller diagram. Preserve a readable route through
+every conclusion with keyboard navigation. Under reduced motion, use logical
+scroll thresholds to show completed, legible states without continuous movement;
+the same explanation and results must remain available.
+
+Before delivery, scroll the actual page forward and backward in a browser on
+desktop and narrow mobile layouts. Check that the key visual stays pinned, that
+intermediate geometry and new text respond to scroll position, and that reverse
+scrolling restores earlier states. Check keyboard navigation, reduced motion,
+label collisions, and the final mathematical values. Screenshots of final states
+or unit tests alone do not verify a scrollytelling experience. When adding an
+automated interaction check, assert a visual or text change caused by scrolling,
+rather than merely waiting for a timer.
+
 ## Identity and artwork
 
 The initial hierarchy preserves the repository's existing uses:
@@ -398,7 +439,7 @@ as part of a style migration.
 ```sh
 make design-sync       # regenerate adapters after editing tokens
 make design-guide      # visual specimen at design/guide.pdf
-make figures           # regenerate all ten external vector figure inputs
+make figures           # regenerate external vector figure inputs
 make notes-print       # monochrome accents, same notes source
 make                   # all existing course-document targets
 make clean             # remove auxiliaries after reviewing the build
@@ -434,8 +475,9 @@ manual; the repository has no continuous-integration workflows.
   checks and export their PDFs through the shared TeX font setup. Regenerating
   them requires NumPy, Matplotlib, and pdflatex; the collinearity script also uses
   scikit-learn and statwrap.
-- All ten external notes figures now have maintained generators and use the
-  shared theme. The six inherited figures and the ridge coefficient path are
+- All external notes figures now have maintained generators and use the
+  shared theme, including the imported imbalance charts and the split-entropy
+  comparison. The six inherited figures and the ridge coefficient path are
   migrated. `notes/notebooks/README.md` records recovered notebook sources,
   preserved calculations, and explicit reconstructions. The legacy registry is
   empty. Regenerate vector PDFs with `make figures`; ordinary document builds
