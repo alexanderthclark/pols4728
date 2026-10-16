@@ -1,0 +1,62 @@
+(function(){
+  'use strict';
+  const State=window.NNStoryState,Views=window.NNViews;
+  const steps=Array.from(document.querySelectorAll('.step[data-scene]'));
+  const byId=id=>document.getElementById(id);
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let currentIndex=0,renderSignature='',pending=0;
+  const chapter=scene=>scene.startsWith('depth-')?'02 · Depth':scene.startsWith('sine-')||scene==='universal'?'03 · Approximation':'01 · Shallow networks';
+  function update(){
+    pending=0;
+    const mobile=window.matchMedia('(max-width: 760px)').matches;
+    const stage=byId('stage-shell');
+    const stageBottom=stage?stage.getBoundingClientRect().bottom:window.innerHeight*.48;
+    // Read the narrative just below the pinned graphic on narrow screens.
+    const focus=mobile?Math.min(window.innerHeight*.85,stageBottom+window.innerHeight*.13):window.innerHeight*.5;
+    let index=0;
+    for(let i=0;i<steps.length;i++){if(steps[i].getBoundingClientRect().top<=focus)index=i;}
+    currentIndex=index;
+    const rect=steps[index].getBoundingClientRect(),scene=steps[index].dataset.scene;
+    let progress=Math.max(0,Math.min(1,(focus-rect.top)/Math.max(rect.height,1)));
+    // Quantization prevents needless SVG work on fractional-pixel scroll events.
+    progress=Math.round(progress*100)/100;
+    if(reduced)progress=scene==='depth-five'||scene==='sine-wide'?Math.round(progress*10)/10:1;
+    const signature=scene+':'+progress+':'+(mobile?'compact':'desktop');
+    if(signature!==renderSignature){
+      renderSignature=signature;
+      const frame=State.frame(scene,progress);
+      frame.compact=mobile;
+      Views.render(byId('function-plot'),byId('network-plot'),frame);
+      byId('stage-name').textContent=chapter(scene);
+      byId('stage-count').textContent=String(index+1).padStart(2,'0')+' / '+steps.length;
+      byId('stage-caption').textContent=frame.caption;
+      byId('stage-equation').textContent=frame.equation;
+      if(byId('previous'))byId('previous').disabled=index===0;
+      if(byId('next'))byId('next').disabled=index===steps.length-1;
+      if(byId('story-status')&&byId('story-status').dataset.scene!==scene){byId('story-status').dataset.scene=scene;byId('story-status').textContent=steps[index].querySelector('h2,h3')?.textContent||scene;}
+      steps.forEach((s,i)=>{s.classList.toggle('is-active',i===index);if(i===index)s.setAttribute('aria-current','step');else s.removeAttribute('aria-current');});
+      const story=byId('story');if(story)story.dataset.scene=scene;
+    }
+    const scrolled=window.scrollY||0,total=document.documentElement.scrollHeight-window.innerHeight;
+    if(byId('progress'))byId('progress').style.width=Math.max(0,Math.min(100,total?scrolled/total*100:0))+'%';
+  }
+  function queue(){if(!pending)pending=window.requestAnimationFrame(update);}
+  function go(delta){
+    const target=steps[Math.max(0,Math.min(steps.length-1,currentIndex+delta))];
+    const mobile=window.matchMedia('(max-width: 760px)').matches;
+    const rect=target.getBoundingClientRect();
+    const stage=byId('stage-shell'),stageHeight=stage?.getBoundingClientRect().height||0;
+    const offset=mobile?stageHeight+68:window.innerHeight*.22;
+    window.scrollTo({top:(window.scrollY||0)+rect.top-offset,behavior:reduced?'auto':'smooth'});
+  }
+  if(byId('previous'))byId('previous').addEventListener('click',()=>go(-1));
+  if(byId('next'))byId('next').addEventListener('click',()=>go(1));
+  document.addEventListener('keydown',e=>{
+    if(e.altKey||e.ctrlKey||e.metaKey||/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName||''))return;
+    if(e.key==='ArrowRight'){e.preventDefault();go(1);}else if(e.key==='ArrowLeft'){e.preventDefault();go(-1);}
+  });
+  window.addEventListener('scroll',queue,{passive:true});window.addEventListener('resize',queue);
+  document.fonts?.ready.then(queue);
+  update();
+  window.NNScrollStory=Object.freeze({getFrame:()=>State.frame(steps[currentIndex].dataset.scene,Number(renderSignature.split(':')[1])||0),refresh:update});
+})();
