@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A visual, worked explanation of the POLS 4728 quiz on model selection, prediction bias and variance, and causal adjustment.">
+  <meta name="theme-color" content="#ffffff">
+  <title>Prediction, selection, and causal adjustment · POLS 4728</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="story.js"></script>
+</head>
+<body class="no-js">
+  <a class="skip-link" href="#story">Skip to the worked answers</a>
+  <header class="site-header">
+    <a class="course-home" href="../">POLS 4728</a>
+    <nav aria-label="Quiz questions">
+      <a href="#question-1">1 · Selection</a>
+      <a href="#question-2">2 · Prediction</a>
+      <a href="#question-3">3 · Adjustment</a>
+    </nav>
+  </header>
+
+  <section class="title-page" id="top" aria-labelledby="page-title">
+    <div class="title-copy">
+      <p class="kicker">POLS 4728 / Quiz explained</p>
+      <h1 id="page-title">Prediction, selection, and causal adjustment</h1>
+      <p class="title-intro">The three questions ask how a statistical procedure behaves when we repeat it. A search can find an apparently perfect predictor in random noise. A low-noise training sample can produce unstable predictions. A flexible adjustment can remove the variation we need to estimate a causal effect. Follow each calculation to see why.</p>
+      <p class="reading-note">Scroll through the worked answers. The figure changes with the argument; its navigation also lets you revisit any step. Each question’s original wording is available below its introduction.</p>
+      <div class="chapter-index" aria-label="Start a question">
+        <a href="#question-1"><span>01</span><span>Selecting among random predictors</span><span aria-hidden="true">↗</span></a>
+        <a href="#question-2"><span>02</span><span>Comparing three age predictors</span><span aria-hidden="true">↗</span></a>
+        <a href="#question-3"><span>03</span><span>Adjusting for pre-tutoring scores</span><span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+    <img class="course-logo" src="../assets/ML_and_AI_logo.png" alt="Machine Learning and AI for the Social Sciences" width="1692" height="930">
+  </section>
+
+  <main class="story" id="story">
+    <div class="narrative">
+      <section class="chapter" id="question-1" aria-labelledby="question-1-title">
+        <div class="chapter-intro">
+          <p class="kicker">Question 1 / 6 points</p>
+          <h2 id="question-1-title">Selecting among random predictors</h2>
+          <p>There are 20 observations and 32,768 candidate predictors. Every prediction is a fair coin flip. Searching among so many candidates changes the score we can find on the selection data, while leaving performance on unused observations at chance.</p>
+          <details class="question">
+            <summary>Read Question 1</summary>
+            <div class="question-body">
+              <p>We have 20 total observations with a target <math><mi>y</mi><mo>∈</mo><msup><mrow><mo>{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>}</mo></mrow><mn>20</mn></msup></math>. Suppose there are <math><msup><mn>2</mn><mn>15</mn></msup></math> random predictors that are random vectors <math><mi>X</mi><mo>∈</mo><msup><mrow><mo>{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>}</mo></mrow><mn>20</mn></msup></math> with each element drawn iid from Bernoulli(0.5). We consider each predictor to be a “model” with no training parameters so that <math><mover><mi>y</mi><mo>^</mo></mover><mo>=</mo><msub><mi>X</mi><mi>k</mi></msub></math> for the model that uses predictor <math><mi>k</mi></math>. The goal is to pick a single model, meaning we select a single predictor.</p>
+              <ol type="a">
+                <li>What is the expected test accuracy of each of these candidate predictors?</li>
+                <li>Describe a plausible model selection and evaluation procedure. Should any data be devoted to training?</li>
+                <li>Would a nested validation strategy be useful for part (b)?</li>
+              </ol>
+            </div>
+          </details>
+        </div>
+
+        <article class="step" data-scene="0" id="step-0" aria-labelledby="step-0-title">
+          <p class="part-label">Question 1(a)</p>
+          <h3 id="step-0-title">Each candidate has 50% expected test accuracy</h3>
+          <p>At any unused observation, a Bernoulli(0.5) prediction matches either target label with probability one half. The target need not be balanced: a fair prediction matches a fixed 0 and a fixed 1 equally often.</p>
+          <div class="equation"><math display="block"><mi>E</mi><mo>[</mo><mtext>test accuracy</mtext><mo>]</mo><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac></math></div>
+          <p>The same expectation holds for the predictor we select, provided its selection does not use the test labels. With only 10 test observations, the realized score can differ substantially from 50%. Its standard deviation is <math><msqrt><mfrac><mrow><mn>0.5</mn><mo>×</mo><mn>0.5</mn></mrow><mn>10</mn></mfrac></msqrt><mo>≈</mo><mn>0.158</mn></math>, or about 15.8 percentage points.</p>
+        </article>
+
+        <article class="step" data-scene="1" id="step-1" aria-labelledby="step-1-title">
+          <p class="part-label">Question 1(b)</p>
+          <h3 id="step-1-title">Use validation to choose, then test once</h3>
+          <p>There are no coefficients or other parameters to fit, so a separate training set serves no purpose here. One plausible procedure randomly assigns 10 observations to validation and 10 to a final test set. Select the predictor with the highest validation accuracy, resolve ties by a rule fixed in advance, and report its accuracy on the untouched test set.</p>
+          <p>A particular predictor is perfect on all 10 validation observations with probability <math><msup><mn>2</mn><mrow><mo>−</mo><mn>10</mn></mrow></msup></math>. Across 32,768 independent candidates, we expect 32 perfect validation predictors. The chance of finding at least one is</p>
+          <div class="equation"><math display="block"><mn>1</mn><mo>−</mo><msup><mrow><mo>(</mo><mn>1</mn><mo>−</mo><msup><mn>2</mn><mrow><mo>−</mo><mn>10</mn></mrow></msup><mo>)</mo></mrow><mn>32768</mn></msup><mo>≈</mo><mn>1</mn><mo>.</mo></math></div>
+          <p>A nearly certain 100% validation score can therefore coexist with 50% expected test accuracy. The validation result has been selected from thousands of attempts. Looking again at test results to select another predictor would make those observations part of the selection process too.</p>
+          <div class="controls">
+            <label for="validation">Validation observations: <output id="validation-value" for="validation">10</output> of 20</label>
+            <input id="validation" type="range" min="4" max="16" step="1" value="10" aria-describedby="selection-detail">
+          </div>
+          <div id="selection-detail" class="interaction-detail" aria-live="polite">With 10 validation observations, 32 perfect candidates are expected. Ten untouched test observations remain.</div>
+        </article>
+
+        <article class="step" data-scene="2" id="step-2" aria-labelledby="step-2-title">
+          <p class="part-label">Question 1(c)</p>
+          <h3 id="step-2-title">An outer evaluation assesses the selection procedure</h3>
+          <p>Nested evaluation can hold out an outer fold, use all remaining observations to choose a predictor, and evaluate that choice on the outer fold. Repeating across outer folds and averaging the held-out accuracies assesses the procedure that searches among candidates. Different outer folds may choose different predictors.</p>
+          <p>An additional inner training/validation split is unnecessary because these candidates have no fitted parameters. The inner observations can all be used for selection. An untouched final test set already provides valid evaluation, so nested evaluation is optional here. Neither strategy creates predictive information, and either estimate will be noisy with only 20 observations.</p>
+        </article>
+      </section>
+
+      <section class="chapter" id="question-2" aria-labelledby="question-2-title">
+        <div class="chapter-intro">
+          <p class="kicker">Question 2 / 14 points</p>
+          <h2 id="question-2-title">Comparing three age predictors</h2>
+          <p>The conditional mean age is <math><mi>μ</mi><mo>(</mo><mi>x</mi><mo>)</mo><mo>=</mo><mi>x</mi></math>. Prediction noise increases with <math><mi>x</mi></math>, but the distance between training observations matters when estimating a slope. Flooring a fitted prediction adds another source of error, especially near reporting thresholds.</p>
+          <details class="question">
+            <summary>Read Question 2</summary>
+            <div class="question-body">
+              <p>Three carnies predict age <math><mi>Y</mi></math>, measured in days, using a single predictor <math><mi>X</mi></math>.</p>
+              <math display="block"><mi>Y</mi><mo>=</mo><mi>X</mi><mo>+</mo><mi>ε</mi></math>
+              <p>where <math><mi>ε</mi><mo>∣</mo><mi>X</mi><mo>=</mo><mi>x</mi><mo>∼</mo><mi>N</mi><mo>(</mo><mn>0</mn><mo>,</mo><mfrac><mi>x</mi><mn>100</mn></mfrac><mo>)</mo></math><sup><a href="#question-2-footnote" aria-label="Question 2 footnote">1</a></sup>. Suppose that in the population <math><mi>X</mi><mo>∼</mo><mtext>Unif</mtext><mo>[</mo><mn>0</mn><mo>,</mo><mn>730</mn><mo>]</mo></math>. The first carnie fits an OLS model using a stratified sampling strategy: his training sample contains two observations, <math><mi>X</mi><mo>=</mo><mn>0</mn></math> and another with <math><mi>X</mi><mo>=</mo><mn>730</mn></math>. The second carnie uses a sample with <math><mi>X</mi><mo>=</mo><mn>0</mn></math> and <math><mi>X</mi><mo>=</mo><mn>1</mn></math>, because he figures his estimator will suffer from less variance because the irreducible noise is lower at low <math><mi>X</mi></math> values. The third tries to employ shrinkage. He uses the first carnie's predictions, but reports only feasible whole-year ages of 0, 365, or 730 days. He rounds each prediction down to the nearest multiple of 365, truncating predictions below 0 to 0 and predictions above 730 to 730.</p>
+              <ol type="a">
+                <li>Plot each carnie's <math><mover><mi>y</mi><mo>^</mo></mover><mo>(</mo><mi>x</mi><mo>)</mo></math> for 10 independent, simulated training data sets.</li>
+                <li>Analytically, compare the bias and variance of the first two carnies predictions for any fixed <math><mi>x</mi></math>.</li>
+                <li>Numerically/by simulation, compare the bias and variance of the first and third carnies, averaged over all <math><mi>X</mi></math>.</li>
+                <li>Which carnie will have the lowest expected MSE for a random <math><mi>X</mi></math>? Would this change if <math><mtext>Var</mtext><mo>[</mo><mi>ε</mi><mo>∣</mo><mi>X</mi><mo>]</mo><mo>=</mo><mi>m</mi><mfrac><mi>X</mi><mn>100</mn></mfrac></math> where <math><mi>m</mi></math> is a large constant?</li>
+              </ol>
+              <p class="question-footnote" id="question-2-footnote"><sup>1</sup> <math><mtext>Var</mtext><mo>[</mo><mi>ε</mi><mo>∣</mo><mi>X</mi><mo>]</mo><mo>=</mo><mfrac><mi>X</mi><mn>100</mn></mfrac></math>.</p>
+            </div>
+          </details>
+        </div>
+
+        <article class="step" data-scene="3" id="step-3" aria-labelledby="step-3-title">
+          <p class="part-label">Question 2(a)</p>
+          <h3 id="step-3-title">Compare ten fitted prediction curves</h3>
+          <p>At <math><mi>X</mi><mo>=</mo><mn>0</mn></math>, the error variance is zero, so that training observation is exactly (0, 0). If the other training observation is at <math><mi>a</mi></math>, its error has standard deviation <math><msqrt><mfrac><mi>a</mi><mn>100</mn></mfrac></msqrt></math>. The OLS line through these two observations has intercept zero and slope <math><mn>1</mn><mo>+</mo><mfrac><msub><mi>ε</mi><mi>a</mi></msub><mi>a</mi></mfrac></math>.</p>
+          <p>The figure shows ten independently simulated fits for each sampling design. Carnie 1 trains at 0 and 730; Carnie 2 trains at 0 and 1. Carnie 3 applies flooring and truncation to the same ten fitted lines used by Carnie 1. Colors and line patterns retain each fit’s identity. Carnie 1’s lines nearly coincide at the full age scale, while Carnie 2’s slopes vary considerably.</p>
+          <div class="controls">
+            <label for="curve-view">Prediction curves</label>
+            <select id="curve-view">
+              <option value="all">All three carnies</option>
+              <option value="first">Carnie 1 · training at 0 and 730</option>
+              <option value="second">Carnie 2 · training at 0 and 1</option>
+              <option value="third">Carnie 3 · whole-year reports</option>
+            </select>
+            <button id="resample" type="button">Draw ten new training samples</button>
+          </div>
+        </article>
+
+        <article class="step" data-scene="4" id="step-4" aria-labelledby="step-4-title">
+          <p class="part-label">Question 2(b)</p>
+          <h3 id="step-4-title">Both lines are unbiased; their variances differ by a factor of 730</h3>
+          <p>Holding the test value <math><mi>x</mi></math> fixed, repeat the training sample. The fitted prediction is <math><mover><mi>y</mi><mo>^</mo></mover><mo>(</mo><mi>x</mi><mo>;</mo><mi>a</mi><mo>)</mo><mo>=</mo><mi>x</mi><mo>+</mo><mfrac><mi>x</mi><mi>a</mi></mfrac><msub><mi>ε</mi><mi>a</mi></msub></math>. Since the training error has mean zero, both Carnies 1 and 2 are unbiased for <math><mi>μ</mi><mo>(</mo><mi>x</mi><mo>)</mo><mo>=</mo><mi>x</mi></math>. Their prediction variance is</p>
+          <div class="equation"><math display="block"><mtext>Var</mtext><mo>[</mo><mover><mi>y</mi><mo>^</mo></mover><mo>(</mo><mi>x</mi><mo>;</mo><mi>a</mi><mo>)</mo><mo>]</mo><mo>=</mo><mfrac><msup><mi>x</mi><mn>2</mn></msup><msup><mi>a</mi><mn>2</mn></msup></mfrac><mfrac><mi>a</mi><mn>100</mn></mfrac><mo>=</mo><mfrac><msup><mi>x</mi><mn>2</mn></msup><mrow><mn>100</mn><mi>a</mi></mrow></mfrac><mo>.</mo></math></div>
+          <div class="table-wrap"><table><caption>Prediction variation across training samples, at a fixed x</caption><thead><tr><th scope="col">Predictor</th><th scope="col">Bias</th><th scope="col">Variance (days²)</th></tr></thead><tbody><tr><th scope="row">Carnie 1</th><td>0</td><td><math><mfrac><msup><mi>x</mi><mn>2</mn></msup><mn>73000</mn></mfrac></math></td></tr><tr><th scope="row">Carnie 2</th><td>0</td><td><math><mfrac><msup><mi>x</mi><mn>2</mn></msup><mn>100</mn></mfrac></math></td></tr></tbody></table></div>
+          <p>Carnie 2 has 730 times the variance for every <math><mi>x</mi><mo>&gt;</mo><mn>0</mn></math>; both variances are zero at the origin. His second training outcome has less noise in absolute terms, but it is only one day from the first observation. Dividing that noise by such a short distance produces a much less stable slope, which he then extrapolates across the population.</p>
+        </article>
+
+        <article class="step" data-scene="5" id="step-5" aria-labelledby="step-5-title">
+          <p class="part-label">Question 2(c)</p>
+          <h3 id="step-5-title">Average the fixed-age bias and variance across the population</h3>
+          <p>First estimate a prediction mean and variance across repeated training samples at each fixed age. Then average the resulting squared bias and variance over <math><mi>X</mi><mo>∼</mo><mtext>Unif</mtext><mo>[</mo><mn>0</mn><mo>,</mo><mn>730</mn><mo>]</mo></math>. Pooling predictions from different ages would mix population variation with variation caused by the training sample.</p>
+          <p>Using 100,000 training samples and 2,920 equally spaced age midpoints gives the following numerical comparison. Variances use divisor 100,000. The squared bias is averaged after squaring at each age.</p>
+          <div class="table-wrap"><table><caption>Simulation averages over X, in squared days</caption><thead><tr><th scope="col">Predictor</th><th scope="col">Average squared bias</th><th scope="col">Average variance</th><th scope="col">Sum</th></tr></thead><tbody><tr><th scope="row">Carnie 1</th><td>0.00</td><td>2.44</td><td>2.44</td></tr><tr><th scope="row">Carnie 3</th><td>43,941.29</td><td>277.09</td><td>44,218.37</td></tr></tbody></table></div>
+          <p>Carnie 3’s average signed bias is about −181.97 days. The average squared bias is <math><msub><mi>E</mi><mi>X</mi></msub><mo>[</mo><msup><mrow><mtext>Bias</mtext><mo>(</mo><mi>X</mi><mo>)</mo></mrow><mn>2</mn></msup><mo>]</mo></math>, which differs from squaring the average signed bias. A calculation using normal probabilities gives 43,938.70 for average squared bias and 277.46 for average variance, consistent with the simulation. Both calculations show that flooring introduces substantial downward bias and increases the population-average variance in this example.</p>
+        </article>
+
+        <article class="step" data-scene="6" id="step-6" aria-labelledby="step-6-title">
+          <p class="part-label">Question 2(c) / Detail near a reporting threshold</p>
+          <h3 id="step-6-title">Small fitting differences become a full-year jump</h3>
+          <p>Away from a threshold, different fitted lines often produce the same whole-year report. Near a threshold, a tiny difference between lines can change that report by 365 days. At <math><mi>x</mi><mo>=</mo><mn>365</mn></math>, Carnie 1’s prediction variance is</p>
+          <div class="equation"><math display="block"><mfrac><msup><mn>365</mn><mn>2</mn></msup><mn>73000</mn></mfrac><mo>=</mo><mn>1.825</mn><mspace width="0.3em"/><mtext>days².</mtext></math></div>
+          <p>Carnie 3 reports almost equally often 0 or 365 at this age. Its variance is therefore approximately</p>
+          <div class="equation"><math display="block"><mfrac><msup><mn>365</mn><mn>2</mn></msup><mn>4</mn></mfrac><mo>=</mo><mn>33306.25</mn><mspace width="0.3em"/><mtext>days².</mtext></math></div>
+          <p>The detail views intentionally use different vertical scales to make both changes visible. Flooring collapses differences within a year bin but expands differences across its boundary. Moving predictions toward zero does not by itself guarantee lower variance.</p>
+        </article>
+
+        <article class="step" data-scene="7" id="step-7" aria-labelledby="step-7-title">
+          <p class="part-label">Question 2(d) / The stated noise level</p>
+          <h3 id="step-7-title">Carnie 1 has the lowest expected prediction MSE</h3>
+          <p>For a new outcome whose error is independent of the training sample, expected squared prediction error adds three components: average squared bias, average prediction variance, and irreducible outcome noise. Here <math><mi>E</mi><mo>[</mo><mi>X</mi><mo>]</mo><mo>=</mo><mn>365</mn></math> and <math><mi>E</mi><mo>[</mo><msup><mi>X</mi><mn>2</mn></msup><mo>]</mo><mo>=</mo><mfrac><msup><mn>730</mn><mn>2</mn></msup><mn>3</mn></mfrac></math>. Every carnie receives the same 3.65 days² of irreducible noise.</p>
+          <div class="table-wrap"><table><caption>Population expectations at the stated noise level, in days²</caption><thead><tr><th scope="col">Predictor</th><th scope="col">Squared bias</th><th scope="col">Variance</th><th scope="col">MSE including noise</th></tr></thead><tbody><tr><th scope="row">Carnie 1</th><td>0</td><td>2.4333</td><td>6.0833</td></tr><tr><th scope="row">Carnie 2</th><td>0</td><td>1,776.3333</td><td>1,779.9833</td></tr><tr><th scope="row">Carnie 3</th><td>43,938.70</td><td>277.46</td><td>44,219.81</td></tr></tbody></table></div>
+          <p>Carnie 1’s widely spaced training observations estimate the slope precisely. Carnie 2 loses precision through extrapolation from a one-day interval. Carnie 3’s coarse reports add far more squared bias than any reduction in variation could offset; in fact, their average variance is also larger here. The small differences from the preceding simulation table reflect simulation error.</p>
+        </article>
+
+        <article class="step" data-scene="8" id="step-8" aria-labelledby="step-8-title">
+          <p class="part-label">Question 2(d) / Larger noise variance</p>
+          <h3 id="step-8-title">Sufficiently large noise changes the ranking</h3>
+          <p>Multiplying the noise variance by <math><mi>m</mi></math> multiplies Carnies 1 and 2’s prediction variances and the common irreducible noise by <math><mi>m</mi></math>. Their expected prediction MSEs become <math><mn>6.0833</mn><mi>m</mi></math> and <math><mn>1779.9833</mn><mi>m</mi></math>. Carnie 2 cannot beat Carnie 1 for any positive <math><mi>m</mi></math>.</p>
+          <p>Carnie 3’s report remains between 0 and 730. Its squared error relative to the conditional mean is bounded, while Carnie 1’s error grows without bound as <math><mi>m</mi></math> increases. Carnie 3 therefore eventually performs best. For example, a numerical calculation at <math><mi>m</mi><mo>=</mo><mn>100000</mn></math> gives:</p>
+          <div class="table-wrap"><table><caption>Population MSE at m = 100,000, in days²</caption><thead><tr><th scope="col">Predictor</th><th scope="col">MSE relative to μ(X) = X</th><th scope="col">MSE including noise</th></tr></thead><tbody><tr><th scope="row">Carnie 1</th><td>243,333.33</td><td>608,333.33</td></tr><tr><th scope="row">Carnie 2</th><td>177,633,333.33</td><td>177,998,333.33</td></tr><tr><th scope="row">Carnie 3</th><td>89,137.73</td><td>454,137.73</td></tr></tbody></table></div>
+          <p>The common outcome-noise contribution is now 365,000 days². A moderate increase in noise need not reverse the original ranking; the benefit of bounded reports must first outweigh their bias.</p>
+          <div class="controls">
+            <label for="noise">Noise variance multiplier m</label>
+            <select id="noise"><option value="1">1 · stated noise</option><option value="100">100</option><option value="10000">10,000</option><option value="100000" selected>100,000 · large-noise comparison</option></select>
+          </div>
+          <div id="noise-detail" class="interaction-detail" aria-live="polite">The figure initially uses m = 100,000; the preceding scene uses m = 1. The static table above records the large-noise comparison.</div>
+        </article>
+      </section>
+
+      <section class="chapter" id="question-3" aria-labelledby="question-3-title">
+        <div class="chapter-intro">
+          <p class="kicker">Question 3 / 16 points</p>
+          <h2 id="question-3-title">Adjusting for pre-tutoring scores</h2>
+          <p>Tutoring adds 10 points to every student’s outcome. We first consider the consequences of fitting an outcome predictor too closely. Then we examine observational data, where students with higher baseline scores are more likely to receive tutoring.</p>
+          <details class="question">
+            <summary>Read Question 3</summary>
+            <div class="question-body">
+              <p>A researcher studies tutoring's effect on final exam scores <math><msub><mi>Y</mi><mi>i</mi></msub></math>. Let <math><msub><mi>X</mi><mi>i</mi></msub></math> be a continuous pre-tutoring score and <math><msub><mi>D</mi><mi>i</mi></msub><mo>∈</mo><mo>{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>}</mo></math> indicate tutoring. Suppose the causal relationship is</p>
+              <math display="block"><msub><mi>Y</mi><mi>i</mi></msub><mo>=</mo><mn>50</mn><mo>+</mo><mn>40</mn><mn mathvariant="bold">1</mn><mo>{</mo><msub><mi>X</mi><mi>i</mi></msub><mo>≥</mo><mn>60</mn><mo>}</mo><mo>+</mo><mn>10</mn><msub><mi>D</mi><mi>i</mi></msub><mo>.</mo></math>
+              <p>The researcher predicts <math><mi>Y</mi></math> from <math><mi>X</mi></math> alone and proposes estimating the tutoring effect using adjusted outcomes after partialing out <math><mi>X</mi></math>:</p>
+              <math display="block"><msub><mi>R</mi><mi>i</mi></msub><mo>=</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>−</mo><mover><mi>y</mi><mo>^</mo></mover><mo>(</mo><msub><mi>X</mi><mi>i</mi></msub><mo>)</mo><mo>,</mo><mspace width="1em"/><mover><mi>τ</mi><mo>^</mo></mover><mo>=</mo><msub><mover><mi>R</mi><mo>¯</mo></mover><mrow><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>−</mo><msub><mover><mi>R</mi><mo>¯</mo></mover><mrow><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mo>.</mo></math>
+              <ol type="a">
+                <li><p>Tutoring is randomly assigned with probability <math><mfrac><mn>1</mn><mn>2</mn></mfrac></math>, independently of <math><mi>X</mi></math>. All observed <math><msub><mi>X</mi><mi>i</mi></msub></math> values are distinct.</p>
+                  <ol type="i">
+                    <li>Imagine fitting a tree to the full sample with one student per leaf. Find <math><mover><mi>τ</mi><mo>^</mo></mover></math>. Does this recover tutoring's effect? Why does excluding <math><mi>D</mi></math> from the predictors not prevent the problem?</li>
+                    <li>Imagine randomly split students into training and evaluation groups, independently of treatment assignment, fitting the tree on the training group, and computing <math><mover><mi>τ</mi><mo>^</mo></mover></math> on the evaluation group. Why does perfect training prediction no longer force the result in part (a)(i)? Why does random assignment preserve the expected treatment-group difference after adjustment? Does this guarantee a precise estimate?</li>
+                  </ol>
+                </li>
+                <li><p>Now assume tutoring is more common at higher pre-tutoring scores. Using the same outcome equation, analyze these 32 students:</p>
+                  <div class="table-wrap"><table><thead><tr><th scope="col">Pre-tutoring score X</th><th scope="col">Untutored students (D = 0)</th><th scope="col">Tutored students (D = 1)</th></tr></thead><tbody><tr><th scope="row">40</th><td>6</td><td>2</td></tr><tr><th scope="row">50</th><td>6</td><td>2</td></tr><tr><th scope="row">60</th><td>2</td><td>6</td></tr><tr><th scope="row">70</th><td>2</td><td>6</td></tr></tbody></table></div>
+                  <ol type="i">
+                    <li>Find the average treatment effect (ATE) and the difference in observed mean scores between tutored and untutored students. Explain any discrepancy.</li>
+                    <li>Fit a regression tree predicting <math><mi>Y</mi></math> from <math><mi>X</mi></math> alone. Calculate the leaf predictions <math><mover><mi>y</mi><mo>^</mo></mover><mo>(</mo><mi>X</mi><mo>)</mo></math> and residuals <math><msub><mi>R</mi><mi>i</mi></msub></math> for each low/high-score and tutoring combination. Why do the leaf predictions differ by more than the 40-point baseline difference?</li>
+                    <li>Calculate <math><mover><mi>τ</mi><mo>^</mo></mover></math>. Does it recover the ATE?</li>
+                    <li><p>Fit a regression tree predicting <math><mi>D</mi></math> from <math><mi>X</mi></math>, also split at 55. Calculate its predictions <math><mover><mi>e</mi><mo>^</mo></mover><mo>(</mo><mi>X</mi><mo>)</mo></math> and define adjusted treatment:</p>
+                      <math display="block"><msub><mi>T</mi><mi>i</mi></msub><mo>=</mo><msub><mi>D</mi><mi>i</mi></msub><mo>−</mo><mover><mi>e</mi><mo>^</mo></mover><mo>(</mo><msub><mi>X</mi><mi>i</mi></msub><mo>)</mo><mo>.</mo></math>
+                      <p>Tabulate <math><msub><mi>R</mi><mi>i</mi></msub></math> and <math><msub><mi>T</mi><mi>i</mi></msub></math> for the four low/high-score and tutoring combinations. What relationship do you observe? Regress <math><mi>R</mi></math> on <math><mi>T</mi></math> without an intercept:</p>
+                      <math display="block"><mover><mi>τ</mi><mo>^</mo></mover><mo>=</mo><mfrac><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>T</mi><mi>i</mi></msub><msub><mi>R</mi><mi>i</mi></msub></mrow><mrow><munder><mo>∑</mo><mi>i</mi></munder><msubsup><mi>T</mi><mi>i</mi><mn>2</mn></msubsup></mrow></mfrac><mo>.</mo></math>
+                      <p>Use student counts in the sums. What does adjusting treatment accomplish?</p>
+                    </li>
+                  </ol>
+                </li>
+              </ol>
+            </div>
+          </details>
+        </div>
+
+        <article class="step" data-scene="9" id="step-9" aria-labelledby="step-9-title">
+          <p class="part-label">Question 3(a)(i)</p>
+          <h3 id="step-9-title">A memorizing tree makes every in-sample residual zero</h3>
+          <p>A full-sample tree with one student per leaf predicts each observed outcome exactly. Thus <math><mover><mi>y</mi><mo>^</mo></mover><mo>(</mo><msub><mi>X</mi><mi>i</mi></msub><mo>)</mo><mo>=</mo><msub><mi>Y</mi><mi>i</mi></msub></math>, every adjusted outcome is zero, and</p>
+          <div class="equation"><math display="block"><mover><mi>τ</mi><mo>^</mo></mover><mo>=</mo><mn>0</mn><mo>−</mo><mn>0</mn><mo>=</mo><mn>0</mn><mo>.</mo></math></div>
+          <p>This misses the true 10-point tutoring effect. Distinct pre-tutoring scores let the tree identify individual students and reproduce their outcomes, including the contribution of treatment. Excluding <math><mi>D</mi></math> from the predictor list does not prevent the outcome model from memorizing that contribution.</p>
+        </article>
+
+        <article class="step" data-scene="10" id="step-10" aria-labelledby="step-10-title">
+          <p class="part-label">Question 3(a)(ii)</p>
+          <h3 id="step-10-title">Held-out evaluation preserves the expected randomized effect</h3>
+          <p>An evaluation student’s outcome did not determine the fitted tree. Perfect training prediction therefore does not force that student’s residual to zero. Conditional on the fitted tree, random assignment gives both evaluation treatment groups the same distribution of pre-tutoring scores in expectation.</p>
+          <p>Write <math><mi>f</mi><mo>(</mo><mi>X</mi><mo>)</mo><mo>=</mo><mn>50</mn><mo>+</mo><mn>40</mn><mn mathvariant="bold">1</mn><mo>{</mo><mi>X</mi><mo>≥</mo><mn>60</mn><mo>}</mo></math>. The adjusted outcome is <math><mi>R</mi><mo>=</mo><mi>f</mi><mo>(</mo><mi>X</mi><mo>)</mo><mo>−</mo><mover><mi>y</mi><mo>^</mo></mover><mo>(</mo><mi>X</mi><mo>)</mo><mo>+</mo><mn>10</mn><mi>D</mi></math>. The first two terms have the same expected value in both treatment groups, so their difference cancels and the expected adjusted difference is 10, provided both groups are represented.</p>
+          <p>This is an expectation over repeated assignments and evaluation samples. A small evaluation group may have unequal baseline scores by chance. An unstable tree can leave substantial residual variation, and holding out observations reduces the sample used for the comparison. Valid evaluation therefore does not guarantee a precise or exactly correct realized estimate.</p>
+        </article>
+
+        <article class="step" data-scene="11" id="step-11" aria-labelledby="step-11-title">
+          <p class="part-label">Question 3(b)(i)</p>
+          <h3 id="step-11-title">The observed 30-point difference contains a 10-point causal effect</h3>
+          <p>The outcome equation says that tutoring adds 10 points for every student, so the ATE is 10. The observational treatment groups have different compositions: 12 of 16 tutored students have high pre-tutoring scores, compared with 4 of 16 untutored students.</p>
+          <div class="equation"><math display="block"><msub><mover><mi>Y</mi><mo>¯</mo></mover><mrow><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>=</mo><mfrac><mrow><mn>4</mn><mo>(</mo><mn>60</mn><mo>)</mo><mo>+</mo><mn>12</mn><mo>(</mo><mn>100</mn><mo>)</mo></mrow><mn>16</mn></mfrac><mo>=</mo><mn>90</mn></math></div>
+          <div class="equation"><math display="block"><msub><mover><mi>Y</mi><mo>¯</mo></mover><mrow><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mo>=</mo><mfrac><mrow><mn>12</mn><mo>(</mo><mn>50</mn><mo>)</mo><mo>+</mo><mn>4</mn><mo>(</mo><mn>90</mn><mo>)</mo></mrow><mn>16</mn></mfrac><mo>=</mo><mn>60</mn></math></div>
+          <p>The observed difference is 30 points: the causal effect of 10 plus a 20-point baseline difference, <math><mn>40</mn><mo>(</mo><mn>0.75</mn><mo>−</mo><mn>0.25</mn><mo>)</mo></math>. Comparing the raw means attributes this baseline composition difference to tutoring.</p>
+        </article>
+
+        <article class="step" data-scene="12" id="step-12" aria-labelledby="step-12-title">
+          <p class="part-label">Question 3(b)(ii)</p>
+          <h3 id="step-12-title">The outcome tree includes the local tutoring rate</h3>
+          <p>An unpruned squared-error regression tree makes its useful split between scores 50 and 60; use the midpoint 55. Scores 40 and 50 have the same mean outcome, as do scores 60 and 70, so further splits do not improve squared error. Each leaf contains 16 students.</p>
+          <p>The low-score leaf predicts <math><mfrac><mrow><mn>12</mn><mo>(</mo><mn>50</mn><mo>)</mo><mo>+</mo><mn>4</mn><mo>(</mo><mn>60</mn><mo>)</mo></mrow><mn>16</mn></mfrac><mo>=</mo><mn>52.5</mn></math>; the high-score leaf predicts <math><mfrac><mrow><mn>4</mn><mo>(</mo><mn>90</mn><mo>)</mo><mo>+</mo><mn>12</mn><mo>(</mo><mn>100</mn><mo>)</mo></mrow><mn>16</mn></mfrac><mo>=</mo><mn>97.5</mn></math>.</p>
+          <div class="table-wrap"><table><caption>Outcome predictions and adjusted outcomes</caption><thead><tr><th scope="col">Score group</th><th scope="col">D</th><th scope="col">Count</th><th scope="col">Y</th><th scope="col">Prediction</th><th scope="col">R</th></tr></thead><tbody><tr><th scope="row">Low</th><td>0</td><td>12</td><td>50</td><td>52.5</td><td>−2.5</td></tr><tr><th scope="row">Low</th><td>1</td><td>4</td><td>60</td><td>52.5</td><td>7.5</td></tr><tr><th scope="row">High</th><td>0</td><td>4</td><td>90</td><td>97.5</td><td>−7.5</td></tr><tr><th scope="row">High</th><td>1</td><td>12</td><td>100</td><td>97.5</td><td>2.5</td></tr></tbody></table></div>
+          <p>The prediction difference is 45 points. It includes the 40-point baseline difference and an additional <math><mn>10</mn><mo>(</mo><mn>0.75</mn><mo>−</mo><mn>0.25</mn><mo>)</mo><mo>=</mo><mn>5</mn></math> points from the difference in tutoring rates. Predicting each leaf’s mean outcome therefore subtracts some treatment-related variation too.</p>
+        </article>
+
+        <article class="step" data-scene="13" id="step-13" aria-labelledby="step-13-title">
+          <p class="part-label">Question 3(b)(iii)</p>
+          <h3 id="step-13-title">Adjusting only the outcome gives 7.5</h3>
+          <p>The treated students’ mean adjusted outcome is <math><mfrac><mrow><mn>4</mn><mo>(</mo><mn>7.5</mn><mo>)</mo><mo>+</mo><mn>12</mn><mo>(</mo><mn>2.5</mn><mo>)</mo></mrow><mn>16</mn></mfrac><mo>=</mo><mn>3.75</mn></math>. The untutored students’ mean is <math><mfrac><mrow><mn>12</mn><mo>(</mo><mo>−</mo><mn>2.5</mn><mo>)</mo><mo>+</mo><mn>4</mn><mo>(</mo><mo>−</mo><mn>7.5</mn><mo>)</mo></mrow><mn>16</mn></mfrac><mo>=</mo><mo>−</mo><mn>3.75</mn></math>. Thus</p>
+          <div class="equation"><math display="block"><mover><mi>τ</mi><mo>^</mo></mover><mo>=</mo><mn>3.75</mn><mo>−</mo><mo>(</mo><mo>−</mo><mn>3.75</mn><mo>)</mo><mo>=</mo><mn>7.5</mn><mo>.</mo></math></div>
+          <p>This does not recover the ATE of 10. The outcome tree subtracts a larger average tutoring contribution in the high-score group, where tutoring is more common. Comparing the residuals using the original treatment indicator does not account for how that adjustment changes treatment-related variation.</p>
+        </article>
+
+        <article class="step" data-scene="14" id="step-14" aria-labelledby="step-14-title">
+          <p class="part-label">Question 3(b)(iv)</p>
+          <h3 id="step-14-title">Adjust treatment using the same score groups</h3>
+          <p>The treatment tree predicts the tutoring rate in each leaf: <math><mover><mi>e</mi><mo>^</mo></mover><mo>(</mo><mi>X</mi><mo>)</mo><mo>=</mo><mn>0.25</mn></math> in the low-score group and 0.75 in the high-score group. Subtract that prediction from the treatment indicator to obtain <math><mi>T</mi><mo>=</mo><mi>D</mi><mo>−</mo><mover><mi>e</mi><mo>^</mo></mover><mo>(</mo><mi>X</mi><mo>)</mo></math>.</p>
+          <div class="table-wrap"><table><caption>Both adjustments, retaining student counts</caption><thead><tr><th scope="col">Score group</th><th scope="col">D</th><th scope="col">Count</th><th scope="col">ê(X)</th><th scope="col">T</th><th scope="col">R</th></tr></thead><tbody><tr><th scope="row">Low</th><td>0</td><td>12</td><td>0.25</td><td>−0.25</td><td>−2.5</td></tr><tr><th scope="row">Low</th><td>1</td><td>4</td><td>0.25</td><td>0.75</td><td>7.5</td></tr><tr><th scope="row">High</th><td>0</td><td>4</td><td>0.75</td><td>−0.75</td><td>−7.5</td></tr><tr><th scope="row">High</th><td>1</td><td>12</td><td>0.75</td><td>0.25</td><td>2.5</td></tr></tbody></table></div>
+          <p>Every row satisfies <math><mi>R</mi><mo>=</mo><mn>10</mn><mi>T</mi></math>. For instance, the high-score tutored students have an adjusted treatment of 0.25 and an adjusted outcome of 2.5. The residual plot therefore places every student on a line through the origin with slope 10.</p>
+        </article>
+
+        <article class="step" data-scene="15" id="step-15" aria-labelledby="step-15-title">
+          <p class="part-label">Question 3(b)(iv) / The weighted calculation</p>
+          <h3 id="step-15-title">The adjusted regression recovers 60 ÷ 6 = 10</h3>
+          <p>Use the counts when summing across the four combinations. The denominator of the regression through the origin is</p>
+          <div class="equation"><math display="block"><mtable columnalign="left"><mtr><mtd><munder><mo>∑</mo><mi>i</mi></munder><msubsup><mi>T</mi><mi>i</mi><mn>2</mn></msubsup><mo>=</mo><mn>12</mn><mo>(</mo><msup><mn>0.25</mn><mn>2</mn></msup><mo>)</mo><mo>+</mo><mn>4</mn><mo>(</mo><msup><mn>0.75</mn><mn>2</mn></msup><mo>)</mo></mtd></mtr><mtr><mtd><mspace width="2em"/><mo>+</mo><mn>4</mn><mo>(</mo><msup><mn>0.75</mn><mn>2</mn></msup><mo>)</mo><mo>+</mo><mn>12</mn><mo>(</mo><msup><mn>0.25</mn><mn>2</mn></msup><mo>)</mo></mtd></mtr><mtr><mtd><mspace width="2em"/><mo>=</mo><mn>6</mn><mo>.</mo></mtd></mtr></mtable></math></div>
+          <p>Because each adjusted outcome is ten times its adjusted treatment, the numerator is <math><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>T</mi><mi>i</mi></msub><msub><mi>R</mi><mi>i</mi></msub><mo>=</mo><mn>10</mn><munder><mo>∑</mo><mi>i</mi></munder><msubsup><mi>T</mi><mi>i</mi><mn>2</mn></msubsup><mo>=</mo><mn>60</mn></math>. The estimated effect is</p>
+          <div class="equation"><math display="block"><mover><mi>τ</mi><mo>^</mo></mover><mo>=</mo><mfrac><mn>60</mn><mn>6</mn></mfrac><mo>=</mo><mn>10</mn><mspace width="0.3em"/><mtext>points.</mtext></math></div>
+          <p>Adjusting treatment removes its association with the pre-tutoring score group. Regressing the adjusted outcome on the adjusted treatment compares the same remaining variation on both sides, recovering the tutoring effect in this example.</p>
+        </article>
+      </section>
+
+      <footer class="story-footer">
+        <p>The answers depend on what is repeated and what remains held out. <a href="#question-1">Question 1</a> separates selecting a predictor from evaluating it. <a href="#question-2">Question 2</a> compares predictions across training samples at a fixed age before averaging over ages. <a href="#question-3">Question 3</a> aligns the outcome and treatment adjustments used to estimate an effect.</p>
+        <a href="#top">Return to the beginning ↑</a>
+      </footer>
+    </div>
+
+    <aside class="stage-shell" aria-label="Visual explanation">
+      <div class="stage-top"><p id="stage-kicker">Question 1(a)</p><p id="stage-count">1 / 16</p></div>
+      <h2 id="stage-title">Every candidate starts at chance</h2>
+      <div class="visual" id="visual"></div>
+      <p id="visual-caption">The expected test accuracy of each fair random predictor is 50%.</p>
+      <div class="stage-navigation">
+        <button id="previous" type="button" aria-label="Previous explanation step">← Previous</button>
+        <div class="scene-picker"><label for="scene-select">Explanation step</label><select id="scene-select">
+          <option value="0">1 · Q1(a): Chance accuracy</option>
+          <option value="1">2 · Q1(b): Selection and testing</option>
+          <option value="2">3 · Q1(c): Outer evaluation</option>
+          <option value="3">4 · Q2(a): Ten prediction curves</option>
+          <option value="4">5 · Q2(b): Analytic variance</option>
+          <option value="5">6 · Q2(c): Population comparison</option>
+          <option value="6">7 · Q2(c): Threshold detail</option>
+          <option value="7">8 · Q2(d): Prediction MSE</option>
+          <option value="8">9 · Q2(d): Large noise</option>
+          <option value="9">10 · Q3(a)(i): Memorization</option>
+          <option value="10">11 · Q3(a)(ii): Held-out adjustment</option>
+          <option value="11">12 · Q3(b)(i): Observed difference</option>
+          <option value="12">13 · Q3(b)(ii): Outcome tree</option>
+          <option value="13">14 · Q3(b)(iii): Outcome adjustment</option>
+          <option value="14">15 · Q3(b)(iv): Treatment adjustment</option>
+          <option value="15">16 · Q3(b)(iv): Weighted regression</option>
+        </select></div>
+        <button id="next" type="button" aria-label="Next explanation step">Next →</button>
+      </div>
+    </aside>
+  </main>
+  <noscript><p class="noscript-note">The full worked answers and tables above remain readable without JavaScript. Enable JavaScript to use the changing figures and interactive controls.</p></noscript>
+</body>
+</html>
