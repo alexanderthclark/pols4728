@@ -78,11 +78,11 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
 .equation-multiline span + span { padding-left: 1rem; }
 .return-link { display: inline-block; align-self: start; margin-top: 2rem; font: .75rem/1.5 var(--sans); }
 .return-link span { margin-left: .5rem; }
-.depth-table { border-collapse: collapse; width: 100%; margin-top: 1.4rem; font: .7rem/1.5 var(--sans); font-variant-numeric: tabular-nums; }
-.depth-table caption { text-align: left; color: var(--muted); margin-bottom: .4rem; }
-.depth-table th, .depth-table td { border-bottom: 1px solid var(--light-rule); padding: .45rem .4rem; text-align: right; font-weight: 400; }
-.depth-table thead th { color: var(--muted); border-top: 1px solid var(--rule); border-bottom-color: var(--rule); }
-.depth-table th:first-child { text-align: left; padding-left: 0; }
+.width-table { border-collapse: collapse; width: 100%; margin-top: 1.4rem; font: .7rem/1.5 var(--sans); font-variant-numeric: tabular-nums; }
+.width-table caption { text-align: left; color: var(--muted); margin-bottom: .4rem; }
+.width-table th, .width-table td { border-bottom: 1px solid var(--light-rule); padding: .45rem .4rem; text-align: right; font-weight: 400; }
+.width-table thead th { color: var(--muted); border-top: 1px solid var(--rule); border-bottom-color: var(--rule); }
+.width-table th:first-child { text-align: left; padding-left: 0; }
 .site-footer { max-width: 1440px; margin-inline: auto; padding: 1.6rem clamp(1.25rem, 4vw, 4rem) 2.2rem; border-top: 1px solid var(--rule); font: .7rem/1.6 var(--sans); display: flex; justify-content: space-between; gap: 1rem 2rem; color: var(--muted); }
 .site-footer a { text-decoration: none; }
 .noscript-note { max-width: 48rem; margin: 2rem auto; padding-inline: 1.25rem; }
@@ -138,7 +138,7 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
   .step h2 { font-size: 1.8rem; }
   .step p:not(.part-label) { font-size: 1rem; margin-top: 1rem; line-height: 1.65; }
   .step .narrative-equation { font-size: .91rem; }
-  .depth-table { font-size: .72rem; }
+  .width-table { font-size: .72rem; }
   .site-footer { display: block; padding: 1.5rem 1.25rem 2rem; font-size: .65rem; }
   .site-footer p { margin-top: .5rem; }
 }
@@ -180,5 +180,5 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
   .step p:not(.part-label) { font-size: 10.5pt; margin-top: .55rem; }
   .step .narrative-equation { font-size: 10.5pt; }
   .part-label { margin-top: .7rem; font-size: 9pt; }
-  .depth-table { max-width: 400px; font-size: 9pt; }
+  .width-table { max-width: 400px; font-size: 9pt; }
 }

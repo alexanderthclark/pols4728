@@ -5,7 +5,7 @@
   const byId=id=>document.getElementById(id);
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let currentIndex=0,renderSignature='',pending=0;
-  const chapter=scene=>scene.startsWith('depth-')?'02 · Depth':scene.startsWith('sine-')||scene==='universal'?'03 · Approximation':'01 · Shallow networks';
+  const chapter=scene=>scene.startsWith('width-')?'02 · Width and joints':scene.startsWith('sine-')||scene==='universal'?'03 · Approximation':'01 · Shallow networks';
   function update(){
     pending=0;
     const mobile=window.matchMedia('(max-width: 760px)').matches;
@@ -20,7 +20,7 @@
     let progress=Math.max(0,Math.min(1,(focus-rect.top)/Math.max(rect.height,1)));
     // Quantization prevents needless SVG work on fractional-pixel scroll events.
     progress=Math.round(progress*100)/100;
-    if(reduced)progress=scene==='depth-five'||scene==='sine-wide'?Math.round(progress*10)/10:1;
+    if(reduced)progress=scene==='width-many'||scene==='sine-wide'?Math.round(progress*10)/10:1;
     const signature=scene+':'+progress+':'+(mobile?'compact':'desktop');
     if(signature!==renderSignature){
       renderSignature=signature;

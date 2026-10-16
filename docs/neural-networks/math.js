@@ -26,7 +26,7 @@
       const a = finite(unit.a, "Neuron output weight");
       return { index: index, t: t, a: a, w: 1, b: -t };
     });
-    return { c: c, bias: c, neurons: units, width: units.length };
+    return { c: c, bias: c, neurons: units, width: units.length, inputSize: 1, hiddenLayers: 1, outputSize: 1 };
   }
 
   /** Inspect every hidden activation and its signed contribution to the output. */
@@ -144,61 +144,6 @@
     return result;
   }
 
-  /** Tent map on [0,1], implemented by two ReLU units and a linear output. */
-  function tent(x) {
-    return 2 * relu(x) - 4 * relu(x - 0.5);
-  }
-
-  function checkDepth(depth) {
-    if (!Number.isInteger(depth) || depth < 1 || depth > 20) {
-      throw new RangeError("Depth must be an integer from 1 through 20.");
-    }
-  }
-
-  /** Evaluate d compositions of the tent map, with two neurons in each layer. */
-  function deepValue(x, depth) {
-    finite(x, "Input");
-    checkDepth(depth);
-    let value = x;
-    for (let i = 0; i < depth; i += 1) value = tent(value);
-    return value;
-  }
-
-  /**
-   * Each layer uses preactivations [u, u-1/2] and activations ReLU thereof.
-   * The next layer receives u=2h_1-4h_2; the final output uses the same sum.
-   * Hidden-to-hidden weights are [[2,-4],[2,-4]], biases [0,-1/2].
-   */
-  function deepActivations(x, depth) {
-    finite(x, "Input");
-    checkDepth(depth);
-    const layers = [];
-    let input = x;
-    for (let i = 0; i < depth; i += 1) {
-      const preactivations = [input, input - 0.5];
-      const activations = preactivations.map(relu);
-      const output = 2 * activations[0] - 4 * activations[1];
-      layers.push({
-        depth: i + 1,
-        input: input,
-        preactivations: preactivations,
-        activations: activations,
-        output: output,
-      });
-      input = output;
-    }
-    return layers;
-  }
-
-  /** Exact locations of the 2^d-1 interior joints of T composed d times. */
-  function deepJoints(depth) {
-    checkDepth(depth);
-    const segments = Math.pow(2, depth);
-    return Array.from({ length: segments - 1 }, function (_, i) {
-      return (i + 1) / segments;
-    });
-  }
-
   return Object.freeze({
     TAU: TAU,
     DOMAIN: DOMAIN,
@@ -210,9 +155,5 @@
     modelFromKnots: modelFromKnots,
     refineAt: refineAt,
     maxError: maxError,
-    tent: tent,
-    deepValue: deepValue,
-    deepActivations: deepActivations,
-    deepJoints: deepJoints,
   });
 });

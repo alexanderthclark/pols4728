@@ -6,7 +6,8 @@
   if(root)root.NNStoryState=api;
 })(typeof window!=='undefined'?window:globalThis,function(M){
   'use strict';
-  const scenes=['affine','relu','hinge','hill-rise','hill-fall','hill-flat','shallow','depth-one','depth-two','depth-three','depth-five','sine-coarse','sine-zoom','sine-joint','sine-wide','universal'];
+  const scenes=['affine','relu','hinge','hill-rise','hill-fall','hill-flat','shallow','width-one','width-two','width-three','width-many','sine-coarse','sine-zoom','sine-joint','sine-wide','universal'];
+  const widthUnits=[{t:-1.5,a:.8},{t:-.9,a:-1.2},{t:-.3,a:1.1},{t:.3,a:-1},{t:.9,a:.9},{t:1.5,a:-.6}];
   const initial=[0,.9,1.95,3.05,4.2,5.35,M.TAU];
   const coarse=M.modelFromKnots(initial);
   const firstError=M.maxError(initial);
@@ -42,11 +43,12 @@
       case'hill-fall':frame.model=M.createShallow(0,[{t:-1,a:1},{t:0,a:-2*p}]);frame.components=true;frame.caption='A second neuron gradually changes the slope at x = 0. At weight −2, the slope goes from +1 to −1.';frame.equation='ŷ = ReLU(x + 1) − '+f(2*p,2)+' ReLU(x)';break;
       case'hill-flat':frame.model=M.createShallow(0,[{t:-1,a:1},{t:0,a:-2},{t:1,a:p}]);frame.components=true;frame.caption='The third neuron adds slope +1 at x = 1. At its final weight, the total slope returns to zero.';frame.equation='ŷ = ReLU(x + 1) − 2 ReLU(x) + '+f(p,2)+' ReLU(x − 1)';break;
       case'shallow':frame.model=hill();frame.x=-1.7+3.4*p;frame.caption='Three hidden neurons form one continuous piecewise linear function. Trace the input through all three contributions.';frame.equation='ŷ = c + Σⱼ aⱼ ReLU(wⱼx + bⱼ)';break;
-      case'depth-one':case'depth-two':case'depth-three':case'depth-five':{
-        const fixed={'depth-one':1,'depth-two':2,'depth-three':3};
-        frame.kind='depth';frame.depth=scene==='depth-five'?Math.min(5,3+Math.floor(p*3)):fixed[scene];frame.x=.371;
-        frame.caption=frame.depth+' hidden '+(frame.depth===1?'layer':'layers')+', width 2: '+(Math.pow(2,frame.depth)-1)+' joints and '+Math.pow(2,frame.depth)+' linear pieces in this construction.';
-        frame.equation='T(s) = 2 ReLU(s) − 4 ReLU(s − ½);  ŷ = T repeated '+frame.depth+' '+(frame.depth===1?'time':'times');
+      case'width-one':case'width-two':case'width-three':case'width-many':{
+        const fixed={'width-one':1,'width-two':2,'width-three':3};
+        const width=scene==='width-many'?3+Math.min(3,Math.floor(p*4)):fixed[scene];
+        frame.model=M.createShallow(0,widthUnits.slice(0,width));frame.width=width;frame.x=.4;
+        frame.caption='Width '+width+', one hidden layer: '+width+' '+(width===1?'joint':'joints')+' and '+(width+1)+' linear pieces in this example. Width gives an upper bound; coincident joints or zero output weights can produce fewer.';
+        frame.equation='width m → at most m distinct joints and m + 1 linear pieces';
         break;
       }
       case'sine-coarse':case'sine-zoom':case'sine-joint':case'sine-wide':case'universal':{

@@ -59,21 +59,18 @@
   function domainFor(frame) {
     if (Array.isArray(frame.domain)) return frame.domain;
     if (frame.kind === 'sine') return [0, M.TAU];
-    if (frame.kind === 'depth') return [0, 1];
     return [-2, 2];
   }
 
   function drawPlot(svg, frame, model) {
     const kind = frame.kind || 'shallow';
-    const depth = clamp(Math.round(finite(frame.depth, 1)), 1, 5);
     const domain = domainFor(frame);
-    const xValue = clamp(finite(frame.x, kind === 'sine' ? 1.5 : kind === 'depth' ? 0.37 : 0.5), domain[0], domain[1]);
-    const value = kind === 'affine' ? x => x : kind === 'depth' ? x => M.deepValue(x, depth) : x => M.evaluate(model, x);
-    const xs = kind === 'depth' ? [0].concat(M.deepJoints(depth), [1]) : kind === 'affine' ? domain : exactPoints(model, domain);
+    const xValue = clamp(finite(frame.x, kind === 'sine' ? 1.5 : 0.5), domain[0], domain[1]);
+    const value = kind === 'affine' ? x => x : x => M.evaluate(model, x);
+    const xs = kind === 'affine' ? domain : exactPoints(model, domain);
     let range;
     if (Array.isArray(frame.range)) range = frame.range;
     else if (kind === 'sine') range = [-1.35, 1.35];
-    else if (kind === 'depth') range = [-0.13, 1.18];
     else if (kind === 'affine') range = [-2.35, 2.35];
     else {
       const ys = xs.map(value);
@@ -86,7 +83,6 @@
     }
     const b = builder(svg, 620, frame.compact ? 350 : 390,
       kind === 'sine' ? 'A shallow ReLU network, shown as a piecewise linear blue curve, approximates the dashed sine curve.' :
-        kind === 'depth' ? 'The output of a width two ReLU network with ' + depth + ' hidden layers. There are ' + (Math.pow(2, depth) - 1) + ' interior joints.' :
           'One input x is mapped to one output. The curve shows the function computed by the neural network.', frame.compact);
     const left = 53, right = 589, top = 66, bottom = frame.compact ? 293 : 323;
     const px = x => left + (x - domain[0]) / (domain[1] - domain[0]) * (right - left);
@@ -100,8 +96,6 @@
       b.text(88, 27, 'sin(x)', 'class="nv-label"');
       b.line(frame.compact ? 205 : 176, 23, frame.compact ? 232 : 203, 23, 'stroke="' + C.blue + '" stroke-width="3"');
       b.text(frame.compact ? 242 : 210, 27, 'neural network', 'class="nv-small"');
-    } else if (kind === 'depth') {
-      b.text(left, 25, Math.pow(2, depth) - 1 + ' interior ' + (depth === 1 ? 'joint' : 'joints') + ' · ' + Math.pow(2, depth) + ' linear pieces', 'class="nv-head"');
     } else if (kind === 'affine') b.text(left, 25, 'A straight line', 'class="nv-head"');
     else if (kind === 'relu') b.text(left, 25, 'One ReLU adds one joint', 'class="nv-head"');
     else b.text(left, 25, model.neurons.length + ' hidden ' + (model.neurons.length === 1 ? 'neuron' : 'neurons') + ' · one piecewise linear function', 'class="nv-head"');
@@ -111,13 +105,12 @@
     b.line(left, bottom, right + 6, bottom, 'stroke="' + C.rule + '" stroke-width="1"');
     let ticks;
     if (kind === 'sine') ticks = [[0, '0'], [Math.PI / 2, 'π/2'], [Math.PI, 'π'], [3 * Math.PI / 2, '3π/2'], [M.TAU, '2π']];
-    else if (kind === 'depth') ticks = [[0, '0'], [0.25, '¼'], [0.5, '½'], [0.75, '¾'], [1, '1']];
     else ticks = [-2, -1, 0, 1, 2].filter(x => x >= domain[0] && x <= domain[1]).map(x => [x, fmt(x)]);
     ticks.forEach(t => {
       b.line(px(t[0]), bottom, px(t[0]), bottom + 5, 'stroke="' + C.rule + '"');
       b.text(px(t[0]), bottom + 22, t[1], 'class="nv-number" text-anchor="middle"');
     });
-    const yTicks = kind === 'sine' ? [-1, 0, 1] : kind === 'depth' ? [0, 1] : [-4, -2, -1, 0, 1, 2, 4].filter(y => y >= range[0] && y <= range[1]);
+    const yTicks = kind === 'sine' ? [-1, 0, 1] : [-4, -2, -1, 0, 1, 2, 4].filter(y => y >= range[0] && y <= range[1]);
     yTicks.forEach(y => {
       b.line(left - 4, py(y), left, py(y), 'stroke="' + C.rule + '"');
       b.text(left - 10, py(y) + 4, fmt(y), 'class="nv-number" text-anchor="end"');
@@ -140,11 +133,10 @@
     }
     b.path(path(xs, value), 'fill="none" stroke="' + C.blue + '" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"');
     let joints;
-    if (kind === 'depth') joints = M.deepJoints(depth);
-    else if (model) joints = model.neurons.filter(n => !n.baseline && n.t > domain[0] && n.t < domain[1]).map(n => n.t);
+    if (model) joints = model.neurons.filter(n => !n.baseline && n.t > domain[0] && n.t < domain[1]).map(n => n.t);
     else joints = [];
     joints.forEach((t, i) => b.circle(px(t), py(value(t)), joints.length > 15 ? 2.5 : 4.2,
-      'fill="' + (kind === 'sine' || kind === 'depth' ? C.rust : unitColors[i % unitColors.length]) + '" stroke="#fff" stroke-width="1.2"'));
+      'fill="' + (kind === 'sine' ? C.rust : unitColors[i % unitColors.length]) + '" stroke="#fff" stroke-width="1.2"'));
     if (kind !== 'sine' && frame.showPoint !== false) {
       b.line(px(xValue), bottom, px(xValue), py(value(xValue)), 'stroke="' + C.teal + '" stroke-width="1.2" stroke-dasharray="3 4"');
       b.circle(px(xValue), py(value(xValue)), 5.4, 'fill="' + C.teal + '" stroke="#fff" stroke-width="1.8"');
@@ -196,8 +188,7 @@
 
   function drawNetwork(svg, frame, model) {
     const kind = frame.kind || 'shallow';
-    if (frame.compact) return kind === 'depth' ? drawCompactDeepNetwork(svg, frame) : drawCompactNetwork(svg, frame, model);
-    if (kind === 'depth') return drawDeepNetwork(svg, frame);
+    if (frame.compact) return drawCompactNetwork(svg, frame, model);
     const affine = kind === 'affine';
     const neurons = affine ? [] : model.neurons;
     const count = neurons.length;
@@ -288,102 +279,6 @@
     b.text(12, 27, affine ? 'Affine' : count + ' ReLU neurons', 'class="nv-small"');
     b.text(12, 207, 'c = ' + fmt(affine ? 0 : model.c), 'class="nv-number"');
     if (!affine && count < 7) b.text(604, 27, 'input weights = 1', 'class="nv-small" text-anchor="end"');
-    b.finish();
-  }
-
-  function drawCompactDeepNetwork(svg, frame) {
-    const depth = clamp(Math.round(finite(frame.depth, 1)), 1, 5);
-    const x = clamp(finite(frame.x, 0.37), 0, 1);
-    const acts = M.deepActivations(x, depth);
-    const b = builder(svg, 620, 220,
-      'A width two ReLU network with ' + depth + ' hidden layers. Each layer repeats the tent map.', true);
-    const inX = 30, outX = 590, middle = 106, top = 65, bottom = 148;
-    const step = (outX - inX) / (depth + 1);
-    const cols = Array.from({ length: depth }, (_, i) => inX + (i + 1) * step);
-    const edge = (x1, y1, x2, y2, active, weight) => b.line(x1, y1, x2, y2,
-      'stroke="' + (weight < 0 ? C.rust : C.blue) + '" stroke-width="1.5" opacity="' + (active > 1e-8 ? '.7' : '.2') + '"' + (weight < 0 ? ' stroke-dasharray="4 3"' : ''));
-    for (let l = 0; l < depth; l++) {
-      if (l === 0) {
-        edge(inX, middle, cols[l], top, x, 1);
-        edge(inX, middle, cols[l], bottom, x, 1);
-      } else {
-        [top, bottom].forEach(cy => {
-          edge(cols[l - 1], top, cols[l], cy, acts[l - 1].activations[0], 2);
-          edge(cols[l - 1], bottom, cols[l], cy, acts[l - 1].activations[1], -4);
-        });
-      }
-    }
-    edge(cols[depth - 1], top, outX, middle, acts[depth - 1].activations[0], 2);
-    edge(cols[depth - 1], bottom, outX, middle, acts[depth - 1].activations[1], -4);
-    cols.forEach((cx, l) => {
-      b.text(cx, 27, 'L' + (l + 1), 'class="nv-small" text-anchor="middle"');
-      [top, bottom].forEach((cy, row) => {
-        const value = acts[l].activations[row], active = value > 1e-8;
-        b.circle(cx, cy, 13, 'fill="' + (active ? C.blue : '#fff') + '" stroke="' + C.blue + '" stroke-width="1.6"');
-        b.text(cx, cy + 6, 'R', 'class="nv-number" text-anchor="middle" style="font-size:17px;fill:' + (active ? '#fff' : C.blue) + '"');
-        b.text(cx, cy + 31, fmt(value), 'class="nv-number nv-halo" text-anchor="middle" style="font-size:18px"');
-      });
-    });
-    b.circle(inX, middle, 17, 'fill="#fff" stroke="' + C.ink + '" stroke-width="1.6"');
-    b.text(inX, middle + 6, 'x', 'class="nv-label" text-anchor="middle"');
-    b.text(inX, middle + 36, fmt(x), 'class="nv-number" text-anchor="middle"');
-    b.circle(outX, middle, 17, 'fill="' + C.blue + '"');
-    b.text(outX, middle + 6, 'ŷ', 'class="nv-label" text-anchor="middle" style="fill:#fff"');
-    b.text(outX, middle + 36, fmt(acts[depth - 1].output), 'class="nv-number" text-anchor="middle"');
-    b.text(310, 211, 'Each layer repeats: T(s) = 2 ReLU(s) − 4 ReLU(s − ½)', 'class="nv-number" text-anchor="middle" style="font-size:19px"');
-    b.finish();
-  }
-
-  function drawDeepNetwork(svg, frame) {
-    const depth = clamp(Math.round(finite(frame.depth, 1)), 1, 5);
-    const x = clamp(finite(frame.x, 0.37), 0, 1);
-    const acts = M.deepActivations(x, depth);
-    const result = acts[depth - 1].output;
-    const b = builder(svg, 400, 390, 'A width two ReLU network with ' + depth + ' hidden layers. All hidden-to-hidden connections are present. Each layer applies the tent map to the previous layer’s output.');
-    const inX = 24, outX = 377, middle = 202, top = 150, bottom = 251;
-    const step = (outX - inX) / (depth + 1);
-    const columns = Array.from({ length: depth }, (_, i) => inX + (i + 1) * step);
-    const radius = depth > 3 ? 10.5 : 13;
-    b.text(200, 25, 'Width 2 · ' + depth + ' hidden ' + (depth === 1 ? 'layer' : 'layers'), 'class="nv-head" text-anchor="middle"');
-    b.text(200, 61, 'Repeat the same two-neuron fold', 'class="nv-small" text-anchor="middle"');
-    function edge(x1, y1, x2, y2, signal, weight) {
-      b.line(x1, y1, x2, y2,
-        'stroke="' + (weight < 0 ? C.rust : C.blue) + '" stroke-width="1.2" opacity="' + (signal > 1e-8 ? '.7' : '.18') + '"' + (weight < 0 ? ' stroke-dasharray="3 2"' : ''));
-    }
-    for (let l = 0; l < depth; l++) {
-      if (l === 0) {
-        edge(inX, middle, columns[l], top, x, 1);
-        edge(inX, middle, columns[l], bottom, x, 1);
-      } else {
-        edge(columns[l - 1], top, columns[l], top, acts[l - 1].activations[0], 2);
-        edge(columns[l - 1], top, columns[l], bottom, acts[l - 1].activations[0], 2);
-        edge(columns[l - 1], bottom, columns[l], top, acts[l - 1].activations[1], -4);
-        edge(columns[l - 1], bottom, columns[l], bottom, acts[l - 1].activations[1], -4);
-      }
-    }
-    edge(columns[depth - 1], top, outX, middle, acts[depth - 1].activations[0], 2);
-    edge(columns[depth - 1], bottom, outX, middle, acts[depth - 1].activations[1], -4);
-    columns.forEach((cx, l) => {
-      b.text(cx, 110, 'L' + (l + 1), 'class="nv-small" text-anchor="middle"');
-      [top, bottom].forEach((cy, row) => {
-        const v = acts[l].activations[row], active = v > 1e-8;
-        b.circle(cx, cy, radius, 'fill="' + (active ? C.blue : '#fff') + '" stroke="' + C.blue + '" stroke-width="1.4"');
-        b.text(cx, cy + 3.5, 'R', 'class="nv-number" text-anchor="middle" style="font-size:10px;fill:' + (active ? '#fff' : C.blue) + '"');
-        b.text(cx, cy + radius + 17, fmt(v), 'class="nv-number nv-halo" text-anchor="middle" style="font-size:11px"');
-      });
-    });
-    b.circle(inX, middle, 15, 'fill="#fff" stroke="' + C.ink + '" stroke-width="1.5"');
-    b.text(inX, middle + 4, 'x', 'class="nv-label" text-anchor="middle"');
-    b.text(inX, middle + 35, fmt(x), 'class="nv-number" text-anchor="middle"');
-    b.circle(outX, middle, 15, 'fill="' + C.blue + '"');
-    b.text(outX, middle + 4, 'ŷ', 'class="nv-label" text-anchor="middle" style="fill:#fff"');
-    b.text(outX, middle + 35, fmt(result), 'class="nv-number" text-anchor="middle"');
-    b.text(200, 326, 'Each pair: ReLU(s), ReLU(s − ½)', 'class="nv-number" text-anchor="middle"');
-    b.text(200, 349, 'Pass on 2h₁ − 4h₂', 'class="nv-number" text-anchor="middle"');
-    b.line(72, 373, 91, 373, 'stroke="' + C.blue + '" stroke-width="1.5"');
-    b.text(98, 377, 'positive weight', 'class="nv-small"');
-    b.line(223, 373, 242, 373, 'stroke="' + C.rust + '" stroke-width="1.5" stroke-dasharray="3 2"');
-    b.text(249, 377, 'negative weight', 'class="nv-small"');
     b.finish();
   }
 

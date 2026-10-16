@@ -226,7 +226,7 @@ test('reduced motion uses finite completed scenes and discrete widening', () => 
   for (const scene of sceneNames) {
     const frame = app.scroll(scene, .53);
     assert.equal(frame.scene, scene);
-    if (!['depth-five', 'sine-wide'].includes(scene)) assert.equal(frame.progress, 1);
+    if (!['width-many', 'sine-wide'].includes(scene)) assert.equal(frame.progress, 1);
     else assert(Math.abs(frame.progress * 10 - Math.round(frame.progress * 10)) < 1e-9);
     if (scene === 'sine-joint') {
       assert.equal(frame.width, 7);
@@ -234,7 +234,7 @@ test('reduced motion uses finite completed scenes and discrete widening', () => 
     }
     app.checkSvg('reduced ' + scene);
   }
-  assert.equal(app.scroll('depth-five', .99).depth, 5);
+  assert.equal(app.scroll('width-many', .99).model.width, 6);
   assert.equal(app.scroll('sine-wide', .99).width, 26);
 });
 
@@ -242,12 +242,12 @@ test('navigation handlers scroll to adjacent scenes and honor keyboard context',
   const app = mount();
   app.scroll('shallow', .5);
   app.click('next');
-  assert.equal(app.frame().scene, 'depth-one');
+  assert.equal(app.frame().scene, 'width-one');
   assert.equal(app.runtime.scrollCalls.at(-1).behavior, 'smooth');
   app.click('previous');
   assert.equal(app.frame().scene, 'shallow');
   assert(app.key('ArrowRight').defaultPrevented);
-  assert.equal(app.frame().scene, 'depth-one');
+  assert.equal(app.frame().scene, 'width-one');
   assert(app.key('ArrowLeft').defaultPrevented);
   assert.equal(app.frame().scene, 'shallow');
   const before = app.runtime.scrollCalls.length;
@@ -256,7 +256,7 @@ test('navigation handlers scroll to adjacent scenes and honor keyboard context',
   assert.equal(app.runtime.scrollCalls.length, before);
   const mobile = mount({ mobile: true, reduced: true });
   mobile.scroll('shallow'); mobile.click('next');
-  assert.equal(mobile.frame().scene, 'depth-one');
+  assert.equal(mobile.frame().scene, 'width-one');
   assert.equal(mobile.runtime.scrollCalls.at(-1).behavior, 'auto');
 });
 

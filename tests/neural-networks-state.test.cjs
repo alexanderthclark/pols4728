@@ -45,20 +45,23 @@ test('the scroll story contains exactly 16 distinct, valid scenes', () => {
     for (const progress of [-1, 0, 0.125, 0.5, 0.875, 1, 2, NaN]) {
       const frame = S.frame(scene, progress);
       assert.equal(frame.scene, scene);
+      assert.ok(['affine', 'relu', 'shallow', 'sine'].includes(frame.kind));
+      assert.equal(typeof frame.x, 'number');
+      assert.ok(!Object.hasOwn(frame, 'depth'));
       assert.ok(frame.progress >= 0 && frame.progress <= 1);
       assert.ok(frame.caption.length > 0, `${scene} needs a caption`);
       assert.ok(frame.equation.length > 0, `${scene} needs an equation`);
       allNumbersFinite(frame);
       if (frame.model) {
+        assert.equal(frame.model.inputSize, 1);
+        assert.equal(frame.model.hiddenLayers, 1);
+        assert.equal(frame.model.outputSize, 1);
+        assert.ok(!Object.hasOwn(frame.model, 'depth'));
+        assert.ok(frame.model.neurons.every(unit => typeof unit.t === 'number' && typeof unit.a === 'number'));
         const inputs = frame.kind === 'sine' ? grid(0, M.TAU) : grid(-2, 2);
         for (const x of inputs) {
           assert.ok(Number.isFinite(M.evaluate(frame.model, x)), `${scene} output at ${x}`);
           allNumbersFinite(M.contributions(frame.model, x), `${scene}.contributions`);
-        }
-      } else if (frame.kind === 'depth') {
-        for (const x of grid(0, 1)) {
-          assert.ok(Number.isFinite(M.deepValue(x, frame.depth)));
-          allNumbersFinite(M.deepActivations(x, frame.depth), `${scene}.activations`);
         }
       }
     }
@@ -108,30 +111,45 @@ test('the three-neuron hill has slopes 0, +1, -1, 0 and continuous scene boundar
   }
 });
 
-test('depth one, two, three, and five have 1, 3, 7, and 31 genuine joints', () => {
-  for (const [scene, depth, jointCount] of [
-    ['depth-one', 1, 1], ['depth-two', 2, 3], ['depth-three', 3, 7], ['depth-five', 5, 31],
+test('width one, two, three, and six give genuine slope jumps in one hidden layer', () => {
+  const units = [{t:-1.5,a:.8},{t:-.9,a:-1.2},{t:-.3,a:1.1},{t:.3,a:-1},{t:.9,a:.9},{t:1.5,a:-.6}];
+  for (const [scene, width] of [
+    ['width-one', 1], ['width-two', 2], ['width-three', 3], ['width-many', 6],
   ]) {
     const frame = S.frame(scene, 1);
-    assert.equal(frame.depth, depth);
-    assert.equal(M.deepJoints(depth).length, jointCount);
-    const segments = 2 ** depth;
-    for (let k = 0; k <= segments; k += 1) {
-      close(M.deepValue(k / segments, depth), k % 2);
-    }
-    for (let k = 0; k < segments; k += 1) {
-      const left = (k + 0.2) / segments, right = (k + 0.8) / segments;
-      close((M.deepValue(right, depth) - M.deepValue(left, depth)) / (right - left),
-        (k % 2 ? -1 : 1) * segments);
-      const layers = M.deepActivations(left, depth);
-      assert.equal(layers.length, depth);
-      assert.ok(layers.every(layer => layer.activations.length === 2));
-      close(layers.at(-1).output, M.deepValue(left, depth));
+    assert.equal(frame.kind, 'shallow');
+    assert.equal(frame.width, width);
+    assert.equal(frame.model.width, width);
+    assert.equal(frame.model.hiddenLayers, 1);
+    close(frame.x, 0.4);
+    close(frame.model.c, 0);
+    assert.deepEqual(frame.model.neurons.map(({t,a}) => ({t,a})), units.slice(0,width));
+    assert.equal(new Set(frame.model.neurons.map(unit => unit.t)).size, width);
+    assert.equal(frame.model.neurons.filter(unit => unit.a !== 0).length, width);
+    assert.match(frame.caption, /upper bound/);
+    assert.match(frame.equation, /at most m distinct joints/);
+    const epsilon = 1e-3;
+    for (const unit of frame.model.neurons) {
+      const leftSlope = (M.evaluate(frame.model, unit.t-epsilon)-M.evaluate(frame.model, unit.t-2*epsilon))/epsilon;
+      const rightSlope = (M.evaluate(frame.model, unit.t+2*epsilon)-M.evaluate(frame.model, unit.t+epsilon))/epsilon;
+      close(rightSlope-leftSlope, unit.a);
     }
   }
-  assert.equal(S.frame('depth-five', 0).depth, 3);
-  assert.equal(S.frame('depth-five', 0.5).depth, 4);
-  assert.equal(S.frame('depth-five', 1).depth, 5);
+  let previous = 3;
+  for (const progress of grid(0,1,100)) {
+    const frame = S.frame('width-many', progress);
+    assert.ok(frame.width >= previous && frame.width <= 6);
+    assert.equal(frame.model.width, frame.width);
+    assert.equal(frame.model.hiddenLayers, 1);
+    previous = frame.width;
+  }
+  assert.equal(S.frame('width-many', 0).width, 3);
+  assert.equal(S.frame('width-many', 0.25).width, 4);
+  assert.equal(S.frame('width-many', 0.5).width, 5);
+  assert.equal(S.frame('width-many', 1).width, 6);
+  for (const name of ['tent', 'deepValue', 'deepActivations', 'deepJoints']) {
+    assert.ok(!Object.hasOwn(M, name));
+  }
 });
 
 test('inserting one sine joint starts at the old curve and ends exactly on sine', () => {

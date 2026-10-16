@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="A scroll-driven introduction to how ReLU neural networks build piecewise-linear functions, how depth creates joints, and why width allows approximation.">
+  <meta name="description" content="A scroll-driven introduction to ReLU networks with one scalar input, one hidden layer, and a linear output: how width creates more joints and allows approximation.">
   <meta name="theme-color" content="#ffffff">
   <title>Neural networks, one bend at a time · POLS 4728</title>
   <link rel="stylesheet" href="style.css">
@@ -24,8 +24,8 @@
       <div class="title-copy">
         <p class="eyebrow">A visual introduction</p>
         <h1 id="page-title">Neural networks,<br>one bend at a time</h1>
-        <p class="title-deck">A ReLU network builds a curve from straight pieces. Follow one input through a shallow network, add depth, and then watch a wide network approach a sine wave.</p>
-        <p class="title-scope">One input <span aria-hidden="true">·</span> ReLU activations <span aria-hidden="true">·</span> A linear output</p>
+        <p class="title-deck">A ReLU network builds a curve from straight pieces. Follow one scalar input through a single hidden layer, widen that layer, and watch the network approach a sine wave.</p>
+        <p class="title-scope">One scalar input <span aria-hidden="true">·</span> One hidden ReLU layer <span aria-hidden="true">·</span> A linear output</p>
         <a class="scroll-cue" href="#scene-affine"><span aria-hidden="true">↓</span> Scroll to begin</a>
       </div>
       <figure class="title-art">
@@ -121,42 +121,42 @@
           <p>With one input, each hidden neuron can introduce at most one joint. Increasing the layer’s <em>width</em> gives us more possible places to bend.</p>
         </section>
 
-        <section class="step" id="scene-depth-one" data-scene="depth-one" aria-labelledby="heading-depth-one">
-          <p class="part-label">02 / What depth changes</p>
-          <h2 id="heading-depth-one">A layer can bend an already-bent function.</h2>
-          <p>Consider a tent on the interval [0, 1]. Two ReLU neurons make it rise to one and fall back to zero:</p>
-          <p class="narrative-equation"><i>T</i>(<i>s</i>) = 2 ReLU(<i>s</i>) − 4 ReLU(<i>s</i> − ½).</p>
-          <p>One hidden layer produces two linear pieces and one interior joint. Now feed this tent into another copy of the same transformation.</p>
+        <section class="step" id="scene-width-one" data-scene="width-one" aria-labelledby="heading-width-one">
+          <p class="part-label">02 / What width changes</p>
+          <h2 id="heading-width-one">One neuron, one place to bend.</h2>
+          <p>Keep one scalar input, one hidden ReLU layer, and a linear output. The layer’s <em>width</em> is its number of neurons. Start with a width of one.</p>
+          <p>This neuron contributes one hinge. Its joint divides the input interval into two straight pieces.</p>
+          <p>A single ReLU neuron can introduce at most one joint, wherever its affine input crosses zero.</p>
         </section>
 
-        <section class="step" id="scene-depth-two" data-scene="depth-two" aria-labelledby="heading-depth-two">
-          <h2 id="heading-depth-two">The next layer sees the tent twice.</h2>
-          <p>As <i>x</i> crosses [0, 1], the first tent’s output travels from zero to one and back to zero. Applying <i>T</i> again creates a smaller tent along each of those journeys.</p>
-          <p class="narrative-equation"><i>f</i>(<i>x</i>) = <i>T</i>(<i>T</i>(<i>x</i>))</p>
-          <p>Two hidden layers, still only two neurons per layer, produce four linear pieces and three interior joints.</p>
+        <section class="step" id="scene-width-two" data-scene="width-two" aria-labelledby="heading-width-two">
+          <h2 id="heading-width-two">A second neuron adds another joint.</h2>
+          <p>Put a second neuron alongside the first in the same hidden layer. Its hinge starts at a different input, and its negative output weight turns the total function downward.</p>
+          <p>The output adds both contributions. With these weights, two distinct joints create three straight pieces.</p>
         </section>
 
-        <section class="step" id="scene-depth-three" data-scene="depth-three" aria-labelledby="heading-depth-three">
-          <h2 id="heading-depth-three">Composition multiplies the pieces.</h2>
-          <p>The third layer applies the same transformation to each rise and fall. Four pieces become eight, and three joints become seven.</p>
-          <p>In a shallow network, a neuron responds directly to <i>x</i>. Here, its input is an already-bent function of <i>x</i>, which can cross the neuron’s activation threshold many times.</p>
+        <section class="step" id="scene-width-three" data-scene="width-three" aria-labelledby="heading-width-three">
+          <h2 id="heading-width-three">Three neurons, four straight pieces.</h2>
+          <p>A third hidden neuron supplies another hinge. Its joint changes the total slope again, giving this function three joints and four linear pieces.</p>
+          <p>All three neurons receive the same scalar input in parallel. Only the width of the single hidden layer has changed.</p>
         </section>
 
-        <section class="step" id="scene-depth-five" data-scene="depth-five" aria-labelledby="heading-depth-five">
-          <h2 id="heading-depth-five">Five layers. Thirty-one joints.</h2>
-          <p>For this construction, <i>d</i> hidden layers create 2<sup><i>d</i></sup> linear pieces and 2<sup><i>d</i></sup> − 1 interior joints on [0, 1]. Five layers use ten hidden neurons to create thirty-two pieces.</p>
-          <p>This is an example of what carefully chosen weights can express. Depth does not automatically create this many joints, or make a fitted network better.</p>
-          <table class="depth-table">
-            <caption>This tent-map construction</caption>
-            <thead><tr><th scope="col">Hidden layers</th><th scope="col">Hidden neurons</th><th scope="col">Interior joints</th></tr></thead>
-            <tbody><tr><th scope="row">1</th><td>2</td><td>1</td></tr><tr><th scope="row">2</th><td>4</td><td>3</td></tr><tr><th scope="row">3</th><td>6</td><td>7</td></tr><tr><th scope="row">5</th><td>10</td><td>31</td></tr></tbody>
+        <section class="step" id="scene-width-many" data-scene="width-many" aria-labelledby="heading-width-many">
+          <h2 id="heading-width-many">A wider layer allows more joints.</h2>
+          <p>Keep scrolling to widen the hidden layer from three neurons to six. Each new hinge gives the sum another place to change its slope.</p>
+          <p>With one scalar input, a hidden layer of <i>m</i> ReLU neurons can create at most <i>m</i> distinct joints and <i>m</i> + 1 linear pieces.</p>
+          <p>These are upper bounds. Neurons can stay inactive on the interval, put joints in the same place, or have contributions that cancel.</p>
+          <table class="width-table">
+            <caption>Maximum counts for one scalar input</caption>
+            <thead><tr><th scope="col">Hidden neurons</th><th scope="col">Max. joints</th><th scope="col">Max. linear pieces</th></tr></thead>
+            <tbody><tr><th scope="row">1</th><td>1</td><td>2</td></tr><tr><th scope="row">2</th><td>2</td><td>3</td></tr><tr><th scope="row">3</th><td>3</td><td>4</td></tr><tr><th scope="row">6</th><td>6</td><td>7</td></tr></tbody>
           </table>
         </section>
 
         <section class="step" id="scene-sine-coarse" data-scene="sine-coarse" aria-labelledby="heading-sine-coarse">
           <p class="part-label">03 / Approximation by adding joints</p>
-          <h2 id="heading-sine-coarse">Return to one hidden layer.</h2>
-          <p>Our target is now the smooth function sin(<i>x</i>) on [0, 2π]. The network traces straight segments through selected points on the sine wave, with five interior joints.</p>
+          <h2 id="heading-sine-coarse">Approximate a smooth target.</h2>
+          <p>Keep the same architecture: one scalar input, one hidden ReLU layer, and a linear output. Our target is now the smooth function sin(<i>x</i>) on [0, 2π]. The network traces straight segments through selected points on the sine wave, with five interior joints.</p>
           <p>One neuron supplies the initial slope across the whole interval. Five more supply the changes in slope. That makes six hidden neurons, all in one layer.</p>
           <p>The network already resembles the sine wave. Look between its joints to see what it misses.</p>
         </section>
