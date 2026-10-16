@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An animated introduction to double machine learning: follow a tutoring example from prediction and residuals to sample splitting and cross-fitting.">
+  <meta name="theme-color" content="#ffffff">
+  <title>Double Machine Learning for Beginner's</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="story.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#lesson">Skip to the explanation</a>
+  <div class="reading-progress" aria-hidden="true"><div id="scroll-progress"></div></div>
+
+  <header class="hero" id="top">
+    <img class="course-logo" src="../assets/ML_and_AI_logo.png" alt="Machine Learning and Artificial Intelligence" width="360" height="240">
+    <p class="eyebrow">POLS 4728 · An introduction</p>
+    <h1>Double Machine Learning<br>for Beginner's</h1>
+    <p class="dek">How can prediction help us estimate an effect? Follow a tutoring example, watch two adjustments happen, and then meet the ideas behind double machine learning.</p>
+    <a class="scroll-cue" href="#lesson"><span>Scroll to build the explanation</span><span aria-hidden="true">↓</span></a>
+    <p class="navigation-hint">The diagram stays in view as the argument develops. Scroll back to revisit a step, or use the Previous and Next controls.</p>
+  </header>
+
+  <main class="lesson" id="lesson">
+    <div class="narrative">
+      <section class="step" data-scene="effect" aria-labelledby="effect-title">
+        <div class="step-content">
+          <p class="eyebrow">01 · The effect we want</p>
+          <h2 id="effect-title">What does tutoring change?</h2>
+          <p>Let <i>X</i> be a student's score before tutoring, <i>D</i> indicate whether they receive tutoring, and <i>Y</i> be their final score. In this constructed example, students with <i>X</i> below 60 start from a baseline final score of 50. Students with <i>X</i> of at least 60 start from 90.</p>
+          <p>Tutoring adds 10 points to either baseline. Change the tutoring status of the same student, keeping their starting score fixed, and their final score rises by 10. That is the effect we want to recover from the observed students.</p>
+          <p class="reveal">We know the answer because we built this example. The challenge is whether our method can recover it.</p>
+        </div>
+      </section>
+
+      <section class="step" data-scene="memorize" aria-labelledby="memorize-title">
+        <div class="step-content">
+          <p class="eyebrow">02 · A prediction trap</p>
+          <h2 id="memorize-title">A perfect fit can erase the evidence.</h2>
+          <p>First, imagine a group of students with distinct starting scores and randomly assigned tutoring. We fit a very flexible tree to predict final scores using only <i>X</i>. With one student in each leaf, the tree can memorize every observed score.</p>
+          <p>Subtract each prediction from the score it predicts. Every remaining difference, or <em>residual</em>, is zero. Comparing those residuals between tutored and untutored students gives zero, even though tutoring adds 10 points.</p>
+          <p class="reveal">Leaving <i>D</i> out of the prediction inputs did not prevent memorization. Each unique <i>X</i> still identified one student's observed outcome.</p>
+        </div>
+      </section>
+
+      <section class="step" data-scene="holdout" aria-labelledby="holdout-title">
+        <div class="step-content">
+          <p class="eyebrow">03 · Keep prediction honest</p>
+          <h2 id="holdout-title">Predict students the tree has not seen.</h2>
+          <p>Randomly split the students into two groups. Fit the tree on one group, freeze it, and use it to predict outcomes in the other group. Those held-out students did not determine their own fitted values, so the tree can no longer force all their residuals to zero.</p>
+          <p>With randomly assigned tutoring, comparing the held-out outcome residuals recovers the 10-point effect in expectation. A particular split can still be noisy; sample splitting does not guarantee an exact answer in every sample.</p>
+          <p class="reveal">This is a single holdout, analogous to simple validation. We will return to the idea of swapping the groups at the end.</p>
+        </div>
+      </section>
+
+      <section class="step" data-scene="composition" aria-labelledby="composition-title">
+        <div class="step-content">
+          <p class="eyebrow">04 · When tutoring is not random</p>
+          <h2 id="composition-title">The observed gap is 30 points.</h2>
+          <p>Now consider 32 students. At each starting score of 40 and 50, six students are untutored and two are tutored. At each starting score of 60 and 70, two are untutored and six are tutored.</p>
+          <p>The tutored students have an average final score of 90; the untutored students average 60. Their 30-point difference combines the 10-point tutoring effect with a 20-point difference in baseline outcomes. Tutored students are more often in the higher-scoring group.</p>
+          <p class="reveal">We need to account for <i>X</i>, because it predicts both the outcome and who receives tutoring.</p>
+        </div>
+      </section>
+
+      <section class="step" data-scene="outcome" aria-labelledby="outcome-title">
+        <div class="step-content">
+          <p class="eyebrow">05 · Predict the outcome</p>
+          <h2 id="outcome-title">What does the outcome tree learn?</h2>
+          <p>A tree that splits between starting scores of 50 and 60 predicts 52.5 for the lower group and 97.5 for the higher group. These are the average observed outcomes in each group.</p>
+          <p>The prediction for the lower group is 50 plus 10 times its tutoring rate of ¼. For the higher group it is 90 plus 10 times its tutoring rate of ¾. The tree has learned baseline differences and the tutoring patterns associated with <i>X</i>.</p>
+          <p class="reveal">This prediction is an expected observed outcome. It is not the outcome a student would have without tutoring.</p>
+        </div>
+      </section>
+
+      <section class="step" data-scene="residual" aria-labelledby="residual-title">
+        <div class="step-content">
+          <p class="eyebrow">06 · Remove the predicted outcome</p>
+          <h2 id="residual-title">One adjustment leaves a gap of 7.5.</h2>
+          <p>Subtract the outcome prediction from each student's final score. In the lower group, the residuals are −2.5 without tutoring and 7.5 with tutoring. In the higher group, they are −7.5 and 2.5.</p>
+          <p>The average residual among tutored students is 3.75. Among untutored students it is −3.75. Their difference is 7.5, so comparing the outcome residuals alone still does not recover the 10-point effect.</p>
+          <p class="reveal">We adjusted the outcome for <i>X</i>. Tutoring itself is still more common at higher values of <i>X</i>.</p>
+        </div>
+      </section>
+
+      <section class="step" data-scene="treatment" aria-labelledby="treatment-title">
+        <div class="step-content">
+          <p class="eyebrow">07 · Make the second adjustment</p>
+          <h2 id="treatment-title">Predict tutoring, too.</h2>
+          <p>Use <i>X</i> to predict the probability of tutoring: ¼ in the lower group and ¾ in the higher group. Subtract this prediction from the observed tutoring indicator, which is either zero or one.</p>
+          <p>A tutored student in the higher group has a tutoring residual of 1 − ¾ = ¼ and an outcome residual of 100 − 97.5 = 2.5. A tutored student in the lower group has residuals of ¾ and 7.5. Each comparison is now relative to what <i>X</i> predicts for that student.</p>
+          <p class="reveal">We have removed the predictable part of both variables: final scores move vertically, and tutoring moves horizontally.</p>
+        </div>
+      </section>
+
+      <section class="step" data-scene="slope" aria-labelledby="slope-title">
+        <div class="step-content">
+          <p class="eyebrow">08 · Compare what remains</p>
+          <h2 id="slope-title">The residual relationship has slope 10.</h2>
+          <p>Place the tutoring residual on the horizontal axis and the outcome residual on the vertical axis. All four types of student fall on the same line through the origin. An extra unit of residual tutoring corresponds to 10 points of residual outcome.</p>
+          <p>Fit that line using all 32 students. The sum of the residual products is 60, and the sum of squared tutoring residuals is 6. Their ratio, 60 ÷ 6, recovers the 10-point effect.</p>
+          <p class="reveal">The second prediction matters because the outcome prediction already included the tutoring rate associated with <i>X</i>.</p>
+        </div>
+      </section>
+
+      <section class="step" data-scene="general" aria-labelledby="general-title">
+        <div class="step-content">
+          <p class="eyebrow">09 · The broader idea</p>
+          <h2 id="general-title">Now we can name double machine learning.</h2>
+          <p>In this version of <em>double machine learning</em> (DML), flexible prediction methods estimate two supporting relationships: the expected outcome given <i>X</i>, and the expected treatment given <i>X</i>. These are called <em>nuisance functions</em> because our main target is the treatment effect.</p>
+          <p>We use those predictions in an estimating rule designed to be locally insensitive to small prediction errors. This property is called <em>orthogonality</em>. It helps prevent small errors in the supporting predictions from having a first-order effect on the target estimate; prediction quality still matters. <a class="citation" href="#ref-ahrens" aria-label="Read the Ahrens and colleagues reference">[1]</a></p>
+          <p class="reveal">We have illustrated one DML construction. Other causal targets use different nuisance functions and estimating rules.</p>
+        </div>
+      </section>
+
+      <section class="step" data-scene="crossfit" aria-labelledby="crossfit-title">
+        <div class="step-content">
+          <p class="eyebrow">10 · Reuse data without self-prediction</p>
+          <h2 id="crossfit-title">Cross-fitting swaps the training roles.</h2>
+          <p>Our earlier holdout used one group to fit a model and the other to evaluate it. With two-fold <em>cross-fitting</em>, fit both nuisance models on group A and predict group B. Then fit fresh models on B and predict A. Pool the held-out residual pairs to estimate the effect.</p>
+          <p>Each student contributes to the final estimate using predictions from models that did not train on that student. The diagram introduces this procedure; the 32-student calculations above used the displayed group means rather than a cross-fitted analysis. <a class="citation" href="#ref-ahrens" aria-label="Read the Ahrens and colleagues reference">[1]</a></p>
+          <p class="reveal">DML still needs a credible causal comparison: suitable measured controls, overlap between treatment groups, and the other assumptions for the chosen target. Flexible prediction cannot repair missing confounders. <a class="citation" href="#ref-arif" aria-label="Read the Arif reference">[2]</a></p>
+        </div>
+      </section>
+    </div>
+
+    <aside class="stage-wrap" aria-label="Animated explanation">
+      <figure class="stage" id="visual">
+        <p id="stage-kicker" class="eyebrow">The effect of tutoring</p>
+        <svg id="diagram" viewBox="0 0 720 490" role="img" aria-labelledby="diagram-title diagram-description">
+          <title id="diagram-title">Tutoring adds ten points</title>
+          <desc id="diagram-description">A student's final score increases by ten points when tutoring is added while their starting score is held fixed.</desc>
+        </svg>
+        <p id="equation" class="equation" aria-label="Final score equals baseline score plus ten times tutoring status">Y = baseline(X) + 10D</p>
+        <figcaption id="stage-caption">Keep the student's starting score fixed and change only tutoring.</figcaption>
+      </figure>
+    </aside>
+  </main>
+
+  <nav class="lesson-nav" aria-label="Explanation controls">
+    <button type="button" id="previous" aria-label="Go to the previous step">← Previous</button>
+    <span id="step-count" aria-live="polite" aria-atomic="true">1 / 10</span>
+    <button type="button" id="next" aria-label="Go to the next step">Next →</button>
+  </nav>
+
+  <footer class="references" id="references">
+    <h2>Further reading</h2>
+    <p>The example builds intuition for the partialling-out approach. These introductions develop the general framework, its assumptions, and its practical use.</p>
+    <ol>
+      <li id="ref-ahrens">Achim Ahrens, Victor Chernozhukov, Christian Hansen, Damian Kozbur, Mark Schaffer, and Thomas Wiemann. <a href="https://arxiv.org/abs/2504.08324v2"><cite>An Introduction to Double/Debiased Machine Learning</cite></a>. 2025, revised 2026.</li>
+      <li id="ref-arif">Suchinta Arif. <a href="https://doi.org/10.1111/2041-210X.70191"><cite>Estimating causal effects with machine learning: A guide for ecologists</cite></a>. <i>Methods in Ecology and Evolution</i> 16(12), 2771–2783, 2025.</li>
+    </ol>
+    <p class="back-to-top"><a href="#top">Return to the beginning ↑</a></p>
+  </footer>
+  <noscript><p class="noscript-note">The explanatory text is available above. The diagrams use JavaScript to respond to scrolling.</p></noscript>
+</body>
+</html>

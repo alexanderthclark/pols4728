@@ -66,6 +66,8 @@ jobs:
           node --check docs/imbalanced-data/app.js
           node --check docs/imbalanced-data/chapter-scenes.js
           node --check docs/imbalanced-data/scrolly.js
+          node --check docs/double-ml/model.mjs
+          node --check docs/double-ml/story.js
       - name: Check interactive lesson calculations
         run: node --test tests/*.test.mjs
 
