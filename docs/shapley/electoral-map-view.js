@@ -136,6 +136,8 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
         mark.label.setAttribute('transform', `translate(${at[0].toFixed(2)} ${at[1].toFixed(2)})`);
         const value = interpolate(mark.state.votes, mark.state.adjustedVotes, Math.max(0, drawnPhase - 1));
         mark.value.textContent = drawnPhase > 1.001 ? value.toFixed(1) : String(mark.state.votes);
+        // Give Wyoming's fractional label room beside its eastern border.
+        if (mark.state.abbreviation === 'WY') mark.value.setAttribute('dx', `${(-.15 * Math.max(0, drawnPhase - 1)).toFixed(3)}em`);
       }
     });
   }

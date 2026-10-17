@@ -3,7 +3,7 @@ import { createWeightView } from './weight-view.js';
 import { createFormulaView } from './formula-view.js';
 import { electoralResults } from './electoral-college.mjs';
 import { createElectoralView } from './electoral-view.js?v=bb49d44a6b';
-import { createElectoralMapView } from './electoral-map-view.js';
+import { createElectoralMapView } from './electoral-map-view.js?v=3af0ee42d0';
 
 const $ = selector => document.querySelector(selector);
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
