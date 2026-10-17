@@ -1,7 +1,8 @@
 # From words to vectors
 
-A standalone scrollytelling lesson for POLS 4728, with three directly linkable
-chapters: `#bag-of-words`, `#tf-idf`, and `#word2vec`.
+A standalone scrollytelling lesson for POLS 4728, with an opening AI-writing
+example (`#ai-writing`) and three directly linkable method chapters:
+`#bag-of-words`, `#tf-idf`, and `#word2vec`.
 
 The fixed scene stays pinned while scroll position gathers tokens, transforms
 counts into TF–IDF weights, combines context vectors, and applies a CBOW gradient
@@ -11,6 +12,10 @@ motion toggle uses completed threshold states; the same mode is selected by
 
 ## Content and numerical conventions
 
+- A short chatbot excerpt quoted by Sam Kriss in the New York Times Magazine
+  opens the lesson. Scrolling reveals the contrast phrase, em dash, and imagery,
+  then turns those observations into possible countable features. The example
+  is explicitly attributed and does not claim to validate an AI detector.
 - Four synthetic political documents; lowercase alphabetic tokens, no stemming
   or stop-word deletion.
 - Raw-count TF × ln(N/df), without smoothing or vector normalization. Cosine
@@ -50,7 +55,7 @@ open `/text/` to preview.
 
 ## Speech cartoon
 
-The opening now literally catches a Gettysburg Address fragment in a cloth bag.
+The bag-of-words chapter literally catches a Gettysburg Address fragment in a cloth bag.
 Each of its ten tokens travels separately along a spacious upward arc. The
 speaker's mouth moves and the catcher makes a small anticipatory lean. The
 captured counts preserve duplicates: `the` and `people` each occur three times.

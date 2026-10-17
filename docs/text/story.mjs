@@ -1,5 +1,6 @@
 import {chapters} from './lesson.mjs';
 import {speechCartoon} from './speech-cartoon.mjs';
+import {updateAiExample} from './ai-example.mjs';
 import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine,cbowExample,cbowStep} from './model.mjs';
 
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -72,6 +73,10 @@ const views=[...document.querySelectorAll('.track')].map((track,i)=>({track,chap
 let queued=false,active=0;
 function layout(){const h=innerHeight-56;document.documentElement.style.setProperty('--scene',`${h}px`);views.forEach(v=>{v.segment=h*1.1;v.track.style.height=`${h+(v.chapter.stages.length-1)*v.segment}px`;});render();}
 function updateVisual(v,stage,p){
+  if(v.chapter.id==='ai-writing'){
+    updateAiExample(v.visual,stage,p,{reducedMotion:!state.motion});
+    return;
+  }
   // Do not replace focused form controls during a scroll frame.
   if(v.chapter.id==='tf-idf'&&v.visual.querySelector('[data-term-controls]')){
     const temp=document.createElement('div');temp.innerHTML=tfVisual(stage,p);
@@ -94,12 +99,15 @@ function render(){queued=false;const y=scrollY;
 }
 function schedule(){if(!queued){queued=true;requestAnimationFrame(render);}}
 function jump(i,stage){
+  const from=i;
   if(stage<0){if(i===0){document.querySelector('#title').scrollIntoView();return;}i--;stage=views[i].chapter.stages.length-1;}
   if(stage>=views[i].chapter.stages.length){if(i===views.length-1){document.querySelector('#compare').scrollIntoView();return;}i++;stage=0;}
-  const v=views[i];scrollTo({top:v.track.offsetTop-56+stage*v.segment,behavior:'instant'});schedule();
+  const v=views[i];scrollTo({top:v.track.offsetTop-56+stage*v.segment,behavior:'instant'});
+  if(i!==from)v.track.querySelector(stage===0?'.next':'.previous').focus({preventScroll:true});
+  schedule();
 }
 root.addEventListener('click',e=>{const track=e.target.closest('.track');if(!track)return;const i=Number(track.dataset.chapter),v=views[i];if(e.target.closest('.next'))jump(i,Math.round(v.p)+1);if(e.target.closest('.previous'))jump(i,Math.round(v.p)-1);if(e.target.closest('.motion')){state.motion=!state.motion;document.querySelectorAll('.motion').forEach(b=>{b.textContent=state.motion?'Motion on':'Motion off';b.setAttribute('aria-pressed',String(state.motion));});render();}});
-root.addEventListener('change',e=>{if(e.target.id==='term')state.term=e.target.value;if(e.target.id==='document')state.doc=Number(e.target.value);const v=views[1];updateVisual(v,Math.round(v.p),state.motion?v.p:Math.round(v.p));});
+root.addEventListener('change',e=>{if(e.target.id==='term')state.term=e.target.value;if(e.target.id==='document')state.doc=Number(e.target.value);const v=views.find(view=>view.chapter.id==='tf-idf');updateVisual(v,Math.round(v.p),state.motion?v.p:Math.round(v.p));});
 document.addEventListener('keydown',e=>{if(e.altKey||e.ctrlKey||e.metaKey||e.target.closest('input,select,textarea,button,a,summary'))return;if(e.key==='ArrowRight'||e.key==='ArrowLeft'){const r=views[active].track.getBoundingClientRect();if(r.top<=60&&r.bottom>56){e.preventDefault();jump(active,Math.round(views[active].p)+(e.key==='ArrowRight'?1:-1));}}});
 addEventListener('scroll',schedule,{passive:true});addEventListener('resize',layout);
 matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',e=>{state.motion=!e.matches;document.querySelectorAll('.motion').forEach(b=>{b.textContent=state.motion?'Motion on':'Motion off';b.setAttribute('aria-pressed',String(state.motion));});render();});
