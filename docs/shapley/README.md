@@ -1,8 +1,8 @@
 # Shapley values for credit assignment
 
-“Shapley values for credit assignment” is a twenty-stage scrolling explanation of Shapley values, beginning with three voters. All three support a proposal that needs two votes to pass. The coalition diagram grows from the empty set and singletons into the complete Hasse diagram, then connects joining contributions to the six equally likely accounting orders.
+“Shapley values for credit assignment” is a twenty-one-stage scrolling explanation of Shapley values, beginning with three voters. All three support a proposal that needs two votes to pass. The coalition diagram grows from the empty set and singletons into the complete Hasse diagram, then connects joining contributions to the six equally likely accounting orders.
 
-A separate opening page places the real-text title above a registered monochrome illustration of three torso-free stick figures putting their ballots into one box labeled VOTE at once. “A voting application” appears at the bottom of the cover. The cover and story share the course guide’s ink, muted, and blue palette, with the full illustration preserved on desktop and phones. Serif headings use regular weight; prose introduces definitions in italics and leaves numerical conclusions in regular text. The masthead reads “Shapley values.” **Start the explanation** leads to the first teaching scene; **Back to the beginning** returns to the cover. The cover does not add a scene or change the twenty-stage sequence.
+A separate opening page places the real-text title above a registered monochrome illustration of three torso-free stick figures putting their ballots into one box labeled VOTE at once. “A voting application” appears at the bottom of the cover. The cover and story share the course guide’s ink, muted, and blue palette, with the full illustration preserved on desktop and phones. Serif headings use regular weight; prose introduces definitions in italics and leaves numerical conclusions in regular text. The masthead reads “Shapley values.” **Start the explanation** leads to the first teaching scene; **Back to the beginning** returns to the cover. The cover does not add a scene or change the twenty-one-stage sequence.
 
 The first nine frames use plain-language groups, outcomes, paths, and weights. The second frame summarizes the rule in two static rows: groups of two or three pass with value one; groups of zero or one fail with value zero. The pair level unfolds across two scroll steps: first C joins A or B, revealing {A, C}, {B, C}, and their two joining arrows under “Add C to coalition.” The next step fills in the remaining pair and the other joining arrows, with that annotation removed before the full Hasse diagram appears. Both pair steps use the same title without a paragraph. A concluding bridge names the existing node numbers as the value function `v(S)`: one for coalitions with at least two voters, zero otherwise. Entering that frame replaces each pass/fail payoff row with `v(group) = payoff`; returning to an earlier frame restores the familiar labels. Only then do six formula frames introduce `N`, `n`, and `i` and connect the general Shapley formula to the diagram, explaining the summation range, marginal contribution, arrangements before the joining voter, arrangements after, division by all orders, and the completed weighted sum. The complete diagram stays visible, and selecting a coalition changes the example edge and its counts. Math uses native MathML, without an external rendering dependency.
 
@@ -13,7 +13,7 @@ The interactive explorer also supports B and C, coalition and edge inspection, a
 ## Single-column presentation
 
 One full-width visual stage stays in view while scrolling changes the picture,
-equation, title, and caption. Each of the twenty captions stays brief.
+equation, title, and caption. Each scene’s caption stays brief.
 The title and caption sit beneath the visual, with Previous/Next controls and a
 step count. Left/Right arrow keys also navigate while a form control or dialog
 is not active. The original opening title page remains the entry point.
@@ -31,15 +31,23 @@ controls open in a keyboard-accessible native dialog. Moving controls does not r
 is disabled when reduced motion is requested. Annotations retain stable positions in the visual.
 Without JavaScript, the source captions and equations remain readable in order.
 
-Browser review covers all twenty scenes at 1440×900, 1366×650, 768×900,
+Browser review should cover all twenty-one scenes at 1440×900, 1063×736, 768×900,
 390×844, 320×700, and 320×568, including diagram/caption separation, detail-panel
 focus, keyboard navigation, coalition selection, and replay.
 
 ## Electoral College example
 
-Four closing scenes change the value function to a weighted voting game with
-50 states and DC as players. The 2024/2028 allocation has 538 electoral votes and
-a quota of 270. A tally shows California’s marginal contribution to a 250-vote coalition:
+Five closing scenes change the value function to a weighted voting game with
+50 states and DC as players. The first is a title transition at
+`#electoral-introduction`: a monochrome cartoon above the real-text title
+“US Electoral College.” Two equally sized round, torso-free figures use one
+ballot box. A surfer with a surfboard puts in many ballots; a figure in a cowboy
+hat holds exactly three. The illustration has a white background and black lines,
+with no labels, state outlines, or partisan colors. The original opening cover
+remains separate and unchanged.
+
+The 2024/2028 allocation has 538 electoral votes and a quota of 270.
+The following tally shows California’s marginal contribution to a 250-vote coalition:
 its 54 votes raise the total to 304, crossing the threshold. Three maps follow:
 
 1. A geographic Albers USA state map labels the electoral votes, with Alaska
@@ -118,6 +126,7 @@ Open `http://localhost:8765/shapley/`. A web server is required because the page
 - `index.html` contains the opening page, narrative, and page structure.
 - `style.css` styles the opening page, story, Hasse diagram, and optional panel.
 - `assets/voters-ballot-box.png` is the registered opening illustration; the title and application label remain real text in the page.
+- `assets/electoral-ballot-characters.png` is the registered Electoral College transition illustration; “US Electoral College” remains real text below the art.
 - `game.mjs` calculates coalition values, joining edges, all accounting orders, edge frequencies, and Shapley values.
 - `story.js` handles scroll stages, caption placement, navigation, detail dialogs, and the three-voter explorer.
 - `presentation.css` gives the complete story its responsive single-column layout.

@@ -111,7 +111,6 @@ body.is-presentation{--presentation-header:68px}
 .is-presentation .electoral-readout dd{font-size:22px}
 .is-presentation .electoral-selection-note{max-width:620px;margin:9px auto 0;font-size:12px}
 .is-presentation .electoral-scatter{max-height:340px}
-.is-presentation .stage-shell[data-scene="17"] .scene-equation math{font-size:24px}
 
 .is-presentation #scene-detail-dialog{width:min(760px,calc(100vw - 36px));max-height:85svh;padding:22px 26px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);overflow:auto;overscroll-behavior:contain}
 .is-presentation #scene-detail-dialog::backdrop{background:var(--backdrop)}
@@ -197,7 +196,6 @@ body.is-presentation{--presentation-header:68px}
   .is-presentation .electoral-readout dt{font-size:10px;margin-bottom:3px}
   .is-presentation .electoral-readout dd{font-size:18px}
   .is-presentation .electoral-selection-note{margin-top:6px;font-size:10px;line-height:1.35}
-  .is-presentation .stage-shell[data-scene="17"] .scene-equation math{font-size:20px}
   .is-presentation #scene-detail-dialog{width:calc(100vw - 24px);padding:15px 18px;max-height:85svh}
   .is-presentation #scene-detail-body{font-size:15px;line-height:1.6}
   .is-presentation #scene-detail-body h2{font-size:27px;margin-bottom:14px}
@@ -258,3 +256,10 @@ body.is-presentation{--presentation-header:68px}
 }
 .is-presentation .electoral-scatter{max-height:none}
 .is-presentation #scene-caption .explore-inspection{max-width:64ch;margin:7px auto 0;font-size:13px;line-height:1.4;color:var(--muted)}
+
+/* The Electoral College begins with an illustration and a real-text title. */
+.electoral-intro{width:100%;margin:0 auto}
+.electoral-intro img{display:block;width:100%;height:auto;max-width:100%}
+.is-presentation .electoral-intro{display:flex;flex:1 1 0;align-items:center;justify-content:center;min-width:0;min-height:0;height:100%;max-width:1100px}
+.is-presentation .electoral-intro img{height:100%;min-height:0;object-fit:contain}
+.is-presentation .stage-shell.is-electoral-intro-scene #scene-caption h2{font-size:clamp(30px,4vw,48px)}
