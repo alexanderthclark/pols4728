@@ -165,6 +165,9 @@ test('the HTML is scroll driven, has one labelled input inspector, and its local
   assert(/<label\b[^>]*for="input-x"[^>]*>[\s\S]*?<\/label>/.test(html), 'The x slider has an explicit label');
   assert(inputs[0]['aria-describedby'], 'The slider points to its explanatory hint');
   assert(!/aria-pressed/i.test(html), 'No toggles replace the scroll story');
+  const opening = sceneMarkup.find(match => match[2] === 'affine')[3].replace(/<[^>]*>/g, ' ');
+  assert(/not a second observed feature/.test(opening), 'The constant bias source is distinguished from an observed feature');
+  assert(/intercept remains part of the equation and the model/.test(opening), 'Hiding the bias drawing retains the model intercept');
   for (const match of html.matchAll(/<(?:script|img|link)\b[^>]*(?:src|href)="([^"]+)"[^>]*>/g)) {
     const reference = match[1];
     if (/^(?:[a-z]+:|\/\/|#)/i.test(reference)) continue;
@@ -244,7 +247,8 @@ test('reduced motion uses finite completed scenes and discrete widening', () => 
   for (const scene of sceneNames) {
     const frame = app.scroll(scene, .53);
     assert.equal(frame.scene, scene);
-    if (!['width-many', 'sine-wide'].includes(scene)) assert.equal(frame.progress, 1);
+    if (scene === 'affine') assert([0, 1].includes(frame.progress), 'Reduced-motion affine scenes use complete visible/hidden bias states');
+    else if (!['width-many', 'sine-wide'].includes(scene)) assert.equal(frame.progress, 1);
     else assert(Math.abs(frame.progress * 10 - Math.round(frame.progress * 10)) < 1e-9);
     if (scene === 'sine-joint') {
       assert.equal(frame.width, 7);
@@ -359,6 +363,68 @@ test('the input inspector changes activations without changing the sine approxim
       const nextAutomatic = app.scroll('shallow', .5);
       assert.equal(nextAutomatic.x, app.window.NNStoryState.frame('shallow', .5).x);
     }
+  }
+});
+
+test('the affine bias stays in predictions after its temporary constant node disappears', () => {
+  const texts = markup => [...markup.matchAll(/<text\b([^>]*)>([\s\S]*?)<\/text>/g)]
+    .map(match => ({ ...attrs(match[1]), text: match[2].replace(/<[^>]*>/g, '') }));
+  const functionPath = markup => [...markup.matchAll(/<path\b[^>]*>/g)]
+    .map(match => attrs(match[0]))
+    .find(item => item.stroke === '#234E70' && item['stroke-width'] === '3.2').d;
+  const outputText = (markup, mobile) => texts(markup)
+    .find(item => Number(item.x) === (mobile ? 342 : 365) && Number(item.y) === (mobile ? 206 : 244)).text;
+
+  for (const reduced of [false, true]) for (const mobile of [false, true]) {
+    const app = mount({ mobile, reduced });
+    app.scroll('affine', .2);
+    const shown = app.input('input-x', 0);
+    assert.equal(shown.kind, 'affine');
+    assert.equal(shown.x, 0);
+    assert.equal(shown.weight, 1);
+    assert.equal(shown.bias, .5);
+    assert.equal(shown.showBias, true);
+    assert.equal(shown.weight * shown.x + shown.bias, .5);
+    const networkShown = app.element('network-plot').innerHTML;
+    const plotShown = app.element('function-plot').innerHTML;
+    const constant = networkShown.match(/<g\b[^>]*data-bias-input="true"[^>]*>([\s\S]*?)<\/g>/);
+    assert(constant, 'The opening network draws a separate constant-bias source');
+    assert(texts(constant[1]).some(item => item.text === '1'), 'The source has constant value one');
+    assert(texts(constant[1]).some(item => item.text === 'b = 0.5'), 'Its connection displays the intercept weight');
+    const faintEdge = attrs(constant[1].match(/<line\b[^>]*>/)[0]);
+    assert(Number(faintEdge.opacity) > 0 && Number(faintEdge.opacity) < 1, 'The bias connection is faint');
+    assert.equal(outputText(networkShown, mobile), mobile ? '= 0.5' : '0.5');
+    assert(texts(plotShown).some(item => /x = 0\s+→\s+ŷ = 0\.5/.test(item.text)),
+      'The function plot shows the nonzero prediction at x = 0');
+    const shownDescription = app.element('network-plot').attrs['aria-label'];
+    assert(shownDescription.includes('At x = 0, the output is 0.5'));
+    assert(shownDescription.includes('not an additional input feature'));
+    if (!mobile) assert(texts(networkShown).some(item => item.text === '1 input · 1 output'));
+    app.checkSvg(mobile ? 'compact affine visible bias' : 'desktop affine visible bias');
+
+    const hidden = app.scroll('affine', .9);
+    assert.equal(hidden.x, 0, 'The slider selection persists while the bias drawing is simplified');
+    assert.equal(hidden.showBias, false);
+    assert.equal(hidden.weight, 1);
+    assert.equal(hidden.bias, .5, 'The intercept remains in the actual render frame');
+    const networkHidden = app.element('network-plot').innerHTML;
+    assert(!networkHidden.includes('data-bias-input'), 'The temporary constant node is omitted');
+    assert.equal(functionPath(app.element('function-plot').innerHTML), functionPath(plotShown),
+      'Hiding the bias drawing does not change the plotted function');
+    assert.equal(outputText(networkHidden, mobile), mobile ? '= 0.5' : '0.5');
+    assert(app.element('network-plot').attrs['aria-label'].includes('At x = 0, the output is 0.5'));
+    assert(app.element('network-plot').attrs['aria-label'].includes('bias is included in the calculation'));
+    assert(texts(app.element('function-plot').innerHTML).some(item => /x = 0\s+→\s+ŷ = 0\.5/.test(item.text)));
+
+    const one = app.input('input-x', 1);
+    assert.equal(one.weight * one.x + one.bias, 1.5);
+    assert.equal(one.showBias, false);
+    assert.equal(outputText(app.element('network-plot').innerHTML, mobile), mobile ? '= 1.5' : '1.5');
+    assert(app.element('network-plot').attrs['aria-label'].includes('At x = 1, the output is 1.5'));
+    assert(texts(app.element('function-plot').innerHTML).some(item => /x = 1\s+→\s+ŷ = 1\.5/.test(item.text)));
+    assert.equal(functionPath(app.element('function-plot').innerHTML), functionPath(plotShown),
+      'The slider traces the same affine curve rather than changing its weights');
+    app.checkSvg(mobile ? 'compact affine hidden bias' : 'desktop affine hidden bias');
   }
 });
 

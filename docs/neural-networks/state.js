@@ -36,7 +36,10 @@
     const p=clamp(Number(progress)||0,0,1),frame={scene,progress:p,kind:'shallow',x:.4,components:false,showNetwork:true,caption:'',equation:''};
     const hill=()=>M.createShallow(0,[{t:-1,a:1},{t:0,a:-2},{t:1,a:1}]);
     switch(scene){
-      case'affine':frame.kind='affine';frame.x=-1.5+3*p;frame.caption='A weighted input and a bias give a straight line. This example is ŷ = x.';frame.equation='ŷ = wx + b';break;
+      case'affine':
+        frame.kind='affine';frame.x=-1.5+3*p;frame.weight=1;frame.bias=.5;frame.showBias=p<.65;
+        frame.caption=frame.showBias?'The x connection contributes wx. The faint constant-1 connection contributes 1 × b: the intercept.':'The bias input is now omitted from the drawing. The same intercept b = 0.5 remains in the model and its predictions.';
+        frame.equation='ŷ = wx + b = 1 × x + 0.5';break;
       case'relu':frame.kind='relu';frame.x=-1.5+3*p;frame.showAffine=true;frame.caption='ReLU replaces every negative input with zero. The two straight pieces meet at a joint.';frame.equation='h(x) = max(0, x)';break;
       case'hinge':frame.model=M.createShallow(0,[{t:-.7+1.4*p,a:1.2}]);frame.components=true;frame.x=.9;frame.caption='Scrolling moves t and the joint together. The output weight 1.2 sets the change in slope.';frame.equation='ŷ = 1.2 max(0, x − t)';break;
       case'hill-rise':frame.model=M.createShallow(0,[{t:-1,a:1}]);frame.components=true;frame.caption='The first neuron adds slope +1 at x = −1. Its contribution continues to the right.';frame.equation='ŷ = ReLU(x + 1)';break;

@@ -66,12 +66,16 @@
     const kind = frame.kind || 'shallow';
     const domain = domainFor(frame);
     const xValue = clamp(finite(frame.x, kind === 'sine' ? 1.5 : 0.5), domain[0], domain[1]);
-    const value = kind === 'affine' ? x => x : x => M.evaluate(model, x);
+    const affineWeight = finite(frame.weight, 1), affineBias = finite(frame.bias, 0);
+    const value = kind === 'affine' ? x => affineWeight * x + affineBias : x => M.evaluate(model, x);
     const xs = kind === 'affine' ? domain : exactPoints(model, domain);
     let range;
     if (Array.isArray(frame.range)) range = frame.range;
     else if (kind === 'sine') range = [-1.35, 1.35];
-    else if (kind === 'affine') range = [-2.35, 2.35];
+    else if (kind === 'affine') {
+      const ends = domain.map(value);
+      range = [Math.min(-2, ...ends) - 0.35, Math.max(2, ...ends) + 0.35];
+    }
     else {
       const ys = xs.map(value);
       if (frame.components && model) model.neurons.forEach(n => {
@@ -193,6 +197,29 @@
     b.line(mainX(focus), mainY(pred) - 8, 470, 207, 'stroke="' + C.rule + '" stroke-width=".9" stroke-dasharray="3 4"');
   }
 
+  function affineDescription(frame, x, result, weight, bias) {
+    return 'An affine function maps x to w times x plus b, with w = ' + fmt(weight) +
+      ' and b = ' + fmt(bias) + '. At x = ' + fmt(x) + ', the output is ' + fmt(result) + '. ' +
+      (frame.showBias ? 'The faint constant 1 node contributes the bias b; it is not an additional input feature.' :
+        'The bias is included in the calculation even though its constant node is not drawn.');
+  }
+
+  function drawBiasInput(b, position, bias, compact) {
+    // This is a constant-valued source, not a second observed input feature.
+    b.add('<g data-bias-input="true" aria-label="Constant one contributes bias ' + escape(fmt(bias)) + '">');
+    b.line(position.x, position.y, position.outX, position.outY,
+      'stroke="' + C.rule + '" stroke-width="1.5" opacity=".4"');
+    b.circle(position.x, position.y, position.radius,
+      'fill="#fff" stroke="' + C.rule + '" stroke-width="1.4" opacity=".6"');
+    b.text(position.x, position.y + (compact ? 6 : 5), '1',
+      'class="nv-label" text-anchor="middle" style="fill:' + C.muted + '"');
+    b.text(position.x, position.y + position.radius + (compact ? 23 : 18), 'constant',
+      'class="nv-small" text-anchor="middle"');
+    b.text(position.labelX, position.labelY, 'b = ' + fmt(bias),
+      'class="nv-number nv-halo" text-anchor="middle" style="fill:' + C.muted + '"');
+    b.add('</g>');
+  }
+
   function drawNetwork(svg, frame, model) {
     const kind = frame.kind || 'shallow';
     if (frame.compact) return drawCompactNetwork(svg, frame, model);
@@ -201,8 +228,9 @@
     const count = neurons.length;
     const x = finite(frame.x, kind === 'sine' ? 1.5 : 0.5);
     const values = affine ? [] : M.contributions(model, x);
-    const result = affine ? x : M.evaluate(model, x);
-    const b = builder(svg, 400, 390, affine ? 'An affine function maps input x directly to the output.' :
+    const weight = finite(frame.weight, 1), bias = finite(frame.bias, 0);
+    const result = affine ? weight * x + bias : M.evaluate(model, x);
+    const b = builder(svg, 400, 390, affine ? affineDescription(frame, x, result, weight, bias) :
       'A neural network with one input, ' + count + ' hidden ReLU ' + (count === 1 ? 'neuron' : 'neurons') + ', and one linear output. At x = ' + fmt(x) + ', ' + values.filter(v => v.activation > 1e-8).length + ' hidden neurons are active and the output is ' + fmt(result) + '. Each input weight is one. Hidden biases are minus the joint locations; output weights are changes in slope.');
     const inputX = 34, hiddenX = 192, outX = 365, middleY = 204;
     b.text(200, 25, affine ? '1 input · 1 output' : '1 input · ' + count + ' hidden · 1 output', 'class="nv-head" text-anchor="middle"');
@@ -210,7 +238,8 @@
     b.text(outX, 61, 'Linear', 'class="nv-small" text-anchor="middle"');
     if (affine) {
       b.line(inputX + 18, middleY, outX - 18, middleY, 'stroke="' + C.blue + '" stroke-width="2"');
-      b.text(199, middleY - 15, 'weight = 1', 'class="nv-number" text-anchor="middle"');
+      b.text(199, middleY - 15, 'w = ' + fmt(weight), 'class="nv-number" text-anchor="middle"');
+      if (frame.showBias) drawBiasInput(b, { x: 206, y: 286, outX: outX - 13, outY: middleY + 13, labelX: 280, labelY: 266, radius: 14 }, bias, false);
     } else if (count === 0) {
       b.text(195, 177, 'No hidden neurons yet', 'class="nv-small" text-anchor="middle"');
     } else {
@@ -242,7 +271,7 @@
     b.circle(outX, middleY, 18, 'fill="' + C.blue + '" stroke="' + C.blue + '" stroke-width="1.5"');
     b.text(outX, middleY + 5, 'ŷ', 'class="nv-label" text-anchor="middle" style="fill:#fff"');
     b.text(outX, middleY + 40, fmt(result), 'class="nv-number" text-anchor="middle"');
-    b.text(200, 353, affine ? 'Output bias = 0' : 'Output bias c = ' + fmt(model.c), 'class="nv-number" text-anchor="middle"');
+    b.text(200, 353, affine ? 'Bias b = ' + fmt(bias) + (frame.showBias === false ? ' (not drawn)' : '') : 'Output bias c = ' + fmt(model.c), 'class="nv-number" text-anchor="middle"');
     b.text(200, 376, affine ? 'One affine transformation' : count > 10 ? 'More joints, more hidden neurons' : 'R = ReLU · numbers inside the graph show activations', 'class="nv-small" text-anchor="middle"');
     b.finish();
   }
@@ -253,16 +282,18 @@
     const count = neurons.length;
     const x = finite(frame.x, frame.kind === 'sine' ? 1.5 : 0.5);
     const values = affine ? [] : M.contributions(model, x);
-    const result = affine ? x : M.evaluate(model, x);
+    const weight = finite(frame.weight, 1), bias = finite(frame.bias, 0);
+    const result = affine ? weight * x + bias : M.evaluate(model, x);
     const b = builder(svg, 620, 220,
-      affine ? 'One affine transformation from input to output.' :
+      affine ? affineDescription(frame, x, result, weight, bias) :
         'One input, one hidden layer containing ' + count + ' ReLU neurons, and one linear output. At x = ' + fmt(x) + ', ' + values.filter(v => v.activation > 1e-8).length + ' hidden neurons are active and the output is ' + fmt(result) + '. Input weights are one; hidden biases and output weights are labelled.', true);
     const center = 310, inputY = 23, hiddenY = 110, outputY = 200;
     const radius = count > 17 ? 5.5 : count > 10 ? 7.5 : count > 6 ? 9 : 12;
     const positions = neurons.map((n, i) => count < 2 ? center : 48 + i * 524 / (count - 1));
     if (affine) {
       b.line(center, inputY + 16, center, outputY - 16, 'stroke="' + C.blue + '" stroke-width="2"');
-      b.text(340, hiddenY + 6, 'weight = 1', 'class="nv-number"');
+      b.text(340, hiddenY + 6, 'w = ' + fmt(weight), 'class="nv-number"');
+      if (frame.showBias) drawBiasInput(b, { x: 105, y: 139, outX: center - 14, outY: outputY - 8, labelX: 220, labelY: 176, radius: 16 }, bias, true);
     } else neurons.forEach((n, i) => {
       const cx = positions[i], active = values[i].activation > 1e-8;
       const color = count > 8 ? C.blue : unitColors[i % unitColors.length];
@@ -284,7 +315,7 @@
     b.text(center, outputY + 6, 'ŷ', 'class="nv-label" text-anchor="middle" style="fill:#fff"');
     b.text(center + 32, outputY + 6, '= ' + fmt(result), 'class="nv-number"');
     b.text(12, 27, affine ? 'Affine' : count + ' ReLU neurons', 'class="nv-small"');
-    b.text(12, 207, 'c = ' + fmt(affine ? 0 : model.c), 'class="nv-number"');
+    b.text(12, 207, affine ? 'b = ' + fmt(bias) + (frame.showBias === false ? ' (not drawn)' : '') : 'c = ' + fmt(model.c), 'class="nv-number"');
     if (!affine && count < 7) b.text(604, 27, 'input weights = 1', 'class="nv-small" text-anchor="end"');
     b.finish();
   }

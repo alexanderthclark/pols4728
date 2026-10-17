@@ -20,7 +20,7 @@
     let progress=Math.max(0,Math.min(1,(focus-rect.top)/Math.max(rect.height,1)));
     // Quantization prevents needless SVG work on fractional-pixel scroll events.
     progress=Math.round(progress*100)/100;
-    if(reduced)progress=scene==='width-many'||scene==='sine-wide'?Math.round(progress*10)/10:1;
+    if(reduced)progress=scene==='affine'?(progress<.65?0:1):scene==='width-many'||scene==='sine-wide'?Math.round(progress*10)/10:1;
     const signature=scene+':'+progress+':'+(mobile?'compact':'desktop')+':'+(inspectionX===null?'story':inspectionX);
     if(signature!==renderSignature){
       renderSignature=signature;

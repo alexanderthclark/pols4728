@@ -78,9 +78,12 @@
       <div class="narrative">
         <section class="step" id="scene-affine" data-scene="affine" aria-labelledby="heading-affine">
           <p class="part-label">01 / A shallow network</p>
-          <h2 id="heading-affine">Start with a straight line.</h2>
-          <p>There is just one input, <i>x</i>, so the network’s output is a curve on an ordinary two-dimensional plot. Start with <i>f</i>(<i>x</i>) = <i>x</i>: one straight piece, with the same slope everywhere.</p>
-          <p>We will keep the input one-dimensional throughout. What changes is how the network transforms it.</p>
+          <h2 id="heading-affine">The same linear equation, drawn as a network.</h2>
+          <p>Start with the familiar linear equation:</p>
+          <p class="narrative-equation">ŷ = <i>wx</i> + <i>b</i>.</p>
+          <p>The arrow from the observed input <i>x</i> carries weight <i>w</i>. The faint node marked 1 sends a constant through an arrow with weight <i>b</i>, adding the intercept. That constant is bookkeeping, not a second observed feature.</p>
+          <p>Here, <i>w</i> = 1 and <i>b</i> = 0.5, so the network draws the straight line ŷ = <i>x</i> + 0.5.</p>
+          <p>Keep scrolling to simplify the drawing. Bias inputs and their connections are usually left out of network diagrams for clarity; the intercept remains part of the equation and the model.</p>
         </section>
 
         <section class="step" id="scene-relu" data-scene="relu" aria-labelledby="heading-relu">

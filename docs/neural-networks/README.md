@@ -32,6 +32,14 @@ the same architecture while adding joints to approximate sine.
 `views.js` draws the actual function and network, including a compact phone
 layout. `story.js` connects those states to scrolling and keyboard navigation.
 
+The opening maps the familiar equation ŷ = wx + b to its network diagram,
+using w = 1 and b = 0.5. A faint constant-1 node and its weight-b connection
+initially show how the intercept enters the sum. The constant is bookkeeping,
+not a second observed input. As the opening progresses, the bias node and its
+connection disappear from the drawing for clarity; the intercept remains in
+the equation and the model. Omitted bias connections are a diagram convention,
+not a change to the model.
+
 The sine approximation begins with five nonzero interior slope changes, at
 0.9, 1.95, 3.05, 4.2, and 5.35, on the domain [0, 2π]. One always-active
 ReLU supplies the initial slope, so the initial network has six hidden neurons.
