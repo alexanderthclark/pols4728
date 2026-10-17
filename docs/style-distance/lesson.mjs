@@ -28,7 +28,7 @@ function wrap(value, maximum = 32) {
 }
 
 function point(passage, x, y, { opacity = 1, size = 11, stroke = C.ink, ring = false } = {}) {
-  const fill = passage.style === 'plain' ? C.blue : C.rust;
+  const fill = passage.style === 'biblical' ? C.blue : C.rust;
   const mark = passage.shape === 'circle'
     ? `<circle cx="${n(x)}" cy="${n(y)}" r="${size}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`
     : `<rect x="${n(x-size)}" y="${n(y-size)}" width="${size*2}" height="${size*2}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
@@ -71,36 +71,37 @@ function plot(position, compact) {
   }
   const edgeOpacity = smooth((position - 3.2)/0.8) * (1 - smooth((position-9.2)/0.8));
   result += `<g opacity="${n(edgeOpacity)}">`;
-  result += line(...xy.B,...xy.D,`style="stroke:${C.rust};stroke-width:3"`);
-  result += line(...xy.B,...xy.A,`style="stroke:${C.blue};stroke-width:3" stroke-dasharray="7 5"`);
+  result += line(...xy.A,...xy.C,`data-edge="A-C" style="stroke:${C.blue};stroke-width:3"`);
+  result += line(...xy.A,...xy.B,`data-edge="A-B" style="stroke:${C.rust};stroke-width:3" stroke-dasharray="7 5"`);
   if (scene >= 5 && scene <= 9) {
-    const positiveMid = [(xy.B[0]+xy.D[0])/2, (xy.B[1]+xy.D[1])/2];
-    const negativeMid = [(xy.B[0]+xy.A[0])/2, (xy.B[1]+xy.A[1])/2];
-    result += text(positiveMid[0],positiveMid[1]-20,`d²(a,p) = ${n(state.positiveDistance)}`,'text-anchor="middle" font-size="20"');
-    result += text(negativeMid[0]+22,negativeMid[1]+7,`d²(a,n) = ${n(state.negativeDistance)}`,'font-size="20"');
+    const positiveMid = [(xy.A[0]+xy.C[0])/2, (xy.A[1]+xy.C[1])/2];
+    const negativeMid = [(xy.A[0]+xy.B[0])/2, (xy.A[1]+xy.B[1])/2];
+    result += text(positiveMid[0],positiveMid[1]+36,`d²(A,C) = ${n(state.positiveDistance)}`,'text-anchor="middle" font-size="20"');
+    result += text(negativeMid[0]+22,negativeMid[1]-18,`d²(A,B) = ${n(state.negativeDistance)}`,'font-size="20"');
   }
   result += '</g>';
   for (const p of passages) {
     const [x,y] = xy[p.id];
-    const dimmed = scene>=4 && scene<=8 && p.id==='C';
+    const dimmed = scene>=4 && scene<=8 && p.id==='D';
     result += point(p,x,y,{opacity:dimmed?.35:1,ring:p.id===triplet.anchor && scene>=4 && scene<=9});
-    const labelX = x + (p.content === 'budget' ? -21 : 21);
-    result += text(labelX,y+7,p.id,`text-anchor="${p.content==='budget'?'end':'start'}" font-size="22" opacity="${dimmed?.45:1}"`);
+    const labelX = x + (p.contentCode < 0 ? -21 : 21);
+    result += text(labelX,y+7,p.id,`text-anchor="${p.contentCode<0?'end':'start'}" font-size="22" opacity="${dimmed?.45:1}"`);
   }
   if (!compact) {
-    result += text(box.x,520,'Blue: plain · rust: bureaucratic','font-size="20"');
-    result += text(box.x,548,'Circle: budget · square: bridge','font-size="20"');
+    result += text(box.x,520,'Blue: biblical cadence · rust: academic','font-size="20"');
+    result += text(box.x,548,'Circle: no guarantee · square: speed wins','font-size="20"');
   } else {
-    result += text(30,445,'Blue: plain · rust: bureaucratic','font-size="20"');
-    result += text(30,473,'Circle: budget · square: bridge','font-size="20"');
+    result += text(30,445,'Blue: biblical · rust: academic','font-size="20"');
+    result += text(30,473,'Circle: no guarantee · square: speed wins','font-size="20"');
   }
   return result + '</g>';
 }
 
 function passageCard(passage,x,y,width, role, compact=false) {
-  const content = compact ? [passage.short] : wrap(passage.text,31);
-  const height = compact ? 68 : 42 + content.length*27;
-  const label = role ? `${role} · ${passage.id}` : `${passage.id} · ${passage.style}`;
+  const content = wrap(compact ? passage.short : passage.text,31);
+  const height = 42 + content.length*27;
+  const labels = {A:'Ecclesiastes · biblical cadence',B:'Orwell’s parody · excerpt',C:'Constructed counterexample',D:'New academic paraphrase'};
+  const label = role ? `${role} · ${passage.id}` : `${passage.id} · ${labels[passage.id]}`;
   const result = rect(x,y,width,height)
     + text(x+17,y+29,label,'font-size="21"')
     + lines(x+17,y+57,content,'font-size="20"',27);
@@ -108,11 +109,11 @@ function passageCard(passage,x,y,width, role, compact=false) {
 }
 
 function mobileExamples() {
-  let output=text(250,30,'Two topics, two writing styles','text-anchor="middle" font-size="23"');
+  let output=text(250,30,'Two claims, two writing styles','text-anchor="middle" font-size="23"');
   let y=50;
   for(const p of passages) {
     const body=wrap(p.text,43),height=40+body.length*27;
-    output+=rect(20,y,460,height)+text(36,y+27,`${p.id} · ${p.style}`,'font-size="21"')
+    output+=rect(20,y,460,height)+text(36,y+27,`${p.id} · ${{A:'Ecclesiastes',B:'Orwell’s parody · excerpt',C:'Constructed counterexample',D:'New teaching paraphrase'}[p.id]}`,'font-size="21"')
       +lines(36,y+54,body,'font-size="20"',27);
     y+=height+13;
   }
@@ -120,14 +121,14 @@ function mobileExamples() {
 }
 
 function sharedEncoder(position,compact) {
-  const rows = [passages[1],passages[3],passages[0]];
+  const rows = [passages[0],passages[2],passages[1]];
   const labels = ['Anchor','Positive','Negative'];
   if (compact) {
     let output = text(250,57,'Three inputs · one set of weights','text-anchor="middle" font-size="23"');
     rows.forEach((p,i) => {
       const y = 100+i*118;
       output += rect(20,y,170,66)+text(35,y+29,`${labels[i]} ${p.id}`,'font-size="21"')
-        +text(35,y+55,p.style==='plain'?'Plain style':'Bureaucratic','font-size="20"');
+        +text(35,y+55,p.style==='biblical'?'Biblical cadence':'Academic parody','font-size="20"');
       output += arrow(195,y+34,225,y+34);
       output += rect(228,y+3,125,60)+text(290,y+30,'Encoder','text-anchor="middle" font-size="21"')
         +text(290,y+54,'fθ','text-anchor="middle" font-size="22"');
@@ -141,7 +142,7 @@ function sharedEncoder(position,compact) {
   let output = text(500,55,'Three passages enter the same encoder','text-anchor="middle" font-size="26"');
   rows.forEach((p,i) => {
     const y=104+i*126;
-    const card=passageCard(p,35,y,375,labels[i]);
+    const card=passageCard(p,35,y,375,labels[i],true);
     output += card.result;
     output += arrow(422,y+45,490,y+45);
     output += rect(500,y+7,210,78)+text(605,y+42,'Encoder fθ','text-anchor="middle" font-size="26"')
@@ -184,15 +185,15 @@ function panel(position,compact) {
   if (compact) {
     const top=[
       ['What should be close?', 'Similarity is a modeling choice.'],
-      ['Two topics × two writing styles', 'The four texts are teaching examples.'],
-      ['Starting schematic: content dominates', 'A–B share content; C–D share content.'],
+      ['Two claims × two writing styles', 'A–B: related ideas · A–C: similar style'],
+      ['Meaning: A is near B', 'A–B: related claims · A–C: opposite claims'],
       [],
-      ['Anchor B · positive D · negative A', 'Same style versus the same content.'],
+      ['Anchor A · positive C · negative B', 'C reverses A’s claim in a similar style.'],
       ['Compare squared Euclidean distances', 'Solid: positive · dashed: negative'],
       [`L = max(0, ${n(state.positiveDistance)} − ${n(state.negativeDistance)} + 0.1)`, `Illustrative loss = ${n(state.loss)}`],
       [],
       ['Re-encode after a parameter change', 'All four embeddings respond.'],
-      ['Desired geometry for this task', 'Same style can cross topic boundaries.'],
+      ['Style: A is now near C', 'Close in style does not mean agreement.'],
       ['Evaluate on new, labeled passages', 'This map is not a test result.'],
       ['Style similarity serves one purpose', 'Content and context still matter.'],
     ][scene];
@@ -209,18 +210,18 @@ function panel(position,compact) {
     return output;
   }
   if(scene===4 || scene===5) {
-    const rows=[[passages[1],'Anchor'],[passages[3],'Positive: same style'],[passages[0],'Negative: same content']];
-    rows.forEach(([p,role],i)=>{output+=passageCard(p,30,80+i*135,380,role).result;});
+    const rows=[[passages[0],'Anchor'],[passages[2],'Positive: similar style'],[passages[1],'Negative: related meaning']];
+    rows.forEach(([p,role],i)=>{output+=passageCard(p,30,80+i*135,380,role,true).result;});
     return output;
   }
   const panels={
-    0:{heading:['Representations encode','a notion of similarity.'],body:['Word2vec learns from word context.','A contextual encoder represents','a passage using its surroundings.','','We can fine-tune that encoder','for a different similarity task.']},
-    2:{heading:['A possible starting point'],body:['A and B discuss the budget.','C and D discuss the bridge.','','Our schematic first places texts','with shared content near each other.','','These are not measured vectors.']},
+    0:{heading:['Similar meaning,','different style.'],body:['A: “the race is not to the swift”','','B: Orwell’s academic parody','expresses a related idea.','','C: “the swift shall win the race”','reverses A’s claim, yet sounds similar.','','Which pair should be close?']},
+    2:{heading:['Meaning: A is near B.'],body:['A and B question whether ability','ensures success; C and D assert it.','','This starting map privileges','the claim each text expresses.','','d(A,B) < d(A,C)','','These are not measured vectors.']},
     6:{heading:['The positive should be closer.'],body:['Require its squared distance','to be smaller by a margin α.','','Here α = 0.1.','The loss is positive when that','requirement is not yet satisfied.']},
-    8:{heading:['Recompute the embeddings.'],body:['A shared parameter change affects','all four passages, including C,','which was absent from this triplet.','','The points move because the','encoding function has changed.']},
-    9:{heading:['One triplet is insufficient.'],body:['Use many topics, writing styles,','and anchor–positive–negative sets.','','The diagram shows the intended','change in similarity, not an','observed training trajectory.']},
+    8:{heading:['Recompute the embeddings.'],body:['A shared parameter change affects','all four passages, including D,','which was absent from this triplet.','','The points move because the','encoding function has changed.']},
+    9:{heading:['Style: A is now near C.'],body:['A and C share a biblical cadence,','despite making opposite claims.','','d(A,C) < d(A,B)','','Repeat with varied topics and styles.','One triplet cannot establish that','meaning and style are disentangled.']},
     10:{heading:['Hold out new passages.'],body:['Example: school opening hours,','written plainly and bureaucratically.','','Encode them after training.','Measure whether labeled positives','rank closer than labeled negatives.','','Do not report this toy map as evidence.']},
-    11:{heading:['Different goals produce','different useful geometries.'],body:['Texts can resemble one another','in style and differ in meaning.','','Check new topics, languages,','and unfamiliar writing styles.','A good style score does not prove','that content has been removed.']},
+    11:{heading:['Closeness is not agreement.'],body:['A and C can be stylistic neighbors','while contradicting one another.','','A and B remain semantically related','even when far apart in style space.','','The task determines which','relationships we want to preserve.']},
   };
   const item=panels[scene]||panels[0];
   output+=lines(30,84,item.heading,'font-size="27"',34);
@@ -234,41 +235,44 @@ function panel(position,compact) {
 }
 
 const scenes = [
-  { id:'purpose',title:'A vector has a purpose',
-    body:'Word2vec learns word vectors through a prediction task, and transformers produce contextual representations of text. An existing encoder therefore brings a useful starting representation, but the similarity it expresses may differ from the similarity we want to measure.' },
-  { id:'content-style',title:'Keep content and style separate',
-    body:'These four teaching passages vary two things: what they discuss and how they are written. A budget sentence and a bridge sentence differ in content; a plain sentence and a bureaucratic paraphrase differ in style.',
-    note:'The neutral passages are new teaching examples, not the StyleDistance training data. Circles identify the budget topic, squares identify the bridge topic, and each point retains its letter.' },
-  { id:'pretrained',title:'Start from a pretrained encoder',
-    body:'Suppose the starting representation primarily brings texts with similar content together. That can be useful for semantic search, but our task is to recognize writing style across different subjects.' },
+  { id:'purpose',title:'Meaning is not the only similarity',
+    body:'“The race is not to the swift” and Orwell’s academic rendering of Ecclesiastes express related ideas in very different styles. “The swift shall win the race” reverses the claim while preserving much of the verse’s vocabulary and cadence. Which relationship should an embedding preserve?' },
+  { id:'content-style',title:'Separate the claim from the style',
+    body:'All four passages concern ability and success. A and B express related doubts about ability ensuring victory; C and D assert that speed brings success. A and C use a compressed biblical cadence; B and D use abstract academic language.',
+    reading:'<p>A, from Ecclesiastes 9:11 (KJV): “the race is not to the swift”. B, an excerpt from Orwell’s academic parody: “' + esc(passages[1].text) + '”. C, a constructed counterexample: “the swift shall win the race”. D, a new academic paraphrase for this lesson: “' + esc(passages[3].text) + '”</p><p>A and B convey related ideas, rather than exactly equivalent meanings. C is not scripture, and D is not an Orwell quotation. Color identifies register; shape identifies the claim. Each text keeps its letter.</p>',
+    note:'Orwell presents his rendering in Politics and the English Language and acknowledges that it loses detail. Only a short excerpt appears here. These four passages are not the StyleDistance training data.' },
+  { id:'pretrained',title:'Begin with semantic neighbors',
+    body:'Suppose a starting representation places A near B because their claims are semantically related, and C near D for the same reason. That geometry can serve meaning-based retrieval. For a style task, however, we want A nearer C, even though C reverses A’s claim.',
+    note:'This is a conceptual starting geometry. No claim is made that an actual pretrained encoder yields these coordinates or treats negation this way.' },
   { id:'shared-encoder',title:'Use one encoder three times',
-    body:'The anchor, positive, and negative passages each pass through the same encoder with shared parameters θ. This produces three vectors whose distances can enter one training objective.',
-    equation:'<span>z<sub>a</sub> = f<sub>θ</sub>(a), &nbsp; z<sub>p</sub> = f<sub>θ</sub>(p), &nbsp; z<sub>n</sub> = f<sub>θ</sub>(n)</span>' },
-  { id:'triplet',title:'Choose a triplet',
-    body:'Use B as the anchor and D as a positive example: both are bureaucratic, although they discuss different things. Use A as the negative example: it expresses the anchor’s content in a different style, so content alone cannot solve this comparison.',
-    note:'This is one illustrative triplet construction. In the paper, a style-changing negative can paraphrase the anchor or the positive; a negative need not always share the anchor’s content.' },
+    body:'Use A as the anchor, C as the style-positive, and B as the style-negative. Each passage passes through the same encoder with shared parameters θ. The resulting three vectors enter one training objective.',
+    equation:'<span>z<sub>a</sub> = f<sub>θ</sub>(A), &nbsp; z<sub>p</sub> = f<sub>θ</sub>(C), &nbsp; z<sub>n</sub> = f<sub>θ</sub>(B)</span>' },
+  { id:'triplet',title:'Choose the desired neighbor',
+    body:'The positive C resembles A in style while contradicting its claim. The negative B conveys a related idea in an academic parody. “Positive” and “negative” identify the desired stylistic ranking; they say nothing about truth, quality, or agreement.',
+    note:'This illustrative triplet encodes a style preference. In the StyleDistance paper, a style-changing negative can paraphrase the anchor or the positive; a negative need not always share the anchor’s content.' },
   { id:'distances',title:'Compare the two distances',
-    body:'The solid line connects the anchor to its positive and the dashed line connects it to its negative. For this demonstration we compare squared Euclidean distances, so both coordinate differences enter the calculation.',
+    body:'The solid line connects A to C, the desired style neighbor. The dashed line connects A to B, the semantically related text in a different style. Compare their squared Euclidean distances using both coordinate differences.',
     equation:'<span>d²(z<sub>i</sub>, z<sub>j</sub>) = Σ<sub>k</sub>(z<sub>ik</sub> − z<sub>jk</sub>)²</span>' },
   { id:'loss',title:'A margin defines the target',
-    body:'Triplet loss asks the positive to be closer to the anchor than the negative by at least a margin α. The loss becomes zero once that inequality is satisfied; zero loss does not require identical embeddings for texts with the same style.',
-    equation:'<span>L = max{0, d²(z<sub>a</sub>, z<sub>p</sub>) − d²(z<sub>a</sub>, z<sub>n</sub>) + α}, &nbsp; α = 0.1</span>',
+    body:'Triplet loss asks C to be closer to A than B is by at least a margin α. The loss reaches zero once that inequality is satisfied. It neither demands identical embeddings for A and C nor requires an unlimited increase in the A–B distance.',
+    equation:'<span>L = max{0, d²(A,C) − d²(A,B) + α}, &nbsp; α = 0.1</span>',
     note:'This is the squared-distance triplet hinge objective described in the StyleDistance paper. The numerical distances here come from our schematic coordinates.' },
   { id:'update',title:'Change the encoder, not the points',
     body:'Differentiate the loss through the shared encoder and update its trainable parameters. The published StyleDistance model adapts pretrained RoBERTa with LoRA, so the small low-rank updates are trained while the base weights remain frozen.',
     equation:'<span>θ<sub>trainable</sub> ← θ<sub>trainable</sub> − η ∇<sub>θtrainable</sub>L</span>',
     note:'The published method freezes the base model and trains LoRA updates; the instructor’s linked notebook is a separate, unverified implementation.' },
   { id:'reencode',title:'Re-encode all four passages',
-    body:'Apply the updated encoder again to obtain new vectors. Because the parameters are shared, even passage C, which did not appear in this triplet, can receive a different embedding.' },
+    body:'Scroll to recompute the embeddings after the shared parameters change: A and C draw together while A and B separate. Even D, absent from this triplet, can move because it passes through the same encoder. Scroll back to restore the earlier geometry.',
+    note:'This reversible motion illustrates the intended training preference. It is not an optimizer trace, and D’s movement alone does not establish its correct stylistic ranking.' },
   { id:'repeat',title:'Repeat across varied examples',
-    body:'A useful style representation needs comparisons spanning many topics and styles, rather than memorizing this small set. The published work combines synthetic style data with natural authorship data; our four passages only expose the logic of one training signal.',
+    body:'The target geometry makes A closer to C in style despite their opposite meanings. A useful model needs many comparisons across topics and registers, including examples that defeat shortcuts based on shared words or length. The published work combines synthetic style data with natural authorship data.',
     note:'The published main checkpoint and its synthetic-only variant use different data mixtures. The displayed geometry is a teaching illustration for neither checkpoint.' },
   { id:'heldout',title:'Test on new passages',
-    body:'Reserve new passages and labeled comparisons before fitting the model, then compare their rankings under the pretrained and adapted encoders. Include content-matched negatives and style-matched positives across unfamiliar topics, rather than evaluating on the triplets used for training.',
+    body:'Reserve new passages and labeled comparisons before fitting the model, then compare rankings under the pretrained and adapted encoders. Include semantically related negatives, style-matched positives on unfamiliar topics, and examples with little shared vocabulary.',
     equation:'<span>Held-out triplet accuracy: proportion with d(z<sub>a</sub>, z<sub>p</sub>) &lt; d(z<sub>a</sub>, z<sub>n</sub>)</span>',
     note:'No held-out scores are supplied here. Any claim that fine-tuning helped requires actual encoder outputs and evaluation data.' },
-  { id:'limits',title:'Similarity depends on the task',
-    body:'Fine-tuning changes the representation toward the relationships rewarded by its objective. A style-sensitive embedding may be useful for studying writing while being a poor choice for semantic retrieval, and success on familiar styles does not establish generalization or complete separation of style from content.' },
+  { id:'limits',title:'Closeness does not imply agreement',
+    body:'A and B remain semantically related even when separated in style space. A and C can become stylistic neighbors while contradicting one another. Fine-tuning rewards the relationship chosen for the task; success on this example would not establish complete separation of style from meaning.' },
 ];
 
 function render(position, {compact=false}={}) {
@@ -287,7 +291,7 @@ function render(position, {compact=false}={}) {
   const width=compact?500:1000, height=compact?480:560;
   return `<g role="img" aria-label="${esc(scenes[Math.round(p)].title)}" data-lesson="style-distance" data-position="${n(p)}">
     <title>${esc(scenes[Math.round(p)].title)}</title>
-    <desc>Schematic embedding geometry with four fixed passage identities. Color indicates writing style and shape indicates topic. This is not measured model output.</desc>
+    <desc>Schematic embedding geometry with four fixed passage identities. Color indicates writing style and shape indicates the claim. This is not measured model output.</desc>
     <rect width="${width}" height="${height}" fill="${C.paper}"/>
     <g data-diagram-mode="${mode}" opacity="${n(opacity)}">${content}</g>
   </g>`;
@@ -297,16 +301,18 @@ export const lesson = {
   id:'style-distance',
   title:'Fine-tuning for writing style',
   subtitle:'Teach an embedding model what “similar” means',
-  intro:'A pretrained text encoder may bring passages together because they discuss similar things. This story uses the StyleDistance approach to show how fine-tuning can instead reward similar writing styles across different content.',
+  intro:'Ecclesiastes and Orwell’s academic parody can convey related ideas while sounding very different. A sentence that reverses the verse can sound much more like it. Follow those texts through a schematic fine-tuning example that teaches an encoder to measure style.',
   scenes,
   takeaways:[
-    'The training objective defines which relationships a representation should preserve.',
+    'Semantically related passages can differ in style; stylistically similar passages can make opposite claims.',
     'A shared encoder processes every member of a triplet, and its parameter updates can change every text embedding.',
     'Triplet loss compares an anchor–positive distance with an anchor–negative distance and a margin.',
     'A schematic geometric improvement is not evidence of model performance; evaluate held-out texts and styles.',
   ],
-  dataNote:'All four passages are neutral teaching examples. Every displayed coordinate, distance, and loss is calculated from a labeled two-dimensional schematic, not from a trained language model. The published StyleDistance methodology supplies the learning idea; the instructor’s linked training notebook has not been inspected.',
+  dataNote:'A quotes Ecclesiastes 9:11 (KJV); B is a short excerpt from Orwell’s academic parody in Politics and the English Language. C is a constructed counterexample, not scripture; D is a new teaching paraphrase, not Orwell. Every displayed coordinate, distance, and loss is calculated from a labeled two-dimensional schematic, not from a trained language model. The published StyleDistance methodology supplies the learning idea; the instructor’s linked training notebook has not been inspected.',
   sources:[
+    {label:'George Orwell, Politics and the English Language',url:'https://www.orwellfoundation.com/the-orwell-foundation/orwell/essays-and-other-works/politics-and-the-english-language/',note:'Primary source for the Ecclesiastes comparison and academic parody. The excerpt preserves the Orwell Foundation’s wording; Orwell notes that the parody loses some detail.'},
+    {label:'Ecclesiastes 9:11, King James Version',url:'https://www.biblegateway.com/passage/?search=Ecclesiastes+9%3A11&version=KJV',note:'Source of A. C deliberately reverses its claim and is not a biblical quotation.'},
     {label:'StyleDistance: Stronger Content-Independent Style Embeddings with Synthetic Parallel Examples',url:'https://aclanthology.org/2025.naacl-long.436/',note:'Primary paper: triplet training for style embeddings, including pretrained RoBERTa with LoRA and synthetic/natural data.'},
     {label:'StyleDistance model card',url:'https://huggingface.co/StyleDistance/styledistance',note:'Published checkpoint; using this model is distinct from running a fine-tuning experiment.'},
     {label:'Instructor’s “Our Own StyleDistance Model” notebook',url:'https://colab.research.google.com/drive/1-hAD4LPOl_ahdaOvfH-X2SCKD86e-XJj?usp=sharing',note:'Linked in the lecture slides. The notebook’s implementation and outputs have not been inspected; this lesson does not attribute a particular training run to it.'},
@@ -316,53 +322,17 @@ export const lesson = {
 
 // Concise captions retain the argument on short phone screens.
 const shortCaptions = [
-  [
-    "What should be similar?",
-    "Pretraining supplies useful representations. Fine-tuning can reward the particular notion of similarity we want to measure."
-  ],
-  [
-    "Content and style",
-    "The four passages vary topic and writing style separately. Letters preserve each passage’s identity."
-  ],
-  [
-    "Start with an encoder",
-    "A representation that groups texts by content can be useful. Our task instead rewards style across different topics."
-  ],
-  [
-    "One shared encoder",
-    "Anchor, positive, and negative each pass through the same encoder. Three embeddings enter one loss."
-  ],
-  [
-    "Choose a triplet",
-    "B and D share bureaucratic style across topics. A shares B’s content but uses plain style."
-  ],
-  [
-    "Compare the distances",
-    "The positive should be closer than the negative. Distances are calculated on these schematic coordinates."
-  ],
-  [
-    "Require a margin",
-    "The loss reaches zero once the positive is closer by the required margin. Identical embeddings are unnecessary."
-  ],
-  [
-    "Change shared parameters",
-    "StyleDistance trains low-rank updates to a pretrained encoder. Changing that shared function can change every text embedding."
-  ],
-  [
-    "Re-encode every passage",
-    "Recompute the embeddings after changing parameters. Even C, absent from the selected triplet, can move."
-  ],
-  [
-    "Vary the training examples",
-    "Many topics and styles are needed. Four schematic points explain the objective; they are not empirical training results."
-  ],
-  [
-    "Test on new texts",
-    "Evaluate new style-matched positives and content-matched negatives. Compare their rankings before and after adaptation."
-  ],
-  [
-    "Similarity has a purpose",
-    "A style-sensitive representation serves a particular task. Check new topics and styles before drawing broader conclusions."
-  ]
+  ['Meaning and style', 'A and B convey related ideas in different styles. C reverses A’s claim while sounding similar.'],
+  ['Two claims, two styles', 'A and B question ability ensuring success; C and D affirm it. A and C share a biblical cadence.'],
+  ['Semantic neighbors', 'This starting schematic puts A near B. For a style task, we want A near C despite their opposite claims.'],
+  ['One shared encoder', 'Anchor A, positive C, and negative B pass through the same encoder. Three embeddings enter one loss.'],
+  ['Choose a style neighbor', 'C is the style-positive even though it contradicts A. B is the style-negative despite its related meaning.'],
+  ['Compare the distances', 'Solid A–C should be shorter than dashed A–B. These distances come from schematic coordinates.'],
+  ['Require a margin', 'Reward C being closer to A than B is by the margin. Zero loss does not require identical vectors.'],
+  ['Change shared parameters', 'StyleDistance trains low-rank updates to a pretrained encoder. Changing that shared function can change every text embedding.'],
+  ['Watch the ranking change', 'A and C draw together as A and B separate. Even D, absent from this triplet, can move.'],
+  ['Style without agreement', 'A is now near C in style. Many varied comparisons are needed to learn beyond shared vocabulary or length.'],
+  ['Test on new texts', 'Compare rankings on unfamiliar passages and topics. Include style matches with little shared vocabulary.'],
+  ['Closeness is not agreement', 'A–B remain semantically related; A–C make opposite claims. The useful geometry depends on the task.'],
 ];
 shortCaptions.forEach(([title, body], index) => { lesson.scenes[index].shortTitle=title; lesson.scenes[index].shortBody=body; });

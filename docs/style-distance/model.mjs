@@ -1,17 +1,21 @@
 // An explicitly schematic embedding map, not measured language-model output.
 // Every state uses the same two coordinate axes and the same passage identities.
 export const passages = Object.freeze([
-  { id: 'A', content: 'budget', style: 'plain', shape: 'circle', short: 'Budget · plain',
-    text: 'The council cut the budget.', contentCode: -1, styleCode: -1 },
-  { id: 'B', content: 'budget', style: 'bureaucratic', shape: 'circle', short: 'Budget · bureaucratic',
-    text: 'The council implemented a reduction in budgetary allocation.', contentCode: -1, styleCode: 1 },
-  { id: 'C', content: 'bridge', style: 'plain', shape: 'square', short: 'Bridge · plain',
-    text: 'The bridge will open next week.', contentCode: 1, styleCode: -1 },
-  { id: 'D', content: 'bridge', style: 'bureaucratic', shape: 'square', short: 'Bridge · bureaucratic',
-    text: 'The bridge is scheduled to commence operations next week.', contentCode: 1, styleCode: 1 },
+  { id: 'A', content: 'uncertain', style: 'biblical', shape: 'circle', short: 'The race is not to the swift',
+    text: 'the race is not to the swift', contentCode: -1, styleCode: -1,
+    source: 'Ecclesiastes 9:11 · KJV' },
+  { id: 'B', content: 'uncertain', style: 'academic', shape: 'circle', short: 'Ability does not ensure success',
+    text: '…success or failure in competitive activities exhibits no tendency to be commensurate with innate capacity…',
+    contentCode: -1, styleCode: 1, source: 'Orwell · excerpt from his parody' },
+  { id: 'C', content: 'certain', style: 'biblical', shape: 'square', short: 'The swift shall win the race',
+    text: 'the swift shall win the race', contentCode: 1, styleCode: -1,
+    source: 'Constructed counterexample · not scripture' },
+  { id: 'D', content: 'certain', style: 'academic', shape: 'square', short: 'Superior speed ensures success',
+    text: 'Competitive success accrues to the participant exhibiting the greatest velocity.',
+    contentCode: 1, styleCode: 1, source: 'New teaching paraphrase · not Orwell' },
 ]);
 
-export const triplet = Object.freeze({ anchor: 'B', positive: 'D', negative: 'A' });
+export const triplet = Object.freeze({ anchor: 'A', positive: 'C', negative: 'B' });
 export const margin = 0.1;
 export const initialScale = Object.freeze({ content: 1.15, style: 0.28 });
 export const finalScale = Object.freeze({ content: 0.32, style: 0.95 });
@@ -47,7 +51,7 @@ export function embeddingState(progress = 0) {
   const positiveDistance = squaredDistance(vectors[triplet.anchor], vectors[triplet.positive]);
   const negativeDistance = squaredDistance(vectors[triplet.anchor], vectors[triplet.negative]);
   return { progress: t, content, style, vectors, positiveDistance, negativeDistance,
-    loss: tripletLoss(vectors.B, vectors.D, vectors.A) };
+    loss: tripletLoss(vectors[triplet.anchor], vectors[triplet.positive], vectors[triplet.negative]) };
 }
 
 export function stateAt(position) {

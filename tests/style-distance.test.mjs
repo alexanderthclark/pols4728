@@ -3,8 +3,19 @@ import test from 'node:test';
 import { passages, triplet, margin, squaredDistance, tripletLoss, embeddingState, stateAt, projectVector } from '../docs/style-distance/model.mjs';
 import { lesson } from '../docs/style-distance/lesson.mjs';
 
-test('the selected triplet changes style independently from topic', () => {
+test('the selected triplet distinguishes opposite claims from different styles', () => {
   const byId=Object.fromEntries(passages.map(p=>[p.id,p]));
+  // Assert the named roles independently: the symmetric map alone would also
+  // give the old B/D/A triplet the same numerical distances.
+  assert.deepEqual(triplet,{anchor:'A',positive:'C',negative:'B'});
+  assert.equal(byId.A.text,'the race is not to the swift');
+  assert.equal(byId.B.text,'…success or failure in competitive activities exhibits no tendency to be commensurate with innate capacity…');
+  assert.equal(byId.C.text,'the swift shall win the race');
+  assert.equal(byId.D.text,'Competitive success accrues to the participant exhibiting the greatest velocity.');
+  for(const id of ['A','B']) assert.equal(byId[id].content,'uncertain');
+  for(const id of ['C','D']) assert.equal(byId[id].content,'certain');
+  for(const id of ['A','C']) assert.equal(byId[id].style,'biblical');
+  for(const id of ['B','D']) assert.equal(byId[id].style,'academic');
   const a=byId[triplet.anchor],p=byId[triplet.positive],n=byId[triplet.negative];
   assert.equal(a.style,p.style);
   assert.notEqual(a.content,p.content);
@@ -20,8 +31,11 @@ test('triplet hinge uses squared distance and the stated margin', () => {
   assert.equal(margin,0.1);
   for(let step=0;step<=200;step++) {
     const s=embeddingState(step/200);
-    const independentlyComputed=Math.max(0,(s.vectors.B[0]-s.vectors.D[0])**2+(s.vectors.B[1]-s.vectors.D[1])**2
-      -(s.vectors.B[0]-s.vectors.A[0])**2-(s.vectors.B[1]-s.vectors.A[1])**2+0.1);
+    const positive=(s.vectors.A[0]-s.vectors.C[0])**2+(s.vectors.A[1]-s.vectors.C[1])**2;
+    const negative=(s.vectors.A[0]-s.vectors.B[0])**2+(s.vectors.A[1]-s.vectors.B[1])**2;
+    const independentlyComputed=Math.max(0,positive-negative+0.1);
+    assert.ok(Math.abs(s.positiveDistance-positive)<1e-12);
+    assert.ok(Math.abs(s.negativeDistance-negative)<1e-12);
     assert.ok(Math.abs(s.loss-independentlyComputed)<1e-12);
     assert.ok(Number.isFinite(s.loss)&&s.loss>=0);
     // All coordinates remain within the fixed displayed range.
@@ -31,6 +45,11 @@ test('triplet hinge uses squared distance and the stated margin', () => {
 
 test('the schematic changes every embedding while retaining identity and axis metric', () => {
   const initial=stateAt(7),final=stateAt(9);
+  assert.ok(Math.abs(initial.positiveDistance-5.29)<1e-12);
+  assert.ok(Math.abs(initial.negativeDistance-0.3136)<1e-12);
+  assert.ok(Math.abs(initial.loss-5.0764)<1e-12);
+  assert.ok(Math.abs(final.positiveDistance-0.4096)<1e-12);
+  assert.ok(Math.abs(final.negativeDistance-3.61)<1e-12);
   assert.ok(initial.positiveDistance>initial.negativeDistance);
   assert.ok(final.positiveDistance+margin<=final.negativeDistance);
   assert.ok(initial.loss>0);
@@ -46,9 +65,9 @@ test('desktop and mobile projection preserve Euclidean distance with equal axis 
     const scale=Math.min(frame.width,frame.height)/3;
     for(const progress of [0,0.5,1]) {
       const vectors=embeddingState(progress).vectors;
-      for(const id of ['A','C','D']) {
-        const actual=squaredDistance(projectVector(vectors.B,frame),projectVector(vectors[id],frame));
-        const expected=squaredDistance(vectors.B,vectors[id])*scale*scale;
+      for(const id of ['B','C','D']) {
+        const actual=squaredDistance(projectVector(vectors.A,frame),projectVector(vectors[id],frame));
+        const expected=squaredDistance(vectors.A,vectors[id])*scale*scale;
         assert.ok(Math.abs(actual-expected)<1e-8);
       }
     }
@@ -61,12 +80,21 @@ test('scroll interpolation is continuous, reversible, and independent of renderi
     lesson.render(11);lesson.render(0);
     assert.equal(lesson.render(p),expected);
     for(const axis of [0,1]) {
-      const below=stateAt(p-1e-5).vectors.C[axis],above=stateAt(p+1e-5).vectors.C[axis];
+      const below=stateAt(p-1e-5).vectors.D[axis],above=stateAt(p+1e-5).vectors.D[axis];
       assert.ok(Math.abs(above-below)<0.0001);
     }
   }
   assert.notEqual(lesson.render(7.3),lesson.render(7.7));
   assert.notEqual(lesson.render(8.2),lesson.render(8.3));
+});
+
+test('the diagram connects the named anchor to C and B rather than the old symmetric triplet', () => {
+  for(const compact of [false,true]) for(const position of [4,5,6,8,9]) {
+    const svg=lesson.render(position,{compact});
+    assert.match(svg,/data-edge="A-C"/);
+    assert.match(svg,/data-edge="A-B"/);
+    assert.doesNotMatch(svg,/data-edge="B-D"/);
+  }
 });
 
 test('diagram transitions never overlay the text from different visual modes', () => {
@@ -85,6 +113,7 @@ test('lesson has a complete readable route and an honest data provenance', () =>
   assert.equal(lesson.scenes.length,12);
   assert.equal(new Set(lesson.scenes.map(s=>s.id)).size,12);
   assert.ok(lesson.sources.some(s=>s.url==='https://aclanthology.org/2025.naacl-long.436/'));
+  assert.ok(lesson.sources.some(s=>/Orwell/.test(s.label)),'the academic rendering is attributed to Orwell');
   assert.match(lesson.dataNote,/not from a trained language model/);
   assert.match(lesson.scenes[10].note,/No held-out scores/);
   for(const [index,scene]of lesson.scenes.entries()) {
