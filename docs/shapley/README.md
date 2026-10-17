@@ -56,8 +56,7 @@ Space for captions, the final equation, and controls is reserved across the
 sequence, including short phones; layout changes cannot magnify or hide the
 small power premium. Electoral scenes use neutral grays throughout, with
 California and Wyoming marked by a darker fill and thicker outline, avoiding
-party colors. Their electoral-area outlines stay visible in the final view; a
-checkbox adds all the other baseline outlines. A persistent
+party colors. Their electoral-area outlines stay visible in the final view. A persistent
 three-stage control navigates Geography, Electoral votes, and Shapley votes,
 updating the story caption and hash together. Their fixed labels update from
 54 and 3 electoral votes to 58.1 and 2.9 adjusted votes during the second morph.

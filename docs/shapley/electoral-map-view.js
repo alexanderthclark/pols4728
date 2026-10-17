@@ -68,7 +68,7 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
       </svg>
     </div>
     <div class="cartogram-controls">
-      <div class="cartogram-actions"><button class="cartogram-replay" type="button">Replay morph</button><label class="cartogram-outline-control" hidden><input type="checkbox"> <span>Compare vote areas</span></label></div>
+      <div class="cartogram-actions"><button class="cartogram-replay" type="button">Replay morph</button></div>
     </div>`;
   const map = element.querySelector('.cartogram-map');
   const title = map.querySelector('title');
@@ -76,10 +76,7 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
   const measure = element.querySelector('.cartogram-measure');
   const totalLabel = element.querySelector('.cartogram-total');
   const replay = element.querySelector('.cartogram-replay');
-  const outlineControl = element.querySelector('.cartogram-outline-control');
-  const outlineCheckbox = outlineControl.querySelector('input');
   replay.setAttribute('aria-label', 'Replay map morph');
-  outlineCheckbox.setAttribute('aria-label', 'Outline electoral-vote areas');
   const phaseButtons = [...element.querySelectorAll('.cartogram-phases button')];
   phaseButtons.forEach(button => button.addEventListener('click', () => onPhaseChange(Number(button.dataset.phase))));
   const fills = svg('g', { class: 'cartogram-states' });
@@ -117,7 +114,6 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
     settle(currentPhase - 1);
     morph(currentPhase, 550);
   });
-  outlineCheckbox.addEventListener('change', () => element.classList.toggle('has-baseline', outlineCheckbox.checked));
 
   function labelsFor(phase) {
     return states.map(state => [...state.labels[phases[phase]]]);
@@ -205,7 +201,6 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
     replay.disabled = phase === 0;
     replay.textContent = phase === 2 ? 'Replay adjustment' : 'Replay morph';
     replay.setAttribute('aria-label', phase === 2 ? 'Replay electoral votes to Shapley-adjusted votes' : 'Replay geography to electoral votes');
-    outlineControl.hidden = phase !== 2;
     const titleText = ['States and their electoral votes', 'State areas proportional to electoral votes', 'State areas proportional to Shapley-adjusted electoral votes'][phase];
     title.textContent = titleText;
     measure.textContent = ['Geographic map', '1 square = 1 electoral vote', 'Area ∝ Shapley-adjusted votes'][phase];
@@ -217,7 +212,7 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
       mark.path.querySelector('title').textContent = accessible;
     }
     const examples = states.filter(state => featuredStates.has(state.abbreviation)).map(state => phase === 2 ? `${state.name}: ${state.votes} electoral votes and ${adjustedNumber(state.adjustedVotes)} adjusted votes` : `${state.name}: ${state.votes} electoral votes`).join('; ');
-    description.textContent = `${titleText}. The 50 states and DC are treated as 51 winner-take-all blocs, using the 2024 and 2028 electoral allocation. Only California and Wyoming have visible numeric labels. ${examples}. ${phase === 0 ? 'Alaska and Hawaii are shown as insets.' : phase === 1 ? 'Each square represents one electoral vote. There are 538 complete squares.' : 'Each state’s filled area is proportional to 538 times its Shapley pivotal probability. Whole squares retain the same area per vote; partial squares show fractional adjusted votes. Both cartograms have the same total filled area and coordinate scale. The adjustment is shown at its actual size. Dashed outlines show California’s and Wyoming’s electoral-vote areas. The checkbox adds all other electoral-vote outlines.'} Each state retains its name and voting values in its hover title and accessible label.`;
+    description.textContent = `${titleText}. The 50 states and DC are treated as 51 winner-take-all blocs, using the 2024 and 2028 electoral allocation. Only California and Wyoming have visible numeric labels. ${examples}. ${phase === 0 ? 'Alaska and Hawaii are shown as insets.' : phase === 1 ? 'Each square represents one electoral vote. There are 538 complete squares.' : 'Each state’s filled area is proportional to 538 times its Shapley pivotal probability. Whole squares retain the same area per vote; partial squares show fractional adjusted votes. Both cartograms have the same total filled area and coordinate scale. The adjustment is shown at its actual size. Dashed outlines show California’s and Wyoming’s electoral-vote areas.'} Each state retains its name and voting values in its hover title and accessible label.`;
     // A direct visit to the final stage still demonstrates the small adjustment
     // from electoral squares, rather than blending geography straight into it.
     if (animate && ((initial && phase > 0) || (phase === 2 && drawnPhase < 1))) settle(phase - 1);
