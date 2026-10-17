@@ -27,14 +27,13 @@ factor. Short phone screens prioritize the equation in these scenes.
 The active caption retains its original controls and MathML nodes. Original
 sections provide the scroll track and stable hash destinations; links focus the
 new caption heading. Optional context, methods, sources, and longer exploration
-controls open in a keyboard-accessible native dialog. The state selector retains its selection between visits; moving controls does not
-recreate their DOM nodes. A restrained caption transition
+controls open in a keyboard-accessible native dialog. Moving controls does not recreate their DOM nodes. A restrained caption transition
 is disabled when reduced motion is requested. Annotations retain stable positions in the visual.
 Without JavaScript, the source captions and equations remain readable in order.
 
 Browser review covers all twenty scenes at 1440×900, 1366×650, 768×900,
 390×844, 320×700, and 320×568, including diagram/caption separation, detail-panel
-focus, keyboard navigation, coalition selection, replay, and the state selector.
+focus, keyboard navigation, coalition selection, and replay.
 
 ## Electoral College example
 
@@ -44,7 +43,7 @@ a quota of 270. A cumulative tally illustrates one accounting order in which
 California is pivotal, followed by a three-map sequence:
 
 1. A geographic Albers USA state map labels the electoral votes, with Alaska
-   and Hawaii in insets and callouts for small northeastern jurisdictions.
+   and Hawaii in insets. Only California and Wyoming have numeric labels.
 2. State shapes morph into a square-cell electoral-vote cartogram. Its 538
    complete squares each represent one electoral vote, grouped into connected
    state shapes in an approximate U.S. layout.
@@ -56,14 +55,18 @@ The map uses the same coordinate system and on-screen scale in every phase.
 Space for captions, the final equation, and controls is reserved across the
 sequence, including short phones; layout changes cannot magnify or hide the
 small power premium. Electoral scenes use neutral grays throughout, with
-selection marked by a darker fill and thicker outline, avoiding party colors.
-The selected state's electoral-area outline stays visible
-in the final view; a checkbox adds all the other baseline outlines. A persistent
+California and Wyoming marked by a darker fill and thicker outline, avoiding
+party colors. Their electoral-area outlines stay visible in the final view; a
+checkbox adds all the other baseline outlines. A persistent
 three-stage control navigates Geography, Electoral votes, and Shapley votes,
-updating the story caption and hash together. State selection, labels, and numeric readouts stay linked.
+updating the story caption and hash together. Their fixed labels update from
+54 and 3 electoral votes to 58.1 and 2.9 adjusted votes during the second morph.
 Forward/reverse morphs, replay, interruption, resizing, and reduced motion are
-supported. Map labels show only vote numbers, including adjusted values in the
-final phase; state names remain available in hover text and the selector.
+supported. California and Wyoming are the only labeled states. Their numeric
+labels stay visible at every screen size; all state names and voting values
+remain in hover titles and accessible labels. Removing the state selector and
+readout gives the map more space. A single frame crops unused margins around
+all three endpoints together, keeping their screen scale identical.
 
 The boundary data come from Census-derived U.S. Atlas 3.0.1. The published page
 imports local precomputed geometry and requires no external map service.

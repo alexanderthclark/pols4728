@@ -2,7 +2,7 @@ import { prepareElectoralMap, rectangleBoundary } from './electoral-map-geometry
 
 const svgNS = 'http://www.w3.org/2000/svg';
 const phases = ['geographic', 'electoral', 'adjusted'];
-const callouts = ['MA', 'RI', 'CT', 'NJ', 'DE', 'DC'];
+const featuredStates = new Set(['CA', 'WY']);
 let viewCount = 0;
 
 function svg(tag, attributes = {}, text) {
@@ -35,17 +35,20 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
     const result = resultsByCode.get(state.abbreviation);
     return { ...state, adjustedVotes: result ? total * result.share : state.adjustedVotes };
   });
-  const byCode = new Map(states.map(state => [state.abbreviation, state]));
-  const alphabetic = [...states].sort((a, b) => a.name.localeCompare(b.name));
+  // Crop unused margins once around every endpoint, preserving one scale for
+  // all three maps and enough room for every intermediate morph frame.
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const state of states) for (const phase of phases) for (const ring of state[phase]) for (const [x, y] of ring) {
+    minX = Math.min(minX, x); minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+  }
+  const frame = { x: minX - 16, y: minY - 16, width: maxX - minX + 32, height: maxY - minY + 32 };
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
-  let selected = byCode.get('CA') || states[0];
   let currentPhase = -1;
   let animation = 0;
-  let compact = false;
   let drawnPhase = 0;
   let currentRings = states.map(state => copyRings(state.geographic));
-  let currentLabels = states.map(state => geographicLabel(state));
-  let currentLeaders = states.map(state => [...state.labels.geographic]);
+  let currentLabels = states.map(state => [...state.labels.geographic]);
   let currentCells = states.map(state => state.cells.map(cell => [...cell.electoral]));
   let drawCells = false;
 
@@ -60,80 +63,54 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
     </nav>
     <div class="cartogram-key"><span class="cartogram-measure"></span><span class="cartogram-total">${total} electoral votes</span></div>
     <div class="cartogram-canvas">
-      <svg class="cartogram-map" viewBox="0 0 ${ELECTORAL_MAP.width} ${ELECTORAL_MAP.height}" role="group" aria-roledescription="interactive map" aria-labelledby="${id}-title ${id}-description">
+      <svg class="cartogram-map" viewBox="${frame.x} ${frame.y} ${frame.width} ${frame.height}" role="group" aria-roledescription="map" aria-labelledby="${id}-title ${id}-description">
         <title id="${id}-title"></title><desc id="${id}-description"></desc>
       </svg>
     </div>
     <div class="cartogram-controls">
-      <div class="cartogram-state-control"><label for="${id}-state">Inspect a state or DC</label><select id="${id}-state"></select></div>
-      <div class="cartogram-actions"><button class="cartogram-replay" type="button">Replay morph</button><label class="cartogram-outline-control" hidden><input type="checkbox"> <span>Outline electoral-vote areas</span></label></div>
-    </div>
-    <dl class="cartogram-readout" aria-live="polite" aria-atomic="true"></dl>`;
+      <div class="cartogram-actions"><button class="cartogram-replay" type="button">Replay morph</button><label class="cartogram-outline-control" hidden><input type="checkbox"> <span>Compare vote areas</span></label></div>
+    </div>`;
   const map = element.querySelector('.cartogram-map');
   const title = map.querySelector('title');
   const description = map.querySelector('desc');
   const measure = element.querySelector('.cartogram-measure');
   const totalLabel = element.querySelector('.cartogram-total');
-  const select = element.querySelector('select');
   const replay = element.querySelector('.cartogram-replay');
   const outlineControl = element.querySelector('.cartogram-outline-control');
   const outlineCheckbox = outlineControl.querySelector('input');
   replay.setAttribute('aria-label', 'Replay map morph');
   outlineCheckbox.setAttribute('aria-label', 'Outline electoral-vote areas');
-  const readout = element.querySelector('.cartogram-readout');
   const phaseButtons = [...element.querySelectorAll('.cartogram-phases button')];
   phaseButtons.forEach(button => button.addEventListener('click', () => onPhaseChange(Number(button.dataset.phase))));
   const fills = svg('g', { class: 'cartogram-states' });
   const grids = svg('g', { class: 'cartogram-cell-grid', 'aria-hidden': 'true' });
   const borders = svg('g', { class: 'cartogram-borders', 'aria-hidden': 'true' });
   const outlines = svg('g', { class: 'cartogram-baseline', 'aria-hidden': 'true' });
-  const leaders = svg('g', { class: 'cartogram-leaders', 'aria-hidden': 'true' });
   const labels = svg('g', { class: 'cartogram-labels', 'aria-hidden': 'true' });
-  map.append(fills, grids, borders, outlines, leaders, labels);
+  map.append(fills, grids, borders, outlines, labels);
   const marks = states.map(state => {
-    const path = svg('path', { class: 'cartogram-state', 'data-state': state.abbreviation, 'fill-rule': 'evenodd', role: 'button', tabindex: '-1' });
+    const path = svg('path', { class: 'cartogram-state', 'data-state': state.abbreviation, 'fill-rule': 'evenodd', role: 'img' });
     const accessible = `${state.name}, ${state.votes} electoral votes.`;
     path.setAttribute('aria-label', accessible);
     path.append(svg('title', {}, accessible));
-    path.addEventListener('click', () => choose(state));
-    path.addEventListener('keydown', event => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        choose(state);
-      } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) {
-        event.preventDefault();
-        const index = alphabetic.indexOf(state);
-        const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? alphabetic.length - 1 : (index + (['ArrowLeft', 'ArrowUp'].includes(event.key) ? -1 : 1) + alphabetic.length) % alphabetic.length;
-        choose(alphabetic[nextIndex]);
-        marks.find(mark => mark.state === selected).path.focus();
-      }
-    });
     const baseline = svg('path', { d: pathData(state.electoral), 'fill-rule': 'evenodd' });
     const grid = svg('path');
     const border = svg('path', { class: 'cartogram-border' });
-    const leader = svg('line', { class: 'cartogram-label-leader' });
-    const label = svg('text', { class: 'cartogram-label', 'text-anchor': 'middle', 'dominant-baseline': 'central' });
-    label.classList.toggle('is-major', state.votes >= 10);
-    leader.classList.toggle('is-major', state.votes >= 10);
-    const value = svg('tspan', { class: 'cartogram-label-value', x: 0 }, String(state.votes));
-    label.append(value);
-    label.addEventListener('click', () => choose(state));
+    const featured = featuredStates.has(state.abbreviation);
+    path.classList.toggle('is-featured', featured);
+    border.classList.toggle('is-featured', featured);
+    baseline.classList.toggle('is-featured', featured);
+    const label = featured ? svg('text', { class: 'cartogram-label', 'data-state': state.abbreviation, 'text-anchor': 'middle', 'dominant-baseline': 'central' }) : null;
+    const value = featured ? svg('tspan', { class: 'cartogram-label-value', x: 0 }, String(state.votes)) : null;
+    if (label) label.append(value);
     fills.append(path);
     grids.append(grid);
     borders.append(border);
     outlines.append(baseline);
-    leaders.append(leader);
-    labels.append(label);
-    return { state, path, grid, border, baseline, leader, label, value };
+    if (label) labels.append(label);
+    return { state, path, grid, border, baseline, label, value };
   });
 
-  for (const state of alphabetic) {
-    const option = document.createElement('option');
-    option.value = state.abbreviation;
-    option.textContent = state.name;
-    select.append(option);
-  }
-  select.addEventListener('change', () => choose(byCode.get(select.value)));
   replay.addEventListener('click', () => {
     if (currentPhase < 1) return;
     stopAnimation();
@@ -142,13 +119,8 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
   });
   outlineCheckbox.addEventListener('change', () => element.classList.toggle('has-baseline', outlineCheckbox.checked));
 
-  function geographicLabel(state) {
-    const callout = callouts.indexOf(state.abbreviation);
-    return callout < 0 ? [...state.labels.geographic] : [ELECTORAL_MAP.width - 29, ELECTORAL_MAP.height * (.22 + callout * .07)];
-  }
-
   function labelsFor(phase) {
-    return states.map(state => phase === 0 ? geographicLabel(state) : [...state.labels[phases[phase]]]);
+    return states.map(state => [...state.labels[phases[phase]]]);
   }
 
   function stopAnimation() {
@@ -160,27 +132,21 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
   function paint() {
     marks.forEach((mark, index) => {
       const at = currentLabels[index];
-      const from = currentLeaders[index];
       const outline = drawCells ? '' : pathData(currentRings[index]);
       mark.path.setAttribute('d', drawCells ? cellPath(currentCells[index]) : outline);
       mark.border.setAttribute('d', drawCells ? boundaryPath(currentCells[index]) : outline);
       mark.grid.setAttribute('d', drawCells ? cellPath(currentCells[index]) : '');
-      mark.label.setAttribute('transform', `translate(${at[0].toFixed(2)} ${at[1].toFixed(2)})`);
-      mark.leader.setAttribute('x1', from[0]);
-      mark.leader.setAttribute('y1', from[1]);
-      mark.leader.setAttribute('x2', at[0]);
-      mark.leader.setAttribute('y2', at[1]);
-      const leaderLength = Math.hypot(at[0] - from[0], at[1] - from[1]);
-      mark.leader.style.opacity = leaderLength > 5 ? '1' : '0';
-      const value = interpolate(mark.state.votes, mark.state.adjustedVotes, Math.max(0, drawnPhase - 1));
-      mark.value.textContent = drawnPhase > 1.001 ? value.toFixed(1) : String(mark.state.votes);
+      if (mark.label) {
+        mark.label.setAttribute('transform', `translate(${at[0].toFixed(2)} ${at[1].toFixed(2)})`);
+        const value = interpolate(mark.state.votes, mark.state.adjustedVotes, Math.max(0, drawnPhase - 1));
+        mark.value.textContent = drawnPhase > 1.001 ? value.toFixed(1) : String(mark.state.votes);
+      }
     });
   }
 
   function settle(phase) {
     currentRings = states.map(state => copyRings(state[phases[phase]]));
     currentLabels = labelsFor(phase);
-    currentLeaders = states.map(state => [...state.labels[phases[phase]]]);
     drawnPhase = phase;
     drawCells = phase >= 1;
     currentCells = states.map(state => state.cells.map(cell => [...cell[phase === 2 ? 'adjusted' : 'electoral']]));
@@ -195,13 +161,11 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
     }
     const fromRings = currentRings.map(copyRings);
     const fromLabels = currentLabels.map(point => [...point]);
-    const fromLeaders = currentLeaders.map(point => [...point]);
     const fromPhase = drawnPhase;
     const fromCells = currentCells.map(rectangles => rectangles.map(rectangle => [...rectangle]));
     const targetCells = states.map(state => state.cells.map(cell => cell[phase === 2 ? 'adjusted' : 'electoral']));
     drawCells = fromPhase >= 1 && phase >= 1;
     const targetLabels = labelsFor(phase);
-    const targetLeaders = states.map(state => state.labels[phases[phase]]);
     let start;
     element.classList.add('is-morphing');
     const frame = timestamp => {
@@ -210,7 +174,6 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
       const t = ease(progress);
       currentRings = states.map((state, index) => state[phases[phase]].map((ring, ringIndex) => ring.map((point, pointIndex) => point.map((coordinate, dimension) => interpolate(fromRings[index][ringIndex][pointIndex][dimension], coordinate, t)))));
       currentLabels = targetLabels.map((point, index) => point.map((coordinate, dimension) => interpolate(fromLabels[index][dimension], coordinate, t)));
-      currentLeaders = targetLeaders.map((point, index) => point.map((coordinate, dimension) => interpolate(fromLeaders[index][dimension], coordinate, t)));
       currentCells = targetCells.map((rectangles, index) => rectangles.map((rectangle, cellIndex) => rectangle.map((coordinate, dimension) => interpolate(fromCells[index][cellIndex][dimension], coordinate, t))));
       drawnPhase = interpolate(fromPhase, phase, t);
       paint();
@@ -220,48 +183,12 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
     animation = requestAnimationFrame(frame);
   }
 
-  function choose(state) {
-    selected = state;
-    select.value = state.abbreviation;
-    for (const mark of marks) {
-      const active = mark.state === state;
-      mark.path.classList.toggle('is-selected', active);
-      mark.border.classList.toggle('is-selected', active);
-      mark.baseline.classList.toggle('is-selected', active);
-      mark.label.classList.toggle('is-selected', active);
-      mark.leader.classList.toggle('is-selected', active);
-      mark.path.setAttribute('aria-pressed', String(active));
-      mark.path.setAttribute('tabindex', active ? '0' : '-1');
-    }
-    // Raising a selected path keeps its outline visible along shared borders.
-    fills.append(marks.find(mark => mark.state === state).path);
-    borders.append(marks.find(mark => mark.state === state).border);
-    readout.replaceChildren();
-    const values = currentPhase === 2 ? [
-      [`${state.name} · electoral → Shapley`, `${state.votes} → ${adjustedNumber(state.adjustedVotes)}`],
-      ['Area adjustment', adjustmentLabel(state)]
-    ] : [[state.name, `${state.votes} electoral votes`]];
-    for (const [term, definition] of values) {
-      const pair = document.createElement('div');
-      const dt = document.createElement('dt');
-      const dd = document.createElement('dd');
-      dt.textContent = term;
-      dd.textContent = definition;
-      pair.append(dt, dd);
-      readout.append(pair);
-    }
-    readout.setAttribute('aria-label', currentPhase === 2 ? `${state.name}; adjusted votes are ${total} times the Shapley value` : `${state.name}, ${state.votes} electoral votes`);
-  }
-
   function resize() {
     const bounds = map.getBoundingClientRect();
     if (!bounds.width || !bounds.height) return;
-    const scale = Math.min(bounds.width / ELECTORAL_MAP.width, bounds.height / ELECTORAL_MAP.height);
-    element.classList.toggle('is-tiny', scale * ELECTORAL_MAP.width < 260);
-    compact = scale * ELECTORAL_MAP.width < 600;
-    element.classList.toggle('is-compact', compact);
-    // Labels keep their map positions; only their type follows display size.
-    map.style.setProperty('--cartogram-label-size', `${(compact ? 7.5 : 11.5) / scale}px`);
+    const scale = Math.min(bounds.width / frame.width, bounds.height / frame.height);
+    // Two fixed numeric labels stay legible even when Wyoming is a tiny shape.
+    map.style.setProperty('--cartogram-label-size', `${(bounds.width < 600 ? 12 : 14) / scale}px`);
   }
 
   function update(phase, { animate = true } = {}) {
@@ -289,8 +216,8 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
       mark.path.setAttribute('aria-label', accessible);
       mark.path.querySelector('title').textContent = accessible;
     }
-    choose(selected);
-    description.textContent = `${titleText}. The 50 states and DC are treated as 51 winner-take-all blocs, using the 2024 and 2028 electoral allocation. ${phase === 0 ? 'This geographic map labels electoral votes; Alaska and Hawaii are shown as insets.' : phase === 1 ? 'Each square represents one electoral vote. There are 538 complete squares.' : 'Each state’s filled area is proportional to 538 times its Shapley pivotal probability. Whole squares retain the same area per vote; partial squares show fractional adjusted votes. Both cartograms have the same total filled area and coordinate scale. The adjustment is shown at its actual size. A dashed outline shows the selected state’s electoral-vote area. The checkbox shows all electoral-vote outlines.'} Select a state or DC below for electoral votes, adjusted votes, and percentage adjustment. The map also supports arrow keys after focusing a state.`;
+    const examples = states.filter(state => featuredStates.has(state.abbreviation)).map(state => phase === 2 ? `${state.name}: ${state.votes} electoral votes and ${adjustedNumber(state.adjustedVotes)} adjusted votes` : `${state.name}: ${state.votes} electoral votes`).join('; ');
+    description.textContent = `${titleText}. The 50 states and DC are treated as 51 winner-take-all blocs, using the 2024 and 2028 electoral allocation. Only California and Wyoming have visible numeric labels. ${examples}. ${phase === 0 ? 'Alaska and Hawaii are shown as insets.' : phase === 1 ? 'Each square represents one electoral vote. There are 538 complete squares.' : 'Each state’s filled area is proportional to 538 times its Shapley pivotal probability. Whole squares retain the same area per vote; partial squares show fractional adjusted votes. Both cartograms have the same total filled area and coordinate scale. The adjustment is shown at its actual size. Dashed outlines show California’s and Wyoming’s electoral-vote areas. The checkbox adds all other electoral-vote outlines.'} Each state retains its name and voting values in its hover title and accessible label.`;
     // A direct visit to the final stage still demonstrates the small adjustment
     // from electoral squares, rather than blending geography straight into it.
     if (animate && ((initial && phase > 0) || (phase === 2 && drawnPhase < 1))) settle(phase - 1);
@@ -309,7 +236,6 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
   });
   const observer = new ResizeObserver(resize);
   observer.observe(element);
-  choose(selected);
   paint();
   return { element, update, resize, pause };
 }
