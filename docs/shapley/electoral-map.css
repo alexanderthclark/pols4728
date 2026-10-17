@@ -30,6 +30,8 @@
 .stage-shell.is-electoral-map-scene .stage-viz{min-height:0}
 .is-presentation .stage-shell.is-electoral-map-scene .cartogram-view{margin:0 auto;flex:1 1 0;max-width:1200px;min-height:0}
 .is-presentation .stage-shell.is-electoral-map-scene .scene-equation math{font-size:24px}
+.electoral-adjustments{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 24px;font-variant-numeric:tabular-nums}
+.electoral-adjustments>span{white-space:nowrap}
 @media(max-width:760px){
   .cartogram-view{gap:6px}
   .cartogram-phases{gap:2px}
