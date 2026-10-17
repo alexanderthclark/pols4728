@@ -182,18 +182,28 @@ test('the HTML is scroll driven, has one labelled input inspector, and its local
   assert(inputs[0]['aria-describedby'], 'The slider points to its explanatory hint');
   assert(!/aria-pressed/i.test(html), 'No toggles replace the scroll story');
   const opening = sceneMarkup.find(match => match[2] === 'affine')[3].replace(/<[^>]*>/g, ' ');
-  assert(/not a second observed feature/.test(opening), 'The constant bias source is distinguished from an observed feature');
-  assert(/intercept remains part of the equation and the model/.test(opening), 'Hiding the bias drawing retains the model intercept');
+  assert(/\bconstant\b/i.test(opening) && /\b(?:not|isn.t)\b/i.test(opening) && /\b(?:input|feature)\b/i.test(opening),
+    'The opening distinguishes the constant bias source from an input feature');
+  assert(/\b(?:bias|intercept)\b/i.test(opening) && /omit|hidden|hide|simplif|disappear|left out/i.test(opening) &&
+    /remain|still|keep|kept|retain|stay|unchanged|included/i.test(opening),
+  'The opening explains that hiding the bias drawing retains the intercept');
   for (const match of html.matchAll(/<(?:script|img|link)\b[^>]*(?:src|href)="([^"]+)"[^>]*>/g)) {
     const reference = match[1];
     if (/^(?:[a-z]+:|\/\/|#)/i.test(reference)) continue;
     assert(fs.existsSync(path.resolve(directory, reference.split(/[?#]/)[0])), `Asset exists: ${reference}`);
   }
-  const css = fs.readFileSync(path.join(directory, 'style.css'), 'utf8');
-  for (const match of css.matchAll(/url\(\s*['"]?([^'"\s)]+)['"]?\s*\)/g)) {
-    const reference = match[1];
-    if (/^(?:[a-z]+:|\/\/|#)/i.test(reference)) continue;
-    assert(fs.existsSync(path.resolve(directory, reference.split(/[?#]/)[0])), `Stylesheet asset exists: ${reference}`);
+  const stylesheets = [...html.matchAll(/<link\b[^>]*>/g)]
+    .map(match => attrs(match[0]))
+    .filter(link => link.rel === 'stylesheet' && !/^(?:[a-z]+:|\/\/)/i.test(link.href));
+  for (const stylesheet of stylesheets) {
+    const cssPath = path.resolve(directory, stylesheet.href.split(/[?#]/)[0]);
+    const css = fs.readFileSync(cssPath, 'utf8');
+    for (const match of css.matchAll(/url\(\s*['"]?([^'"\s)]+)['"]?\s*\)/g)) {
+      const reference = match[1];
+      if (/^(?:[a-z]+:|\/\/|#)/i.test(reference)) continue;
+      assert(fs.existsSync(path.resolve(path.dirname(cssPath), reference.split(/[?#]/)[0])),
+        `Stylesheet asset exists: ${stylesheet.href} → ${reference}`);
+    }
   }
 });
 
@@ -450,11 +460,26 @@ test('the affine bias stays in predictions after its temporary constant node dis
   }
 });
 
-test('only the affine stage equation uses accessible native MathML generated from its exact TeX', () => {
+test('only the affine stage equation uses visible KaTeX HTML and accessible MathML generated from its exact TeX', () => {
   const expectedTex = String.raw`\hat{y}=wx+b=1\times x+0.5`;
-  const references = [...html.matchAll(/<script\b[^>]*src="([^"]+)"[^>]*>/g)].map(match => match[1]);
+  const references = [...html.matchAll(/<script\b[^>]*src="([^"]+)"[^>]*>/g)].map(match => match[1].split(/[?#]/)[0]);
   assert(references.includes('formula.js'));
   assert(references.indexOf('formula.js') < references.indexOf('story.js'), 'The formula renderer loads before the controller');
+  const katexStylesheet = [...html.matchAll(/<link\b[^>]*>/g)].map(match => attrs(match[0]))
+    .find(link => link.rel === 'stylesheet' && /katex/i.test(link.href));
+  assert(katexStylesheet, 'The visible KaTeX HTML has its local stylesheet');
+  assert(!/^(?:[a-z]+:|\/\/)/i.test(katexStylesheet.href), 'Math typesetting is available without a remote stylesheet');
+  const katexCssPath = path.resolve(directory, katexStylesheet.href.split(/[?#]/)[0]);
+  const katexCss = fs.readFileSync(katexCssPath, 'utf8');
+  assert(/@font-face/.test(katexCss), 'The KaTeX stylesheet provides the required mathematical fonts');
+  assert(/url\([^)]*\.woff2(?:[?)]|["'])/.test(katexCss), 'KaTeX uses locally served web fonts');
+  const mathmlRule = katexCss.match(/\.katex\s+\.katex-mathml\s*\{([^}]*)\}/)?.[1] || '';
+  assert(/clip\s*:/.test(mathmlRule) && /position\s*:\s*absolute/.test(mathmlRule),
+    'The semantic MathML is visually clipped while the HTML branch remains visible');
+  assert(!/display\s*:\s*none|visibility\s*:\s*hidden/.test(mathmlRule),
+    'The semantic expression is retained for assistive technology');
+  const initialEquation = html.match(/<p\b[^>]*id="stage-equation"[^>]*>([\s\S]*?)<\/p>/)?.[1] || '';
+  assert(/class="[^"]*\bkatex-html\b/.test(initialEquation), 'The initial HTML includes visible precompiled math');
   for (const mobile of [false, true]) {
     const app = mount({ mobile });
     app.scroll('affine', .2);
@@ -463,8 +488,14 @@ test('only the affine stage equation uses accessible native MathML generated fro
     assert.equal(app.window.NNFormula.affineTex, expectedTex);
     assert.equal(markup, app.window.NNFormula.affineMarkup);
     assert.equal(equation.attrs['data-tex'], expectedTex);
+    const visible = [...markup.matchAll(/<span\b([^>]*)>/g)].map(match => attrs(match[1]))
+      .find(span => /(?:^|\s)katex-html(?:\s|$)/.test(span.class || ''));
+    assert(visible, 'KaTeX provides a visible HTML typesetting branch');
+    assert.equal(visible['aria-hidden'], 'true', 'The visual branch avoids duplicate screen-reader output');
+    assert(/class="[^"]*\bkatex-mathml\b/.test(markup), 'The same expression has an accessible MathML branch');
+    assert(/class="[^"]*\baccent\b/.test(markup), 'The visible HTML constructs the prediction hat accent');
     const math = markup.match(/<math\b([^>]*)>/);
-    assert(math, 'The equation contains a native MathML math element');
+    assert(math, 'The equation retains a semantic MathML math element');
     const mathAttrs = attrs(math[1]);
     assert.equal(mathAttrs.xmlns, 'http://www.w3.org/1998/Math/MathML');
     assert(mathAttrs['aria-label'].length > 20, 'The equation has an accessible spoken label');
@@ -491,7 +522,8 @@ test('only the affine stage equation uses accessible native MathML generated fro
     assert.equal(equation.innerHTML, markup, 'The same equation survives responsive rerendering');
 
     const relu = app.scroll('relu', .5);
-    assert(!/<math\b|<mover\b|<annotation\b/.test(equation.innerHTML), 'The next scene clears the affine MathML');
+    assert(!/<math\b|<mover\b|<annotation\b|class="[^"]*\bkatex/.test(equation.innerHTML),
+      'The next scene clears both affine typesetting branches');
     assert.equal(equation.attrs['data-tex'], undefined);
     assert.equal(equation.textContent, relu.equation, 'Other scene equations retain their existing text');
     app.scroll('affine', .2);

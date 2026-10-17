@@ -43,9 +43,10 @@ connection disappear from the drawing for clarity; the intercept remains in
 the equation and the model. Omitted bias connections are a diagram convention,
 not a change to the model.
 
-`formula.js` contains the opening equation as LaTeX precompiled to native
-MathML with KaTeX. It uses the course's existing STIX math font and requires
-no runtime math library or external font request.
+`formula.js` contains the opening equation as LaTeX precompiled with KaTeX
+to visible HTML and accessible MathML. Its stylesheet and two required fonts
+are self-hosted in `vendor/katex/`; no runtime math library or external font
+request is required.
 
 The sine approximation begins with five nonzero interior slope changes, at
 0.9, 1.95, 3.05, 4.2, and 5.35, on the domain [0, 2π]. One always-active
