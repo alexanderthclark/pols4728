@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>A bag of words · POLS 4728</title><link rel="stylesheet" href="style.css"><style>
+body{min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:24px}main{width:100%;max-width:1100px;margin:auto}h1{font-weight:400;font-size:clamp(30px,5vw,52px);text-align:center;margin:0 0 20px}.player-controls{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;margin:25px 0 15px;font:15px system-ui,sans-serif}.player-controls input{width:min(440px,65vw)}.player-caption{text-align:center;font-size:17px;line-height:1.5}.player-caption a{display:inline-block;margin-top:16px}.speech-cartoon{max-width:1100px}.speech-art{max-height:48svh!important}.speech-tally{min-height:70px}@media(max-width:760px){body{padding:20px 12px}.speech-art{min-height:220px}.player-caption{font-size:15px}.player-controls{gap:12px}}
+</style></head><body><main><h1>A bag of words</h1><div id="cartoon"></div><div class="player-controls"><button id="play" type="button">Pause</button><button id="replay" type="button">Replay</button><label for="position">Animation</label><input id="position" type="range" min="0" max="1000" step="1" value="0"></div><p class="player-caption">“government of the people, by the people, for the people”<br><a href="./#bag-of-words">Continue to the text explainer ↓</a></p></main><script type="module">
+import {speechCartoon} from './speech-cartoon.mjs';
+const media=matchMedia('(prefers-reduced-motion: reduce)');
+const view=document.querySelector('#cartoon'),slider=document.querySelector('#position'),play=document.querySelector('#play');
+let progress=media.matches?1:0,running=!media.matches,previous=null,request=null;
+function draw(){view.innerHTML=speechCartoon(progress,{reducedMotion:media.matches,id:'player'});slider.value=Math.round(progress*1000);play.textContent=running?'Pause':progress===1?'Play again':'Play';}
+function tick(time){if(previous!==null)progress=Math.min(1,progress+(time-previous)/18000);previous=time;if(progress===1)running=false;draw();if(running)request=requestAnimationFrame(tick);else previous=null;}
+function start(){if(progress===1)progress=0;running=true;previous=null;draw();request=requestAnimationFrame(tick);}
+function pause(){running=false;cancelAnimationFrame(request);previous=null;draw();}
+play.addEventListener('click',()=>running?pause():start());document.querySelector('#replay').addEventListener('click',()=>{pause();progress=0;start();});slider.addEventListener('input',()=>{const next=Number(slider.value)/1000;pause();progress=next;draw();});document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});media.addEventListener('change',()=>{pause();if(media.matches)progress=1;draw();});draw();if(running)request=requestAnimationFrame(tick);
+</script></body></html>
