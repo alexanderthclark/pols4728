@@ -85,6 +85,13 @@
       "description": "A round, torso-less figure walks a high wire while holding a long balancing pole. Sparse monochrome outlines on a transparent field.",
       "sha256": "d8370e3af5d8ad2d84cb63304c551905a299b106c6172d3aaf00121a89824336",
       "usage": "Opening title of the Imbalanced Data explainer. Preserve the full pole and wire, original proportions, transparency, and clear space; keep the title as real HTML text."
+    },
+    {
+      "path": "docs/text/assets/speech-bag.png",
+      "role": "text-bag-of-words-illustration",
+      "description": "A Lincoln-like round, torso-less figure with stovepipe hat and chin beard gives a speech to a cheerful round, torso-less figure holding an open cloth sack. Sparse monochrome outlines on a transparent field.",
+      "sha256": "5d5bc2f9866108ef6743be0804ea5c91772a41e5349b88acc03c403a30cded4d",
+      "usage": "Text explainer opening and bag-of-words cartoon. speech-cartoon.mjs overlays a speaking mouth and real word labels, with reversible scroll-driven motion and an optional standalone player. Preserve proportions, transparency, and full composition. Generated artwork contains no baked-in words."
     }
   ]
 }

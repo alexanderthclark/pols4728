@@ -1,4 +1,5 @@
 import {chapters} from './lesson.mjs';
+import {speechCartoon} from './speech-cartoon.mjs';
 import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine,cbowExample,cbowStep} from './model.mjs';
 
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -24,6 +25,8 @@ function tokenDiagram(p){
   return svg(txt(20,35,q<.5?'D1 · lowercase tokens':'D1 · gather identical terms')+marks+txt(20,345,q<.5?'8 tokens · punctuation removed':'The original order is being discarded.'),'Tokens from D1 move into vocabulary columns as you scroll');
 }
 function bagVisual(stage,p){
+  if(stage<2)return speechCartoon(state.motion?clamp(p):stage,{reducedMotion:!state.motion,id:'lesson-speech'});
+  stage-=2;p-=2;
   if(stage===0)return `<div class="corpus">${documents.map((d,i)=>`<div class="doc"><span>D${i+1}</span><span>${d.text}</span></div>`).join('')}</div>`;
   if(stage===1||(p<1.94&&stage===2))return tokenDiagram(p);
   if(stage===2)return matrix(counts);

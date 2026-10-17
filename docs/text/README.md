@@ -47,3 +47,23 @@ is not a claim of a complete assistive-technology audit.
 
 No build step or external runtime dependencies are required. Serve `docs/` and
 open `/text/` to preview.
+
+## Speech cartoon
+
+The opening now literally catches a Gettysburg Address fragment in a cloth bag.
+Each of its ten tokens travels separately along a spacious upward arc. The
+speaker's mouth moves and the catcher makes a small anticipatory lean. The
+captured counts preserve duplicates: `the` and `people` each occur three times.
+Scroll backward to reverse the scene. Motion-off mode shows the empty and
+completed bag at the two narrative stages.
+
+`cartoon.html` is a separate 18-second animation player with pause, replay, and
+keyboard-accessible seeking. It plays once, pauses when hidden, and starts in
+a stationary completed state under reduced motion. The word flight, mouth, and
+catching poses are deterministic functions in `speech-motion.mjs`; character
+artwork is registered in `design/assets.json`.
+
+Run `node --test tests/speech-motion.test.mjs` for exact token accounting,
+repeated-word counts, motion bounds, path direction, reverse reproducibility,
+and reduced-motion behavior. Manual checks cover the standalone seek controls
+and both scroll stages at desktop and 390×844 / 375×667 phone sizes.
