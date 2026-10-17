@@ -8,6 +8,7 @@ const mix=(a,b,t)=>a+(b-a)*t;
 const fmt=(n,d=2)=>Math.abs(n)<1e-9?'0':n.toFixed(d);
 const vec=a=>'[ '+a.map(n=>fmt(n)).join(', ')+' ]';
 const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+const citedText=stage=>(stage.links??[]).reduce((text,link)=>text.replace(esc(link.label),`<a href="${esc(link.url)}">${esc(link.label)}</a>`),esc(stage.text));
 const svg=(body,label)=>`<svg viewBox="0 0 680 390" role="img" aria-label="${esc(label)}">${body}</svg>`;
 const txt=(x,y,t,extra='')=>`<text x="${x}" y="${y}" font-size="26" ${extra}>${esc(t)}</text>`;
 const line=(x1,y1,x2,y2,color='#767676',extra='')=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="2" ${extra}/>`;
@@ -90,7 +91,7 @@ function render(){queued=false;const y=scrollY;
     const raw=Math.abs(rawPosition-Math.round(rawPosition))<.002?Math.round(rawPosition):rawPosition;
     const p=state.motion?raw:Math.round(raw),stage=Math.round(raw),s=v.chapter.stages[stage];v.p=raw;
     const r=v.track.getBoundingClientRect();if(r.top<=innerHeight*.5&&r.bottom>innerHeight*.5)active=i;
-    if(v.stage!==stage){v.copy.querySelector('h3').textContent=s.title;v.copy.querySelector('.explanation').textContent=s.text;v.copy.querySelector('.qualification').textContent=s.note;v.counter.textContent=`${stage+1} / ${v.chapter.stages.length}`;v.stage=stage;}
+    if(v.stage!==stage){v.copy.querySelector('h3').textContent=s.title;html(v.copy.querySelector('.explanation'),citedText(s));v.copy.querySelector('.qualification').textContent=s.note;v.counter.textContent=`${stage+1} / ${v.chapter.stages.length}`;v.stage=stage;}
     // Render the active chapter and completed boundaries; no time-driven animation.
     updateVisual(v,stage,p);
     v.bar.style.width=`${raw/(v.chapter.stages.length-1)*100}%`;
