@@ -112,12 +112,11 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
     const grid = svg('path');
     const border = svg('path', { class: 'cartogram-border' });
     const leader = svg('line', { class: 'cartogram-label-leader' });
-    const label = svg('text', { class: 'cartogram-label', 'text-anchor': 'middle' });
+    const label = svg('text', { class: 'cartogram-label', 'text-anchor': 'middle', 'dominant-baseline': 'central' });
     label.classList.toggle('is-major', state.votes >= 10);
     leader.classList.toggle('is-major', state.votes >= 10);
-    const abbreviation = svg('tspan', { class: 'cartogram-abbreviation', x: 0 }, state.abbreviation);
-    const value = svg('tspan', { class: 'cartogram-label-value', x: 0, dy: '1.15em' }, String(state.votes));
-    label.append(abbreviation, value);
+    const value = svg('tspan', { class: 'cartogram-label-value', x: 0 }, String(state.votes));
+    label.append(value);
     label.addEventListener('click', () => choose(state));
     fills.append(path);
     grids.append(grid);
@@ -125,7 +124,7 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
     outlines.append(baseline);
     leaders.append(leader);
     labels.append(label);
-    return { state, path, grid, border, baseline, leader, label, abbreviation, value };
+    return { state, path, grid, border, baseline, leader, label, value };
   });
 
   for (const state of alphabetic) {
@@ -259,7 +258,7 @@ export function createElectoralMapView(results, { onPhaseChange = () => {} } = {
     if (!bounds.width || !bounds.height) return;
     const scale = Math.min(bounds.width / ELECTORAL_MAP.width, bounds.height / ELECTORAL_MAP.height);
     element.classList.toggle('is-tiny', scale * ELECTORAL_MAP.width < 260);
-    compact = bounds.width < 600;
+    compact = scale * ELECTORAL_MAP.width < 600;
     element.classList.toggle('is-compact', compact);
     // Labels keep their map positions; only their type follows display size.
     map.style.setProperty('--cartogram-label-size', `${(compact ? 7.5 : 11.5) / scale}px`);

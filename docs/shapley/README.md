@@ -62,7 +62,8 @@ in the final view; a checkbox adds all the other baseline outlines. A persistent
 three-stage control navigates Geography, Electoral votes, and Shapley votes,
 updating the story caption and hash together. State selection, labels, and numeric readouts stay linked.
 Forward/reverse morphs, replay, interruption, resizing, and reduced motion are
-supported. Phone layouts prioritize state abbreviations and the numeric selector.
+supported. Map labels show only vote numbers, including adjusted values in the
+final phase; state names remain available in hover text and the selector.
 
 The boundary data come from Census-derived U.S. Atlas 3.0.1. The published page
 imports local precomputed geometry and requires no external map service.

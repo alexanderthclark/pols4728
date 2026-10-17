@@ -24,8 +24,7 @@
 .cartogram-cell-grid path,.cartogram-cell-grid line{fill:none;stroke:#fff;stroke-width:.6;vector-effect:non-scaling-stroke;pointer-events:none}
 .cartogram-label-leader{stroke:var(--rule);stroke-width:.8;vector-effect:non-scaling-stroke;pointer-events:none}
 .cartogram-label{font-size:var(--cartogram-label-size);fill:var(--blue);paint-order:stroke;stroke:#fff;stroke-width:2px;stroke-linejoin:round;cursor:pointer}
-.cartogram-abbreviation{font-weight:600}
-.cartogram-label-value{font-size:.85em;font-weight:400;font-variant-numeric:tabular-nums}
+.cartogram-label-value{font-size:1em;font-weight:400;font-variant-numeric:tabular-nums}
 .cartogram-label.is-selected{fill:var(--cartogram-emphasis)}
 .cartogram-controls{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:18px;width:100%;max-width:840px;min-height:44px;margin:0 auto}
 .cartogram-state-control{display:flex;flex:1 1 340px;align-items:center;gap:12px;min-width:0}
@@ -67,7 +66,6 @@
   .cartogram-state{stroke-width:.65}
   .cartogram-state.is-selected{stroke-width:1.7}
   .cartogram-label{stroke-width:1.7px}
-  .cartogram-view.is-compact .cartogram-label-value{display:none}
 }
 @media(max-width:370px){
   .cartogram-phases button{font-size:10px;padding:6px 2px}
