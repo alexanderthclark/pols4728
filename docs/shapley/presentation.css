@@ -4,8 +4,8 @@ body.is-presentation{--presentation-header:68px}
 .is-presentation .stage-shell{grid-area:1/1;position:sticky;top:var(--presentation-header);z-index:2;align-self:start;width:100%;height:calc(100svh - var(--presentation-header));min-height:0;padding:18px clamp(24px,5vw,84px) 12px;background:var(--paper);border:0;gap:10px}
 .is-presentation .narrative{grid-area:1/1;padding:0;pointer-events:none;min-width:0}
 .is-presentation .step{display:block;min-height:calc(100svh - var(--presentation-header));padding:0;scroll-margin-top:var(--presentation-header)}
-.is-presentation .step[data-step="5"]{min-height:180svh}
-.is-presentation .step[data-step="7"]{min-height:calc(100svh - var(--presentation-header));scroll-margin-top:var(--presentation-header)}
+.is-presentation .step[data-step="6"]{min-height:180svh}
+.is-presentation .step[data-step="8"]{min-height:calc(100svh - var(--presentation-header));scroll-margin-top:var(--presentation-header)}
 .is-presentation .stage-top{flex:0 0 auto;width:100%;max-width:1200px;margin:0 auto;align-items:center}
 .is-presentation .stage-viz{flex:1 1 0;min-height:0;gap:10px;width:100%;max-width:1200px;margin:0 auto;justify-content:center}
 .is-presentation .stage-bottom{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;min-height:0}
@@ -28,9 +28,10 @@ body.is-presentation{--presentation-header:68px}
 .is-presentation .graph-canvas{aspect-ratio:680/510;width:100%;height:auto;max-height:none}
 .is-presentation .stage-shell[data-scene="2"] .graph-container{transform:none}
 .is-presentation .stage-shell[data-scene="2"] .graph-container .graph-canvas{margin-bottom:0}
-.is-presentation .stage-shell[data-scene="6"] .graph-container,.is-presentation .stage-shell[data-scene="7"] .graph-container{width:min(100%,calc((100svh - 390px)*1.333));max-width:720px}
+.is-presentation .stage-shell[data-scene="7"] .graph-container,.is-presentation .stage-shell[data-scene="8"] .graph-container{width:min(100%,calc((100svh - 390px)*1.333));max-width:720px}
 .is-presentation .graph-caption{margin:0;min-height:38px;gap:3px;font-size:12px;line-height:1.35}
 .is-presentation .graph-caption:empty{display:none}
+.is-presentation .stage-shell.is-pair-level-scene .graph-caption:empty{display:flex}
 .is-presentation .path-order{font-size:20px}
 .is-presentation .calculation{flex:0 0 auto;margin:0 auto;padding-top:10px;width:min(100%,620px)}
 .is-presentation .calculation-heading{margin-bottom:8px}
@@ -110,7 +111,7 @@ body.is-presentation{--presentation-header:68px}
 .is-presentation .electoral-readout dd{font-size:22px}
 .is-presentation .electoral-selection-note{max-width:620px;margin:9px auto 0;font-size:12px}
 .is-presentation .electoral-scatter{max-height:340px}
-.is-presentation .stage-shell[data-scene="16"] .scene-equation math{font-size:24px}
+.is-presentation .stage-shell[data-scene="17"] .scene-equation math{font-size:24px}
 
 .is-presentation #scene-detail-dialog{width:min(760px,calc(100vw - 36px));max-height:85svh;padding:22px 26px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);overflow:auto;overscroll-behavior:contain}
 .is-presentation #scene-detail-dialog::backdrop{background:var(--backdrop)}
@@ -131,7 +132,7 @@ body.is-presentation{--presentation-header:68px}
 
 @media(max-width:760px){
   body.is-presentation{--presentation-header:54px}
-  .is-presentation .stage-shell,.is-presentation .stage-shell.is-formula-scene,.is-presentation .stage-shell.is-value-function-scene,.is-presentation .stage-shell.is-electoral-scene,.is-presentation .stage-shell[data-scene="6"],.is-presentation .stage-shell[data-scene="7"]{height:calc(100svh - var(--presentation-header));min-height:0;padding:10px 20px 8px;gap:7px}
+  .is-presentation .stage-shell,.is-presentation .stage-shell.is-formula-scene,.is-presentation .stage-shell.is-value-function-scene,.is-presentation .stage-shell.is-electoral-scene,.is-presentation .stage-shell[data-scene="7"],.is-presentation .stage-shell[data-scene="8"]{height:calc(100svh - var(--presentation-header));min-height:0;padding:10px 20px 8px;gap:7px}
   .is-presentation .stage-top{gap:10px;min-height:18px}
   .is-presentation .stage-top .eyebrow{font-size:9px;letter-spacing:.08em}
   .is-presentation .stage-count{font-size:9px;line-height:1.3;text-align:right;max-width:140px}
@@ -142,7 +143,7 @@ body.is-presentation{--presentation-header:68px}
   .is-presentation #scene-navigation{gap:14px;min-height:44px;font-size:11px}
   .is-presentation #scene-navigation button{min-width:80px;padding:6px 11px;font-size:12px}
   .is-presentation .graph-container{width:min(100%,calc((100svh - 285px)*1.333));max-width:560px}
-  .is-presentation .stage-shell[data-scene="6"] .graph-container,.is-presentation .stage-shell[data-scene="7"] .graph-container{width:min(100%,calc((100svh - 370px)*1.333));max-width:560px}
+  .is-presentation .stage-shell[data-scene="7"] .graph-container,.is-presentation .stage-shell[data-scene="8"] .graph-container{width:min(100%,calc((100svh - 370px)*1.333));max-width:560px}
   .is-presentation .graph-caption{font-size:11px;min-height:30px;gap:2px}
   .is-presentation .path-order{font-size:18px}
   .is-presentation .coalition-node{min-height:43px}
@@ -197,7 +198,7 @@ body.is-presentation{--presentation-header:68px}
   .is-presentation .electoral-readout dt{font-size:10px;margin-bottom:3px}
   .is-presentation .electoral-readout dd{font-size:18px}
   .is-presentation .electoral-selection-note{margin-top:6px;font-size:10px;line-height:1.35}
-  .is-presentation .stage-shell[data-scene="16"] .scene-equation math{font-size:20px}
+  .is-presentation .stage-shell[data-scene="17"] .scene-equation math{font-size:20px}
   .is-presentation #scene-detail-dialog{width:calc(100vw - 24px);padding:15px 18px;max-height:85svh}
   .is-presentation #scene-detail-body{font-size:15px;line-height:1.6}
   .is-presentation #scene-detail-body h2{font-size:27px;margin-bottom:14px}
@@ -205,7 +206,7 @@ body.is-presentation{--presentation-header:68px}
   .is-presentation #scene-detail-body .value-definition math{font-size:22px}
 }
 @media(max-width:370px){
-  .is-presentation .stage-shell,.is-presentation .stage-shell.is-formula-scene,.is-presentation .stage-shell.is-value-function-scene,.is-presentation .stage-shell.is-electoral-scene,.is-presentation .stage-shell[data-scene="6"],.is-presentation .stage-shell[data-scene="7"]{padding-left:14px;padding-right:14px}
+  .is-presentation .stage-shell,.is-presentation .stage-shell.is-formula-scene,.is-presentation .stage-shell.is-value-function-scene,.is-presentation .stage-shell.is-electoral-scene,.is-presentation .stage-shell[data-scene="7"],.is-presentation .stage-shell[data-scene="8"]{padding-left:14px;padding-right:14px}
   .is-presentation #scene-caption h2{font-size:23px}
   .is-presentation #scene-caption p.scene-summary{font-size:13px}
   .is-presentation .formula-equation{flex-direction:column;gap:1px}
@@ -224,7 +225,7 @@ body.is-presentation{--presentation-header:68px}
   .is-presentation #scene-caption h2{font-size:27px}
   .is-presentation #scene-caption p.scene-summary{font-size:14px;margin-top:5px}
   .is-presentation .graph-container{width:min(100%,calc((100svh - 275px)*1.333))}
-  .is-presentation .stage-shell[data-scene="6"] .graph-container,.is-presentation .stage-shell[data-scene="7"] .graph-container{width:min(100%,calc((100svh - 350px)*1.333))}
+  .is-presentation .stage-shell[data-scene="7"] .graph-container,.is-presentation .stage-shell[data-scene="8"] .graph-container{width:min(100%,calc((100svh - 350px)*1.333))}
   .is-presentation .stage-shell.is-formula-scene .graph-container,.is-presentation .stage-shell.is-formula-scene .graph-canvas{max-height:170px}
   .is-presentation .formula-equation math{font-size:24px}
   .is-presentation .formula-definitions{font-size:10px}
@@ -244,14 +245,14 @@ body.is-presentation{--presentation-header:68px}
 
 /* Fit the diagram to the space left by this scene's caption and controls. */
 .is-presentation .graph-container,
-.is-presentation .stage-shell[data-scene="6"] .graph-container,
-.is-presentation .stage-shell[data-scene="7"] .graph-container{width:min(100%,calc(var(--graph-height,400px)*1.333333));flex:0 0 auto}
+.is-presentation .stage-shell[data-scene="7"] .graph-container,
+.is-presentation .stage-shell[data-scene="8"] .graph-container{width:min(100%,calc(var(--graph-height,400px)*1.333333));flex:0 0 auto}
 .is-presentation #scene-caption .step-content>.small-note{display:none}
-.is-presentation .stage-shell[data-scene="9"] .formula-context,
-.is-presentation .stage-shell[data-scene="14"] .formula-context{display:none}
+.is-presentation .stage-shell[data-scene="10"] .formula-context,
+.is-presentation .stage-shell[data-scene="15"] .formula-context{display:none}
 @media(max-width:760px) and (max-height:650px){
   .is-presentation .stage-shell.is-formula-scene .graph-container{display:none}
-  .is-presentation .stage-shell[data-scene="6"] #scene-caption .weight-explainer-trigger{display:none}
+  .is-presentation .stage-shell[data-scene="7"] #scene-caption .weight-explainer-trigger{display:none}
   .is-presentation .coalition-node{min-height:32px;gap:2px;padding:3px 2px}
   .is-presentation .coalition-set{font-size:12px}
   .is-presentation .coalition-value{font-size:8px}
