@@ -32,12 +32,16 @@
       <div class="stage-viz" id="stage-viz">
         <div class="voters" id="voters"><div class="voter" data-player="0"><span class="voter-letter">A</span><span class="voter-vote">Yes</span></div><div class="voter" data-player="1"><span class="voter-letter">B</span><span class="voter-vote">Yes</span></div><div class="voter" data-player="2"><span class="voter-letter">C</span><span class="voter-vote">Yes</span></div></div>
         <div class="outcome" id="outcome"><span class="outcome-number">3</span><span class="outcome-caption">votes in favor</span><span class="outcome-result">The proposal passes</span></div>
+        <table class="majority-rule" id="majority-rule" aria-label="The majority-voting rule" hidden>
+          <thead><tr><th scope="col">Voters in the group</th><th scope="col">Outcome</th><th scope="col">Value</th></tr></thead>
+          <tbody><tr><th scope="row">2 or 3</th><td>Pass</td><td class="majority-rule-value">1</td></tr><tr><th scope="row">0 or 1</th><td>Fail</td><td class="majority-rule-value">0</td></tr></tbody>
+        </table>
       </div>
       <div class="stage-bottom" id="stage-bottom"><span class="legend-mark"></span><span>Every voter supports the proposal.</span></div>
     </aside>
     <div class="narrative" id="narrative">
       <section class="step is-active" data-step="0" id="scene-1" tabindex="-1"><div class="step-content"><p class="eyebrow">A SCROLLING EXPLAINER / MAJORITY RULE</p><h2>Three votes, one outcome</h2><p class="scene-summary">A proposal needs two yes votes. All three voters support it. Everyone helped—but how much credit should each receive?</p></div></section>
-      <section class="step" data-step="1"><div class="step-content"><span class="step-number">02</span><h2>Remove one voter</h2><p class="scene-summary">Removing any one voter leaves two yes votes, so the proposal still passes. Final-group removals give everyone zero credit.</p></div></section>
+      <section class="step" data-step="1"><div class="step-content"><span class="step-number">02</span><h2>Two votes are enough</h2><p class="scene-summary">Groups with two or three voters pass (1). Groups with one or no voters fail (0).</p></div></section>
       <section class="step" data-step="2"><div class="step-content"><span class="step-number">03</span><h2>Start with smaller groups</h2><p class="scene-summary">A coalition is a group of voters. Nobody or one voter cannot pass the proposal, so these groups have value zero.</p></div></section>
       <section class="step" data-step="3"><div class="step-content"><span class="step-number">04</span><h2>The second vote decides</h2><p class="scene-summary">Every pair passes and has value one. Adding A to B changes failure into success: a contribution of one.</p></div></section>
       <section class="step" data-step="4"><div class="step-content"><span class="step-number">05</span><h2>Order changes the credit</h2><p class="scene-summary">In the order B → A → C, A supplies the deciding vote. Change the order and a different voter gets the credit.</p></div></section>
