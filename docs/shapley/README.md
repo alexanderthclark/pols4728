@@ -40,7 +40,7 @@ focus, keyboard navigation, coalition selection, and replay.
 Five closing scenes change the value function to a weighted voting game with
 50 states and DC as players. The first is a title transition at
 `#electoral-introduction`: a monochrome cartoon above the real-text title
-“US Electoral College.” Two equally sized round, torso-free figures use one
+“Application: US Electoral College.” Two equally sized round, torso-free figures use one
 ballot box. A surfer with a surfboard puts in many ballots; a figure in a cowboy
 hat holds exactly three. The illustration has a white background and black lines,
 with no labels, state outlines, or partisan colors. The original opening cover
@@ -126,7 +126,7 @@ Open `http://localhost:8765/shapley/`. A web server is required because the page
 - `index.html` contains the opening page, narrative, and page structure.
 - `style.css` styles the opening page, story, Hasse diagram, and optional panel.
 - `assets/voters-ballot-box.png` is the registered opening illustration; the title and application label remain real text in the page.
-- `assets/electoral-ballot-characters.png` is the registered Electoral College transition illustration; “US Electoral College” remains real text below the art.
+- `assets/electoral-ballot-characters.png` is the registered Electoral College transition illustration; “Application: US Electoral College” remains real text below the art.
 - `game.mjs` calculates coalition values, joining edges, all accounting orders, edge frequencies, and Shapley values.
 - `story.js` handles scroll stages, caption placement, navigation, detail dialogs, and the three-voter explorer.
 - `presentation.css` gives the complete story its responsive single-column layout.
