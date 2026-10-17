@@ -26,7 +26,9 @@ function mount({ mobile = false, reduced = false } = {}) {
   const emit = (map, name, event = {}) => (map.get(name) || []).forEach(callback => callback(event));
   function makeNode(attributes) {
     const node = {
-      attrs: { ...attributes }, dataset: {}, style: {}, disabled: false, innerHTML: '', textContent: '',
+      attrs: { ...attributes }, dataset: {}, style: {}, disabled: false, hidden: false,
+      value: attributes.value || '', min: attributes.min || '', max: attributes.max || '', step: attributes.step || '',
+      tagName: attributes.type ? 'INPUT' : '', innerHTML: '', textContent: '',
       events: new Map(), classes: new Set((attributes.class || '').split(/\s+/)),
       setAttribute(name, value) { this.attrs[name] = String(value); },
       removeAttribute(name) { delete this.attrs[name]; },
@@ -124,6 +126,14 @@ function mount({ mobile = false, reduced = false } = {}) {
     scroll(scene, progress = .5) { position(scene, progress); emit(windowEvents, 'scroll'); flush(); return this.frame(); },
     resize() { emit(windowEvents, 'resize'); flush(); },
     click(id) { const node = document.getElementById(id); if (!node.disabled) emit(node.events, 'click'); flush(); },
+    input(id, value) {
+      const node = document.getElementById(id);
+      node.value = String(value);
+      assert((node.events.get('input') || []).length > 0, `Missing input handler for ${id}`);
+      emit(node.events, 'input', { target: node, currentTarget: node });
+      flush();
+      return this.frame();
+    },
     key(key, extras = {}) {
       const event = { key, target: { tagName: 'BODY' }, defaultPrevented: false,
         preventDefault() { this.defaultPrevented = true; }, ...extras };
@@ -144,11 +154,17 @@ function mount({ mobile = false, reduced = false } = {}) {
   };
 }
 
-test('the HTML is scroll driven and its local assets resolve', () => {
+test('the HTML is scroll driven, has one labelled input inspector, and its local assets resolve', () => {
   assert.equal(sceneNames.length, 16);
   assert.equal(new Set(sceneNames).size, 16);
-  assert(!/<input\b|<select\b|<form\b/i.test(html), 'No form controls substitute for scrolling');
-  assert(!/aria-pressed|type="range"/i.test(html), 'No toggles or range sliders');
+  assert(!/<select\b|<form\b/i.test(html), 'No form controls substitute for scrolling');
+  const inputs = [...html.matchAll(/<input\b[^>]*>/gi)].map(match => attrs(match[0]));
+  assert.equal(inputs.length, 1, 'The input inspector is the only input');
+  assert.equal(inputs[0].id, 'input-x');
+  assert.equal(inputs[0].type, 'range');
+  assert(/<label\b[^>]*for="input-x"[^>]*>[\s\S]*?<\/label>/.test(html), 'The x slider has an explicit label');
+  assert(inputs[0]['aria-describedby'], 'The slider points to its explanatory hint');
+  assert(!/aria-pressed/i.test(html), 'No toggles replace the scroll story');
   for (const match of html.matchAll(/<(?:script|img|link)\b[^>]*(?:src|href)="([^"]+)"[^>]*>/g)) {
     const reference = match[1];
     if (/^(?:[a-z]+:|\/\/|#)/i.test(reference)) continue;
@@ -165,6 +181,8 @@ test('scroll alone traverses all 16 scenes and reverses the sine construction', 
     const frame = app.scroll(scene, scene === 'sine-wide' ? .99 : .5);
     seen.push(frame.scene);
     assert.equal(frame.scene, scene);
+    assert.notEqual(frame.inspectInput, true, 'Automatic scrolling needs no slider interaction');
+    assert.equal(Number(app.element('input-x').value), frame.x);
     assert.equal(app.element('story').dataset.scene, scene);
     assert.equal(app.steps.filter(step => step.classes.has('is-active')).length, 1);
     assert.equal(app.steps.find(step => step.classes.has('is-active')).attrs['aria-current'], 'step');
@@ -258,6 +276,90 @@ test('navigation handlers scroll to adjacent scenes and honor keyboard context',
   mobile.scroll('shallow'); mobile.click('next');
   assert.equal(mobile.frame().scene, 'width-one');
   assert.equal(mobile.runtime.scrollCalls.at(-1).behavior, 'auto');
+});
+
+test('the input inspector changes activations without changing the sine approximation', () => {
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    const automatic = app.scroll('sine-wide', .99);
+    const expectedModel = JSON.stringify(automatic.model);
+    const expectedHighlight = automatic.highlightX;
+    const baselineProgress = automatic.progress;
+    assert.equal(automatic.width, 26);
+    assert.notEqual(automatic.inspectInput, true, 'Scrolling alone keeps the automatic input');
+    assert.equal(Number(app.element('input-x').min), 0);
+    assert(Math.abs(Number(app.element('input-x').max) - 2 * Math.PI) < .001);
+
+    const atZero = app.input('input-x', 0);
+    const zeroNetwork = app.element('network-plot').innerHTML;
+    const zeroPlot = app.element('function-plot').innerHTML;
+    const activeAtZero = app.window.NNMath.contributions(atZero.model, atZero.x).filter(unit => unit.active).length;
+    assert.equal(atZero.x, 0);
+    assert.equal(atZero.inspectInput, true);
+    assert.equal(atZero.scene, 'sine-wide');
+    assert.equal(atZero.progress, baselineProgress);
+    assert.equal(JSON.stringify(atZero.model), expectedModel);
+
+    const atSix = app.input('input-x', 6);
+    const activeAtSix = app.window.NNMath.contributions(atSix.model, atSix.x).filter(unit => unit.active).length;
+    assert.equal(atSix.x, 6);
+    assert.equal(atSix.inspectInput, true);
+    assert.equal(atSix.width, 26);
+    assert.equal(atSix.scene, 'sine-wide');
+    assert.equal(atSix.progress, baselineProgress);
+    assert.equal(atSix.highlightX, expectedHighlight, 'The UAT insertion location stays fixed');
+    assert.equal(JSON.stringify(atSix.model), expectedModel, 'Inspection never retrains or changes network weights');
+    assert(activeAtSix > activeAtZero, 'The selected x activates more hidden neurons');
+    assert.notEqual(app.element('network-plot').innerHTML, zeroNetwork, 'The network drawing responds to x');
+    assert.notEqual(app.element('function-plot').innerHTML, zeroPlot, 'The function marker responds to x');
+    assert.equal(Number(app.element('input-x').value), 6);
+    assert.equal(app.element('input-x').attrs['aria-valuetext'], 'x = 6.00');
+    assert.equal(app.element('input-x-value').textContent, '6.00');
+    const crosshair = [...app.element('function-plot').innerHTML.matchAll(/<line\b[^>]*>/g)]
+      .map(match => attrs(match[0]))
+      .find(line => line.stroke === '#007F73' && line['stroke-dasharray'] === '4 4');
+    assert(crosshair, 'The selected input has its own dashed crosshair');
+    assert(Math.abs(Number(crosshair.x1) - (53 + 6 / (2 * Math.PI) * (589 - 53))) < 1e-8,
+      'The crosshair is at the selected x on the plot scale');
+    assert.equal(crosshair.x1, crosshair.x2, 'The x crosshair is vertical');
+    app.checkSvg(mobile ? 'mobile inspected sine' : 'desktop inspected sine');
+
+    const clamped = app.scroll('shallow', .5);
+    assert.equal(Number(app.element('input-x').min), -2);
+    assert.equal(Number(app.element('input-x').max), 2);
+    assert.equal(clamped.x, 2, 'The chosen input is clamped to the current plot domain');
+    assert.equal(clamped.inspectInput, true);
+    const returned = app.scroll('sine-wide', .99);
+    assert.equal(returned.x, 6, 'Returning to sine restores the desired input, not the clamped value');
+    assert.equal(JSON.stringify(returned.model), expectedModel);
+
+    const beforeCalls = app.runtime.scrollCalls.length;
+    const event = app.key('ArrowRight', { target: app.element('input-x') });
+    assert(!event.defaultPrevented, 'The input keeps its native arrow-key interaction');
+    assert.equal(app.runtime.scrollCalls.length, beforeCalls, 'Input arrow keys never change the scene');
+    assert.equal(app.frame().scene, 'sine-wide');
+
+    const joint = app.scroll('sine-joint', .5);
+    const expectedJoint = app.window.NNStoryState.frame('sine-joint', .5);
+    assert.equal(joint.x, 6);
+    assert.equal(joint.highlightX, expectedJoint.highlightX);
+    assert.equal(JSON.stringify(joint.model), JSON.stringify(expectedJoint.model),
+      'Inspection leaves the partially updated UAT weights unchanged');
+    app.input('input-x', 0);
+    assert.equal(JSON.stringify(app.frame().model), JSON.stringify(expectedJoint.model));
+    assert.equal(app.frame().highlightX, expectedJoint.highlightX);
+
+    if (app.elements.has('follow-input')) {
+      app.click('follow-input');
+      const reset = app.frame();
+      assert.notEqual(reset.inspectInput, true);
+      assert.equal(reset.x, expectedJoint.x);
+      assert.equal(reset.highlightX, expectedJoint.highlightX);
+      assert.equal(JSON.stringify(reset.model), JSON.stringify(expectedJoint.model));
+      const nextAutomatic = app.scroll('shallow', .5);
+      assert.equal(nextAutomatic.x, app.window.NNStoryState.frame('shallow', .5).x);
+    }
+  }
 });
 
 test('all generated SVG samples are balanced and contain valid XML entities', () => {

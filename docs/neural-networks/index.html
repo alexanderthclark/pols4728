@@ -60,6 +60,14 @@
             <svg id="network-plot" viewBox="0 0 470 440" role="img" aria-label="The neural network producing the function"></svg>
           </figure>
         </div>
+        <div class="input-inspector">
+          <div class="input-control-row">
+            <label for="input-x">Input <i>x</i></label>
+            <input id="input-x" type="range" min="-2" max="2" step="0.01" value="0.4" aria-describedby="input-x-hint">
+            <output id="input-x-value" for="input-x">0.40</output>
+          </div>
+          <p id="input-x-hint" class="input-hint">Move <i>x</i> to inspect the activations.</p>
+        </div>
         <p id="stage-caption" class="stage-caption">With no bends, the output has one constant slope.</p>
         <div class="stage-footer">
           <span class="stage-instruction">Scroll to continue</span>

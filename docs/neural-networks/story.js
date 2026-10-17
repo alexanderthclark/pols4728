@@ -4,7 +4,7 @@
   const steps=Array.from(document.querySelectorAll('.step[data-scene]'));
   const byId=id=>document.getElementById(id);
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let currentIndex=0,renderSignature='',pending=0;
+  let currentIndex=0,renderSignature='',pending=0,inspectionX=null,lastFrame=null;
   const chapter=scene=>scene.startsWith('width-')?'02 · Width and joints':scene.startsWith('sine-')||scene==='universal'?'03 · Approximation':'01 · Shallow networks';
   function update(){
     pending=0;
@@ -21,11 +21,21 @@
     // Quantization prevents needless SVG work on fractional-pixel scroll events.
     progress=Math.round(progress*100)/100;
     if(reduced)progress=scene==='width-many'||scene==='sine-wide'?Math.round(progress*10)/10:1;
-    const signature=scene+':'+progress+':'+(mobile?'compact':'desktop');
+    const signature=scene+':'+progress+':'+(mobile?'compact':'desktop')+':'+(inspectionX===null?'story':inspectionX);
     if(signature!==renderSignature){
       renderSignature=signature;
       const frame=State.frame(scene,progress);
       frame.compact=mobile;
+      const domain=frame.kind==='sine'?[0,2*Math.PI]:[-2,2];
+      if(inspectionX!==null){
+        frame.x=Math.max(domain[0],Math.min(domain[1],inspectionX));
+        frame.inspectInput=true;
+      }
+      const input=byId('input-x');
+      input.min=String(domain[0]);input.max=String(domain[1]);input.value=String(frame.x);
+      input.setAttribute('aria-valuetext','x = '+frame.x.toFixed(2));
+      byId('input-x-value').textContent=frame.x.toFixed(2);
+      lastFrame=frame;
       Views.render(byId('function-plot'),byId('network-plot'),frame);
       byId('stage-name').textContent=chapter(scene);
       byId('stage-count').textContent=String(index+1).padStart(2,'0')+' / '+steps.length;
@@ -51,6 +61,10 @@
   }
   if(byId('previous'))byId('previous').addEventListener('click',()=>go(-1));
   if(byId('next'))byId('next').addEventListener('click',()=>go(1));
+  byId('input-x').addEventListener('input',e=>{
+    const value=Number(e.target.value);
+    if(Number.isFinite(value)){inspectionX=value;queue();}
+  });
   document.addEventListener('keydown',e=>{
     if(e.altKey||e.ctrlKey||e.metaKey||/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName||''))return;
     if(e.key==='ArrowRight'){e.preventDefault();go(1);}else if(e.key==='ArrowLeft'){e.preventDefault();go(-1);}
@@ -58,5 +72,5 @@
   window.addEventListener('scroll',queue,{passive:true});window.addEventListener('resize',queue);
   document.fonts?.ready.then(queue);
   update();
-  window.NNScrollStory=Object.freeze({getFrame:()=>State.frame(steps[currentIndex].dataset.scene,Number(renderSignature.split(':')[1])||0),refresh:update});
+  window.NNScrollStory=Object.freeze({getFrame:()=>lastFrame,refresh:update});
 })();

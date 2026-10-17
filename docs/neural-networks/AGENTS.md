@@ -15,3 +15,7 @@ Preserve the three-part sequence:
 Scrolling drives the mathematical changes in all three parts. Preserve the
 course design guide, blacksmith title illustration, and the readable mobile
 and reduced-motion versions.
+
+Keep the input-x slider available for inspecting which neurons activate at
+a chosen input. It changes the traced input and activations while scrolling
+continues to control the model weights, width, and narrative progression.

@@ -4,8 +4,12 @@ A scroll-driven introduction to one-dimensional ReLU networks. The narrative
 contains sixteen scenes in three parts: shallow networks as sums of hinges,
 width as the number of available joints, and constructive approximation of a
 sine curve by widening the same hidden layer. Scrolling backward reverses the story.
-There are no sliders or toggles. The arrow buttons and left/right arrow keys
-provide optional navigation between the same scroll positions.
+The input-x slider lets readers inspect which neurons activate at a chosen
+input, with a matching point on the function plot. It preserves the model
+weights and the story's fixed approximation-error detail view. Scrolling
+continues to drive the lesson, network width, and weight updates. The arrow
+buttons and left/right arrow keys provide optional navigation between the
+same scroll positions; arrow keys on the slider adjust the input instead.
 
 The title illustration depicts a round, torso-less blacksmith shaping a heated
 rod on an anvil. Its registry entry is in `design/assets.json`. The WebP asset

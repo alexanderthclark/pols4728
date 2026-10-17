@@ -151,13 +151,20 @@
     b.add('</g>');
 
     if (kind === 'sine' && frame.zoom) drawInset(b, frame, model, px, py);
-    if (kind !== 'sine') {
-      b.text(left, frame.compact ? 339 : 376, 'x = ' + fmt(xValue) + '   →   ŷ = ' + fmt(value(xValue)), 'class="nv-number"');
-      if (frame.components && !frame.compact) b.text(right, 376, 'Dashed: each weighted neuron', 'class="nv-small" text-anchor="end"');
-    } else {
-      if (!frame.compact) b.text(left, 376, 'One input x', 'class="nv-small"');
-      if (!frame.compact) b.text(right, 376, 'Solid line: linear between its joints', 'class="nv-small" text-anchor="end"');
+    if (kind === 'sine' && frame.inspectInput) {
+      // The teal input cursor follows the slider; the rust error marker and
+      // magnified inset continue to inspect the fixed story highlightX.
+      b.add('<g clip-path="url(#' + plotId + ')" data-input-cursor="true">');
+      b.line(px(xValue), bottom, px(xValue), py(value(xValue)), 'stroke="' + C.teal + '" stroke-width="1.5" stroke-dasharray="4 4"');
+      b.line(left, py(value(xValue)), px(xValue), py(value(xValue)), 'stroke="' + C.teal + '" stroke-width="1.1" stroke-dasharray="3 5" opacity=".6"');
+      b.circle(px(xValue), py(value(xValue)), frame.compact ? 7 : 5.8, 'fill="' + C.teal + '" stroke="#fff" stroke-width="2"');
+      b.add('</g>');
     }
+    if (kind !== 'sine' || frame.inspectInput) {
+      b.text(left, frame.compact ? 339 : 376, 'x = ' + fmt(xValue) + '   →   ŷ = ' + fmt(value(xValue)), 'class="nv-number"' + (kind === 'sine' ? ' style="fill:' + C.teal + '"' : ''));
+      if (frame.components && !frame.compact) b.text(right, 376, 'Dashed: each weighted neuron', 'class="nv-small" text-anchor="end"');
+    } else if (!frame.compact) b.text(left, 376, 'One input x', 'class="nv-small"');
+    if (kind === 'sine' && !frame.compact) b.text(right, 376, 'Solid line: linear between its joints', 'class="nv-small" text-anchor="end"');
     b.finish();
   }
 
@@ -196,7 +203,7 @@
     const values = affine ? [] : M.contributions(model, x);
     const result = affine ? x : M.evaluate(model, x);
     const b = builder(svg, 400, 390, affine ? 'An affine function maps input x directly to the output.' :
-      'A neural network with one input, ' + count + ' hidden ReLU ' + (count === 1 ? 'neuron' : 'neurons') + ', and one linear output. Each input weight is one. Hidden biases are minus the joint locations; output weights are changes in slope.');
+      'A neural network with one input, ' + count + ' hidden ReLU ' + (count === 1 ? 'neuron' : 'neurons') + ', and one linear output. At x = ' + fmt(x) + ', ' + values.filter(v => v.activation > 1e-8).length + ' hidden neurons are active and the output is ' + fmt(result) + '. Each input weight is one. Hidden biases are minus the joint locations; output weights are changes in slope.');
     const inputX = 34, hiddenX = 192, outX = 365, middleY = 204;
     b.text(200, 25, affine ? '1 input · 1 output' : '1 input · ' + count + ' hidden · 1 output', 'class="nv-head" text-anchor="middle"');
     b.text(inputX, 61, 'Input', 'class="nv-small" text-anchor="middle"');
@@ -249,7 +256,7 @@
     const result = affine ? x : M.evaluate(model, x);
     const b = builder(svg, 620, 220,
       affine ? 'One affine transformation from input to output.' :
-        'One input, one hidden layer containing ' + count + ' ReLU neurons, and one linear output. Input weights are one; hidden biases and output weights are labelled.', true);
+        'One input, one hidden layer containing ' + count + ' ReLU neurons, and one linear output. At x = ' + fmt(x) + ', ' + values.filter(v => v.activation > 1e-8).length + ' hidden neurons are active and the output is ' + fmt(result) + '. Input weights are one; hidden biases and output weights are labelled.', true);
     const center = 310, inputY = 23, hiddenY = 110, outputY = 200;
     const radius = count > 17 ? 5.5 : count > 10 ? 7.5 : count > 6 ? 9 : 12;
     const positions = neurons.map((n, i) => count < 2 ? center : 48 + i * 524 / (count - 1));
