@@ -16,6 +16,16 @@ The [Fall 2026 Python examples](examples/2026f/README.md) accompany the code lis
 
 ## Interactive explanations
 
+The [Peloton fine-tuning lesson](docs/peloton-fine-tuning/README.md) follows
+instructor speech through provisional labels, a stratified split, a pretrained
+encoder, a classification head, cross-entropy, and full fine-tuning. Its opening
+motivation paraphrases Tara Isabella Burton rather than quoting the book.
+
+The [StyleDistance lesson](docs/style-distance/README.md) develops a different
+objective: adapting a shared encoder so that texts with similar style are closer
+despite differing content. Both lessons pin their diagrams, respond continuously
+to scroll, reverse with scroll, and provide keyboard and reduced-motion routes.
+
 The [gradient boosting story](docs/boosting/README.md), linked second on the
 course homepage, connects interactive prediction-space geometry to fitted
 tree corrections. Its identical-input example shows the limits of available
