@@ -62,7 +62,9 @@ its 54 votes raise the total to 304, crossing the threshold. Three maps follow:
 The map uses the same coordinate system and on-screen scale in every phase.
 Space for captions, the final equation, and controls is reserved across the
 sequence, including short phones; layout changes cannot magnify or hide the
-small power premium. Electoral scenes use neutral grays throughout, with
+small power premium. The final scene adds a full viewport of scroll space so
+the stage remains pinned while the Shapley adjustment plays, then releases
+naturally to the footer. Electoral scenes use neutral grays throughout, with
 California and Wyoming marked by a darker fill and thicker outline, avoiding
 party colors. Their electoral-area outlines stay visible in the final view. A persistent
 three-stage control navigates Geography, Electoral votes, and Shapley votes,

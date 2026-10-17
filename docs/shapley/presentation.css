@@ -4,6 +4,8 @@ body.is-presentation{--presentation-header:68px}
 .is-presentation .stage-shell{grid-area:1/1;position:sticky;top:var(--presentation-header);z-index:2;align-self:start;width:100%;height:calc(100svh - var(--presentation-header));min-height:0;padding:18px clamp(24px,5vw,84px) 12px;background:var(--paper);border:0;gap:10px}
 .is-presentation .narrative{grid-area:1/1;padding:0;pointer-events:none;min-width:0}
 .is-presentation .step{display:block;min-height:calc(100svh - var(--presentation-header));padding:0;scroll-margin-top:var(--presentation-header)}
+/* Keep the final morph pinned through one more viewport of natural scrolling. */
+.is-presentation .step:last-child{min-height:calc(200svh - var(--presentation-header))}
 .is-presentation .step[data-step="6"]{min-height:180svh}
 .is-presentation .step[data-step="8"]{min-height:calc(100svh - var(--presentation-header));scroll-margin-top:var(--presentation-header)}
 .is-presentation .stage-top{flex:0 0 auto;width:100%;max-width:1200px;margin:0 auto;align-items:center}
