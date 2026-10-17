@@ -2,7 +2,7 @@ import { majority as game, fraction } from './game.mjs';
 import { createWeightView } from './weight-view.js';
 import { createFormulaView } from './formula-view.js';
 import { electoralResults } from './electoral-college.mjs';
-import { createElectoralView } from './electoral-view.js';
+import { createElectoralView } from './electoral-view.js?v=bb49d44a6b';
 import { createElectoralMapView } from './electoral-map-view.js';
 
 const $ = selector => document.querySelector(selector);
