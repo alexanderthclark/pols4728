@@ -9,7 +9,7 @@ const vm = require('node:vm');
 
 const directory = path.resolve(__dirname, '../docs/neural-networks');
 const html = fs.readFileSync(path.join(directory, 'index.html'), 'utf8');
-const scripts = ['math.js', 'state.js', 'views.js', 'story.js'];
+const scripts = ['math.js', 'state.js', 'views.js', 'formula.js', 'story.js'];
 const sceneMarkup = [...html.matchAll(/<section\b([^>]*\bdata-scene="([^"]+)"[^>]*)>([\s\S]*?)<\/section>/g)];
 const sceneNames = sceneMarkup.map(match => match[2]);
 const svgSnapshots = [];
@@ -43,6 +43,22 @@ function mount({ mobile = false, reduced = false } = {}) {
         return { top: 0, bottom: 0, height: 0 };
       }
     };
+    // Native textContent replacement removes existing element children (MathML
+    // included). Keep that behavior here rather than retaining stale markup.
+    let markup = '', text = '';
+    Object.defineProperties(node, {
+      innerHTML: {
+        get() { return markup; },
+        set(value) { markup = String(value); text = markup.replace(/<[^>]*>/g, ''); }
+      },
+      textContent: {
+        get() { return text; },
+        set(value) {
+          text = String(value);
+          markup = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+      }
+    });
     node.classList = { toggle(name, enabled) { if (enabled) node.classes.add(name); else node.classes.delete(name); } };
     return node;
   }
@@ -172,6 +188,12 @@ test('the HTML is scroll driven, has one labelled input inspector, and its local
     const reference = match[1];
     if (/^(?:[a-z]+:|\/\/|#)/i.test(reference)) continue;
     assert(fs.existsSync(path.resolve(directory, reference.split(/[?#]/)[0])), `Asset exists: ${reference}`);
+  }
+  const css = fs.readFileSync(path.join(directory, 'style.css'), 'utf8');
+  for (const match of css.matchAll(/url\(\s*['"]?([^'"\s)]+)['"]?\s*\)/g)) {
+    const reference = match[1];
+    if (/^(?:[a-z]+:|\/\/|#)/i.test(reference)) continue;
+    assert(fs.existsSync(path.resolve(directory, reference.split(/[?#]/)[0])), `Stylesheet asset exists: ${reference}`);
   }
 });
 
@@ -425,6 +447,126 @@ test('the affine bias stays in predictions after its temporary constant node dis
     assert.equal(functionPath(app.element('function-plot').innerHTML), functionPath(plotShown),
       'The slider traces the same affine curve rather than changing its weights');
     app.checkSvg(mobile ? 'compact affine hidden bias' : 'desktop affine hidden bias');
+  }
+});
+
+test('only the affine stage equation uses accessible native MathML generated from its exact TeX', () => {
+  const expectedTex = String.raw`\hat{y}=wx+b=1\times x+0.5`;
+  const references = [...html.matchAll(/<script\b[^>]*src="([^"]+)"[^>]*>/g)].map(match => match[1]);
+  assert(references.includes('formula.js'));
+  assert(references.indexOf('formula.js') < references.indexOf('story.js'), 'The formula renderer loads before the controller');
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    app.scroll('affine', .2);
+    const equation = app.element('stage-equation');
+    const markup = equation.innerHTML;
+    assert.equal(app.window.NNFormula.affineTex, expectedTex);
+    assert.equal(markup, app.window.NNFormula.affineMarkup);
+    assert.equal(equation.attrs['data-tex'], expectedTex);
+    const math = markup.match(/<math\b([^>]*)>/);
+    assert(math, 'The equation contains a native MathML math element');
+    const mathAttrs = attrs(math[1]);
+    assert.equal(mathAttrs.xmlns, 'http://www.w3.org/1998/Math/MathML');
+    assert(mathAttrs['aria-label'].length > 20, 'The equation has an accessible spoken label');
+    assert(/<mover\b[^>]*>\s*<mi\b[^>]*>y<\/mi>\s*<mo\b[^>]*>\^<\/mo>\s*<\/mover>/.test(markup),
+      'The prediction y has a typeset hat accent');
+    for (const variable of ['w', 'x', 'b']) {
+      assert(new RegExp('<mi\\b[^>]*>' + variable + '<\\/mi>').test(markup), `${variable} is a mathematical identifier`);
+    }
+    assert(/<mo\b[^>]*>×<\/mo>/.test(markup), 'The fixed input weight uses a multiplication operator');
+    const annotation = markup.match(/<annotation\b([^>]*)>([\s\S]*?)<\/annotation>/);
+    assert(annotation);
+    assert.equal(attrs(annotation[1]).encoding, 'application/x-tex');
+    assert.equal(annotation[2], expectedTex);
+
+    app.input('input-x', 0);
+    assert.equal(equation.innerHTML, markup, 'Tracing the input preserves the symbolic equation');
+    app.scroll('affine', .9);
+    assert.equal(app.frame().showBias, false);
+    assert.equal(equation.innerHTML, markup, 'Omitting the bias node preserves the full affine equation');
+    assert.equal(equation.attrs['data-tex'], expectedTex);
+    app.runtime.mobile = !mobile;
+    app.position('affine', .9);
+    app.resize();
+    assert.equal(equation.innerHTML, markup, 'The same equation survives responsive rerendering');
+
+    const relu = app.scroll('relu', .5);
+    assert(!/<math\b|<mover\b|<annotation\b/.test(equation.innerHTML), 'The next scene clears the affine MathML');
+    assert.equal(equation.attrs['data-tex'], undefined);
+    assert.equal(equation.textContent, relu.equation, 'Other scene equations retain their existing text');
+    app.scroll('affine', .2);
+    assert.equal(equation.innerHTML, markup, 'Reverse scrolling restores the typeset affine formula');
+    assert.equal(equation.attrs['data-tex'], expectedTex);
+  }
+});
+
+test('the active-neuron counter follows positive hidden activations and excludes the affine bias constant', () => {
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    const counter = app.element('active-neurons');
+    function expectCount(active, total) {
+      const frame = app.frame();
+      assert.equal(frame.activeCount, active);
+      assert.equal(frame.hiddenCount, total);
+      assert.equal(counter.hidden, total === 0);
+      assert.equal(counter.textContent, total === 0 ? '' :
+        `${active} of ${total} neurons active · x = ${frame.x.toFixed(2)}`);
+    }
+
+    app.scroll('affine', .2);
+    assert(app.element('network-plot').innerHTML.includes('data-bias-input'));
+    expectCount(0, 0);
+    app.input('input-x', 1);
+    expectCount(0, 0);
+    app.scroll('affine', .9);
+    expectCount(0, 0);
+
+    app.scroll('relu', .5);
+    expectCount(1, 1);
+    app.input('input-x', -1);
+    expectCount(0, 1);
+    app.input('input-x', 0);
+    expectCount(0, 1);
+    // Synthetic precise values exercise the activation tolerance, independently
+    // of the slider's coarser visual step size.
+    app.input('input-x', 1e-9);
+    expectCount(0, 1);
+    app.input('input-x', 1e-7);
+    expectCount(1, 1);
+
+    app.scroll('shallow', .5);
+    app.input('input-x', 0);
+    expectCount(1, 3);
+    app.input('input-x', 1);
+    expectCount(2, 3);
+    app.input('input-x', 2);
+    expectCount(3, 3);
+    assert.equal(app.window.NNMath.evaluate(app.frame().model, 2), 0,
+      'All three activations count even when their weighted contributions cancel');
+
+    app.scroll('width-many', 0);
+    expectCount(3, 3);
+    app.scroll('width-many', .99);
+    expectCount(6, 6);
+
+    app.scroll('sine-coarse', .5);
+    app.input('input-x', 6);
+    expectCount(6, 6);
+    app.scroll('sine-joint', .5);
+    expectCount(7, 7);
+    app.scroll('sine-wide', 0);
+    expectCount(7, 7);
+    app.scroll('sine-wide', .99);
+    expectCount(26, 26);
+    app.input('input-x', 0);
+    expectCount(1, 26); // The always-active starting-slope ReLU is a real neuron.
+    app.input('input-x', 6);
+    expectCount(26, 26);
+
+    app.scroll('affine', .2);
+    expectCount(0, 0);
+    assert(app.element('network-plot').innerHTML.includes('data-bias-input'),
+      'The visible bookkeeping constant is still excluded after leaving the wider network');
   }
 });
 

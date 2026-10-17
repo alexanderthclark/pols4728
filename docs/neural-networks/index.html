@@ -10,6 +10,7 @@
   <script src="math.js" defer></script>
   <script src="state.js" defer></script>
   <script src="views.js" defer></script>
+  <script src="formula.js" defer></script>
   <script src="story.js" defer></script>
 </head>
 <body>
@@ -45,14 +46,14 @@
           </div>
           <span id="stage-count" class="stage-count">01 / 16</span>
         </div>
-        <p id="stage-equation" class="stage-equation"><i>f</i>(<i>x</i>) = <i>x</i></p>
+        <p id="stage-equation" class="stage-equation"><math aria-label="y hat equals w times x plus b equals one times x plus zero point five" xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo>=</mo><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi><mo>=</mo><mn>1</mn><mo>×</mo><mi>x</mi><mo>+</mo><mn>0.5</mn></mrow><annotation encoding="application/x-tex">\hat{y}=wx+b=1\times x+0.5</annotation></semantics></math></p>
         <div class="figure-grid">
           <figure class="function-figure">
             <figcaption>Function</figcaption>
             <svg id="function-plot" viewBox="0 0 620 440" role="img" aria-label="The output of the network as a function of its input"></svg>
           </figure>
           <figure class="network-figure">
-            <figcaption>Network</figcaption>
+            <figcaption>Network <span id="active-neurons" class="active-neurons" hidden></span></figcaption>
             <svg id="network-plot" viewBox="0 0 470 440" role="img" aria-label="The neural network producing the function"></svg>
           </figure>
         </div>

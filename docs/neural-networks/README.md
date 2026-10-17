@@ -1,11 +1,14 @@
-# Neural networks, one bend at a time
+# Shallow neural networks
 
 A scroll-driven introduction to one-dimensional ReLU networks. The narrative
 contains sixteen scenes in three parts: shallow networks as sums of hinges,
 width as the number of available joints, and constructive approximation of a
 sine curve by widening the same hidden layer. Scrolling backward reverses the story.
 The input-x slider lets readers inspect which neurons activate at a chosen
-input, with a matching point on the function plot. It preserves the model
+input, with a matching point on the function plot. A count above the network
+reports the active neurons out of the current hidden-layer width. A neuron
+counts as active when its ReLU activation is positive, independent of its
+output weight. It preserves the model
 weights and the story's fixed approximation-error detail view. Scrolling
 continues to drive the lesson, network width, and weight updates. The arrow
 buttons and left/right arrow keys provide optional navigation between the
@@ -39,6 +42,10 @@ not a second observed input. As the opening progresses, the bias node and its
 connection disappear from the drawing for clarity; the intercept remains in
 the equation and the model. Omitted bias connections are a diagram convention,
 not a change to the model.
+
+`formula.js` contains the opening equation as LaTeX precompiled to native
+MathML with KaTeX. It uses the course's existing STIX math font and requires
+no runtime math library or external font request.
 
 The sine approximation begins with five nonzero interior slope changes, at
 0.9, 1.95, 3.05, 4.2, and 5.35, on the domain [0, 2π]. One always-active

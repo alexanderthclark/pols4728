@@ -40,7 +40,13 @@
       byId('stage-name').textContent=chapter(scene);
       byId('stage-count').textContent=String(index+1).padStart(2,'0')+' / '+steps.length;
       byId('stage-caption').textContent=frame.caption;
-      byId('stage-equation').textContent=frame.equation;
+      window.NNFormula.render(byId('stage-equation'),frame);
+      const activationModel=frame.model||(frame.kind==='relu'?window.NNMath.createShallow(0,[{t:0,a:1}]):null);
+      const counter=byId('active-neurons');
+      frame.hiddenCount=activationModel?activationModel.width:0;
+      frame.activeCount=activationModel?window.NNMath.contributions(activationModel,frame.x).filter(unit=>unit.activation>1e-8).length:0;
+      counter.hidden=!activationModel;
+      counter.textContent=activationModel?frame.activeCount+' of '+frame.hiddenCount+' neurons active · x = '+frame.x.toFixed(2):'';
       if(byId('previous'))byId('previous').disabled=index===0;
       if(byId('next'))byId('next').disabled=index===steps.length-1;
       if(byId('story-status')&&byId('story-status').dataset.scene!==scene){byId('story-status').dataset.scene=scene;byId('story-status').textContent=steps[index].querySelector('h2,h3')?.textContent||scene;}
