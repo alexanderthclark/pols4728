@@ -4,6 +4,10 @@ A scroll-driven introduction to one-dimensional ReLU networks. The narrative
 contains sixteen scenes in three parts: shallow networks as sums of hinges,
 width as the number of available joints, and constructive approximation of a
 sine curve by widening the same hidden layer. Scrolling backward reverses the story.
+The diagrams and current explanation stay pinned together. Scroll progress
+fades each explanation in and out in place. The opening first identifies the
+bias input, then replaces that caption with the diagram-omission convention
+when the bias node disappears. Reduced motion changes captions without fades.
 The input-x slider lets readers inspect which neurons activate at a chosen
 input, with a matching point on the function plot. A count above the network
 reports the active neurons out of the current hidden-layer width. A neuron
@@ -33,7 +37,10 @@ the same architecture while adding joints to approximate sine.
 `math.js` supplies the exact hinge networks and piecewise linear interpolation.
 `state.js` maps each scene and its scroll progress to its network weights.
 `views.js` draws the actual function and network, including a compact phone
-layout. `story.js` connects those states to scrolling and keyboard navigation.
+layout. `narrative.js` selects the current caption and its scroll-driven opacity.
+`story.js` connects those states to scrolling and keyboard navigation. The
+original narrative sections supply scroll distances; they remain the reading
+route without JavaScript and in print.
 
 The opening maps the familiar equation ŷ = wx + b to its network diagram,
 using w = 1 and b = 0.5. A faint constant-1 node and its weight-b connection
@@ -47,6 +54,11 @@ not a change to the model.
 to visible HTML and accessible MathML. Its stylesheet and two required fonts
 are self-hosted in `vendor/katex/`; no runtime math library or external font
 request is required.
+
+The single-hinge scene first moves its threshold from −0.8 to 0.6 with
+output weight 1, then increases that weight to 1.6 and turns it negative.
+Faint comparison curves retain earlier parameter choices. They are visual
+references; the actual network in this scene still has one hidden neuron.
 
 The sine approximation begins with five nonzero interior slope changes, at
 0.9, 1.95, 3.05, 4.2, and 5.35, on the domain [0, 2π]. One always-active

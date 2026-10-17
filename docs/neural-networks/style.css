@@ -173,6 +173,158 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
   .stage-caption { min-height: 2.1rem; font-size: .65rem; margin-top: .3rem; }
 }
 
+/* The enhanced story pins both the mathematics and its active caption.
+   The original sections remain a scroll rail and a complete print/no-JS text. */
+.story { display: block; }
+.story-stage { display: none; }
+.story:not(.is-enhanced) > .narrative { max-width: 48rem; margin-inline: auto; padding-block: 2rem 4rem; }
+.story:not(.is-enhanced) .step,
+.story:not(.is-enhanced) .step:first-child,
+.story:not(.is-enhanced) .step:last-child,
+.story:not(.is-enhanced) .step[data-scene="sine-wide"] { min-height: 0; padding-block: 1.6rem; }
+
+.story.is-enhanced {
+  --story-top: 1rem;
+  --story-height: calc(100svh - 2rem);
+}
+.story.is-enhanced > .story-stage {
+  position: sticky;
+  top: var(--story-top);
+  z-index: 10;
+  display: grid;
+  grid-template-columns: minmax(0, 1.85fr) minmax(290px, 1fr);
+  gap: clamp(1.5rem, 3vw, 3rem);
+  align-items: stretch;
+  height: var(--story-height);
+  background: var(--paper);
+}
+.story.is-enhanced .stage-shell {
+  position: relative;
+  top: auto;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  padding-bottom: .7rem;
+}
+.story.is-enhanced .stage-caption { min-height: 0; }
+.story.is-enhanced #narrative-display {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  padding-block: 1.5rem;
+  background: var(--paper);
+}
+#narrative-caption {
+  width: 100%;
+  max-width: 38rem;
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+#narrative-caption .part-label { margin-bottom: .8rem; }
+#narrative-caption h2 {
+  font-size: clamp(1.6rem, 2.2vw, 2.2rem);
+  font-weight: 400;
+  letter-spacing: -.025em;
+  line-height: 1.18;
+}
+#narrative-caption p:not(.part-label) {
+  margin-top: 1rem;
+  font-size: clamp(1rem, 1.12vw, 1.08rem);
+  line-height: 1.6;
+}
+#narrative-caption .narrative-equation {
+  padding: .5rem 0 .5rem .8rem;
+  border-left: 2px solid var(--primary);
+  color: var(--primary);
+  overflow-wrap: anywhere;
+  font-size: 1rem;
+}
+#narrative-caption .return-link { margin-top: 1.25rem; }
+.story.is-enhanced > .narrative {
+  position: relative;
+  z-index: 0;
+  width: 100%;
+  max-width: none;
+  margin-top: calc(-1 * var(--story-height));
+  margin-inline: 0;
+  padding-top: 0;
+  /* Keep the last caption pinned until its own scroll interval is complete. */
+  padding-bottom: var(--story-height);
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+.story.is-enhanced .step,
+.story.is-enhanced .step:first-child,
+.story.is-enhanced .step:last-child {
+  min-height: 100svh;
+  padding: 0;
+  scroll-margin-top: var(--story-top);
+}
+.story.is-enhanced .step[data-scene="sine-wide"] { min-height: 260svh; }
+.story.is-enhanced .step[data-scene="hinge"] { min-height: 180svh; }
+
+@media (max-width: 1050px) and (min-width: 761px) {
+  .story.is-enhanced > .story-stage { grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr); gap: 1.6rem; }
+  #narrative-caption h2 { font-size: 1.6rem; }
+  #narrative-caption p:not(.part-label) { font-size: 1rem; line-height: 1.55; }
+}
+
+@media (max-width: 760px) {
+  .story.is-enhanced { --story-top: 0px; --story-height: 100svh; }
+  .story.is-enhanced > .story-stage {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 0;
+  }
+  .story.is-enhanced .stage-shell {
+    height: 100%;
+    min-height: 0;
+    padding: .5rem 0 .25rem;
+    border-bottom: 0;
+    box-shadow: none;
+  }
+  .story.is-enhanced .figure-grid { max-height: calc(92vw - .15rem); }
+  .story.is-enhanced .stage-caption { display: none; }
+  .story.is-enhanced .input-control-row { min-height: 44px; }
+  .story.is-enhanced #narrative-display {
+    align-items: flex-start;
+    padding: .7rem 0 max(.75rem, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--light-rule);
+  }
+  #narrative-caption { max-width: none; }
+  #narrative-caption .part-label { margin-bottom: .4rem; font-size: .61rem; }
+  #narrative-caption h2 { font-size: clamp(1.18rem, 4.9vw, 1.5rem); line-height: 1.2; }
+  #narrative-caption p:not(.part-label) { margin-top: .6rem; font-size: 1rem; line-height: 1.43; }
+  #narrative-caption .narrative-equation { font-size: .92rem; padding-block: .3rem; }
+  #narrative-caption .return-link { margin-top: .65rem; font-size: .72rem; }
+}
+
+@media (max-width: 760px) and (max-height: 700px) {
+  #narrative-caption h2 { font-size: 1.12rem; }
+  #narrative-caption p:not(.part-label) { font-size: .92rem; line-height: 1.4; margin-top: .45rem; }
+  #narrative-caption .part-label { margin-bottom: .3rem; }
+  .story.is-enhanced #narrative-display { padding-top: .5rem; padding-bottom: .6rem; }
+  .story.is-enhanced .stage-equation { min-height: 1.8rem; padding-block: .15rem; }
+}
+
+@media (max-height: 600px) and (min-width: 761px) {
+  .story.is-enhanced { --story-top: .5rem; --story-height: calc(100svh - 1rem); }
+  #narrative-caption h2 { font-size: 1.35rem; }
+  #narrative-caption p:not(.part-label) { font-size: .95rem; line-height: 1.4; margin-top: .65rem; }
+}
+
+/* Short landscape screens use the same stationary side-by-side arrangement. */
+@media (min-width: 600px) and (max-width: 760px) and (max-height: 520px) {
+  .story.is-enhanced > .story-stage { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 1rem; }
+  .story.is-enhanced #narrative-display { align-items: center; border-top: 0; padding-block: .4rem; }
+  #narrative-caption h2 { font-size: 1.1rem; }
+  #narrative-caption p:not(.part-label) { font-size: .88rem; line-height: 1.35; }
+  .story.is-enhanced .figure-grid { max-height: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -196,4 +348,26 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
   .step .narrative-equation { font-size: 10.5pt; }
   .part-label { margin-top: .7rem; font-size: 9pt; }
   .width-table { max-width: 400px; font-size: 9pt; }
+}
+
+@media print {
+  .story-stage, .story.is-enhanced > .story-stage { display: none !important; }
+  .story.is-enhanced > .narrative {
+    margin: 0;
+    padding: 0;
+    max-width: none;
+    visibility: visible;
+    pointer-events: auto;
+    user-select: text;
+  }
+  .story.is-enhanced .step,
+  .story.is-enhanced .step:first-child,
+  .story.is-enhanced .step:last-child,
+  .story.is-enhanced .step[data-scene="hinge"],
+  .story.is-enhanced .step[data-scene="sine-wide"] {
+    display: block;
+    min-height: 0;
+    padding: 1rem 0 .5rem;
+    visibility: visible;
+  }
 }

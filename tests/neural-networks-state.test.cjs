@@ -68,6 +68,54 @@ test('the scroll story contains exactly 16 distinct, valid scenes', () => {
   }
 });
 
+test('one hinge changes its location, steepness, and sign while remaining a single ReLU', () => {
+  const anchors = [[0, 1, -.8], [.4, 1, .6], [.7, 1.6, .6], [1, -1.2, .6]];
+  for (const [progress, a, t] of anchors) {
+    const frame = S.frame('hinge', progress);
+    close(frame.hingeA, a);
+    close(frame.hingeT, t);
+    close(frame.model.neurons[0].a, a);
+    close(frame.model.neurons[0].t, t);
+  }
+  const locations = new Set(), weights = [];
+  for (const progress of grid(0, 1, 100)) {
+    const frame = S.frame('hinge', progress), unit = frame.model.neurons[0];
+    assert.equal(frame.model.width, 1);
+    assert.equal(frame.model.neurons.length, 1);
+    assert.equal(frame.model.hiddenLayers, 1);
+    close(frame.model.c, 0);
+    close(unit.w, 1);
+    close(unit.b, -frame.hingeT);
+    close(unit.a, frame.hingeA);
+    close(unit.t, frame.hingeT);
+    assert.deepEqual(frame.hingeExamples.map(example => ({ a: example.a, t: example.t })),
+      [{ a: 1, t: -.8 }, { a: 1, t: .6 }], 'Reference curves are separate fixed examples');
+    assert.equal(frame.hingePhase, progress < .4 ? 'threshold' : progress < .7 ? 'steepen' : 'flip');
+    for (const x of [unit.t - 1, unit.t - .01, unit.t]) close(M.evaluate(frame.model, x), 0);
+    for (const offset of [.1, .5, 1]) close(M.evaluate(frame.model, unit.t + offset), unit.a * offset);
+    const epsilon = 1e-5, x = unit.t + .25;
+    close((M.evaluate(frame.model, x + epsilon) - M.evaluate(frame.model, x - epsilon)) / (2 * epsilon), unit.a, 1e-8,
+      'The active piece has the displayed output slope, including negative slopes.');
+    locations.add(unit.t.toFixed(4)); weights.push(unit.a);
+  }
+  assert(locations.size > 10, 'Scrolling moves the joint through distinct locations');
+  assert(weights.some(a => a > 1.5), 'Scrolling steepens the hinge');
+  assert(weights.some(a => a < -1), 'Scrolling reverses the hinge slope');
+  const epsilon = 1e-7;
+  for (const boundary of [.4, .7]) {
+    for (const parameter of ['hingeA', 'hingeT']) {
+      const before = S.frame('hinge', boundary - epsilon)[parameter];
+      const at = S.frame('hinge', boundary)[parameter];
+      const after = S.frame('hinge', boundary + epsilon)[parameter];
+      close(before, at, 1e-5, 'The parameter values do not jump at phase boundaries.');
+      close(after, at, 1e-5, 'The parameter values do not jump at phase boundaries.');
+    }
+  }
+  const original = S.frame('hinge', .2);
+  S.frame('hinge', .99); S.frame('hinge', .65);
+  assert.deepEqual(S.frame('hinge', .2), original, 'Returning to earlier progress restores the same hinge');
+});
+
 test('the actual coarse sine curve has five visible joints and width six', () => {
   const frame = S.frame('sine-coarse', 0);
   const model = frame.model;

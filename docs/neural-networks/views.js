@@ -64,13 +64,24 @@
 
   function drawPlot(svg, frame, model) {
     const kind = frame.kind || 'shallow';
+    const hinge = frame.scene === 'hinge';
+    // These examples compare parameter settings; they are never model neurons.
+    const hingeExamples = hinge && Array.isArray(frame.hingeExamples) ? frame.hingeExamples
+      .filter(n => n && Number.isFinite(n.a) && Number.isFinite(n.t)).slice(0, 2) : [];
     const domain = domainFor(frame);
     const xValue = clamp(finite(frame.x, kind === 'sine' ? 1.5 : 0.5), domain[0], domain[1]);
     const affineWeight = finite(frame.weight, 1), affineBias = finite(frame.bias, 0);
     const value = kind === 'affine' ? x => affineWeight * x + affineBias : x => M.evaluate(model, x);
     const xs = kind === 'affine' ? domain : exactPoints(model, domain);
     let range;
-    if (Array.isArray(frame.range)) range = frame.range;
+    if (hinge) {
+      const ys = xs.map(value);
+      hingeExamples.forEach(n => domain.forEach(x => ys.push(n.a * M.relu(x - n.t))));
+      // Keep the scale fixed during the threshold, steepening, and sign-flip
+      // sequence, while still accommodating a wider supplied parameter range.
+      range = [Math.min(-2.05, ...ys.map(y => y - 0.2)), Math.max(3.25, ...ys.map(y => y + 0.2))];
+    }
+    else if (Array.isArray(frame.range)) range = frame.range;
     else if (kind === 'sine') range = [-1.35, 1.35];
     else if (kind === 'affine') {
       const ends = domain.map(value);
@@ -86,7 +97,9 @@
       range = [low - pad, high + pad];
     }
     const b = builder(svg, 620, frame.compact ? 350 : 390,
-      kind === 'sine' ? 'A shallow ReLU network, shown as a piecewise linear blue curve, approximates the dashed sine curve.' :
+      hinge ? 'The blue curve is the current one-neuron function a times max of zero and x minus t, with a = ' + fmt(frame.hingeA) + ' and t = ' + fmt(frame.hingeT) + '. ' +
+          'Two faint dashed reference examples compare other parameter settings: ' + hingeExamples.map(n => 'a = ' + fmt(n.a) + ', t = ' + fmt(n.t)).join('; ') + '. These reference examples are not additional hidden neurons.' :
+        kind === 'sine' ? 'A shallow ReLU network, shown as a piecewise linear blue curve, approximates the dashed sine curve.' :
           'One input x is mapped to one output. The curve shows the function computed by the neural network.', frame.compact);
     const left = 53, right = 589, top = 66, bottom = frame.compact ? 293 : 323;
     const px = x => left + (x - domain[0]) / (domain[1] - domain[0]) * (right - left);
@@ -100,6 +113,9 @@
       b.text(88, 27, 'sin(x)', 'class="nv-label"');
       b.line(frame.compact ? 205 : 176, 23, frame.compact ? 232 : 203, 23, 'stroke="' + C.blue + '" stroke-width="3"');
       b.text(frame.compact ? 242 : 210, 27, 'neural network', 'class="nv-small"');
+    } else if (hinge) {
+      b.text(left, 25, 'One ReLU · a = ' + fmt(frame.hingeA) + ', t = ' + fmt(frame.hingeT), 'class="nv-head" data-hinge-current-parameters="true"');
+      b.text(left, 48, 'Dashed curves: reference examples', 'class="nv-small"');
     } else if (kind === 'affine') b.text(left, 25, 'A straight line', 'class="nv-head"');
     else if (kind === 'relu') b.text(left, 25, 'One ReLU adds one joint', 'class="nv-head"');
     else b.text(left, 25, model.neurons.length + ' hidden ' + (model.neurons.length === 1 ? 'neuron' : 'neurons') + ' · one piecewise linear function', 'class="nv-head"');
@@ -124,7 +140,12 @@
 
     b.add('<g clip-path="url(#' + plotId + ')">');
     if (frame.showAffine) b.path(path(domain, x => x), 'fill="none" stroke="' + C.rule + '" stroke-width="1.7" stroke-dasharray="4 5"');
-    if (frame.components && model) model.neurons.forEach((n, i) => {
+    hingeExamples.forEach((n, i) => {
+      const points = [domain[0]].concat(n.t > domain[0] && n.t < domain[1] ? [n.t] : []).concat([domain[1]]);
+      b.path(path(points, x => n.a * M.relu(x - n.t)),
+        'fill="none" stroke="' + C.muted + '" stroke-width="1.8" stroke-dasharray="' + (i ? '3 5' : '7 5') + '" opacity=".45" data-hinge-reference="true" data-a="' + n.a + '" data-t="' + n.t + '"');
+    });
+    if (frame.components && model && !hinge) model.neurons.forEach((n, i) => {
       b.path(path(exactPoints(M.createShallow(0, [n]), domain), x => n.a * M.relu(x - n.t)),
         'fill="none" stroke="' + unitColors[i % unitColors.length] + '" stroke-width="1.8" stroke-dasharray="5 4" opacity=".55"');
     });
@@ -135,7 +156,7 @@
     if (frame.oldModel && frame.oldModel !== model) {
       b.path(path(exactPoints(frame.oldModel, domain), x => M.evaluate(frame.oldModel, x)), 'fill="none" stroke="' + C.rule + '" stroke-width="1.8" stroke-dasharray="2 5" opacity=".65"');
     }
-    b.path(path(xs, value), 'fill="none" stroke="' + C.blue + '" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"');
+    b.path(path(xs, value), 'fill="none" stroke="' + C.blue + '" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"' + (hinge ? ' data-hinge-current="true"' : ''));
     let joints;
     if (model) joints = model.neurons.filter(n => !n.baseline && n.t > domain[0] && n.t < domain[1]).map(n => n.t);
     else joints = [];
@@ -154,6 +175,12 @@
     }
     b.add('</g>');
 
+    hingeExamples.forEach(n => {
+      const endY = n.a * M.relu(domain[1] - n.t);
+      b.text(right - 8, clamp(py(endY) - 9, top + 12, bottom - 12), n.label || 'a = ' + fmt(n.a) + ', t = ' + fmt(n.t),
+        'class="nv-small nv-halo" text-anchor="end" data-hinge-reference-label="true"');
+    });
+
     if (kind === 'sine' && frame.zoom) drawInset(b, frame, model, px, py);
     if (kind === 'sine' && frame.inspectInput) {
       // The teal input cursor follows the slider; the rust error marker and
@@ -166,7 +193,7 @@
     }
     if (kind !== 'sine' || frame.inspectInput) {
       b.text(left, frame.compact ? 339 : 376, 'x = ' + fmt(xValue) + '   →   ŷ = ' + fmt(value(xValue)), 'class="nv-number"' + (kind === 'sine' ? ' style="fill:' + C.teal + '"' : ''));
-      if (frame.components && !frame.compact) b.text(right, 376, 'Dashed: each weighted neuron', 'class="nv-small" text-anchor="end"');
+      if (frame.components && !frame.compact && !hinge) b.text(right, 376, 'Dashed: each weighted neuron', 'class="nv-small" text-anchor="end"');
     } else if (!frame.compact) b.text(left, 376, 'One input x', 'class="nv-small"');
     if (kind === 'sine' && !frame.compact) b.text(right, 376, 'Solid line: linear between its joints', 'class="nv-small" text-anchor="end"');
     b.finish();

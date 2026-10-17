@@ -7,12 +7,13 @@
   <meta name="theme-color" content="#ffffff">
   <title>Shallow neural networks · POLS 4728</title>
   <link rel="stylesheet" href="vendor/katex/katex.min.css">
-  <link rel="stylesheet" href="style.css?v=20261017-katex">
+  <link rel="stylesheet" href="style.css?v=20261017-captions">
   <script src="math.js" defer></script>
-  <script src="state.js" defer></script>
-  <script src="views.js" defer></script>
-  <script src="formula.js?v=20261017-katex" defer></script>
-  <script src="story.js?v=20261017-katex" defer></script>
+  <script src="state.js?v=20261017-captions" defer></script>
+  <script src="views.js?v=20261017-captions" defer></script>
+  <script src="formula.js?v=20261017-captions" defer></script>
+  <script src="narrative.js?v=20261017-captions" defer></script>
+  <script src="story.js?v=20261017-captions" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#story">Skip to the explainer</a>
@@ -38,6 +39,7 @@
     </noscript>
 
     <div id="story" class="story">
+      <div id="story-stage" class="story-stage">
       <aside class="stage-shell" id="stage-shell" aria-label="Function and neural network diagrams">
         <div class="stage-progress" aria-hidden="true"><div id="progress" class="progress"></div></div>
         <div class="stage-heading">
@@ -76,8 +78,20 @@
         </div>
         <p id="story-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true">Step 1 of 16: a straight line.</p>
       </aside>
+      <aside id="narrative-display" class="narrative-display" aria-label="Current explanation">
+        <div id="narrative-caption" class="narrative-caption"><p class="part-label">01 / A shallow network</p>
+          <h2>A linear equation, drawn as a network.</h2>
+          <p>The input arrow contributes <i>wx</i>. The faint constant-1 node adds <i>b</i>, the intercept.</p></div>
+      </aside>
+      </div>
+      <template id="bias-visible"><p class="part-label">01 / A shallow network</p>
+          <h2>A linear equation, drawn as a network.</h2>
+          <p>The input arrow contributes <i>wx</i>. The faint constant-1 node adds <i>b</i>, the intercept.</p></template>
+      <template id="bias-omitted"><p class="part-label">01 / A shallow network</p>
+          <h2>The bias stays in the equation.</h2>
+          <p>By convention, intercepts are often omitted from network diagrams. Here, <i>b</i> = 0.5 still contributes to every prediction.</p></template>
 
-      <div class="narrative">
+      <div id="scroll-steps" class="narrative">
         <section class="step" id="scene-affine" data-scene="affine" aria-labelledby="heading-affine">
           <p class="part-label">01 / A shallow network</p>
           <h2 id="heading-affine">A linear equation, drawn as a network.</h2>
@@ -94,9 +108,9 @@
 
         <section class="step" id="scene-hinge" data-scene="hinge" aria-labelledby="heading-hinge">
           <h2 id="heading-hinge">Move the joint. Change the slope.</h2>
-          <p>The bias places the joint at <i>t</i>. The output weight <i>a</i> controls the slope after it.</p>
+          <p>First move the joint with <i>t</i>. Then change <i>a</i> to steepen the slope and turn it downward.</p>
           <p class="narrative-equation"><i>a</i> ReLU(<i>x</i> − <i>t</i>)</p>
-          <p>The contribution is zero before <i>t</i>. A negative <i>a</i> makes it slope downward afterward.</p>
+          <p>The contribution stays zero before <i>t</i>. Faint dashed curves show comparison examples.</p>
         </section>
 
         <section class="step" id="scene-hill-rise" data-scene="hill-rise" aria-labelledby="heading-hill-rise">

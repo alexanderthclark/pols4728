@@ -9,7 +9,7 @@ const vm = require('node:vm');
 
 const directory = path.resolve(__dirname, '../docs/neural-networks');
 const html = fs.readFileSync(path.join(directory, 'index.html'), 'utf8');
-const scripts = ['math.js', 'state.js', 'views.js', 'formula.js', 'story.js'];
+const scripts = ['math.js', 'state.js', 'views.js', 'formula.js', 'narrative.js', 'story.js'];
 const sceneMarkup = [...html.matchAll(/<section\b([^>]*\bdata-scene="([^"]+)"[^>]*)>([\s\S]*?)<\/section>/g)];
 const sceneNames = sceneMarkup.map(match => match[2]);
 const svgSnapshots = [];
@@ -36,7 +36,7 @@ function mount({ mobile = false, reduced = false } = {}) {
       addEventListener(name, callback) { listen(this.events, name, callback); },
       querySelector() { return { textContent: this.heading || '' }; },
       getBoundingClientRect() {
-        if (attributes.id === 'stage-shell') {
+        if (attributes.id === 'stage-shell' || attributes.id === 'story-stage') {
           const height = runtime.mobile ? 496 : 768, top = runtime.mobile ? 0 : 16;
           return { top, height, bottom: top + height };
         }
@@ -59,7 +59,12 @@ function mount({ mobile = false, reduced = false } = {}) {
         }
       }
     });
-    node.classList = { toggle(name, enabled) { if (enabled) node.classes.add(name); else node.classes.delete(name); } };
+    node.classList = {
+      toggle(name, enabled) { if (enabled) node.classes.add(name); else node.classes.delete(name); },
+      add(...names) { names.forEach(name => node.classes.add(name)); },
+      remove(...names) { names.forEach(name => node.classes.delete(name)); },
+      contains(name) { return node.classes.has(name); }
+    };
     return node;
   }
   for (const match of html.matchAll(/<[^>]+\bid="[^"]+"[^>]*>/g)) {
@@ -67,8 +72,18 @@ function mount({ mobile = false, reduced = false } = {}) {
     assert(!elements.has(attributes.id), `Duplicate HTML id ${attributes.id}`);
     elements.set(attributes.id, makeNode(attributes));
   }
+  for (const match of html.matchAll(/<template\b([^>]*)>([\s\S]*?)<\/template>/g)) {
+    const node = elements.get(attrs(match[1]).id);
+    if (node) node.innerHTML = match[2];
+  }
+  const narrativeTag = [...html.matchAll(/<([a-z]+)\b([^>]*)>/g)]
+    .map(match => ({ tag: match[1], attrs: attrs(match[2]) }))
+    .find(item => /(?:^|\s)narrative(?:\s|$)/.test(item.attrs.class || ''));
+  const sourceNarrative = narrativeTag?.attrs.id ? elements.get(narrativeTag.attrs.id) :
+    makeNode(narrativeTag?.attrs || { class: 'narrative' });
   const steps = sceneMarkup.map((match, index) => {
     const attributes = attrs(match[1]), node = elements.get(attributes.id);
+    node.innerHTML = match[3];
     node.dataset.scene = match[2];
     node.heading = match[3].match(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/)?.[1].replace(/<[^>]*>/g, '') || match[2];
     node.sceneIndex = index;
@@ -81,10 +96,17 @@ function mount({ mobile = false, reduced = false } = {}) {
     };
     return node;
   });
-  function heightOf(index) { return sceneNames[index] === 'sine-wide' ? 2080 : runtime.mobile ? 624 : 736; }
+  function heightOf(index) {
+    return runtime.innerHeight * (sceneNames[index] === 'sine-wide' ? 2.6 : sceneNames[index] === 'hinge' ? 1.8 : 1);
+  }
   const document = {
     documentElement: { scrollHeight: 17000 },
     getElementById(id) { assert(elements.has(id), `Missing referenced HTML id ${id}`); return elements.get(id); },
+    querySelector(selector) {
+      if (selector === '.narrative') return sourceNarrative;
+      if (selector.startsWith('#')) return this.getElementById(selector.slice(1));
+      throw new Error(`Unexpected DOM selector ${selector}`);
+    },
     querySelectorAll(selector) { assert.equal(selector, '.step[data-scene]'); return steps; },
     addEventListener(name, callback) { listen(documentEvents, name, callback); }
   };
@@ -127,14 +149,13 @@ function mount({ mobile = false, reduced = false } = {}) {
   function position(scene, progress) {
     const index = sceneNames.indexOf(scene);
     assert(index >= 0);
-    const stageBottom = runtime.mobile ? 496 : 784;
-    const focus = runtime.mobile ? Math.min(runtime.innerHeight * .85, stageBottom + runtime.innerHeight * .13) : runtime.innerHeight * .5;
+    const focus = runtime.mobile ? 0 : 16;
     let top = 1200;
     for (let i = 0; i < index; i++) top += heightOf(i);
     runtime.scrollY = top + heightOf(index) * progress - focus;
   }
   return {
-    window, runtime, steps, elements,
+    window, runtime, steps, elements, sourceNarrative,
     get renderCount() { return renders; },
     frame() { return window.NNScrollStory.getFrame(); },
     element(id) { return document.getElementById(id); },
@@ -599,6 +620,160 @@ test('the active-neuron counter follows positive hidden activations and excludes
     expectCount(0, 0);
     assert(app.element('network-plot').innerHTML.includes('data-bias-input'),
       'The visible bookkeeping constant is still excluded after leaving the wider network');
+  }
+});
+
+test('the pinned explanatory caption keeps the complete active scene current on desktop and mobile', () => {
+  const plain = markup => markup.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  const css = fs.readFileSync(path.join(directory, 'style.css'), 'utf8');
+  const stageRule = css.match(/\.story\.is-enhanced\s*>\s*\.story-stage\s*\{([^}]+)\}/)?.[1] || '';
+  assert(/position\s*:\s*sticky/.test(stageRule), 'The graph and full explanation share a pinned stage');
+  const sourceRule = css.match(/\.story\.is-enhanced\s*>\s*\.narrative\s*\{([^}]+)\}/)?.[1] || '';
+  assert(/visibility\s*:\s*hidden/.test(sourceRule), 'Source explanations act as invisible scroll rails');
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    const caption = app.element('narrative-caption');
+    assert(app.element('story').classes.has('is-enhanced'));
+    assert.equal(app.sourceNarrative.attrs['aria-hidden'], 'true', 'Source rails are hidden from assistive technology');
+    assert('inert' in app.sourceNarrative.attrs || app.sourceNarrative.inert === true,
+      'Hidden source links and headings cannot receive focus');
+    for (const scene of sceneNames) {
+      const frame = app.scroll(scene, .5);
+      const source = scene === 'affine' ? app.element('bias-visible').innerHTML :
+        app.steps.find(step => step.dataset.scene === scene).innerHTML;
+      assert.equal(plain(caption.innerHTML), plain(source), `Pinned text includes the complete ${scene} explanation`);
+      assert(!/\sid="/.test(caption.innerHTML), 'Copied headings never duplicate the source anchor IDs');
+      assert.equal(frame.scene, scene);
+      assert.equal(caption.dataset.cue, frame.narrativeKey);
+      assert.equal(Number(caption.style.opacity), 1, `${scene} text is readable in the middle of its scene`);
+      assert.equal(caption.attrs['aria-hidden'], 'false');
+      assert(!('inert' in caption.attrs), 'The visible explanation remains accessible');
+    }
+    app.scroll('sine-zoom', .5);
+    const before = caption.innerHTML;
+    app.input('input-x', 0);
+    assert.equal(caption.innerHTML, before, 'The input inspector never substitutes a stale narrative');
+    app.runtime.mobile = !mobile;
+    app.position('sine-zoom', .5);
+    app.resize();
+    assert.equal(caption.innerHTML, before, 'Responsive rerendering keeps the active explanation');
+    app.scroll('shallow', .5);
+    assert.equal(plain(caption.innerHTML), plain(app.steps.find(step => step.dataset.scene === 'shallow').innerHTML),
+      'Backward scrolling restores the earlier full explanation');
+  }
+});
+
+test('bias-caption changes and fades are controlled by scroll in both directions', () => {
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    const caption = app.element('narrative-caption');
+    const plain = markup => markup.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    app.scroll('affine', .57);
+    const shown = plain(caption.innerHTML);
+    assert.equal(shown, plain(app.element('bias-visible').innerHTML));
+    assert.equal(Number(caption.style.opacity), 1);
+    app.scroll('affine', .61);
+    assert(Math.abs(Number(caption.style.opacity) - .5) < .01, 'The outgoing bias explanation fades with scrolling');
+    assert.equal(plain(caption.innerHTML), shown);
+    app.scroll('affine', .65);
+    assert.equal(app.frame().showBias, false);
+    assert.equal(Number(caption.style.opacity), 0);
+    assert.equal(caption.attrs['aria-hidden'], 'true');
+    assert('inert' in caption.attrs, 'A fully faded explanation cannot retain keyboard focus');
+    const omitted = plain(caption.innerHTML);
+    assert.equal(omitted, plain(app.element('bias-omitted').innerHTML));
+    assert.notEqual(omitted, shown, 'The caption changes with the omitted bias input');
+    app.scroll('affine', .69);
+    assert(Math.abs(Number(caption.style.opacity) - .5) < .01, 'The replacement explanation fades in with scrolling');
+    app.scroll('affine', .8);
+    assert.equal(Number(caption.style.opacity), 1);
+    assert.equal(caption.attrs['aria-hidden'], 'false');
+    assert(!('inert' in caption.attrs));
+    assert.equal(plain(caption.innerHTML), omitted);
+    app.input('input-x', 1);
+    assert.equal(plain(caption.innerHTML), omitted, 'Slider use keeps the correct bias-state explanation');
+    app.scroll('affine', .61);
+    assert.equal(app.frame().showBias, true);
+    assert.equal(plain(caption.innerHTML), shown);
+    app.scroll('affine', .2);
+    assert.equal(Number(caption.style.opacity), 1);
+
+    app.scroll('relu', .04);
+    assert(Math.abs(Number(caption.style.opacity) - .5) < .01, 'A scene entry fades in according to progress');
+    app.scroll('relu', .5);
+    assert.equal(Number(caption.style.opacity), 1);
+    app.scroll('relu', .96);
+    assert(Math.abs(Number(caption.style.opacity) - .5) < .01, 'A scene exit fades out according to progress');
+  }
+});
+
+test('reduced motion switches pinned explanations without opacity animation', () => {
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile, reduced: true });
+    const caption = app.element('narrative-caption');
+    for (const scene of sceneNames) {
+      app.scroll(scene, .04);
+      assert.equal(Number(caption.style.opacity), 1, `${scene} stays fully opaque with reduced motion`);
+      assert(caption.innerHTML.trim().length > 0);
+    }
+    app.scroll('affine', .2);
+    const visible = caption.textContent;
+    assert.equal(app.frame().showBias, true);
+    app.scroll('affine', .9);
+    assert.equal(app.frame().showBias, false);
+    assert.notEqual(caption.textContent, visible);
+    assert.equal(Number(caption.style.opacity), 1);
+    app.scroll('affine', .2);
+    assert.equal(caption.textContent, visible);
+    assert.equal(Number(caption.style.opacity), 1);
+  }
+});
+
+test('hinge reference curves remain examples while scrolling controls one actual hidden neuron', () => {
+  const referencePaths = markup => [...markup.matchAll(/<path\b[^>]*data-hinge-reference="true"[^>]*>/g)]
+    .map(match => attrs(match[0]));
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    app.scroll('relu', .5);
+    assert.equal(referencePaths(app.element('function-plot').innerHTML).length, 0);
+    const early = app.scroll('hinge', .2);
+    const originalModel = JSON.stringify(early.model);
+    const earlyPlot = app.element('function-plot').innerHTML;
+    const references = referencePaths(earlyPlot);
+    assert.equal(references.length, 2);
+    assert.deepEqual(references.map(item => [Number(item['data-a']), Number(item['data-t'])]), [[1, -.8], [1, .6]]);
+    assert(references.every(item => item['stroke-dasharray']), 'The fixed examples are visibly distinguished by dashed strokes');
+    assert(earlyPlot.includes('data-hinge-current-parameters="true"'), 'The current a and t are labelled separately');
+    assert.equal(early.hiddenCount, 1, 'Display-only references do not add hidden neurons');
+    assert.equal(early.activeCount, 1);
+    app.input('input-x', -2);
+    assert.equal(app.frame().activeCount, 0);
+    assert.equal(app.frame().hiddenCount, 1);
+    assert.equal(JSON.stringify(app.frame().model), originalModel, 'The slider traces the chosen hinge without changing its parameters');
+    app.input('input-x', 2);
+    assert.equal(app.frame().activeCount, 1);
+    assert.equal(JSON.stringify(app.frame().model), originalModel);
+    for (const [progress, phase] of [[.55, 'steepen'], [.99, 'flip']]) {
+      const frame = app.scroll('hinge', progress);
+      assert.equal(frame.hingePhase, phase);
+      assert.equal(frame.hiddenCount, 1);
+      assert.equal(frame.activeCount, 1);
+      assert.equal(frame.model.width, 1);
+      assert.equal(frame.model.neurons.length, 1);
+      assert.equal(referencePaths(app.element('function-plot').innerHTML).length, 2);
+      const expected = app.window.NNStoryState.frame('hinge', progress).model;
+      assert.equal(JSON.stringify(frame.model), JSON.stringify(expected));
+      app.checkSvg((mobile ? 'mobile ' : 'desktop ') + phase + ' hinge');
+    }
+    assert(app.frame().hingeA < 0, 'The final active contribution slopes downward');
+    assert(app.window.NNMath.evaluate(app.frame().model, 2) < 0);
+    const restored = app.scroll('hinge', .2);
+    assert.equal(restored.hingePhase, 'threshold');
+    assert.equal(JSON.stringify(restored.model), originalModel, 'Reverse scrolling restores the exact earlier hinge');
+    assert.equal(referencePaths(app.element('function-plot').innerHTML).length, 2);
+    app.scroll('hill-rise', .5);
+    assert.equal(referencePaths(app.element('function-plot').innerHTML).length, 0, 'Reference examples appear only in the hinge explanation');
+    assert.equal(app.frame().hiddenCount, 1);
   }
 });
 

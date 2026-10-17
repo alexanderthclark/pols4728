@@ -41,7 +41,20 @@
         frame.caption=frame.showBias?'The x connection contributes wx. The faint constant-1 connection contributes 1 × b: the intercept.':'The bias input is now omitted from the drawing. The same intercept b = 0.5 remains in the model and its predictions.';
         frame.equation='ŷ = wx + b = 1 × x + 0.5';break;
       case'relu':frame.kind='relu';frame.x=-1.5+3*p;frame.showAffine=true;frame.caption='ReLU replaces every negative input with zero. The two straight pieces meet at a joint.';frame.equation='h(x) = max(0, x)';break;
-      case'hinge':frame.model=M.createShallow(0,[{t:-.7+1.4*p,a:1.2}]);frame.components=true;frame.x=.9;frame.caption='Scrolling moves t and the joint together. The output weight 1.2 sets the change in slope.';frame.equation='ŷ = 1.2 max(0, x − t)';break;
+      case'hinge':{
+        const smooth=u=>{const q=clamp(u,0,1);return q*q*(3-2*q);};
+        const t=p<.4?-.8+1.4*smooth(p/.4):.6;
+        const a=p<.4?1:p<.7?1+.6*smooth((p-.4)/.3):1.6-2.8*smooth((p-.7)/.3);
+        frame.hingeA=a;frame.hingeT=t;frame.hingePhase=p<.4?'threshold':p<.7?'steepen':'flip';
+        frame.hingeExamples=[
+          {a:1,t:-.8,label:'Original: a = 1, t = −0.8'},
+          {a:1,t:.6,label:'Shifted: a = 1, t = 0.6'}
+        ];
+        frame.model=M.createShallow(0,[{t,a}]);frame.components=true;frame.x=.9;
+        frame.caption=frame.hingePhase==='threshold'?'Move the joint: t = '+f(t,2)+', while a = '+f(a,2)+' stays fixed.':frame.hingePhase==='steepen'?'Keep the joint at t = '+f(t,2)+' and increase a to '+f(a,2)+'. The active side gets steeper.':'At t = '+f(t,2)+', change the output weight to a = '+f(a,2)+'. Passing through zero flips the contribution downward.';
+        frame.equation='ŷ = a ReLU(x − t) = '+f(a,2)+' ReLU(x '+(t<0?'+':'−')+' '+f(Math.abs(t),2)+')';
+        break;
+      }
       case'hill-rise':frame.model=M.createShallow(0,[{t:-1,a:1}]);frame.components=true;frame.caption='The first neuron adds slope +1 at x = −1. Its contribution continues to the right.';frame.equation='ŷ = ReLU(x + 1)';break;
       case'hill-fall':frame.model=M.createShallow(0,[{t:-1,a:1},{t:0,a:-2*p}]);frame.components=true;frame.caption='A second neuron gradually changes the slope at x = 0. At weight −2, the slope goes from +1 to −1.';frame.equation='ŷ = ReLU(x + 1) − '+f(2*p,2)+' ReLU(x)';break;
       case'hill-flat':frame.model=M.createShallow(0,[{t:-1,a:1},{t:0,a:-2},{t:1,a:p}]);frame.components=true;frame.caption='The third neuron adds slope +1 at x = 1. At its final weight, the total slope returns to zero.';frame.equation='ŷ = ReLU(x + 1) − 2 ReLU(x) + '+f(p,2)+' ReLU(x − 1)';break;
