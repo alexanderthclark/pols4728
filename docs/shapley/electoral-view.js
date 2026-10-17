@@ -25,7 +25,7 @@ export function createElectoralView(results) {
   element.setAttribute('aria-label', 'A pivotal Electoral College state');
   element.innerHTML = `
     <div class="electoral-scene electoral-order-scene">
-      <h3 class="electoral-heading">One imagined accounting order</h3>
+      <h3 class="electoral-heading">US Electoral College</h3>
       <p class="electoral-model">${results.length} players · ${totalVotes} electoral votes · ${quota} to win</p>
       <svg class="electoral-tally" role="img" aria-labelledby="${id}-order-title ${id}-order-description"></svg>
       <p class="electoral-change" aria-label="Coalition value changes from zero to one when California joins">
