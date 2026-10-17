@@ -103,7 +103,7 @@ body.is-presentation{--presentation-header:68px}
 /* The electoral plots get the full available canvas, retaining readable controls. */
 .is-presentation .electoral-view{flex:0 1 auto;width:100%;max-width:920px;min-height:0;margin:auto}
 .is-presentation .electoral-scene{max-width:920px;margin:0 auto}
-.is-presentation .electoral-order-scene{max-width:900px}
+.is-presentation .electoral-coalition-scene{max-width:900px}
 .is-presentation .electoral-heading{font-size:26px;margin-bottom:6px}
 .is-presentation .electoral-model{font-size:13px;margin-bottom:5px}
 .is-presentation .electoral-state-control{max-width:620px;margin:12px auto 0}
@@ -189,7 +189,6 @@ body.is-presentation{--presentation-header:68px}
   .is-presentation .electoral-model{font-size:11px;margin-bottom:3px}
   .is-presentation .electoral-tally{max-height:180px}
   .is-presentation .electoral-change{font-size:13px;gap:13px;margin:7px 0 8px}
-  .is-presentation .electoral-order-note{font-size:10px;line-height:1.45}
   .is-presentation .electoral-scatter{max-height:270px}
   .is-presentation .electoral-state-control{gap:9px;margin-top:8px}
   .is-presentation .electoral-state-control label{font-size:11px;max-width:72px}

@@ -39,8 +39,8 @@ focus, keyboard navigation, coalition selection, and replay.
 
 Four closing scenes change the value function to a weighted voting game with
 50 states and DC as players. The 2024/2028 allocation has 538 electoral votes and
-a quota of 270. A cumulative tally illustrates one accounting order in which
-California is pivotal, followed by a three-map sequence:
+a quota of 270. A tally shows California’s marginal contribution to a 250-vote coalition:
+its 54 votes raise the total to 304, crossing the threshold. Three maps follow:
 
 1. A geographic Albers USA state map labels the electoral votes, with Alaska
    and Hawaii in insets. Only California and Wyoming have numeric labels.
@@ -122,7 +122,7 @@ Open `http://localhost:8765/shapley/`. A web server is required because the page
 - `story.js` handles scroll stages, caption placement, navigation, detail dialogs, and the three-voter explorer.
 - `presentation.css` gives the complete story its responsive single-column layout.
 - `electoral-college.mjs` provides exact weighted voting calculations and the current allocation/results.
-- `electoral-view.js` and `electoral.css` draw the pivotal tally.
+- `electoral-view.js` and `electoral.css` draw the coalition tally.
 - `electoral-map-view.js` and `electoral-map.css` animate the geographic/electoral/adjusted maps.
 - `electoral-map-data.mjs` stores the local geographic map geometry.
 - `electoral-tile-data.mjs` stores complete and fractional square-cell cartograms.
