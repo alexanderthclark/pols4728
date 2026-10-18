@@ -133,7 +133,9 @@ feature coefficients in the teaching model are positive.
 The equation is a stylized, centered and standardized teaching specification,
 rather than the original historical fit. The split layout begins with the
 three correlations in frame seven. Frame eight centers the three fitted
-equations in a full-width scene, then frame nine returns to the worked layout. Frame 13 is another centered transition,
+equations in a full-width scene. Frame nine also uses the full width for the
+prediction comparison, retaining the election selector and averaging equation;
+frame ten returns to the worked layout. Frame 13 is another centered transition,
 “When features interact,” showing two round body-and-face characters with
 stick limbs on a tilted map of Germany. The smiling western character wears a
 top hat; the frowning eastern character wears a patched cap and worn shoes.

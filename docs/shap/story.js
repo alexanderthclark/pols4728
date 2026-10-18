@@ -48,7 +48,7 @@ const formulaStops = {
   'feature-credit':{focus:'result',symbol:inlineMath(`${creditBody()}<mo>=</mo>${creditBody('<mi>x</mi>')}`),meaning:`Feature ${symbol('i')}’s credit relative to the background average. Average its marginal across orders; the credit uses the prediction’s units.`},
 };
 const transitionScenes = new Set(['bread-peace-intro', 'earnings-intro']);
-const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene) || scene === 'ols-fits';
+const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene) || ['ols-fits','ols-refit'].includes(scene);
 const canonicalSceneId = id => ['preceding-features','value-function'].includes(id) ? 'joining-feature' : id;
 const visual = $('#visual'), shell = $('.stage-shell'), story = $('#story');
 const figureScrollHint = $('#figure-scroll-hint');
@@ -124,6 +124,7 @@ function updateFacts() {
   document.querySelectorAll('[data-fact]').forEach(element => {element.textContent = facts[element.dataset.fact];});
   const breadFacts = breadPeaceFacts(state.breadData,state.breadObservation);
   document.querySelectorAll('[data-bread-fact]').forEach(element => {element.textContent = breadFacts[element.dataset.breadFact];});
+  $('.static-refit').innerHTML = renderBreadPeace('ols-refit',state.breadData,state.breadObservation).replace(/^<h3>.*?<\/h3>/, '');
   updateAverageNarrative();
   $('#explanation-table').innerHTML = `<table class="input-table"><caption>${escape(observation.name)} · earnings contributions in $1,000/year</caption><thead><tr><th scope="col">Feature</th><th scope="col">Input value</th><th scope="col">SHAP value</th></tr></thead><tbody>${state.data.features.map((feature, index) => `<tr><th scope="row">${escape(feature.label)}</th><td>${inputNumber(observation.values[index])}</td><td>${signed(observation.shapValues[index])}</td></tr>`).join('')}<tr><th scope="row">Baseline</th><td colspan="2">${number(observation.baseValue)}</td></tr><tr><th scope="row">Prediction</th><td colspan="2">${number(observation.prediction)}</td></tr></tbody></table>`;
   renderCoalitionExplorer();
@@ -267,7 +268,7 @@ function updateFigureOverflow() {
     visual.removeAttribute('aria-describedby');
     return;
   }
-  const scrollable = story.dataset.layout === 'worked' && visual.scrollHeight > visual.clientHeight + 1;
+  const scrollable = (story.dataset.layout === 'worked' || shell.dataset.scene === 'ols-refit') && visual.scrollHeight > visual.clientHeight + 1;
   figureScrollHint.hidden = !scrollable;
   visual.classList.toggle('has-overflow', scrollable);
   if (scrollable) visual.setAttribute('aria-describedby', figureScrollHint.id);
@@ -287,7 +288,8 @@ function render() {
   story.dataset.layout = isCenteredScene(scene) ? 'formula' : 'worked';
   const breadScene = scene.startsWith('ols-');
   const selectorContext = breadScene ? 'bread' : 'earnings';
-  $('.observation-control').hidden = aggregateScene || isCenteredScene(scene) || ['ols-model','ols-fits'].includes(scene);
+  const hideCenteredControls = isCenteredScene(scene) && scene !== 'ols-refit';
+  $('.observation-control').hidden = aggregateScene || hideCenteredControls || ['ols-model','ols-fits'].includes(scene);
   if (state.selectorContext !== selectorContext) {
     const data = breadScene ? state.breadData : state.data;
     const observation = breadScene ? state.breadObservation : state.observation;
@@ -301,8 +303,8 @@ function render() {
     $('#stage-count').textContent = `${state.scene+1} / ${steps.length}`;
     state.nameScene = state.scene;
   }
-  $('#stage-caption').hidden = isCenteredScene(scene);
-  $('#stage-caption').innerHTML = isCenteredScene(scene) ? '' : captions[state.scene];
+  $('#stage-caption').hidden = hideCenteredControls;
+  $('#stage-caption').innerHTML = hideCenteredControls ? '' : captions[state.scene];
   if (scene === 'ols-refit') $('#stage-caption').insertAdjacentHTML('beforeend', breadPeaceMeanPredictionMarkup(state.breadObservation));
   if (scene === 'ols-shap') $('#stage-caption').insertAdjacentHTML('beforeend', breadPeaceDecompositionMarkup());
   $('#previous').disabled = state.scene === 0;

@@ -433,7 +433,7 @@ dialog p { font-size:16px; }
 .bread-order-averages { margin:8px 0 16px; }
 .refit-comparison { display:grid; grid-template-columns:1fr 1fr; gap:24px; flex-shrink:0; }
 .refit-comparison section { border-top:1px solid var(--rule); padding-top:16px; min-width:0; }
-.refit-comparison .refit-unused { color:var(--muted); border-top-color:var(--light-rule); }
+.refit-comparison .refit-unused { color:var(--rule); border-top-color:var(--light-rule); }
 .refit-comparison h4 { font:normal 22px/1.25 var(--serif); margin:0 0 16px; }
 .refit-comparison p { font:14px/1.5 var(--sans); }
 .refit-comparison .refit-equation { font:18px/1.5 'Course Math',math; margin-bottom:8px; }
@@ -441,6 +441,8 @@ dialog p { font-size:16px; }
 .refit-result { font:normal 42px/1.2 var(--serif); padding:16px 0; }
 .refit-result small { display:block; font:13px/1.5 var(--sans); margin-top:8px; }
 .refit-result small math { font-size:18px; }
+.refit-unused .refit-result { color:#929292; }
+.refit-unused .refit-result small { color:var(--rule); }
 .refit-comparison section:last-child .refit-result { color:var(--blue); }
 .bread-mean-bridge { display:block; color:var(--ink); margin-top:6px; }
 .bread-mean-equation { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 8px; font:18px/1.5 'Course Math',math; }
@@ -668,4 +670,23 @@ dialog p { font-size:16px; }
   .stage-shell[data-scene="ols-fits"] .bread-fits h4 { font-size:17px; margin-bottom:5px; }
   .stage-shell[data-scene="ols-fits"] .bread-fits>section>math,
   .stage-shell[data-scene="ols-fits"] .bread-equation { font-size:21px; }
+}
+
+/* Give the prediction comparison the full slide while retaining its controls. */
+.stage-shell[data-scene="ols-refit"] .stage-top,
+.stage-shell[data-scene="ols-refit"] .observation-control,
+.stage-shell[data-scene="ols-refit"] .stage-caption,
+.stage-shell[data-scene="ols-refit"] .stage-navigation { width:100%; max-width:860px; margin-inline:auto; }
+.stage-shell[data-scene="ols-refit"] .visual { justify-content:safe center; overflow-y:auto; overflow-x:hidden; }
+.stage-shell[data-scene="ols-refit"] .visual>* { flex-shrink:0; }
+.stage-shell[data-scene="ols-refit"] .visual>h3 { font-size:34px; margin-bottom:14px; }
+.stage-shell[data-scene="ols-refit"] .refit-comparison { width:min(860px,100%); margin-inline:auto; text-align:left; gap:40px; }
+.stage-shell[data-scene="ols-refit"] .stage-caption { text-align:center; }
+.stage-shell[data-scene="ols-refit"] .bread-mean-equation { justify-content:center; }
+@media(max-width:860px) {
+  .stage-shell[data-scene="ols-refit"] .visual>h3 { font-size:28px; margin-bottom:10px; }
+  .stage-shell[data-scene="ols-refit"] .refit-comparison { gap:18px; }
+}
+@media screen and (max-height:550px) {
+  .stage-shell[data-scene="ols-refit"] .visual>h3 { font-size:24px; margin-bottom:8px; }
 }
