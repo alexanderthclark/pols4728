@@ -42,7 +42,7 @@ stay fixed. These are constructed examples, not historical elections or Hibbs's
 estimated coefficients. The reproduction files construct eight standardized
 synthetic rows to independently verify the stipulated correlations and model
 fits; empirical SD uses denominator `n`. Those verification rows do not appear
-in the story. The optional method note distinguishes interventional
+in the story. The optional model and background note distinguishes interventional
 replacement from conditional SHAP and reduced-model refitting.
 
 The illustrative earnings predictor is
@@ -176,8 +176,9 @@ and shows a scroll hint. Aggregate charts retain page-scroll chaining at their
 edges and reserve scrollbar space so the chart layout remains stable.
 Each worked frame's left column uses two or three short lecture cues in larger type,
 leaving the instructor room to explain the worked figure. The earnings equation
-appears beside its observation in the figure. Expandable notes retain the notation,
-model assumptions and factorial-count explanation for later reading.
+appears beside its observation in the figure. A concise model and background
+note retains the assumptions and interpretation for later reading; the story
+itself introduces the notation and factorial weights.
 The election selector appears after all three OLS fits are introduced. The person
 selector appears when the earnings example begins. Each example retains its
 selection when readers move between them. Frame 12 adds a small prediction
@@ -187,11 +188,16 @@ this centered additive model.
 The full formula fits on one line in the desktop figure, with type sized to
 the figure's width. Phones and narrow prose columns allow a readable line break.
 
-The concluding math section supplies the finite-background `v_x(S)` definition.
-Its checkbox-controlled data table exposes every feature group, including the
-empty and complete groups. All input columns remain visible. The Python panel
-connects the procedure to a fixed model's `predict` method and SHAP's exact
-explainer. The global-summary note distinguishes the 125 explained profiles
+The concluding “Notes and exploration” section has three dropdowns: model and
+background assumptions, the coalition table explorer, and an individual
+waterfall explorer. The model note preserves the distinctions between explaining
+a fixed model, refitting a reduced model, and conditional SHAP, together with the
+constructed example's interpretation. The checkbox-controlled data table exposes
+every feature group, including the empty and complete groups; all input columns
+remain visible. The individual explorer opens the complete waterfall for a
+selected profile. A link to the calculation reproduction files supplies the full
+implementation and SHAP verification. The global-summary note distinguishes the
+125 explained profiles
 from the eight reference rows and defines importance as mean absolute SHAP.
 The signed means are zero for all three features; taking absolute values before
 averaging retains contribution magnitude. The ranking describes this predictor,
@@ -205,7 +211,8 @@ range, while horizontal position continues to show the signed contribution.
 The bars retain magnitude but discard the direction, spread, and interaction
 patterns visible in the beeswarm. Optional exploration opens a person's complete
 waterfall by selecting a dot in the colored beeswarm or choosing a profile in
-the method note's dropdown and selecting its waterfall button.
+the individual waterfall dropdown under “Notes and exploration” and selecting
+its waterfall button.
 
 Navigation buttons provide an alternative to scrolling and advance immediately
 so quick clicks cannot repeat a frame during a scroll animation. The opening
@@ -262,7 +269,7 @@ The page follows [the course guide](../../design/README.md): white backgrounds,
 readable serif type, restrained rules, locally typeset math, and the course
 palette. Included/excluded headings and before/after numbers supplement color.
 The sparse lecture copy follows the instructor's request for in-class presentation;
-the expandable notes preserve the longer reasoning and qualifications.
+the concise model and background note preserves the assumptions and qualifications.
 Blue and rust distinguish signed contributions in the waterfall, with arrows
 and direct signed labels. They do not indicate good or bad people.
 The beeswarm introduces its separate low-to-high feature-value color scale

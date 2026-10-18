@@ -117,10 +117,6 @@ function updateFacts() {
     abilityMeanDollars:dollars(coalition(observation, 1).value), abilityFirstDollars:dollars(marginal(observation, 0, 0), true),
     neighborhoodMeanDollars:dollars(coalition(observation, 2).value), bothMeanDollars:dollars(coalition(observation, 3).value),
     abilityAfterDollars:dollars(delta, true), abilityShapDollars:dollars(observation.shapValues[0], true),
-    contextInterpretation:delta < 0
-      ? 'Here the adverse context makes revealing this person’s ability lower the averaged prediction. This sign reversal comes from the interaction in our equation.'
-      : delta > 0 ? 'Here revealing this person’s ability raises the averaged prediction. The size of the change depends on the neighborhood value already fixed.'
-      : 'Here revealing ability does not change the averaged prediction. The main ability term and the interaction offset one another for this profile.',
   };
   document.querySelectorAll('[data-fact]').forEach(element => {element.textContent = facts[element.dataset.fact];});
   const breadFacts = breadPeaceFacts(state.breadData,state.breadObservation);
@@ -128,7 +124,6 @@ function updateFacts() {
   $('.static-refit').innerHTML = renderBreadPeace('ols-refit',state.breadData,state.breadObservation).replace(/^<h3>.*?<\/h3>/, '');
   $('.static-recap').innerHTML = renderBreadPeace('ols-recap',state.breadData,state.breadObservation).replace(/^<h3>.*?<\/h3>/, '');
   updateAverageNarrative();
-  $('#explanation-table').innerHTML = `<table class="input-table"><caption>${escape(observation.name)} · earnings contributions in $1,000/year</caption><thead><tr><th scope="col">Feature</th><th scope="col">Input value</th><th scope="col">SHAP value</th></tr></thead><tbody>${state.data.features.map((feature, index) => `<tr><th scope="row">${escape(feature.label)}</th><td>${inputNumber(observation.values[index])}</td><td>${signed(observation.shapValues[index])}</td></tr>`).join('')}<tr><th scope="row">Baseline</th><td colspan="2">${number(observation.baseValue)}</td></tr><tr><th scope="row">Prediction</th><td colspan="2">${number(observation.prediction)}</td></tr></tbody></table>`;
   renderCoalitionExplorer();
 }
 
@@ -306,7 +301,7 @@ function render() {
   if (scene === 'ols-refit') $('#stage-caption').insertAdjacentHTML('beforeend', breadPeaceMeanPredictionMarkup(state.breadObservation));
   if (scene === 'ols-shap') $('#stage-caption').insertAdjacentHTML('beforeend', breadPeaceDecompositionMarkup());
   $('#previous').disabled = state.scene === 0;
-  $('#next').textContent = state.scene === steps.length-1 ? 'Math & Python →' : 'Next →';
+  $('#next').textContent = state.scene === steps.length-1 ? 'Notes →' : 'Next →';
   if (formulaStops[scene]) renderFormula(scene);
   else if (transitionScenes.has(scene)) renderTransition(scene);
   else if (breadScene) visual.innerHTML = renderBreadPeace(scene,state.breadData,state.breadObservation);
@@ -486,7 +481,7 @@ try {
     queueScroll();
   }
 } catch (error) {
-  visual.innerHTML = '<p>The interactive data could not be loaded. The explanation and Python operation below remain available.</p>';
+  visual.innerHTML = '<p>The interactive data could not be loaded. The explanation and notes below remain available.</p>';
   $('#stage-caption').textContent = error.message;
   $('#next').disabled = true;
   console.error(error);
