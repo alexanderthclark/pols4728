@@ -1,6 +1,8 @@
 # Explaining one prediction with SHAP
 
-An opening title slide shows two torso-less investigators examining a faceless
+The opening title is “SHAP,” with the subtitle “SHapley Additive exPlanations,”
+following the expansion used in the [official documentation](https://shap.readthedocs.io/en/latest/).
+The slide shows two torso-less investigators examining a faceless
 Y-hat in a gently landed spaceship. Its Start link leads into the existing
 30-frame explanation; the cover is separate from the story’s frame count.
 The first 21 frames lead to a local waterfall; nine appended frames build

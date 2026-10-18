@@ -21,6 +21,7 @@ a:focus-visible, button:focus-visible, select:focus-visible, summary:focus-visib
 .title-page-content { width:100%; max-width:1100px; }
 .title-page-kicker { margin:0 0 13px; font:12px/1.5 var(--sans); letter-spacing:.14em; color:var(--muted); }
 .title-page h1 { margin:0 auto; max-width:19ch; font-size:clamp(46px,5vw,72px); line-height:1.08; letter-spacing:-.035em; text-wrap:balance; }
+.title-page-subtitle { max-width:34ch; margin:10px auto 0; font:26px/1.35 var(--serif); text-wrap:balance; }
 .title-page-art { margin:24px 0 0; display:flex; justify-content:center; }
 .title-page-art img { display:block; width:auto; height:auto; max-width:min(660px,100%); max-height:40svh; object-fit:contain; }
 .title-page-start { display:inline-flex; align-items:center; justify-content:center; gap:12px; min-height:44px; margin-top:20px; padding:6px 10px; font:15px/1.5 var(--sans); }
@@ -28,6 +29,7 @@ a:focus-visible, button:focus-visible, select:focus-visible, summary:focus-visib
 @media(max-width:860px) {
   .title-page { min-height:calc(100svh - 56px); padding:28px 24px 32px; }
   .title-page h1 { font-size:clamp(32px,9vw,46px); max-width:16ch; }
+  .title-page-subtitle { margin-top:8px; font-size:clamp(18px,3vw,24px); }
   .title-page-art { margin-top:18px; }
   .title-page-art img { max-height:32svh; }
   .title-page-start { margin-top:18px; font-size:14px; }
