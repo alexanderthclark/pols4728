@@ -707,6 +707,28 @@ test('bias-caption changes and fades are controlled by scroll in both directions
   }
 });
 
+test('the final explanation and return link remain available at and beyond the end of the story', () => {
+  for (const mobile of [false, true]) {
+    for (const reduced of [false, true]) {
+      const app = mount({ mobile, reduced });
+      const caption = app.element('narrative-caption');
+      for (const progress of [.12, .5, .96, 1, 1.2]) {
+        app.scroll('universal', progress);
+        assert.equal(Number(caption.style.opacity), 1, `The conclusion stays readable at progress ${progress}`);
+        assert.equal(caption.attrs['aria-hidden'], 'false');
+        assert(!('inert' in caption.attrs), 'The return link remains keyboard accessible');
+        assert(caption.innerHTML.includes('suitable weights exist'), 'The approximation qualification remains present');
+        assert(/<a\b[^>]*href="#page-title"/.test(caption.innerHTML), 'The conclusion retains its return link');
+      }
+      app.scroll('sine-wide', .5);
+      assert(caption.textContent.includes('Keep adding places to bend.'), 'Reverse scrolling restores the earlier explanation');
+      app.scroll('universal', 1);
+      assert.equal(Number(caption.style.opacity), 1, 'Returning to the end restores the visible conclusion');
+      assert(!('inert' in caption.attrs));
+    }
+  }
+});
+
 test('reduced motion switches pinned explanations without opacity animation', () => {
   for (const mobile of [false, true]) {
     const app = mount({ mobile, reduced: true });

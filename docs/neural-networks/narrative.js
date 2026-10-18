@@ -30,7 +30,8 @@
     const end = affine && frame.showBias ? BIAS_CHANGE : 1;
     // Keep the first explanation readable before the reader begins scrolling.
     const entering = affine && frame.showBias ? 1 : smooth((progress - start) / FADE);
-    const leaving = smooth((end - progress) / FADE);
+    // The last scene has no successor; keep its conclusion and return link visible.
+    const leaving = frame.scene === 'universal' ? 1 : smooth((end - progress) / FADE);
     const opacity = Math.round(Math.min(entering, leaving) * 1000000) / 1000000;
     return { key, source, opacity };
   }
