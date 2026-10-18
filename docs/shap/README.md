@@ -127,6 +127,11 @@ The coefficients and background stay fixed. Linearity makes prediction at those
 means equal to the average of the background-row predictions here. Averaging
 predictions remains the general definition of `v_x(S)`; substituting mean inputs
 need not reproduce that average in a nonlinear model.
+The recap displays the unstandardized identity `v_x(S) = ŷ(x_S, x̄_−S)` for
+any linear model, including its intercept, alongside the general average over
+`B` background rows. The bar denotes overall reference means. These grouped
+arguments retain the inputs in their original feature positions; they do not
+reorder the model's columns. Standardization only makes the means zero.
 
 The first five frames use a centered formula, with short definitions
 underneath. The same equation stays in place and highlights the symbols under

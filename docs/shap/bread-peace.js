@@ -122,7 +122,16 @@ function renderShap(data, observation) {
 }
 
 function renderRecap(data, observation) {
-  const valueOfS = math(`<msub><mi>v</mi><mi>x</mi></msub>${parentheses('<mi>S</mi>')}`,'v sub x of S');
+  const valueBody = `<msub><mi>v</mi><mi>x</mi></msub>${parentheses('<mi>S</mi>')}`;
+  const valueOfS = math(valueBody,'v sub x of S');
+  const included = '<msub><mi>x</mi><mi>S</mi></msub>';
+  const excludedIndex = '<mrow><mo>−</mo><mi>S</mi></mrow>';
+  const meanExcluded = `<msub><mover accent="true"><mi>x</mi><mo>¯</mo></mover>${excludedIndex}</msub>`;
+  const backgroundExcluded = `<msubsup><mi>z</mi>${excludedIndex}<mrow>${parentheses('<mi>b</mi>')}</mrow></msubsup>`;
+  const backgroundRow = `<msup><mi>z</mi><mrow>${parentheses('<mi>b</mi>')}</mrow></msup>`;
+  const meanPrediction = `${yHat}${parentheses(`${included}<mo>,</mo>${meanExcluded}`)}`;
+  const averagePrediction = `<mfrac><mn>1</mn><mi>B</mi></mfrac><munderover><mo>∑</mo><mrow><mi>b</mi><mo>=</mo><mn>1</mn></mrow><mi>B</mi></munderover>${yHat}${parentheses(`${included}<mo>,</mo>${backgroundExcluded}`)}`;
+  const equation = (body,label) => `<div class="recap-general-equation" role="math" aria-label="${label}"><math aria-hidden="true"><mrow>${valueBody}<mo>=</mo></mrow></math><math aria-hidden="true"><mrow>${body}</mrow></math></div>`;
   const means = labels.map((_,index) => mean(data.background.map(row => row.values[index])));
   const rows = [0,1,2,3].map(mask => {
     const inputs = observation.values.map((value,index) => mask & (1 << index) ? value : means[index]);
@@ -134,7 +143,7 @@ function renderRecap(data, observation) {
     }).join('');
     return `<tr><th scope="row">${math(group,`S contains ${members.length ? members.join(' and ') : 'no features'}`)}</th>${inputCells}<td class="recap-prediction">${math(`${prediction(inputs)}<mo>=</mo>${numeral(coalition(observation,mask).value)}`,`y hat of ${inputs.map(format).join(', ')} equals ${format(coalition(observation,mask).value)}`)}</td></tr>`;
   }).join('');
-  return `<h3>What does ${valueOfS} mean here?</h3><p class="recap-rule">In ${math('<mi>S</mi>','S')}: use this election’s value. Outside ${math('<mi>S</mi>','S')}: use the background mean, 0.</p><table class="coalition-recap-table"><caption>Evaluate the same bivariate model for every row.</caption><thead><tr><th scope="col">${math('<mi>S</mi>','S')}</th><th scope="col">Bread</th><th scope="col">Peace</th><th scope="col">${valueOfS}</th></tr></thead><tbody>${rows}</tbody></table><p class="recap-qualification">For this linear model, mean inputs give the average prediction over background rows. In general, average the predictions; plugging in mean inputs can give a different answer.</p>`;
+  return `<h3>What does ${valueOfS} mean here?</h3><div class="recap-generalization"><p class="recap-rule">For any linear model, standardization is optional.</p>${equation(meanPrediction,'For a linear model, v sub x of S equals y hat evaluated at the observation’s included inputs and the overall background means of the excluded inputs.')}<p class="recap-legend">${math(included,'x sub S')}: this observation’s included values. ${math(meanExcluded,'x bar sub minus S')}: overall background means of excluded inputs.</p></div><table class="coalition-recap-table"><caption>Our standardized example: both background means are 0.</caption><thead><tr><th scope="col">${math('<mi>S</mi>','S')}</th><th scope="col">Bread</th><th scope="col">Peace</th><th scope="col">${valueOfS}</th></tr></thead><tbody>${rows}</tbody></table><div class="recap-general-definition"><p>For any model: average over ${math('<mi>B</mi>','B')} background rows; ${math(backgroundRow,'z superscript b')} is row ${math('<mi>b</mi>','b')}.</p>${equation(averagePrediction,'For any model, v sub x of S is one over B times the sum from b equals one to B of y hat evaluated at the observation’s included inputs and the excluded inputs from background row b.')}<p class="recap-qualification">For nonlinear models, predicting at mean inputs can give a different answer.</p></div>`;
 }
 
 export function renderBreadPeace(scene, data, observation) {

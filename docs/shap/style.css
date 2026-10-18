@@ -713,12 +713,23 @@ dialog p { font-size:16px; }
 .coalition-recap-table .recap-prediction { color:var(--ink); }
 .recap-input-name { display:none; }
 .recap-qualification { width:100%; max-width:760px; margin:0 auto!important; font:14px/1.5 var(--sans); color:var(--muted); }
+.recap-generalization,.recap-general-definition { width:100%; max-width:900px; margin-inline:auto; }
+.recap-generalization .recap-rule { margin-bottom:6px; }
+.recap-general-equation { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:4px 8px; font:28px/1.45 'Course Math',math; }
+.recap-general-equation math { flex:0 0 auto; }
+.recap-legend { font:14px/1.5 var(--sans); color:var(--muted); margin:6px auto 0!important; max-width:760px; }
+.recap-general-definition { border-top:1px solid var(--light-rule); padding-top:10px; }
+.recap-general-definition>p:first-child { font:13px/1.5 var(--sans); color:var(--muted); margin-bottom:6px; }
+.recap-general-definition .recap-general-equation { font-size:22px; margin-bottom:6px; }
 @media(max-width:860px) {
   .stage-shell[data-scene="ols-recap"] .visual>h3 { font-size:27px; }
   .recap-rule { font-size:16px; }
   .coalition-recap-table tbody th,.coalition-recap-table td { padding:9px 6px; }
   .coalition-recap-table tbody math { font-size:20px; }
   .recap-qualification { font-size:12px; }
+  .recap-general-equation { font-size:24px; }
+  .recap-general-definition .recap-general-equation { font-size:20px; }
+  .recap-legend { font-size:12px; }
 }
 @media(max-width:600px) {
   .coalition-recap-table,.coalition-recap-table caption { display:block; }
