@@ -274,6 +274,7 @@ function updateGraph() {
     el.line.style.strokeWidth = current >= 6 && !order && active ? 2 + e.weight * 7 : active ? 3 : 1.35;
     if (visible && active) graphSvg.append(el.group);
   }
+  document.querySelectorAll('[data-compare-order]').forEach(b => b.setAttribute('aria-pressed', String(!!pathState && Number(b.dataset.compareOrder) === pathState.orderIndex)));
   document.querySelectorAll('[data-show-order]').forEach(b => b.classList.toggle('is-current', !!pathState && Number(b.dataset.showOrder) === pathState.orderIndex));
 }
 function updateCaption() {
@@ -336,7 +337,6 @@ function playOrder(orderIndex, animate = true) {
 }
 document.querySelectorAll('[data-select-player]').forEach(b => b.addEventListener('click', () => selectPlayer(Number(b.dataset.selectPlayer))));
 document.querySelectorAll('[data-compare-order]').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('[data-compare-order]').forEach(other => other.setAttribute('aria-pressed', String(other === b)));
   playOrder(Number(b.dataset.compareOrder));
 }));
 document.querySelectorAll('[data-show-order]').forEach(b => b.addEventListener('click', () => playOrder(Number(b.dataset.showOrder))));
