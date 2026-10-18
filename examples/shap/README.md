@@ -4,8 +4,8 @@ The [SHAP page](../../docs/shap/) begins with a synthetic Bread and Peace
 OLS warm-up, then explains a fixed illustrative predictor of yearly earnings.
 Both examples use constructed data, rather than empirical election observations
 or measured people. Their model outputs and SHAP calculations are reproducible.
-The unchanged opening title scene leads into 29 teaching frames: the original
-20-frame explanation through the local waterfall, followed by nine frames that
+The unchanged opening title scene leads into 30 teaching frames: a
+21-frame explanation through the local waterfall, including the OLS recap, followed by nine frames that
 construct a beeswarm and derive global importance.
 
 The browser reads saved JSON for the original profiles and computes the summary

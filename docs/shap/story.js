@@ -7,7 +7,7 @@ import { validateBreadPeace, breadPeaceFacts, renderBreadPeace, breadPeaceDecomp
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
-const names = ['The Shapley formula', `The observation ${symbol('x')}`, `The model prediction ${yHatMarkup()}`, `Before and after feature ${symbol('i')}`, 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'When features interact', 'An interaction model; one person', `The term ${valueSymbolMarkup('<mi>S</mi>')}`, `The term ${valueSymbolMarkup('<mi>S</mi><mo>∪</mo><mrow><mo stretchy="false">{</mo><mi>i</mi><mo stretchy="false">}</mo></mrow>')}`, 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation', 'One common zero', 'One person, three dots', 'Explain more people', 'Make overlap visible', 'Color by input value', 'Opposing contributions cancel', 'Measure distance from zero', 'Average the distances', 'Rank the averages'];
+const names = ['The Shapley formula', `The observation ${symbol('x')}`, `The model prediction ${yHatMarkup()}`, `Before and after feature ${symbol('i')}`, 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'The value-function recap', 'When features interact', 'An interaction model; one person', `The term ${valueSymbolMarkup('<mi>S</mi>')}`, `The term ${valueSymbolMarkup('<mi>S</mi><mo>∪</mo><mrow><mo stretchy="false">{</mo><mi>i</mi><mo stretchy="false">}</mo></mrow>')}`, 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation', 'One common zero', 'One person, three dots', 'Explain more people', 'Make overlap visible', 'Color by input value', 'Opposing contributions cancel', 'Measure distance from zero', 'Average the distances', 'Rank the averages'];
 const captions = [
   'Scroll to give each part its meaning in a prediction problem.',
   `${symbol('x')} is one complete observation; its values supply the fixed inputs.`,
@@ -21,6 +21,7 @@ const captions = [
   'For this linear model, averaging predictions equals predicting at the excluded input’s background mean, 0.',
   'For this linear model, averaging predictions equals predicting at the excluded input’s background mean, 0.',
   `Each order has weight ${fractionMarkup(1, 2)}. Predictions are in SD of vote share.`,
+  '',
   '',
   `Fit ${symbol('f')} once, then hold it fixed. Here we supply a transparent teaching equation.`,
   `${valueMarkup(0)}: no columns fixed to ${symbol('x')}. Average the eight model predictions.`,
@@ -48,7 +49,7 @@ const formulaStops = {
   'feature-credit':{focus:'result',symbol:inlineMath(`${creditBody()}<mo>=</mo>${creditBody('<mi>x</mi>')}`),meaning:`Feature ${symbol('i')}’s credit relative to the background average. Average its marginal across orders; the credit uses the prediction’s units.`},
 };
 const transitionScenes = new Set(['bread-peace-intro', 'earnings-intro']);
-const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene) || ['ols-fits','ols-refit'].includes(scene);
+const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene) || ['ols-fits','ols-refit','ols-recap'].includes(scene);
 const canonicalSceneId = id => ['preceding-features','value-function'].includes(id) ? 'joining-feature' : id;
 const visual = $('#visual'), shell = $('.stage-shell'), story = $('#story');
 const figureScrollHint = $('#figure-scroll-hint');
@@ -125,6 +126,7 @@ function updateFacts() {
   const breadFacts = breadPeaceFacts(state.breadData,state.breadObservation);
   document.querySelectorAll('[data-bread-fact]').forEach(element => {element.textContent = breadFacts[element.dataset.breadFact];});
   $('.static-refit').innerHTML = renderBreadPeace('ols-refit',state.breadData,state.breadObservation).replace(/^<h3>.*?<\/h3>/, '');
+  $('.static-recap').innerHTML = renderBreadPeace('ols-recap',state.breadData,state.breadObservation).replace(/^<h3>.*?<\/h3>/, '');
   updateAverageNarrative();
   $('#explanation-table').innerHTML = `<table class="input-table"><caption>${escape(observation.name)} · earnings contributions in $1,000/year</caption><thead><tr><th scope="col">Feature</th><th scope="col">Input value</th><th scope="col">SHAP value</th></tr></thead><tbody>${state.data.features.map((feature, index) => `<tr><th scope="row">${escape(feature.label)}</th><td>${inputNumber(observation.values[index])}</td><td>${signed(observation.shapValues[index])}</td></tr>`).join('')}<tr><th scope="row">Baseline</th><td colspan="2">${number(observation.baseValue)}</td></tr><tr><th scope="row">Prediction</th><td colspan="2">${number(observation.prediction)}</td></tr></tbody></table>`;
   renderCoalitionExplorer();
@@ -268,7 +270,7 @@ function updateFigureOverflow() {
     visual.removeAttribute('aria-describedby');
     return;
   }
-  const scrollable = (story.dataset.layout === 'worked' || shell.dataset.scene === 'ols-refit') && visual.scrollHeight > visual.clientHeight + 1;
+  const scrollable = (story.dataset.layout === 'worked' || ['ols-refit','ols-recap'].includes(shell.dataset.scene)) && visual.scrollHeight > visual.clientHeight + 1;
   figureScrollHint.hidden = !scrollable;
   visual.classList.toggle('has-overflow', scrollable);
   if (scrollable) visual.setAttribute('aria-describedby', figureScrollHint.id);
@@ -288,8 +290,9 @@ function render() {
   story.dataset.layout = isCenteredScene(scene) ? 'formula' : 'worked';
   const breadScene = scene.startsWith('ols-');
   const selectorContext = breadScene ? 'bread' : 'earnings';
-  const hideCenteredControls = isCenteredScene(scene) && scene !== 'ols-refit';
-  $('.observation-control').hidden = aggregateScene || hideCenteredControls || ['ols-model','ols-fits'].includes(scene);
+  const hideCenteredSelector = isCenteredScene(scene) && !['ols-refit','ols-recap'].includes(scene);
+  const hideCaption = isCenteredScene(scene) && scene !== 'ols-refit';
+  $('.observation-control').hidden = aggregateScene || hideCenteredSelector || ['ols-model','ols-fits'].includes(scene);
   if (state.selectorContext !== selectorContext) {
     const data = breadScene ? state.breadData : state.data;
     const observation = breadScene ? state.breadObservation : state.observation;
@@ -303,8 +306,8 @@ function render() {
     $('#stage-count').textContent = `${state.scene+1} / ${steps.length}`;
     state.nameScene = state.scene;
   }
-  $('#stage-caption').hidden = hideCenteredControls;
-  $('#stage-caption').innerHTML = hideCenteredControls ? '' : captions[state.scene];
+  $('#stage-caption').hidden = hideCaption;
+  $('#stage-caption').innerHTML = hideCaption ? '' : captions[state.scene];
   if (scene === 'ols-refit') $('#stage-caption').insertAdjacentHTML('beforeend', breadPeaceMeanPredictionMarkup(state.breadObservation));
   if (scene === 'ols-shap') $('#stage-caption').insertAdjacentHTML('beforeend', breadPeaceDecompositionMarkup());
   $('#previous').disabled = state.scene === 0;
@@ -387,7 +390,7 @@ function updateScroll() {
     : innerHeight * .5;
   // Keep the activation line stable as the OLS fits expand to the full-width
   // stage and the following worked example returns to the compact panel.
-  if (mobile && ['ols-model','ols-fits','ols-refit'].includes(steps[state.scene]?.id)) readingLine = introReadingLine;
+  if (mobile && steps[state.scene]?.id.startsWith('ols-')) readingLine = introReadingLine;
   // A stable phone reading line prevents the chart's compact height from changing
   // the active scene as it crosses the local-to-global boundary.
   const firstAggregate = $('#contribution-axis');

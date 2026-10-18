@@ -2,8 +2,8 @@
 
 An opening title slide shows two torso-less investigators examining a faceless
 Y-hat in a gently landed spaceship. Its Start link leads into the existing
-29-frame explanation; the cover is separate from the story’s frame count.
-The original 20 frames lead to a local waterfall; nine appended frames build
+30-frame explanation; the cover is separate from the story’s frame count.
+The first 21 frames lead to a local waterfall; nine appended frames build
 a beeswarm and derive global importance from those same local contributions.
 
 This scrolling story begins with the Shapley formula readers
@@ -90,23 +90,24 @@ The cohort does not replace the background.
 10. Reveal bread first, then peace; show both before/after prediction subtractions.
 11. Reverse the order and show the same bivariate equation evaluated at different inputs.
 12. Average each feature's two marginals and reconstruct the full prediction.
-13. Introduce how ability and neighborhood interact with a centered East/West Germany analogy.
-14. Move to the three-feature earnings interaction and one person to explain.
-15. Compute its `v_x(S)` from background rows, starting with `S = ∅`.
-16. Fix ability and compare with the earnings baseline.
-17. Start with neighborhood fixed and compare the same two value-function terms.
-18. Match all four preceding groups to their factorial weights and prediction differences.
-19. Add the weighted contributions; select a feature and inspect all six orders.
-20. Assemble the final contributions in a course-styled standard waterfall.
-21. Move each waterfall contribution to a common zero, preserving its signed length.
-22. Replace each contribution bar with a dot at its SHAP value.
-23. Repeat the explanation for all 125 constructed profiles, with the same model and eight reference rows.
-24. Spread overlapping dots vertically into a beeswarm, keeping their horizontal contributions fixed.
-25. Color dots by low-to-high input value within each feature, distinguishing input value from contribution direction.
-26. Show how signed averages cancel positive and negative contributions across these profiles.
-27. Fold negative contributions to their absolute distance from zero.
-28. Average the 125 absolute contributions in each feature row to construct global importance bars.
-29. Rank the mean absolute contributions: neighborhood opportunity 7.2, ability 3.24, and experience 1.2, in $1,000/year.
+13. Recap all four feature groups: use the selected election's values for included predictors and their overall background means, zero, for excluded predictors, then evaluate the same bivariate model.
+14. Introduce how ability and neighborhood interact with a centered East/West Germany analogy.
+15. Move to the three-feature earnings interaction and one person to explain.
+16. Compute its `v_x(S)` from background rows, starting with `S = ∅`.
+17. Fix ability and compare with the earnings baseline.
+18. Start with neighborhood fixed and compare the same two value-function terms.
+19. Match all four preceding groups to their factorial weights and prediction differences.
+20. Add the weighted contributions; select a feature and inspect all six orders.
+21. Assemble the final contributions in a course-styled standard waterfall.
+22. Move each waterfall contribution to a common zero, preserving its signed length.
+23. Replace each contribution bar with a dot at its SHAP value.
+24. Repeat the explanation for all 125 constructed profiles, with the same model and eight reference rows.
+25. Spread overlapping dots vertically into a beeswarm, keeping their horizontal contributions fixed.
+26. Color dots by low-to-high input value within each feature, distinguishing input value from contribution direction.
+27. Show how signed averages cancel positive and negative contributions across these profiles.
+28. Fold negative contributions to their absolute distance from zero.
+29. Average the 125 absolute contributions in each feature row to construct global importance bars.
+30. Rank the mean absolute contributions: neighborhood opportunity 7.2, ability 3.24, and experience 1.2, in $1,000/year.
 
 The opening frames distinguish `ŷ(x)`, the fixed model’s prediction for a
 complete row, from `v_x(S)`, an average of that same model’s predictions across
@@ -118,6 +119,14 @@ identifies `i` as the additional feature and states there is no retraining. The 
 introduced with the earnings model. Frame 9 explicitly connects row averaging to the valid linear
 shortcut: average `ŷ(bread, peace)` over reference peace values, giving
 `ŷ(bread, 0)` because the overall background mean is zero.
+Frame 13 recaps that shortcut in a centered, full-width scene. Each of the four
+groups `S`, including the empty and complete groups, maps to a prediction from
+the same bivariate model: included predictors retain the selected election's
+values, while excluded predictors use their overall reference means, both zero.
+The coefficients and background stay fixed. Linearity makes prediction at those
+means equal to the average of the background-row predictions here. Averaging
+predictions remains the general definition of `v_x(S)`; substituting mean inputs
+need not reproduce that average in a nonlinear model.
 
 The first five frames use a centered formula, with short definitions
 underneath. The same equation stays in place and highlights the symbols under
@@ -135,14 +144,15 @@ rather than the original historical fit. The split layout begins with the
 three correlations in frame seven. Frame eight centers the three fitted
 equations in a full-width scene. Frame nine also uses the full width for the
 prediction comparison, retaining the election selector and averaging equation;
-frame ten returns to the worked layout. Frame 13 is another centered transition,
+frame ten returns to the worked layout. Frame 13 centers the four-coalition
+recap before frame 14's centered transition,
 “When features interact,” showing two round body-and-face characters with
 stick limbs on a tilted map of Germany. The smiling western character wears a
 top hat; the frowning eastern character wears a patched cap and worn shoes.
 The bottom map credit names West and East Germany. The native math term
 `ability × neighborhood` connects that comparison to the illustrative earnings
-equation. The full earnings model and person selector appear in frame 14.
-The story has 29 teaching frames, plus the unchanged opening title scene.
+equation. The full earnings model and person selector appear in frame 15.
+The story has 30 teaching frames, plus the unchanged opening title scene.
 Each worked frame's left column uses two or three short lecture cues in larger type,
 leaving the instructor room to explain the worked figure. The earnings equation
 appears beside its observation in the figure. Expandable notes retain the notation,

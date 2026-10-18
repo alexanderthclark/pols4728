@@ -121,6 +121,22 @@ function renderShap(data, observation) {
   return `<h3>Average the two orders</h3>${focalInputs(observation)}<div class="bread-order-averages">${averageEquation(observation,0)}${averageEquation(observation,1)}</div><div class="bread-decomposition" role="group" aria-label="Baseline plus both SHAP contributions equals the predicted standardized vote"><span>Baseline<strong>0</strong></span><span>Bread<strong class="${observation.shapValues[0] < 0 ? 'negative' : ''}">${signed(observation.shapValues[0])}</strong></span><span>Peace<strong class="${observation.shapValues[1] < 0 ? 'negative' : ''}">${signed(observation.shapValues[1])}</strong></span><span>Prediction<strong>${format(observation.prediction)}</strong></span></div>`;
 }
 
+function renderRecap(data, observation) {
+  const valueOfS = math(`<msub><mi>v</mi><mi>x</mi></msub>${parentheses('<mi>S</mi>')}`,'v sub x of S');
+  const means = labels.map((_,index) => mean(data.background.map(row => row.values[index])));
+  const rows = [0,1,2,3].map(mask => {
+    const inputs = observation.values.map((value,index) => mask & (1 << index) ? value : means[index]);
+    const members = labels.filter((_,index) => mask & (1 << index));
+    const group = members.length ? `<mo stretchy="false">{</mo>${members.map(label => `<mtext>${label}</mtext>`).join('<mo>,</mo>')}<mo stretchy="false">}</mo>` : '<mo>∅</mo>';
+    const inputCells = inputs.map((value,index) => {
+      const included = Boolean(mask & (1 << index));
+      return `<td class="${included ? 'recap-fixed' : 'recap-mean'}"><span class="recap-input-name">${index === 0 ? 'Bread' : 'Peace'}</span>${math(numeral(value),`${labels[index]} equals ${format(value)}`)}<small>${included ? 'from this election' : 'background mean'}</small></td>`;
+    }).join('');
+    return `<tr><th scope="row">${math(group,`S contains ${members.length ? members.join(' and ') : 'no features'}`)}</th>${inputCells}<td class="recap-prediction">${math(`${prediction(inputs)}<mo>=</mo>${numeral(coalition(observation,mask).value)}`,`y hat of ${inputs.map(format).join(', ')} equals ${format(coalition(observation,mask).value)}`)}</td></tr>`;
+  }).join('');
+  return `<h3>What does ${valueOfS} mean here?</h3><p class="recap-rule">In ${math('<mi>S</mi>','S')}: use this election’s value. Outside ${math('<mi>S</mi>','S')}: use the background mean, 0.</p><table class="coalition-recap-table"><caption>Evaluate the same bivariate model for every row.</caption><thead><tr><th scope="col">${math('<mi>S</mi>','S')}</th><th scope="col">Bread</th><th scope="col">Peace</th><th scope="col">${valueOfS}</th></tr></thead><tbody>${rows}</tbody></table><p class="recap-qualification">For this linear model, mean inputs give the average prediction over background rows. In general, average the predictions; plugging in mean inputs can give a different answer.</p>`;
+}
+
 export function renderBreadPeace(scene, data, observation) {
   if (scene === 'ols-model') return renderCorrelations(data);
   if (scene === 'ols-fits') return renderFits(data);
@@ -128,5 +144,6 @@ export function renderBreadPeace(scene, data, observation) {
   if (scene === 'ols-income-first') return renderOrder(data,observation,[0,1]);
   if (scene === 'ols-fatalities-first') return renderOrder(data,observation,[1,0]);
   if (scene === 'ols-shap') return renderShap(data,observation);
+  if (scene === 'ols-recap') return renderRecap(data,observation);
   throw new RangeError(`Unknown OLS scene: ${scene}`);
 }
