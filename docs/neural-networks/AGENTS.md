@@ -17,7 +17,7 @@ course design guide, blacksmith title illustration, and the readable mobile
 and reduced-motion versions.
 
 Keep the function and network diagrams together in one pinned visual stage,
-with the equation and concise stage caption. Do not add a separate explanation
+with a scene-specific heading, the equation, and concise stage caption. Do not add a separate explanation
 column. Keep the bias caption synchronized with the bias node's removal and
 explain that omitting intercepts from the drawing does not change the model.
 Retain the full prose as the print and no-JavaScript reading route.

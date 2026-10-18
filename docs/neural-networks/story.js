@@ -41,7 +41,9 @@
       byId('input-x-value').textContent=frame.x.toFixed(2);
       lastFrame=frame;
       Views.render(byId('function-plot'),byId('network-plot'),frame);
-      byId('stage-name').textContent=chapter(scene);
+      const sceneTitle=steps[index].querySelector('h2,h3')?.textContent||scene;
+      byId('stage-part').textContent=chapter(scene);
+      byId('stage-name').textContent=sceneTitle;
       byId('stage-count').textContent=String(index+1).padStart(2,'0')+' / '+steps.length;
       byId('stage-caption').textContent=frame.caption;
       window.NNFormula.render(byId('stage-equation'),frame);
@@ -55,7 +57,7 @@
       if(byId('next'))byId('next').disabled=index===steps.length-1;
       byId('return-link').hidden=scene!=='universal';
       byId('stage-instruction').hidden=scene==='universal';
-      if(byId('story-status')&&byId('story-status').dataset.scene!==scene){byId('story-status').dataset.scene=scene;byId('story-status').textContent=steps[index].querySelector('h2,h3')?.textContent||scene;}
+      if(byId('story-status')&&byId('story-status').dataset.scene!==scene){byId('story-status').dataset.scene=scene;byId('story-status').textContent=sceneTitle;}
       steps.forEach((s,i)=>{s.classList.toggle('is-active',i===index);if(i===index)s.setAttribute('aria-current','step');else s.removeAttribute('aria-current');});
       const story=byId('story');if(story)story.dataset.scene=scene;
     }

@@ -639,6 +639,7 @@ test('the single stage retains the scene caption and accessible scene status wit
       assert(!('inert' in caption.attrs), 'The stage caption remains accessible');
       assert.equal(status.dataset.scene, scene);
       assert.equal(status.textContent, app.steps.find(step => step.dataset.scene === scene).heading);
+      assert.equal(app.element('stage-name').textContent, status.textContent, 'The visible title identifies the current step');
       assert.equal(app.element('return-link').hidden, scene !== 'universal', 'The return link appears only in the final scene');
     }
     app.scroll('sine-zoom', .5);

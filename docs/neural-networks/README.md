@@ -5,7 +5,7 @@ contains sixteen scenes in three parts: shallow networks as sums of hinges,
 width as the number of available joints, and constructive approximation of a
 sine curve by widening the same hidden layer. Scrolling backward reverses the story.
 The function and network diagrams share one full-width pinned visual stage,
-with an equation and a concise caption. There is no separate explanation
+with a scene-specific heading, an equation, and a concise caption. There is no separate explanation
 column. The opening identifies the bias input, then explains the diagram-omission
 convention when that node disappears. A return link stays available at the end.
 The input-x slider lets readers inspect which neurons activate at a chosen
