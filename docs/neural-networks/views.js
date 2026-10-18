@@ -243,7 +243,7 @@
     b.text(position.x, position.y + position.radius + (compact ? 23 : 18), 'constant',
       'class="nv-small" text-anchor="middle"');
     b.text(position.labelX, position.labelY, 'b = ' + fmt(bias),
-      'class="nv-number nv-halo" text-anchor="middle" style="fill:' + C.muted + '"');
+      'class="nv-number nv-halo" text-anchor="middle" style="font-size:' + (compact ? 26 : 22) + 'px;fill:' + C.muted + '"');
     b.add('</g>');
   }
 
@@ -265,13 +265,13 @@
     b.text(outX, 61, 'Linear', 'class="nv-small" text-anchor="middle"');
     if (affine) {
       b.line(inputX + 18, middleY, outX - 18, middleY, 'stroke="' + C.blue + '" stroke-width="2"');
-      b.text(199, middleY - 15, 'w = ' + fmt(weight), 'class="nv-number" text-anchor="middle"');
+      b.text(199, middleY - 15, 'w = ' + fmt(weight), 'class="nv-number" text-anchor="middle" style="font-size:22px"');
       if (frame.showBias) drawBiasInput(b, { x: 206, y: 286, outX: outX - 13, outY: middleY + 13, labelX: 280, labelY: 266, radius: 14 }, bias, false);
     } else if (count === 0) {
       b.text(195, 177, 'No hidden neurons yet', 'class="nv-small" text-anchor="middle"');
     } else {
       b.text(hiddenX, 61, 'ReLU', 'class="nv-small" text-anchor="middle"');
-      b.text(94, 84, 'w = 1', 'class="nv-small" text-anchor="middle"');
+      b.text(94, 84, 'w = 1', 'class="nv-small" text-anchor="middle"' + (count <= 3 ? ' style="font-size:22px"' : ''));
       b.text(286, 84, 'output weights', 'class="nv-small" text-anchor="middle"');
       const lowY = 106, highY = 309;
       const gap = count > 1 ? (highY - lowY) / (count - 1) : 0;
@@ -284,7 +284,7 @@
         b.line(inputX + 17, middleY, hiddenX - radius, cy, 'stroke="' + (active ? C.blue : C.rule) + '" stroke-width="1.1" opacity="' + opacity + '"');
         b.line(hiddenX + radius, cy, outX - 18, middleY,
           'stroke="' + (n.a < 0 ? C.rust : C.blue) + '" stroke-width="1.15" opacity="' + opacity + '"' + (n.a < 0 ? ' stroke-dasharray="3 2"' : ''));
-        const labelSize = count > 17 ? 5.5 : count > 10 ? 7.5 : count > 6 ? 10 : 12;
+        const labelSize = count <= 3 ? 22 : count > 17 ? 5.5 : count > 10 ? 7.5 : count > 6 ? 10 : 12;
         b.text(163, cy + labelSize * 0.32, 'b=' + fmt(-n.t), 'class="nv-number nv-halo" text-anchor="end" style="font-size:' + labelSize + 'px"');
         b.text(223, cy + labelSize * 0.32, 'a=' + fmt(n.a), 'class="nv-number nv-halo" style="font-size:' + labelSize + 'px"');
         b.circle(hiddenX, cy, radius, 'fill="' + (active ? color : '#fff') + '" stroke="' + color + '" stroke-width="1.2"');
@@ -319,7 +319,7 @@
     const positions = neurons.map((n, i) => count < 2 ? center : 48 + i * 524 / (count - 1));
     if (affine) {
       b.line(center, inputY + 16, center, outputY - 16, 'stroke="' + C.blue + '" stroke-width="2"');
-      b.text(340, hiddenY + 6, 'w = ' + fmt(weight), 'class="nv-number"');
+      b.text(340, hiddenY + 6, 'w = ' + fmt(weight), 'class="nv-number" style="font-size:26px"');
       if (frame.showBias) drawBiasInput(b, { x: 105, y: 139, outX: center - 14, outY: outputY - 8, labelX: 220, labelY: 176, radius: 16 }, bias, true);
     } else neurons.forEach((n, i) => {
       const cx = positions[i], active = values[i].activation > 1e-8;
@@ -328,9 +328,9 @@
       b.line(center, inputY + 16, cx, hiddenY - radius, 'stroke="' + C.blue + '" stroke-width="1.3" opacity="' + opacity + '"');
       b.line(cx, hiddenY + radius, center, outputY - 16,
         'stroke="' + (n.a < 0 ? C.rust : C.blue) + '" stroke-width="1.3" opacity="' + opacity + '"' + (n.a < 0 ? ' stroke-dasharray="4 3"' : ''));
-      const font = count > 10 ? 15 : count > 6 ? 17 : 19;
+      const font = count <= 3 ? 26 : count > 10 ? 15 : count > 6 ? 17 : 19;
       b.text(cx, 84, 'b=' + fmt(-n.t), 'class="nv-number nv-halo" text-anchor="middle" style="font-size:' + font + 'px"');
-      b.text(cx, 155, 'a=' + fmt(n.a), 'class="nv-number nv-halo" text-anchor="middle" style="font-size:' + font + 'px"');
+      b.text(cx, count <= 3 ? 165 : 155, 'a=' + fmt(n.a), 'class="nv-number nv-halo" text-anchor="middle" style="font-size:' + font + 'px"');
       b.circle(cx, hiddenY, radius, 'fill="' + (active ? color : '#fff') + '" stroke="' + color + '" stroke-width="1.6"');
       if (count <= 10) b.text(cx, hiddenY + 5, 'R', 'class="nv-number" text-anchor="middle" style="font-size:17px;fill:' + (active ? '#fff' : color) + '"');
       if (count <= 6) b.text(cx, 135, fmt(values[i].activation), 'class="nv-number nv-halo" text-anchor="middle" style="font-size:17px"');
