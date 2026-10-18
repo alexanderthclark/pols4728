@@ -1,12 +1,12 @@
 (function(){
   'use strict';
-  const State=window.NNStoryState,Views=window.NNViews,Narrative=window.NNStoryNarrative;
+  const State=window.NNStoryState,Views=window.NNViews;
   const steps=Array.from(document.querySelectorAll('.step[data-scene]'));
   const byId=id=>document.getElementById(id);
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   byId('story').classList.add('is-enhanced');
-  // Keep the full reading route in the document while its sections supply
-  // scroll distances. The pinned caption is the sole interactive explanation.
+  // Keep the print/no-JavaScript reading route while its sections supply
+  // scroll distances for the single visual stage and its concise caption.
   byId('scroll-steps').setAttribute('aria-hidden','true');
   byId('scroll-steps').setAttribute('inert','');
   let currentIndex=0,renderSignature='',pending=0,inspectionX=null,lastFrame=null;
@@ -44,18 +44,6 @@
       byId('stage-name').textContent=chapter(scene);
       byId('stage-count').textContent=String(index+1).padStart(2,'0')+' / '+steps.length;
       byId('stage-caption').textContent=frame.caption;
-      const cue=Narrative.cue(frame,{reduced});
-      frame.narrativeKey=cue.key;frame.narrativeOpacity=cue.opacity;
-      const caption=byId('narrative-caption');
-      if(caption.dataset.cue!==cue.key){
-        const source=cue.source==='scene'?steps[index]:byId(cue.source);
-        // The hidden reading route retains its original heading anchors.
-        caption.innerHTML=source.innerHTML.replace(/\sid="[^"]*"/g,'');
-        caption.dataset.cue=cue.key;
-      }
-      caption.style.opacity=String(cue.opacity);
-      caption.setAttribute('aria-hidden',cue.opacity===0?'true':'false');
-      if(cue.opacity===0)caption.setAttribute('inert','');else caption.removeAttribute('inert');
       window.NNFormula.render(byId('stage-equation'),frame);
       const activationModel=frame.model||(frame.kind==='relu'?window.NNMath.createShallow(0,[{t:0,a:1}]):null);
       const counter=byId('active-neurons');
@@ -65,7 +53,9 @@
       counter.textContent=activationModel?frame.activeCount+' of '+frame.hiddenCount+' neurons active · x = '+frame.x.toFixed(2):'';
       if(byId('previous'))byId('previous').disabled=index===0;
       if(byId('next'))byId('next').disabled=index===steps.length-1;
-      if(byId('story-status')&&byId('story-status').dataset.cue!==cue.key){byId('story-status').dataset.scene=scene;byId('story-status').dataset.cue=cue.key;byId('story-status').textContent=cue.source==='bias-omitted'?'By convention, intercepts are often omitted from network diagrams.':steps[index].querySelector('h2,h3')?.textContent||scene;}
+      byId('return-link').hidden=scene!=='universal';
+      byId('stage-instruction').hidden=scene==='universal';
+      if(byId('story-status')&&byId('story-status').dataset.scene!==scene){byId('story-status').dataset.scene=scene;byId('story-status').textContent=steps[index].querySelector('h2,h3')?.textContent||scene;}
       steps.forEach((s,i)=>{s.classList.toggle('is-active',i===index);if(i===index)s.setAttribute('aria-current','step');else s.removeAttribute('aria-current');});
       const story=byId('story');if(story)story.dataset.scene=scene;
     }
@@ -77,7 +67,7 @@
     const target=steps[Math.max(0,Math.min(steps.length-1,currentIndex+delta))];
     const rect=target.getBoundingClientRect();
     const offset=byId('story-stage').getBoundingClientRect().top;
-    // Land after the entering fade so the selected scene is readable.
+    // Land inside the scene so boundary rounding cannot select its predecessor.
     window.scrollTo({top:(window.scrollY||0)+rect.top-offset+rect.height*.12,behavior:reduced?'auto':'smooth'});
   }
   if(byId('previous'))byId('previous').addEventListener('click',()=>go(-1));

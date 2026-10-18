@@ -4,10 +4,10 @@ A scroll-driven introduction to one-dimensional ReLU networks. The narrative
 contains sixteen scenes in three parts: shallow networks as sums of hinges,
 width as the number of available joints, and constructive approximation of a
 sine curve by widening the same hidden layer. Scrolling backward reverses the story.
-The diagrams and current explanation stay pinned together. Scroll progress
-fades each explanation in and out in place. The opening first identifies the
-bias input, then replaces that caption with the diagram-omission convention
-when the bias node disappears. Reduced motion changes captions without fades.
+The function and network diagrams share one full-width pinned visual stage,
+with an equation and a concise caption. There is no separate explanation
+column. The opening identifies the bias input, then explains the diagram-omission
+convention when that node disappears. A return link stays available at the end.
 The input-x slider lets readers inspect which neurons activate at a chosen
 input, with a matching point on the function plot. A count above the network
 reports the active neurons out of the current hidden-layer width. A neuron
@@ -37,8 +37,7 @@ the same architecture while adding joints to approximate sine.
 `math.js` supplies the exact hinge networks and piecewise linear interpolation.
 `state.js` maps each scene and its scroll progress to its network weights.
 `views.js` draws the actual function and network, including a compact phone
-layout. `narrative.js` selects the current caption and its scroll-driven opacity.
-`story.js` connects those states to scrolling and keyboard navigation. The
+layout. `story.js` connects those states and captions to scrolling and keyboard navigation. The
 original narrative sections supply scroll distances; they remain the reading
 route without JavaScript and in print.
 
@@ -102,9 +101,9 @@ node --test tests/neural-networks-state.test.cjs
 node --test tests/neural-networks-scroll.test.cjs
 ```
 
-The SVG figures were rendered and inspected at desktop and 350 px phone
-sizes. Browser layout verification remains outstanding; no browser was
-available in the authoring environment. The checks do not constitute an
+Browser review covers forward and backward scrolling on desktop and a 390×650
+phone viewport, keyboard navigation, the sparse network labels, and the final
+return link. Reduced motion is covered by automated checks. These checks do not constitute an
 accessibility-compliance claim. No build step or external dependency is
 required. After merging, GitHub Pages serves this directory at
 `https://alexanderthclark.github.io/pols4728/neural-networks/`.

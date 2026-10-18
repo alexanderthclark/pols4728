@@ -79,6 +79,7 @@
           current=approximation(width);frame.model=current.model;frame.width=width;frame.maxError=current.error;
           frame.caption=width+' hidden neurons, '+(width-1)+' interior joints. Maximum error on 2,000 evaluation points ≈ '+current.error.toFixed(4)+'.';
           frame.equation=scene==='universal'?'For every ε > 0, a sufficiently wide shallow network can make maxₓ |f(x) − ŷ(x)| < ε.':'Solid blue: ReLU network. Dashed rust: sin(x).';
+          if(scene==='universal')frame.caption='For a continuous function on a closed, bounded interval, suitable weights exist. This is a capacity guarantee; it does not guarantee successful training or justify extrapolation.';
         }
         break;
       }

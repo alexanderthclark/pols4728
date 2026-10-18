@@ -7,13 +7,12 @@
   <meta name="theme-color" content="#ffffff">
   <title>Shallow neural networks · POLS 4728</title>
   <link rel="stylesheet" href="vendor/katex/katex.min.css">
-  <link rel="stylesheet" href="style.css?v=20261017-captions">
+  <link rel="stylesheet" href="style.css?v=20261018-single-stage">
   <script src="math.js" defer></script>
-  <script src="state.js?v=20261017-captions" defer></script>
+  <script src="state.js?v=20261018-single-stage" defer></script>
   <script src="views.js?v=20261017-captions" defer></script>
   <script src="formula.js?v=20261017-captions" defer></script>
-  <script src="narrative.js?v=20261017-captions" defer></script>
-  <script src="story.js?v=20261017-captions" defer></script>
+  <script src="story.js?v=20261018-single-stage" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#story">Skip to the explainer</a>
@@ -70,7 +69,8 @@
         </div>
         <p id="stage-caption" class="stage-caption">With no bends, the output has one constant slope.</p>
         <div class="stage-footer">
-          <span class="stage-instruction">Scroll to continue</span>
+          <span id="stage-instruction" class="stage-instruction">Scroll to continue</span>
+          <a id="return-link" class="stage-return" href="#page-title" hidden>Back to the beginning <span aria-hidden="true">↑</span></a>
           <nav class="scene-navigation" aria-label="Move between explanation steps">
             <button type="button" id="previous" aria-label="Previous step">↑</button>
             <button type="button" id="next" aria-label="Next step">↓</button>
@@ -78,18 +78,7 @@
         </div>
         <p id="story-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true">Step 1 of 16: a straight line.</p>
       </aside>
-      <aside id="narrative-display" class="narrative-display" aria-label="Current explanation">
-        <div id="narrative-caption" class="narrative-caption"><p class="part-label">01 / A shallow network</p>
-          <h2>A linear equation, drawn as a network.</h2>
-          <p>The input arrow contributes <i>wx</i>. The faint constant-1 node adds <i>b</i>, the intercept.</p></div>
-      </aside>
       </div>
-      <template id="bias-visible"><p class="part-label">01 / A shallow network</p>
-          <h2>A linear equation, drawn as a network.</h2>
-          <p>The input arrow contributes <i>wx</i>. The faint constant-1 node adds <i>b</i>, the intercept.</p></template>
-      <template id="bias-omitted"><p class="part-label">01 / A shallow network</p>
-          <h2>The bias stays in the equation.</h2>
-          <p>By convention, intercepts are often omitted from network diagrams. Here, <i>b</i> = 0.5 still contributes to every prediction.</p></template>
 
       <div id="scroll-steps" class="narrative">
         <section class="step" id="scene-affine" data-scene="affine" aria-labelledby="heading-affine">

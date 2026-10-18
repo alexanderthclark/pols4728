@@ -9,7 +9,7 @@ const vm = require('node:vm');
 
 const directory = path.resolve(__dirname, '../docs/neural-networks');
 const html = fs.readFileSync(path.join(directory, 'index.html'), 'utf8');
-const scripts = ['math.js', 'state.js', 'views.js', 'formula.js', 'narrative.js', 'story.js'];
+const scripts = ['math.js', 'state.js', 'views.js', 'formula.js', 'story.js'];
 const sceneMarkup = [...html.matchAll(/<section\b([^>]*\bdata-scene="([^"]+)"[^>]*)>([\s\S]*?)<\/section>/g)];
 const sceneNames = sceneMarkup.map(match => match[2]);
 const svgSnapshots = [];
@@ -76,11 +76,6 @@ function mount({ mobile = false, reduced = false } = {}) {
     const node = elements.get(attrs(match[1]).id);
     if (node) node.innerHTML = match[2];
   }
-  const narrativeTag = [...html.matchAll(/<([a-z]+)\b([^>]*)>/g)]
-    .map(match => ({ tag: match[1], attrs: attrs(match[2]) }))
-    .find(item => /(?:^|\s)narrative(?:\s|$)/.test(item.attrs.class || ''));
-  const sourceNarrative = narrativeTag?.attrs.id ? elements.get(narrativeTag.attrs.id) :
-    makeNode(narrativeTag?.attrs || { class: 'narrative' });
   const steps = sceneMarkup.map((match, index) => {
     const attributes = attrs(match[1]), node = elements.get(attributes.id);
     node.innerHTML = match[3];
@@ -103,7 +98,6 @@ function mount({ mobile = false, reduced = false } = {}) {
     documentElement: { scrollHeight: 17000 },
     getElementById(id) { assert(elements.has(id), `Missing referenced HTML id ${id}`); return elements.get(id); },
     querySelector(selector) {
-      if (selector === '.narrative') return sourceNarrative;
       if (selector.startsWith('#')) return this.getElementById(selector.slice(1));
       throw new Error(`Unexpected DOM selector ${selector}`);
     },
@@ -155,7 +149,7 @@ function mount({ mobile = false, reduced = false } = {}) {
     runtime.scrollY = top + heightOf(index) * progress - focus;
   }
   return {
-    window, runtime, steps, elements, sourceNarrative,
+    window, runtime, steps, elements,
     get renderCount() { return renders; },
     frame() { return window.NNScrollStory.getFrame(); },
     element(id) { return document.getElementById(id); },
@@ -623,131 +617,96 @@ test('the active-neuron counter follows positive hidden activations and excludes
   }
 });
 
-test('the pinned explanatory caption keeps the complete active scene current on desktop and mobile', () => {
-  const plain = markup => markup.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-  const css = fs.readFileSync(path.join(directory, 'style.css'), 'utf8');
-  const stageRule = css.match(/\.story\.is-enhanced\s*>\s*\.story-stage\s*\{([^}]+)\}/)?.[1] || '';
-  assert(/position\s*:\s*sticky/.test(stageRule), 'The graph and full explanation share a pinned stage');
-  const sourceRule = css.match(/\.story\.is-enhanced\s*>\s*\.narrative\s*\{([^}]+)\}/)?.[1] || '';
-  assert(/visibility\s*:\s*hidden/.test(sourceRule), 'Source explanations act as invisible scroll rails');
+test('the single stage retains the scene caption and accessible scene status without an explanation column', () => {
+  assert(!/\bid="(?:narrative-display|narrative-caption)"/.test(html), 'The right-hand explanation column is removed');
+  assert(!/<script\b[^>]*src="[^"\n]*narrative\.js/.test(html), 'No removed explanation controller is loaded');
   for (const mobile of [false, true]) {
     const app = mount({ mobile });
-    const caption = app.element('narrative-caption');
+    const caption = app.element('stage-caption');
+    const status = app.element('story-status');
+    const rails = app.element('scroll-steps');
     assert(app.element('story').classes.has('is-enhanced'));
-    assert.equal(app.sourceNarrative.attrs['aria-hidden'], 'true', 'Source rails are hidden from assistive technology');
-    assert('inert' in app.sourceNarrative.attrs || app.sourceNarrative.inert === true,
-      'Hidden source links and headings cannot receive focus');
+    assert.equal(rails.attrs['aria-hidden'], 'true', 'The scroll rails do not duplicate the active scene for assistive technology');
+    assert('inert' in rails.attrs || rails.inert === true, 'Hidden scroll-rail links cannot receive focus');
+    assert.equal(status.attrs.role, 'status');
+    assert.equal(status.attrs['aria-live'], 'polite');
     for (const scene of sceneNames) {
       const frame = app.scroll(scene, .5);
-      const source = scene === 'affine' ? app.element('bias-visible').innerHTML :
-        app.steps.find(step => step.dataset.scene === scene).innerHTML;
-      assert.equal(plain(caption.innerHTML), plain(source), `Pinned text includes the complete ${scene} explanation`);
-      assert(!/\sid="/.test(caption.innerHTML), 'Copied headings never duplicate the source anchor IDs');
-      assert.equal(frame.scene, scene);
-      assert.equal(caption.dataset.cue, frame.narrativeKey);
-      assert.equal(Number(caption.style.opacity), 1, `${scene} text is readable in the middle of its scene`);
-      assert.equal(caption.attrs['aria-hidden'], 'false');
-      assert(!('inert' in caption.attrs), 'The visible explanation remains accessible');
+      assert.equal(caption.textContent, frame.caption, `The ${scene} stage retains its current short caption`);
+      assert(caption.textContent.trim().length > 0);
+      assert(!caption.hidden, 'The stage caption remains visible');
+      assert.notEqual(caption.attrs['aria-hidden'], 'true');
+      assert(!('inert' in caption.attrs), 'The stage caption remains accessible');
+      assert.equal(status.dataset.scene, scene);
+      assert.equal(status.textContent, app.steps.find(step => step.dataset.scene === scene).heading);
+      assert.equal(app.element('return-link').hidden, scene !== 'universal', 'The return link appears only in the final scene');
     }
     app.scroll('sine-zoom', .5);
-    const before = caption.innerHTML;
+    const before = caption.textContent;
     app.input('input-x', 0);
-    assert.equal(caption.innerHTML, before, 'The input inspector never substitutes a stale narrative');
+    assert.equal(caption.textContent, before, 'Inspecting an input preserves the scene caption');
     app.runtime.mobile = !mobile;
     app.position('sine-zoom', .5);
     app.resize();
-    assert.equal(caption.innerHTML, before, 'Responsive rerendering keeps the active explanation');
-    app.scroll('shallow', .5);
-    assert.equal(plain(caption.innerHTML), plain(app.steps.find(step => step.dataset.scene === 'shallow').innerHTML),
-      'Backward scrolling restores the earlier full explanation');
+    assert.equal(caption.textContent, before, 'Responsive rendering preserves the active caption');
+    const earlier = app.scroll('shallow', .5);
+    assert.equal(caption.textContent, earlier.caption, 'Reverse scrolling restores the earlier caption');
   }
 });
 
-test('bias-caption changes and fades are controlled by scroll in both directions', () => {
-  for (const mobile of [false, true]) {
-    const app = mount({ mobile });
-    const caption = app.element('narrative-caption');
-    const plain = markup => markup.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-    app.scroll('affine', .57);
-    const shown = plain(caption.innerHTML);
-    assert.equal(shown, plain(app.element('bias-visible').innerHTML));
-    assert.equal(Number(caption.style.opacity), 1);
-    app.scroll('affine', .61);
-    assert(Math.abs(Number(caption.style.opacity) - .5) < .01, 'The outgoing bias explanation fades with scrolling');
-    assert.equal(plain(caption.innerHTML), shown);
-    app.scroll('affine', .65);
-    assert.equal(app.frame().showBias, false);
-    assert.equal(Number(caption.style.opacity), 0);
-    assert.equal(caption.attrs['aria-hidden'], 'true');
-    assert('inert' in caption.attrs, 'A fully faded explanation cannot retain keyboard focus');
-    const omitted = plain(caption.innerHTML);
-    assert.equal(omitted, plain(app.element('bias-omitted').innerHTML));
-    assert.notEqual(omitted, shown, 'The caption changes with the omitted bias input');
-    app.scroll('affine', .69);
-    assert(Math.abs(Number(caption.style.opacity) - .5) < .01, 'The replacement explanation fades in with scrolling');
-    app.scroll('affine', .8);
-    assert.equal(Number(caption.style.opacity), 1);
-    assert.equal(caption.attrs['aria-hidden'], 'false');
-    assert(!('inert' in caption.attrs));
-    assert.equal(plain(caption.innerHTML), omitted);
-    app.input('input-x', 1);
-    assert.equal(plain(caption.innerHTML), omitted, 'Slider use keeps the correct bias-state explanation');
-    app.scroll('affine', .61);
-    assert.equal(app.frame().showBias, true);
-    assert.equal(plain(caption.innerHTML), shown);
-    app.scroll('affine', .2);
-    assert.equal(Number(caption.style.opacity), 1);
-
-    app.scroll('relu', .04);
-    assert(Math.abs(Number(caption.style.opacity) - .5) < .01, 'A scene entry fades in according to progress');
-    app.scroll('relu', .5);
-    assert.equal(Number(caption.style.opacity), 1);
-    app.scroll('relu', .96);
-    assert(Math.abs(Number(caption.style.opacity) - .5) < .01, 'A scene exit fades out according to progress');
-  }
-});
-
-test('the final explanation and return link remain available at and beyond the end of the story', () => {
+test('the affine stage caption follows the bias drawing in both directions', () => {
   for (const mobile of [false, true]) {
     for (const reduced of [false, true]) {
       const app = mount({ mobile, reduced });
-      const caption = app.element('narrative-caption');
-      for (const progress of [.12, .5, .96, 1, 1.2]) {
-        app.scroll('universal', progress);
-        assert.equal(Number(caption.style.opacity), 1, `The conclusion stays readable at progress ${progress}`);
-        assert.equal(caption.attrs['aria-hidden'], 'false');
-        assert(!('inert' in caption.attrs), 'The return link remains keyboard accessible');
-        assert(caption.innerHTML.includes('suitable weights exist'), 'The approximation qualification remains present');
-        assert(/<a\b[^>]*href="#page-title"/.test(caption.innerHTML), 'The conclusion retains its return link');
-      }
-      app.scroll('sine-wide', .5);
-      assert(caption.textContent.includes('Keep adding places to bend.'), 'Reverse scrolling restores the earlier explanation');
-      app.scroll('universal', 1);
-      assert.equal(Number(caption.style.opacity), 1, 'Returning to the end restores the visible conclusion');
-      assert(!('inert' in caption.attrs));
+      const caption = app.element('stage-caption');
+      const visible = app.scroll('affine', .2);
+      assert.equal(visible.showBias, true);
+      assert.equal(caption.textContent, visible.caption);
+      assert(caption.textContent.includes('constant-1 connection'));
+      const shownText = caption.textContent;
+      const omitted = app.scroll('affine', .9);
+      assert.equal(omitted.showBias, false);
+      assert.equal(caption.textContent, omitted.caption);
+      assert(caption.textContent.includes('remains in the model and its predictions'));
+      assert.notEqual(caption.textContent, shownText);
+      const omittedText = caption.textContent;
+      app.input('input-x', 1);
+      assert.equal(caption.textContent, omittedText, 'Inspecting an input retains the omitted-bias explanation');
+      app.scroll('affine', .2);
+      assert.equal(caption.textContent, shownText, 'Reverse scrolling restores the visible-bias caption');
     }
   }
 });
 
-test('reduced motion switches pinned explanations without opacity animation', () => {
+test('the final stage caption and return link remain available at and beyond the end of the story', () => {
   for (const mobile of [false, true]) {
-    const app = mount({ mobile, reduced: true });
-    const caption = app.element('narrative-caption');
-    for (const scene of sceneNames) {
-      app.scroll(scene, .04);
-      assert.equal(Number(caption.style.opacity), 1, `${scene} stays fully opaque with reduced motion`);
-      assert(caption.innerHTML.trim().length > 0);
+    for (const reduced of [false, true]) {
+      const app = mount({ mobile, reduced });
+      const caption = app.element('stage-caption');
+      const link = app.element('return-link');
+      assert.equal(link.attrs.href, '#page-title', 'The final link returns to the page heading');
+      assert.equal(app.element('page-title').attrs.id, 'page-title', 'The return destination exists');
+      for (const progress of [.12, .5, .96, 1, 1.2]) {
+        const frame = app.scroll('universal', progress);
+        assert.equal(caption.textContent, frame.caption, `The final caption stays current at progress ${progress}`);
+        assert(caption.textContent.includes('continuous function on a closed, bounded interval'), 'The approximation assumptions remain present');
+        assert(caption.textContent.includes('does not guarantee successful training'), 'The conclusion preserves the capacity-versus-training distinction');
+        assert(!caption.hidden, `The final caption stays visible at progress ${progress}`);
+        assert.notEqual(caption.style.opacity, '0');
+        assert.notEqual(caption.attrs['aria-hidden'], 'true');
+        assert(!('inert' in caption.attrs));
+        assert.equal(link.hidden, false, `The return link stays visible at progress ${progress}`);
+        assert.notEqual(link.style.opacity, '0');
+        assert.notEqual(link.attrs['aria-hidden'], 'true');
+        assert(!('inert' in link.attrs), 'The return link remains keyboard accessible');
+      }
+      const earlier = app.scroll('sine-wide', .5);
+      assert.equal(caption.textContent, earlier.caption, 'Reverse scrolling restores the earlier caption');
+      assert.equal(link.hidden, true, 'The final return link hides when leaving the conclusion');
+      const final = app.scroll('universal', 1);
+      assert.equal(caption.textContent, final.caption, 'Returning to the end restores the final caption');
+      assert.equal(link.hidden, false, 'Returning to the end restores the final link');
     }
-    app.scroll('affine', .2);
-    const visible = caption.textContent;
-    assert.equal(app.frame().showBias, true);
-    app.scroll('affine', .9);
-    assert.equal(app.frame().showBias, false);
-    assert.notEqual(caption.textContent, visible);
-    assert.equal(Number(caption.style.opacity), 1);
-    app.scroll('affine', .2);
-    assert.equal(caption.textContent, visible);
-    assert.equal(Number(caption.style.opacity), 1);
   }
 });
 

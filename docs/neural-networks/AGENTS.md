@@ -16,10 +16,11 @@ Scrolling drives the mathematical changes in all three parts. Preserve the
 course design guide, blacksmith title illustration, and the readable mobile
 and reduced-motion versions.
 
-Pin the current explanation with the diagrams. Key text appears and disappears
-in place with scroll progress instead of moving past the reader. Keep the bias
-explanation synchronized with the bias node's removal, then explain the
-convention of omitting intercepts from network diagrams.
+Keep the function and network diagrams together in one pinned visual stage,
+with the equation and concise stage caption. Do not add a separate explanation
+column. Keep the bias caption synchronized with the bias node's removal and
+explain that omitting intercepts from the drawing does not change the model.
+Retain the full prose as the print and no-JavaScript reading route.
 
 Keep the input-x slider available for inspecting which neurons activate at
 a chosen input. It changes the traced input and activations while scrolling
