@@ -1,8 +1,12 @@
 # Explaining one prediction with SHAP
 
-An opening title slide shows two torso-less investigators examining a faceless
+The opening title is “SHAP,” with the subtitle “SHapley Additive exPlanations,”
+following the expansion used in the [official documentation](https://shap.readthedocs.io/en/latest/).
+The slide shows two torso-less investigators examining a faceless
 Y-hat in a gently landed spaceship. Its Start link leads into the existing
-20-frame explanation; the cover is separate from the story’s frame count.
+30-frame explanation; the cover is separate from the story’s frame count.
+The first 21 frames lead to a local waterfall; nine appended frames build
+a beeswarm and derive global importance from those same local contributions.
 
 This scrolling story begins with the Shapley formula readers
 already know. It maps its players to features and its game to one observation’s
@@ -17,8 +21,7 @@ standardized war fatalities, so higher peace means fewer fatalities.
 Features and observed vote have mean zero and SD one. Three stipulated
 correlations, bread–peace +0.5, bread–vote +0.75, and peace–vote +0.75, determine
 both univariate OLS slopes (+0.75) and both bivariate slopes (+0.5), with zero
-intercepts. The figure displays all three model equations; the coefficient
-derivations are in an expandable note. Predictions use the outcome's SD units;
+intercepts. The figure displays all three model equations. Predictions use the outcome's SD units;
 they are not themselves rescaled to SD one.
 
 Removing peace and refitting bread-only OLS gives a slope of 0.75, equal
@@ -32,13 +35,14 @@ out both orders as explicit prediction differences, such as
 `y_hat(1, 0) − y_hat(0, 0)` for bread joining first and
 `y_hat(1, 1) − y_hat(0, 1)` for bread joining second. Both calls use the
 same bivariate coefficients. Zero represents the mean of an averaged-out input
-in this additive model. There are no data tables in the OLS warm-up.
+in this additive model. The OLS recap summarizes coalition inputs and predictions
+without displaying the synthetic training rows.
 Alternate elections change the inputs and contributions; the fit and background
 stay fixed. These are constructed examples, not historical elections or Hibbs's
 estimated coefficients. The reproduction files construct eight standardized
 synthetic rows to independently verify the stipulated correlations and model
 fits; empirical SD uses denominator `n`. Those verification rows do not appear
-in the story. The optional method note distinguishes interventional
+in the story. The optional model and background note distinguishes interventional
 replacement from conditional SHAP and reduced-model refitting.
 
 The illustrative earnings predictor is
@@ -67,43 +71,84 @@ Each occurs in three of the six orders, giving a final ability SHAP value of −
 The complete explanation is `47 − 1 − 18 + 2 = 30`. Alternate favorable and mixed
 profiles use the same model and background.
 
+The summary extends the earnings example to 125 equally weighted constructed
+profiles: all combinations of ability and experience in `{0, .25, .5, .75, 1}`
+and neighborhood opportunity in `{−1, −.5, 0, .5, 1}`. These are the people
+being explained. Their explanations continue to use the original eight endpoint
+reference profiles, the same fixed predictor, and the baseline of 47.
+The cohort does not replace the background.
+
 ## Story and controls
 
 1. Begin with the complete Shapley formula.
 2. Highlight the observation `x` supplying the fixed inputs.
 3. Define `y_hat(x)`, the fixed model’s prediction for one complete input row, distinct from observed outcome `y`.
-4. Define the value function through a comparison of `v_x(S)` and `v_x(S ∪ {i})`: both average the same model’s predictions, while feature `i` moves from background values to its value in `x`.
-5. Highlight the result and introduce `phi_i(x)` as shorthand for `phi_i(v_x)`.
+4. Define `v_x(S)` as the average of the same fixed model’s predictions over completed background rows, retaining this observation’s values for features in `S`.
+5. Define the marginal contribution `v_x(S ∪ {i}) − v_x(S)`, then connect its average across orders to the feature’s credit, introducing `phi_i(x)` as shorthand for `phi_i(v_x)`.
 6. Introduce the stylized Bread and Peace specification with the original Hibbs citation and course-style characters.
 7. State the three correlations for standardized bread, peace, and observed vote.
-8. Display the two univariate fits and one bivariate fit, with the derivation in the notes.
+8. Display the two univariate fits and one bivariate fit.
 9. Choose an election; compare the muted bread-only refit (not used for SHAP) with the bivariate prediction at mean peace.
 10. Reveal bread first, then peace; show both before/after prediction subtractions.
 11. Reverse the order and show the same bivariate equation evaluated at different inputs.
 12. Average each feature's two marginals and reconstruct the full prediction.
-13. Introduce how ability and neighborhood interact with a centered East/West Germany analogy.
-14. Move to the three-feature earnings interaction and one person to explain.
-15. Compute its `v_x(S)` from background rows, starting with `S = ∅`.
-16. Fix ability and compare with the earnings baseline.
-17. Start with neighborhood fixed and compare the same two value-function terms.
-18. Match all four preceding groups to their factorial weights and prediction differences.
-19. Add the weighted contributions; select a feature and inspect all six orders.
-20. Assemble the final contributions in a course-styled standard waterfall.
+13. Re-emphasize the general average over background predictions, then label mean substitution as a linear model shortcut and map all four feature groups to predictions for the selected election.
+14. Introduce how ability and neighborhood interact with a centered East/West Germany analogy.
+15. Move to the three-feature earnings interaction and one person to explain.
+16. Compute its `v_x(S)` from background rows, starting with `S = ∅`.
+17. Fix ability and compare with the earnings baseline.
+18. Start with neighborhood fixed and compare the same two value-function terms.
+19. Match all four preceding groups to their factorial weights and prediction differences.
+20. Add the weighted contributions; select a feature and inspect all six orders.
+21. Assemble the final contributions in a course-styled standard waterfall.
+22. Move each waterfall contribution to a common zero, preserving its signed length.
+23. Replace each contribution bar with a dot at its SHAP value.
+24. Repeat the explanation for all 125 constructed profiles, with the same model and eight reference rows.
+25. Spread overlapping dots vertically into a beeswarm, keeping their horizontal contributions fixed.
+26. Color dots by low-to-high input value within each feature, distinguishing input value from contribution direction.
+27. Show how signed averages cancel positive and negative contributions across these profiles.
+28. Fold negative contributions to their absolute distance from zero.
+29. Average the 125 absolute contributions in each feature row to construct global importance bars.
+30. Rank the mean absolute contributions: neighborhood opportunity 7.2, ability 3.24, and experience 1.2, in $1,000/year.
 
 The opening frames distinguish `ŷ(x)`, the fixed model’s prediction for a
 complete row, from `v_x(S)`, an average of that same model’s predictions across
 completed background rows. Fixing every feature makes every row equal to `x`,
-so the average equals `ŷ(x)`. Frame 4 defines this averaged-prediction value function by comparing both coalition values:
-`S` supplies the inputs already fixed to `x`; adding feature `i` uses its value
-from `x` instead of its background values. The note below the comparison
-identifies `i` as the additional feature and states there is no retraining. The alias `f(x) = ŷ(x)` is
-introduced with the earnings model. Frame 9 explicitly connects row averaging to the valid linear
-shortcut: average `ŷ(bread, peace)` over reference peace values, giving
-`ŷ(bread, 0)` because the overall background mean is zero.
+so the average equals `ŷ(x)`. Frame 4, “Average background predictions,” gives
+the general definition before either worked example:
+`v_x(S) = (1/B) Σ_{b=1}^B ŷ(x_S, z^(b)_−S)`. Here `B` counts the reference rows,
+`z^(b)` is background row `b`, and `x_S` supplies this observation's fixed
+values. Excluded inputs retain their joint values from each reference row.
+These are overall background rows, not rows conditioned on the included inputs;
+the same model predicts every completed row. Frame 5 connects the marginal
+contribution `v_x(S ∪ {i}) − v_x(S)` directly to feature credit: `S` supplies
+the inputs already fixed to `x`; adding feature `i` uses its value from `x`
+instead of its background values. Averaging those prediction differences across
+orders gives the feature's SHAP value. The model is not retrained. This frame
+also introduces `phi_i(x)` as shorthand for `phi_i(v_x)`. The alias `f(x) = ŷ(x)`
+is introduced with the earnings model. Frame 9 explicitly connects row averaging
+to the valid linear shortcut:
+average `ŷ(bread, peace)` over reference peace values, giving `ŷ(bread, 0)`
+because the overall background mean is zero.
+
+Frame 13 returns to the general average over background predictions first in a
+centered, full-width recap. It then labels
+`v_x(S) = ŷ(x_S, x̄_−S)` as a linear model shortcut. This unstandardized identity
+holds for a linear model including its intercept. The bar denotes overall
+reference means, not conditional means. Each of the four groups `S`, including
+the empty and complete groups, maps to a prediction from the same bivariate
+model: included predictors retain the selected election's values, while excluded
+predictors use their overall reference means, both zero in the teaching example.
+The coefficients and background stay fixed. These grouped arguments retain the
+inputs in their original feature positions; they do not reorder the model's
+columns. Standardization only makes the means zero. Linearity makes prediction
+at those means equal to the average of the background-row predictions here.
+Averaging predictions remains the general definition of `v_x(S)`; substituting
+mean inputs need not reproduce that average in a nonlinear model.
 
 The first five frames use a centered formula, with short definitions
 underneath. The same equation stays in place and highlights the symbols under
-discussion; frame 4 shows its before and after coalition values together.
+discussion; frame 5 defines a marginal contribution and connects its average to feature credit.
 Definitions enter through scrolling instead of a glossary, including
 the observation, model prediction, value function, feature groups, and final credit.
 Frame six is a full-width Bread and Peace transition, with a centered teaching
@@ -114,18 +159,26 @@ The peace feature reverses the standardized war-fatalities measure, so both
 feature coefficients in the teaching model are positive.
 The equation is a stylized, centered and standardized teaching specification,
 rather than the original historical fit. The split layout begins with the
-three correlations in frame seven. Frame 13 is another centered transition,
+three correlations in frame seven. Frame eight centers the three fitted
+equations in a full-width scene. Frame nine also uses the full width for the
+prediction comparison, retaining the election selector and averaging equation;
+frame ten returns to the worked layout. Frame 13 centers the general
+definition and four-coalition recap before frame 14's centered transition,
 “When features interact,” showing two round body-and-face characters with
 stick limbs on a tilted map of Germany. The smiling western character wears a
 top hat; the frowning eastern character wears a patched cap and worn shoes.
 The bottom map credit names West and East Germany. The native math term
 `ability × neighborhood` connects that comparison to the illustrative earnings
-equation. The full earnings model and person selector appear in frame 14.
-The story has 20 frames.
+equation. The full earnings model and person selector appear in frame 15.
+The story has 30 teaching frames, plus the unchanged opening title scene.
+When a chart exceeds the available figure height, the figure scrolls vertically
+and shows a scroll hint. Aggregate charts retain page-scroll chaining at their
+edges and reserve scrollbar space so the chart layout remains stable.
 Each worked frame's left column uses two or three short lecture cues in larger type,
 leaving the instructor room to explain the worked figure. The earnings equation
-appears beside its observation in the figure. Expandable notes retain the notation,
-OLS derivation, model assumptions, and factorial-count explanation for later reading.
+appears beside its observation in the figure. A concise model and background
+note retains the assumptions and interpretation for later reading; the story
+itself introduces the notation and factorial weights.
 The election selector appears after all three OLS fits are introduced. The person
 selector appears when the earnings example begins. Each example retains its
 selection when readers move between them. Frame 12 adds a small prediction
@@ -135,11 +188,31 @@ this centered additive model.
 The full formula fits on one line in the desktop figure, with type sized to
 the figure's width. Phones and narrow prose columns allow a readable line break.
 
-The concluding math section supplies the finite-background `v_x(S)` definition.
-Its checkbox-controlled data table exposes every feature group, including the
-empty and complete groups. All input columns remain visible. The Python panel
-connects the procedure to a fixed model's `predict` method and SHAP's exact
-explainer. Global importance and beeswarm plots are reserved for a later page.
+The concluding “Notes and exploration” section has three dropdowns: model and
+background assumptions, the coalition table explorer, and an individual
+waterfall explorer. The model note preserves the distinctions between explaining
+a fixed model, refitting a reduced model, and conditional SHAP, together with the
+constructed example's interpretation. The checkbox-controlled data table exposes
+every feature group, including the empty and complete groups; all input columns
+remain visible. The individual explorer opens the complete waterfall for a
+selected profile. A link to the calculation reproduction files supplies the full
+implementation and SHAP verification. The global-summary note distinguishes the
+125 explained profiles
+from the eight reference rows and defines importance as mean absolute SHAP.
+The signed means are zero for all three features; taking absolute values before
+averaging retains contribution magnitude. The ranking describes this predictor,
+reference background, and explained cohort. It does not describe causal effects.
+
+Scrolling carries the complete transition from a waterfall to a beeswarm and
+global importance. The feature rows keep their order until the final ranking.
+Vertical packing only prevents dot overlap; its height has no numerical meaning.
+The colored beeswarm uses color for the input's position within that feature's
+range, while horizontal position continues to show the signed contribution.
+The bars retain magnitude but discard the direction, spread, and interaction
+patterns visible in the beeswarm. Optional exploration opens a person's complete
+waterfall by selecting a dot in the colored beeswarm or choosing a profile in
+the individual waterfall dropdown under “Notes and exploration” and selecting
+its waterfall button.
 
 Navigation buttons provide an alternative to scrolling and advance immediately
 so quick clicks cannot repeat a frame during a scroll animation. The opening
@@ -172,14 +245,21 @@ node --test tests/*.test.mjs
 
 Open `http://localhost:8765/shap/`. No website build step or Python installation
 is needed to view the deployed page. All website assets are served locally,
-including the math font shared with the earlier Shapley page.
+including the local Latin Modern Math font and its license. Inline symbols,
+subscripts, accents, sets, and fractions use native MathML with the same
+LaTeX-style mathematical typography as the displayed equations.
 
 [Python reproduction files](../../examples/shap/README.md) generate the saved
-model and explanations and independently verify them against SHAP. The website
-displays those results without executing Python in the browser. JavaScript tests
+model and explanations and independently verify them against SHAP. The browser
+reads those saved results for the original profiles. `aggregate.mjs` evaluates
+the same fixed `model.json` equation and exact finite-background game for every
+profile in the 125-person grid; it does not run Python. JavaScript tests
 independently evaluate the equation for every hybrid input, check the averages,
 recover SHAP via subset factorial weights, and verify all order paths and
-additive predictions. The OLS tests independently solve its normal equations,
+additive predictions. The aggregate tests reproduce all saved explanations,
+check the balanced grid and common baseline, independently verify closed-form
+SHAP values across all 125 profiles, and check signed cancellation, mean absolute
+values, and ranking. The OLS tests independently solve its normal equations,
 check standardization, distinguish refitting from masking, and reconstruct all
 two-feature coalitions and orders.
 
@@ -189,9 +269,11 @@ The page follows [the course guide](../../design/README.md): white backgrounds,
 readable serif type, restrained rules, locally typeset math, and the course
 palette. Included/excluded headings and before/after numbers supplement color.
 The sparse lecture copy follows the instructor's request for in-class presentation;
-the expandable notes preserve the longer reasoning and qualifications.
+the concise model and background note preserves the assumptions and qualifications.
 Blue and rust distinguish signed contributions in the waterfall, with arrows
 and direct signed labels. They do not indicate good or bad people.
+The beeswarm introduces its separate low-to-high feature-value color scale
+through scrolling; the meaning of its horizontal axis remains unchanged.
 
 The browser draws the familiar waterfall from the same numbers used by Python
 SHAP, with shared quantitative scales and feature rows ranked by magnitude.

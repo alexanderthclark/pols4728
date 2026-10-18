@@ -51,6 +51,8 @@ jobs:
           node --check docs/shap/waterfall.js
           node --check docs/shap/formula.js
           node --check docs/shap/bread-peace.js
+          node --check docs/shap/aggregate.mjs
+          node --check docs/shap/aggregate-view.js
           node --check docs/shared/boosting-math.js
           node --check docs/boosting/story.js
           node --check docs/boosting/prediction-view.js
