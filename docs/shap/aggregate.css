@@ -16,3 +16,5 @@
 @media(prefers-reduced-motion:reduce) {
   .shap-aggregate * { transition:none!important; animation:none!important; }
 }
+
+.shap-aggregate .aggregate-signed-mean { font-family:'Course Math',math; }

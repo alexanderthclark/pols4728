@@ -204,7 +204,9 @@ node --test tests/*.test.mjs
 
 Open `http://localhost:8765/shap/`. No website build step or Python installation
 is needed to view the deployed page. All website assets are served locally,
-including the math font shared with the earlier Shapley page.
+including the local Latin Modern Math font and its license. Inline symbols,
+subscripts, accents, sets, and fractions use native MathML with the same
+LaTeX-style mathematical typography as the displayed equations.
 
 [Python reproduction files](../../examples/shap/README.md) generate the saved
 model and explanations and independently verify them against SHAP. The browser

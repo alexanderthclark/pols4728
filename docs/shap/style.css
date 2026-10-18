@@ -1,4 +1,4 @@
-@font-face { font-family: 'Course Math'; src: url('../shapley/fonts/STIXTwoMath-Regular.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'Course Math'; src: url('../shared/fonts/latinmodern-math.otf') format('opentype'); font-display: swap; }
 :root { --ink:#242424; --blue:#234e70; --rust:#a54f32; --muted:#606060; --rule:#767676; --paper:#fff; --light-rule:#d6d6d6; --fixed:#eef3f6; --new:#fbf0eb; --serif:Georgia,'Times New Roman',serif; --sans:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; color-scheme:light; }
 * { box-sizing:border-box; }
 html { scroll-behavior:smooth; scroll-padding-top:80px; }
@@ -150,6 +150,7 @@ h2 { font-size:clamp(32px,3vw,43px); margin:0 0 26px; }
 .method details p { margin:18px 0; }
 .equation { padding:18px 0 24px; overflow-x:auto; font-size:25px; }
 math,.math-text { font-family:'Course Math','Cambria Math',math; }
+math { font-size:1em;letter-spacing:normal;font-weight:400; }
 .math-text { white-space:nowrap; }
 .feature-set { white-space:normal; }
 span[data-fact] { white-space:nowrap; }

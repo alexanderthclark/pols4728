@@ -255,7 +255,7 @@ export function renderAggregate(container, { scene, progress = 1, features, obse
   attrs(view.subheading, { x: 0, y: compact ? 35 : 43, 'font-size': compact ? 10 : 12 });
   view.subheading.textContent = phase < 2 ? `${observation.name || 'One person'} · reference ${format(observation.baseValue)}, prediction ${format(observation.prediction)}`
     : phase === 5 ? `${population.length} profiles · the signed mean is 0 for every feature here`
-      : phase >= 7 ? 'Mean |SHAP| across these profiles · $1,000/year'
+      : phase >= 7 ? 'Mean absolute SHAP · $1,000/year'
         : `${population.length} illustrative profiles · one fixed model and background`;
   attrs(view.baseline, { x1: x(lerp(observation.baseValue, 0, rebase)), x2: x(lerp(observation.baseValue, 0, rebase)),
     y1: top - 21, y2: axisY, opacity: 1 - rebase });
@@ -341,7 +341,7 @@ export function renderAggregate(container, { scene, progress = 1, features, obse
   attrs(view.axisLabel, { x: (left + right) / 2, y: axisY + (compact ? 35 : 40),
     'font-size': compact ? 10 : 12 });
   view.axisLabel.textContent = rebase < .5 ? 'Model output · $1,000/year'
-    : phase >= 6 && absoluteProgress > .5 ? '|SHAP value| · $1,000/year' : 'SHAP value · $1,000/year';
+    : phase >= 6 && absoluteProgress > .5 ? 'Absolute SHAP · $1,000/year' : 'SHAP value · $1,000/year';
   const legendY = axisY + (compact ? 51 : 59);
   attrs(view.signLegend, { opacity: (phase >= 1 && phase <= 4 ? clamp(1 - colorProgress * 2) : 0), 'font-size': compact ? 9 : 11 });
   attrs(view.negativeKey, { cx: 4, cy: legendY - 3 });
@@ -356,7 +356,7 @@ export function renderAggregate(container, { scene, progress = 1, features, obse
   attrs(view.footer, { x: 0, y: legendY, 'font-size': compact ? 10 : 12,
     opacity: phase === 0 ? 1 - p : phase >= 7 ? meanProgress : 0 });
   view.footer.textContent = phase === 0 ? `Reference ${format(observation.baseValue)} → prediction ${format(observation.prediction)}`
-    : 'Bar length = sum of |SHAP values| ÷ number of profiles';
+    : 'Bar length: average absolute contribution';
   return view.svg;
 }
 

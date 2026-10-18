@@ -7,26 +7,26 @@ import { validateBreadPeace, breadPeaceFacts, renderBreadPeace, breadPeaceDecomp
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
-const names = ['The Shapley formula', 'The observation x', 'The model prediction ŷ', 'Before and after feature i', 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'When features interact', 'An interaction model; one person', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation', 'One common zero', 'One person, three dots', 'Explain more people', 'Make overlap visible', 'Color by input value', 'Opposing contributions cancel', 'Measure distance from zero', 'Average the distances', 'Rank the averages'];
+const names = ['The Shapley formula', `The observation ${symbol('x')}`, `The model prediction ${yHatMarkup()}`, `Before and after feature ${symbol('i')}`, 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'When features interact', 'An interaction model; one person', `The term ${valueSymbolMarkup('<mi>S</mi>')}`, `The term ${valueSymbolMarkup('<mi>S</mi><mo>∪</mo><mrow><mo stretchy="false">{</mo><mi>i</mi><mo stretchy="false">}</mo></mrow>')}`, 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation', 'One common zero', 'One person, three dots', 'Explain more people', 'Make overlap visible', 'Color by input value', 'Opposing contributions cancel', 'Measure distance from zero', 'Average the distances', 'Rank the averages'];
 const captions = [
   'Scroll to give each part its meaning in a prediction problem.',
-  'x is one complete observation; its values supply the fixed inputs.',
-  'ŷ(x) is the fitted model’s prediction for one complete input row.',
-  'Compare the same model’s average before and after fixing feature i to x.',
-  'ϕᵢ(vₓ) is feature i’s contribution relative to the background average prediction.',
+  `${symbol('x')} is one complete observation; its values supply the fixed inputs.`,
+  `${predictionMarkup()} is the fitted model’s prediction for one complete input row.`,
+  `Compare the same model’s average before and after fixing feature ${symbol('i')} to ${symbol('x')}.`,
+  `${creditMarkup()} is feature ${symbol('i')}’s contribution relative to the background average prediction.`,
   '',
   'Standardized features and observed vote: three correlations determine the OLS fits.',
   'Univariate slopes equal correlations. Bivariate slopes adjust for the overlap between features.',
-  'Linear model + overall background mean peace = 0:',
+  `Linear model + overall background mean ${inlineMath('<mtext>peace</mtext><mo>=</mo><mn>0</mn>')}:`,
   'For this linear model, averaging predictions equals predicting at the excluded input’s background mean, 0.',
   'For this linear model, averaging predictions equals predicting at the excluded input’s background mean, 0.',
-  'Each order has weight 1/2. Predictions are in SD of vote share.',
+  `Each order has weight ${fractionMarkup(1, 2)}. Predictions are in SD of vote share.`,
   '',
-  'Fit f once, then hold it fixed. Here we supply a transparent teaching equation.',
-  'vₓ(∅): no columns fixed to x. Average the eight model predictions.',
-  'After fixes ability to x; before uses its background values. Other columns stay the same.',
-  'S = {neighborhood}, i = ability. Subtract the two prediction averages to get one marginal.',
-  'One row per preceding group S. Its weight counts how often it precedes ability.',
+  `Fit ${symbol('f')} once, then hold it fixed. Here we supply a transparent teaching equation.`,
+  `${valueMarkup(0)}: no columns fixed to ${symbol('x')}. Average the eight model predictions.`,
+  `After fixes ability to ${symbol('x')}; before uses its background values. Other columns stay the same.`,
+  `${coalitionDefinitionMarkup(2)}, ${inlineMath('<mi>i</mi><mo>=</mo><mtext>ability</mtext>')}. Subtract the two prediction averages to get one marginal.`,
+  `One row per preceding group ${symbol('S')}. Its weight counts how often it precedes ability.`,
   'The sum of weighted prediction differences is the feature’s SHAP value.',
   'Credits average all six revealing orders; bars are ranked by magnitude.',
   'The length and sign stay the same; cumulative positions move to a common zero.',
@@ -41,11 +41,11 @@ const captions = [
 ];
 const aggregateScenes = new Set(['contribution-axis','one-person-dots','many-people','beeswarm','feature-color','signed-average','absolute-values','global-importance','importance-ranking']);
 const formulaStops = {
-  'shapley-formula':{focus:'all',meaning:'The players are input features. The game assigns credit for one observation’s prediction.',note:'<var>F</var>: all features; <span class="math-text">p = |F|</span>.'},
-  'observation-symbol':{focus:'observation',symbol:'x',meaning:'One complete input row. Its values supply every feature fixed in this explanation.'},
-  'prediction-symbol':{focus:'all',symbol:predictionMarkup(),meaning:'ŷ(x) is the fitted model’s prediction for the complete row <var>x</var>. <var>y</var> is observed. Keep the model fixed.'},
-  'joining-feature':{focus:'difference',comparison:true,meaning:'<var>S</var>: features fixed to <var>x</var>. Unfixed inputs: background rows.',note:'<var>i</var>: the additional feature. No retraining.'},
-  'feature-credit':{focus:'result',symbol:'ϕ<sub>i</sub>(v<sub>x</sub>) = ϕ<sub>i</sub>(x)',meaning:'Feature <var>i</var>’s credit relative to the background average. Average its marginal across orders; the credit uses the prediction’s units.'},
+  'shapley-formula':{focus:'all',meaning:'The players are input features. The game assigns credit for one observation’s prediction.',note:`${symbol('F')}: all features; ${inlineMath('<mi>p</mi><mo>=</mo><mrow><mo stretchy="false">|</mo><mi>F</mi><mo stretchy="false">|</mo></mrow>')}.`},
+  'observation-symbol':{focus:'observation',symbol:symbol('x'),meaning:'One complete input row. Its values supply every feature fixed in this explanation.'},
+  'prediction-symbol':{focus:'all',symbol:predictionMarkup(),meaning:`${predictionMarkup()} is the fitted model’s prediction for the complete row ${symbol('x')}. ${symbol('y')} is observed. Keep the model fixed.`},
+  'joining-feature':{focus:'difference',comparison:true,meaning:`${symbol('S')}: features fixed to ${symbol('x')}. Unfixed inputs: background rows.`,note:`${symbol('i')}: the additional feature. No retraining.`},
+  'feature-credit':{focus:'result',symbol:inlineMath(`${creditBody()}<mo>=</mo>${creditBody('<mi>x</mi>')}`),meaning:`Feature ${symbol('i')}’s credit relative to the background average. Average its marginal across orders; the credit uses the prediction’s units.`},
 };
 const transitionScenes = new Set(['bread-peace-intro', 'earnings-intro']);
 const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene);
@@ -59,12 +59,40 @@ const stackedLayout = matchMedia('(max-width:649px), (max-width:860px) and (min-
 $('.stage-top').setAttribute('role', 'status');
 $('.stage-top').setAttribute('aria-live', 'polite');
 $('.stage-top').setAttribute('aria-atomic', 'true');
-const state = { data:null, observation:null, population:null, globalObservation:null, aggregateOrder:null, aggregateProgress:0, breadData:null, breadObservation:null, selectorContext:null, scene:-1, feature:0, explorerMask:0, rowsTrigger:null };
+const state = { data:null, observation:null, population:null, globalObservation:null, aggregateOrder:null, aggregateProgress:0, breadData:null, breadObservation:null, selectorContext:null, scene:-1, nameScene:-1, feature:0, explorerMask:0, rowsTrigger:null };
 const yHat = '<math aria-label="y hat"><mover accent="true"><mi>y</mi><mo>^</mo></mover></math>';
 
 function escape(value) {
   return String(value).replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
 }
+// Inline notation uses the same native MathML as the displayed formula. Keep
+// function fences at the argument's size, even beside fractions or powers.
+function inlineMath(content) { return `<math class="math-inline math-text"><mrow>${content}</mrow></math>`; }
+function symbol(letter) { return inlineMath(`<mi>${escape(letter)}</mi>`); }
+function yHatMarkup() { return inlineMath('<mover accent="true"><mi>y</mi><mo>^</mo></mover>'); }
+function parenthesesBody(argument) {
+  return `<mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo>${argument}<mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow>`;
+}
+function applicationBody(name, argument) {
+  return `<mrow>${name}<mo>⁡</mo>${parenthesesBody(argument)}</mrow>`;
+}
+function valueSymbolMarkup(argument) { return inlineMath(applicationBody('<msub><mi>v</mi><mi>x</mi></msub>', argument)); }
+function creditBody(argument = '<msub><mi>v</mi><mi>x</mi></msub>', feature = '<mi>i</mi>') {
+  return applicationBody(`<msub><mi>ϕ</mi>${feature}</msub>`, argument);
+}
+function creditMarkup(feature) { return inlineMath(creditBody(undefined, feature)); }
+function numericBody(text) {
+  const value = String(text);
+  const sign = /^[−+]/.test(value) ? `<mo>${value[0]}</mo>` : '';
+  return `${sign}<mn>${escape(sign ? value.slice(1) : value)}</mn>`;
+}
+function fractionBody(numerator, denominator) { return `<mfrac><mn>${escape(numerator)}</mn><mn>${escape(denominator)}</mn></mfrac>`; }
+function fractionMarkup(numerator, denominator) { return inlineMath(fractionBody(numerator, denominator)); }
+function setBody(mask) {
+  const members = featureLabels.filter((_, index) => mask & (1 << index));
+  return members.length ? `<mrow><mo stretchy="false">{</mo>${members.map(name => `<mtext>${escape(name)}</mtext>`).join('<mo>,</mo>')}<mo stretchy="false">}</mo></mrow>` : '<mo>∅</mo>';
+}
+function coalitionDefinitionMarkup(mask) { return inlineMath(`<mi>S</mi><mo>=</mo>${setBody(mask)}`); }
 function number(value, decimals = 1) {
   return new Intl.NumberFormat('en-US', {maximumFractionDigits:decimals}).format(value).replace('-', '−');
 }
@@ -77,7 +105,6 @@ function groupName(mask, short = false) {
   const labels = state.data.features.filter((_, index) => mask & (1 << index)).map(feature => short ? feature.shortLabel : feature.label.toLowerCase());
   return labels.length ? labels.join(short ? ' + ' : ' and ') : short ? 'None' : 'no features';
 }
-function setNotation(mask) { return mask ? `{${featureLabels.filter((_, index) => mask & (1 << index)).join(', ')}}` : '∅'; }
 
 function updateFacts() {
   const observation = state.observation;
@@ -115,7 +142,7 @@ function renderTransition(scene) {
 function renderObservation() {
   const observation = state.observation;
   const equation = $('#observation .prediction-equation').outerHTML;
-  visual.innerHTML = `<h3>The earnings model</h3>${equation}<p class="training-note"><var>f</var> is our earnings prediction rule · output in $1,000/year</p><div class="observation-card"><span class="date">Observation x · ${escape(observation.name)}</span><dl>${state.data.features.map((feature, index) => `<dt>${escape(feature.label)}</dt><dd>${inputNumber(observation.values[index])}${index === 1 ? observation.values[1] < 0 ? ' · adverse' : ' · favorable' : ''}</dd>`).join('')}</dl><div class="prediction-number">${dollars(observation.prediction)}<span class="prediction-label">ŷ(x) = f(x) · predicted annual earnings</span></div></div><p class="input-note">Hold this model fixed throughout the explanation.</p>`;
+  visual.innerHTML = `<h3>The earnings model</h3>${equation}<p class="training-note">${symbol('f')} is our earnings prediction rule · output in $1,000/year</p><div class="observation-card"><span class="date">Observation ${symbol('x')} · ${escape(observation.name)}</span><dl>${state.data.features.map((feature, index) => `<dt>${escape(feature.label)}</dt><dd>${inputNumber(observation.values[index])}${index === 1 ? observation.values[1] < 0 ? ' · adverse' : ' · favorable' : ''}</dd>`).join('')}</dl><div class="prediction-number">${dollars(observation.prediction)}<span class="prediction-label">${predictionMarkup()} ${inlineMath(`<mo>=</mo>${applicationBody('<mi>f</mi>', '<mi>x</mi>')}`)} · predicted annual earnings</span></div></div><p class="input-note">Hold this model fixed throughout the explanation.</p>`;
 }
 
 function inputCell(background, mask, index, newFeature = -1) {
@@ -135,7 +162,7 @@ function renderBackground(mask, beforeMask) {
   const before = beforeMask === undefined ? null : coalition(state.observation, beforeMask);
   const after = coalition(state.observation, mask);
   const newFeature = before ? 0 : -1;
-  visual.innerHTML = `${before ? joiningMarkup(beforeMask, 0) : `<h3 class="coalition-heading">${valueMarkup(mask)}</h3>`}<p class="formula-table-context">${before ? `S = ${setNotation(beforeMask)} · i = ability · after − before` : 'S = ∅ · no columns fixed to this person'}</p><p class="focal-values"><var>x</var>: ${featureLabels.map((label,index) => `<span class="feature-input">${label} = ${inputNumber(state.observation.values[index])}</span>`).join(' · ')}</p>${inputTable(mask, {beforeMask, newFeature})}<div class="table-marginal"><span>${before ? 'Ability’s marginal contribution' : 'Value of the empty coalition'}</span><span class="${before && after.value - before.value < 0 ? 'negative' : ''}">${before ? `${number(after.value)} − ${number(before.value)} = ${signed(after.value - before.value)}` : `${number(after.value)}`}</span></div>`;
+  visual.innerHTML = `${before ? joiningMarkup(beforeMask, 0) : `<h3 class="coalition-heading">${valueMarkup(mask)}</h3>`}<p class="formula-table-context">${before ? `${coalitionDefinitionMarkup(beforeMask)} · ${inlineMath('<mi>i</mi><mo>=</mo><mtext>ability</mtext>')} · ${inlineMath('<mtext>after</mtext><mo>−</mo><mtext>before</mtext>')}` : `${coalitionDefinitionMarkup(0)} · no columns fixed to this person`}</p><p class="focal-values">${symbol('x')}: ${featureLabels.map((label,index) => `<span class="feature-input">${inlineMath(`<mtext>${escape(label)}</mtext><mo>=</mo>${numericBody(inputNumber(state.observation.values[index]))}`)}</span>`).join(' · ')}</p>${inputTable(mask, {beforeMask, newFeature})}<div class="table-marginal"><span>${before ? 'Ability’s marginal contribution' : 'Value of the empty coalition'}</span><span class="${before && after.value - before.value < 0 ? 'negative' : ''}">${before ? inlineMath(`${numericBody(number(after.value))}<mo>−</mo>${numericBody(number(before.value))}<mo>=</mo>${numericBody(signed(after.value - before.value))}`) : `${number(after.value)}`}</span></div>`;
 }
 
 function renderWeights() {
@@ -146,9 +173,9 @@ function renderWeights() {
       const position = order.features.indexOf(0);
       return order.features.slice(0, position).reduce((result, index) => result | (1 << index), 0) === mask;
     }).length;
-    return `<tr><th scope="row"><span class="feature-set">${setNotation(mask)}</span></th><td>${number(coalition(observation, mask).value)}</td><td>${number(coalition(observation, mask | 1).value)}</td><td class="${marginal(observation, 0, mask) < 0 ? 'negative' : ''}">${signed(marginal(observation, 0, mask))}</td><td>${count}/6</td></tr>`;
+    return `<tr><th scope="row"><span class="feature-set">${inlineMath(setBody(mask))}</span></th><td>${number(coalition(observation, mask).value)}</td><td>${number(coalition(observation, mask | 1).value)}</td><td class="${marginal(observation, 0, mask) < 0 ? 'negative' : ''}">${signed(marginal(observation, 0, mask))}</td><td>${fractionMarkup(count, 6)}</td></tr>`;
   });
-  visual.innerHTML = `${shapleyFormulaMarkup('weight')}<p class="formula-definitions">i = ability · four possible preceding groups S</p><table class="weights-table"><caption>Prediction averages in $1,000/year</caption><thead><tr><th scope="col">S</th><th scope="col"><span class="math-text">v<sub>x</sub>(S)</span></th><th scope="col"><span class="math-text">v<sub>x</sub>(S ∪ {i})</span></th><th scope="col">Difference</th><th scope="col">Weight</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+  visual.innerHTML = `${shapleyFormulaMarkup('weight')}<p class="formula-definitions">${inlineMath('<mi>i</mi><mo>=</mo><mtext>ability</mtext>')} · four possible preceding groups ${symbol('S')}</p><table class="weights-table"><caption>Prediction averages in $1,000/year</caption><thead><tr><th scope="col">${symbol('S')}</th><th scope="col">${valueSymbolMarkup('<mi>S</mi>')}</th><th scope="col">${valueSymbolMarkup('<mi>S</mi><mo>∪</mo><mrow><mo stretchy="false">{</mo><mi>i</mi><mo stretchy="false">}</mo></mrow>')}</th><th scope="col">Difference</th><th scope="col">Weight</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
 }
 
 function featureContexts() {
@@ -164,23 +191,27 @@ function featureContexts() {
 function updateAverageNarrative() {
   const feature = state.data.features[state.feature].shortLabel;
   const contexts = featureContexts();
-  const credit = `<span class="math-text">${dollars(state.observation.shapValues[state.feature], true)}</span>`;
-  const contributions = contexts.map(context => `<span class="math-text">${dollars(context.value, true)}</span>`);
+  const credit = inlineMath(`<mtext>${escape(dollars(state.observation.shapValues[state.feature], true))}</mtext>`);
+  const contributions = contexts.map(context => inlineMath(`<mtext>${escape(dollars(context.value, true))}</mtext>`));
   $('#average-definition').textContent = `${feature}: average six orders.`;
   if (contexts.length === 2) {
     const partner = state.feature === 0 ? 'neighborhood' : 'ability';
     $('#average-context').innerHTML = `Before ${partner}: ${contributions[0]}. After: ${contributions[1]}.`;
-    $('#average-interpretation').innerHTML = `Each weight <span class="math-text">3/6</span> → ${credit}.`;
+    $('#average-interpretation').innerHTML = `Each weight ${fractionMarkup(3, 6)} → ${credit}.`;
   } else {
     $('#average-context').innerHTML = `Same marginal in all six orders: ${contributions[0]}.`;
-    $('#average-interpretation').innerHTML = `Total weight <span class="math-text">1</span> → ${credit}.`;
+    $('#average-interpretation').innerHTML = `Total weight ${inlineMath('<mn>1</mn>')} → ${credit}.`;
   }
 }
 
 function renderAverage() {
   const feature = state.data.features[state.feature];
   const contexts = featureContexts();
-  visual.innerHTML = `${shapleyFormulaMarkup('sum')}<label class="orders-feature-label" for="feature-select">Feature i to explain</label><select id="feature-select">${state.data.features.map((item, index) => `<option value="${index}" ${index === state.feature ? 'selected' : ''}>${escape(item.label)}</option>`).join('')}</select><div class="marginal-contexts">${contexts.map(context => `<div class="context-summary"><span>${escape(context.label)}</span><span class="context-number ${context.value < 0 ? 'negative' : ''}">${signed(context.value)}</span><small>total weight ${context.count}/6</small></div>`).join('')}</div><div class="shap-average"><span>${escape(feature.label)}’s SHAP value<br><span class="math-text">ϕ<sub>${featureLabels[state.feature]}</sub>(v<sub>x</sub>)</span></span><span class="number ${state.observation.shapValues[state.feature] < 0 ? 'negative' : ''}">${signed(state.observation.shapValues[state.feature])}</span></div><p class="average-arithmetic">${contexts.length === 2 ? `(3/6) × (${signed(contexts[0].value)}) + (3/6) × (${signed(contexts[1].value)})` : 'Total weight 6/6; the contribution is the same in every order.'}</p>`;
+  const weightedTerm = context => `${fractionBody(3, 6)}<mo>×</mo>${parenthesesBody(numericBody(signed(context.value)))}`;
+  const arithmetic = contexts.length === 2
+    ? `${inlineMath(weightedTerm(contexts[0]))} ${inlineMath(`<mo>+</mo>${weightedTerm(contexts[1])}`)}`
+    : `Total weight ${fractionMarkup(6, 6)}; the contribution is the same in every order.`;
+  visual.innerHTML = `${shapleyFormulaMarkup('sum')}<label class="orders-feature-label" for="feature-select">Feature ${symbol('i')} to explain</label><select id="feature-select">${state.data.features.map((item, index) => `<option value="${index}" ${index === state.feature ? 'selected' : ''}>${escape(item.label)}</option>`).join('')}</select><div class="marginal-contexts">${contexts.map(context => `<div class="context-summary"><span>${escape(context.label)}</span><span class="context-number ${context.value < 0 ? 'negative' : ''}">${signed(context.value)}</span><small>total weight ${fractionMarkup(context.count, 6)}</small></div>`).join('')}</div><div class="shap-average"><span>${escape(feature.label)}’s SHAP value<br>${creditMarkup(`<mtext>${escape(featureLabels[state.feature])}</mtext>`)}</span><span class="number ${state.observation.shapValues[state.feature] < 0 ? 'negative' : ''}">${signed(state.observation.shapValues[state.feature])}</span></div><p class="average-arithmetic">${arithmetic}</p>`;
   $('#feature-select').addEventListener('change', event => {state.feature = Number(event.target.value); render();});
 }
 
@@ -189,7 +220,7 @@ function renderFinal() {
   renderWaterfall($('#waterfall-container'), {features:state.data.features,observation:state.observation,unit:'$1,000/year'});
   $('#waterfall-container').querySelectorAll('.waterfall-contribution').forEach((bar, index, bars) => {bar.style.setProperty('--bar-delay', `${(bars.length-index-1)*.2}s`);});
   const observation = state.observation;
-  $('.waterfall-total').textContent = `${number(observation.baseValue)} ${observation.shapValues.map(value => `${value < 0 ? '−' : '+'} ${number(Math.abs(value))}`).join(' ')} = ${number(observation.prediction)} ($1,000/year)`;
+  $('.waterfall-total').innerHTML = `${inlineMath(`${numericBody(number(observation.baseValue))}${observation.shapValues.map(value => `<mo>${value < 0 ? '−' : '+'}</mo>${numericBody(number(Math.abs(value)))}`).join('')}<mo>=</mo>${numericBody(number(observation.prediction))}`)} ($1,000/year)`;
 }
 
 function renderPopulation() {
@@ -226,7 +257,7 @@ function openPopulationWaterfall(person = state.globalObservation, trigger = $('
 
 function renderCoalitionExplorer() {
   $('#coalition-table').innerHTML = inputTable(state.explorerMask);
-  $('#coalition-value').textContent = `vₓ(${setNotation(state.explorerMask)}) = ${number(coalition(state.observation, state.explorerMask).value)} ($1,000/year), for ${state.observation.name.toLowerCase()}.`;
+  $('#coalition-value').innerHTML = `${valueMarkup(state.explorerMask)} ${inlineMath(`<mo>=</mo>${numericBody(number(coalition(state.observation, state.explorerMask).value))}`)} ($1,000/year), for ${escape(state.observation.name.toLowerCase())}.`;
 }
 
 function updateFigureOverflow() {
@@ -265,12 +296,13 @@ function render() {
     $('label[for="observation-select"]').textContent = breadScene ? 'Election to explain' : 'Person to explain';
     state.selectorContext = selectorContext;
   }
-  if ($('#stage-name').textContent !== names[state.scene]) {
-    $('#stage-name').textContent = names[state.scene];
+  if (state.nameScene !== state.scene) {
+    $('#stage-name').innerHTML = names[state.scene];
     $('#stage-count').textContent = `${state.scene+1} / ${steps.length}`;
+    state.nameScene = state.scene;
   }
   $('#stage-caption').hidden = isCenteredScene(scene);
-  $('#stage-caption').textContent = isCenteredScene(scene) ? '' : captions[state.scene];
+  $('#stage-caption').innerHTML = isCenteredScene(scene) ? '' : captions[state.scene];
   if (scene === 'ols-refit') $('#stage-caption').insertAdjacentHTML('beforeend', breadPeaceMeanPredictionMarkup(state.breadObservation));
   if (scene === 'ols-shap') $('#stage-caption').insertAdjacentHTML('beforeend', breadPeaceDecompositionMarkup());
   $('#previous').disabled = state.scene === 0;
@@ -301,7 +333,8 @@ function openRows(trigger) {
   const mask = scene === 'background' ? 0 : scene === 'reveal-ability' ? 1 : 3;
   const beforeMask = scene === 'reveal-ability' ? 0 : scene === 'neighborhood-first' ? 2 : undefined;
   $('#rows-heading').textContent = `Knowing ${groupName(mask)}`;
-  $('#rows-description').textContent = `Included columns use the selected person’s values in every row. Excluded columns keep that reference row’s values. ${beforeMask === undefined ? `vₓ(${setNotation(mask)}) = ${number(coalition(state.observation, mask).value)}.` : `Before: vₓ(${setNotation(beforeMask)}) = ${number(coalition(state.observation, beforeMask).value)}; after: vₓ(${setNotation(mask)}) = ${number(coalition(state.observation, mask).value)}. Their difference is ${signed(marginal(state.observation, 0, beforeMask))}.`} Outputs are in $1,000/year.`;
+  const valueEquation = coalitionMask => `${valueMarkup(coalitionMask)} ${inlineMath(`<mo>=</mo>${numericBody(number(coalition(state.observation, coalitionMask).value))}`)}`;
+  $('#rows-description').innerHTML = `Included columns use the selected person’s values in every row. Excluded columns keep that reference row’s values. ${beforeMask === undefined ? `${valueEquation(mask)}.` : `Before: ${valueEquation(beforeMask)}; after: ${valueEquation(mask)}. Their difference is ${signed(marginal(state.observation, 0, beforeMask))}.`} Outputs are in $1,000/year.`;
   $('#rows-table').innerHTML = inputTable(mask, {beforeMask,newFeature:beforeMask === undefined ? -1 : 0});
   dialog.showModal();
   $('#close-rows').focus();
