@@ -21,8 +21,7 @@ standardized war fatalities, so higher peace means fewer fatalities.
 Features and observed vote have mean zero and SD one. Three stipulated
 correlations, bread–peace +0.5, bread–vote +0.75, and peace–vote +0.75, determine
 both univariate OLS slopes (+0.75) and both bivariate slopes (+0.5), with zero
-intercepts. The figure displays all three model equations; the coefficient
-derivations are in an expandable note. Predictions use the outcome's SD units;
+intercepts. The figure displays all three model equations. Predictions use the outcome's SD units;
 they are not themselves rescaled to SD one.
 
 Removing peace and refitting bread-only OLS gives a slope of 0.75, equal
@@ -88,7 +87,7 @@ The cohort does not replace the background.
 5. Define the marginal contribution `v_x(S ∪ {i}) − v_x(S)`, then connect its average across orders to the feature’s credit, introducing `phi_i(x)` as shorthand for `phi_i(v_x)`.
 6. Introduce the stylized Bread and Peace specification with the original Hibbs citation and course-style characters.
 7. State the three correlations for standardized bread, peace, and observed vote.
-8. Display the two univariate fits and one bivariate fit, with the derivation in the notes.
+8. Display the two univariate fits and one bivariate fit.
 9. Choose an election; compare the muted bread-only refit (not used for SHAP) with the bivariate prediction at mean peace.
 10. Reveal bread first, then peace; show both before/after prediction subtractions.
 11. Reverse the order and show the same bivariate equation evaluated at different inputs.
@@ -178,7 +177,7 @@ edges and reserve scrollbar space so the chart layout remains stable.
 Each worked frame's left column uses two or three short lecture cues in larger type,
 leaving the instructor room to explain the worked figure. The earnings equation
 appears beside its observation in the figure. Expandable notes retain the notation,
-OLS derivation, model assumptions, and factorial-count explanation for later reading.
+model assumptions and factorial-count explanation for later reading.
 The election selector appears after all three OLS fits are introduced. The person
 selector appears when the earnings example begins. Each example retains its
 selection when readers move between them. Frame 12 adds a small prediction
