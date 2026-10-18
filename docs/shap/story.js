@@ -16,7 +16,7 @@ const captions = [
   `${creditMarkup()} is feature ${symbol('i')}’s contribution relative to the background average prediction.`,
   '',
   'Standardized features and observed vote: three correlations determine the OLS fits.',
-  'Univariate slopes equal correlations. Bivariate slopes adjust for the overlap between features.',
+  '',
   `Linear model + overall background mean ${inlineMath('<mtext>peace</mtext><mo>=</mo><mn>0</mn>')}:`,
   'For this linear model, averaging predictions equals predicting at the excluded input’s background mean, 0.',
   'For this linear model, averaging predictions equals predicting at the excluded input’s background mean, 0.',
@@ -48,7 +48,7 @@ const formulaStops = {
   'feature-credit':{focus:'result',symbol:inlineMath(`${creditBody()}<mo>=</mo>${creditBody('<mi>x</mi>')}`),meaning:`Feature ${symbol('i')}’s credit relative to the background average. Average its marginal across orders; the credit uses the prediction’s units.`},
 };
 const transitionScenes = new Set(['bread-peace-intro', 'earnings-intro']);
-const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene);
+const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene) || scene === 'ols-fits';
 const canonicalSceneId = id => ['preceding-features','value-function'].includes(id) ? 'joining-feature' : id;
 const visual = $('#visual'), shell = $('.stage-shell'), story = $('#story');
 const figureScrollHint = $('#figure-scroll-hint');
@@ -383,6 +383,9 @@ function updateScroll() {
   let readingLine = mobile
     ? (state.scene < 0 || isCenteredScene(steps[state.scene]?.id) ? introReadingLine : shell.getBoundingClientRect().bottom + 60)
     : innerHeight * .5;
+  // Keep the activation line stable as the OLS fits expand to the full-width
+  // stage and the following worked example returns to the compact panel.
+  if (mobile && ['ols-model','ols-fits','ols-refit'].includes(steps[state.scene]?.id)) readingLine = introReadingLine;
   // A stable phone reading line prevents the chart's compact height from changing
   // the active scene as it crosses the local-to-global boundary.
   const firstAggregate = $('#contribution-axis');

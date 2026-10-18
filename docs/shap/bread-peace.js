@@ -63,7 +63,7 @@ function renderFits(data) {
   return `<h3>The three OLS fits</h3><div class="bread-fits">${[
     ['Bread-only OLS','bread',data.refit.breadOnlyCoefficient],
     ['Peace-only OLS','peace',data.refit.peaceOnlyCoefficient],
-  ].map(([label,feature,coefficient]) => `<section><h4>${label}</h4>${math(`<msub>${yHat}<mtext>${feature}</mtext></msub><mo>=</mo>${numeral(coefficient)}<mo>×</mo><mtext>${feature}</mtext>`,`${label}: y hat equals ${format(coefficient)} times ${feature}`)}</section>`).join('')}<section class="bread-full-fit"><h4>Bivariate OLS · the model we explain</h4>${modelEquation(data)}</section></div><p class="input-note">All intercepts are zero. The univariate slopes equal the feature–vote correlations; the bivariate slopes adjust for the feature correlation.</p>`;
+  ].map(([label,feature,coefficient]) => `<section><h4>${label}</h4>${math(`<msub>${yHat}<mtext>${feature}</mtext></msub><mo>=</mo>${numeral(coefficient)}<mo>×</mo><mtext>${feature}</mtext>`,`${label}: y hat equals ${format(coefficient)} times ${feature}`)}</section>`).join('')}<section class="bread-full-fit"><h4>Bivariate OLS · the model we explain</h4>${modelEquation(data)}</section></div>`;
 }
 
 function focalInputs(observation) {

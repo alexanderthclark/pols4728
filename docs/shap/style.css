@@ -647,3 +647,25 @@ dialog p { font-size:16px; }
 /* Distinguish the two predictors from the observed outcome in the OLS introduction. */
 .bread-predictor { color:var(--blue); }
 .bread-outcome { color:var(--rust); }
+
+/* The three fitted equations share a full-width centered scene. */
+.stage-shell[data-scene="ols-fits"] .visual { justify-content:safe center; overflow-y:auto; }
+.stage-shell[data-scene="ols-fits"] .visual>h3 { font-size:34px; margin-bottom:18px; }
+.stage-shell[data-scene="ols-fits"] .bread-fits { width:min(760px,100%); margin-inline:auto; }
+.stage-shell[data-scene="ols-fits"] .bread-fits section { padding:20px 0; }
+.stage-shell[data-scene="ols-fits"] .bread-fits>section>math,
+.stage-shell[data-scene="ols-fits"] .bread-equation { font-size:30px; }
+.stage-shell[data-scene="ols-fits"] .bread-full-fit .bread-equation { justify-content:center; }
+@media(max-width:860px) {
+  .stage-shell[data-scene="ols-fits"] .visual>h3 { font-size:28px; margin-bottom:12px; }
+  .stage-shell[data-scene="ols-fits"] .bread-fits section { padding:12px 0; }
+  .stage-shell[data-scene="ols-fits"] .bread-fits>section>math,
+  .stage-shell[data-scene="ols-fits"] .bread-equation { font-size:24px; }
+}
+@media screen and (max-height:550px) {
+  .stage-shell[data-scene="ols-fits"] .visual>h3 { font-size:24px; margin-bottom:8px; }
+  .stage-shell[data-scene="ols-fits"] .bread-fits section { padding:7px 0; }
+  .stage-shell[data-scene="ols-fits"] .bread-fits h4 { font-size:17px; margin-bottom:5px; }
+  .stage-shell[data-scene="ols-fits"] .bread-fits>section>math,
+  .stage-shell[data-scene="ols-fits"] .bread-equation { font-size:21px; }
+}
