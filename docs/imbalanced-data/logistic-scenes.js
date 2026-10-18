@@ -6,18 +6,21 @@
   const safe=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const count=v=>v.toLocaleString('en-US',{maximumFractionDigits:1}),signed=v=>`${v<-.00001?'−':v>.00001?'+':''}${Math.abs(v).toFixed(2)}`;
   const text=(x,y,v,c=C.ink,z=18,a='start',extra='')=>`<text x="${x}" y="${y}" fill="${c}" text-anchor="${a}" style="font-size:${z}px;font-variant-numeric:tabular-nums" ${extra}>${safe(v)}</text>`;
-  const math=(x,y,v,z,a='middle',c=C.ink,extra='')=>`<text x="${x}" y="${y}" fill="${c}" text-anchor="${a}" style="font-size:${z}px" ${extra}>${v}</text>`;
-  const sub=(v,z)=>`<tspan baseline-shift="sub" style="font-size:${z*.62}px">${v}</tspan>`,n=(v,z)=>`N${sub(v,z)}`;
+  const formula=(key,x,y,width,height,size,opacity=1,color=C.ink)=>{
+    if(opacity<=0)return '';
+    const f=window.LogisticMath[key];
+    return `<foreignObject class="logistic-formula" data-formula="${key}" x="${x}" y="${y}" width="${width}" height="${height}" opacity="${opacity}"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:${size}px;color:${color}">${f.html}</div></foreignObject>`;
+  };
   const line=(x1,y1,x2,y2,c=C.grid,extra='')=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" ${extra}/>`;
   const dot=(x,y,c,r=5.5,extra='')=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" stroke="white" stroke-width="1.6" ${extra}/>`;
   const story=[
-    ['Logistic regression assumes linear log odds.','The logarithm of p / (1 − p) is a straight line in x. For this example, assume that relationship is also the truth.'],
-    ['Write the probabilities as counts.','Within a group with the same x, the positive share is N₊ / N and the negative share is N₋ / N.'],
-    ['Cancel the shared total.','N drops out. Log odds is the logarithm of the positive-to-negative count ratio.'],
+    ['Logistic regression assumes linear log odds.','The model makes log odds a straight line in the predictor. Here, assume that relationship is also the truth.'],
+    ['Write the probabilities as counts.','Within each group sharing a predictor value, divide the positive and negative counts by the group total.'],
+    ['Cancel the shared total.','The group total drops out. Log odds is the logarithm of the positive-to-negative count ratio.'],
     ['Keep positives. Thin the negatives.','Keep every positive and randomly retain the same share s of negatives in each x group.'],
     ['One sampling share, one constant shift.','Dividing the odds by s subtracts log s from the log odds. Every group gets the same shift.'],
     ['Only the intercept changes.','With 10% of negatives retained, both points rise by 2.30. The sampled line is parallel to the population line.'],
-    ['Prior correction shifts it back.','Add log s to the sampled intercept to recover the population line: the prior correction in King and Zeng’s rare-events work.']
+    ['Prior correction shifts it back.','Shift the sampled intercept back to recover the population line: the prior correction in King and Zeng’s rare-events work.']
   ];
   function state(progress){
     const p=clamp(Number(progress)||0,0,6),stage=Math.round(p),action=ease((p-stage+.5)/.5);
@@ -25,54 +28,28 @@
     const negativeShare=stage===3||stage===5?Math.exp(-SHIFT*action):stage>=4?.1:1;
     return {p,stage,action,negativeShare,offset:-Math.log(negativeShare),corrected:stage===6?action:0};
   }
-  function brackets(a,b,top,bottom){return `<path d="M${a+7},${top}H${a}V${bottom}H${a+7} M${b-7},${top}H${b}V${bottom}H${b-7}" fill="none" stroke="${C.ink}" stroke-width="1.6"/>`;}
-  // Live SVG text and fraction rules let the common Ns cancel as we scroll.
-  function logRatio(left,y,z,{sampled=false,normalized=false,cancel=0,probability=false}={}){
-    const w=z*(normalized?3.1:sampled?2.65:probability?2.3:2.05),lw=z*1.27,fx=left+lw+13,cx=fx+w/2;
-    let body=math(left,y+z*.37,'log',z,'start');
-    if(normalized){
-      body+=math(cx,y-z*1.7+cancel*(z*1.7-12),n('+',z),z,'middle',C.orange);
-      body+=math(cx,y+z+8,n('−',z),z,'middle',C.blue);
-      body+=`<g opacity="${1-cancel}">`+math(cx,y-8,'N',z*.88,'middle',C.muted)+math(cx,y+z*2.4+8,'N',z*.88,'middle',C.muted);
-      body+=line(cx-w*.36,y-z*.92,cx+w*.36,y-z*.92,C.ink,'stroke-width="1.5"')+line(cx-w*.36,y+z*1.75+8,cx+w*.36,y+z*1.75+8,C.ink,'stroke-width="1.5"');
-      const opacity=Math.sin(Math.PI*cancel);
-      body+=line(cx-15,y-34,cx+15,y-3,C.orange,`stroke-width="2.4" opacity="${opacity}"`)+line(cx-15,y+z*2.4-18,cx+15,y+z*2.4+13,C.orange,`stroke-width="2.4" opacity="${opacity}"`);
-      body+='</g>'+brackets(fx-6,fx+w+6,y-z*2+cancel*(z*2-z-20),y+z*2.75+10-cancel*(z*1.75-5));
-    }else{
-      body+=math(cx,y-12,probability?'p':n('+',z),z,'middle',probability?C.ink:C.orange);
-      body+=math(cx,y+z+8,probability?'1 − p':`${sampled?'s ':''}${n('−',z)}`,z,'middle',probability?C.ink:C.blue);
-      body+=brackets(fx-6,fx+w+6,y-z-20,y+z+25);
-    }
-    body+=line(fx,y,fx+w,y,C.ink,'stroke-width="1.7"');
-    return {body,width:lw+w+26};
-  }
   function equations(s,narrow){
-    const width=narrow?380:900,height=narrow?400:420,z=narrow?32:46,cx=width/2;
+    const width=narrow?380:900,height=narrow?400:420,size=narrow?30:46;
+    const main=(key,opacity=1)=>formula(key,20,45,width-40,230,size,opacity);
     let body='';
     if(s.stage===0||s.stage===1){
-      const ratioWidth=z*(1.27+2.3)+26,rhsWidth=z*3.85,left=cx-(ratioWidth+rhsWidth)/2,ratio=logRatio(left,153,z,{probability:true});
-      body+=`<g opacity="${s.stage===0?1:1-s.action}">${ratio.body}`+math(left+ratio.width+9,153+z*.37,'= α + βx',z,'start')+text(cx,289,'α = intercept     β = slope',C.muted,narrow?18:24,'middle')+'</g>';
-      if(s.stage===1){
-        const w=z*(1.27+3.1)+26;
-        body+=`<g opacity="${s.action}">${logRatio(cx-w/2,149,z,{normalized:true}).body}`+math(cx,narrow?312:347,`N = ${n('+',z*.68)} + ${n('−',z*.68)}`,z*.68)+text(cx,narrow?347:382,'The total within this x group',C.muted,narrow?16:21,'middle')+'</g>';
-      }
+      const fade=s.stage===1?s.action:0;
+      body+=main('linear',1-fade)+formula('coefficientKey',20,280,width-40,55,narrow?20:26,1-fade,C.muted);
+      if(s.stage===1)body+=main('normalized',fade)+formula('total',20,292,width-40,55,narrow?24:32,fade)
+        +text(width/2,narrow?370:390,'The total within this group',C.muted,narrow?16:21,'middle',`opacity="${fade}"`);
     }else if(s.stage===2){
-      const w=z*(1.27+3.1)+26;
-      body+=logRatio(cx-w/2,149,z,{normalized:true,cancel:s.action}).body;
-      body+=text(cx,narrow?310:344,'Only the positive-to-negative ratio remains.',C.muted,narrow?16:22,'middle');
+      const mark=ease(s.action*2),finish=ease(s.action*2-1);
+      body+=main('normalized',1-mark)+main('cancelled',mark*(1-finish))+main('ratio',finish);
+      body+=text(width/2,narrow?335:355,'Only the positive-to-negative ratio remains.',C.muted,narrow?16:22,'middle');
     }else if(s.stage===4){
-      const w1=z*(1.27+2.65)+26,w2=z*(1.27+2.05)+26;
       if(narrow){
-        body+=logRatio(cx-w1/2,89,z,{sampled:true}).body;
-        const total=w2+z*4.35,left=cx-total/2;
-        body+=`<g opacity="${s.action}">${math(left,224+z*.37,'=',z,'start')}`+logRatio(left+z*1.05,224,z).body+math(left+z*1.05+w2+10,224+z*.37,'− log s',z,'start')+'</g>';
-        body+=math(cx,353,'− log(0.10) = +2.30',26,'middle',C.orange,`opacity="${s.action}"`);
+        body+=formula('sampledRatio',15,15,350,155,32)
+          +formula('expansionRhs',10,170,360,125,28,s.action);
       }else{
-        const total=w1+w2+z*4.35,left=cx-total/2;
-        body+=logRatio(left,159,z,{sampled:true}).body;
-        body+=`<g opacity="${s.action}">${math(left+w1+9,159+z*.37,'=',z,'start')}`+logRatio(left+w1+z*1.05,159,z).body+math(left+w1+z*1.05+w2+10,159+z*.37,'− log s',z,'start')+'</g>';
-        body+=math(cx,317,'− log(0.10) = +2.30',34,'middle',C.orange,`opacity="${s.action}"`);
+        body+=formula('expansionStart',20,45,860,230,46,1-s.action)
+          +formula('expansion',20,45,860,230,46,s.action);
       }
+      body+=formula('shift',20,narrow?315:300,width-40,65,narrow?27:35,s.action,C.orange);
     }
     return {body,width,height};
   }
@@ -87,8 +64,8 @@
     return body;
   }
   function thinning(s,narrow){
-    const width=narrow?380:900,height=narrow?400:420,z=narrow?32:46,w=z*(1.27+2.65)+26;
-    let body=logRatio(width/2-w/2,narrow?73:82,z,{sampled:true}).body;
+    const width=narrow?380:900,height=narrow?400:420;
+    let body=formula('sampledRatio',20,0,width-40,narrow?145:175,narrow?32:46);
     body+=text(width/2,narrow?159:194,`s = ${(s.negativeShare*100).toFixed(1)}% of negatives retained`,C.blue,narrow?19:24,'middle');
     const cw=narrow?172:355,top=narrow?179:215;
     groups.forEach((g,i)=>{
@@ -103,8 +80,8 @@
   }
   function plot(s,narrow){
     const width=narrow?380:900,height=narrow?335:440,left=narrow?42:91,right=narrow?347:837,top=narrow?80:82,bottom=narrow?190:269;
-    const fx=x=>narrow?88+x*203:199+x*499,fy=v=>bottom-(v+5.5)/9*(bottom-top),corrected=s.stage===6,offset=s.offset*(1-s.corrected),z=narrow?25:34;
-    let body=corrected?math(width/2,31,`α${sub('sampled',z)} + log(0.10) = α${sub('population',z)}`,narrow?21:32,'middle',C.teal):math(width/2,31,'(α − log s) + βx',z);
+    const fx=x=>narrow?88+x*203:199+x*499,fy=v=>bottom-(v+5.5)/9*(bottom-top),corrected=s.stage===6,offset=s.offset*(1-s.corrected);
+    let body=formula(corrected?'correctedLine':'sampleLine',10,0,width-20,48,narrow?21:32,1,corrected?C.teal:C.ink);
     const legend=(x,label,color,dash='',opacity=1)=>`<g opacity="${opacity}">${line(x,56,x+(narrow?16:26),56,color,`stroke-width="3" ${dash}`)}${text(x+(narrow?22:33),61,label,color,narrow?12:17)}</g>`;
     body+=legend(narrow?44:440,'Population',C.blue)+legend(narrow?161:585,'Sampled',C.orange,'',corrected?.5:1);
     if(corrected)body+=legend(narrow?268:720,'Corrected',C.teal,'stroke-dasharray="5 3"');
@@ -139,7 +116,7 @@
     const s=state(progress),narrow=window.innerWidth<=650,figure=s.stage===3?thinning(s,narrow):s.stage>=5?plot(s,narrow):equations(s,narrow);
     const notes=[
       'An assumption about the relationship at every x; two points below will illustrate it.',
-      'N₊ counts positives, N₋ counts negatives, and N = N₊ + N₋ within this x group.',
+      'The subscripts distinguish positive and negative counts within this group.',
       'The same total appears in the numerator and denominator.',
       'Expected retained counts · Blue tiles show the original negative pool; pale tiles are removed. Finite random samples fluctuate.',
       's is the negative retention share. Keeping 10% means s = 0.10.',

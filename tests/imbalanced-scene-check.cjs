@@ -27,7 +27,8 @@ function validate(svg) {
   assert.match(svg, /^<svg\b/);
   assert.ok(svg.length > 500, "A scene must contain the rendered figure");
   assert.doesNotMatch(svg, /NaN|undefined|Infinity/, "Geometry and labels must be finite");
-  for (const match of svg.matchAll(/\b(?:x|y|x1|x2|y1|y2|cx|cy|r|width|height|opacity)="([^"]*)"/g)) {
+  const geometry = svg.replace(/(<foreignObject\b[^>]*>)[\s\S]*?<\/foreignObject>/g, "$1</foreignObject>");
+  for (const match of geometry.matchAll(/\b(?:x|y|x1|x2|y1|y2|cx|cy|r|width|height|opacity)="([^"]*)"/g)) {
     assert.ok(Number.isFinite(Number(match[1])), `Invalid SVG attribute: ${match[0]}`);
   }
 }
@@ -98,8 +99,17 @@ function checkCurved(scene) {
 let renders = 0;
 for (const width of [380, 900]) {
   const context = vm.createContext({window: {innerWidth: width}, innerWidth: width, document: {getElementById: () => null}});
-  for (const file of ["model.js", "misspec-model.js", "logistic-scenes.js", "misspec-scenes.js"]) vm.runInContext(fs.readFileSync(path.join(directory, file), "utf8"), context, {filename: file});
+  for (const file of ["model.js", "misspec-model.js", "logistic-math.js", "logistic-scenes.js", "misspec-scenes.js"]) vm.runInContext(fs.readFileSync(path.join(directory, file), "utf8"), context, {filename: file});
   const scenes = context.window.ImbalanceScenes;
+  for (const [stage, key] of [[0,"linear"],[1,"normalized"],[2,"ratio"],[3,"sampledRatio"],[4,"expansionRhs"],[5,"sampleLine"],[6,"correctedLine"]]) {
+    const scene = scenes.logistic(stage);
+    assert.ok(scene.svg.includes(`data-formula="${stage === 4 && width > 650 ? "expansion" : key}"`), "Each opening scene uses its LaTeX formula");
+    assert.match(scene.svg, /class="katex"/);
+    assert.match(scene.svg, /<math /);
+  }
+  const midway = scenes.logistic(1.75).svg;
+  scenes.logistic(6);
+  assert.equal(scenes.logistic(1.75).svg, midway, "LaTeX cancellation reverses exactly");
   for (const [name, last, check] of [["logistic", 6, checkLogistic], ["misspecification", 1, checkCurved]]) {
     const positions = [...new Set([...Array.from({length: last * 100 + 1}, (_, i) => i / 100), ...Array.from({length: last}, (_, i) => i + 0.49999), ...Array.from({length: last}, (_, i) => i + 0.50001), -1, last + 1])];
     for (const position of positions) {

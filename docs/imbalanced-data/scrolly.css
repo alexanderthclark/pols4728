@@ -145,3 +145,8 @@ html{scroll-padding-top:var(--header-height)}
 
 .scene-controls[hidden]{display:none}
 #tree-leaf-chart,#tree-chord-chart{margin:24px 0 28px}
+
+.logistic-formula{overflow:visible}
+.logistic-formula>div{display:flex;align-items:center;justify-content:center;width:100%;height:100%;white-space:nowrap;line-height:1.2}
+.logistic-formula .katex{font-size:1em}
+.logistic-formula .katex-display{margin:0}
