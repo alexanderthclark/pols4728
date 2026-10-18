@@ -25,6 +25,11 @@ motion toggle uses completed threshold states; the same mode is selected by
   are illustrative rather than corpus-trained. The gradient step updates both
   tables simultaneously. Intermediate probabilities are recomputed from the
   corresponding fractional parameter step.
+- Three concluding word2vec stages illustrate parallel relationship offsets:
+  man → king / woman → queen, the corresponding vector arithmetic, and
+  France → Paris / Germany → Berlin. The diagrams use constructed coordinates;
+  scrolling translates an arrow without changing its displacement. Citations
+  link Chris Olah (2014) and the original Mikolov research.
 - Mosteller–Wallace's approximate reported “upon” rates are normalized per 1,000
   words in their comparison writings. The study combines many features; the
   chart does not purport to reproduce an authorship classifier.
@@ -47,7 +52,7 @@ finite differences, and the direction of a simultaneous update.
 Manual browser review covered 1280×820, 390×844, and 375×667 viewports; forward
 and backward scrolling; pinned diagrams; numerical endpoint states; term
 selection; previous/next keyboard activation; and the motion-off threshold mode.
-At 375×667, all six word2vec stages fit above their navigation controls. This
+At 375×667, the word2vec stages fit above their navigation controls. This
 is not a claim of a complete assistive-technology audit.
 
 No build step or external runtime dependencies are required. Serve `docs/` and

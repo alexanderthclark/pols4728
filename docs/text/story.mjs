@@ -1,6 +1,7 @@
 import {chapters} from './lesson.mjs';
 import {speechCartoon} from './speech-cartoon.mjs';
 import {updateAiExample} from './ai-example.mjs';
+import {wordAnalogy} from './analogy.mjs';
 import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine,cbowExample,cbowStep} from './model.mjs';
 
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -55,6 +56,7 @@ function tfVisual(stage,p){
 
 function sentence(){return `<div class="token-line">${cbowExample.sentenceTokens.map((w,i)=>`<span class="token ${i===1?'target':i===0||i===2?'context':''}">${i===1?'[ '+w+' ]':w}</span>`).join('')}</div>`;}
 function wordVisual(stage,p){
+  if(stage>=6)return wordAnalogy(stage===8?clamp((p-7.5)*2):p-6,{reducedMotion:!state.motion,stage:stage===8?1:stage-6,example:stage===8?'capitals':'royalty'});
   if(stage===0)return svg(line(140,280,570,280)+line(140,280,140,40)+`<path d="M 140 280 L 380 280" stroke="#234e70" stroke-width="5"/><path d="M 140 280 L 140 40" stroke="#a54f32" stroke-width="5"/>`+txt(380,324,'senate','text-anchor="middle"')+txt(165,55,'parliament')+txt(330,190,'[1, 0] · [0, 1] = 0','text-anchor="middle"')+txt(340,375,'Vocabulary axes do not encode related usage.','text-anchor="middle"'),'Two orthogonal vocabulary axes have dot product zero');
   if(stage===1)return sentence()+`<div class="math">P(senate | the, debated)</div><p class="visual-note">Solid outline: context · dashed outline: target<br>Radius 1 uses one word on each side.</p>`;
   if(stage===2){const q=state.motion?clamp((p-1.5)/.5):1;return svg(
