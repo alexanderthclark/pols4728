@@ -67,6 +67,20 @@ function checkLogistic(scene) {
 
 function checkCurved(scene) {
   const ordinate = scale(scene.svg), texts = elements(scene.svg, "text");
+  const curves = elements(scene.svg, "path").filter(p => p["stroke-width"] === "2.5");
+  const sampledTruth = curves.find(p => p.stroke === colors.sampled);
+  if (sampledTruth) {
+    const points = p => [...p.d.matchAll(/[ML]([\d.-]+),([\d.-]+)/g)].map(m => [Number(m[1]), Number(m[2])]);
+    const population = points(curves.find(p => p.stroke === colors.full)), sampled = points(sampledTruth);
+    const shift = ordinate(sampled[0][1]) - ordinate(population[0][1]);
+    assert.ok(shift >= -0.002 && shift <= Math.log(10) + 0.002, "Sampled truth moves through the known positive shift");
+    sampled.forEach(([x,y], i) => {
+      close(x, population[i][0], 0.001, "The truth retains its predictor coordinates");
+      close(ordinate(y) - ordinate(population[i][1]), shift, 0.002, "Sampling translates the true curve by a constant");
+      assert.ok(y >= 43 && y <= 278, "The sampled truth stays inside the plot");
+    });
+    assert.match(scene.svg, /Sampled truth/);
+  }
   const paths = elements(scene.svg, "path").filter(p => p["stroke-width"] === "3.7");
   for (const line of paths) {
     const coordinates = line.d.match(/^M([\d.-]+),([\d.-]+)\s*L([\d.-]+),([\d.-]+)$/);
@@ -104,6 +118,9 @@ for (const width of [380, 900]) {
   const halfLine = elements(halfCorrection.svg, "line").find(l => l.stroke === colors.corrected && l["stroke-width"] === "3.5");
   close(halfY(halfLine.y2), Math.log(10) / 2, 1e-9, "Halfway correction has removed half the log-odds shift");
   const final = scenes.misspecification(1), paths = checkCurved(final), finalY = scale(final.svg);
+  const truths = elements(final.svg, "path").filter(p => p["stroke-width"] === "2.5");
+  const truthStart = color => truths.find(p => p.stroke === color).d.match(/^M[\d.-]+,([\d.-]+)/)[1];
+  close(finalY(truthStart(colors.sampled)) - finalY(truthStart(colors.full)), Math.log(10), 0.002, "Sampled truth receives the exact case-control shift");
   const sampled = paths.find(p => p.stroke === colors.sampled).d.match(/M[\d.-]+,([\d.-]+)\s*L/);
   const correctedPath = paths.find(p => p.stroke === colors.corrected).d.match(/M[\d.-]+,([\d.-]+)\s*L/);
   close(finalY(correctedPath[1]) - finalY(sampled[1]), Math.log(0.1), 0.001, "Curved-model correction applies the known intercept shift");

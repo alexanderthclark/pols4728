@@ -16,7 +16,7 @@
     const narrow=innerWidth<=650,W=narrow?380:900,H=420;
     const L=narrow?45:78,R=narrow?355:850,top=43,bottom=278;
     const xs=E.rows.map(r=>r.x),xmin=Math.min(...xs),xmax=Math.max(...xs);
-    const values=E.rows.flatMap(r=>[r.trueLogit,M.logOdds(E.naturalFit,r.x),M.logOdds(E.sampledFit,r.x),M.logOdds(E.correctedFit,r.x)]);
+    const values=E.rows.flatMap(r=>[r.trueLogit,r.sampledLogit,M.logOdds(E.naturalFit,r.x),M.logOdds(E.sampledFit,r.x),M.logOdds(E.correctedFit,r.x)]);
     const lo=Math.floor(Math.min(...values))-1,hi=Math.ceil(Math.max(...values))+1;
     const fx=x=>L+(R-L)*(x-xmin)/(xmax-xmin),fy=y=>bottom-(bottom-top)*(y-lo)/(hi-lo);
     let c=text(L,21,'Log odds',C.muted,narrow?14:18);
@@ -35,6 +35,9 @@
     E.rows.forEach(r=>c+=`<circle cx="${fx(r.x)}" cy="${fy(r.trueLogit)}" r="4" fill="${C.population}"/>`);
     c+=line(E.naturalFit,C.population);
     if(z>.5){
+      const shift=E.summary.logOddsShift*sampleT;
+      c+=curve(shift,C.sample,sampleT,'8 4');
+      c+=text(R-5,fy(M.trueLogit(xmax,E.spec)+shift)-10,'Sampled truth',C.sample,narrow?12:16,'end',`opacity="${sampleT}"`);
       c+=line(sampleFit,C.sample,sampleT);
     }
     if(z>.75){
@@ -54,7 +57,7 @@
       c+='</g>';
     });
     c+=text(L,325,narrow?'Dashed = truth · Solid = fitted model':'Dashed = true relationship · Solid = fitted logistic model',C.muted,narrow?12:17);
-    const fitDescription=`Full-data slope ${E.naturalFit.slope.toFixed(3)}.${sampleT>0?` Sampled slope ${sampleFit.slope.toFixed(3)}.`:''}${correctT>0?` Corrected slope ${correctedFit.slope.toFixed(3)}.`:''}`;
+    const fitDescription=`Dashed curves show truth; solid lines show fitted models. Full-data slope ${E.naturalFit.slope.toFixed(3)}.${sampleT>0?` Sampled truth shifts up by ${(E.summary.logOddsShift*sampleT).toFixed(3)} at every x. Sampled fitted slope ${sampleFit.slope.toFixed(3)}.`:''}${correctT>0?` Corrected slope ${correctedFit.slope.toFixed(3)}.`:''}`;
     return `<svg class="scene-chart model-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${stories[stage][0]} ${fitDescription}">${c}</svg>`;
   }
   window.ImbalanceScenes.misspecification = progress => {

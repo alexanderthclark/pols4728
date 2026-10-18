@@ -5,7 +5,7 @@
   <meta name="theme-color" content="#ffffff">
   <meta name="description" content="An interactive lesson on logistic correction, efficient training, and why balancing can change what a model learns.">
   <title>Imbalanced Data · POLS 4728</title>
-  <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="scrolly.css?v=f4ebd1f02cd9"><script defer src="model.js"></script><script defer src="app.js"></script><script defer src="chapter-scenes.js"></script><script defer src="tree-model.js"></script><script defer src="tree-colors.js"></script><script defer src="tree-leaves.js"></script><script defer src="tree-rebalance.js"></script><script defer src="tree-entropy-chords.js"></script><script defer src="tree-scenes.js"></script><script defer src="logistic-scenes.js?v=8f64d0880b5f"></script><script defer src="misspec-model.js"></script><script defer src="misspec-scenes.js?v=783818b42622"></script><script defer src="sampling-data.js"></script><script defer src="sampling-scenes.js"></script><script defer src="scrolly.js"></script>
+  <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="scrolly.css?v=f4ebd1f02cd9"><script defer src="model.js?v=b46c65022ace"></script><script defer src="tree-colors.js"></script><script defer src="app.js?v=5f9154f3702c"></script><script defer src="chapter-scenes.js?v=c0fa9624f87c"></script><script defer src="tree-model.js"></script><script defer src="tree-leaves.js"></script><script defer src="tree-rebalance.js"></script><script defer src="tree-entropy-chords.js"></script><script defer src="tree-scenes.js?v=da5315a2d500"></script><script defer src="logistic-scenes.js?v=8f64d0880b5f"></script><script defer src="misspec-model.js"></script><script defer src="misspec-scenes.js?v=cb2e777e3c50"></script><script defer src="sampling-data.js"></script><script defer src="sampling-scenes.js"></script><script defer src="scrolly.js"></script>
 </head>
 <body>
   <a class="skip" href="#story">Skip to lesson</a>
@@ -70,7 +70,7 @@
 <section class="step" id="tree-playground"><div class="step-copy"><p class="eyebrow">04 / Try the two changes separately</p><h2>Change the balance. Then move the cutoff.</h2><p>The first control recomputes both gains as the training mixture changes. The second keeps the original 1% mixture and both gains fixed. The two experiments isolate the distinction between ranking candidate splits and deciding whether to split.</p></div>
 <div class="tree-labs">
 <div class="tree-lab"><h3>1. Change the class balance</h3><label class="control-top" for="tree-prior">Training positives <output id="tree-prior-value" for="tree-prior">1.0%</output></label><input type="range" id="tree-prior" min="1" max="50" step="0.1" value="1"><div class="tree-presets"><button type="button" class="preset" data-tree-prior="1">Original: 1%</button><button type="button" class="preset" data-tree-prior="50">Balanced: 50%</button></div><div id="tree-leaf-chart" aria-label="Candidate leaf balances at the selected training prevalence"></div><div id="tree-chord-chart" aria-label="Entropy curve and candidate split chords at the selected training prevalence"></div><div id="tree-prior-chart"></div><p class="panel-note" id="tree-prior-status" role="status"></p><details><summary>Inspect child shares and gains</summary><table class="comparison"><thead><tr><th scope="col">Split</th><th scope="col">q</th><th scope="col">p<sub>L</sub></th><th scope="col">p<sub>R</sub></th><th scope="col">Δ</th></tr></thead><tbody id="tree-detail-body"></tbody></table><p>Bar length is Δ / H(p). Dividing both gains by the same positive number preserves their ordering.</p></details></div>
-<div class="tree-lab"><h3>2. Keep 1% positives; move the cutoff</h3><label class="control-top" for="tree-cutoff">Minimum entropy gain (nats) <output id="tree-cutoff-value" for="tree-cutoff">0.0000</output></label><input type="range" id="tree-cutoff" min="0" max="0.03" step="0.001" value="0"><p class="small">All other constraints stay fixed. Both splits remain available.</p><div id="tree-cutoff-chart"></div><p class="panel-note" id="tree-cutoff-status" role="status"></p><p class="small">No position of this slider selects B: its gain stays below A’s.</p></div>
+<div class="tree-lab"><h3>2. Keep 1% positives; move the cutoff</h3><label class="control-top" for="tree-cutoff">Minimum entropy gain (nats) <output id="tree-cutoff-value" for="tree-cutoff">0.0000</output></label><input type="range" id="tree-cutoff" min="0" max="0.03" step="0.001" value="0"><p class="small">All other constraints stay fixed. Both splits remain available.</p><div id="tree-cutoff-chart"></div><p class="panel-note" id="tree-cutoff-status" role="status"></p><p class="small">No cutoff selects B here. A 1% minimum leaf size instead excludes A and selects B.</p><p class="small">For sklearn’s entropy criterion, convert these nats to bits: divide the gain or cutoff by ln(2).</p></div>
 </div></section>
 <section class="scroll-chapter" data-chapter="efficiency" data-stages="3" style="--stages:3" aria-label="Training efficiency">
 <div class="scroll-markers" aria-hidden="true"><span class="scroll-marker" id="step-10" data-stage="0"></span><span class="scroll-marker" id="step-11" data-stage="1"></span><span class="scroll-marker" id="step-12" data-stage="2"></span></div>
@@ -108,7 +108,7 @@
 </section>
 <details class="chapter-notes"><summary>Read the full what gets learned explanation</summary><div class="note-step"><p class="eyebrow">More examples / The learning argument</p><h3>Unlimited compute. Limited capacity.</h3>
         <p>Imagine a model that may use <strong>only one binary signal</strong>. It can split on A or B, then assign the best probability to each branch.</p>
-        <p>A is a narrow signal: it fires for 50% of positives but only 0.1% of negatives. B is broader: it fires for 90% of positives and 10% of negatives.</p>
+        <p>Reuse the same splits: A fires for 50% of positives and no negatives; B fires for 90% of positives and 10% of negatives.</p>
         <p>We can optimize both models exactly. There are no unfinished training runs here—only a choice about which signal earns the model’s single slot.</p>
         <p class="small">Synthetic population, 1% positive prevalence. The signals can be generated independently conditional on the label. Their conditional rates stay fixed as we change the loss weights.</p></div><div class="note-step"><p class="eyebrow">More examples / Optimize the natural loss</p><h3>The narrow signal wins.</h3>
         <p>Under the natural 1/99 class mixture, model A has lower optimized log loss. Its very low false-positive rate makes it valuable for estimating probabilities in this rare-event population.</p>
@@ -121,7 +121,7 @@
         <p>Nor can changing a threshold on model A reproduce model B. They rank some observations in the opposite order. The ROC curves cross: neither signal wins at every false-positive rate.</p>
         <p class="small">This demonstrates a possible benefit at convergence for a model with restricted capacity. It does not prove that balancing always improves flexible models or their learned representations.</p></div></details>
 <section class="step" id="step-17" data-step="17"><div class="step-copy"><p class="eyebrow">More examples / Better according to what?</p><h2>The gain has a price.</h2>
-        <p>Flag the higher-score branch of each model. A has about 83% precision and 50% recall. B has about 8% precision and 90% recall.</p>
+        <p>Flag the higher-score branch of each model. A has 100% precision and 50% recall. B has about 8% precision and 90% recall.</p>
         <p>The balanced objective improves AUC and the best balanced accuracy in this example, while the corrected B model has worse natural-population log loss. More false alarms may be worth it—or may make B unusable.</p>
         <p>Evaluate on untouched data at the deployment prevalence. Tune sampling, weighting, and thresholds inside training folds. Choose a metric or explicit cost that reflects the decision.</p>
         <p class="small">The operating points shown flag signal = 1. They are not both obtained by thresholding the corrected probabilities at 0.5. A balanced training distribution is not a balanced test population.</p></div><div class="inline-panel" data-visual="trade" data-mode="" aria-label="Interactive lesson figure"></div></section>
@@ -134,7 +134,7 @@
 <tr><th scope="row"><code>BalancedRandomForestClassifier</code></th><td>Constructs a class-balanced draw for each tree, allowing different trees to use different majority observations.</td></tr></tbody></table></div>
 <p>For binary undersampling, <code>sampling_strategy</code> is the desired minority / majority count ratio after resampling. <code>1.0</code> means 50% minority, <code>0.25</code> means 20%, and <code>0.1</code> means about 9.1%. It is not the fraction of majority cases retained. A requested ratio below the original ratio cannot be achieved by removing majority cases.</p>
 <h3>Keep resampling inside cross-validation</h3><p>The example holds out the test set at its natural class mix, then passes an <code>imblearn.pipeline.Pipeline</code> to <code>GridSearchCV</code>. Each fit resamples its training fold; the validation fold and later test predictions keep all their rows. The ordinary scikit-learn pipeline does not implement sampler steps.</p>
-<p>On a separate synthetic dataset, the runnable example compares no resampling with several undersampling ratios and tunes tree depth and leaf size together. It also tunes a balanced forest separately. Average precision selects the model in cross-validation; only that selected model is evaluated on the test set.</p>
+<p>On a separate synthetic dataset, the runnable example compares no resampling with several undersampling ratios and tunes tree depth and leaf size together. It also tunes a balanced forest separately. Average precision (AP) summarizes precision across recall levels. CV compares each sampling choice with the tuned baseline; only the winner is evaluated on the test set.</p>
 <p class="code-link"><a href="imblearn_demo.py" download>imblearn_demo.py</a></p>
 <details class="code-example"><summary>Read the complete runnable example</summary><pre><code>&quot;&quot;&quot;Compare resampling choices using untouched validation folds and test data.
 
@@ -161,6 +161,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.25, stratify=y, random_state=42,
 )
 cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+# Each validation fold and the test set have only 30 positives; AP can be noisy.
 
 # A sampler changes BOTH X and y. Use imblearn&#x27;s Pipeline.
 # GridSearchCV calls fit on each training fold; validation is not resampled.
@@ -202,12 +203,22 @@ balanced_search.fit(X_train, y_train)
 
 print(&quot;Training counts:&quot;, Counter(y_train))
 print(&quot;Untouched test counts:&quot;, Counter(y_test))
+print(&quot;Best CV AP by sampling choice (mean ± fold SD):&quot;)
+results = search.cv_results_
+for ratio in [None, 0.1, 0.25, 1.0]:
+    candidates = [i for i, params in enumerate(results[&quot;params&quot;])
+                  if params.get(&quot;sample__sampling_strategy&quot;) == ratio]
+    best = max(candidates, key=lambda i: results[&quot;mean_test_score&quot;][i])
+    label = &quot;No resampling&quot; if ratio is None else f&quot;Minority/majority={ratio:g}&quot;
+    print(f&quot;  {label}: {results[&#x27;mean_test_score&#x27;][best]:.4f} ± &quot;
+          f&quot;{results[&#x27;std_test_score&#x27;][best]:.4f}&quot;)
+spread = balanced_search.cv_results_[&quot;std_test_score&quot;][balanced_search.best_index_]
+print(f&quot;  Balanced forest: {balanced_search.best_score_:.4f} ± {spread:.4f}&quot;)
 for label, result in [
     (&quot;Resampling pipeline&quot;, search),
     (&quot;Balanced forest&quot;, balanced_search),
 ]:
-    print(label, &quot;best CV average precision:&quot;, round(result.best_score_, 4))
-    print(&quot;Parameters:&quot;, result.best_params_)
+    print(label, &quot;parameters:&quot;, result.best_params_)
 
 # Choose the method on CV results, then evaluate that choice once on test data.
 selected = max([search, balanced_search], key=lambda result: result.best_score_)

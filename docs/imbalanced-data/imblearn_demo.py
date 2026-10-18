@@ -23,6 +23,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.25, stratify=y, random_state=42,
 )
 cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+# Each validation fold and the test set have only 30 positives; AP can be noisy.
 
 # A sampler changes BOTH X and y. Use imblearn's Pipeline.
 # GridSearchCV calls fit on each training fold; validation is not resampled.
@@ -64,12 +65,22 @@ balanced_search.fit(X_train, y_train)
 
 print("Training counts:", Counter(y_train))
 print("Untouched test counts:", Counter(y_test))
+print("Best CV AP by sampling choice (mean ± fold SD):")
+results = search.cv_results_
+for ratio in [None, 0.1, 0.25, 1.0]:
+    candidates = [i for i, params in enumerate(results["params"])
+                  if params.get("sample__sampling_strategy") == ratio]
+    best = max(candidates, key=lambda i: results["mean_test_score"][i])
+    label = "No resampling" if ratio is None else f"Minority/majority={ratio:g}"
+    print(f"  {label}: {results['mean_test_score'][best]:.4f} ± "
+          f"{results['std_test_score'][best]:.4f}")
+spread = balanced_search.cv_results_["std_test_score"][balanced_search.best_index_]
+print(f"  Balanced forest: {balanced_search.best_score_:.4f} ± {spread:.4f}")
 for label, result in [
     ("Resampling pipeline", search),
     ("Balanced forest", balanced_search),
 ]:
-    print(label, "best CV average precision:", round(result.best_score_, 4))
-    print("Parameters:", result.best_params_)
+    print(label, "parameters:", result.best_params_)
 
 # Choose the method on CV results, then evaluate that choice once on test data.
 selected = max([search, balanced_search], key=lambda result: result.best_score_)

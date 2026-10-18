@@ -2,6 +2,7 @@
   "use strict";
 
   const M = window.ImbalanceModel;
+  const S = window.TreeColors;
   const C = {blue: "#234e70", orange: "#a54f32", teal: "#007f73", ink: "#242424", muted: "#606060", grid: "#e4e7e9"};
   const clamp = value => Math.max(0, Math.min(1, value));
   const mix = (a, b, t) => a + (b - a) * clamp(t);
@@ -85,20 +86,20 @@
     const a = M.stump("A", .01), b = M.stump("B", .01);
     const left = 250, width = 380;
     let content = text(56, 29, "The model may use only A or B", C.ink, 21) +
-      text(56, 66, "Signal A", C.blue, 23) +
-      text(56, 96, "Positives: 50%", C.muted, 18) + rect(left, 79, width * .5, 18, C.blue) +
-      text(56, 125, "Negatives: 0.1%", C.muted, 18) + rect(left, 108, Math.max(1.5, width * .001), 18, C.blue) +
-      text(56, 161, "Signal B", C.orange, 23) +
-      text(56, 191, "Positives: 90%", C.muted, 18) + rect(left, 174, width * .9, 18, C.orange) +
-      text(56, 220, "Negatives: 10%", C.muted, 18) + rect(left, 203, width * .1, 18, C.orange);
+      text(56, 66, "Signal A", S.A, 23) +
+      text(56, 96, "Positives: 50%", C.muted, 18) + rect(left, 79, width * .5, 18, S.A) +
+      text(56, 125, "Negatives: 0%", C.muted, 18) + rect(left, 108, 0, 18, S.A) +
+      text(56, 161, "Signal B", S.B, 23) +
+      text(56, 191, "Positives: 90%", C.muted, 18) + rect(left, 174, width * .9, 18, S.B) +
+      text(56, 220, "Negatives: 10%", C.muted, 18) + rect(left, 203, width * .1, 18, S.B);
     const reveal = clamp(t * 1.5);
     const lossWidth = 250;
     content += text(56, 269, "Natural log loss", C.ink, 19) +
-      rect(250, 242, lossWidth * a.logloss / .05 * reveal, 17, C.blue) +
-      rect(250, 268, lossWidth * b.logloss / .05 * reveal, 17, C.orange) +
-      text(645, 257, `A: ${a.logloss.toFixed(4)}`, C.blue, 18, "end") +
-      text(645, 283, `B: ${b.logloss.toFixed(4)}`, C.orange, 18, "end");
-    return svg(content, `A catches 50 percent of positives with a 0.1 percent false positive rate. B catches 90 percent with a 10 percent false positive rate. At 1 percent prevalence, A has lower optimized log loss: ${a.logloss.toFixed(4)} versus ${b.logloss.toFixed(4)}.`);
+      rect(250, 242, lossWidth * a.logloss / .05 * reveal, 17, S.A) +
+      rect(250, 268, lossWidth * b.logloss / .05 * reveal, 17, S.B) +
+      text(645, 257, `A: ${a.logloss.toFixed(4)}`, S.A, 18, "end") +
+      text(645, 283, `B: ${b.logloss.toFixed(4)}`, S.B, 18, "end");
+    return svg(content, `A catches 50 percent of positives with a 0 percent false positive rate. B catches 90 percent with a 10 percent false positive rate. At 1 percent prevalence, A has lower optimized log loss: ${a.logloss.toFixed(4)} versus ${b.logloss.toFixed(4)}.`);
   }
 
   function lossChart(pi) {
@@ -111,7 +112,7 @@
     [0, .1, .25, .5].forEach(x => { content += text(fx(x), 271, `${100 * x}%`, C.muted, 17, "middle"); });
     content += text(354, 297, "Positive class’s influence in training", C.muted, 18, "middle");
     ["A", "B"].forEach(name => {
-      const color = name === "A" ? C.blue : C.orange;
+      const color = name === "A" ? S.A : S.B;
       const points = [];
       for (let i = 0; i <= 150; i++) {
         const q = .5 * i / 150;
@@ -122,10 +123,10 @@
     content += `<line x1="${fx(pi)}" y1="49" x2="${fx(pi)}" y2="242" stroke="${C.teal}" stroke-width="1.5" stroke-dasharray="4 4"/>`;
     const a = M.stump("A", pi), b = M.stump("B", pi), winner = M.bestStump(pi).name;
     [a, b].forEach(model => {
-      content += `<circle cx="${fx(pi)}" cy="${fy(model.logloss)}" r="6" fill="${model.name === "A" ? C.blue : C.orange}" stroke="white" stroke-width="2"/>`;
+      content += `<circle cx="${fx(pi)}" cy="${fy(model.logloss)}" r="6" fill="${model.name === "A" ? S.A : S.B}" stroke="white" stroke-width="2"/>`;
     });
-    content += text(99, 57, `A ${a.logloss.toFixed(4)}`, C.blue, 18) + text(260, 57, `B ${b.logloss.toFixed(4)}`, C.orange, 18) +
-      text(634, 57, `${winner} wins`, winner === "A" ? C.blue : C.orange, 20, "end");
+    content += text(99, 57, `A ${a.logloss.toFixed(4)}`, S.A, 18) + text(260, 57, `B ${b.logloss.toFixed(4)}`, S.B, 18) +
+      text(634, 57, `${winner} wins`, winner === "A" ? S.A : S.B, 20, "end");
     return svg(content, `At ${(100 * pi).toFixed(1)} percent positive influence, A's optimized log loss is ${a.logloss.toFixed(4)} and B's is ${b.logloss.toFixed(4)}. ${winner} has the lower loss. The class-influence marker moves continuously across both loss curves.`);
   }
 
@@ -156,14 +157,14 @@
     content += text(315, 297, "False positive rate", C.muted, 18, "middle") +
       `<path d="M82,241 L547,55" stroke="${C.grid}" stroke-width="2" stroke-dasharray="5 5" fill="none"/>`;
     ["A", "B"].forEach(name => {
-      const s = M.SIGNALS[name], color = name === "A" ? C.blue : C.orange;
+      const s = M.SIGNALS[name], color = name === "A" ? S.A : S.B;
       const points = [[fx(0), fy(0)], [fx(s.fpr), fy(s.tpr)], [fx(1), fy(1)]];
       content += `<path d="${partialPath(points, t)}" fill="none" stroke="${color}" stroke-width="3.5" stroke-linejoin="round"/>`;
       if (t > .42) content += `<circle cx="${fx(s.fpr)}" cy="${fy(s.tpr)}" r="5" fill="${color}"/>`;
     });
-    content += text(578, 98, "AUC", C.muted, 18) + text(578, 137, "A  0.7495", C.blue, 21) + text(578, 176, "B  0.9000", C.orange, 21) +
+    content += text(578, 98, "AUC", C.muted, 18) + text(578, 137, "A  0.7500", S.A, 21) + text(578, 176, "B  0.9000", S.B, 21) +
       text(578, 221, "After", C.muted, 17) + text(578, 245, "correction", C.muted, 17);
-    return svg(content, "ROC curves after population probability correction. Signal A has area 0.7495. Signal B has area 0.9000. Correcting probability levels preserves the ranking for either selected signal.");
+    return svg(content, "ROC curves after population probability correction. Signal A has area 0.7500. Signal B has area 0.9000. Correcting probability levels preserves the ranking for either selected signal.");
   }
 
   function learning(progress) {
@@ -173,9 +174,9 @@
         eyebrow: "More examples / What the model learns",
         title: p < .5 ? "Unlimited compute still leaves a one-signal model." : "At the natural prevalence, A wins.",
         description: p < .5
-          ? "This deliberately restricted model must choose one binary signal. A finds fewer positives with very few false alarms. B finds more positives but produces many more false alarms."
+          ? "Reuse splits A and B. The model may use just one, with the best probability fitted in each leaf."
           : "At 1% prevalence, optimize each signal’s probabilities exactly. A achieves lower population log loss. Extra training cannot reverse which signal minimizes this objective.",
-        equation: "At 1% positive influence: loss(A) = 0.0341 < loss(B) = 0.0388",
+        equation: "At 1% positive influence: loss(A) = 0.0315 < loss(B) = 0.0388",
         svg: signals(p),
         label: "Two signals compete within a model restricted to one binary signal."
       };
@@ -196,7 +197,7 @@
       eyebrow: "More examples / What the model learns",
       title: "Correct the probabilities. Keep the learned structure.",
       description: "Balancing selected B. Correcting its probabilities preserves B’s ranking. Its ROC area is higher, while its operating point admits more false alarms. Whether that helps depends on your goal.",
-      equation: "AUC(A) = 0.7495 · AUC(B) = 0.9000 · Correction preserves each ranking",
+      equation: "AUC(A) = 0.7500 · AUC(B) = 0.9000 · Correction preserves each ranking",
       svg: roc(reveal),
       label: "Both ROC curves are drawn progressively; their ranking differences remain after correction."
     };
