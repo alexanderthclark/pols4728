@@ -717,20 +717,22 @@ dialog p { font-size:16px; }
 .recap-qualification { width:100%; max-width:760px; margin:0 auto!important; font:14px/1.5 var(--sans); color:var(--muted); }
 .recap-generalization,.recap-general-definition { width:100%; max-width:900px; margin-inline:auto; }
 .recap-generalization .recap-rule { margin-bottom:6px; }
-.recap-general-equation { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:4px 8px; font:28px/1.45 'Course Math',math; }
-.recap-general-equation math { flex:0 0 auto; }
+.recap-general-equation,.background-average-equation { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:4px 8px; font:28px/1.45 'Course Math',math; }
+.recap-general-equation math,.background-average-equation math { flex:0 0 auto; }
 .recap-legend { font:14px/1.5 var(--sans); color:var(--muted); margin:6px auto 0!important; max-width:760px; }
-.recap-general-definition { border-top:1px solid var(--light-rule); padding-top:10px; }
-.recap-general-definition>p:first-child { font:13px/1.5 var(--sans); color:var(--muted); margin-bottom:6px; }
-.recap-general-definition .recap-general-equation { font-size:22px; margin-bottom:6px; }
+.recap-general-definition { margin-bottom:16px; }
+.recap-general-definition>p:first-child { font:14px/1.5 var(--sans); margin-bottom:6px; }
+.recap-general-definition .background-average-equation { margin-bottom:6px; }
+.recap-generalization { border-top:1px solid var(--light-rule); padding-top:12px; }
+.recap-generalization .recap-general-equation { font-size:24px; }
 @media(max-width:860px) {
   .stage-shell[data-scene="ols-recap"] .visual>h3 { font-size:27px; }
   .recap-rule { font-size:16px; }
   .coalition-recap-table tbody th,.coalition-recap-table td { padding:9px 6px; }
   .coalition-recap-table tbody math { font-size:20px; }
   .recap-qualification { font-size:12px; }
-  .recap-general-equation { font-size:24px; }
-  .recap-general-definition .recap-general-equation { font-size:20px; }
+  .background-average-equation { font-size:24px; }
+  .recap-generalization .recap-general-equation { font-size:22px; }
   .recap-legend { font-size:12px; }
 }
 @media(max-width:600px) {
@@ -745,4 +747,18 @@ dialog p { font-size:16px; }
   .coalition-recap-table .recap-prediction { grid-column:1 / -1; }
   .coalition-recap-table small { font-size:10px; }
   .recap-input-name { display:block; font:11px/1.4 var(--sans); margin-bottom:4px; }
+}
+
+.stage-shell[data-scene="background-average"] .visual { overflow-y:auto; overflow-x:hidden; }
+.stage-shell[data-scene="background-average"] .visual>* { flex-shrink:0; }
+.stage-shell[data-scene="background-average"] .formula-intro-title { margin-bottom:20px; }
+.stage-shell[data-scene="background-average"] .formula-explanation { margin-top:12px; padding-top:14px; min-height:0; }
+.background-average-label { font:16px/1.5 var(--sans); color:var(--blue); margin-bottom:8px!important; }
+.background-average-content .background-average-equation { margin-bottom:16px; }
+.background-average-legend { font:14px/1.55 var(--sans); color:var(--muted); margin:12px 0 0!important; }
+@media(max-width:860px) {
+  .stage-shell[data-scene="background-average"] .formula-intro-title { margin-bottom:12px; }
+  .background-average-label { font-size:13px; }
+  .stage-shell[data-scene="background-average"] .background-average-content .formula-focus-meaning { font-size:18px; }
+  .background-average-legend { font-size:12px; }
 }

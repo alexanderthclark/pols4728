@@ -7,11 +7,12 @@ import { validateBreadPeace, breadPeaceFacts, renderBreadPeace, breadPeaceDecomp
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
-const names = ['The Shapley formula', `The observation ${symbol('x')}`, `The model prediction ${yHatMarkup()}`, `Before and after feature ${symbol('i')}`, 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'The value-function recap', 'When features interact', 'An interaction model; one person', `The term ${valueSymbolMarkup('<mi>S</mi>')}`, `The term ${valueSymbolMarkup('<mi>S</mi><mo>∪</mo><mrow><mo stretchy="false">{</mo><mi>i</mi><mo stretchy="false">}</mo></mrow>')}`, 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation', 'One common zero', 'One person, three dots', 'Explain more people', 'Make overlap visible', 'Color by input value', 'Opposing contributions cancel', 'Measure distance from zero', 'Average the distances', 'Rank the averages'];
+const names = ['The Shapley formula', `The observation ${symbol('x')}`, `The model prediction ${yHatMarkup()}`, 'Average background predictions', `Before and after feature ${symbol('i')}`, 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'The value-function recap', 'When features interact', 'An interaction model; one person', `The term ${valueSymbolMarkup('<mi>S</mi>')}`, `The term ${valueSymbolMarkup('<mi>S</mi><mo>∪</mo><mrow><mo stretchy="false">{</mo><mi>i</mi><mo stretchy="false">}</mo></mrow>')}`, 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation', 'One common zero', 'One person, three dots', 'Explain more people', 'Make overlap visible', 'Color by input value', 'Opposing contributions cancel', 'Measure distance from zero', 'Average the distances', 'Rank the averages'];
 const captions = [
   'Scroll to give each part its meaning in a prediction problem.',
   `${symbol('x')} is one complete observation; its values supply the fixed inputs.`,
   `${predictionMarkup()} is the fitted model’s prediction for one complete input row.`,
+  'Fix the included inputs, predict with each background row, then average the predictions.',
   `Compare the same model’s average before and after fixing feature ${symbol('i')} to ${symbol('x')}.`,
   `${creditMarkup()} is feature ${symbol('i')}’s contribution relative to the background average prediction.`,
   '',
@@ -45,6 +46,7 @@ const formulaStops = {
   'shapley-formula':{focus:'all',meaning:'The players are input features. The game assigns credit for one observation’s prediction.',note:`${symbol('F')}: all features; ${inlineMath('<mi>p</mi><mo>=</mo><mrow><mo stretchy="false">|</mo><mi>F</mi><mo stretchy="false">|</mo></mrow>')}.`},
   'observation-symbol':{focus:'observation',symbol:symbol('x'),meaning:'One complete input row. Its values supply every feature fixed in this explanation.'},
   'prediction-symbol':{focus:'all',symbol:predictionMarkup(),meaning:`${predictionMarkup()} is the fitted model’s prediction for the complete row ${symbol('x')}. ${symbol('y')} is observed.`},
+  'background-average':{focus:'value',definition:true},
   'joining-feature':{focus:'difference',comparison:true,meaning:`${symbol('S')}: features fixed to ${symbol('x')}. Unfixed inputs: background rows.`,note:`${symbol('i')}: the additional feature. No retraining.`},
   'feature-credit':{focus:'result',symbol:inlineMath(`${creditBody()}<mo>=</mo>${creditBody('<mi>x</mi>')}`),meaning:`Feature ${symbol('i')}’s credit relative to the background average. Average its marginal across orders; the credit uses the prediction’s units.`},
 };
@@ -135,7 +137,8 @@ function updateFacts() {
 function renderFormula(scene) {
   const stop = formulaStops[scene];
   const comparison = stop.comparison ? $(`#${scene} .formula-comparison-summary`).outerHTML + $(`#${scene} .formula-comparison`).outerHTML : '';
-  visual.innerHTML = `<h1 class="formula-intro-title">From Shapley values to SHAP</h1>${shapleyFormulaMarkup(stop.focus)}<div class="formula-explanation">${comparison}${stop.symbol ? `<p class="formula-focus-symbol math-text">${stop.symbol}</p>` : ''}<p class="formula-focus-meaning">${stop.meaning}</p>${stop.note ? `<p class="formula-focus-note">${stop.note}</p>` : ''}${scene === 'shapley-formula' ? '<p class="formula-scroll-prompt">Scroll to connect the symbols to predictions, or use Next.</p>' : ''}</div>`;
+  const definition = stop.definition ? $(`#${scene} .background-average-content`).outerHTML : '';
+  visual.innerHTML = `<h1 class="formula-intro-title">From Shapley values to SHAP</h1>${shapleyFormulaMarkup(stop.focus)}<div class="formula-explanation">${definition}${comparison}${stop.symbol ? `<p class="formula-focus-symbol math-text">${stop.symbol}</p>` : ''}${stop.definition ? '' : `<p class="formula-focus-meaning">${stop.meaning}</p>`}${stop.note ? `<p class="formula-focus-note">${stop.note}</p>` : ''}${scene === 'shapley-formula' ? '<p class="formula-scroll-prompt">Scroll to connect the symbols to predictions, or use Next.</p>' : ''}</div>`;
 }
 
 function renderTransition(scene) {
@@ -270,7 +273,7 @@ function updateFigureOverflow() {
     visual.removeAttribute('aria-describedby');
     return;
   }
-  const scrollable = (story.dataset.layout === 'worked' || ['ols-refit','ols-recap'].includes(shell.dataset.scene)) && visual.scrollHeight > visual.clientHeight + 1;
+  const scrollable = (story.dataset.layout === 'worked' || ['background-average','ols-refit','ols-recap'].includes(shell.dataset.scene)) && visual.scrollHeight > visual.clientHeight + 1;
   figureScrollHint.hidden = !scrollable;
   visual.classList.toggle('has-overflow', scrollable);
   if (scrollable) visual.setAttribute('aria-describedby', figureScrollHint.id);

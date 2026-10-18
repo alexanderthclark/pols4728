@@ -20,6 +20,14 @@ function valueApplication(argument, valueFunction = '<msub><mi>v</mi><mi>x</mi><
   return `<mrow>${valueFunction}<mo>⁡</mo><mrow><mo stretchy="false">(</mo>${argument}<mo stretchy="false">)</mo></mrow></mrow>`;
 }
 
+/** The background-average definition applies before any linear-model shortcut. */
+export function backgroundAverageMarkup() {
+  const included = '<msub><mi>x</mi><mi>S</mi></msub>';
+  const excluded = '<msubsup><mi>z</mi><mrow><mo>−</mo><mi>S</mi></mrow><mrow><mo stretchy="false">(</mo><mi>b</mi><mo stretchy="false">)</mo></mrow></msubsup>';
+  const prediction = `<mover accent="true"><mi>y</mi><mo>^</mo></mover><mo stretchy="false">(</mo>${included}<mo>,</mo>${excluded}<mo stretchy="false">)</mo>`;
+  return `<div class="background-average-equation" role="math" aria-label="v sub x of S is one over B times the sum from b equals one to B of y hat evaluated at the observation’s included inputs and the excluded inputs from background row b."><math aria-hidden="true"><mrow>${valueApplication('<mi>S</mi>')}<mo>=</mo></mrow></math><math aria-hidden="true"><mrow><mfrac><mn>1</mn><mi>B</mi></mfrac><munderover><mo>∑</mo><mrow><mi>b</mi><mo>=</mo><mn>1</mn></mrow><mi>B</mi></munderover>${prediction}</mrow></math></div>`;
+}
+
 /** The full equation remains real MathML while each named term can be emphasized. */
 export function shapleyFormulaMarkup(activeTerm = 'all') {
   if (!activeTerms.has(activeTerm)) throw new RangeError(`Unknown formula term: ${activeTerm}.`);
