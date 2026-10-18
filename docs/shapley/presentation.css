@@ -19,11 +19,6 @@ body.is-presentation{--presentation-header:68px}
 .is-presentation #scene-caption .scene-detail-trigger{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin:3px auto 0;padding:7px 12px;border:0;background:transparent;color:var(--blue);font-size:13px;text-decoration:underline;text-underline-offset:4px}
 .is-presentation #scene-caption .scene-detail-trigger:hover{background:var(--blue-faint)}
 .is-presentation #scene-caption:focus,.is-presentation #scene-caption h2:focus{outline:none}
-.is-presentation #scene-navigation{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:18px;min-height:44px;margin:0 auto;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
-.is-presentation #scene-navigation button{display:inline-flex;align-items:center;justify-content:center;min-width:92px;min-height:44px;padding:7px 14px;border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink);font-size:13px}
-.is-presentation #scene-navigation button:hover:not(:disabled){border-color:var(--blue);color:var(--blue);background:var(--blue-faint)}
-.is-presentation #scene-navigation button:disabled{opacity:.35;cursor:default}
-.is-presentation #scene-position{min-width:42px;text-align:center}
 
 /* Height, rather than the old side-column width, governs quantitative geometry. */
 .is-presentation .graph-container{flex:0 1 auto;width:min(100%,calc((100svh - 300px)*1.333));max-width:800px;min-height:0;align-self:center;margin:0}
@@ -141,8 +136,6 @@ body.is-presentation{--presentation-header:68px}
   .is-presentation #scene-caption h2{font-size:25px;line-height:1.12;letter-spacing:-.02em}
   .is-presentation #scene-caption p.scene-summary{margin-top:6px;font-size:14px;line-height:1.4;max-width:48ch}
   .is-presentation #scene-caption .scene-detail-trigger{font-size:12px;margin-top:0;padding:4px 10px}
-  .is-presentation #scene-navigation{gap:14px;min-height:44px;font-size:11px}
-  .is-presentation #scene-navigation button{min-width:80px;padding:6px 11px;font-size:12px}
   .is-presentation .graph-container{width:min(100%,calc((100svh - 285px)*1.333));max-width:560px}
   .is-presentation .stage-shell[data-scene="7"] .graph-container,.is-presentation .stage-shell[data-scene="8"] .graph-container{width:min(100%,calc((100svh - 370px)*1.333));max-width:560px}
   .is-presentation .graph-caption{font-size:11px;min-height:30px;gap:2px}

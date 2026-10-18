@@ -86,10 +86,7 @@ electoralIntro.hidden = true;
 stageViz.append(electoralIntro);
 const sceneCaption = document.createElement('div');
 sceneCaption.id = 'scene-caption'; sceneCaption.className = 'scene-caption';
-const navigation = document.createElement('nav');
-navigation.id = 'scene-navigation'; navigation.setAttribute('aria-label', 'Story steps');
-navigation.innerHTML = '<button type="button" id="scene-previous">Previous</button><span id="scene-position"></span><button type="button" id="scene-next">Next</button>';
-stage.append(sceneCaption, navigation);
+stage.append(sceneCaption);
 const sceneEquations = new Map();
 for (const index of [9, 20]) {
   const equation = sceneContents[index].querySelector('.value-definition');
@@ -232,9 +229,6 @@ function showStep(index) {
   }
   sceneContents[current].hidden = false; sceneCaption.append(sceneContents[current]);
   reserveMapCaptionHeight();
-  $('#scene-position').textContent = `${current + 1} / ${steps.length}`;
-  $('#scene-previous').textContent = current === 0 ? 'Title' : 'Previous';
-  $('#scene-next').textContent = current === steps.length - 1 ? 'Back to title' : 'Next';
   if (current === 9) setNodeNotation(true);
   nodeEls.forEach(b => { b.disabled = current !== 8; b.classList.remove('is-inspected'); });
   if (current === 5) pathState = { orderIndex: 2, count: 3 };
@@ -400,8 +394,6 @@ function navigateScene(index) {
   }
   history.replaceState(null, '', `#${steps[index].id}`); goToStep(index, true);
 }
-$('#scene-previous').addEventListener('click', () => navigateScene(current - 1));
-$('#scene-next').addEventListener('click', () => navigateScene(current + 1));
 document.addEventListener('keydown', event => {
   if (event.defaultPrevented || detailDialog.open || document.querySelector('#weight-dialog[open]') || event.target.closest('input, select, textarea, [contenteditable], dialog')) return;
   if (scrollY < $('.story').offsetTop - innerHeight / 2) return;

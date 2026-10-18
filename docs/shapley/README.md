@@ -14,9 +14,9 @@ The interactive explorer also supports B and C, coalition and edge inspection, a
 
 One full-width visual stage stays in view while scrolling changes the picture,
 equation, title, and caption. Each scene’s caption stays brief.
-The title and caption sit beneath the visual, with Previous/Next controls and a
-step count. Left/Right arrow keys also navigate while a form control or dialog
-is not active. The original opening title page remains the entry point.
+The title and caption sit beneath the visual. Scrolling moves between scenes;
+Left/Right arrow keys also navigate while a form control or dialog is not active.
+The original opening title page remains the entry point.
 
 The six-order scene visits accounting paths as the reader scrolls through it;
 its compact buttons also select any order. Entering the value-function scene
