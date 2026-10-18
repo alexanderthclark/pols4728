@@ -48,6 +48,8 @@ jobs:
           node --check docs/shapley/formula-view.js
           node --check docs/shap/calculation.mjs
           node --check docs/shap/story.js
+          node --check docs/shap/title-picture.js
+          node --check docs/shap/title-motion.js
           node --check docs/shap/waterfall.js
           node --check docs/shap/formula.js
           node --check docs/shap/bread-peace.js

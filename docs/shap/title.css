@@ -1,0 +1,70 @@
+/* The static cover remains the fallback until its independent animation starts. */
+.title-page { --title-masthead:64px; }
+.title-page-cue { display:none; }
+.shap-title-picture { width:100%; height:100%; min-height:0; }
+.shap-title-picture svg { display:block; width:100%; height:100%; }
+
+.title-page.has-title-animation {
+  display:block;
+  height:calc(180svh - var(--title-masthead));
+  min-height:0;
+  padding:0;
+}
+.title-page.has-title-animation .title-page-content {
+  position:sticky;
+  top:var(--title-masthead);
+  height:calc(100svh - var(--title-masthead));
+  max-width:1100px;
+  margin-inline:auto;
+  padding:24px;
+  display:grid;
+  grid-template-rows:auto auto auto minmax(0,1fr) auto auto;
+  justify-items:center;
+  align-items:center;
+  gap:8px;
+}
+.title-page.has-title-animation .title-page-kicker,
+.title-page.has-title-animation h1,
+.title-page.has-title-animation .title-page-subtitle { margin:0; }
+.title-page.has-title-animation .title-page-art {
+  width:min(900px,100%);
+  height:100%;
+  min-height:0;
+  margin:0;
+  align-items:center;
+}
+.title-page.has-title-animation .title-page-cue {
+  display:block;
+  margin:0;
+  font:13px/1.4 var(--sans);
+  color:var(--muted);
+}
+.title-page.has-title-animation .title-page-start { margin:0; }
+
+@media(max-width:860px) {
+  .title-page { --title-masthead:56px; }
+  .title-page.has-title-animation .title-page-content { padding:16px 20px; gap:6px; }
+  .title-page.has-title-animation .title-page-cue { font-size:12px; }
+}
+@media(max-height:550px) {
+  .title-page.has-title-animation .title-page-content { padding-block:8px; gap:4px; }
+  .title-page.has-title-animation .title-page-kicker { font-size:11px; }
+  .title-page.has-title-animation h1 { font-size:30px; }
+  .title-page.has-title-animation .title-page-subtitle { font-size:18px; }
+  .title-page.has-title-animation .title-page-start { font-size:12px; }
+  .title-page.has-title-animation .title-page-cue { font-size:11px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .title-page.has-title-animation { height:calc(100svh - var(--title-masthead)); }
+  .title-page.has-title-animation .title-page-content { position:static; grid-template-rows:auto auto auto minmax(0,1fr) auto; }
+  .title-page.has-title-animation .title-page-cue { display:none; }
+}
+@media print {
+  .title-page.has-title-animation { height:auto; min-height:0; padding:24px; break-inside:avoid; }
+  .title-page.has-title-animation .title-page-content { display:block; position:static; height:auto; padding:0; }
+  .title-page.has-title-animation .title-page-art { height:auto; margin-top:16px; }
+  #shap-title-picture { display:none!important; }
+  #shap-title-fallback { display:block!important; width:100%; height:auto; max-width:600px; max-height:220px; }
+  .title-page.has-title-animation .title-page-cue,
+  .title-page.has-title-animation .title-page-start { display:none; }
+}

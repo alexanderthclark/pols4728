@@ -448,7 +448,10 @@ addEventListener('resize', () => {
   if (dialog.open && $('.dialog-waterfall')) renderWaterfall($('.dialog-waterfall'), {features:state.data.features,observation:state.globalObservation,unit:'$1,000/year'});
   requestAnimationFrame(updateFigureOverflow);
 });
-reducedMotion.addEventListener('change', () => {if (aggregateScenes.has(steps[state.scene]?.id)) renderPopulation();});
+reducedMotion.addEventListener('change', () => {
+  queueScroll();
+  if (aggregateScenes.has(steps[state.scene]?.id)) renderPopulation();
+});
 addEventListener('hashchange', () => {
   if (!state.data || !state.breadData) return;
   const index = steps.findIndex(step => step.id === canonicalSceneId(location.hash.slice(1)));

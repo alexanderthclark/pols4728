@@ -7,6 +7,9 @@
   <title>SHAP · POLS 4728</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="aggregate.css">
+  <link rel="stylesheet" href="title.css">
+  <script defer src="title-picture.js"></script>
+  <script defer src="title-motion.js"></script>
   <script type="module" src="story.js"></script>
   <style>
     .static-formula,.static-observation { display:none; }
@@ -32,9 +35,11 @@
         <p class="title-page-kicker">POLS 4728</p>
         <h1 id="cover-title">SHAP</h1>
         <p class="title-page-subtitle" id="cover-subtitle">SHapley Additive exPlanations</p>
-        <figure class="title-page-art">
-          <img src="assets/prediction-investigators.png" width="1536" height="1024" alt="Two round, torso-less stick figures examine a faceless Y-hat in the open cockpit of a landed spaceship; one holds a magnifying glass while the other scratches its head.">
+        <figure class="title-page-art" role="img" aria-label="Two round, torso-less investigators examine a prediction, y hat, inside a landed spacecraft.">
+          <div id="shap-title-picture" class="shap-title-picture" hidden aria-hidden="true"></div>
+          <img id="shap-title-fallback" src="assets/prediction-investigators-motion.svg" width="1000" height="500" alt="">
         </figure>
+        <p class="title-page-cue">Scroll to open the spacecraft</p>
         <a class="title-page-start" href="#shapley-formula">Start the explanation <span aria-hidden="true">↓</span></a>
       </div>
     </section>

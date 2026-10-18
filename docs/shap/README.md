@@ -2,9 +2,17 @@
 
 The opening title is “SHAP,” with the subtitle “SHapley Additive exPlanations,”
 following the expansion used in the [official documentation](https://shap.readthedocs.io/en/latest/).
-The slide shows two torso-less investigators examining a faceless
-Y-hat in a gently landed spaceship. Its Start link leads into the existing
+Two torso-less investigators take two small steps toward a landed spacecraft
+and two steps back in a repeating loop. Scrolling through the pinned cover
+opens the lid and reveals a faceless y-hat; scrolling backward closes it.
+The walking clock is independent of the scroll position and pauses offscreen
+or in a hidden tab. The scene uses separate black-and-white SVG parts.
+Reduced motion shows the final inspection pose without a loop or extended
+scroll track. A matching static SVG is available without JavaScript and in print.
+The title and subtitle remain selectable HTML. Its Start link leads into the existing
 30-frame explanation; the cover is separate from the story’s frame count.
+The static asset is generated from `title-picture.js` with `render(0, 1, true)`;
+regenerate it and update its registry hash when changing the final inspection pose.
 The first 21 frames lead to a local waterfall; nine appended frames build
 a beeswarm and derive global importance from those same local contributions.
 
@@ -170,7 +178,7 @@ top hat; the frowning eastern character wears a patched cap and worn shoes.
 The bottom map credit names West and East Germany. The native math term
 `ability × neighborhood` connects that comparison to the illustrative earnings
 equation. The full earnings model and person selector appear in frame 15.
-The story has 30 teaching frames, plus the unchanged opening title scene.
+The story has 30 teaching frames, plus the animated opening title scene.
 When a chart exceeds the available figure height, the figure scrolls vertically
 and shows a scroll hint. Aggregate charts retain page-scroll chaining at their
 edges and reserve scrollbar space so the chart layout remains stable.
