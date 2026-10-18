@@ -41,7 +41,7 @@ const captions = [
 ];
 const aggregateScenes = new Set(['contribution-axis','one-person-dots','many-people','beeswarm','feature-color','signed-average','absolute-values','global-importance','importance-ranking']);
 const formulaStops = {
-  'shapley-formula':{focus:'all',meaning:'The players are input features. The game assigns credit for one observation’s prediction.',note:'<var>F</var>: all features; <span class="math-text">m = |F|</span>.'},
+  'shapley-formula':{focus:'all',meaning:'The players are input features. The game assigns credit for one observation’s prediction.',note:'<var>F</var>: all features; <span class="math-text">p = |F|</span>.'},
   'observation-symbol':{focus:'observation',symbol:'x',meaning:'One complete input row. Its values supply every feature fixed in this explanation.'},
   'prediction-symbol':{focus:'all',symbol:predictionMarkup(),meaning:'ŷ(x) is the fitted model’s prediction for the complete row <var>x</var>. <var>y</var> is observed. Keep the model fixed.'},
   'joining-feature':{focus:'difference',comparison:true,meaning:'<var>S</var>: features fixed to <var>x</var>. Unfixed inputs: background rows.',note:'<var>i</var>: the additional feature. No retraining.'},
