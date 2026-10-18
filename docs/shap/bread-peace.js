@@ -56,7 +56,7 @@ function renderCorrelations(data) {
     ['Bread and observed vote', '<msub><mi>r</mi><mrow><mtext class="bread-predictor">bread</mtext><mo>,</mo><mi class="bread-outcome">y</mi></mrow></msub>', data.refit.breadVoteCorrelation],
     ['Peace and observed vote', '<msub><mi>r</mi><mrow><mtext class="bread-predictor">peace</mtext><mo>,</mo><mi class="bread-outcome">y</mi></mrow></msub>', data.refit.peaceVoteCorrelation],
   ];
-  return `<h3>Start with three correlations</h3><p class="bread-context"><span class="bread-predictor">Bread, peace</span>, and <span class="bread-outcome">observed vote share ${math('<mi class="bread-outcome">y</mi>', 'y')}</span> are centered and standardized: mean 0, SD 1.</p><div class="bread-correlations">${correlations.map(([label,symbol,value]) => `<section><p>${label}</p>${math(`${symbol}<mo>=</mo>${numeral(value)}`,`${label}: correlation ${format(value)}`)}</section>`).join('')}</div><p class="input-note">These are stipulated correlations for a stylized Bread and Peace example.</p>`;
+  return `<h3>Start with three correlations (stylized Hibbs model)</h3><p class="bread-context"><span class="bread-predictor">Bread, peace</span>, and <span class="bread-outcome">observed vote share ${math('<mi class="bread-outcome">y</mi>', 'y')}</span> are centered and standardized: mean 0, SD 1.</p><div class="bread-correlations">${correlations.map(([label,symbol,value]) => `<section><p>${label}</p>${math(`${symbol}<mo>=</mo>${numeral(value)}`,`${label}: correlation ${format(value)}`)}</section>`).join('')}</div><p class="input-note">These are stipulated correlations for a stylized Bread and Peace example.</p>`;
 }
 
 function renderFits(data) {
