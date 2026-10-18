@@ -38,9 +38,9 @@
     switch(scene){
       case'affine':
         frame.kind='affine';frame.x=-1.5+3*p;frame.weight=1;frame.bias=.5;frame.showBias=p<.65;
-        frame.caption=frame.showBias?'The x connection contributes wx. The faint constant-1 connection contributes 1 × b: the intercept.':'The bias input is now omitted from the drawing. The same intercept b = 0.5 remains in the model and its predictions.';
-        frame.equation='ŷ = wx + b = 1 × x + 0.5';break;
-      case'relu':frame.kind='relu';frame.x=-1.5+3*p;frame.showAffine=true;frame.caption='ReLU replaces every negative input with zero. The two straight pieces meet at a joint.';frame.equation='h(x) = max(0, x)';break;
+        frame.caption=frame.showBias?'The faint constant-1 input supplies the intercept.':'The intercept is still 0.5; only its connection is hidden.';
+        frame.equation='\\hat{y}=wx+b=1\\times x+0.5';break;
+      case'relu':frame.kind='relu';frame.x=-1.5+3*p;frame.showAffine=true;frame.caption='Negative inputs become zero; positive inputs pass through.';frame.equation='h(x)=\\max(0,x)';break;
       case'hinge':{
         const smooth=u=>{const q=clamp(u,0,1);return q*q*(3-2*q);};
         const t=p<.4?-.8+1.4*smooth(p/.4):.6;
@@ -51,20 +51,25 @@
           {a:1,t:.6,label:'Shifted: a = 1, t = 0.6'}
         ];
         frame.model=M.createShallow(0,[{t,a}]);frame.components=true;frame.x=.9;
-        frame.caption=frame.hingePhase==='threshold'?'Move the joint: t = '+f(t,2)+', while a = '+f(a,2)+' stays fixed.':frame.hingePhase==='steepen'?'Keep the joint at t = '+f(t,2)+' and increase a to '+f(a,2)+'. The active side gets steeper.':'At t = '+f(t,2)+', change the output weight to a = '+f(a,2)+'. Passing through zero flips the contribution downward.';
-        frame.equation='ŷ = a ReLU(x − t) = '+f(a,2)+' ReLU(x '+(t<0?'+':'−')+' '+f(Math.abs(t),2)+')';
+        frame.caption=frame.hingePhase==='threshold'?'Shift the joint; keep the output weight fixed.':frame.hingePhase==='steepen'?'Increase the output weight to steepen the active segment.':'Lower the output weight through zero to turn the segment downward.';
+        frame.equation='\\hat{y}='+f(a,2)+'\\,\\operatorname{ReLU}(x'+(t<0?'+':'-')+f(Math.abs(t),2)+')';
         break;
       }
-      case'hill-rise':frame.model=M.createShallow(0,[{t:-1,a:1}]);frame.components=true;frame.caption='The first neuron adds slope +1 at x = −1. Its contribution continues to the right.';frame.equation='ŷ = ReLU(x + 1)';break;
-      case'hill-fall':frame.model=M.createShallow(0,[{t:-1,a:1},{t:0,a:-2*p}]);frame.components=true;frame.caption='A second neuron gradually changes the slope at x = 0. At weight −2, the slope goes from +1 to −1.';frame.equation='ŷ = ReLU(x + 1) − '+f(2*p,2)+' ReLU(x)';break;
-      case'hill-flat':frame.model=M.createShallow(0,[{t:-1,a:1},{t:0,a:-2},{t:1,a:p}]);frame.components=true;frame.caption='The third neuron adds slope +1 at x = 1. At its final weight, the total slope returns to zero.';frame.equation='ŷ = ReLU(x + 1) − 2 ReLU(x) + '+f(p,2)+' ReLU(x − 1)';break;
-      case'shallow':frame.model=hill();frame.x=-1.7+3.4*p;frame.caption='Three hidden neurons form one continuous piecewise linear function. Trace the input through all three contributions.';frame.equation='ŷ = c + Σⱼ aⱼ ReLU(wⱼx + bⱼ)';break;
+      case'hill-rise':frame.model=M.createShallow(0,[{t:-1,a:1}]);frame.components=true;frame.caption='The first neuron adds slope +1 at −1.';frame.equation='\\hat{y}=\\operatorname{ReLU}(x+1)';break;
+      case'hill-fall':frame.model=M.createShallow(0,[{t:-1,a:1},{t:0,a:-2*p}]);frame.components=true;frame.caption='At output weight −2, the slope changes from +1 to −1.';frame.equation='\\hat{y}=\\operatorname{ReLU}(x+1)-'+f(2*p,2)+'\\,\\operatorname{ReLU}(x)';break;
+      case'hill-flat':
+        frame.model=M.createShallow(0,[{t:-1,a:1},{t:0,a:-2},{t:1,a:p}]);frame.components=true;
+        frame.caption='At output weight +1, the third neuron flattens the right-hand segment.';
+        frame.equation='\\hat{y}=\\operatorname{ReLU}(x+1)-2\\,\\operatorname{ReLU}(x)+'+f(p,2)+'\\,\\operatorname{ReLU}(x-1)';
+        frame.equationCompact='\\begin{aligned}\\hat{y}={}&\\operatorname{ReLU}(x+1)\\\\&-2\\,\\operatorname{ReLU}(x)+'+f(p,2)+'\\,\\operatorname{ReLU}(x-1)\\end{aligned}';break;
+      case'shallow':frame.model=hill();frame.x=-1.7+3.4*p;frame.caption='The output sums the weighted activations and adds a bias.';frame.equation='\\hat{y}=c+\\sum_{j=1}^{m}a_j\\,\\operatorname{ReLU}(w_jx+b_j)';break;
       case'width-one':case'width-two':case'width-three':case'width-many':{
         const fixed={'width-one':1,'width-two':2,'width-three':3};
         const width=scene==='width-many'?3+Math.min(3,Math.floor(p*4)):fixed[scene];
         frame.model=M.createShallow(0,widthUnits.slice(0,width));frame.width=width;frame.x=.4;
-        frame.caption='Width '+width+', one hidden layer: '+width+' '+(width===1?'joint':'joints')+' and '+(width+1)+' linear pieces in this example. Width gives an upper bound; coincident joints or zero output weights can produce fewer.';
-        frame.equation='width m → at most m distinct joints and m + 1 linear pieces';
+        frame.caption='Here: '+width+' '+(width===1?'joint':'joints')+', '+(width+1)+' pieces. Width gives an upper bound; coincident joints, inactive units, zero weights, or cancellation can yield fewer.';
+        frame.equation='\\text{width }m:\\quad\\text{joints}\\le m,\\quad\\text{pieces}\\le m+1';
+        frame.equationCompact='\\begin{gathered}\\text{width }m:\\quad\\text{joints}\\le m\\\\\\text{pieces}\\le m+1\\end{gathered}';
         break;
       }
       case'sine-coarse':case'sine-zoom':case'sine-joint':case'sine-wide':case'universal':{
@@ -72,14 +77,17 @@
         let current=approximation(6);
         if(scene==='sine-joint'){
           const next=approximation(7);frame.model=blend(coarse,next.model,p);frame.oldModel=coarse;frame.width=7;
-          frame.caption='One new neuron is inserted at x* = '+f(jointX)+'. Existing weights update as its weight grows. Error at x*: '+Math.abs(M.evaluate(frame.model,jointX)-Math.sin(jointX)).toFixed(5)+'.';
-          frame.equation='As the weights update, ŷ(x*) → sin(x*).';
+          frame.caption='One new neuron; neighboring weights adjust. Error at the marked input: '+Math.abs(M.evaluate(frame.model,jointX)-Math.sin(jointX)).toFixed(4)+'.';
+          frame.equation='\\hat{y}(x^*)\\longrightarrow\\sin(x^*)';
         }else{
           const width=scene==='sine-wide'?7+Math.min(19,Math.floor(p*20)):scene==='universal'?26:6;
           current=approximation(width);frame.model=current.model;frame.width=width;frame.maxError=current.error;
-          frame.caption=width+' hidden neurons, '+(width-1)+' interior joints. Maximum error on 2,000 evaluation points ≈ '+current.error.toFixed(4)+'.';
-          frame.equation=scene==='universal'?'For every ε > 0, a sufficiently wide shallow network can make maxₓ |f(x) − ŷ(x)| < ε.':'Solid blue: ReLU network. Dashed rust: sin(x).';
-          if(scene==='universal')frame.caption='For a continuous function on a closed, bounded interval, suitable weights exist. This is a capacity guarantee; it does not guarantee successful training or justify extrapolation.';
+          frame.caption=width+' neurons · '+(width-1)+' interior joints · max error ≈ '+current.error.toFixed(4)+' (2,000 sampled inputs).';
+          frame.equation=scene==='universal'?'\\forall\\,\\varepsilon>0,\\ \\exists\\,\\hat{y}:\\quad\\max_{x\\in[a,b]}\\lvert f(x)-\\hat{y}(x)\\rvert<\\varepsilon':'\\hat{y}(x)\\approx\\sin x,\\quad 0\\le x\\le 2\\pi';
+          if(scene==='universal'){
+            frame.equationCompact='\\begin{gathered}\\forall\\,\\varepsilon>0,\\ \\exists\\,\\hat{y}:\\\\\\max_{x\\in[a,b]}\\lvert f(x)-\\hat{y}(x)\\rvert<\\varepsilon\\end{gathered}';
+            frame.caption='For a continuous function on a closed, bounded interval, suitable weights exist. This does not guarantee training success or justify extrapolation.';
+          }
         }
         break;
       }

@@ -6,12 +6,13 @@
   <meta name="description" content="A scroll-driven introduction to ReLU networks with one scalar input, one hidden layer, and a linear output: how width creates more joints and allows approximation.">
   <meta name="theme-color" content="#ffffff">
   <title>Shallow neural networks · POLS 4728</title>
-  <link rel="stylesheet" href="vendor/katex/katex.min.css">
-  <link rel="stylesheet" href="style.css?v=20261018-single-stage">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css?v=20261018-math">
+  <link rel="stylesheet" href="style.css?v=20261018-math">
   <script src="math.js" defer></script>
-  <script src="state.js?v=20261018-single-stage" defer></script>
-  <script src="views.js?v=20261017-captions" defer></script>
-  <script src="formula.js?v=20261017-captions" defer></script>
+  <script src="state.js?v=20261018-math" defer></script>
+  <script src="views.js?v=20261018-math" defer></script>
+  <script src="vendor/katex/katex.min.js" defer></script>
+  <script src="formula.js?v=20261018-math" defer></script>
   <script src="story.js?v=20261018-scene-titles" defer></script>
 </head>
 <body>
@@ -160,7 +161,7 @@
         </section>
 
         <section class="step" id="scene-sine-joint" data-scene="sine-joint" aria-labelledby="heading-sine-joint">
-          <h2 id="heading-sine-joint">Add a joint / neuron</h2>
+          <h2 id="heading-sine-joint">Add a neuron and a joint</h2>
           <p>Add a joint on the sine curve at the marked input. One new neuron, plus updated existing output weights, replaces one segment with two and makes the error zero here.</p>
         </section>
 
@@ -170,7 +171,7 @@
         </section>
 
         <section class="step" id="scene-universal" data-scene="universal" aria-labelledby="heading-universal">
-          <h2 id="heading-universal">Enough width can approximate a continuous curve.</h2>
+          <h2 id="heading-universal">Approximate a continuous curve.</h2>
           <p>A continuous function on a closed, bounded interval can be approximated uniformly as closely as we want by a sufficiently wide, one-hidden-layer ReLU network. Continuity lets sufficiently fine straight segments stay close throughout the interval.</p>
           <p>This guarantees that suitable weights exist. It does not guarantee that training finds them, specify data requirements, or justify predictions outside the interval.</p>
           <a class="return-link" href="#page-title">Back to the beginning <span aria-hidden="true">↑</span></a>

@@ -1,8 +1,8 @@
-KaTeX_Main and KaTeX_Math font software
+KaTeX_Main, KaTeX_Math, KaTeX_Size1, and KaTeX_Size2 font software
 
 Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)
 Copyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),
-with Reserved Font Names KaTeX_Main and KaTeX_Math.
+with Reserved Font Names KaTeX_Main, KaTeX_Math, KaTeX_Size1, and KaTeX_Size2.
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:

@@ -9,13 +9,30 @@ const vm = require('node:vm');
 
 const directory = path.resolve(__dirname, '../docs/neural-networks');
 const html = fs.readFileSync(path.join(directory, 'index.html'), 'utf8');
-const scripts = ['math.js', 'state.js', 'views.js', 'formula.js', 'story.js'];
+const scripts = ['math.js', 'state.js', 'views.js', 'vendor/katex/katex.min.js', 'formula.js', 'story.js'];
 const sceneMarkup = [...html.matchAll(/<section\b([^>]*\bdata-scene="([^"]+)"[^>]*)>([\s\S]*?)<\/section>/g)];
 const sceneNames = sceneMarkup.map(match => match[2]);
 const svgSnapshots = [];
 
 function attrs(markup) {
   return Object.fromEntries([...markup.matchAll(/([\w-]+)="([^"]*)"/g)].map(match => [match[1], match[2]]));
+}
+
+function assertTypesetEquation(app, frame = app.frame()) {
+  const equation = app.element('stage-equation');
+  const source = frame.compact && frame.equationCompact ? frame.equationCompact : frame.equation;
+  const markup = equation.innerHTML;
+  assert.equal(equation.attrs['data-tex'], source, `${frame.scene}: the current formula source is exposed`);
+  assert(/class="[^"]*\bkatex-html\b/.test(markup), `${frame.scene}: visible mathematical typesetting is present`);
+  assert(/class="[^"]*\bkatex-mathml\b/.test(markup), `${frame.scene}: semantic MathML is present`);
+  assert(!/class="[^"]*\bkatex-error\b/.test(markup), `${frame.scene}: the formula has no parse error`);
+  const annotation = markup.match(/<annotation\b([^>]*)>([\s\S]*?)<\/annotation>/);
+  assert(annotation, `${frame.scene}: MathML preserves its exact formula source`);
+  assert.equal(attrs(annotation[1]).encoding, 'application/x-tex');
+  const entities = { amp: '&', lt: '<', gt: '>', quot: '"', '#x27': "'" };
+  const annotatedSource = annotation[2].replace(/&(amp|lt|gt|quot|#x27);/g, (_, name) => entities[name]);
+  assert.equal(annotatedSource, source, `${frame.scene}: the rendered MathML matches the current source`);
+  return markup;
 }
 
 function mount({ mobile = false, reduced = false } = {}) {
@@ -95,6 +112,7 @@ function mount({ mobile = false, reduced = false } = {}) {
     return runtime.innerHeight * (sceneNames[index] === 'sine-wide' ? 2.6 : sceneNames[index] === 'hinge' ? 1.8 : 1);
   }
   const document = {
+    compatMode: 'CSS1Compat',
     documentElement: { scrollHeight: 17000 },
     getElementById(id) { assert(elements.has(id), `Missing referenced HTML id ${id}`); return elements.get(id); },
     querySelector(selector) {
@@ -475,10 +493,14 @@ test('the affine bias stays in predictions after its temporary constant node dis
   }
 });
 
-test('only the affine stage equation uses visible KaTeX HTML and accessible MathML generated from its exact TeX', () => {
+test('equations use local KaTeX assets and the affine formula retains its accessible precompiled math', () => {
   const expectedTex = String.raw`\hat{y}=wx+b=1\times x+0.5`;
   const references = [...html.matchAll(/<script\b[^>]*src="([^"]+)"[^>]*>/g)].map(match => match[1].split(/[?#]/)[0]);
   assert(references.includes('formula.js'));
+  const runtime = references.find(reference => /katex(?:\.min)?\.js$/.test(reference));
+  assert(runtime, 'The KaTeX runtime loads for changing formulas');
+  assert(!/^(?:[a-z]+:|\/\/)/i.test(runtime), 'Math typesetting is available without a remote script');
+  assert(references.indexOf(runtime) < references.indexOf('formula.js'), 'KaTeX loads before the formula renderer');
   assert(references.indexOf('formula.js') < references.indexOf('story.js'), 'The formula renderer loads before the controller');
   const katexStylesheet = [...html.matchAll(/<link\b[^>]*>/g)].map(match => attrs(match[0]))
     .find(link => link.rel === 'stylesheet' && /katex/i.test(link.href));
@@ -495,6 +517,7 @@ test('only the affine stage equation uses visible KaTeX HTML and accessible Math
     'The semantic expression is retained for assistive technology');
   const initialEquation = html.match(/<p\b[^>]*id="stage-equation"[^>]*>([\s\S]*?)<\/p>/)?.[1] || '';
   assert(/class="[^"]*\bkatex-html\b/.test(initialEquation), 'The initial HTML includes visible precompiled math');
+  assert(/class="[^"]*\bkatex-mathml\b/.test(initialEquation), 'The initial HTML includes semantic MathML');
   for (const mobile of [false, true]) {
     const app = mount({ mobile });
     app.scroll('affine', .2);
@@ -537,13 +560,64 @@ test('only the affine stage equation uses visible KaTeX HTML and accessible Math
     assert.equal(equation.innerHTML, markup, 'The same equation survives responsive rerendering');
 
     const relu = app.scroll('relu', .5);
-    assert(!/<math\b|<mover\b|<annotation\b|class="[^"]*\bkatex/.test(equation.innerHTML),
-      'The next scene clears both affine typesetting branches');
-    assert.equal(equation.attrs['data-tex'], undefined);
-    assert.equal(equation.textContent, relu.equation, 'Other scene equations retain their existing text');
+    assertTypesetEquation(app, relu);
+    assert.notEqual(equation.innerHTML, markup, 'The next scene replaces both branches with its own formula');
     app.scroll('affine', .2);
     assert.equal(equation.innerHTML, markup, 'Reverse scrolling restores the typeset affine formula');
     assert.equal(equation.attrs['data-tex'], expectedTex);
+  }
+});
+
+test('every scene equation keeps exact TeX, visible math, and semantic MathML while scrolling in both directions', () => {
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    for (const scene of [...sceneNames, ...sceneNames.slice().reverse()]) {
+      const frame = app.scroll(scene, .5);
+      assertTypesetEquation(app, frame);
+    }
+    app.scroll('shallow', .5);
+    const shallow = app.element('stage-equation').innerHTML;
+    assert(/<mover\b/.test(shallow), 'The prediction has a mathematical hat');
+    assert(/<msub\b/.test(shallow), 'Neuron indices are mathematical subscripts');
+    assert(/<mo\b[^>]*>∑<\/mo>/.test(shallow), 'The network sum has a mathematical summation operator');
+    const universal = app.scroll('universal', .5);
+    assert(universal.equation.includes(String.raw`\max_{x\in[a,b]}`), 'The approximation bound is restricted to the stated interval');
+  }
+});
+
+test('typeset coefficients follow the model and compact formulas update correctly after resizing', () => {
+  const rounded = value => Number(value.toFixed(2)).toString();
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    let previous = '';
+    for (const progress of [.05, .55, .95]) {
+      const frame = app.scroll('hinge', progress);
+      const expected = String.raw`\hat{y}=${rounded(frame.hingeA)}\,\operatorname{ReLU}(x${frame.hingeT < 0 ? '+' : '-'}${rounded(Math.abs(frame.hingeT))})`;
+      assert.equal(frame.equation, expected, 'The hinge formula uses its current slope and joint');
+      const markup = assertTypesetEquation(app, frame);
+      assert.notEqual(markup, previous, 'Scrolling updates the visible coefficient');
+      previous = markup;
+      app.input('input-x', 1);
+      assert.equal(app.element('stage-equation').innerHTML, markup, 'Tracing an input retains the current model formula');
+    }
+    for (const progress of [.15, .85]) {
+      const frame = app.scroll('hill-fall', progress);
+      const coefficient = rounded(-frame.model.neurons[1].a);
+      assert.equal(frame.equation, String.raw`\hat{y}=\operatorname{ReLU}(x+1)-${coefficient}\,\operatorname{ReLU}(x)`);
+      assertTypesetEquation(app, frame);
+    }
+    for (const scene of ['hill-flat', 'width-two', 'universal']) {
+      const before = app.scroll(scene, .5);
+      assert(before.equationCompact && before.equationCompact !== before.equation, `${scene}: a compact formula is available`);
+      const previousMarkup = assertTypesetEquation(app, before);
+      app.runtime.mobile = !app.runtime.mobile;
+      app.position(scene, .5);
+      app.resize();
+      const after = app.frame();
+      assert.equal(after.compact, app.runtime.mobile);
+      const resizedMarkup = assertTypesetEquation(app, after);
+      assert.notEqual(resizedMarkup, previousMarkup, `${scene}: resizing switches the typeset formula layout`);
+    }
   }
 });
 
@@ -663,12 +737,13 @@ test('the affine stage caption follows the bias drawing in both directions', () 
       const visible = app.scroll('affine', .2);
       assert.equal(visible.showBias, true);
       assert.equal(caption.textContent, visible.caption);
-      assert(caption.textContent.includes('constant-1 connection'));
+      assert(caption.textContent.includes('constant-1'));
       const shownText = caption.textContent;
       const omitted = app.scroll('affine', .9);
       assert.equal(omitted.showBias, false);
       assert.equal(caption.textContent, omitted.caption);
-      assert(caption.textContent.includes('remains in the model and its predictions'));
+      assert(/intercept.*(?:still|remain).*0\.5/i.test(caption.textContent), 'The hidden drawing retains the same numerical intercept');
+      assert(/connection.*hidden|hidden.*connection/i.test(caption.textContent), 'The caption distinguishes the hidden connection from the retained intercept');
       assert.notEqual(caption.textContent, shownText);
       const omittedText = caption.textContent;
       app.input('input-x', 1);
@@ -691,7 +766,7 @@ test('the final stage caption and return link remain available at and beyond the
         const frame = app.scroll('universal', progress);
         assert.equal(caption.textContent, frame.caption, `The final caption stays current at progress ${progress}`);
         assert(caption.textContent.includes('continuous function on a closed, bounded interval'), 'The approximation assumptions remain present');
-        assert(caption.textContent.includes('does not guarantee successful training'), 'The conclusion preserves the capacity-versus-training distinction');
+        assert(/does not guarantee (?:successful training|training success)/.test(caption.textContent), 'The conclusion preserves the capacity-versus-training distinction');
         assert(!caption.hidden, `The final caption stays visible at progress ${progress}`);
         assert.notEqual(caption.style.opacity, '0');
         assert.notEqual(caption.attrs['aria-hidden'], 'true');

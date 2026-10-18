@@ -175,7 +175,8 @@ test('width one, two, three, and six give genuine slope jumps in one hidden laye
     assert.equal(new Set(frame.model.neurons.map(unit => unit.t)).size, width);
     assert.equal(frame.model.neurons.filter(unit => unit.a !== 0).length, width);
     assert.match(frame.caption, /upper bound/);
-    assert.match(frame.equation, /at most m distinct joints/);
+    assert.match(frame.equation, /\\text\{joints\}\\le m/);
+    assert.match(frame.equation, /\\text\{pieces\}\\le m\+1/);
     const epsilon = 1e-3;
     for (const unit of frame.model.neurons) {
       const leftSlope = (M.evaluate(frame.model, unit.t-epsilon)-M.evaluate(frame.model, unit.t-2*epsilon))/epsilon;

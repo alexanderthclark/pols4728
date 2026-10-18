@@ -70,6 +70,7 @@ jobs:
           node --check docs/neural-networks/state.js
           node --check docs/neural-networks/views.js
           node --check docs/neural-networks/formula.js
+          node --check docs/neural-networks/vendor/katex/katex.min.js
           node --check docs/neural-networks/story.js
       - name: Check interactive lesson calculations
         run: node --test tests/*.test.mjs tests/*.test.cjs

@@ -49,10 +49,11 @@ connection disappear from the drawing for clarity; the intercept remains in
 the equation and the model. Omitted bias connections are a diagram convention,
 not a change to the model.
 
-`formula.js` contains the opening equation as LaTeX precompiled with KaTeX
-to visible HTML and accessible MathML. Its stylesheet and two required fonts
-are self-hosted in `vendor/katex/`; no runtime math library or external font
-request is required.
+`state.js` supplies LaTeX for every stage equation, including compact line breaks
+for longer formulas. `formula.js` renders these with local KaTeX to visible HTML
+and semantic MathML. The runtime, stylesheet, and four required fonts are
+self-hosted in `vendor/katex/`; no external requests are required. Network
+parameter labels retain selectable SVG text with italic mathematical variables.
 
 The single-hinge scene first moves its threshold from −0.8 to 0.6 with
 output weight 1, then increases that weight to 1.6 and turns it negative.
@@ -86,8 +87,8 @@ The page follows the public course guide: white backgrounds, regular serif
 text, course blue for the model, rust for the comparison/intervention, open
 axes, and direct labels. Sine is dashed and the network curve is solid, so
 the distinction also works in grayscale. A labeled detail view deliberately
-zooms into the approximation error. Dense network weights become crowded in
-the final scene to demonstrate the size of the shallow representation.
+zooms into the approximation error. Wider networks omit numerical weight labels
+where they would collide, retaining every neuron and connection.
 
 The same scrolling story runs on narrow screens, with a full-width function
 above a compact network. Reduced-motion settings use discrete completed

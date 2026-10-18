@@ -30,12 +30,14 @@
       '.nv-small{font-family:Arial,sans-serif;font-size:' + (compact ? 20 : 12) + 'px;fill:' + C.muted + '}' +
       '.nv-number{font-family:Arial,sans-serif;font-size:' + (compact ? 20 : 12) + 'px;fill:' + C.ink + ';font-variant-numeric:tabular-nums}' +
       '.nv-head{font-family:Arial,sans-serif;font-size:' + (compact ? 21 : 14) + 'px;fill:' + C.ink + '}' +
+      '.nv-variable{font-family:KaTeX_Math,Georgia,serif;font-style:italic}' +
       '.nv-halo{paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}' +
       '</style>');
     return {
       add: s => parts.push(s),
       line: (x1, y1, x2, y2, attrs) => parts.push('<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" ' + (attrs || '') + '/>'),
       text: (x, y, value, attrs) => parts.push('<text x="' + x + '" y="' + y + '" ' + (attrs || 'class="nv-small"') + '>' + escape(value) + '</text>'),
+      parameter: (x, y, name, value, attrs) => parts.push('<text x="' + x + '" y="' + y + '" ' + (attrs || 'class="nv-number"') + '><tspan class="nv-variable">' + escape(name) + '</tspan> = ' + escape(value) + '</text>'),
       circle: (x, y, r, attrs) => parts.push('<circle cx="' + x + '" cy="' + y + '" r="' + r + '" ' + (attrs || '') + '/>'),
       path: (d, attrs) => parts.push('<path d="' + d + '" ' + (attrs || '') + '/>'),
       finish: () => { svg.innerHTML = parts.join(''); }
@@ -118,7 +120,7 @@
       b.text(left, 48, 'Dashed curves: reference examples', 'class="nv-small"');
     } else if (kind === 'affine') b.text(left, 25, 'A straight line', 'class="nv-head"');
     else if (kind === 'relu') b.text(left, 25, 'One ReLU adds one joint', 'class="nv-head"');
-    else b.text(left, 25, model.neurons.length + ' hidden ' + (model.neurons.length === 1 ? 'neuron' : 'neurons') + ' · one piecewise linear function', 'class="nv-head"');
+    else b.text(left, 25, model.neurons.length + ' weighted ReLU' + (model.neurons.length === 1 ? '' : 's'), 'class="nv-head"');
 
     // Only a left and bottom axis; short ticks carry the scale without a grid.
     b.line(left, top - 6, left, bottom, 'stroke="' + C.rule + '" stroke-width="1"');
@@ -195,7 +197,6 @@
       b.text(left, frame.compact ? 339 : 376, 'x = ' + fmt(xValue) + '   →   ŷ = ' + fmt(value(xValue)), 'class="nv-number"' + (kind === 'sine' ? ' style="fill:' + C.teal + '"' : ''));
       if (frame.components && !frame.compact && !hinge) b.text(right, 376, 'Dashed: each weighted neuron', 'class="nv-small" text-anchor="end"');
     } else if (!frame.compact) b.text(left, 376, 'One input x', 'class="nv-small"');
-    if (kind === 'sine' && !frame.compact) b.text(right, 376, 'Solid line: linear between its joints', 'class="nv-small" text-anchor="end"');
     b.finish();
   }
 
@@ -242,7 +243,7 @@
       'class="nv-label" text-anchor="middle" style="fill:' + C.muted + '"');
     b.text(position.x, position.y + position.radius + (compact ? 23 : 18), 'constant',
       'class="nv-small" text-anchor="middle"');
-    b.text(position.labelX, position.labelY, 'b = ' + fmt(bias),
+    b.parameter(position.labelX, position.labelY, 'b', fmt(bias),
       'class="nv-number nv-halo" text-anchor="middle" style="font-size:' + (compact ? 26 : 22) + 'px;fill:' + C.muted + '"');
     b.add('</g>');
   }
@@ -265,14 +266,14 @@
     b.text(outX, 61, 'Linear', 'class="nv-small" text-anchor="middle"');
     if (affine) {
       b.line(inputX + 18, middleY, outX - 18, middleY, 'stroke="' + C.blue + '" stroke-width="2"');
-      b.text(199, middleY - 15, 'w = ' + fmt(weight), 'class="nv-number" text-anchor="middle" style="font-size:22px"');
+      b.parameter(199, middleY - 15, 'w', fmt(weight), 'class="nv-number" text-anchor="middle" style="font-size:22px"');
       if (frame.showBias) drawBiasInput(b, { x: 206, y: 286, outX: outX - 13, outY: middleY + 13, labelX: 280, labelY: 266, radius: 14 }, bias, false);
     } else if (count === 0) {
       b.text(195, 177, 'No hidden neurons yet', 'class="nv-small" text-anchor="middle"');
     } else {
       b.text(hiddenX, 61, 'ReLU', 'class="nv-small" text-anchor="middle"');
-      b.text(94, 84, 'w = 1', 'class="nv-small" text-anchor="middle"' + (count <= 3 ? ' style="font-size:22px"' : ''));
-      b.text(286, 84, 'output weights', 'class="nv-small" text-anchor="middle"');
+      b.parameter(94, 84, 'w', '1', 'class="nv-small" text-anchor="middle"' + (count <= 3 ? ' style="font-size:22px"' : ''));
+      if (count <= 10) b.text(286, 84, 'output weights', 'class="nv-small" text-anchor="middle"');
       const lowY = 106, highY = 309;
       const gap = count > 1 ? (highY - lowY) / (count - 1) : 0;
       const radius = count > 17 ? 4.1 : count > 10 ? 6 : count > 6 ? 9 : 13;
@@ -285,8 +286,10 @@
         b.line(hiddenX + radius, cy, outX - 18, middleY,
           'stroke="' + (n.a < 0 ? C.rust : C.blue) + '" stroke-width="1.15" opacity="' + opacity + '"' + (n.a < 0 ? ' stroke-dasharray="3 2"' : ''));
         const labelSize = count <= 3 ? 22 : count > 17 ? 5.5 : count > 10 ? 7.5 : count > 6 ? 10 : 12;
-        b.text(163, cy + labelSize * 0.32, 'b=' + fmt(-n.t), 'class="nv-number nv-halo" text-anchor="end" style="font-size:' + labelSize + 'px"');
-        b.text(223, cy + labelSize * 0.32, 'a=' + fmt(n.a), 'class="nv-number nv-halo" style="font-size:' + labelSize + 'px"');
+        if (count <= 10) {
+          b.parameter(163, cy + labelSize * 0.32, 'b', fmt(-n.t), 'class="nv-number nv-halo" text-anchor="end" style="font-size:' + labelSize + 'px"');
+          b.parameter(223, cy + labelSize * 0.32, 'a', fmt(n.a), 'class="nv-number nv-halo" style="font-size:' + labelSize + 'px"');
+        }
         b.circle(hiddenX, cy, radius, 'fill="' + (active ? color : '#fff') + '" stroke="' + color + '" stroke-width="1.2"');
         if (count <= 10) b.text(hiddenX, cy + 3.4, 'R', 'class="nv-number" text-anchor="middle" style="font-size:' + (count > 6 ? 9 : 11) + 'px;fill:' + (active ? '#fff' : color) + '"');
         if (count <= 6) b.text(hiddenX, cy + radius + 15, fmt(values[i].activation), 'class="nv-number nv-halo" text-anchor="middle" style="font-size:11px"');
@@ -299,7 +302,7 @@
     b.text(outX, middleY + 5, 'ŷ', 'class="nv-label" text-anchor="middle" style="fill:#fff"');
     b.text(outX, middleY + 40, fmt(result), 'class="nv-number" text-anchor="middle"');
     b.text(200, 353, affine ? 'Bias b = ' + fmt(bias) + (frame.showBias === false ? ' (not drawn)' : '') : 'Output bias c = ' + fmt(model.c), 'class="nv-number" text-anchor="middle"');
-    b.text(200, 376, affine ? 'One affine transformation' : count > 10 ? 'More joints, more hidden neurons' : 'R = ReLU · numbers inside the graph show activations', 'class="nv-small" text-anchor="middle"');
+    if (!affine && count <= 10) b.text(200, 376, 'R = ReLU · values show activations', 'class="nv-small" text-anchor="middle"');
     b.finish();
   }
 
@@ -313,13 +316,13 @@
     const result = affine ? weight * x + bias : M.evaluate(model, x);
     const b = builder(svg, 620, 220,
       affine ? affineDescription(frame, x, result, weight, bias) :
-        'One input, one hidden layer containing ' + count + ' ReLU neurons, and one linear output. At x = ' + fmt(x) + ', ' + values.filter(v => v.activation > 1e-8).length + ' hidden neurons are active and the output is ' + fmt(result) + '. Input weights are one; hidden biases and output weights are labelled.', true);
+        'One input, one hidden layer containing ' + count + ' ReLU neurons, and one linear output. At x = ' + fmt(x) + ', ' + values.filter(v => v.activation > 1e-8).length + ' hidden neurons are active and the output is ' + fmt(result) + '. Input weights are one; ' + (count <= 6 ? 'hidden biases and output weights are labelled.' : 'parameter labels are omitted for readability.'), true);
     const center = 310, inputY = 23, hiddenY = 110, outputY = 200;
     const radius = count > 17 ? 5.5 : count > 10 ? 7.5 : count > 6 ? 9 : 12;
     const positions = neurons.map((n, i) => count < 2 ? center : 48 + i * 524 / (count - 1));
     if (affine) {
       b.line(center, inputY + 16, center, outputY - 16, 'stroke="' + C.blue + '" stroke-width="2"');
-      b.text(340, hiddenY + 6, 'w = ' + fmt(weight), 'class="nv-number" style="font-size:26px"');
+      b.parameter(340, hiddenY + 6, 'w', fmt(weight), 'class="nv-number" style="font-size:26px"');
       if (frame.showBias) drawBiasInput(b, { x: 105, y: 139, outX: center - 14, outY: outputY - 8, labelX: 220, labelY: 176, radius: 16 }, bias, true);
     } else neurons.forEach((n, i) => {
       const cx = positions[i], active = values[i].activation > 1e-8;
@@ -329,8 +332,10 @@
       b.line(cx, hiddenY + radius, center, outputY - 16,
         'stroke="' + (n.a < 0 ? C.rust : C.blue) + '" stroke-width="1.3" opacity="' + opacity + '"' + (n.a < 0 ? ' stroke-dasharray="4 3"' : ''));
       const font = count <= 3 ? 26 : count > 10 ? 15 : count > 6 ? 17 : 19;
-      b.text(cx, 84, 'b=' + fmt(-n.t), 'class="nv-number nv-halo" text-anchor="middle" style="font-size:' + font + 'px"');
-      b.text(cx, count <= 3 ? 165 : 155, 'a=' + fmt(n.a), 'class="nv-number nv-halo" text-anchor="middle" style="font-size:' + font + 'px"');
+      if (count <= 6) {
+        b.parameter(cx, 84, 'b', fmt(-n.t), 'class="nv-number nv-halo" text-anchor="middle" style="font-size:' + font + 'px"');
+        b.parameter(cx, count <= 3 ? 165 : 155, 'a', fmt(n.a), 'class="nv-number nv-halo" text-anchor="middle" style="font-size:' + font + 'px"');
+      }
       b.circle(cx, hiddenY, radius, 'fill="' + (active ? color : '#fff') + '" stroke="' + color + '" stroke-width="1.6"');
       if (count <= 10) b.text(cx, hiddenY + 5, 'R', 'class="nv-number" text-anchor="middle" style="font-size:17px;fill:' + (active ? '#fff' : color) + '"');
       if (count <= 6) b.text(cx, 135, fmt(values[i].activation), 'class="nv-number nv-halo" text-anchor="middle" style="font-size:17px"');
