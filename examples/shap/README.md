@@ -4,8 +4,8 @@ The [SHAP page](../../docs/shap/) begins with a synthetic Bread and Peace
 OLS warm-up, then explains a fixed illustrative predictor of yearly earnings.
 Both examples use constructed data, rather than empirical election observations
 or measured people. Their model outputs and SHAP calculations are reproducible.
-The unchanged opening title scene leads into 31 teaching frames: a
-22-frame explanation through the local waterfall, including the early definition
+The unchanged opening title scene leads into 30 teaching frames: a
+21-frame explanation through the local waterfall, including the early definition
 of background averaging and the OLS recap,
 followed by nine frames that construct a beeswarm and derive global importance.
 
@@ -14,13 +14,15 @@ cohort's explanations from the same saved model and reference background.
 Python and the SHAP package rebuild and independently verify the saved data;
 the page requires no local software installation.
 
-The first six formula frames define the prediction game before the OLS warm-up.
+The first five formula frames define the prediction game before the OLS warm-up.
 Frame 4 shows `v_x(S) = (1/B) Σ_{b=1}^B ŷ(x_S, z^(b)_−S)`: `B` is the number of
 reference rows, `z^(b)` is background row `b`, and `x_S` fixes the included inputs
 to the observation being explained. Excluded inputs retain their joint values
 from each overall reference row, without conditioning on the included inputs.
-The model stays fixed while predictions are averaged. Frame 14 repeats this
-general definition before labeling prediction at mean excluded inputs as a
+The model stays fixed while predictions are averaged. Frame 5 defines the
+marginal contribution `v_x(S ∪ {i}) − v_x(S)` and connects its average across
+orders to feature credit. Frame 13 repeats the general background-average
+definition before labeling prediction at mean excluded inputs as a
 linear model shortcut. Overall background means, rather than conditional means,
 are used in that shortcut; nonlinear predictors need not give the same average.
 

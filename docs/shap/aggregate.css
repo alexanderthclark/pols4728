@@ -4,15 +4,7 @@
 .shap-aggregate .aggregate-dot { pointer-events:none; }
 .shap-aggregate[data-scene="feature-color"] .aggregate-dot { pointer-events:auto; cursor:pointer; }
 .shap-aggregate .aggregate-heading { font-weight:normal; }
-.stage-shell[data-scene="contribution-axis"] .visual,
-.stage-shell[data-scene="one-person-dots"] .visual,
-.stage-shell[data-scene="many-people"] .visual,
-.stage-shell[data-scene="beeswarm"] .visual,
-.stage-shell[data-scene="feature-color"] .visual,
-.stage-shell[data-scene="signed-average"] .visual,
-.stage-shell[data-scene="absolute-values"] .visual,
-.stage-shell[data-scene="global-importance"] .visual,
-.stage-shell[data-scene="importance-ranking"] .visual { overflow:visible; }
+.stage-shell.is-aggregate .visual { justify-content:safe center; overflow-y:auto; overflow-x:hidden; overscroll-behavior-y:auto; scrollbar-gutter:stable; }
 @media(prefers-reduced-motion:reduce) {
   .shap-aggregate * { transition:none!important; animation:none!important; }
 }
