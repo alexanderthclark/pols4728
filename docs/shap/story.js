@@ -1,11 +1,13 @@
 import { coalition, hybridValues, marginal, precedingMasks, validateData } from './calculation.mjs';
 import { renderWaterfall } from './waterfall.js';
+import { buildPopulation } from './aggregate.mjs';
+import { renderAggregate } from './aggregate-view.js';
 import { featureLabels, shapleyFormulaMarkup, valueMarkup, joiningMarkup, predictionMarkup } from './formula.js';
 import { validateBreadPeace, breadPeaceFacts, renderBreadPeace, breadPeaceDecompositionMarkup, breadPeaceMeanPredictionMarkup } from './bread-peace.js';
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
-const names = ['The Shapley formula', 'The observation x', 'The model prediction ŷ', 'Before and after feature i', 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'When features interact', 'An interaction model; one person', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
+const names = ['The Shapley formula', 'The observation x', 'The model prediction ŷ', 'Before and after feature i', 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'When features interact', 'An interaction model; one person', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation', 'One common zero', 'One person, three dots', 'Explain more people', 'Make overlap visible', 'Color by input value', 'Opposing contributions cancel', 'Measure distance from zero', 'Average the distances', 'Rank the averages'];
 const captions = [
   'Scroll to give each part its meaning in a prediction problem.',
   'x is one complete observation; its values supply the fixed inputs.',
@@ -27,7 +29,17 @@ const captions = [
   'One row per preceding group S. Its weight counts how often it precedes ability.',
   'The sum of weighted prediction differences is the feature’s SHAP value.',
   'Credits average all six revealing orders; bars are ranked by magnitude.',
+  'The length and sign stay the same; cumulative positions move to a common zero.',
+  'Three dots are one person’s three contributions, in $1,000/year.',
+  '125 constructed people. Same model, same eight reference rows, same baseline of 47.',
+  'Horizontal position is SHAP value. Vertical packing only reveals overlap.',
+  'Low → high is relative to each input’s range. Position still gives the signed contribution.',
+  'For these balanced profiles, every signed mean is zero despite nonzero contributions.',
+  'Each point’s distance from zero is its absolute SHAP value.',
+  'Average 125 distances within each feature row; units stay $1,000/year.',
+  'Rank and rescale the summary. Units stay $1,000/year.',
 ];
+const aggregateScenes = new Set(['contribution-axis','one-person-dots','many-people','beeswarm','feature-color','signed-average','absolute-values','global-importance','importance-ranking']);
 const formulaStops = {
   'shapley-formula':{focus:'all',meaning:'The players are input features. The game assigns credit for one observation’s prediction.',note:'<var>F</var>: all features; <span class="math-text">m = |F|</span>.'},
   'observation-symbol':{focus:'observation',symbol:'x',meaning:'One complete input row. Its values supply every feature fixed in this explanation.'},
@@ -47,7 +59,7 @@ const stackedLayout = matchMedia('(max-width:649px), (max-width:860px) and (min-
 $('.stage-top').setAttribute('role', 'status');
 $('.stage-top').setAttribute('aria-live', 'polite');
 $('.stage-top').setAttribute('aria-atomic', 'true');
-const state = { data:null, observation:null, breadData:null, breadObservation:null, selectorContext:null, scene:-1, feature:0, explorerMask:0, rowsTrigger:null };
+const state = { data:null, observation:null, population:null, globalObservation:null, aggregateOrder:null, aggregateProgress:0, breadData:null, breadObservation:null, selectorContext:null, scene:-1, feature:0, explorerMask:0, rowsTrigger:null };
 const yHat = '<math aria-label="y hat"><mover accent="true"><mi>y</mi><mo>^</mo></mover></math>';
 
 function escape(value) {
@@ -180,6 +192,38 @@ function renderFinal() {
   $('.waterfall-total').textContent = `${number(observation.baseValue)} ${observation.shapValues.map(value => `${value < 0 ? '−' : '+'} ${number(Math.abs(value))}`).join(' ')} = ${number(observation.prediction)} ($1,000/year)`;
 }
 
+function renderPopulation() {
+  let container = $('#aggregate-container');
+  if (!container) {
+    visual.innerHTML = '<div id="aggregate-container"></div>';
+    container = $('#aggregate-container');
+  }
+  renderAggregate(container, {
+    scene:steps[state.scene].id, progress:state.aggregateProgress,
+    features:state.data.features, observation:state.observation, population:state.population,
+    featureOrder:state.aggregateOrder, reducedMotion:reducedMotion.matches,
+    onSelect:person => openPopulationWaterfall(person, $('#inspect')),
+  });
+}
+
+function updatePopulationSummary() {
+  const person = state.globalObservation;
+  $('#population-summary').textContent = `Ability ${inputNumber(person.values[0])}; neighborhood ${inputNumber(person.values[1])}; experience ${inputNumber(person.values[2])}. Prediction: ${number(person.prediction)} ($1,000/year).`;
+}
+
+function openPopulationWaterfall(person = state.globalObservation, trigger = $('#population-waterfall')) {
+  state.globalObservation = person;
+  $('#population-select').value = person.id;
+  updatePopulationSummary();
+  state.rowsTrigger = trigger;
+  $('#rows-heading').textContent = 'One person in the beeswarm';
+  $('#rows-description').textContent = `Ability ${inputNumber(person.values[0])}, neighborhood opportunity ${inputNumber(person.values[1])}, experience ${inputNumber(person.values[2])}. The same model and reference background give a baseline of ${number(person.baseValue)} and prediction of ${number(person.prediction)} ($1,000/year).`;
+  $('#rows-table').innerHTML = '<div class="dialog-waterfall"></div>';
+  dialog.showModal();
+  renderWaterfall($('.dialog-waterfall'), {features:state.data.features, observation:person, unit:'$1,000/year'});
+  $('#close-rows').focus();
+}
+
 function renderCoalitionExplorer() {
   $('#coalition-table').innerHTML = inputTable(state.explorerMask);
   $('#coalition-value').textContent = `vₓ(${setNotation(state.explorerMask)}) = ${number(coalition(state.observation, state.explorerMask).value)} ($1,000/year), for ${state.observation.name.toLowerCase()}.`;
@@ -187,6 +231,11 @@ function renderCoalitionExplorer() {
 
 function updateFigureOverflow() {
   figureScrollHint.hidden = true;
+  if (shell.classList.contains('is-aggregate')) {
+    visual.classList.remove('has-overflow');
+    visual.removeAttribute('aria-describedby');
+    return;
+  }
   const scrollable = story.dataset.layout === 'worked' && visual.scrollHeight > visual.clientHeight + 1;
   figureScrollHint.hidden = !scrollable;
   visual.classList.toggle('has-overflow', scrollable);
@@ -200,12 +249,14 @@ function render() {
   const focusSelector = visual.contains(active) && active.id ? `#${active.id}` : null;
   updateFacts();
   const scene = steps[state.scene].id;
+  const aggregateScene = aggregateScenes.has(scene);
   shell.dataset.scene = scene;
+  shell.classList.toggle('is-aggregate', aggregateScene);
   story.classList.add('is-interactive');
   story.dataset.layout = isCenteredScene(scene) ? 'formula' : 'worked';
   const breadScene = scene.startsWith('ols-');
   const selectorContext = breadScene ? 'bread' : 'earnings';
-  $('.observation-control').hidden = isCenteredScene(scene) || ['ols-model','ols-fits'].includes(scene);
+  $('.observation-control').hidden = aggregateScene || isCenteredScene(scene) || ['ols-model','ols-fits'].includes(scene);
   if (state.selectorContext !== selectorContext) {
     const data = breadScene ? state.breadData : state.data;
     const observation = breadScene ? state.breadObservation : state.observation;
@@ -233,11 +284,12 @@ function render() {
   else if (scene === 'neighborhood-first') renderBackground(3, 2);
   else if (scene === 'weights') renderWeights();
   else if (scene === 'shap-value') renderAverage();
+  else if (aggregateScene) renderPopulation();
   else renderFinal();
   const ordersScene = scene === 'weights' || scene === 'shap-value';
-  $('#inspect').hidden = !['background','reveal-ability','neighborhood-first','weights','shap-value'].includes(scene);
-  $('#inspect').textContent = ordersScene ? 'Six orders' : 'Inspect rows';
-  $('#inspect').setAttribute('aria-label', ordersScene ? 'Inspect the six revealing orders' : 'Inspect hybrid input rows and predictions');
+  $('#inspect').hidden = !['background','reveal-ability','neighborhood-first','weights','shap-value','feature-color','importance-ranking'].includes(scene);
+  $('#inspect').textContent = aggregateScene ? 'Waterfall' : ordersScene ? 'Six orders' : 'Inspect rows';
+  $('#inspect').setAttribute('aria-label', aggregateScene ? 'Inspect one person’s waterfall' : ordersScene ? 'Inspect the six revealing orders' : 'Inspect hybrid input rows and predictions');
   if (focusSelector) visual.querySelector(focusSelector)?.focus({preventScroll:true});
   visual.scrollTop = 0;
   requestAnimationFrame(updateFigureOverflow);
@@ -273,6 +325,7 @@ function navigate(index, behavior = 'instant') {
   if (centeredTransition) behavior = 'instant';
   if (index < steps.length && (centeredTransition || stackedLayout.matches)) {
     state.scene = index;
+    state.aggregateProgress = 0;
     render();
   }
   if (index < steps.length && isCenteredScene(target.id)) {
@@ -294,18 +347,31 @@ function updateScroll() {
   // Keep the phone reading line consistent when the full-width intro becomes the OLS panel.
   const workedIntroHeight = Math.min(650, Math.max(440, innerHeight * .74));
   const introReadingLine = Math.min(innerHeight - 30, $('.masthead').getBoundingClientRect().height + workedIntroHeight + 60);
-  const readingLine = mobile
+  let readingLine = mobile
     ? (state.scene < 0 || isCenteredScene(steps[state.scene]?.id) ? introReadingLine : shell.getBoundingClientRect().bottom + 60)
     : innerHeight * .5;
+  // A stable phone reading line prevents the chart's compact height from changing
+  // the active scene as it crosses the local-to-global boundary.
+  const firstAggregate = $('#contribution-axis');
+  if (mobile && firstAggregate.getBoundingClientRect().top < innerHeight) {
+    const aggregateHeight = Math.min(560, Math.max(395, innerHeight * .68));
+    readingLine = Math.min(innerHeight - 30, $('.masthead').getBoundingClientRect().height + aggregateHeight + 60);
+  }
   let scene = 0;
   steps.forEach((step,index) => {if (step.getBoundingClientRect().top <= readingLine) scene = index;});
+  const activeStep = steps[scene];
+  const span = steps[scene+1] ? steps[scene+1].offsetTop - activeStep.offsetTop : activeStep.offsetHeight;
+  // Leave a reading hold after each transformation, while keeping geometry
+  // controlled by native scroll position in both directions.
+  state.aggregateProgress = Math.max(0, Math.min(1, (readingLine - activeStep.getBoundingClientRect().top) / (span * .62)));
   if (state.scene !== scene) {state.scene = scene; render();}
+  else if (aggregateScenes.has(activeStep.id)) renderPopulation();
   const progress = Math.max(0,Math.min(1,(scrollY-steps[0].offsetTop)/($('#method').offsetTop-steps[0].offsetTop)));
   $('#progress').style.width = `${progress*100}%`;
 }
 function queueScroll() {if (!scrollPending) {scrollPending = true; requestAnimationFrame(updateScroll);}}
 
-$('#inspect').addEventListener('click', () => ['weights','shap-value'].includes(steps[state.scene].id) ? openOrders($('#inspect')) : openRows($('#inspect')));
+$('#inspect').addEventListener('click', () => aggregateScenes.has(steps[state.scene].id) ? openPopulationWaterfall(state.globalObservation, $('#inspect')) : ['weights','shap-value'].includes(steps[state.scene].id) ? openOrders($('#inspect')) : openRows($('#inspect')));
 $('#previous').addEventListener('click', () => navigate(Math.max(0,state.scene-1)));
 $('#next').addEventListener('click', () => navigate(state.scene+1));
 $('.title-page-start').addEventListener('click', event => {
@@ -324,14 +390,34 @@ dialog.addEventListener('close', () => {if (state.rowsTrigger?.isConnected) stat
 observationSelect.addEventListener('change', () => {
   if (state.selectorContext === 'bread') state.breadObservation = state.breadData.observations.find(item => item.id === observationSelect.value);
   else state.observation = state.data.observations.find(item => item.id === observationSelect.value);
+  state.aggregateOrder = state.data.features.map((_,index) => index).sort((a,b) => Math.abs(state.observation.shapValues[b])-Math.abs(state.observation.shapValues[a]) || a-b);
   render();
 });
+$('#population-select').addEventListener('change', event => {
+  state.globalObservation = state.population.find(person => person.id === event.target.value);
+  updatePopulationSummary();
+});
+$('#population-waterfall').addEventListener('click', () => openPopulationWaterfall());
 $('#coalition-controls').addEventListener('change', () => {
   state.explorerMask = [...$('#coalition-controls').querySelectorAll('input:checked')].reduce((mask,input) => mask | (1 << Number(input.value)),0);
   renderCoalitionExplorer();
 });
 addEventListener('scroll',queueScroll,{passive:true});
-addEventListener('resize', () => {queueScroll(); if (steps[state.scene]?.id === 'waterfall') renderFinal(); requestAnimationFrame(updateFigureOverflow);});
+addEventListener('resize', () => {
+  if (aggregateScenes.has(steps[state.scene]?.id)) {
+    const step = steps[state.scene];
+    const span = steps[state.scene+1] ? steps[state.scene+1].offsetTop-step.offsetTop : step.offsetHeight;
+    const line = stackedLayout.matches
+      ? Math.min(innerHeight-30, $('.masthead').getBoundingClientRect().height+Math.min(560,Math.max(395,innerHeight*.68))+60)
+      : innerHeight*.5;
+    scrollTo({top:scrollY+step.getBoundingClientRect().top-line+state.aggregateProgress*span*.62,behavior:'instant'});
+  }
+  queueScroll();
+  if (steps[state.scene]?.id === 'waterfall') renderFinal();
+  if (dialog.open && $('.dialog-waterfall')) renderWaterfall($('.dialog-waterfall'), {features:state.data.features,observation:state.globalObservation,unit:'$1,000/year'});
+  requestAnimationFrame(updateFigureOverflow);
+});
+reducedMotion.addEventListener('change', () => {if (aggregateScenes.has(steps[state.scene]?.id)) renderPopulation();});
 addEventListener('hashchange', () => {
   if (!state.data || !state.breadData) return;
   const index = steps.findIndex(step => step.id === canonicalSceneId(location.hash.slice(1)));
@@ -339,13 +425,19 @@ addEventListener('hashchange', () => {
 });
 
 try {
-  const responses = await Promise.all(['data.json','bread-peace.json'].map(file => fetch(new URL(file,import.meta.url))));
+  const responses = await Promise.all(['data.json','bread-peace.json','model.json'].map(file => fetch(new URL(file,import.meta.url))));
   for (const response of responses) if (!response.ok) throw new Error(`Data request failed (${response.status}).`);
-  const [earningsData,breadData] = await Promise.all(responses.map(response => response.json()));
+  const [earningsData,breadData,model] = await Promise.all(responses.map(response => response.json()));
   state.data = validateData(earningsData);
   state.breadData = validateBreadPeace(breadData);
   state.breadObservation = state.breadData.observations.find(item => item.id === state.breadData.defaultObservationId) || state.breadData.observations[0];
   state.observation = state.data.observations.find(item => item.id === state.data.defaultObservationId) || state.data.observations[0];
+  state.population = buildPopulation(state.data,model);
+  state.globalObservation = state.population.find(person => person.id === state.observation.id) || state.population[0];
+  state.aggregateOrder = state.data.features.map((_,index) => index).sort((a,b) => Math.abs(state.observation.shapValues[b])-Math.abs(state.observation.shapValues[a]) || a-b);
+  $('#population-select').innerHTML = state.population.map((person,index) => `<option value="${escape(person.id)}">${index+1} · ability ${inputNumber(person.values[0])}, neighborhood ${inputNumber(person.values[1])}, experience ${inputNumber(person.values[2])}</option>`).join('');
+  $('#population-select').value = state.globalObservation.id;
+  updatePopulationSummary();
   observationSelect.innerHTML = state.data.observations.map(item => `<option value="${escape(item.id)}">${escape(item.name)}</option>`).join('');
   observationSelect.value = state.observation.id;
   observationSelect.disabled = false;

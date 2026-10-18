@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Start with the Shapley formula, connect its coalition values to predictions over background rows, and build a local SHAP explanation.">
-  <title>Explaining one prediction with SHAP · POLS 4728</title>
+  <meta name="description" content="Connect Shapley values to one prediction, then build a beeswarm and global feature importance from many local SHAP explanations.">
+  <title>From Shapley values to SHAP · POLS 4728</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="aggregate.css">
   <script type="module" src="story.js"></script>
   <style>
     .static-formula,.static-observation { display:none; }
@@ -38,7 +39,7 @@
     </section>
     <div class="story-layout" id="story">
       <aside class="stage-shell" aria-label="Interactive explanation">
-        <div class="stage-top"><span id="stage-name">The Shapley formula</span><span id="stage-count">1 / 20</span></div>
+        <div class="stage-top"><span id="stage-name">The Shapley formula</span><span id="stage-count">1 / 29</span></div>
         <div class="observation-control" hidden><label for="observation-select">Person to explain</label><select id="observation-select" disabled><option>Loading examples…</option></select></div>
         <div id="visual" class="visual" tabindex="0" aria-label="Interactive figure"><p>Loading the prediction’s explanation…</p></div>
         <p id="figure-scroll-hint" class="figure-scroll-hint" hidden>Scroll within the figure for more ↓</p>
@@ -47,7 +48,7 @@
       </aside>
       <div class="narrative">
         <section class="step formula-step" id="shapley-formula" data-step="0" aria-labelledby="title"><div class="step-content">
-          <p class="step-number">1 / 20 · Start with Shapley</p><h1 id="title">From Shapley values to SHAP</h1>
+          <p class="step-number">1 / 29 · Start with Shapley</p><h1 id="title">From Shapley values to SHAP</h1>
           <ul class="slide-points">
             <li>Players → input features.</li>
             <li>Game → one observation’s prediction.</li>
@@ -63,7 +64,7 @@
           <p class="scroll-prompt">Scroll to highlight each part, or use Next.</p>
         </div></section>
         <section class="step formula-step" id="observation-symbol" data-step="1" aria-labelledby="observation-symbol-heading"><div class="step-content">
-          <p class="step-number">2 / 20 · The observation x</p><h2 id="observation-symbol-heading">The observation <var>x</var></h2>
+          <p class="step-number">2 / 29 · The observation x</p><h2 id="observation-symbol-heading">The observation <var>x</var></h2>
           <ul class="slide-points">
             <li><var>x</var>: one complete input row.</li>
             <li>Its values supply every fixed feature.</li>
@@ -71,7 +72,7 @@
           </ul>
         </div></section>
         <section class="step formula-step" id="prediction-symbol" data-step="2" aria-labelledby="prediction-symbol-heading"><div class="step-content">
-          <p class="step-number">3 / 20 · The prediction ŷ</p><h2 id="prediction-symbol-heading">The prediction <span class="math-text">ŷ</span></h2>
+          <p class="step-number">3 / 29 · The prediction ŷ</p><h2 id="prediction-symbol-heading">The prediction <span class="math-text">ŷ</span></h2>
           <ul class="slide-points">
             <li><span class="math-text">ŷ(x)</span>: fitted-model prediction for the complete row <var>x</var>.</li>
             <li><var>y</var>: observed outcome.</li>
@@ -79,7 +80,7 @@
           </ul>
         </div></section>
         <section class="step formula-step" id="joining-feature" data-step="3" aria-labelledby="joining-feature-heading"><div class="step-content">
-          <p class="step-number">4 / 20 · Before and after feature i</p><h2 id="joining-feature-heading">Before and after feature <var>i</var></h2>
+          <p class="step-number">4 / 29 · Before and after feature i</p><h2 id="joining-feature-heading">Before and after feature <var>i</var></h2>
           <p class="formula-comparison-summary">Both values average the same model’s predictions.</p>
           <div class="formula-comparison" role="group" aria-label="Compare average predictions before and after revealing feature i">
             <div class="formula-comparison-case">
@@ -97,7 +98,7 @@
           <p class="formula-focus-note"><var>i</var>: the additional feature. No retraining.</p>
         </div></section>
         <section class="step formula-step" id="feature-credit" data-step="4" aria-labelledby="feature-credit-heading"><div class="step-content">
-          <p class="step-number">5 / 20 · The feature’s credit</p><h2 id="feature-credit-heading">Credit for feature <var>i</var></h2>
+          <p class="step-number">5 / 29 · The feature’s credit</p><h2 id="feature-credit-heading">Credit for feature <var>i</var></h2>
           <ul class="slide-points">
             <li><span class="math-text">ϕ<sub>i</sub>(x)</span>: feature <var>i</var>’s credit.</li>
             <li>Average its marginal across orders.</li>
@@ -105,7 +106,7 @@
           </ul>
         </div></section>
         <section class="step transition-step" id="bread-peace-intro" data-step="5" aria-label="Bread and Peace model transition"><div class="step-content">
-          <p class="step-number">6 / 20 · Bread and Peace</p>
+          <p class="step-number">6 / 29 · Bread and Peace</p>
           <div class="transition-content">
             <h2 class="transition-title">Bread and Peace</h2>
             <img class="transition-art" src="assets/bread-peace-characters.png" alt="A compact loaf of bread and a peace symbol, each with expressive stick arms and legs.">
@@ -119,7 +120,7 @@
           </div>
         </div></section>
         <section class="step" id="ols-model" data-step="6" aria-labelledby="ols-model-heading"><div class="step-content">
-          <p class="step-number">7 / 20 · Three correlations</p><h2 id="ols-model-heading">Bread and Peace</h2>
+          <p class="step-number">7 / 29 · Three correlations</p><h2 id="ols-model-heading">Bread and Peace</h2>
           <ul class="slide-points">
             <li>Bread and peace → vote share.</li>
             <li>Features and observed <var>y</var>: mean 0, SD 1.</li>
@@ -127,7 +128,7 @@
           </ul>
         </div></section>
         <section class="step" id="ols-fits" data-step="7" aria-labelledby="ols-fits-heading"><div class="step-content">
-          <p class="step-number">8 / 20 · The OLS fits</p><h2 id="ols-fits-heading">Three OLS fits</h2>
+          <p class="step-number">8 / 29 · The OLS fits</p><h2 id="ols-fits-heading">Three OLS fits</h2>
           <ul class="slide-points">
             <li>Standardized univariate slope = correlation.</li>
             <li>Bivariate slopes adjust for feature correlation.</li>
@@ -135,7 +136,7 @@
           </ul>
         </div></section>
         <section class="step" id="ols-refit" data-step="8" aria-labelledby="ols-refit-heading"><div class="step-content">
-          <p class="step-number">9 / 20 · One election’s prediction</p><h2 id="ols-refit-heading">Keep the bivariate model</h2>
+          <p class="step-number">9 / 29 · One election’s prediction</p><h2 id="ols-refit-heading">Keep the bivariate model</h2>
           <ul class="slide-points">
             <li>This election: bread <span data-bread-fact="bread">1</span>; peace <span data-bread-fact="peace">1</span>.</li>
             <li>SHAP: bivariate coefficients stay fixed.</li>
@@ -143,7 +144,7 @@
           </ul>
         </div></section>
         <section class="step" id="ols-income-first" data-step="9" aria-labelledby="ols-income-first-heading"><div class="step-content">
-          <p class="step-number">10 / 20 · Bread first</p><h2 id="ols-income-first-heading">Bread first</h2>
+          <p class="step-number">10 / 29 · Bread first</p><h2 id="ols-income-first-heading">Bread first</h2>
           <ul class="slide-points">
             <li>Start at <span class="math-text">ŷ(0, 0) = 0</span>.</li>
             <li>Bread joins <span class="math-text">∅</span>.</li>
@@ -151,7 +152,7 @@
           </ul>
         </div></section>
         <section class="step" id="ols-fatalities-first" data-step="10" aria-labelledby="ols-fatalities-first-heading"><div class="step-content">
-          <p class="step-number">11 / 20 · Peace first</p><h2 id="ols-fatalities-first-heading">Peace first</h2>
+          <p class="step-number">11 / 29 · Peace first</p><h2 id="ols-fatalities-first-heading">Peace first</h2>
           <ul class="slide-points">
             <li>Restart at the same zero baseline.</li>
             <li>Peace joins <span class="math-text">∅</span>.</li>
@@ -159,7 +160,7 @@
           </ul>
         </div></section>
         <section class="step" id="ols-shap" data-step="11" aria-labelledby="ols-shap-heading"><div class="step-content">
-          <p class="step-number">12 / 20 · The two-feature SHAP values</p><h2 id="ols-shap-heading">Average the two orders</h2>
+          <p class="step-number">12 / 29 · The two-feature SHAP values</p><h2 id="ols-shap-heading">Average the two orders</h2>
           <ul class="slide-points">
             <li>Two orders; weight <span class="math-text">1/2</span> each.</li>
             <li>Average each feature’s two marginals.</li>
@@ -169,7 +170,7 @@
           <p class="static-observation">For bread <span data-bread-fact="bread">1</span> and peace <span data-bread-fact="peace">1</span>, the two orders give bread the same marginal of <span data-bread-fact="breadMarginal">+0.5</span> and peace the same marginal of <span data-bread-fact="peaceFirst">+0.5</span>. Their SHAP values add to the prediction, <span data-bread-fact="prediction">1</span>, from a zero baseline.</p>
         </div></section>
         <section class="step transition-step" id="earnings-intro" data-step="12" aria-label="Transition to the earnings interaction model"><div class="step-content">
-          <p class="step-number">13 / 20 · When features interact</p>
+          <p class="step-number">13 / 29 · When features interact</p>
           <div class="transition-content earnings-transition">
             <h2 class="transition-title">When features interact</h2>
             <img class="transition-art earnings-transition-art" src="assets/earnings-germany-characters.png" alt="Two round body-and-face characters with stick limbs and no torso stand on a tilted map of Germany. The smiling western character wears a top hat; the frowning eastern character wears a patched cap.">
@@ -180,7 +181,7 @@
           </div>
         </div></section>
         <section class="step" id="observation" data-step="13" aria-labelledby="observation-heading"><div class="step-content">
-          <p class="step-number">14 / 20 · The model and the observation</p><h2 id="observation-heading">Add an interaction</h2>
+          <p class="step-number">14 / 29 · The model and the observation</p><h2 id="observation-heading">Add an interaction</h2>
           <ul class="slide-points">
             <li>Ability, experience: 0–1.</li>
             <li>Neighborhood: −1…+1; changes ability’s marginal.</li>
@@ -194,7 +195,7 @@
           </div><p data-fact="staticObservation">For the adverse neighborhood profile, ability is 1, neighborhood opportunity is −1, and experience is 1. The model predicts $30,000 per year.</p></div>
         </div></section>
         <section class="step" id="background" data-step="14" aria-labelledby="background-heading"><div class="step-content">
-          <p class="step-number">15 / 20 · The term vₓ(S)</p><h2 id="background-heading">Start at the baseline</h2>
+          <p class="step-number">15 / 29 · The term vₓ(S)</p><h2 id="background-heading">Start at the baseline</h2>
           <ul class="slide-points">
             <li><span class="math-text">S = ∅</span>: nothing fixed.</li>
             <li>Average eight reference predictions.</li>
@@ -202,7 +203,7 @@
           </ul>
         </div></section>
         <section class="step" id="reveal-ability" data-step="15" aria-labelledby="ability-heading"><div class="step-content">
-          <p class="step-number">16 / 20 · The term vₓ(S ∪ {i})</p><h2 id="ability-heading">Add ability</h2>
+          <p class="step-number">16 / 29 · The term vₓ(S ∪ {i})</p><h2 id="ability-heading">Add ability</h2>
           <ul class="slide-points">
             <li><span class="math-text">S = ∅</span>; <span class="math-text">i = ability</span>.</li>
             <li>Copy ability = <span data-fact="ability">1</span> into every row.</li>
@@ -210,7 +211,7 @@
           </ul>
         </div></section>
         <section class="step" id="neighborhood-first" data-step="16" aria-labelledby="neighborhood-heading"><div class="step-content">
-          <p class="step-number">17 / 20 · The difference vₓ(S ∪ {i}) − vₓ(S)</p><h2 id="neighborhood-heading">Change the preceding group</h2>
+          <p class="step-number">17 / 29 · The difference vₓ(S ∪ {i}) − vₓ(S)</p><h2 id="neighborhood-heading">Change the preceding group</h2>
           <ul class="slide-points">
             <li><span class="math-text feature-set">S = {neighborhood}</span>; <span class="math-text">i = ability</span>.</li>
             <li>Keep neighborhood fixed; add ability.</li>
@@ -218,7 +219,7 @@
           </ul>
         </div></section>
         <section class="step" id="weights" data-step="17" aria-labelledby="weights-heading"><div class="step-content">
-          <p class="step-number">18 / 20 · The factorial weight</p><h2 id="weights-heading">Count the orders</h2>
+          <p class="step-number">18 / 29 · The factorial weight</p><h2 id="weights-heading">Count the orders</h2>
           <ul class="slide-points">
             <li>Three features → <span class="math-text">3! = 6</span> orders.</li>
             <li>Weight = fraction with this preceding <var>S</var>.</li>
@@ -226,7 +227,7 @@
           </ul>
         </div></section>
         <section class="step" id="shap-value" data-step="18" aria-labelledby="shap-heading"><div class="step-content">
-          <p class="step-number">19 / 20 · The sum and its result</p><h2 id="shap-heading">Average the marginals</h2>
+          <p class="step-number">19 / 29 · The sum and its result</p><h2 id="shap-heading">Average the marginals</h2>
           <ul class="slide-points">
             <li id="average-definition">Ability: average six orders.</li>
             <li id="average-context">Before neighborhood: +$5,000. After: −$7,000.</li>
@@ -234,12 +235,48 @@
           </ul>
         </div></section>
         <section class="step" id="waterfall" data-step="19" aria-labelledby="waterfall-heading"><div class="step-content">
-          <p class="step-number">20 / 20 · From the formula to the plot</p><h2 id="waterfall-heading">Baseline + contributions</h2>
+          <p class="step-number">20 / 29 · From the formula to the plot</p><h2 id="waterfall-heading">Baseline + contributions</h2>
           <div class="slide-identity" role="math" aria-label="Prediction equals baseline plus the sum of SHAP contributions"><math><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>v</mi><mi>x</mi></msub><mo stretchy="false">(</mo><mi>∅</mi><mo stretchy="false">)</mo><mo>+</mo><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>ϕ</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></math></div>
           <ul class="slide-points">
             <li>Bars: averaged contributions in $1,000.</li>
             <li>Inputs beside names; rows ranked by magnitude.</li>
           </ul>
+        </div></section>
+        <section class="step aggregate-step" id="contribution-axis" data-step="20" aria-labelledby="contribution-axis-heading"><div class="step-content">
+          <p class="step-number">21 / 29 · One common zero</p><h2 id="contribution-axis-heading">Keep the contribution, move its origin.</h2>
+          <ul class="slide-points"><li>The waterfall adds contributions along a running total.</li><li>Move each bar to zero; keep its signed length.</li></ul>
+        </div></section>
+        <section class="step aggregate-step" id="one-person-dots" data-step="21" aria-labelledby="one-person-dots-heading"><div class="step-content">
+          <p class="step-number">22 / 29 · One person, three dots</p><h2 id="one-person-dots-heading">A dot records each contribution.</h2>
+          <ul class="slide-points"><li>Its position is the SHAP value.</li><li>Left lowers the prediction; right raises it.</li></ul>
+        </div></section>
+        <section class="step aggregate-step" id="many-people" data-step="22" aria-labelledby="many-people-heading"><div class="step-content">
+          <p class="step-number">23 / 29 · Explain more people</p><h2 id="many-people-heading">Repeat the same calculation.</h2>
+          <ul class="slide-points"><li>125 constructed profiles; one dot per feature per person.</li><li>The model and eight reference rows stay fixed.</li></ul>
+        </div></section>
+        <section class="step aggregate-step" id="beeswarm" data-step="23" aria-labelledby="beeswarm-heading"><div class="step-content">
+          <p class="step-number">24 / 29 · Make overlap visible</p><h2 id="beeswarm-heading">From waterfalls to a beeswarm.</h2>
+          <ul class="slide-points"><li>Spread overlapping dots vertically.</li><li>Horizontal position still measures the contribution.</li></ul>
+        </div></section>
+        <section class="step aggregate-step" id="feature-color" data-step="24" aria-labelledby="feature-color-heading"><div class="step-content">
+          <p class="step-number">25 / 29 · Add the input values</p><h2 id="feature-color-heading">Which inputs go with which contributions?</h2>
+          <ul class="slide-points"><li>Color now represents the input: low to high within each feature.</li><li>High ability can contribute in either direction here.</li></ul>
+        </div></section>
+        <section class="step aggregate-step" id="signed-average" data-step="25" aria-labelledby="signed-average-heading"><div class="step-content">
+          <p class="step-number">26 / 29 · Opposing contributions cancel</p><h2 id="signed-average-heading">A signed average can hide magnitude.</h2>
+          <ul class="slide-points"><li>Ability and neighborhood have positive and negative contributions.</li><li>Their signed averages are zero across these profiles.</li></ul>
+        </div></section>
+        <section class="step aggregate-step" id="absolute-values" data-step="26" aria-labelledby="absolute-values-heading"><div class="step-content">
+          <p class="step-number">27 / 29 · Measure distance from zero</p><h2 id="absolute-values-heading">Keep the size of every contribution.</h2>
+          <ul class="slide-points"><li>Fold negative contributions to the right.</li><li>Absolute SHAP values measure magnitude.</li></ul>
+        </div></section>
+        <section class="step aggregate-step" id="global-importance" data-step="27" aria-labelledby="global-importance-heading"><div class="step-content">
+          <p class="step-number">28 / 29 · Average the distances</p><h2 id="global-importance-heading">One summary for each feature.</h2>
+          <ul class="slide-points"><li>Average the 125 absolute SHAP values in each row.</li><li>The bar measures typical contribution magnitude.</li></ul>
+        </div></section>
+        <section class="step aggregate-step" id="importance-ranking" data-step="28" aria-labelledby="importance-ranking-heading"><div class="step-content">
+          <p class="step-number">29 / 29 · Rank the averages</p><h2 id="importance-ranking-heading">Global importance for these profiles.</h2>
+          <ul class="slide-points"><li>Neighborhood: 7.2; ability: 3.24; experience: 1.2.</li><li>Rank the rows; zoom in on the averages. Same units: $1,000/year.</li></ul>
         </div></section>
       </div>
     </div>
@@ -321,11 +358,22 @@ shap.plots.waterfall(explanation[0])</code></pre>
       </details>
       <details class="requires-javascript"><summary>Inspect the final numbers</summary><div id="explanation-table"></div><p>Numbers are rounded only for display; calculations use the stored values at full precision.</p></details>
       <p class="data-note">The earnings equation uses synthetic reference people and chosen coefficients. It is not an estimated earnings equation or evidence about causal neighborhood effects. The positive ability–neighborhood interaction encodes complementarity; negative opportunity allows it to work against productive earnings.</p>
-      <p>Method references: <a href="https://shap.readthedocs.io/en/latest/example_notebooks/overviews/An%20introduction%20to%20explainable%20AI%20with%20Shapley%20values.html">SHAP’s introduction to the prediction game</a>, <a href="https://shap.readthedocs.io/en/latest/generated/shap.maskers.Independent.html">background masker</a>, <a href="https://shap.readthedocs.io/en/latest/generated/shap.ExactExplainer.html">exact explainer</a>, and <a href="https://shap.readthedocs.io/en/latest/example_notebooks/api_examples/plots/waterfall.html">waterfall plot</a>.</p>
+      <h3>From local explanations to a global summary</h3>
+      <p>The beeswarm explains 125 constructed profiles: all combinations of five equally spaced ability values from 0 to 1, five neighborhood values from −1 to +1, and five experience values from 0 to 1. These are the people being explained. They are separate from the eight endpoint profiles used as the reference background; that background, its baseline of 47, and the prediction rule remain fixed. Every dot records one person’s SHAP value for one feature. Vertical packing makes overlap visible and has no numerical meaning. Color represents the input’s position within that feature’s range, rather than the sign of its contribution.</p>
+      <p>Global SHAP importance is the average absolute contribution across the people being explained:</p>
+      <div class="equation"><math display="block" aria-label="Importance of feature j equals one over N times the sum over people of the absolute SHAP value"><mrow><msub><mi>I</mi><mi>j</mi></msub><mo>=</mo><mfrac><mn>1</mn><mi>N</mi></mfrac><munderover><mo>∑</mo><mrow><mi>r</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mo>|</mo><msub><mi>ϕ</mi><mi>j</mi></msub><mo>(</mo><msup><mi>x</mi><mrow><mo>(</mo><mi>r</mi><mo>)</mo></mrow></msup><mo>)</mo><mo>|</mo></mrow></math></div>
+      <p>For these equally weighted profiles, signed averages are zero for all three features. The mean absolute SHAP values are 7.2 for neighborhood opportunity, 3.24 for ability, and 1.2 for experience, in $1,000/year. The bars summarize magnitude, losing the direction, spread, and interaction patterns visible in the beeswarm. Their ranking describes this model, this reference background, and these profiles; a different population or background can change it. These are contributions to model predictions, not causal effects.</p>
+      <details class="requires-javascript"><summary>Explore a person’s waterfall</summary>
+        <p>Select a profile to see all three of its contributions together. Selecting a dot in the colored beeswarm opens the same explanation.</p>
+        <label for="population-select">Constructed profile</label><select id="population-select"></select>
+        <button id="population-waterfall" type="button">Show this person’s waterfall</button>
+        <div id="population-summary"></div>
+      </details>
+      <p>Method references: <a href="https://shap.readthedocs.io/en/latest/example_notebooks/overviews/An%20introduction%20to%20explainable%20AI%20with%20Shapley%20values.html">SHAP’s introduction to the prediction game</a>, <a href="https://shap.readthedocs.io/en/latest/generated/shap.maskers.Independent.html">background masker</a>, <a href="https://shap.readthedocs.io/en/latest/generated/shap.ExactExplainer.html">exact explainer</a>, <a href="https://shap.readthedocs.io/en/latest/example_notebooks/api_examples/plots/waterfall.html">waterfall plot</a>, <a href="https://shap.readthedocs.io/en/latest/example_notebooks/api_examples/plots/beeswarm.html">beeswarm plot</a>, and <a href="https://shap.readthedocs.io/en/latest/example_notebooks/api_examples/plots/bar.html">global importance bar plot</a>.</p>
     </section>
   </main>
-  <footer><a href="../">POLS 4728 home</a><span>POLS 4728 · Local SHAP explanations</span><a href="#shapley-formula">Back to the beginning</a></footer>
+  <footer><a href="../">POLS 4728 home</a><span>POLS 4728 · Local and global SHAP explanations</span><a href="#shapley-formula">Back to the beginning</a></footer>
   <dialog id="rows-dialog" aria-labelledby="rows-heading"><div class="dialog-top"><h2 id="rows-heading">Every background row</h2><button id="close-rows" type="button" aria-label="Close inspection">Close ×</button></div><p id="rows-description"></p><div id="rows-table" class="table-scroll" tabindex="0" aria-label="Calculation inspection"></div></dialog>
-  <noscript><p class="noscript">The lecture cues, worked examples, and calculation notes above are readable without JavaScript. Enable JavaScript to see the row replacement, comparisons, and interactive waterfall.</p></noscript>
+  <noscript><p class="noscript">The lecture cues, worked examples, and calculation notes above are readable without JavaScript. Enable JavaScript to see the row replacement, comparisons, waterfall, and beeswarm transitions.</p></noscript>
 </body>
 </html>

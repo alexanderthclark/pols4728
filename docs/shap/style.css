@@ -611,3 +611,34 @@ dialog p { font-size:16px; }
   .earnings-transition-art { width:min(160px,100%); max-height:80px; margin-bottom:3px; }
   .earnings-transition .transition-equation { margin-bottom:8px; }
 }
+
+/* Local-to-global scenes share one pinned chart while scroll position moves marks. */
+.aggregate-step { min-height:125svh; }
+.aggregate-step:last-child { min-height:165svh; }
+.stage-shell.is-aggregate .visual { justify-content:center; overflow:hidden; padding:8px 0; }
+.stage-shell.is-aggregate .visual>* { flex-shrink:0; }
+#aggregate-container { width:100%; min-height:0; }
+.aggregate-person-summary { font:13px/1.5 var(--sans); color:var(--muted); }
+#population-select { max-width:100%; margin:8px 12px 12px 0; font:14px/1.5 var(--sans); }
+#population-waterfall { font:14px/1.5 var(--sans); }
+#population-summary { font:14px/1.5 var(--sans); margin:10px 0; }
+.dialog-waterfall { overflow:hidden; width:100%; max-width:820px; margin:0 auto; }
+.dialog-waterfall .waterfall-contribution { animation:none; }
+#rows-table:has(.dialog-waterfall) { overflow:visible; }
+#rows-table:has(.dialog-waterfall) table { min-width:0; }
+@media (max-width:860px) and (min-height:551px), (max-width:649px) {
+  #rows-dialog:has(.dialog-waterfall) { width:96vw; max-height:94svh; padding:12px; }
+  #rows-dialog:has(.dialog-waterfall) .dialog-top h2 { font-size:24px; }
+  #rows-dialog:has(.dialog-waterfall) p { font-size:14px; line-height:1.5; margin:12px 0; }
+  .stage-shell.is-aggregate { height:68svh; min-height:395px; max-height:560px; }
+  .stage-shell.is-aggregate { padding-top:10px; padding-bottom:8px; }
+  .stage-shell.is-aggregate .stage-top { padding-bottom:4px; }
+  .stage-shell.is-aggregate .visual { padding-top:4px; padding-bottom:4px; }
+  .stage-shell.is-aggregate .stage-caption { font-size:11px; }
+  .aggregate-step { min-height:115svh; }
+  .aggregate-step:last-child { min-height:150svh; }
+}
+@media print {
+  .aggregate-step,.aggregate-step:last-child { min-height:0; }
+  #population-select,#population-waterfall { display:none; }
+}

@@ -1,13 +1,17 @@
-# Reproduce the local SHAP story
+# Reproduce the SHAP story
 
-The [local SHAP page](../../docs/shap/) begins with a synthetic Bread and Peace
+The [SHAP page](../../docs/shap/) begins with a synthetic Bread and Peace
 OLS warm-up, then explains a fixed illustrative predictor of yearly earnings.
 Both examples use constructed data, rather than empirical election observations
 or measured people. Their model outputs and SHAP calculations are reproducible.
+The unchanged opening title scene leads into 29 teaching frames: the original
+20-frame explanation through the local waterfall, followed by nine frames that
+construct a beeswarm and derive global importance.
 
-The browser reads saved JSON. Python and the SHAP package are used only to rebuild
-and verify the data; students do not need Python to read the page. This example
-contains only local explanations, with no global importance or beeswarm plots.
+The browser reads saved JSON for the original profiles and computes the summary
+cohort's explanations from the same saved model and reference background.
+Python and the SHAP package rebuild and independently verify the saved data;
+the page requires no local software installation.
 
 ## Standardized Bread and Peace OLS warm-up
 
@@ -161,6 +165,47 @@ background. Changing the reference profiles would generally change the baseline
 and contributions. Display labels may be rounded; the JSON stores unrounded
 floating-point results.
 
+## From the waterfall to beeswarm and global importance
+
+The nine appended frames move each waterfall contribution to a common zero,
+replace it with a dot, add people, spread overlapping dots vertically, introduce
+input-value color, demonstrate signed cancellation, take absolute values,
+average those values into bars, and finally rank the bars. Scrolling reaches
+every teaching point. Vertical position only prevents overlap; horizontal
+position measures the signed SHAP contribution. Color represents low-to-high
+input value within each feature, rather than the sign of its contribution.
+
+The beeswarm summarizes 125 equally weighted constructed profiles, all
+combinations of ability and experience in `{0, .25, .5, .75, 1}` and neighborhood
+opportunity in `{−1, −.5, 0, .5, 1}`. This cohort contains all three saved
+profiles. It is separate from the eight endpoint reference profiles used for
+every person's explanation. The predictor, those eight reference rows, and the
+baseline of 47 remain fixed throughout.
+
+`docs/shap/aggregate.mjs` reads the coefficients supplied from `model.json`,
+enumerates all eight coalitions against the original background, and averages
+the six revealing-order marginals for each profile. It computes the same exact
+finite-background interventional game in the browser. Global importance is the
+mean of the absolute SHAP contributions across the 125 explained profiles:
+
+| Feature | Mean signed SHAP | Mean absolute SHAP |
+| --- | --- | --- |
+| Ability | 0 | 3.24 |
+| Neighborhood opportunity | 0 | 7.2 |
+| Experience | 0 | 1.2 |
+
+All values are in $1,000/year. Taking absolute values before averaging retains
+magnitude that the signed averages cancel. The final ranking is neighborhood
+opportunity, ability, then experience. These summaries describe this predictor,
+background, and cohort; changing the explained population or reference
+background can change the ranking. The bars discard the direction, variation,
+and interaction patterns that the beeswarm preserves. Contributions to these
+constructed predictions are not causal effects.
+
+Selecting a dot in the colored beeswarm opens that person's complete waterfall.
+The method note also provides a profile dropdown and a waterfall button for
+optional exploration.
+
 ## Rebuild and verify
 
 The committed numerical build used Python 3.12.14, NumPy 2.2.6, and SHAP 0.49.1.
@@ -200,6 +245,23 @@ ability marginal's sign change, and agreement with the official SHAP package's
 values and baseline. Its validation results and package versions are saved in
 `data.json`. `--check` rebuilds the results and compares them with the saved JSON
 without writing files.
+
+The existing JavaScript SHAP tests independently check the equation, all hybrid
+inputs, coalition averages, subset factorial weights, revealing orders, and
+additivity. `tests/shap-aggregate.test.mjs` additionally checks exact agreement
+with every stored profile, the balanced 125-profile grid, and the shared
+baseline. Its independent closed-form SHAP values are
+`(ability − .5) × (10 + 12 × neighborhood)`,
+`12 × neighborhood × (ability + .5)`, and `4 × (experience − .5)`.
+It verifies those values for every person, signed cancellation, mean absolute
+importance, ranking, and the effect of choosing a different explained cohort
+while keeping the same reference background.
+
+From the repository root:
+
+```sh
+node --test tests/shap-local.test.mjs tests/shap-aggregate.test.mjs tests/shap-ols.test.mjs
+```
 
 ## Export a standard waterfall in the course style
 

@@ -2,7 +2,9 @@
 
 An opening title slide shows two torso-less investigators examining a faceless
 Y-hat in a gently landed spaceship. Its Start link leads into the existing
-20-frame explanation; the cover is separate from the story’s frame count.
+29-frame explanation; the cover is separate from the story’s frame count.
+The original 20 frames lead to a local waterfall; nine appended frames build
+a beeswarm and derive global importance from those same local contributions.
 
 This scrolling story begins with the Shapley formula readers
 already know. It maps its players to features and its game to one observation’s
@@ -67,6 +69,13 @@ Each occurs in three of the six orders, giving a final ability SHAP value of −
 The complete explanation is `47 − 1 − 18 + 2 = 30`. Alternate favorable and mixed
 profiles use the same model and background.
 
+The summary extends the earnings example to 125 equally weighted constructed
+profiles: all combinations of ability and experience in `{0, .25, .5, .75, 1}`
+and neighborhood opportunity in `{−1, −.5, 0, .5, 1}`. These are the people
+being explained. Their explanations continue to use the original eight endpoint
+reference profiles, the same fixed predictor, and the baseline of 47.
+The cohort does not replace the background.
+
 ## Story and controls
 
 1. Begin with the complete Shapley formula.
@@ -89,6 +98,15 @@ profiles use the same model and background.
 18. Match all four preceding groups to their factorial weights and prediction differences.
 19. Add the weighted contributions; select a feature and inspect all six orders.
 20. Assemble the final contributions in a course-styled standard waterfall.
+21. Move each waterfall contribution to a common zero, preserving its signed length.
+22. Replace each contribution bar with a dot at its SHAP value.
+23. Repeat the explanation for all 125 constructed profiles, with the same model and eight reference rows.
+24. Spread overlapping dots vertically into a beeswarm, keeping their horizontal contributions fixed.
+25. Color dots by low-to-high input value within each feature, distinguishing input value from contribution direction.
+26. Show how signed averages cancel positive and negative contributions across these profiles.
+27. Fold negative contributions to their absolute distance from zero.
+28. Average the 125 absolute contributions in each feature row to construct global importance bars.
+29. Rank the mean absolute contributions: neighborhood opportunity 7.2, ability 3.24, and experience 1.2, in $1,000/year.
 
 The opening frames distinguish `ŷ(x)`, the fixed model’s prediction for a
 complete row, from `v_x(S)`, an average of that same model’s predictions across
@@ -121,7 +139,7 @@ top hat; the frowning eastern character wears a patched cap and worn shoes.
 The bottom map credit names West and East Germany. The native math term
 `ability × neighborhood` connects that comparison to the illustrative earnings
 equation. The full earnings model and person selector appear in frame 14.
-The story has 20 frames.
+The story has 29 teaching frames, plus the unchanged opening title scene.
 Each worked frame's left column uses two or three short lecture cues in larger type,
 leaving the instructor room to explain the worked figure. The earnings equation
 appears beside its observation in the figure. Expandable notes retain the notation,
@@ -139,7 +157,21 @@ The concluding math section supplies the finite-background `v_x(S)` definition.
 Its checkbox-controlled data table exposes every feature group, including the
 empty and complete groups. All input columns remain visible. The Python panel
 connects the procedure to a fixed model's `predict` method and SHAP's exact
-explainer. Global importance and beeswarm plots are reserved for a later page.
+explainer. The global-summary note distinguishes the 125 explained profiles
+from the eight reference rows and defines importance as mean absolute SHAP.
+The signed means are zero for all three features; taking absolute values before
+averaging retains contribution magnitude. The ranking describes this predictor,
+reference background, and explained cohort. It does not describe causal effects.
+
+Scrolling carries the complete transition from a waterfall to a beeswarm and
+global importance. The feature rows keep their order until the final ranking.
+Vertical packing only prevents dot overlap; its height has no numerical meaning.
+The colored beeswarm uses color for the input's position within that feature's
+range, while horizontal position continues to show the signed contribution.
+The bars retain magnitude but discard the direction, spread, and interaction
+patterns visible in the beeswarm. Optional exploration opens a person's complete
+waterfall by selecting a dot in the colored beeswarm or choosing a profile in
+the method note's dropdown and selecting its waterfall button.
 
 Navigation buttons provide an alternative to scrolling and advance immediately
 so quick clicks cannot repeat a frame during a scroll animation. The opening
@@ -175,11 +207,16 @@ is needed to view the deployed page. All website assets are served locally,
 including the math font shared with the earlier Shapley page.
 
 [Python reproduction files](../../examples/shap/README.md) generate the saved
-model and explanations and independently verify them against SHAP. The website
-displays those results without executing Python in the browser. JavaScript tests
+model and explanations and independently verify them against SHAP. The browser
+reads those saved results for the original profiles. `aggregate.mjs` evaluates
+the same fixed `model.json` equation and exact finite-background game for every
+profile in the 125-person grid; it does not run Python. JavaScript tests
 independently evaluate the equation for every hybrid input, check the averages,
 recover SHAP via subset factorial weights, and verify all order paths and
-additive predictions. The OLS tests independently solve its normal equations,
+additive predictions. The aggregate tests reproduce all saved explanations,
+check the balanced grid and common baseline, independently verify closed-form
+SHAP values across all 125 profiles, and check signed cancellation, mean absolute
+values, and ranking. The OLS tests independently solve its normal equations,
 check standardization, distinguish refitting from masking, and reconstruct all
 two-feature coalitions and orders.
 
@@ -192,6 +229,8 @@ The sparse lecture copy follows the instructor's request for in-class presentati
 the expandable notes preserve the longer reasoning and qualifications.
 Blue and rust distinguish signed contributions in the waterfall, with arrows
 and direct signed labels. They do not indicate good or bad people.
+The beeswarm introduces its separate low-to-high feature-value color scale
+through scrolling; the meaning of its horizontal axis remains unchanged.
 
 The browser draws the familiar waterfall from the same numbers used by Python
 SHAP, with shared quantitative scales and feature rows ranked by magnitude.
