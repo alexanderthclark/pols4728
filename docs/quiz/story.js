@@ -34,7 +34,7 @@ const sceneInfo = [
  ['Question 2 · c','A small change can cross a reporting threshold','Detail view near x = 365 days. Carnie 3 turns tiny differences in fitted lines into 365-day jumps. These panels intentionally have different vertical scales.'],
  ['Question 2 · d','Compare total prediction error','All three total MSEs include the same 3.65 days² of outcome noise. Bars use a common linear scale; direct values retain the small errors.'],
  ['Question 2 · d','At very large noise, bounded reports can win','Total MSE includes fresh outcome noise. The horizontal scale is logarithmic; equal distances represent equal ratios.'],
- ['Question 3 · a(i)','One student per leaf removes every residual','These eight illustrative students have distinct pre-tutoring scores. In-sample memorization gives ŷ(Xᵢ) = Yᵢ even when D is excluded.'],
+ ['Question 3 · a(i)','One student per leaf removes every residual','Start with the overall mean, ȳ = 75. As each leaf memorizes its student, its prediction moves to the observed outcome and the residual shrinks to zero.'],
  ['Question 3 · a(ii)','Hold out students before fitting the tree','The evaluation outcomes never set the fitted predictions. Random assignment makes the expected adjustment the same in both evaluation groups.'],
  ['Question 3 · b(i)','A 30-point gap contains a 10-point effect','Every square is one of the quiz’s 32 students. Tutored students contain more high-score students, adding a 20-point baseline difference.'],
  ['Question 3 · b(ii)','The outcome tree learns two group means','A split at 55 separates the low and high score groups. The 45-point prediction gap includes 40 baseline points and 5 points from different tutoring rates.'],
@@ -212,18 +212,23 @@ function mse(w,large=false){
 }
 function memorize(w){
  const h=compact?280:350,ph=compact?199:270,p=plot(w,ph,{top:29,left:45,bottom:35,xmin:0,xmax:8,ymin:0,ymax:115,xticks:[1,4,7],yticks:[0,50,100],xlabel:'Student (schematic)',ylabel:'Observed Y / fitted prediction'});let b=p.base;
+ const outcomes=Array.from({length:8},(_,i)=>50+40*(i>=4)+10*((i+1)%2));
+ const mean=outcomes.reduce((sum,y)=>sum+y,0)/outcomes.length;
+ b+=line(p.x(0),p.y(mean),p.x(8),p.y(mean),'data-memorization-mean="75" stroke="var(--rule)" stroke-width="1" stroke-dasharray="5 4"');
+ b+=line(p.x(0)-5,p.y(mean),p.x(0),p.y(mean),'class="plot-tick"');
+ b+=text(p.x(0)-10,p.y(mean)+4,'ȳ',`text-anchor="end" aria-label="Overall mean outcome, 75" style="font-family:'Course Math',serif;font-size:16px;font-style:italic"`);
  for(let i=1;i<=8;i++){
-  const d=i%2,y=50+40*(i>=5)+10*d,x=p.x(i-.4);
+  const y=outcomes[i-1],x=p.x(i-.4);
   b+=rect(x-8,p.y(y)-8,16,16,'fill="white" stroke="var(--ink)" stroke-width="1.5"');
-  b+=line(x,p.y(y),x,p.y(75),`data-fit-residual="${p.y(75)},${p.y(y)},${i}" stroke="var(--rust)" stroke-width="1.5" stroke-dasharray="3 2"`);
-  b+=line(x-10,p.y(y),x+10,p.y(y),`data-fit="${p.y(75)},${p.y(y)},${i}" stroke="var(--blue)" stroke-width="2"`);
+  b+=line(x,p.y(y),x,p.y(mean),`data-fit-residual="${p.y(mean)},${p.y(y)},${i}" stroke="var(--rust)" stroke-width="1.5" stroke-dasharray="3 2"`);
+  b+=line(x-10,p.y(y),x+10,p.y(y),`data-fit="${p.y(mean)},${p.y(y)},${i}" stroke="var(--blue)" stroke-width="2"`);
  }
  const ky=compact?220:296;
  b+=rect(8,ky-9,10,10,'fill="white" stroke="var(--ink)"')+text(24,ky,'Observed Y');
  b+=line(w*.49,ky-4,w*.49+19,ky-4,'stroke="var(--blue)" stroke-width="2"')+text(w*.49+25,ky,'Leaf ŷ(X)');
  b+=line(8,ky+16,25,ky+16,'stroke="var(--rust)" stroke-dasharray="3 2"')+text(32,ky+20,'Residual Y − ŷ(X)');
  b+=enter(text(w/2,compact?267:337,'Residuals = 0 → effect estimate = 0',`text-anchor="middle" ${w<380?'style="font-size:13px"':'class="label"'}`),.85,1,0,10);
- return svg(w,h,'A separate fitted leaf matches every observed student’s score. Observed outcomes are squares, fitted leaves are horizontal segments, and dashed vertical residuals shrink to zero. The proposed effect estimate equals zero.',b);
+ return svg(w,h,'The initial prediction is the overall mean outcome, 75, marked by y-bar on the vertical axis and a dashed horizontal reference. A separate fitted leaf then matches every observed student’s score. Observed outcomes are squares, fitted leaves are horizontal segments, and dashed vertical residuals shrink to zero. The proposed effect estimate equals zero.',b);
 }
 function holdout(w){
  const cx=w/2;let b='';
