@@ -33,13 +33,13 @@ const captions = [
   '',
   'The length and sign stay the same; cumulative positions move to a common zero.',
   'Three dots are one person’s three contributions, in $1,000/year.',
-  'These 125 profiles are being explained. The same eight background rows define every explanation; the model and baseline stay fixed.',
+  'Keep the model and reference background fixed.',
   'Horizontal position is SHAP value. Vertical packing only reveals overlap.',
   'Color shows low-to-high input values within each feature. Horizontal position shows the signed contribution to the prediction.',
-  'For this balanced grid, all three signed means are zero. Positive and negative contributions cancel despite having substantial size.',
+  'Here, all three signed means are zero. Positive and negative contributions cancel despite having substantial size.',
   'Reflect negative contributions to the right of zero. Absolute values retain size and remove direction.',
-  'Average the 125 absolute contributions within each feature. The bar shows average size, in $1,000/year; direction has been removed.',
-  'This ranking summarizes these 125 profiles. It depends on the prediction model, background rows, and profiles being summarized.',
+  'Average the absolute contributions across people within each feature. The bar shows average size, in $1,000/year; direction has been removed.',
+  'This ranking summarizes this illustrative dataset. It depends on the prediction model, reference background, and dataset being explained.',
 ];
 const aggregateScenes = new Set(['contribution-axis','one-person-dots','many-people','beeswarm','feature-color','signed-average','absolute-values','global-importance','importance-ranking']);
 const chartScenes = new Set(['waterfall', ...aggregateScenes]);

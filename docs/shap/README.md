@@ -77,12 +77,14 @@ Each occurs in three of the six orders, giving a final ability SHAP value of −
 The complete explanation is `47 − 1 − 18 + 2 = 30`. Alternate favorable and mixed
 profiles use the same model and background.
 
-The summary extends the earnings example to 125 equally weighted constructed
-profiles: all combinations of ability and experience in `{0, .25, .5, .75, 1}`
+The main story asks readers to suppose they had a larger dataset, with the
+same model and reference background. The figures use 125 equally weighted
+constructed profiles: all combinations of ability and experience in `{0, .25, .5, .75, 1}`
 and neighborhood opportunity in `{−1, −.5, 0, .5, 1}`. These are the people
 being explained. Their explanations continue to use the original eight endpoint
 reference profiles, the same fixed predictor, and the baseline of 47.
-The cohort does not replace the background.
+The cohort does not replace the background. These construction details stay in
+the optional notes.
 
 ## Story and controls
 
@@ -233,9 +235,11 @@ The colored beeswarm uses color for the input's position within that feature's
 range, while horizontal position continues to show the signed contribution.
 The final axis explicitly measures mean absolute SHAP value. The bars retain
 average magnitude but discard the direction, spread, and interaction patterns
-visible in the beeswarm. Captions distinguish the 125 explained profiles from
-the eight fixed background rows and keep the dependence of the ranking on the
-model, background, and explained population visible. Optional exploration opens a person's complete
+visible in the beeswarm. Main captions describe a hypothetical larger dataset
+and keep the model and reference background fixed, without introducing the
+125-versus-eight counts. Those construction details remain in the optional notes.
+The ranking's dependence on the model, background, and explained dataset stays
+visible. Optional exploration opens a person's complete
 waterfall by selecting a dot in the colored beeswarm or choosing a profile in
 the individual waterfall dropdown under “Notes and exploration” and selecting
 its waterfall button.

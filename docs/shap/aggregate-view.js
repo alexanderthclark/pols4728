@@ -248,19 +248,19 @@ export function renderAggregate(container, { scene, progress = 1, features, obse
     'data-progress': format(progress, 4), 'data-reduced-motion': reducedMotion,
     'data-population-count': population.length, style: `font-size:${fontSize}px` });
   const titles = ['Give every contribution its own zero', 'One person, one dot per feature',
-    'One dot per person, in every row', 'Stack overlapping dots into a beeswarm',
+    'Suppose we had a larger dataset', 'Stack overlapping dots into a beeswarm',
     'Color shows the input value', 'Opposing contributions cancel in a signed mean',
     'Measure each contribution’s distance from zero', 'Average those distances, feature by feature',
     'Rank features by mean absolute SHAP value'];
   const shortTitles = ['Put contributions on one axis', 'One person becomes three dots',
-    `${population.length} people, three feature rows`, 'Spread overlaps vertically',
+    'Suppose we had a larger dataset', 'Spread overlaps vertically',
     'Color shows the input value', 'Signed contributions can cancel',
     'Take each distance from zero', 'Average the absolute values', 'Rank the average magnitudes'];
   view.title.textContent = titles[phase];
-  view.description.textContent = `${titles[phase]}. ${population.length} explained profiles use one fixed model and ${backgroundSize} background rows; baseline ${format(observation.baseValue)} thousand dollars per year. `
+  view.description.textContent = `${titles[phase]}. ${phase >= 2 ? 'This illustrates a hypothetical larger dataset. ' : ''}The model and reference background stay fixed; baseline ${format(observation.baseValue)} thousand dollars per year. `
     + features.map((feature, index) => `${feature.label}: signed mean ${format(signedMeans[index])}; mean absolute SHAP value ${format(importance[index])}.`).join(' ')
     + (phase >= 4 && phase <= 6 ? 'Color indicates low to high input value within each feature. ' : phase < 4 ? 'Blue contributions raise the model prediction; rust contributions lower it. ' : '')
-    + (phase >= 7 ? 'Each bar shows the mean absolute SHAP value across the explained profiles. All bar lengths are nonnegative; the horizontal unit is thousand dollars per year.'
+    + (phase >= 7 ? 'Each bar shows the mean absolute SHAP value across people in this illustrative dataset. All bar lengths are nonnegative; the horizontal unit is thousand dollars per year.'
       : phase === 6 ? 'Negative SHAP values fold to their positive distances from zero. These are individual absolute SHAP values, before averaging; the horizontal unit is thousand dollars per year.'
         : phase === 0 ? 'Read the initial waterfall from bottom to top. Cumulative model-output positions become signed SHAP contributions measured from zero.'
           : 'Horizontal position shows a signed SHAP contribution, not an input value. Vertical displacement only separates overlapping profiles.');
@@ -270,9 +270,9 @@ export function renderAggregate(container, { scene, progress = 1, features, obse
     Math.floor(width / (headingSize * .51))), 0, compact ? 24 : 30, compact ? 26 : 30);
   attrs(view.subheading, { x: 0, y: compact ? 78 : 62, 'font-size': fontSize });
   const subtitle = phase < 2 ? `${observation.name || 'One person'} · baseline ${format(observation.baseValue)}, prediction ${format(observation.prediction)}`
-    : phase === 5 ? `${population.length} explained profiles · signed mean 0 in each row`
-      : phase >= 7 ? `${population.length} profiles · average absolute contributions`
-        : `${population.length} explained profiles · ${backgroundSize} background rows`;
+    : phase === 2 ? 'One SHAP value per person, per feature'
+      : phase === 5 ? 'Here, signed means cancel to zero'
+        : 'Same model and reference background';
   setLines(view.subheading, wrapWords(subtitle, Math.floor(width / (fontSize * .51))),
     0, compact ? 78 : 62, compact ? 20 : 22);
   attrs(view.baseline, { x1: x(lerp(observation.baseValue, 0, rebase)), x2: x(lerp(observation.baseValue, 0, rebase)),
@@ -375,7 +375,7 @@ export function renderAggregate(container, { scene, progress = 1, features, obse
   attrs(view.footer, { x: 0, y: legendY, 'font-size': phase === 0 ? compact ? 16 : 18 : fontSize,
     opacity: phase === 0 ? 1 - p : phase >= 7 ? meanProgress : 0 });
   view.footer.textContent = phase === 0 ? `Baseline ${format(observation.baseValue)} → prediction ${format(observation.prediction)}`
-    : 'Bar length: mean absolute contribution';
+    : 'Average magnitude across this dataset';
   return view.svg;
 }
 

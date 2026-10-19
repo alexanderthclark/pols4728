@@ -237,8 +237,8 @@
           <ul class="slide-points"><li>Its position is the SHAP value.</li><li>Left lowers the prediction; right raises it.</li></ul>
         </div></section>
         <section class="step aggregate-step" id="many-people" data-step="24" aria-labelledby="many-people-heading"><div class="step-content">
-          <p class="step-number">25 / 31 · Explain more people</p><h2 id="many-people-heading">Repeat the same calculation.</h2>
-          <ul class="slide-points"><li>125 constructed profiles; one dot per feature per person.</li><li>These 125 profiles are being explained; the same eight background rows define every explanation.</li></ul>
+          <p class="step-number">25 / 31 · Explain more people</p><h2 id="many-people-heading">Suppose we had a larger dataset.</h2>
+          <ul class="slide-points"><li>One SHAP value per feature for each person.</li><li>Use the same model and reference background.</li></ul>
         </div></section>
         <section class="step aggregate-step" id="beeswarm" data-step="25" aria-labelledby="beeswarm-heading"><div class="step-content">
           <p class="step-number">26 / 31 · Make overlap visible</p><h2 id="beeswarm-heading">From waterfalls to a beeswarm.</h2>
@@ -250,7 +250,7 @@
         </div></section>
         <section class="step aggregate-step" id="signed-average" data-step="27" aria-labelledby="signed-average-heading"><div class="step-content">
           <p class="step-number">28 / 31 · Opposing contributions cancel</p><h2 id="signed-average-heading">A signed average can hide magnitude.</h2>
-          <ul class="slide-points"><li>Ability and neighborhood have positive and negative contributions.</li><li>For this balanced grid, all three signed averages are zero.</li></ul>
+          <ul class="slide-points"><li>Ability and neighborhood have positive and negative contributions.</li><li>Here, all three signed averages are zero.</li></ul>
         </div></section>
         <section class="step aggregate-step" id="absolute-values" data-step="28" aria-labelledby="absolute-values-heading"><div class="step-content">
           <p class="step-number">29 / 31 · Measure distance from zero</p><h2 id="absolute-values-heading">Keep the size of every contribution.</h2>
@@ -258,11 +258,11 @@
         </div></section>
         <section class="step aggregate-step" id="global-importance" data-step="29" aria-labelledby="global-importance-heading"><div class="step-content">
           <p class="step-number">30 / 31 · Average the distances</p><h2 id="global-importance-heading">One summary for each feature.</h2>
-          <ul class="slide-points"><li>Average the 125 absolute SHAP values in each row.</li><li>The bar measures typical contribution magnitude.</li></ul>
+          <ul class="slide-points"><li>Average the absolute SHAP values across people in each feature row.</li><li>The bar measures typical contribution magnitude.</li></ul>
         </div></section>
         <section class="step aggregate-step" id="importance-ranking" data-step="30" aria-labelledby="importance-ranking-heading"><div class="step-content">
-          <p class="step-number">31 / 31 · Rank the averages</p><h2 id="importance-ranking-heading">Global importance for these profiles.</h2>
-          <ul class="slide-points"><li>Neighborhood: 7.2; ability: 3.24; experience: 1.2.</li><li>The ranking depends on the model, background, and profiles being summarized. Units: $1,000/year.</li></ul>
+          <p class="step-number">31 / 31 · Rank the averages</p><h2 id="importance-ranking-heading">Global importance for this dataset.</h2>
+          <ul class="slide-points"><li>Neighborhood: 7.2; ability: 3.24; experience: 1.2.</li><li>The ranking depends on the model, reference background, and dataset being explained. Units: $1,000/year.</li></ul>
         </div></section>
       </div>
     </div>
@@ -282,7 +282,7 @@
         <p id="coalition-value" aria-live="polite"></p>
       </details>
       <details><summary>Explore a person’s waterfall</summary>
-        <p>The 125 explained profiles form a grid of five values for each input: ability and experience from 0 to 1, and neighborhood opportunity from −1 to +1. These profiles are separate from the eight reference rows; the model, background, and baseline remain fixed.</p>
+        <p>The figures illustrate a larger dataset using 125 constructed profiles: five values for each input, with ability and experience from 0 to 1, and neighborhood opportunity from −1 to +1. Each explanation uses the same eight reference profiles, fixed model, and baseline.</p>
         <div class="requires-javascript">
           <p>Select a profile to see all three contributions together. Selecting a dot in the colored beeswarm opens the same explanation.</p>
           <label for="population-select">Constructed profile</label><select id="population-select"></select>
