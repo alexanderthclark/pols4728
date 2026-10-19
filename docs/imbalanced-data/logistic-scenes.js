@@ -17,7 +17,7 @@
     ['Logistic regression assumes linear log odds.','The model makes log odds a straight line in the predictor. Here, assume that relationship is also the truth.'],
     ['Write the probabilities as counts.','Within each group sharing a predictor value, divide the positive and negative counts by the group total.'],
     ['Cancel the shared total.','The group total drops out. Log odds is the logarithm of the positive-to-negative count ratio.'],
-    ['Keep positives. Thin the negatives.','Keep every positive and randomly retain the same share s of negatives in each x group.'],
+    ['Downsampling: keep positives, thin the negatives.','Keep every positive and randomly retain the same share s of negatives in each x group.'],
     ['One sampling share, one constant shift.','Dividing the odds by s subtracts log s from the log odds. Every group gets the same shift.'],
     ['Only the intercept changes.','With 10% of negatives retained, both points rise by 2.30. The sampled line is parallel to the population line.'],
     ['Prior correction shifts it back.','Shift the sampled intercept back to recover the population line: the prior correction in King and Zeng’s rare-events work.']
