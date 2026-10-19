@@ -7,6 +7,7 @@ export function createMotionView({getDraws,getRisk}){
  const controllers=new Map();
  const fmt=(v,d=2)=>Number(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
  const exact=v=>Number(v).toLocaleString('en-US',{maximumFractionDigits:4});
+ const tick=v=>Number(v).toLocaleString('en-US',{maximumFractionDigits:2});
 
  function renderer(root,scene){
   const all=selector=>[...root.querySelectorAll(selector)];
@@ -60,7 +61,7 @@ export function createMotionView({getDraws,getRisk}){
    const subtract=easeInOut(phase(t,0,.63)),ymax=lerp(110,10,easeInOut(phase(t,.63,.95))),outcomeY=y=>outcomeBottom-(y+10)/(ymax+10)*outcomeSpan;
    outcomePoints.forEach(({el,v:[i,finalY]})=>{const r=rows[i];el.setAttribute('transform',`translate(0 ${outcomeY(r.Y-subtract*r.yhat)-finalY})`);el.querySelector('text').style.opacity=String(phase(t,.8,.98));});
    outcomeMeans.forEach(({el,v:[d,finalY],value})=>{const y=(d?90:60)-subtract*(d?86.25:63.75);el.setAttribute('transform',`translate(0 ${outcomeY(y)-finalY})`);value.textContent=fmt(y,2);});
-   if(scene===13){outcomeTicks.forEach((el,i)=>{el.textContent=fmt(-10+(ymax+10)*i/4,0);});zeroLine.setAttribute('y1',outcomeY(0));zeroLine.setAttribute('y2',outcomeY(0));outcomeAxis.textContent=t<.63?'Subtracting ŷ(X) from Y (points)':'Adjusted score R (points)';}
+   if(scene===13){outcomeTicks.forEach((el,i)=>{el.textContent=tick(-10+(ymax+10)*i/4);});zeroLine.setAttribute('y1',outcomeY(0));zeroLine.setAttribute('y2',outcomeY(0));outcomeAxis.textContent=t<.63?'Subtracting ŷ(X) from Y (points)':'Adjusted score R (points)';}
    const treatmentProgress=easeInOut(phase(t,.08,.78));
    treatmentPoints.forEach(({el,dx})=>el.setAttribute('transform',`translate(${dx*(1-treatmentProgress)} 0)`));
    if(treatmentAxis)treatmentAxis.textContent=treatmentProgress<1?'Subtracting ê(X) from D':'Adjusted treatment T = D − ê(X)';
@@ -87,7 +88,7 @@ export function createMotionView({getDraws,getRisk}){
     t<.3?'Add average squared bias.':t<.63?'Add prediction variance.':t<.86?'Add fresh outcome noise.':'The total is expected prediction MSE.',
     `Change noise variance to m = ${fmt(noiseM,0)}; watch the ranking.`,
     t<.85?'Give each student a leaf; move its prediction onto Y.':'Every prediction matches Y; every residual is zero.',
-    t<.5?'Carry the fitted prediction to held-out students.':'The same expected adjustment cancels across groups.',
+    t<.5?'Apply the fitted tree to held-out students.':'The same expected adjustment cancels across groups.',
     t<.8?'Count the low- and high-score students in each group.':'The 30-point gap combines 20 baseline points and 10 effect points.',
     t<.7?'Split at 55 and form the two outcome means.':'The leaf gap includes unequal tutoring rates.',
     t<.63?`Subtract ${fmt(subtract*100,0)}% of each fitted outcome.`:t<.95?'Zoom into the completed residuals; axis labels follow the scale.':'Outcome residual means: −3.75 and +3.75.',

@@ -1,5 +1,5 @@
 import {coarsePrediction, randomModelSelection, sampleCarnies, carnieMoments, integratedCarnies, tutoringRows, tutoringSummary} from './model.mjs';
-import {createMotionView} from './animate.js';
+import {createMotionView} from './animate.js?v=6';
 import {sceneProgress, activeScene} from './motion.mjs';
 
 document.body.classList.remove('no-js');
@@ -34,9 +34,9 @@ const sceneInfo = [
  ['Question 2 · c','A small change can cross a reporting threshold','Detail view near x = 365 days. Carnie 3 turns tiny differences in fitted lines into 365-day jumps. These panels intentionally have different vertical scales.'],
  ['Question 2 · d','Compare total prediction error','All three total MSEs include the same 3.65 days² of outcome noise. Bars use a common linear scale; direct values retain the small errors.'],
  ['Question 2 · d','At very large noise, bounded reports can win','Total MSE includes fresh outcome noise. The horizontal scale is logarithmic; equal distances represent equal ratios.'],
- ['Question 3 · a(i)','One student per leaf removes every residual','Start with the overall mean, ȳ = 75. As each leaf memorizes its student, its prediction moves to the observed outcome and the residual shrinks to zero.'],
+ ['Question 3 · a(i)','One student per leaf removes every residual','Eight schematic students, with randomly assigned tutoring. Start at their overall mean, ȳ = 75. Each leaf then memorizes its student and the residual shrinks to zero.'],
  ['Question 3 · a(ii)','Hold out students before fitting the tree','The evaluation outcomes never set the fitted predictions. Random assignment makes the expected adjustment the same in both evaluation groups.'],
- ['Question 3 · b(i)','A 30-point gap contains a 10-point effect','Every square is one of the quiz’s 32 students. Tutored students contain more high-score students, adding a 20-point baseline difference.'],
+ ['Question 3 · b(i)','A 30-point gap contains a 10-point effect','Now use the 32-student observational example. Every square is one student. More tutored students have high baseline scores, adding a 20-point baseline difference.'],
  ['Question 3 · b(ii)','The outcome tree learns two group means','A split at 55 separates the low and high score groups. The 45-point prediction gap includes 40 baseline points and 5 points from different tutoring rates.'],
  ['Question 3 · b(iii)','Outcome adjustment alone leaves a 7.5-point gap','Marker area represents student count. Comparing outcome residuals by the original tutoring indicator yields 3.75 − (−3.75) = 7.5.'],
  ['Question 3 · b(iv)','Adjust tutoring on the same score groups','The remaining outcome and treatment variation satisfies R = 10T in all four groups. Marker area represents the number of students.'],
@@ -240,7 +240,8 @@ function holdout(w){
  const ty=compact?110:145;
  b+=wipe(line(bw/2,ty,bw+25+bw/2,ty,'stroke="var(--blue)" stroke-width="1.5"'),bw/2,ty-5,bw+25,10,0,.45);
  b+=circle(bw/2,ty,4,`data-transfer="${bw/2},${bw+25+bw/2}" fill="var(--blue)"`);
- b+=text(cx,compact?138:173,'Conditional on the fitted tree:','text-anchor="middle"');
+ b+=text(cx,compact?138:173,'f(X): score without tutoring','text-anchor="middle" class="small"');
+ b+=text(cx,compact?153:191,'Conditional on the fitted tree:','text-anchor="middle"');
  b+=text(cx,compact?174:216,'Tutored: E[f(X) − ŷ(X)] + 10','text-anchor="middle" class="label"');
  b+=text(cx,compact?207:254,'Untutored: E[f(X) − ŷ(X)]','text-anchor="middle" class="label"');
  b+=line(15,compact?227:279,w-15,compact?227:279,'stroke="var(--rule)"');

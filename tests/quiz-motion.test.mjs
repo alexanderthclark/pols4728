@@ -195,3 +195,32 @@ test('outcome adjustment uses the responsive plot geometry and keeps ticks align
   assert.equal(point.getAttribute('transform'), original);
   assert.equal(axis.textContent, 'Subtracting ŷ(X) from Y (points)');
 });
+
+test('intermediate outcome zoom ticks preserve fractions on desktop and compact plots, including reverse scrolling', () => {
+  for (const [bottom, span] of [[288, 253], [226, 194]]) {
+    const {root, view} = fixture();
+    const ticks = Array.from({length: 5}, () => new Element());
+    const zero = new Element();
+    root.bind('[data-outcome-scale]', new Element({outcomeScale: `${bottom},${span}`}))
+      .bind('[data-y-tick]', ...ticks).bind('[data-zero-line]', zero)
+      .bind('[data-outcome-axis]', new Element());
+    const labels = () => ticks.map(tick => tick.textContent);
+    view.mount(root, 13);
+    assert.deepEqual(labels(), ['-10', '20', '50', '80', '110']);
+
+    // The halfway zoom has a 60-point upper bound: equal tick intervals are 17.5.
+    view.update(root, 0.79);
+    assert.deepEqual(labels(), ['-10', '7.5', '25', '42.5', '60']);
+    closeTo(Number(zero.getAttribute('y1')), bottom - 10 / 70 * span);
+    const halfwayZero = zero.getAttribute('y1');
+
+    // Less tidy intermediate values use at most two decimals, without padding.
+    view.update(root, 0.7);
+    assert.deepEqual(labels(), ['-10', '16.93', '43.87', '70.8', '97.74']);
+    view.update(root, 1);
+    assert.deepEqual(labels(), ['-10', '-5', '0', '5', '10']);
+    view.update(root, 0.79);
+    assert.deepEqual(labels(), ['-10', '7.5', '25', '42.5', '60']);
+    assert.equal(zero.getAttribute('y1'), halfwayZero);
+  }
+});

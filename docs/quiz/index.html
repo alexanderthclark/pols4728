@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#ffffff">
   <title>Prediction, selection, and causal adjustment · POLS 4728</title>
   <link rel="stylesheet" href="style.css?v=2">
-  <script type="module" src="story.js?v=4"></script>
+  <script type="module" src="story.js?v=6"></script>
 </head>
 <body class="no-js">
   <a class="skip-link" href="#story">Skip to the worked answers</a>
@@ -251,7 +251,8 @@
         <div class="chapter-intro">
           <p class="kicker">Question 3 / 16 points</p>
           <h2 id="question-3-title">Adjusting for pre-tutoring scores</h2>
-          <p>Tutoring adds 10 points to every student’s outcome. We first examine fitting and evaluating the outcome model on the same students. Then we consider observational data, where students with higher baseline scores receive tutoring more often.</p>
+          <p>Let <math><mi>X</mi></math> be the pre-tutoring score, <math><mi>D</mi><mo>=</mo><mn>1</mn></math> indicate tutoring (0 otherwise), and <math><mi>Y</mi></math> be the final exam score. The score without tutoring, <math><mi>f</mi><mo>(</mo><mi>X</mi><mo>)</mo></math>, is 50 below <math><mi>X</mi><mo>=</mo><mn>60</mn></math> and 90 at or above it. Tutoring adds 10 points: <math><mi>Y</mi><mo>=</mo><mi>f</mi><mo>(</mo><mi>X</mi><mo>)</mo><mo>+</mo><mn>10</mn><mi>D</mi></math>.</p>
+          <p>We predict <math><mi>Y</mi></math> from <math><mi>X</mi></math> alone using <math><mover><mi>y</mi><mo>^</mo></mover><mo>(</mo><mi>X</mi><mo>)</mo></math> and form residuals <math><mi>R</mi><mo>=</mo><mi>Y</mi><mo>−</mo><mover><mi>y</mi><mo>^</mo></mover><mo>(</mo><mi>X</mi><mo>)</mo></math>. The proposed estimate subtracts the untutored mean residual from the tutored mean residual. First, tutoring is randomly assigned. We then turn to observational data, where tutoring is more common at higher pre-tutoring scores.</p>
           <details class="question">
             <summary>Read Question 3</summary>
             <div class="question-body">
@@ -289,11 +290,11 @@
           <div class="scene-copy">
             <p class="part-label">Question 3(a)(i)</p>
             <h3 id="step-9-title">Memorization makes every in-sample residual zero</h3>
-            <p class="scene-summary">With distinct pre-tutoring scores and one student per leaf, the tree reproduces every observed outcome. The in-sample residual <math><mi>R</mi><mo>=</mo><mi>Y</mi><mo>−</mo><mover><mi>y</mi><mo>^</mo></mover><mo>(</mo><mi>X</mi><mo>)</mo></math> is zero for every student, so the proposed treatment estimate is zero rather than 10. Excluding treatment from the predictor list does not prevent the tree from memorizing each student’s treatment contribution.</p>
+            <p class="scene-summary">First, tutoring is randomly assigned. With distinct pre-tutoring scores and one student per leaf, the tree reproduces every observed outcome. The in-sample residual <math><mi>R</mi><mo>=</mo><mi>Y</mi><mo>−</mo><mover><mi>y</mi><mo>^</mo></mover><mo>(</mo><mi>X</mi><mo>)</mo></math> is zero for every student, so the proposed treatment estimate is zero rather than 10. Excluding treatment from the predictor list does not prevent the tree from memorizing each student’s treatment contribution.</p>
             <details class="calculation">
               <summary>Read the calculation and assumptions</summary>
               <div class="calculation-body">
-                <p>A full-sample tree with one student per leaf predicts each observed outcome exactly. Thus <math><mover><mi>y</mi><mo>^</mo></mover><mo>(</mo><msub><mi>X</mi><mi>i</mi></msub><mo>)</mo><mo>=</mo><msub><mi>Y</mi><mi>i</mi></msub></math>, every adjusted outcome is zero, and</p>
+                <p>A full-sample tree with one student per leaf predicts each observed outcome exactly. Thus <math><mover><mi>y</mi><mo>^</mo></mover><mo>(</mo><msub><mi>X</mi><mi>i</mi></msub><mo>)</mo><mo>=</mo><msub><mi>Y</mi><mi>i</mi></msub></math>, and every adjusted outcome is zero. With both tutoring groups represented,</p>
                 <div class="equation"><math display="block"><mover><mi>τ</mi><mo>^</mo></mover><mo>=</mo><mn>0</mn><mo>−</mo><mn>0</mn><mo>=</mo><mn>0</mn><mo>.</mo></math></div>
                 <p>This misses the true 10-point tutoring effect. Distinct pre-tutoring scores let the tree identify individual students and reproduce their outcomes, including the contribution of treatment. Excluding <math><mi>D</mi></math> from the predictor list does not prevent the outcome model from memorizing that contribution.</p>
               </div>
@@ -321,7 +322,7 @@
           <div class="scene-copy">
             <p class="part-label">Question 3(b)(i)</p>
             <h3 id="step-11-title">The observed gap combines baseline and treatment differences</h3>
-            <p class="scene-summary">Tutoring adds 10 points to every student, so the ATE is 10. Yet the tutored students average 90 and the untutored students average 60. More tutored students have high baseline scores: that composition difference contributes 20 points to the observed 30-point gap.</p>
+            <p class="scene-summary">Now consider 32 students whose tutoring is more common at higher pre-tutoring scores. Twelve of the 16 tutored students have high baseline scores, compared with four of the 16 untutored students. Their mean outcomes are 90 and 60. The observed 30-point gap combines a 20-point baseline difference with the 10-point causal effect.</p>
             <details class="calculation">
               <summary>Read the calculation and assumptions</summary>
               <div class="calculation-body">
@@ -371,7 +372,7 @@
           <div class="scene-copy">
             <p class="part-label">Question 3(b)(iv)</p>
             <h3 id="step-14-title">Adjust treatment within the same score groups</h3>
-            <p class="scene-summary">The treatment tree predicts tutoring rates of 0.25 in the low-score group and 0.75 in the high-score group. Subtract these from treatment to obtain <math><mi>T</mi><mo>=</mo><mi>D</mi><mo>−</mo><mover><mi>e</mi><mo>^</mo></mover><mo>(</mo><mi>X</mi><mo>)</mo></math>. In all four groups, the adjusted outcome satisfies <math><mi>R</mi><mo>=</mo><mn>10</mn><mi>T</mi></math>. The points lie on a line through the origin with slope 10; marker area represents student count.</p>
+            <p class="scene-summary">The treatment tree predicts the tutoring rate <math><mover><mi>e</mi><mo>^</mo></mover><mo>(</mo><mi>X</mi><mo>)</mo></math>: 0.25 in the low-score group and 0.75 in the high-score group. Subtract this prediction from treatment to obtain <math><mi>T</mi><mo>=</mo><mi>D</mi><mo>−</mo><mover><mi>e</mi><mo>^</mo></mover><mo>(</mo><mi>X</mi><mo>)</mo></math>. In all four groups, the adjusted outcome satisfies <math><mi>R</mi><mo>=</mo><mn>10</mn><mi>T</mi></math>. The points lie on a line through the origin with slope 10; marker area represents student count.</p>
             <details class="calculation">
               <summary>Read the calculation and assumptions</summary>
               <div class="calculation-body">
@@ -387,7 +388,7 @@
           <div class="scene-copy">
             <p class="part-label">Question 3(b)(iv) / The weighted calculation</p>
             <h3 id="step-15-title">The count-weighted regression recovers 10</h3>
-            <p class="scene-summary">Count every student when summing across the four combinations. The adjusted-treatment squares sum to 6, and the treatment–outcome products sum to 60. Regressing the adjusted outcome on adjusted treatment without an intercept therefore gives 60 ÷ 6 = 10. Both sides now use the same remaining variation within score groups.</p>
+            <p class="scene-summary">Count every student when summing across the four combinations. The adjusted-treatment squares sum to 6, and the treatment–outcome products sum to 60. The estimated effect <math><mover><mi>τ</mi><mo>^</mo></mover></math> is the slope without an intercept: 60 ÷ 6 = 10. Both sides now use the same remaining variation within score groups.</p>
             <details class="calculation">
               <summary>Read the calculation and assumptions</summary>
               <div class="calculation-body">
@@ -395,7 +396,7 @@
                 <div class="equation"><math display="block"><mtable columnalign="left"><mtr><mtd><munder><mo>∑</mo><mi>i</mi></munder><msubsup><mi>T</mi><mi>i</mi><mn>2</mn></msubsup><mo>=</mo><mn>12</mn><mo>(</mo><msup><mn>0.25</mn><mn>2</mn></msup><mo>)</mo><mo>+</mo><mn>4</mn><mo>(</mo><msup><mn>0.75</mn><mn>2</mn></msup><mo>)</mo></mtd></mtr><mtr><mtd><mspace width="2em"/><mo>+</mo><mn>4</mn><mo>(</mo><msup><mn>0.75</mn><mn>2</mn></msup><mo>)</mo><mo>+</mo><mn>12</mn><mo>(</mo><msup><mn>0.25</mn><mn>2</mn></msup><mo>)</mo></mtd></mtr><mtr><mtd><mspace width="2em"/><mo>=</mo><mn>6</mn><mo>.</mo></mtd></mtr></mtable></math></div>
                 <p>Because each adjusted outcome is ten times its adjusted treatment, the numerator is <math><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>T</mi><mi>i</mi></msub><msub><mi>R</mi><mi>i</mi></msub><mo>=</mo><mn>10</mn><munder><mo>∑</mo><mi>i</mi></munder><msubsup><mi>T</mi><mi>i</mi><mn>2</mn></msubsup><mo>=</mo><mn>60</mn></math>. The estimated effect is</p>
                 <div class="equation"><math display="block"><mover><mi>τ</mi><mo>^</mo></mover><mo>=</mo><mfrac><mn>60</mn><mn>6</mn></mfrac><mo>=</mo><mn>10</mn><mspace width="0.3em"/><mtext>points.</mtext></math></div>
-                <p>Adjusting treatment removes its association with the pre-tutoring score group. Regressing the adjusted outcome on the adjusted treatment compares the same remaining variation on both sides, recovering the tutoring effect in this example.</p>
+                <p>Subtracting each score group’s tutoring rate makes adjusted treatment average zero within that group. Regressing the adjusted outcome on the adjusted treatment compares the same remaining variation on both sides, recovering the tutoring effect in this example.</p>
               </div>
             </details>
           </div>
