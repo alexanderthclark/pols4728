@@ -169,9 +169,13 @@ function renderBackground(mask, beforeMask) {
   const before = beforeMask === undefined ? null : coalition(state.observation, beforeMask);
   const after = coalition(state.observation, mask);
   const newFeature = before ? 0 : -1;
-  const heading = beforeMask === 2 ? 'Reveal ability after neighborhood' : before ? 'Reveal ability first' : 'Start at the background average';
-  const explanation = beforeMask === 2 ? `Keep neighborhood at ${inputNumber(state.observation.values[1])} in both predictions; then fix ability to ${inputNumber(state.observation.values[0])}.` : before ? `Fix ability to ${inputNumber(state.observation.values[0])}; keep neighborhood and experience from each reference row.` : 'Use every reference row unchanged. Average the model’s eight predictions.';
-  visual.innerHTML = `<h3>${heading}</h3>${before ? joiningMarkup(beforeMask, 0) : `<div class="coalition-heading">${valueMarkup(mask)}</div>`}<p class="formula-table-context">${explanation}</p><p class="focal-values">Person ${symbol('x')}: ${featureLabels.map((label,index) => `<span class="feature-input">${inlineMath(`<mtext>${escape(label)}</mtext><mo>=</mo>${numericBody(inputNumber(state.observation.values[index]))}`)}</span>`).join(' · ')}</p><div class="table-marginal"><span>${before ? 'Ability’s marginal ($1,000/year)' : 'Baseline ($1,000/year)'}</span><span class="${before && after.value - before.value < 0 ? 'negative' : ''}">${before ? inlineMath(`${numericBody(number(after.value))}<mo>−</mo>${numericBody(number(before.value))}<mo>=</mo>${numericBody(signed(after.value - before.value))}`) : `${number(after.value)}`}</span></div>${inputTable(mask, {beforeMask, newFeature})}`;
+  const heading = beforeMask === 2 ? 'Reveal ability after neighborhood' : before ? 'Reveal ability first' : `Find ${valueMarkup(mask)}`;
+  const explanation = beforeMask === 2 ? `Keep neighborhood at ${inputNumber(state.observation.values[1])} in both predictions; then fix ability to ${inputNumber(state.observation.values[0])}.` : `Fix ability to ${inputNumber(state.observation.values[0])}; keep neighborhood and experience from each reference row.`;
+  const joining = before ? `${joiningMarkup(beforeMask, 0)}<p class="formula-table-context">${explanation}</p>` : '';
+  const result = before
+    ? `<div class="table-marginal"><span>Ability’s marginal ($1,000/year)</span><span class="${after.value - before.value < 0 ? 'negative' : ''}">${inlineMath(`${numericBody(number(after.value))}<mo>−</mo>${numericBody(number(before.value))}<mo>=</mo>${numericBody(signed(after.value - before.value))}`)}</span></div>`
+    : `<p class="baseline-summary"><span class="baseline-label">Baseline:</span><span class="baseline-value">${number(after.value)}</span><span class="baseline-unit">($1,000/year)</span></p>`;
+  visual.innerHTML = `<h3>${heading}</h3>${joining}<p class="focal-values">${before ? 'Person' : 'Selected observation'} ${symbol('x')}: ${featureLabels.map((label,index) => `<span class="feature-input">${inlineMath(`<mtext>${escape(label)}</mtext><mo>=</mo>${numericBody(inputNumber(state.observation.values[index]))}`)}</span>`).join(' · ')}</p>${result}${inputTable(mask, {beforeMask, newFeature})}`;
 }
 
 function renderWeights() {
