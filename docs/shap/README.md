@@ -174,15 +174,18 @@ The story has 30 teaching frames, plus the unchanged opening title scene.
 When a chart exceeds the available figure height, the figure scrolls vertically
 and shows a scroll hint. Aggregate charts retain page-scroll chaining at their
 edges and reserve scrollbar space so the chart layout remains stable.
-Each worked frame's left column uses two or three short lecture cues in larger type,
-leaving the instructor room to explain the worked figure. The earnings equation
-appears beside its observation in the figure. A concise model and background
+Bread and Peace and the earnings calculations use the full-width pinned stage.
+Essential explanations use 18px text on desktop and 16px on phones; table sources
+stay at least 14px. Before-and-after predictions share one column, and each
+calculation's main result appears before its reference table. The order-weight
+table uses readable group names and explicit Before, After, Marginal, and Weight
+headings. The earnings equation appears with the selected observation. A concise model and background
 note retains the assumptions and interpretation for later reading; the story
 itself introduces the notation and factorial weights.
 The election selector appears after all three OLS fits are introduced. The person
 selector appears when the earnings example begins. Each example retains its
-selection when readers move between them. Frame 12 adds a small prediction
-identity below its order-weight caption:
+selection when readers move between them. Frame 12 adds the prediction
+identity below its order averages:
 `ŷ(x) = ŷ(0, 0) + ϕ_bread(v_x) + ϕ_peace(v_x)`. The zero-input baseline applies to
 this centered additive model.
 The full formula fits on one line in the desktop figure, with type sized to

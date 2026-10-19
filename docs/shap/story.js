@@ -3,7 +3,7 @@ import { renderWaterfall } from './waterfall.js';
 import { buildPopulation } from './aggregate.mjs';
 import { renderAggregate } from './aggregate-view.js';
 import { featureLabels, shapleyFormulaMarkup, valueMarkup, joiningMarkup, predictionMarkup } from './formula.js';
-import { validateBreadPeace, breadPeaceFacts, renderBreadPeace, breadPeaceDecompositionMarkup, breadPeaceMeanPredictionMarkup } from './bread-peace.js';
+import { validateBreadPeace, breadPeaceFacts, renderBreadPeace } from './bread-peace.js';
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
@@ -49,7 +49,9 @@ const formulaStops = {
   'feature-credit':{focus:'result',symbol:creditMarkup(),meaning:`Feature ${symbol('i')}’s marginal contribution is the change in the average prediction when we also fix it to its value in ${symbol('x')}.`,note:'Average these marginals across orders to get its SHAP value, in prediction units.'},
 };
 const transitionScenes = new Set(['bread-peace-intro', 'earnings-intro']);
-const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene) || ['ols-fits','ols-refit','ols-recap'].includes(scene);
+const readableScenes = new Set(['ols-model','ols-income-first','ols-fatalities-first','ols-shap','observation','background','reveal-ability','neighborhood-first','weights','shap-value']);
+steps.filter(step => readableScenes.has(step.id)).forEach(step => step.classList.add('readable-step'));
+const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene) || readableScenes.has(scene) || ['ols-fits','ols-refit','ols-recap'].includes(scene);
 const canonicalSceneId = id => ({'joining-feature':'feature-credit','preceding-features':'background-average','value-function':'background-average'}[id] || id);
 const visual = $('#visual'), shell = $('.stage-shell'), story = $('#story');
 const figureScrollHint = $('#figure-scroll-hint');
@@ -140,7 +142,7 @@ function renderTransition(scene) {
 function renderObservation() {
   const observation = state.observation;
   const equation = $('#observation .prediction-equation').outerHTML;
-  visual.innerHTML = `<h3>The earnings model</h3>${equation}<p class="training-note">${symbol('f')} is our earnings prediction rule · output in $1,000/year</p><div class="observation-card"><span class="date">Observation ${symbol('x')} · ${escape(observation.name)}</span><dl>${state.data.features.map((feature, index) => `<dt>${escape(feature.label)}</dt><dd>${inputNumber(observation.values[index])}${index === 1 ? observation.values[1] < 0 ? ' · adverse' : ' · favorable' : ''}</dd>`).join('')}</dl><div class="prediction-number">${dollars(observation.prediction)}<span class="prediction-label">${predictionMarkup()} ${inlineMath(`<mo>=</mo>${applicationBody('<mi>f</mi>', '<mi>x</mi>')}`)} · predicted annual earnings</span></div></div><p class="input-note">Hold this model fixed throughout the explanation.</p>`;
+  visual.innerHTML = `<h3>Ability’s contribution depends on neighborhood</h3>${equation}<p class="training-note">Ability and experience: 0–1. Neighborhood: −1 (adverse) to +1 (favorable). Output: $1,000/year.</p><div class="observation-card"><span class="date">Observation ${symbol('x')} · ${escape(observation.name)}</span><dl>${state.data.features.map((feature, index) => `<dt>${escape(feature.label)}</dt><dd>${inputNumber(observation.values[index])}${index === 1 ? observation.values[1] < 0 ? ' · adverse' : ' · favorable' : ''}</dd>`).join('')}</dl><div class="prediction-number">${dollars(observation.prediction)}<span class="prediction-label">${predictionMarkup()} ${inlineMath(`<mo>=</mo>${applicationBody('<mi>f</mi>', '<mi>x</mi>')}`)} · predicted annual earnings</span></div></div><p class="input-note">Hold this model fixed throughout the explanation.</p>`;
 }
 
 function inputCell(background, mask, index, newFeature = -1) {
@@ -153,14 +155,17 @@ function inputCell(background, mask, index, newFeature = -1) {
 function inputTable(mask, {beforeMask, newFeature = -1} = {}) {
   const group = coalition(state.observation, mask);
   const before = beforeMask === undefined ? null : coalition(state.observation, beforeMask);
-  return `<table class="input-table"><caption>All 8 reference rows · predictions in $1,000/year</caption><thead><tr><th scope="col">Row</th>${state.data.features.map((feature, index) => `<th scope="col" title="${escape(feature.description)}">${escape(feature.shortLabel)}<small>${mask & (1 << index) ? 'Included<br>fixed to person' : 'Excluded<br>from background'}</small></th>`).join('')}${before ? `<th scope="col">${yHat}<small>Before</small></th><th scope="col">${yHat}<small>After</small></th>` : `<th scope="col">${yHat}<small>Prediction</small></th>`}</tr></thead><tbody>${state.data.background.map((background, row) => `<tr><td>${row + 1}</td>${state.data.features.map((_, index) => inputCell(background, mask, index, newFeature)).join('')}${before ? `<td>${number(before.predictions[row])}</td>` : ''}<td>${number(group.predictions[row])}</td></tr>`).join('')}</tbody><tfoot><tr><th scope="row" colspan="4">Average of all 8</th>${before ? `<td>${number(before.value)}</td>` : ''}<td>${number(group.value)}</td></tr></tfoot></table>`;
+  const predictionPair = (after, prior) => prior === undefined ? number(after) : `<span class="prediction-pair"><span class="prediction-before">${number(prior)}</span><span class="prediction-arrow" aria-label="becomes"> → </span><span class="prediction-after">${number(after)}</span></span>`;
+  return `<table class="input-table"><caption>All 8 reference rows · predictions in $1,000/year</caption><thead><tr><th scope="col" class="reference-row">Row</th>${state.data.features.map((feature, index) => `<th scope="col" title="${escape(feature.description)}">${escape(feature.shortLabel)}<small>${mask & (1 << index) ? index === newFeature ? 'Background → person' : 'From person' : 'Background'}</small></th>`).join('')}<th scope="col">${yHat}<small>${before ? 'Before → After' : 'Prediction'}</small></th></tr></thead><tbody>${state.data.background.map((background, row) => `<tr><td class="reference-row">${row + 1}</td>${state.data.features.map((_, index) => inputCell(background, mask, index, newFeature)).join('')}<td>${predictionPair(group.predictions[row],before?.predictions[row])}</td></tr>`).join('')}</tbody><tfoot><tr><td class="reference-row" aria-hidden="true"></td><th scope="row" colspan="3">Average of all 8</th><td>${predictionPair(group.value,before?.value)}</td></tr></tfoot></table>`;
 }
 
 function renderBackground(mask, beforeMask) {
   const before = beforeMask === undefined ? null : coalition(state.observation, beforeMask);
   const after = coalition(state.observation, mask);
   const newFeature = before ? 0 : -1;
-  visual.innerHTML = `${before ? joiningMarkup(beforeMask, 0) : `<h3 class="coalition-heading">${valueMarkup(mask)}</h3>`}<p class="formula-table-context">${before ? `${coalitionDefinitionMarkup(beforeMask)} · ${inlineMath('<mi>i</mi><mo>=</mo><mtext>ability</mtext>')} · ${inlineMath('<mtext>after</mtext><mo>−</mo><mtext>before</mtext>')}` : `${coalitionDefinitionMarkup(0)} · no columns fixed to this person`}</p><p class="focal-values">${symbol('x')}: ${featureLabels.map((label,index) => `<span class="feature-input">${inlineMath(`<mtext>${escape(label)}</mtext><mo>=</mo>${numericBody(inputNumber(state.observation.values[index]))}`)}</span>`).join(' · ')}</p>${inputTable(mask, {beforeMask, newFeature})}<div class="table-marginal"><span>${before ? 'Ability’s marginal contribution' : 'Value of the empty coalition'}</span><span class="${before && after.value - before.value < 0 ? 'negative' : ''}">${before ? inlineMath(`${numericBody(number(after.value))}<mo>−</mo>${numericBody(number(before.value))}<mo>=</mo>${numericBody(signed(after.value - before.value))}`) : `${number(after.value)}`}</span></div>`;
+  const heading = beforeMask === 2 ? 'Reveal ability after neighborhood' : before ? 'Reveal ability first' : 'Start at the background average';
+  const explanation = beforeMask === 2 ? `Keep neighborhood at ${inputNumber(state.observation.values[1])} in both predictions; then fix ability to ${inputNumber(state.observation.values[0])}.` : before ? `Fix ability to ${inputNumber(state.observation.values[0])}; keep neighborhood and experience from each reference row.` : 'Use every reference row unchanged. Average the model’s eight predictions.';
+  visual.innerHTML = `<h3>${heading}</h3>${before ? joiningMarkup(beforeMask, 0) : `<div class="coalition-heading">${valueMarkup(mask)}</div>`}<p class="formula-table-context">${explanation}</p><p class="focal-values">Person ${symbol('x')}: ${featureLabels.map((label,index) => `<span class="feature-input">${inlineMath(`<mtext>${escape(label)}</mtext><mo>=</mo>${numericBody(inputNumber(state.observation.values[index]))}`)}</span>`).join(' · ')}</p><div class="table-marginal"><span>${before ? 'Ability’s marginal ($1,000/year)' : 'Baseline ($1,000/year)'}</span><span class="${before && after.value - before.value < 0 ? 'negative' : ''}">${before ? inlineMath(`${numericBody(number(after.value))}<mo>−</mo>${numericBody(number(before.value))}<mo>=</mo>${numericBody(signed(after.value - before.value))}`) : `${number(after.value)}`}</span></div>${inputTable(mask, {beforeMask, newFeature})}`;
 }
 
 function renderWeights() {
@@ -171,9 +176,9 @@ function renderWeights() {
       const position = order.features.indexOf(0);
       return order.features.slice(0, position).reduce((result, index) => result | (1 << index), 0) === mask;
     }).length;
-    return `<tr><th scope="row"><span class="feature-set">${inlineMath(setBody(mask))}</span></th><td>${number(coalition(observation, mask).value)}</td><td>${number(coalition(observation, mask | 1).value)}</td><td class="${marginal(observation, 0, mask) < 0 ? 'negative' : ''}">${signed(marginal(observation, 0, mask))}</td><td>${fractionMarkup(count, 6)}</td></tr>`;
+    return `<tr><th scope="row"><span class="feature-set">${escape(groupName(mask, true))}</span></th><td>${number(coalition(observation, mask).value)}</td><td>${number(coalition(observation, mask | 1).value)}</td><td class="${marginal(observation, 0, mask) < 0 ? 'negative' : ''}">${signed(marginal(observation, 0, mask))}</td><td>${fractionMarkup(count, 6)}</td></tr>`;
   });
-  visual.innerHTML = `${shapleyFormulaMarkup('weight')}<p class="formula-definitions">${inlineMath('<mi>i</mi><mo>=</mo><mtext>ability</mtext>')} · four possible preceding groups ${symbol('S')}</p><table class="weights-table"><caption>Prediction averages in $1,000/year</caption><thead><tr><th scope="col">${symbol('S')}</th><th scope="col">${valueSymbolMarkup('<mi>S</mi>')}</th><th scope="col">${valueSymbolMarkup('<mi>S</mi><mo>∪</mo><mrow><mo stretchy="false">{</mo><mi>i</mi><mo stretchy="false">}</mo></mrow>')}</th><th scope="col">Difference</th><th scope="col">Weight</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+  visual.innerHTML = `<h3>Four groups before ability joins</h3>${shapleyFormulaMarkup('weight')}<p class="formula-definitions">${inlineMath('<mi>i</mi><mo>=</mo><mtext>ability</mtext>')}. Three features give ${inlineMath('<mn>3</mn><mo>!</mo><mo>=</mo><mn>6</mn>')} orders. Each group’s weight is its fraction of those orders.</p><table class="weights-table"><caption>Prediction averages in $1,000/year</caption><thead><tr><th scope="col">${symbol('S')} · fixed first</th><th scope="col" aria-label="v sub x of S, before adding ability">Before</th><th scope="col" aria-label="v sub x of S union ability, after adding ability">After</th><th scope="col">Marginal</th><th scope="col">Weight</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
 }
 
 function featureContexts() {
@@ -181,8 +186,8 @@ function featureContexts() {
   const partner = feature === 0 ? 1 : feature === 1 ? 0 : null;
   if (partner === null) return [{mask:0,value:marginal(observation, feature, 0),label:'Every preceding context',count:6}];
   return [
-    {mask:0,value:marginal(observation, feature, 0),label:`${state.data.features[partner].shortLabel} still unrevealed`,count:3},
-    {mask:1 << partner,value:marginal(observation, feature, 1 << partner),label:`${state.data.features[partner].shortLabel} already revealed`,count:3},
+    {mask:0,value:marginal(observation, feature, 0),label:`${state.data.features[partner].shortLabel} from background`,count:3},
+    {mask:1 << partner,value:marginal(observation, feature, 1 << partner),label:`${state.data.features[partner].shortLabel} fixed to person`,count:3},
   ];
 }
 
@@ -194,8 +199,8 @@ function updateAverageNarrative() {
   $('#average-definition').textContent = `${feature}: average six orders.`;
   if (contexts.length === 2) {
     const partner = state.feature === 0 ? 'neighborhood' : 'ability';
-    $('#average-context').innerHTML = `Before ${partner}: ${contributions[0]}. After: ${contributions[1]}.`;
-    $('#average-interpretation').innerHTML = `Each weight ${fractionMarkup(3, 6)} → ${credit}.`;
+    $('#average-context').innerHTML = `${partner[0].toUpperCase()+partner.slice(1)} from background: ${contributions[0]}. Fixed to this person: ${contributions[1]}.`;
+    $('#average-interpretation').innerHTML = `Three of six orders in each group. Their weighted average is ${credit}.`;
   } else {
     $('#average-context').innerHTML = `Same marginal in all six orders: ${contributions[0]}.`;
     $('#average-interpretation').innerHTML = `Total weight ${inlineMath('<mn>1</mn>')} → ${credit}.`;
@@ -207,9 +212,9 @@ function renderAverage() {
   const contexts = featureContexts();
   const weightedTerm = context => `${fractionBody(3, 6)}<mo>×</mo>${parenthesesBody(numericBody(signed(context.value)))}`;
   const arithmetic = contexts.length === 2
-    ? `${inlineMath(weightedTerm(contexts[0]))} ${inlineMath(`<mo>+</mo>${weightedTerm(contexts[1])}`)}`
+    ? `${inlineMath(weightedTerm(contexts[0]))} ${inlineMath(`<mo>+</mo>${weightedTerm(contexts[1])}`)} ${inlineMath(`<mo>=</mo>${numericBody(signed(state.observation.shapValues[state.feature]))}`)}`
     : `Total weight ${fractionMarkup(6, 6)}; the contribution is the same in every order.`;
-  visual.innerHTML = `${shapleyFormulaMarkup('sum')}<label class="orders-feature-label" for="feature-select">Feature ${symbol('i')} to explain</label><select id="feature-select">${state.data.features.map((item, index) => `<option value="${index}" ${index === state.feature ? 'selected' : ''}>${escape(item.label)}</option>`).join('')}</select><div class="marginal-contexts">${contexts.map(context => `<div class="context-summary"><span>${escape(context.label)}</span><span class="context-number ${context.value < 0 ? 'negative' : ''}">${signed(context.value)}</span><small>total weight ${fractionMarkup(context.count, 6)}</small></div>`).join('')}</div><div class="shap-average"><span>${escape(feature.label)}’s SHAP value<br>${creditMarkup(`<mtext>${escape(featureLabels[state.feature])}</mtext>`)}</span><span class="number ${state.observation.shapValues[state.feature] < 0 ? 'negative' : ''}">${signed(state.observation.shapValues[state.feature])}</span></div><p class="average-arithmetic">${arithmetic}</p>`;
+  visual.innerHTML = `<h3>Average the marginal contributions</h3><label class="orders-feature-label" for="feature-select">Feature ${symbol('i')} to explain · $1,000/year</label><select id="feature-select">${state.data.features.map((item, index) => `<option value="${index}" ${index === state.feature ? 'selected' : ''}>${escape(item.label)}</option>`).join('')}</select><div class="marginal-contexts">${contexts.map(context => `<div class="context-summary"><span>${escape(context.label)}</span><span class="context-number ${context.value < 0 ? 'negative' : ''}">${signed(context.value)}</span><small>${context.count} of 6 orders</small></div>`).join('')}</div><div class="shap-average"><span>${escape(feature.label)}’s SHAP value<br>${creditMarkup(`<mtext>${escape(featureLabels[state.feature])}</mtext>`)}</span><span class="number ${state.observation.shapValues[state.feature] < 0 ? 'negative' : ''}">${signed(state.observation.shapValues[state.feature])}</span></div><p class="average-arithmetic">${arithmetic}</p>${shapleyFormulaMarkup('sum')}`;
   $('#feature-select').addEventListener('change', event => {state.feature = Number(event.target.value); render();});
 }
 
@@ -276,12 +281,13 @@ function render() {
   const aggregateScene = aggregateScenes.has(scene);
   shell.dataset.scene = scene;
   shell.classList.toggle('is-aggregate', aggregateScene);
+  shell.classList.toggle('is-worked', readableScenes.has(scene) || ['ols-refit','ols-recap'].includes(scene));
   story.classList.add('is-interactive');
   story.dataset.layout = isCenteredScene(scene) ? 'formula' : 'worked';
   const breadScene = scene.startsWith('ols-');
   const selectorContext = breadScene ? 'bread' : 'earnings';
-  const hideCenteredSelector = isCenteredScene(scene) && !['ols-refit','ols-recap'].includes(scene);
-  const hideCaption = isCenteredScene(scene) && scene !== 'ols-refit';
+  const hideCenteredSelector = isCenteredScene(scene) && !readableScenes.has(scene) && !['ols-refit','ols-recap'].includes(scene);
+  const hideCaption = isCenteredScene(scene);
   $('.observation-control').hidden = aggregateScene || hideCenteredSelector || ['ols-model','ols-fits'].includes(scene);
   if (state.selectorContext !== selectorContext) {
     const data = breadScene ? state.breadData : state.data;
@@ -298,8 +304,6 @@ function render() {
   }
   $('#stage-caption').hidden = hideCaption;
   $('#stage-caption').innerHTML = hideCaption ? '' : captions[state.scene];
-  if (scene === 'ols-refit') $('#stage-caption').insertAdjacentHTML('beforeend', breadPeaceMeanPredictionMarkup(state.breadObservation));
-  if (scene === 'ols-shap') $('#stage-caption').insertAdjacentHTML('beforeend', breadPeaceDecompositionMarkup());
   $('#previous').disabled = state.scene === 0;
   $('#next').textContent = state.scene === steps.length-1 ? 'Notes →' : 'Next →';
   if (formulaStops[scene]) renderFormula(scene);
