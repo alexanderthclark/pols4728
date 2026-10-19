@@ -974,3 +974,59 @@ dialog p { font-size:16px; }
   .stage-shell[data-scene="shap-value"].is-worked .context-summary .context-number { font-size:30px; margin:4px 0; }
   .stage-shell[data-scene="shap-value"].is-worked .shap-average { padding:8px 0; margin-top:8px; }
 }
+
+/* The waterfall and population sequence keep one full-width, readable stage. */
+.story-layout.is-interactive .chart-step .step-content { visibility:hidden; }
+.story-layout.is-interactive .chart-step:not(.aggregate-step) { min-height:100svh; }
+.story-layout[data-layout="chart"] .stage-shell {
+  grid-column:1 / -1; height:calc(100svh - 64px); min-height:0; max-height:none;
+  background:var(--paper); z-index:20; border-bottom:0;
+}
+.stage-shell.is-chart .stage-top,
+.stage-shell.is-chart .observation-control,
+.stage-shell.is-chart .stage-navigation,
+.stage-shell.is-chart .stage-caption { width:100%; max-width:980px; margin-inline:auto; }
+.stage-shell.is-chart .stage-top { font-size:14px; }
+.stage-shell.is-chart .observation-control,
+.stage-shell.is-chart .observation-control select,
+.stage-shell.is-chart .stage-navigation button { font-size:16px; }
+.stage-shell.is-chart .visual { width:100%; max-width:980px; margin-inline:auto; padding:12px 0; overflow-y:auto; overflow-x:hidden; overscroll-behavior-y:auto; justify-content:safe center; }
+.stage-shell.is-chart .visual>* { flex-shrink:0; }
+.stage-shell.is-chart .stage-caption { font-size:18px; line-height:1.5; min-height:0; text-align:center; margin-top:10px; margin-bottom:12px; color:var(--ink); }
+.stage-shell.is-chart .figure-scroll-hint { font-size:14px; }
+.stage-shell.is-chart .waterfall-total { border-top:0; margin:0 0 14px; padding:0; font-size:18px; line-height:1.5; }
+.waterfall-total-label,.waterfall-total-unit { display:block; }
+.waterfall-total-equation { display:flex; justify-content:center; flex-wrap:wrap; gap:4px 6px; font-size:26px; margin:5px 0; }
+.waterfall-total-unit { font:16px/1.5 var(--sans); color:var(--muted); }
+.story-layout[data-layout="formula"] .formula-focus-note,
+.background-average-legend { font-size:18px; line-height:1.5; }
+.method summary { font-size:18px; }
+#population-select,#population-waterfall,#population-summary,
+#coalition-controls { font-size:16px; }
+#population-select { max-width:100%; }
+#rows-dialog p { font-size:16px; }
+#rows-dialog .input-table { font-size:16px; }
+#rows-dialog .input-table caption,
+#rows-dialog .input-table th small { font-size:14px; line-height:1.5; }
+.method .input-table { font-size:16px; }
+.method .input-table caption,
+.method .input-table th small { font-size:14px; line-height:1.5; }
+.importance-equation { display:flex; flex-wrap:wrap; justify-content:center; align-items:baseline; gap:4px 8px; overflow:visible; }
+.importance-equation math { flex:0 0 auto; }
+@media(max-width:860px) {
+  .story-layout[data-layout="chart"] .stage-shell { height:calc(100svh - 56px); }
+  .stage-shell.is-chart .stage-caption { font-size:16px; line-height:1.45; margin-top:8px; margin-bottom:8px; }
+  .stage-shell.is-chart .stage-navigation { gap:10px; }
+  .stage-shell.is-chart .stage-navigation button { min-width:0; }
+  .stage-shell.is-chart .waterfall-total { font-size:16px; margin-bottom:10px; }
+  .waterfall-total-equation { font-size:22px; }
+  .story-layout[data-layout="formula"] .formula-focus-note,
+  .background-average-legend { font-size:16px; }
+  .transition-note,.transition-definitions { font-size:16px; }
+  #rows-dialog .dialog-top h2 { font-size:24px; }
+}
+@media print {
+  .story-layout.is-interactive .chart-step,
+  .story-layout.is-interactive .chart-step:not(.aggregate-step) { min-height:0; }
+  .story-layout.is-interactive .chart-step .step-content { visibility:visible; }
+}

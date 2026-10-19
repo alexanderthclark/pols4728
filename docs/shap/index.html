@@ -61,7 +61,7 @@
             <mfrac><mrow><mo stretchy="false">|</mo><mi>S</mi><mo stretchy="false">|</mo><mo>!</mo><mo stretchy="false">(</mo><mi>p</mi><mo>−</mo><mo stretchy="false">|</mo><mi>S</mi><mo stretchy="false">|</mo><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo>!</mo></mrow><mrow><mi>p</mi><mo>!</mo></mrow></mfrac>
             <mo stretchy="false">[</mo><msub><mi>v</mi><mi>x</mi></msub><mo>⁡</mo><mo stretchy="false">(</mo><mi>S</mi><mo>∪</mo><mo stretchy="false">{</mo><mi>i</mi><mo stretchy="false">}</mo><mo stretchy="false">)</mo><mo>−</mo><msub><mi>v</mi><mi>x</mi></msub><mo>⁡</mo><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo><mo stretchy="false">]</mo>
           </mrow></math></div>
-          <p class="formula-focus-note"><math class="math-text"><mrow><mi>F</mi></mrow></math>: all features; <math class="math-text"><mrow><mi>p</mi><mo>=</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">|</mo><mi>F</mi><mo stretchy="false" lspace="0em" rspace="0em">|</mo></mrow></mrow></math>. We use interventional SHAP, not conditional SHAP.</p>
+          <p class="formula-focus-note"><math class="math-text"><mrow><mi>F</mi></mrow></math>: all features; <math class="math-text"><mrow><mi>p</mi><mo>=</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">|</mo><mi>F</mi><mo stretchy="false" lspace="0em" rspace="0em">|</mo></mrow></mrow></math>. Excluded inputs come from background rows.</p>
           <p class="scroll-prompt">Scroll to highlight each part, or use Next.</p>
         </div></section>
         <section class="step formula-step" id="observation-symbol" data-step="1" aria-labelledby="observation-symbol-heading"><div class="step-content">
@@ -221,7 +221,7 @@
           <p class="step-number">21 / 30 · From the formula to the plot</p><h2 id="waterfall-heading">Baseline + contributions</h2>
           <div class="slide-identity" role="math" aria-label="Prediction equals baseline plus the sum of SHAP contributions"><math><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>v</mi><mi>x</mi></msub><mo stretchy="false">(</mo><mi>∅</mi><mo stretchy="false">)</mo><mo>+</mo><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>ϕ</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>v</mi><mi>x</mi></msub><mo stretchy="false">)</mo></mrow></math></div>
           <ul class="slide-points">
-            <li>Bars: averaged contributions in $1,000.</li>
+            <li>Start at the baseline; add contributions from bottom to top.</li>
             <li>Inputs beside names; rows ranked by magnitude.</li>
           </ul>
         </div></section>
@@ -235,7 +235,7 @@
         </div></section>
         <section class="step aggregate-step" id="many-people" data-step="23" aria-labelledby="many-people-heading"><div class="step-content">
           <p class="step-number">24 / 30 · Explain more people</p><h2 id="many-people-heading">Repeat the same calculation.</h2>
-          <ul class="slide-points"><li>125 constructed profiles; one dot per feature per person.</li><li>The model and eight reference rows stay fixed.</li></ul>
+          <ul class="slide-points"><li>125 constructed profiles; one dot per feature per person.</li><li>These 125 profiles are being explained; the same eight background rows define every explanation.</li></ul>
         </div></section>
         <section class="step aggregate-step" id="beeswarm" data-step="24" aria-labelledby="beeswarm-heading"><div class="step-content">
           <p class="step-number">25 / 30 · Make overlap visible</p><h2 id="beeswarm-heading">From waterfalls to a beeswarm.</h2>
@@ -247,7 +247,7 @@
         </div></section>
         <section class="step aggregate-step" id="signed-average" data-step="26" aria-labelledby="signed-average-heading"><div class="step-content">
           <p class="step-number">27 / 30 · Opposing contributions cancel</p><h2 id="signed-average-heading">A signed average can hide magnitude.</h2>
-          <ul class="slide-points"><li>Ability and neighborhood have positive and negative contributions.</li><li>Their signed averages are zero across these profiles.</li></ul>
+          <ul class="slide-points"><li>Ability and neighborhood have positive and negative contributions.</li><li>For this balanced grid, all three signed averages are zero.</li></ul>
         </div></section>
         <section class="step aggregate-step" id="absolute-values" data-step="27" aria-labelledby="absolute-values-heading"><div class="step-content">
           <p class="step-number">28 / 30 · Measure distance from zero</p><h2 id="absolute-values-heading">Keep the size of every contribution.</h2>
@@ -259,7 +259,7 @@
         </div></section>
         <section class="step aggregate-step" id="importance-ranking" data-step="29" aria-labelledby="importance-ranking-heading"><div class="step-content">
           <p class="step-number">30 / 30 · Rank the averages</p><h2 id="importance-ranking-heading">Global importance for these profiles.</h2>
-          <ul class="slide-points"><li>Neighborhood: 7.2; ability: 3.24; experience: 1.2.</li><li>Rank the rows; zoom in on the averages. Same units: $1,000/year.</li></ul>
+          <ul class="slide-points"><li>Neighborhood: 7.2; ability: 3.24; experience: 1.2.</li><li>The ranking depends on the model, background, and profiles being summarized. Units: $1,000/year.</li></ul>
         </div></section>
       </div>
     </div>
@@ -287,7 +287,7 @@
           <div id="population-summary"></div>
         </div>
         <p>Global importance averages each feature’s absolute SHAP values across these <math aria-label="N equals 125"><mrow><mi>N</mi><mo>=</mo><mn>125</mn></mrow></math> profiles:</p>
-      <div class="equation"><math display="block" aria-label="Importance of feature j equals one over N times the sum over people of the absolute SHAP value"><mrow><msub><mi>I</mi><mi>j</mi></msub><mo>=</mo><mfrac><mn>1</mn><mi>N</mi></mfrac><munderover><mo>∑</mo><mrow><mi>r</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mo>|</mo><msub><mi>ϕ</mi><mi>j</mi></msub><mo>(</mo><msub><mi>v</mi><msup><mi>x</mi><mrow><mo>(</mo><mi>r</mi><mo>)</mo></mrow></msup></msub><mo>)</mo><mo>|</mo></mrow></math></div>
+      <div class="equation importance-equation" role="math" aria-label="Importance of feature j equals one over N times the sum over people of the absolute SHAP value"><math aria-hidden="true"><mrow><msub><mi>I</mi><mi>j</mi></msub><mo>=</mo><mfrac><mn>1</mn><mi>N</mi></mfrac><munderover><mo>∑</mo><mrow><mi>r</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover></mrow></math><math aria-hidden="true"><mrow><mo>|</mo><msub><mi>ϕ</mi><mi>j</mi></msub><mo>(</mo><msub><mi>v</mi><msup><mi>x</mi><mrow><mo>(</mo><mi>r</mi><mo>)</mo></mrow></msup></msub><mo>)</mo><mo>|</mo></mrow></math></div>
         <p>The bars summarize magnitude, losing the direction and spread visible in the beeswarm. Their ranking describes this model, background, and population; changing the background or population can change the result.</p>
       </details>
       <p><a href="https://github.com/alexanderthclark/pols4728/tree/main/examples/shap">Calculation and reproduction files</a>.</p>

@@ -2,6 +2,8 @@
  * Scroll-controlled geometry for one waterfall → a beeswarm → mean |SHAP|.
  * No animation clocks: calling with the same data/progress restores the same SVG.
  */
+import { waterfallGeometry } from './waterfall.js';
+
 const NS = 'http://www.w3.org/2000/svg';
 const INK = '#242424', BLUE = '#234E70', RUST = '#A54F32';
 const MUTED = '#606060', RULE = '#D6D6D6';
@@ -31,6 +33,19 @@ function attrs(node, attributes) {
 }
 function text(content = '', attributes = {}) {
   return element('text', { fill: INK, ...attributes }, content);
+}
+function wrapWords(content, maximumLength) {
+  const lines = [''];
+  for (const word of content.split(/\s+/)) {
+    const last = lines.length - 1;
+    if (lines[last] && `${lines[last]} ${word}`.length > maximumLength) lines.push(word);
+    else lines[last] += `${lines[last] ? ' ' : ''}${word}`;
+  }
+  return lines;
+}
+function setLines(node, lines, x, y, lineHeight) {
+  node.replaceChildren(...lines.map((line, index) =>
+    element('tspan', { x, y: y + index * lineHeight }, line)));
 }
 function mixColor(a, b, t) {
   const channels = color => color.startsWith('rgb')
@@ -144,7 +159,7 @@ function createView(container, features, population) {
   const positiveText = text('Raises prediction', { fill: MUTED });
   signLegend.append(negativeKey, negativeText, positiveKey, positiveText); svg.append(signLegend);
   const valueLegend = element('g', { class: 'aggregate-value-legend' });
-  const legendLabel = text('Feature value:', { fill: MUTED });
+  const legendLabel = text('Input value:', { fill: MUTED });
   const legendLow = text('Low', { fill: MUTED });
   const legendHigh = text('High', { fill: MUTED });
   const legendRamp = element('rect', { height: 7, rx: 0, fill: `url(#${id}-value-gradient)` });
@@ -167,7 +182,7 @@ function createView(container, features, population) {
 }
 
 export function renderAggregate(container, { scene, progress = 1, features, observation,
-  population, featureOrder, onSelect, reducedMotion = false } = {}) {
+  population, featureOrder, onSelect, reducedMotion = false, backgroundSize = 8 } = {}) {
   if (!container || !features?.length || !observation || !population?.length || !SCENES.includes(scene)) {
     throw new TypeError('An aggregate plot needs its scene, feature metadata, local observation, and population.');
   }
@@ -178,9 +193,9 @@ export function renderAggregate(container, { scene, progress = 1, features, obse
   view.scene = scene; view.onSelect = typeof onSelect === 'function' ? onSelect : null;
   const phase = SCENES.indexOf(scene);
   const p = reducedMotion ? 1 : ease(Number.isFinite(progress) ? progress : 1);
-  const width = Math.max(280, Math.min(820, Math.round(container.getBoundingClientRect().width || 760)));
-  const compact = width < 540;
-  const fontSize = compact ? 11 : 13;
+  const geometry = waterfallGeometry(container.getBoundingClientRect().width, features.length);
+  const { width, compact, top, rowHeight, axisY, height, labelLineHeight } = geometry;
+  const fontSize = compact ? 14 : 16;
   const order = featureOrder || observation.shapValues.map((_, index) => index)
     .sort((a, b) => Math.abs(observation.shapValues[b]) - Math.abs(observation.shapValues[a]) || a - b);
   const importance = features.map((_, feature) => population.reduce((sum, person) =>
@@ -205,20 +220,16 @@ export function renderAggregate(container, { scene, progress = 1, features, obse
     ...observation.shapValues.map(Math.abs));
   const bound = Math.ceil(extent / 10) * 10;
   const rebase = phase === 0 ? p : 1;
-  const left = lerp(compact ? 136 : 221, compact ? 98 : 184, rebase);
-  const right = width - (compact ? 16 : 24);
-  const top = lerp(compact ? 64 : 84, compact ? 62 : 76, rebase);
-  const rowHeight = lerp(compact ? 48 : 64, compact ? 52 : 70, rebase);
-  const axisY = top + (features.length - 1) * rowHeight + lerp(compact ? 30 : 68, compact ? 30 : 40, rebase);
-  const height = axisY + lerp(compact ? 66 : 104, compact ? 66 : 78, rebase);
-  const labelX = left - 15;
+  const left = geometry.plotLeft;
+  const right = geometry.plotRight;
+  const labelX = geometry.labelWidth;
   const summaryStep = niceStep(Math.max(...importance), 4);
   const summaryMax = Math.ceil(Math.max(...importance) / summaryStep) * summaryStep;
   const domainMin = phase === 8 ? lerp(-bound, 0, p) : lerp(waterfallMin, -bound, rebase);
   const domainMax = phase === 8 ? lerp(bound, summaryMax, p) : lerp(waterfallMax, bound, rebase);
   const x = value => left + (value - domainMin) / (domainMax - domainMin) * (right - left);
-  const finalX = value => (compact ? 98 : 184) + (value + bound) / (bound * 2) * (right - (compact ? 98 : 184));
-  const radius = compact ? 1 : 1.35;
+  const finalX = value => left + (value + bound) / (bound * 2) * (right - left);
+  const radius = compact ? 1.35 : 1.7;
   const cacheKey = `${width}:${bound}:${population.length}`;
   if (view.packing?.key !== cacheKey) {
     view.packing = { key: cacheKey,
@@ -246,17 +257,24 @@ export function renderAggregate(container, { scene, progress = 1, features, obse
     'Color shows the input value', 'Signed contributions can cancel',
     'Take each distance from zero', 'Average the absolute values', 'Rank the average magnitudes'];
   view.title.textContent = titles[phase];
-  view.description.textContent = `${titles[phase]}. ${population.length} illustrative profiles; baseline ${format(observation.baseValue)} thousand dollars per year. `
+  view.description.textContent = `${titles[phase]}. ${population.length} explained profiles use one fixed model and ${backgroundSize} background rows; baseline ${format(observation.baseValue)} thousand dollars per year. `
     + features.map((feature, index) => `${feature.label}: signed mean ${format(signedMeans[index])}; mean absolute SHAP value ${format(importance[index])}.`).join(' ')
-    + (phase >= 4 ? 'Color indicates low to high input value within each feature. Horizontal position indicates SHAP contribution, not input value.' : 'Blue contributions raise the model prediction; rust contributions lower it.')
-    + (phase >= 6 ? 'Negative contributions move to their absolute distances from zero. The horizontal unit is unchanged.' : 'Vertical displacement only separates overlapping observations.');
-  attrs(view.heading, { x: 0, y: compact ? 17 : 22, 'font-size': compact ? 15 : 19 });
-  view.heading.textContent = compact ? shortTitles[phase] : titles[phase];
-  attrs(view.subheading, { x: 0, y: compact ? 35 : 43, 'font-size': compact ? 10 : 12 });
-  view.subheading.textContent = phase < 2 ? `${observation.name || 'One person'} · reference ${format(observation.baseValue)}, prediction ${format(observation.prediction)}`
-    : phase === 5 ? `${population.length} profiles · the signed mean is 0 for every feature here`
-      : phase >= 7 ? 'Mean absolute SHAP · $1,000/year'
-        : `${population.length} illustrative profiles · one fixed model and background`;
+    + (phase >= 4 && phase <= 6 ? 'Color indicates low to high input value within each feature. ' : phase < 4 ? 'Blue contributions raise the model prediction; rust contributions lower it. ' : '')
+    + (phase >= 7 ? 'Each bar shows the mean absolute SHAP value across the explained profiles. All bar lengths are nonnegative; the horizontal unit is thousand dollars per year.'
+      : phase === 6 ? 'Negative SHAP values fold to their positive distances from zero. These are individual absolute SHAP values, before averaging; the horizontal unit is thousand dollars per year.'
+        : phase === 0 ? 'Read the initial waterfall from bottom to top. Cumulative model-output positions become signed SHAP contributions measured from zero.'
+          : 'Horizontal position shows a signed SHAP contribution, not an input value. Vertical displacement only separates overlapping profiles.');
+  const headingSize = compact ? 22 : 26;
+  attrs(view.heading, { x: 0, y: compact ? 24 : 30, 'font-size': headingSize });
+  setLines(view.heading, wrapWords(compact ? shortTitles[phase] : titles[phase],
+    Math.floor(width / (headingSize * .51))), 0, compact ? 24 : 30, compact ? 26 : 30);
+  attrs(view.subheading, { x: 0, y: compact ? 78 : 62, 'font-size': fontSize });
+  const subtitle = phase < 2 ? `${observation.name || 'One person'} · baseline ${format(observation.baseValue)}, prediction ${format(observation.prediction)}`
+    : phase === 5 ? `${population.length} explained profiles · signed mean 0 in each row`
+      : phase >= 7 ? `${population.length} profiles · average absolute contributions`
+        : `${population.length} explained profiles · ${backgroundSize} background rows`;
+  setLines(view.subheading, wrapWords(subtitle, Math.floor(width / (fontSize * .51))),
+    0, compact ? 78 : 62, compact ? 20 : 22);
   attrs(view.baseline, { x1: x(lerp(observation.baseValue, 0, rebase)), x2: x(lerp(observation.baseValue, 0, rebase)),
     y1: top - 21, y2: axisY, opacity: 1 - rebase });
   attrs(view.prediction, { x1: x(lerp(observation.prediction, 0, rebase)), x2: x(lerp(observation.prediction, 0, rebase)),
@@ -272,32 +290,30 @@ export function renderAggregate(container, { scene, progress = 1, features, obse
     const startX = lerp(x(start), x(phi), dotProgress), endX = x(end);
     const direction = phi < 0 ? -1 : 1;
     const head = Math.min(8 * (1 - dotProgress), Math.abs(endX - startX));
-    const barHalf = lerp(14, radius * 1.8, dotProgress);
+    const barHalf = lerp(geometry.barHeight / 2, radius * 1.8, dotProgress);
     const signColor = phi < 0 ? RUST : BLUE;
     attrs(row.guide, { x1: left, x2: right, y1: cy, y2: cy, opacity: phase >= 2 ? .65 * (1 - meanProgress) : 0 });
-    attrs(row.label, { x: labelX, y: cy + (phase === 0 ? lerp(-8, 4, p) : 4), 'font-size': compact ? 11 : 14 });
-    row.label.textContent = compact ? feature.shortLabel || feature.label : feature.label;
-    if (!compact && row.label.textContent.length > 23) {
-      row.label.replaceChildren();
-      const words = feature.label.split(' ');
-      row.label.append(element('tspan', { x: labelX, dy: '-.35em' }, words.slice(0, -1).join(' ')),
-        element('tspan', { x: labelX, dy: '1.15em' }, words.at(-1)));
-    }
-    attrs(row.observed, { x: labelX, y: cy + 16, 'font-size': compact ? 10 : 12, opacity: 1 - rebase });
-    row.observed.textContent = `Observed: ${format(observation.values[index])} ${feature.unit || ''}`;
+    const labelLines = wrapWords(compact ? feature.shortLabel || feature.label : feature.label,
+      compact ? 17 : 22);
+    const labelY = cy + lerp(-8, 6 - (labelLines.length - 1) * labelLineHeight / 2, rebase);
+    attrs(row.label, { x: labelX, y: labelY, 'font-size': compact ? 16 : 18 });
+    setLines(row.label, labelLines, labelX, labelY, labelLineHeight);
+    attrs(row.observed, { x: labelX, y: cy - 8 + labelLines.length * labelLineHeight,
+      'font-size': fontSize, opacity: 1 - rebase });
+    row.observed.textContent = `Input: ${format(observation.values[index])}${feature.unit ? ` ${feature.unit}` : ''}`;
     attrs(row.bar, { d: `M${startX},${cy - barHalf} L${endX - direction * head},${cy - barHalf} L${endX},${cy} L${endX - direction * head},${cy + barHalf} L${startX},${cy + barHalf} Z`,
       fill: signColor, opacity: phase < 2 ? 1 - dotProgress : 0 });
-    attrs(row.barLabel, { x: (startX + endX) / 2, y: cy - 21, fill: signColor,
-      opacity: phase < 2 ? 1 - dotProgress : 0, 'font-size': compact ? 12 : 14 });
+    attrs(row.barLabel, { x: (startX + endX) / 2, y: cy - geometry.barHeight / 2 - 10, fill: signColor,
+      opacity: phase < 2 ? 1 - dotProgress : 0, 'font-size': compact ? 18 : 20 });
     row.barLabel.textContent = signed(phi);
     const rowPosition = order.indexOf(index);
-    attrs(row.connector, { x1: x(end), x2: x(end), y1: cy - 14, y2: cy - rowHeight + 14,
+    attrs(row.connector, { x1: x(end), x2: x(end), y1: cy - geometry.barHeight / 2, y2: cy - rowHeight + geometry.barHeight / 2,
       opacity: rowPosition > 0 && phase === 0 ? 1 - p : 0 });
-    attrs(row.meanBar, { x: x(0), y: cy - (compact ? 8 : 11),
-      width: Math.max(0, (x(importance[index]) - x(0)) * meanProgress), height: compact ? 16 : 22,
+    attrs(row.meanBar, { x: x(0), y: cy - (compact ? 13 : 16),
+      width: Math.max(0, (x(importance[index]) - x(0)) * meanProgress), height: compact ? 26 : 32,
       opacity: meanProgress });
-    attrs(row.meanLabel, { x: x(importance[index]) + 7, y: cy + 4,
-      opacity: meanProgress, 'font-size': compact ? 12 : 15 });
+    attrs(row.meanLabel, { x: x(importance[index]) + 8, y: cy + 6,
+      opacity: meanProgress, 'font-size': compact ? 18 : 20 });
     row.meanLabel.textContent = format(importance[index]);
     attrs(view.localDots[index], { cx: x(phi), cy,
       r: lerp(3, compact ? 3.1 : 4.1, dotProgress), fill: signColor,
@@ -306,8 +322,8 @@ export function renderAggregate(container, { scene, progress = 1, features, obse
     const diamond = compact ? 4 : 5;
     attrs(view.means[index].marker, { d: `M${meanX},${cy - diamond} L${meanX + diamond},${cy} L${meanX},${cy + diamond} L${meanX - diamond},${cy} Z`,
       opacity: signedMeanProgress, fill: INK });
-    attrs(view.means[index].label, { x: labelX, y: cy + (compact ? 18 : 23),
-      opacity: signedMeanProgress, 'font-size': compact ? 10 : 12 });
+    attrs(view.means[index].label, { x: labelX, y: cy + (compact ? 29 : 44),
+      opacity: signedMeanProgress, 'font-size': fontSize });
     view.means[index].label.textContent = `Mean = ${format(lerp(signedMeans[index], importance[index], absoluteProgress))}`;
     population.forEach((person, personIndex) => {
       const circle = view.dots[index][personIndex];
@@ -335,28 +351,31 @@ export function renderAggregate(container, { scene, progress = 1, features, obse
     const value = lerp(domainMin, domainMax, index / 4), cx = x(value);
     attrs(tick.group, { opacity: value < -1e-6 ? 1 - absoluteProgress : 1 });
     attrs(tick.line, { x1: cx, x2: cx, y1: axisY, y2: axisY + 5 });
-    attrs(tick.label, { x: cx, y: axisY + 19, 'font-size': compact ? 10 : 12 });
+    attrs(tick.label, { x: cx, y: axisY + 25, 'font-size': fontSize });
     tick.label.textContent = format(value, rebase > 0 && rebase < 1 ? 1 : 2);
   });
-  attrs(view.axisLabel, { x: (left + right) / 2, y: axisY + (compact ? 35 : 40),
-    'font-size': compact ? 10 : 12 });
-  view.axisLabel.textContent = rebase < .5 ? 'Model output · $1,000/year'
-    : phase >= 6 && absoluteProgress > .5 ? 'Absolute SHAP · $1,000/year' : 'SHAP value · $1,000/year';
-  const legendY = axisY + (compact ? 51 : 59);
-  attrs(view.signLegend, { opacity: (phase >= 1 && phase <= 4 ? clamp(1 - colorProgress * 2) : 0), 'font-size': compact ? 9 : 11 });
+  const axisTitle = rebase < .5 ? 'Model output'
+    : phase >= 7 ? 'Mean absolute SHAP value'
+      : phase === 6 && absoluteProgress > .5 ? 'Absolute SHAP value' : 'SHAP value';
+  const axisLabelX = compact ? width / 2 : (left + right) / 2;
+  attrs(view.axisLabel, { x: axisLabelX, y: axisY + 51, 'font-size': fontSize });
+  setLines(view.axisLabel, compact ? [axisTitle, '$1,000/year'] : [`${axisTitle} · $1,000/year`],
+    axisLabelX, axisY + 51, 19);
+  const legendY = axisY + (compact ? 98 : 90);
+  attrs(view.signLegend, { opacity: (phase >= 1 && phase <= 4 ? clamp(1 - colorProgress * 2) : 0), 'font-size': fontSize });
   attrs(view.negativeKey, { cx: 4, cy: legendY - 3 });
-  attrs(view.negativeText, { x: 12, y: legendY });
-  attrs(view.positiveKey, { cx: compact ? 133 : 170, cy: legendY - 3 });
-  attrs(view.positiveText, { x: compact ? 141 : 178, y: legendY });
-  attrs(view.valueLegend, { opacity: clamp(colorProgress * 2 - 1) * (1 - meanProgress), 'font-size': compact ? 10 : 12 });
+  attrs(view.negativeText, { x: 14, y: legendY });
+  attrs(view.positiveKey, { cx: compact ? width / 2 + 8 : 206, cy: legendY - 3 });
+  attrs(view.positiveText, { x: compact ? width / 2 + 18 : 216, y: legendY });
+  attrs(view.valueLegend, { opacity: clamp(colorProgress * 2 - 1) * (1 - meanProgress), 'font-size': fontSize });
   attrs(view.legendLabel, { x: 0, y: legendY });
-  attrs(view.legendLow, { x: compact ? 83 : 102, y: legendY });
-  attrs(view.legendRamp, { x: compact ? 108 : 133, y: legendY - 7, width: compact ? 69 : 100 });
-  attrs(view.legendHigh, { x: compact ? 184 : 242, y: legendY });
-  attrs(view.footer, { x: 0, y: legendY, 'font-size': compact ? 10 : 12,
+  attrs(view.legendLow, { x: compact ? 92 : 110, y: legendY });
+  attrs(view.legendRamp, { x: compact ? 126 : 154, y: legendY - 9, width: compact ? 80 : 120, height: 9 });
+  attrs(view.legendHigh, { x: compact ? 214 : 282, y: legendY });
+  attrs(view.footer, { x: 0, y: legendY, 'font-size': phase === 0 ? compact ? 16 : 18 : fontSize,
     opacity: phase === 0 ? 1 - p : phase >= 7 ? meanProgress : 0 });
-  view.footer.textContent = phase === 0 ? `Reference ${format(observation.baseValue)} → prediction ${format(observation.prediction)}`
-    : 'Bar length: average absolute contribution';
+  view.footer.textContent = phase === 0 ? `Baseline ${format(observation.baseValue)} → prediction ${format(observation.prediction)}`
+    : 'Bar length: mean absolute contribution';
   return view.svg;
 }
 

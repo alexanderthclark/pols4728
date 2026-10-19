@@ -68,6 +68,22 @@ function labelLines(label, maximumLength) {
   return lines;
 }
 
+// The aggregate sequence begins with this same waterfall geometry. Keeping the
+// dimensions in one place prevents the bars from jumping at that scroll stop.
+export function waterfallGeometry(measuredWidth, featureCount) {
+  const width = Math.max(280, Math.min(980, Math.round(measuredWidth || 760)));
+  const compact = width < 600;
+  const labelWidth = compact ? 118 : 220;
+  const plotLeft = labelWidth + 16;
+  const plotRight = width - (compact ? 44 : 54);
+  const rowHeight = compact ? 84 : 88;
+  const top = compact ? 144 : 116;
+  const axisY = top + (Math.max(featureCount, 1) - 1) * rowHeight + (compact ? 52 : 60);
+  return { width, compact, labelWidth, plotLeft, plotRight, rowHeight, top, axisY,
+    height: axisY + (compact ? 116 : 132), barHeight: 32,
+    labelLineHeight: compact ? 20 : 22 };
+}
+
 export function renderWaterfall(container, {
   features, observation, unit = 'model output units', revealed = features.length,
 }) {
@@ -83,17 +99,9 @@ export function renderWaterfall(container, {
   }
 
   const visibleCount = Math.max(0, Math.min(features.length, Math.trunc(revealed)));
-  const measuredWidth = container.getBoundingClientRect().width;
-  const width = Math.max(280, Math.min(820, Math.round(measuredWidth || 760)));
-  const compact = width < 540;
-  const labelWidth = compact ? 120 : 205;
-  const plotLeft = labelWidth + 16;
-  const plotRight = width - 20;
-  const rowHeight = compact ? 48 : 64;
-  const top = compact ? 64 : 84;
-  const axisY = top + Math.max(features.length, 1) * rowHeight + 4;
-  const height = axisY + (compact ? 84 : 104);
-  const barHeight = 28;
+  const { width, compact, labelWidth, plotLeft, plotRight, rowHeight, top,
+    axisY, height, barHeight, labelLineHeight } = waterfallGeometry(
+    container.getBoundingClientRect().width, features.length);
   const entries = features.map((feature, index) => ({
     feature,
     index,
@@ -125,30 +133,41 @@ export function renderWaterfall(container, {
     role: 'img',
     'aria-labelledby': `${id}-title ${id}-description`,
     class: 'shap-waterfall waterfall-plot',
-    style: 'display:block;overflow:visible;font-family:inherit',
+    style: 'display:block;overflow:visible;font-family:var(--sans,system-ui,sans-serif);font-variant-numeric:tabular-nums',
   });
   svg.append(svgElement('title', { id: `${id}-title` }, 'SHAP waterfall for one prediction'));
   const spokenUnit = unit === '$1,000/year' ? 'thousand dollars per year' : unit;
   const description = [
-    `The reference prediction is ${number(baseValue, 1)} ${spokenUnit}.`,
+    `The baseline prediction is ${number(baseValue, 1)} ${spokenUnit}. Read the waterfall from bottom to top.`,
     ...entries.filter(entry => entry.visible).reverse().map(entry =>
-      `${entry.label}, observed value ${featureValue(entry.feature, entry.value)}, contributes ${signed(entry.phi)} ${spokenUnit}.`),
+      `${entry.label}, input value ${featureValue(entry.feature, entry.value)}, contributes ${signed(entry.phi)} ${spokenUnit}.`),
     `The model prediction is ${number(prediction, 1)} ${spokenUnit}. Contributions are ordered by absolute magnitude.`,
   ].join(' ');
   svg.append(svgElement('desc', { id: `${id}-description` }, description));
 
   const text = (content, attributes) => svgElement('text', {
     fill: colors.ink,
-    'font-size': compact ? 13 : 15,
+    'font-size': compact ? 16 : 18,
     ...attributes,
   }, content);
 
-  svg.append(text(compact ? 'Feature contributions' : 'One prediction, feature by feature', {
-    x: 0, y: 21, 'font-size': compact ? 17 : 20,
-  }));
-  svg.append(text(compact ? `Model output in ${unit}.` : `Horizontal position is model output in ${unit}.`, {
-    x: 0, y: compact ? 42 : 45, fill: colors.muted, 'font-size': compact ? 11 : 14,
-  }));
+  const headingSize = compact ? 22 : 26;
+  const headingLines = labelLines('One prediction, feature by feature',
+    Math.floor(width / (headingSize * .51)));
+  const heading = text('', { x: 0, y: compact ? 24 : 30, 'font-size': headingSize });
+  headingLines.forEach((line, index) => heading.append(svgElement('tspan', {
+    x: 0, dy: index ? compact ? 26 : 30 : 0,
+  }, line)));
+  svg.append(heading);
+  const subtitle = text('', { x: 0, y: compact ? 78 : 62,
+    fill: colors.muted, 'font-size': compact ? 14 : 16 });
+  const subtitleLines = compact
+    ? [`Model output in ${unit}.`, 'Read from baseline, bottom → top.']
+    : [`Model output in ${unit}. Read from baseline, bottom → top.`];
+  subtitleLines.forEach((line, index) => subtitle.append(svgElement('tspan', {
+    x: 0, dy: index ? 20 : 0,
+  }, line)));
+  svg.append(subtitle);
 
   // Baseline and output reference lines use the same axis as every contribution.
   svg.append(svgElement('line', {
@@ -166,13 +185,14 @@ export function renderWaterfall(container, {
     const entry = entries[index];
     const y = top + index * rowHeight;
     const label = svgElement('g', { class: 'waterfall-feature-label' });
-    const lines = labelLines(entry.label, compact ? 17 : 28);
+    const lines = labelLines(compact ? entry.feature.shortLabel || entry.label : entry.label,
+      compact ? 17 : 22);
     lines.forEach((line, lineIndex) => label.append(text(line, {
-      x: labelWidth, y: y - 8 + lineIndex * 16, 'text-anchor': 'end',
+      x: labelWidth, y: y - 8 + lineIndex * labelLineHeight, 'text-anchor': 'end',
     })));
-    label.append(text(`Observed: ${featureValue(entry.feature, entry.value)}`, {
-      x: labelWidth, y: y - 8 + lines.length * 16,
-      'text-anchor': 'end', fill: colors.muted, 'font-size': compact ? 11 : 13,
+    label.append(text(`Input: ${featureValue(entry.feature, entry.value)}`, {
+      x: labelWidth, y: y - 8 + lines.length * labelLineHeight,
+      'text-anchor': 'end', fill: colors.muted, 'font-size': compact ? 14 : 16,
     }));
     svg.append(label);
     if (!entry.visible) continue;
@@ -197,8 +217,8 @@ export function renderWaterfall(container, {
     }
     // Values sit above bars, so even a very small contribution has a readable label.
     bar.append(text(signed(entry.phi), {
-      x: (startX + endX) / 2, y: y - barHeight / 2 - 7,
-      'text-anchor': 'middle', fill: color, 'font-size': compact ? 13 : 15,
+      x: (startX + endX) / 2, y: y - barHeight / 2 - 10,
+      'text-anchor': 'middle', fill: color, 'font-size': compact ? 18 : 20,
     }));
     if (index > 0 && entries[index - 1].visible) {
       bar.append(svgElement('line', {
@@ -213,16 +233,16 @@ export function renderWaterfall(container, {
   for (let tick = domainMin; tick <= domainMax + step * 0.01; tick += step) {
     const tickX = x(tick);
     svg.append(svgElement('line', { x1: tickX, x2: tickX, y1: axisY, y2: axisY + 5, stroke: colors.rule, 'stroke-width': 1 }));
-    svg.append(text(number(tick), { x: tickX, y: axisY + 23, 'text-anchor': 'middle', fill: colors.muted, 'font-size': compact ? 11 : 13 }));
+    svg.append(text(number(tick), { x: tickX, y: axisY + 25, 'text-anchor': 'middle', fill: colors.muted, 'font-size': compact ? 14 : 16 }));
   }
   // These direct labels avoid collisions between reference values on narrow axes.
   const referenceLabelX = compact ? 0 : plotLeft;
-  svg.append(text(`Reference: ${number(baseValue, 1)} ${unit}`, { x: referenceLabelX, y: axisY + 48, 'font-size': compact ? 12 : 14 }));
+  svg.append(text(`Baseline: ${number(baseValue, 1)} ${unit}`, { x: referenceLabelX, y: axisY + 60, 'font-size': compact ? 18 : 20 }));
   if (visibleCount === entries.length) {
-    svg.append(text(`Prediction: ${number(prediction, 1)} ${unit}`, { x: referenceLabelX, y: axisY + 69, 'font-size': compact ? 12 : 14 }));
+    svg.append(text(`Prediction: ${number(prediction, 1)} ${unit}`, { x: referenceLabelX, y: axisY + 88, 'font-size': compact ? 18 : 20 }));
   } else {
     const partial = entries.filter(entry => entry.visible).reduce((sum, entry) => sum + entry.phi, baseValue);
-    svg.append(text(`Running total: ${number(partial, 1)} ${unit}`, { x: referenceLabelX, y: axisY + 69, 'font-size': compact ? 12 : 14 }));
+    svg.append(text(`Running total: ${number(partial, 1)} ${unit}`, { x: referenceLabelX, y: axisY + 88, 'font-size': compact ? 18 : 20 }));
   }
   container.replaceChildren(svg);
   return svg;

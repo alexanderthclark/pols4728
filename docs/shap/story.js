@@ -29,20 +29,22 @@ const captions = [
   `${coalitionDefinitionMarkup(2)}, ${inlineMath('<mi>i</mi><mo>=</mo><mtext>ability</mtext>')}. Subtract the two prediction averages to get one marginal.`,
   `One row per preceding group ${symbol('S')}. Its weight counts how often it precedes ability.`,
   'The sum of weighted prediction differences is the feature’s SHAP value.',
-  'Credits average all six revealing orders; bars are ranked by magnitude.',
+  'Start at the baseline and add contributions from bottom to top. Bar direction shows whether each contribution raises or lowers the prediction.',
   'The length and sign stay the same; cumulative positions move to a common zero.',
   'Three dots are one person’s three contributions, in $1,000/year.',
-  '125 constructed people. Same model, same eight reference rows, same baseline of 47.',
+  'These 125 profiles are being explained. The same eight background rows define every explanation; the model and baseline stay fixed.',
   'Horizontal position is SHAP value. Vertical packing only reveals overlap.',
-  'Low → high is relative to each input’s range. Position still gives the signed contribution.',
-  'For these balanced profiles, every signed mean is zero despite nonzero contributions.',
-  'Each point’s distance from zero is its absolute SHAP value.',
-  'Average 125 distances within each feature row; units stay $1,000/year.',
-  'Rank and rescale the summary. Units stay $1,000/year.',
+  'Color shows low-to-high input values within each feature. Horizontal position shows the signed contribution to the prediction.',
+  'For this balanced grid, all three signed means are zero. Positive and negative contributions cancel despite having substantial size.',
+  'Reflect negative contributions to the right of zero. Absolute values retain size and remove direction.',
+  'Average the 125 absolute contributions within each feature. The bar shows average size, in $1,000/year; direction has been removed.',
+  'This ranking summarizes these 125 profiles. It depends on the prediction model, background rows, and profiles being summarized.',
 ];
 const aggregateScenes = new Set(['contribution-axis','one-person-dots','many-people','beeswarm','feature-color','signed-average','absolute-values','global-importance','importance-ranking']);
+const chartScenes = new Set(['waterfall', ...aggregateScenes]);
+steps.filter(step => chartScenes.has(step.id)).forEach(step => step.classList.add('chart-step'));
 const formulaStops = {
-  'shapley-formula':{focus:'all',meaning:'The players are input features. The game assigns credit for one observation’s prediction.',note:`${symbol('F')}: all features; ${inlineMath('<mi>p</mi><mo>=</mo><mrow><mo stretchy="false">|</mo><mi>F</mi><mo stretchy="false">|</mo></mrow>')}. We use interventional SHAP, not conditional SHAP.`},
+  'shapley-formula':{focus:'all',meaning:'The players are input features. The game assigns credit for one observation’s prediction.',note:`${symbol('F')}: all features; ${inlineMath('<mi>p</mi><mo>=</mo><mrow><mo stretchy="false">|</mo><mi>F</mi><mo stretchy="false">|</mo></mrow>')}. Excluded inputs come from background rows.`},
   'observation-symbol':{focus:'observation',symbol:symbol('x'),meaning:'One complete input row. Its values supply every feature fixed in this explanation.'},
   'prediction-symbol':{focus:'all',symbol:predictionMarkup(),meaning:`${predictionMarkup()} is the fitted model’s prediction for the complete row ${symbol('x')}. ${symbol('y')} is observed.`},
   'background-average':{focus:'value',definition:true},
@@ -219,11 +221,12 @@ function renderAverage() {
 }
 
 function renderFinal() {
-  visual.innerHTML = '<div id="waterfall-container"></div><div class="waterfall-total"></div>';
+  visual.innerHTML = '<div class="waterfall-total"></div><div id="waterfall-container"></div>';
   renderWaterfall($('#waterfall-container'), {features:state.data.features,observation:state.observation,unit:'$1,000/year'});
   $('#waterfall-container').querySelectorAll('.waterfall-contribution').forEach((bar, index, bars) => {bar.style.setProperty('--bar-delay', `${(bars.length-index-1)*.2}s`);});
   const observation = state.observation;
-  $('.waterfall-total').innerHTML = `${inlineMath(`${numericBody(number(observation.baseValue))}${observation.shapValues.map(value => `<mo>${value < 0 ? '−' : '+'}</mo>${numericBody(number(Math.abs(value)))}`).join('')}<mo>=</mo>${numericBody(number(observation.prediction))}`)} ($1,000/year)`;
+  const additions = [...state.aggregateOrder].reverse().map(index => observation.shapValues[index]);
+  $('.waterfall-total').innerHTML = `<span class="waterfall-total-label">Baseline + contributions = prediction</span><span class="waterfall-total-equation">${inlineMath(numericBody(number(observation.baseValue)))}${additions.map(value => inlineMath(`<mo>${value < 0 ? '−' : '+'}</mo>${numericBody(number(Math.abs(value)))}`)).join('')}${inlineMath(`<mo>=</mo>${numericBody(number(observation.prediction))}`)}</span><span class="waterfall-total-unit">$1,000/year</span>`;
 }
 
 function renderPopulation() {
@@ -233,7 +236,7 @@ function renderPopulation() {
     container = $('#aggregate-container');
   }
   renderAggregate(container, {
-    scene:steps[state.scene].id, progress:state.aggregateProgress,
+    scene:steps[state.scene].id, progress:state.aggregateProgress, backgroundSize:state.data.background.length,
     features:state.data.features, observation:state.observation, population:state.population,
     featureOrder:state.aggregateOrder, reducedMotion:reducedMotion.matches,
     onSelect:person => openPopulationWaterfall(person, $('#inspect')),
@@ -265,7 +268,7 @@ function renderCoalitionExplorer() {
 
 function updateFigureOverflow() {
   figureScrollHint.hidden = true;
-  const scrollable = (story.dataset.layout === 'worked' || ['background-average','feature-credit','ols-fits','ols-refit','ols-recap'].includes(shell.dataset.scene)) && visual.scrollHeight > visual.clientHeight + 1;
+  const scrollable = (['worked','chart'].includes(story.dataset.layout) || ['background-average','feature-credit','ols-fits','ols-refit','ols-recap'].includes(shell.dataset.scene)) && visual.scrollHeight > visual.clientHeight + 1;
   figureScrollHint.hidden = !scrollable;
   visual.classList.toggle('has-overflow', scrollable);
   if (scrollable) visual.setAttribute('aria-describedby', figureScrollHint.id);
@@ -281,9 +284,10 @@ function render() {
   const aggregateScene = aggregateScenes.has(scene);
   shell.dataset.scene = scene;
   shell.classList.toggle('is-aggregate', aggregateScene);
+  shell.classList.toggle('is-chart', chartScenes.has(scene));
   shell.classList.toggle('is-worked', readableScenes.has(scene) || ['ols-refit','ols-recap'].includes(scene));
   story.classList.add('is-interactive');
-  story.dataset.layout = isCenteredScene(scene) ? 'formula' : 'worked';
+  story.dataset.layout = chartScenes.has(scene) ? 'chart' : isCenteredScene(scene) ? 'formula' : 'worked';
   const breadScene = scene.startsWith('ols-');
   const selectorContext = breadScene ? 'bread' : 'earnings';
   const hideCenteredSelector = isCenteredScene(scene) && !readableScenes.has(scene) && !['ols-refit','ols-recap'].includes(scene);
@@ -351,8 +355,20 @@ function openOrders(trigger) {
   dialog.showModal();
   $('#close-rows').focus();
 }
+function chartReadingLine() {
+  const headerHeight = $('.masthead').getBoundingClientRect().height;
+  return stackedLayout.matches ? Math.min(innerHeight - 30, headerHeight + (innerHeight - headerHeight) * .55) : innerHeight * .5;
+}
 function navigate(index, behavior = 'instant') {
   const target = index === steps.length ? $('#method') : steps[index];
+  if (index < steps.length && chartScenes.has(target.id)) {
+    state.scene = index;
+    state.aggregateProgress = 0;
+    render();
+    scrollTo({top:Math.ceil(scrollY + target.getBoundingClientRect().top - chartReadingLine()),behavior:'instant'});
+    history.replaceState(null,'',`#${target.id}`);
+    return;
+  }
   const centeredTransition = isCenteredScene(steps[state.scene]?.id) || isCenteredScene(target.id);
   if (centeredTransition) behavior = 'instant';
   if (index < steps.length && (centeredTransition || stackedLayout.matches)) {
@@ -388,9 +404,8 @@ function updateScroll() {
   // A stable phone reading line prevents the chart's compact height from changing
   // the active scene as it crosses the local-to-global boundary.
   const firstAggregate = $('#contribution-axis');
-  if (mobile && firstAggregate.getBoundingClientRect().top < innerHeight) {
-    const aggregateHeight = Math.min(560, Math.max(395, innerHeight * .68));
-    readingLine = Math.min(innerHeight - 30, $('.masthead').getBoundingClientRect().height + aggregateHeight + 60);
+  if (mobile && (chartScenes.has(steps[state.scene]?.id) || firstAggregate.getBoundingClientRect().top < innerHeight)) {
+    readingLine = chartReadingLine();
   }
   let scene = 0;
   steps.forEach((step,index) => {if (step.getBoundingClientRect().top <= readingLine) scene = index;});
@@ -421,7 +436,7 @@ dialog.addEventListener('click', event => {
   const rect = dialog.getBoundingClientRect();
   if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
 });
-dialog.addEventListener('close', () => {if (state.rowsTrigger?.isConnected) state.rowsTrigger.focus();});
+dialog.addEventListener('close', () => {if (state.rowsTrigger?.isConnected) state.rowsTrigger.focus({preventScroll:true});});
 observationSelect.addEventListener('change', () => {
   if (state.selectorContext === 'bread') state.breadObservation = state.breadData.observations.find(item => item.id === observationSelect.value);
   else state.observation = state.data.observations.find(item => item.id === observationSelect.value);
@@ -442,10 +457,8 @@ addEventListener('resize', () => {
   if (aggregateScenes.has(steps[state.scene]?.id)) {
     const step = steps[state.scene];
     const span = steps[state.scene+1] ? steps[state.scene+1].offsetTop-step.offsetTop : step.offsetHeight;
-    const line = stackedLayout.matches
-      ? Math.min(innerHeight-30, $('.masthead').getBoundingClientRect().height+Math.min(560,Math.max(395,innerHeight*.68))+60)
-      : innerHeight*.5;
-    scrollTo({top:scrollY+step.getBoundingClientRect().top-line+state.aggregateProgress*span*.62,behavior:'instant'});
+    const line = chartReadingLine();
+    scrollTo({top:Math.ceil(scrollY+step.getBoundingClientRect().top-line+state.aggregateProgress*span*.62),behavior:'instant'});
   }
   queueScroll();
   if (steps[state.scene]?.id === 'waterfall') renderFinal();
@@ -456,7 +469,8 @@ reducedMotion.addEventListener('change', () => {if (aggregateScenes.has(steps[st
 addEventListener('hashchange', () => {
   if (!state.data || !state.breadData) return;
   const index = steps.findIndex(step => step.id === canonicalSceneId(location.hash.slice(1)));
-  if (index >= 0) navigate(index, 'instant');
+  // Let native hash navigation finish its frame before placing the reading line.
+  if (index >= 0) requestAnimationFrame(() => navigate(index, 'instant'));
 });
 
 try {

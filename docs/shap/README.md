@@ -206,13 +206,22 @@ The signed means are zero for all three features; taking absolute values before
 averaging retains contribution magnitude. The ranking describes this predictor,
 reference background, and explained cohort. It does not describe causal effects.
 
+The waterfall and population sequence also use the full-width pinned stage.
+Waterfall inputs, axes, legends, and contribution labels remain readable on
+phones. The waterfall is read from the baseline upward, adding contributions
+from bottom to top; its arithmetic follows that same order. Chart captions
+use 18px text on desktop and 16px on phones.
+
 Scrolling carries the complete transition from a waterfall to a beeswarm and
 global importance. The feature rows keep their order until the final ranking.
 Vertical packing only prevents dot overlap; its height has no numerical meaning.
 The colored beeswarm uses color for the input's position within that feature's
 range, while horizontal position continues to show the signed contribution.
-The bars retain magnitude but discard the direction, spread, and interaction
-patterns visible in the beeswarm. Optional exploration opens a person's complete
+The final axis explicitly measures mean absolute SHAP value. The bars retain
+average magnitude but discard the direction, spread, and interaction patterns
+visible in the beeswarm. Captions distinguish the 125 explained profiles from
+the eight fixed background rows and keep the dependence of the ranking on the
+model, background, and explained population visible. Optional exploration opens a person's complete
 waterfall by selecting a dot in the colored beeswarm or choosing a profile in
 the individual waterfall dropdown under “Notes and exploration” and selecting
 its waterfall button.
@@ -229,9 +238,10 @@ its displayed bar order ranks averaged credits, rather than representing one
 revealing order.
 The sum's narrative follows the selected feature as well as the selected person.
 Reduced-motion preferences disable animated replacements and bar reveals.
-Short landscape screens place the worked prose and figure side by side. Phone tables
-keep every column visible, with larger included/excluded labels and controls.
-The weights table uses 12 px text and compact spacing on narrow screens.
+Short landscape screens retain the full-width figures and allow the figure to
+scroll when necessary. Phone tables keep the substantive columns visible, with
+readable input-source labels and controls. The weights table uses 16px values
+and 14px column headings on narrow screens.
 Without JavaScript, the lecture cues, complete formula, both model transitions,
 earnings equation, worked profiles, and calculation notes remain available in a
 continuous reading layout; interactive figures require it. The opening formula,

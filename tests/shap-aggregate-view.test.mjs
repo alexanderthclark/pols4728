@@ -149,7 +149,7 @@ test('beeswarm packing changes only vertical position and preserves signed contr
       closeTo(end[index].x, start[index].x);
       closeTo(mid[index].y, (start[index].y + end[index].y) / 2);
     }
-    const svg = render('beeswarm', 1), unit = (width < 540 ? width - 16 - 98 : width - 24 - 184) / 40;
+    const svg = render('beeswarm', 1), unit = axisScale(svg);
     for (const dot of byClass(svg, 'aggregate-dot')) {
       closeTo(number(dot, 'cx'), zeroX(svg) + number(dot, 'data-shap-value') * unit);
     }
@@ -207,7 +207,7 @@ test('the mean diamond and displayed mean follow the actual folding dots at ever
       for (let feature = 0; feature < data.features.length; feature += 1) {
         const averageX = mean(featureDots(svg, feature).map(dot => number(dot, 'cx')));
         closeTo(pathNumbers(markers[feature])[0], averageX);
-        const unit = (width < 540 ? width - 16 - 98 : width - 24 - 184) / 40;
+        const unit = axisScale(svg);
         closeTo(Number(labels[feature].textContent.replace('Mean = ', '')), (averageX - zero) / unit);
         closeTo((averageX - zero) / unit, expectedImportance[feature] * progress);
       }
@@ -223,7 +223,7 @@ test('importance bars preserve computed mean magnitudes while the final scene ra
       for (let feature = 0; feature < data.features.length; feature += 1) {
         const bar = rowPart(svg, feature, 'aggregate-mean-bar');
         const label = rowPart(svg, feature, 'aggregate-mean-value');
-        const unit = (width < 540 ? width - 16 - 98 : width - 24 - 184) / 40;
+        const unit = axisScale(svg);
         closeTo(number(bar, 'x'), zero);
         closeTo(number(bar, 'width') / unit, expectedImportance[feature] * progress);
         assert.equal(Number(label.textContent), expectedImportance[feature]);
