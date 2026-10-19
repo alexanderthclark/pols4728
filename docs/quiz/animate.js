@@ -1,13 +1,12 @@
 import {coarsePrediction, carnieMoments, tutoringRows} from './model.mjs';
-import {clamp01, easeInOut, phase, lerp, createTimeline} from './motion.mjs';
+import {clamp01, easeInOut, phase, lerp} from './motion.mjs';
 
-/** Bind finite figure animations to their actual viewport visibility. */
+/** Compile figure renderers once, then render any reversible scroll position. */
 export function createMotionView({getDraws,getRisk}){
  const rows=tutoringRows();
- const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
- const durations=[3800,5000,4800,8000,5000,6000,6500,5000,6500,4500,4200,5000,4500,6500,5500,7000];
  const controllers=new Map();
  const fmt=(v,d=2)=>Number(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+ const exact=v=>Number(v).toLocaleString('en-US',{maximumFractionDigits:4});
 
  function renderer(root,scene){
   const all=selector=>[...root.querySelectorAll(selector)];
@@ -22,7 +21,18 @@ export function createMotionView({getDraws,getRisk}){
   const outcomePoints=all('[data-adjust-y]').map(el=>({el,v:el.dataset.adjustY.split(',').map(Number)}));
   const outcomeMeans=all('[data-outcome-mean]').map(el=>({el,v:el.dataset.outcomeMean.split(',').map(Number),value:el.querySelector('[data-mean-value]')}));
   const treatmentPoints=all('[data-adjust-x]').map(el=>({el,dx:Number(el.dataset.adjustX)}));
-  const outcomeTicks=scene===13?all('svg > text[text-anchor="end"]'):[];
+  const outcomeTicks=scene===13?all('[data-y-tick]'):[];
+  const scale=root.querySelector('[data-outcome-scale]');
+  const [outcomeBottom,outcomeSpan]=(scale?.dataset.outcomeScale||'288,253').split(',').map(Number);
+  const outcomeAxis=root.querySelector('[data-outcome-axis]');
+  const zeroLine=root.querySelector('[data-zero-line]');
+  const treatmentAxis=root.querySelector('[data-treatment-axis]');
+  const weightedRows=scene===15?rows.map((row,i)=>({row,el:root.querySelector(`[data-weight-row="${i}"]`)})).map(({row,el})=>({row,rule:el.querySelector('[data-weight-rule]'),count:el.querySelector('[data-weight-count]'),tr:el.querySelector('[data-weight-tr]'),t2:el.querySelector('[data-weight-t2]')})):[];
+  const totalCount=root.querySelector('[data-total-count]');
+  const totalTR=root.querySelector('[data-total-tr]');
+  const totalT2=root.querySelector('[data-total-t2]');
+  const totalRatio=root.querySelector('[data-total-ratio]');
+  const noiseHeading=root.querySelector('[data-noise-heading]');
   const perfect=root.querySelector('[data-search-perfect]');
   const transfer=root.querySelector('[data-transfer]');
   const readout=root.querySelector('.motion-readout');
@@ -44,16 +54,28 @@ export function createMotionView({getDraws,getRisk}){
    deviations.forEach(({s,line,mean})=>{const q=easeInOut(phase(t,.45,1)),x=730*q,cx=lerp(s.x0,s.x1,q),sd=x/Math.sqrt(s.j?100:73000);line.setAttribute('x1',cx);line.setAttribute('x2',cx);line.setAttribute('y1',s.y0+s.unit*(x-2*sd));line.setAttribute('y2',s.y0+s.unit*(x+2*sd));mean.setAttribute('cx',cx);mean.setAttribute('cy',s.y0+s.unit*x);});
    components.forEach(({el,v:[width,k]})=>el.setAttribute('width',width*easeInOut(phase(t,[0,.3,.63][k],[.3,.63,.86][k]))));
    let noiseM=1;
-   if(noise.length){const s=noise[0].s;noiseM=Math.round(Math.exp(lerp(Math.log(s.from),Math.log(s.to),easeInOut(t))));const risks=getRisk(noiseM);noise.forEach(({s,line,dot,value})=>{const r=risks[s.j],x=s.left+Math.log10(r.mse)/s.xmax*s.usable;line.setAttribute('x2',x);dot.setAttribute('cx',x);value.setAttribute('x',x+9);value.textContent=fmt(r.mse,r.mse>100000?0:2);});root.querySelector('[data-noise-heading]').textContent=`Noise multiplier m = ${fmt(noiseM,0)}`;}
+   if(noise.length){const s=noise[0].s;noiseM=Math.round(Math.exp(lerp(Math.log(s.from),Math.log(s.to),easeInOut(t))));const risks=getRisk(noiseM);noise.forEach(({s,line,dot,value})=>{const r=risks[s.j],x=s.left+Math.log10(r.mse)/s.xmax*s.usable;line.setAttribute('x2',x);dot.setAttribute('cx',x);value.setAttribute('x',x+9);value.textContent=fmt(r.mse,r.mse>100000?0:2);});noiseHeading.textContent=`Noise multiplier m = ${fmt(noiseM,0)}`;}
    fits.forEach(({el,v:[from,to,i],residual})=>{const y=lerp(from,to,easeInOut(phase(t,(i-1)*.095,(i-1)*.095+.18)));el.setAttribute('y2',y);if(!residual)el.setAttribute('y1',y);});
    if(transfer){const [from,to]=transfer.dataset.transfer.split(',').map(Number);transfer.setAttribute('cx',lerp(from,to,easeInOut(phase(t,0,.5))));}
-   const subtract=easeInOut(phase(t,0,.63)),ymax=lerp(110,10,easeInOut(phase(t,.63,.95))),outcomeY=y=>288-(y+10)/(ymax+10)*253;
+   const subtract=easeInOut(phase(t,0,.63)),ymax=lerp(110,10,easeInOut(phase(t,.63,.95))),outcomeY=y=>outcomeBottom-(y+10)/(ymax+10)*outcomeSpan;
    outcomePoints.forEach(({el,v:[i,finalY]})=>{const r=rows[i];el.setAttribute('transform',`translate(0 ${outcomeY(r.Y-subtract*r.yhat)-finalY})`);el.querySelector('text').style.opacity=String(phase(t,.8,.98));});
    outcomeMeans.forEach(({el,v:[d,finalY],value})=>{const y=(d?90:60)-subtract*(d?86.25:63.75);el.setAttribute('transform',`translate(0 ${outcomeY(y)-finalY})`);value.textContent=fmt(y,2);});
-   if(scene===13){outcomeTicks.forEach((el,i)=>{el.textContent=fmt(-10+(ymax+10)*i/4,0);});const zero=root.querySelector('[data-zero-line]');zero.setAttribute('y1',outcomeY(0));zero.setAttribute('y2',outcomeY(0));root.querySelector('[data-outcome-axis]').textContent=t<.63?'Subtracting ŷ(X) from Y (points)':'Adjusted score R (points)';}
-   treatmentPoints.forEach(({el,dx})=>el.setAttribute('transform',`translate(${dx*(1-easeInOut(phase(t,.08,.78)))} 0)`));
+   if(scene===13){outcomeTicks.forEach((el,i)=>{el.textContent=fmt(-10+(ymax+10)*i/4,0);});zeroLine.setAttribute('y1',outcomeY(0));zeroLine.setAttribute('y2',outcomeY(0));outcomeAxis.textContent=t<.63?'Subtracting ŷ(X) from Y (points)':'Adjusted score R (points)';}
+   const treatmentProgress=easeInOut(phase(t,.08,.78));
+   treatmentPoints.forEach(({el,dx})=>el.setAttribute('transform',`translate(${dx*(1-treatmentProgress)} 0)`));
+   if(treatmentAxis)treatmentAxis.textContent=treatmentProgress<1?'Subtracting ê(X) from D':'Adjusted treatment T = D − ê(X)';
    let included=32;
-   if(scene===15){included=Math.round(32*easeInOut(phase(t,.02,.95)));let remaining=included,totalTR=0,totalT2=0;rows.forEach((r,i)=>{const n=Math.min(r.count,Math.max(0,remaining));remaining-=r.count;totalTR+=n*r.T*r.R;totalT2+=n*r.T*r.T;root.querySelector(`[data-weight-row="${i}"] [data-weight-rule]`).style.opacity=n>0&&n<r.count?'1':n===r.count?'.2':'0';});root.querySelector('[data-total-count]').textContent=included;root.querySelector('[data-total-tr]').textContent=fmt(totalTR,totalTR%1?2:0);root.querySelector('[data-total-t2]').textContent=fmt(totalT2,totalT2%1?2:0);root.querySelector('[data-total-ratio]').textContent=included?`τ̂ = ${fmt(totalTR,totalTR%1?2:0)} / ${fmt(totalT2,totalT2%1?2:0)} = 10`:'τ̂ = —';}
+   if(scene===15){
+    included=Math.round(32*easeInOut(phase(t,.02,.95)));let remaining=included,sumTR=0,sumT2=0;
+    weightedRows.forEach(({row:r,rule,count,tr,t2})=>{
+     const n=Math.min(r.count,Math.max(0,remaining));remaining-=r.count;
+     const productTR=n*r.T*r.R,productT2=n*r.T*r.T;sumTR+=productTR;sumT2+=productT2;
+     rule.style.opacity=n>0&&n<r.count?'1':n===r.count?'.2':'0';
+     if(count)count.textContent=n;if(tr)tr.textContent=exact(productTR);if(t2)t2.textContent=exact(productT2);
+    });
+    totalCount.textContent=included;totalTR.textContent=exact(sumTR);totalT2.textContent=exact(sumT2);
+    totalRatio.textContent=included?`τ̂ = ${exact(sumTR)} / ${exact(sumT2)} = 10`:'τ̂ = —';
+   }
    const status=[
     t<.8?'Reveal one illustrative fair guess at a time.':'Each unused guess still has a ½ chance of matching.',
     `Search ${fmt(searched,0)} of 32,768 candidates; bars show expectations.`,
@@ -75,22 +97,10 @@ export function createMotionView({getDraws,getRisk}){
    if(readout)readout.textContent=status;
   };
  }
- const observer=new IntersectionObserver(entries=>{
-  entries.forEach(entry=>{const c=controllers.get(entry.target);if(!c)return;c.visible=entry.isIntersecting&&entry.intersectionRatio>=.2;if(reduced.matches)return;if(c.visible&&!document.hidden&&!c.manualPause){if(c.timeline.getState().status==='idle')c.timeline.play();else if(c.timeline.getState().status==='paused')c.timeline.resume();}else if(c.timeline.getState().status==='playing')c.timeline.pause();});
- },{threshold:[0,.2,.5]});
- function remove(root){const c=controllers.get(root);if(c){c.timeline.cancel();observer.unobserve(root);controllers.delete(root);}}
+ function remove(root){controllers.delete(root);}
  function mount(root,scene){
-  remove(root);const render=renderer(root,scene),toggle=root.querySelector('[data-motion-toggle]'),replay=root.querySelector('[data-motion-replay]');
-  const c={scene,visible:false,manualPause:false,timeline:null};
-  c.timeline=createTimeline({duration:durations[scene],render,onState:state=>{root.dataset.motionState=state.status;toggle.textContent=state.status==='playing'?'Pause':state.status==='paused'?'Resume':'Play';}});
-  controllers.set(root,c);
-  toggle.addEventListener('click',()=>{const s=c.timeline.getState();if(s.status==='playing'){c.manualPause=true;c.timeline.pause();}else{c.manualPause=false;if(s.status==='paused')c.timeline.resume();else c.timeline.play();}});
-  replay.addEventListener('click',()=>{c.manualPause=false;c.timeline.play();});
-  if(reduced.matches){c.timeline.finish();toggle.disabled=true;replay.disabled=true;root.querySelector('progress').setAttribute('aria-label','Animation complete; reduced motion');}
-  else render(0);
-  observer.observe(root);
+  const render=renderer(root,scene);controllers.set(root,render);render(0);
  }
- document.addEventListener('visibilitychange',()=>{controllers.forEach(c=>{if(document.hidden&&c.timeline.getState().status==='playing')c.timeline.pause();else if(!document.hidden&&c.visible&&!c.manualPause&&c.timeline.getState().status==='paused')c.timeline.resume();});});
- reduced.addEventListener('change',()=>{controllers.forEach((c,root)=>{if(reduced.matches)c.timeline.finish();root.querySelectorAll('[data-motion-toggle],[data-motion-replay]').forEach(b=>b.disabled=reduced.matches);});});
- return {mount,remove};
+ function update(root,progress){controllers.get(root)?.(progress);}
+ return {mount,update,remove};
 }

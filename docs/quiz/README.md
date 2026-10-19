@@ -1,65 +1,53 @@
 # Prediction, selection, and causal adjustment
 
-A sixteen-scene scrollytelling explanation of all three questions and subparts
-in the Fall 2026 POLS 4728 take-home quiz. The original question wording is
-available in expandable sections. The page includes the worked answers, not
-the quiz's submission instructions or unrelated semester materials.
+A sixteen-scene companion to the Fall 2026 POLS 4728 quiz and lecture notes.
+The three original question sections retain their wording. Concise scene
+summaries carry the visual argument; native expandable sections retain the
+full derivations, tables, assumptions and optional experiments.
 
-Each figure plays a finite explanatory sequence when it enters view, with
-Pause/Resume and Replay controls. Fair guesses appear one at a time; the
-candidate search builds an expected histogram; ten fitted curves draw in
-sequence; linked age markers move along the fitted line and its floored report.
-The noise comparison moves all three MSEs on a fixed logarithmic scale.
-Outcome adjustment physically subtracts each fitted prediction, then zooms to
-the residual scale; treatment adjustment slides the same four groups from D
-to T before drawing the slope of 10. The final sums accumulate student counts.
-Replaying retains the same training draws. Motion pauses offscreen and when
-the tab is hidden. Reduced motion displays completed figures immediately.
+## The scroll sequence
 
-## Reading the lesson
+The graph remains pinned on desktop, portrait phones and short landscape
+screens. Scroll position constructs every intermediate state, and scrolling
+backward restores it. Each scene holds its completed calculation before the
+next one. No clock, autoplay, pause or replay is involved. Readers can also use
+the step selector, arrow buttons or left/right keys outside form controls.
+Direct links use `#step-0` through `#step-15`; chapter links show the setup.
+Resizing retains the active calculation and position within it.
 
-- Question 1: chance accuracy, searching 32,768 random predictors, a validation /
-  test split with no training parameters, and optional outer evaluation.
-- Question 2: ten simulated training samples per sampling design; a shared set
-  of fits for Carnies 1 and 3; analytic prediction bias and variance; numerical
-  population averages; reporting-threshold detail; and MSE at the stated and
-  very large noise levels.
-- Question 3: in-sample memorization, randomized held-out adjustment, the
-  observational 30-point score gap, two tree leaves, the 7.5-point outcome-only
-  estimate, and count-weighted adjustment of both outcome and treatment.
+The sixteen scenes cover:
 
-The validation slider preserves all 20 observations while changing the split.
-The age-curve control selects full-range views or redraws ten training samples;
-the threshold detail uses the same first-carnie samples. The noise selector
-recalculates population MSE for four multipliers. The initial ten curves are
-fresh draws on each visit; the simulation table in the narrative records a
-single reference run and remains separate from the exact-probability numerical
-averages.
+- Fair guesses, searching 32,768 predictors, validation/test separation and
+  optional outer evaluation.
+- Ten fitted curves; fixed-age bias and variance; averaging over population
+  ages; reporting thresholds; and MSE at ordinary and large noise levels.
+- Memorization, held-out randomized adjustment, the observed 30-point gap,
+  outcome-tree predictions, the 7.5-point outcome-only estimate, and the
+  count-weighted adjustment of both outcome and treatment that recovers 10.
 
-Desktop figures remain beside the narrative as the reader scrolls. Previous /
-Next, the step selector, and left/right arrows outside controls navigate the
-sixteen steps. Step links use `#step-0` through `#step-15`; browser history
-restores explicit step navigation. On screens at most 900px wide or 760px tall, figures sit
-inside their corresponding narrative steps, keeping all three curve panels
-readable without covering the text. Chapter links work at every width.
+Carnies 1 and 3 share the same training draws. The full-range curve panels use
+matching scales; threshold details explicitly use different vertical scales.
+The moving outcome axis follows the residual subtraction and subsequent zoom.
+Every partially accumulated row, product, total and ratio uses exactly the
+same included students; four decimal places suffice for the exact dyadic sums.
 
-The static answers, equations and tables remain readable without JavaScript.
-Native MathML uses the existing bundled STIX Two Math font. The lesson uses
-the course palette and approved identity artwork, descriptive SVG titles,
-direct labels and line patterns, native keyboard controls, and reduced-motion
-navigation. These choices do not establish full accessibility compliance.
+Compact diagrams use their own geometry rather than scaling an entire desktop
+page down. The phone narrative travels through the space below the diagram.
+Opening a calculation holds its completed figure while the longer text scrolls.
+Reduced motion uses reversible logical thresholds; an optional title-page
+button offers the same stepped presentation independently of system settings.
+
+The validation split, fresh curve draws, single-carnie views and noise levels
+are optional experiments inside the calculations. Every main teaching point
+is available by scrolling alone. Fresh samples persist during forward/backward
+scrolling; the numerical reference table is separate from these fresh draws.
+Native disclosures keep the worked answers available without JavaScript.
+The page uses local assets and fonts, without external runtime dependencies.
 
 ## Local preview and verification
 
-This is static HTML, CSS and JavaScript, with no build step or external runtime
-dependencies. From the repository root:
-
-```sh
-python3 -m http.server 8898 --bind 127.0.0.1 --directory docs
-```
-
-Open <http://127.0.0.1:8898/quiz/>. The course homepage links to the lesson.
-After merging to `main`, the existing Pages workflow publishes it at
+From the repository root, serve `docs/` with any static web server and open
+`/quiz/`. After merging, the existing Pages workflow publishes the lesson at
 <https://alexanderthclark.github.io/pols4728/quiz/>.
 
 ```sh
@@ -68,19 +56,18 @@ node --check docs/quiz/motion.mjs
 node --check docs/quiz/animate.js
 node --check docs/quiz/story.js
 node --test tests/quiz-model.test.mjs tests/quiz-motion.test.mjs
-node --test tests/*.test.mjs
+node --test tests/*.test.mjs tests/*.test.cjs
 ```
 
-`model.mjs` separates the calculations from presentation. Carnie 3's three
-reporting probabilities come from the normal distribution of Carnie 1's fitted
-prediction. Adaptive numerical integration averages squared bias and variance
-over uniform X. The eight calculation tests use independent normal-probability
-reference values, known population risks at two noise levels, exact floor
-boundaries, and count-weighted tutoring results. Browser review covers all
-scenes, control changes, direct links, navigation, no-JavaScript reading,
-reduced motion, and desktop and 320px/390px layouts.
-Eight additional clock tests check progress, pause/resume, replay,
-cancellation, and protection against stale animation callbacks. Browser checks
-also confirm actual movement in all sixteen scenes, frozen positions during
-pause, replay from the same data, mobile entry playback, and instant completion
-when reduced motion is enabled.
+`model.mjs` separates calculations from presentation. Its probability and risk
+tests use independent normal-probability reference values, exact reporting
+boundaries and count-weighted tutoring results. The scroll tests check forward
+and reverse progress, completed-state holds, reduced-motion boundaries, actual
+bar geometry, all 33 prefixes of the student accumulation, moving treatment
+labels and responsive residual axes. The independent audit also recomputed
+population risks using a different normal CDF and numerical integrator.
+
+Browser review covers every scene at desktop and 320px portrait/667px landscape
+sizes, actual forward/backward scrolling, label bounds, optional controls,
+keyboard disclosure access, stepped motion, chapter/deep links and resizing.
+These checks do not establish full accessibility compliance.
