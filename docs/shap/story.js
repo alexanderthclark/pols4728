@@ -3,11 +3,11 @@ import { renderWaterfall } from './waterfall.js';
 import { buildPopulation } from './aggregate.mjs';
 import { renderAggregate } from './aggregate-view.js';
 import { featureLabels, shapleyFormulaMarkup, valueMarkup, joiningMarkup, predictionMarkup } from './formula.js';
-import { validateBreadPeace, breadPeaceFacts, renderBreadPeace } from './bread-peace.js';
+import { validateBreadPeace, breadPeaceFacts, renderBreadPeace, updateBreadPeaceProgress } from './bread-peace.js';
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
-const names = ['The Shapley formula', `The observation ${symbol('x')}`, `The model prediction ${yHatMarkup()}`, 'Average background predictions', 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'The value-function recap', 'When features interact', 'An interaction model; one person', `The term ${valueSymbolMarkup('<mi>S</mi>')}`, `The term ${valueSymbolMarkup('<mi>S</mi><mo>∪</mo><mrow><mo stretchy="false">{</mo><mi>i</mi><mo stretchy="false">}</mo></mrow>')}`, 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation', 'One common zero', 'One person, three dots', 'Explain more people', 'Make overlap visible', 'Color by input value', 'Opposing contributions cancel', 'Measure distance from zero', 'Average the distances', 'Rank the averages'];
+const names = ['The Shapley formula', `The observation ${symbol('x')}`, `The model prediction ${yHatMarkup()}`, 'Average background predictions', 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Both features are fixed', 'What if only bread is fixed?', 'Keep the model; average over peace', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'The value-function recap', 'When features interact', 'An interaction model; one person', `The term ${valueSymbolMarkup('<mi>S</mi>')}`, `The term ${valueSymbolMarkup('<mi>S</mi><mo>∪</mo><mrow><mo stretchy="false">{</mo><mi>i</mi><mo stretchy="false">}</mo></mrow>')}`, 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation', 'One common zero', 'One person, three dots', 'Explain more people', 'Make overlap visible', 'Color by input value', 'Opposing contributions cancel', 'Measure distance from zero', 'Average the distances', 'Rank the averages'];
 const captions = [
   'Scroll to give each part its meaning in a prediction problem.',
   `${symbol('x')} is one complete observation; its values supply the fixed inputs.`,
@@ -17,7 +17,8 @@ const captions = [
   '',
   'Standardized features and observed vote: three correlations determine the OLS fits.',
   '',
-  `Linear model + overall background mean ${inlineMath('<mtext>peace</mtext><mo>=</mo><mn>0</mn>')}:`,
+  'SHAP keeps the fitted two-feature model. Scroll to replace the rejected refit with the background average.',
+  'Hold bread fixed; average the original model’s predictions over all eight background peace values.',
   'For this linear model, averaging predictions equals predicting at the excluded input’s background mean, 0.',
   'For this linear model, averaging predictions equals predicting at the excluded input’s background mean, 0.',
   `Each order has weight ${fractionMarkup(1, 2)}. Predictions are in SD of vote share.`,
@@ -42,6 +43,7 @@ const captions = [
 ];
 const aggregateScenes = new Set(['contribution-axis','one-person-dots','many-people','beeswarm','feature-color','signed-average','absolute-values','global-importance','importance-ranking']);
 const chartScenes = new Set(['waterfall', ...aggregateScenes]);
+const breadScenes = new Set(steps.filter(step => step.id.startsWith('ols-')).map(step => step.id));
 steps.filter(step => chartScenes.has(step.id)).forEach(step => step.classList.add('chart-step'));
 const formulaStops = {
   'shapley-formula':{focus:'all',meaning:'The players are input features. The game assigns credit for one observation’s prediction.',note:`${symbol('F')}: all features; ${inlineMath('<mi>p</mi><mo>=</mo><mrow><mo stretchy="false">|</mo><mi>F</mi><mo stretchy="false">|</mo></mrow>')}. Excluded inputs come from background rows.`},
@@ -53,7 +55,7 @@ const formulaStops = {
 const transitionScenes = new Set(['bread-peace-intro', 'earnings-intro']);
 const readableScenes = new Set(['ols-model','ols-income-first','ols-fatalities-first','ols-shap','observation','background','reveal-ability','neighborhood-first','weights','shap-value']);
 steps.filter(step => readableScenes.has(step.id)).forEach(step => step.classList.add('readable-step'));
-const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene) || readableScenes.has(scene) || ['ols-fits','ols-refit','ols-recap'].includes(scene);
+const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene) || readableScenes.has(scene) || ['ols-fits','ols-refit','ols-bread-value','ols-recap'].includes(scene);
 const canonicalSceneId = id => ({'joining-feature':'feature-credit','preceding-features':'background-average','value-function':'background-average'}[id] || id);
 const visual = $('#visual'), shell = $('.stage-shell'), story = $('#story');
 const figureScrollHint = $('#figure-scroll-hint');
@@ -125,6 +127,8 @@ function updateFacts() {
   document.querySelectorAll('[data-fact]').forEach(element => {element.textContent = facts[element.dataset.fact];});
   const breadFacts = breadPeaceFacts(state.breadData,state.breadObservation);
   document.querySelectorAll('[data-bread-fact]').forEach(element => {element.textContent = breadFacts[element.dataset.breadFact];});
+  $('.static-fits').innerHTML = renderBreadPeace('ols-fits',state.breadData,state.breadObservation).replace(/^<h3>.*?<\/h3>/, '');
+  $('.static-bread-value').innerHTML = renderBreadPeace('ols-bread-value',state.breadData,state.breadObservation).replace(/^<h3>.*?<\/h3>/, '');
   $('.static-refit').innerHTML = renderBreadPeace('ols-refit',state.breadData,state.breadObservation).replace(/^<h3>.*?<\/h3>/, '');
   $('.static-recap').innerHTML = renderBreadPeace('ols-recap',state.breadData,state.breadObservation).replace(/^<h3>.*?<\/h3>/, '');
   updateAverageNarrative();
@@ -268,7 +272,7 @@ function renderCoalitionExplorer() {
 
 function updateFigureOverflow() {
   figureScrollHint.hidden = true;
-  const scrollable = (['worked','chart'].includes(story.dataset.layout) || ['background-average','feature-credit','ols-fits','ols-refit','ols-recap'].includes(shell.dataset.scene)) && visual.scrollHeight > visual.clientHeight + 1;
+  const scrollable = (['worked','chart'].includes(story.dataset.layout) || ['background-average','feature-credit','ols-fits','ols-refit','ols-bread-value','ols-recap'].includes(shell.dataset.scene)) && visual.scrollHeight > visual.clientHeight + 1;
   figureScrollHint.hidden = !scrollable;
   visual.classList.toggle('has-overflow', scrollable);
   if (scrollable) visual.setAttribute('aria-describedby', figureScrollHint.id);
@@ -285,14 +289,14 @@ function render() {
   shell.dataset.scene = scene;
   shell.classList.toggle('is-aggregate', aggregateScene);
   shell.classList.toggle('is-chart', chartScenes.has(scene));
-  shell.classList.toggle('is-worked', readableScenes.has(scene) || ['ols-refit','ols-recap'].includes(scene));
+  shell.classList.toggle('is-worked', readableScenes.has(scene) || ['ols-fits','ols-refit','ols-bread-value','ols-recap'].includes(scene));
   story.classList.add('is-interactive');
   story.dataset.layout = chartScenes.has(scene) ? 'chart' : isCenteredScene(scene) ? 'formula' : 'worked';
   const breadScene = scene.startsWith('ols-');
   const selectorContext = breadScene ? 'bread' : 'earnings';
-  const hideCenteredSelector = isCenteredScene(scene) && !readableScenes.has(scene) && !['ols-refit','ols-recap'].includes(scene);
+  const hideCenteredSelector = isCenteredScene(scene) && !readableScenes.has(scene) && !['ols-fits','ols-refit','ols-bread-value','ols-recap'].includes(scene);
   const hideCaption = isCenteredScene(scene);
-  $('.observation-control').hidden = aggregateScene || hideCenteredSelector || ['ols-model','ols-fits'].includes(scene);
+  $('.observation-control').hidden = aggregateScene || hideCenteredSelector || scene === 'ols-model';
   if (state.selectorContext !== selectorContext) {
     const data = breadScene ? state.breadData : state.data;
     const observation = breadScene ? state.breadObservation : state.observation;
@@ -312,7 +316,10 @@ function render() {
   $('#next').textContent = state.scene === steps.length-1 ? 'Notes →' : 'Next →';
   if (formulaStops[scene]) renderFormula(scene);
   else if (transitionScenes.has(scene)) renderTransition(scene);
-  else if (breadScene) visual.innerHTML = renderBreadPeace(scene,state.breadData,state.breadObservation);
+  else if (breadScene) {
+    visual.innerHTML = renderBreadPeace(scene,state.breadData,state.breadObservation);
+    updateBreadPeaceProgress(visual,scene,state.aggregateProgress,reducedMotion.matches);
+  }
   else if (scene === 'observation') renderObservation();
   else if (scene === 'background') renderBackground(0);
   else if (scene === 'reveal-ability') renderBackground(1, 0);
@@ -361,7 +368,7 @@ function chartReadingLine() {
 }
 function navigate(index, behavior = 'instant') {
   const target = index === steps.length ? $('#method') : steps[index];
-  if (index < steps.length && chartScenes.has(target.id)) {
+  if (index < steps.length && (chartScenes.has(target.id) || breadScenes.has(target.id))) {
     state.scene = index;
     state.aggregateProgress = 0;
     render();
@@ -398,9 +405,8 @@ function updateScroll() {
   let readingLine = mobile
     ? (state.scene < 0 || isCenteredScene(steps[state.scene]?.id) ? introReadingLine : shell.getBoundingClientRect().bottom + 60)
     : innerHeight * .5;
-  // Keep the activation line stable as the OLS fits expand to the full-width
-  // stage and the following worked example returns to the compact panel.
-  if (mobile && steps[state.scene]?.id.startsWith('ols-')) readingLine = introReadingLine;
+  // Use one reading line throughout the OLS sequence, including the refit transition.
+  if (mobile && $('#ols-model').getBoundingClientRect().top <= introReadingLine && $('#earnings-intro').getBoundingClientRect().top > introReadingLine) readingLine = chartReadingLine();
   // A stable phone reading line prevents the chart's compact height from changing
   // the active scene as it crosses the local-to-global boundary.
   const firstAggregate = $('#contribution-axis');
@@ -416,6 +422,7 @@ function updateScroll() {
   state.aggregateProgress = Math.max(0, Math.min(1, (readingLine - activeStep.getBoundingClientRect().top) / (span * .62)));
   if (state.scene !== scene) {state.scene = scene; render();}
   else if (aggregateScenes.has(activeStep.id)) renderPopulation();
+  else if (activeStep.id === 'ols-refit') updateBreadPeaceProgress(visual,activeStep.id,state.aggregateProgress,reducedMotion.matches);
   const progress = Math.max(0,Math.min(1,(scrollY-steps[0].offsetTop)/($('#method').offsetTop-steps[0].offsetTop)));
   $('#progress').style.width = `${progress*100}%`;
 }
@@ -454,7 +461,7 @@ $('#coalition-controls').addEventListener('change', () => {
 });
 addEventListener('scroll',queueScroll,{passive:true});
 addEventListener('resize', () => {
-  if (aggregateScenes.has(steps[state.scene]?.id)) {
+  if (aggregateScenes.has(steps[state.scene]?.id) || steps[state.scene]?.id === 'ols-refit') {
     const step = steps[state.scene];
     const span = steps[state.scene+1] ? steps[state.scene+1].offsetTop-step.offsetTop : step.offsetHeight;
     const line = chartReadingLine();
@@ -465,7 +472,11 @@ addEventListener('resize', () => {
   if (dialog.open && $('.dialog-waterfall')) renderWaterfall($('.dialog-waterfall'), {features:state.data.features,observation:state.globalObservation,unit:'$1,000/year'});
   requestAnimationFrame(updateFigureOverflow);
 });
-reducedMotion.addEventListener('change', () => {if (aggregateScenes.has(steps[state.scene]?.id)) renderPopulation();});
+reducedMotion.addEventListener('change', () => {
+  const scene = steps[state.scene]?.id;
+  if (aggregateScenes.has(scene)) renderPopulation();
+  else if (scene === 'ols-refit') updateBreadPeaceProgress(visual,scene,state.aggregateProgress,reducedMotion.matches);
+});
 addEventListener('hashchange', () => {
   if (!state.data || !state.breadData) return;
   const index = steps.findIndex(step => step.id === canonicalSceneId(location.hash.slice(1)));

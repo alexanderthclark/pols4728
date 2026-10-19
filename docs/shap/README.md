@@ -4,7 +4,7 @@ The opening title is “SHAP,” with the subtitle “SHapley Additive exPlanati
 following the expansion used in the [official documentation](https://shap.readthedocs.io/en/latest/).
 The slide shows two torso-less investigators examining a faceless
 Y-hat in a gently landed spaceship. Its Start link leads into the existing
-30-frame explanation; the cover is separate from the story’s frame count.
+31-frame explanation; the cover is separate from the story’s frame count.
 The first 21 frames lead to a local waterfall; nine appended frames build
 a beeswarm and derive global importance from those same local contributions.
 
@@ -87,29 +87,30 @@ The cohort does not replace the background.
 5. Define the marginal contribution `v_x(S ∪ {i}) − v_x(S)`, then connect its average across orders to the feature’s credit, `phi_i(v_x)`.
 6. Introduce the stylized Bread and Peace specification with the original Hibbs citation and course-style characters.
 7. State the three correlations for standardized bread, peace, and observed vote.
-8. Display the two univariate fits and one bivariate fit.
-9. Choose an election; compare the muted bread-only refit (not used for SHAP) with the bivariate prediction at mean peace.
-10. Reveal bread first, then peace; show both before/after prediction subtractions.
-11. Reverse the order and show the same bivariate equation evaluated at different inputs.
-12. Average each feature's two marginals and reconstruct the full prediction.
-13. Re-emphasize the general average over background predictions, then label mean substitution as a linear model shortcut and map all four feature groups to predictions for the selected election.
-14. Introduce how ability and neighborhood interact with a centered East/West Germany analogy.
-15. Move to the three-feature earnings interaction and one person to explain.
-16. Compute its `v_x(S)` from background rows, starting with `S = ∅`.
-17. Fix ability and compare with the earnings baseline.
-18. Start with neighborhood fixed and compare the same two value-function terms.
-19. Match all four preceding groups to their factorial weights and prediction differences.
-20. Add the weighted contributions; select a feature and inspect all six orders.
-21. Assemble the final contributions in a course-styled standard waterfall.
-22. Move each waterfall contribution to a common zero, preserving its signed length.
-23. Replace each contribution bar with a dot at its SHAP value.
-24. Repeat the explanation for all 125 constructed profiles, with the same model and eight reference rows.
-25. Spread overlapping dots vertically into a beeswarm, keeping their horizontal contributions fixed.
-26. Color dots by low-to-high input value within each feature, distinguishing input value from contribution direction.
-27. Show how signed averages cancel positive and negative contributions across these profiles.
-28. Fold negative contributions to their absolute distance from zero.
-29. Average the 125 absolute contributions in each feature row to construct global importance bars.
-30. Rank the mean absolute contributions: neighborhood opportunity 7.2, ability 3.24, and experience 1.2, in $1,000/year.
+8. Choose an election; show the original bivariate model and `v_x({bread, peace}) = ŷ(x)`, with both inputs fixed.
+9. Ask what `v_x({bread})` means. Identify a bread-only refit as a different model, then gray, shrink, and remove it as scrolling reveals the original-model average in the same single column.
+10. Hold the completed calculation at its own scroll stop: fix bread, average eight original-model predictions over background peace, then identify mean substitution as a linear shortcut.
+11. Reveal bread first, then peace; show both before/after prediction subtractions.
+12. Reverse the order and show the same bivariate equation evaluated at different inputs.
+13. Average each feature's two marginals and reconstruct the full prediction.
+14. Re-emphasize the general average over background predictions, then label mean substitution as a linear model shortcut and map all four feature groups to predictions for the selected election.
+15. Introduce how ability and neighborhood interact with a centered East/West Germany analogy.
+16. Move to the three-feature earnings interaction and one person to explain.
+17. Compute its `v_x(S)` from background rows, starting with `S = ∅`.
+18. Fix ability and compare with the earnings baseline.
+19. Start with neighborhood fixed and compare the same two value-function terms.
+20. Match all four preceding groups to their factorial weights and prediction differences.
+21. Add the weighted contributions; select a feature and inspect all six orders.
+22. Assemble the final contributions in a course-styled standard waterfall.
+23. Move each waterfall contribution to a common zero, preserving its signed length.
+24. Replace each contribution bar with a dot at its SHAP value.
+25. Repeat the explanation for all 125 constructed profiles, with the same model and eight reference rows.
+26. Spread overlapping dots vertically into a beeswarm, keeping their horizontal contributions fixed.
+27. Color dots by low-to-high input value within each feature, distinguishing input value from contribution direction.
+28. Show how signed averages cancel positive and negative contributions across these profiles.
+29. Fold negative contributions to their absolute distance from zero.
+30. Average the 125 absolute contributions in each feature row to construct global importance bars.
+31. Rank the mean absolute contributions: neighborhood opportunity 7.2, ability 3.24, and experience 1.2, in $1,000/year.
 
 The opening frames distinguish `ŷ(x)`, the fixed model’s prediction for a
 complete row, from `v_x(S)`, an average of that same model’s predictions across
@@ -126,12 +127,12 @@ the inputs already fixed to `x`; adding feature `i` uses its value from `x`
 instead of its background values. Averaging those prediction differences across
 orders gives the feature's SHAP value. The model is not retrained. The explainer
 uses `phi_i(v_x)` for the feature’s credit throughout. The alias `f(x) = ŷ(x)`
-is introduced with the earnings model. Frame 9 explicitly connects row averaging
+is introduced with the earnings model. Frames 9–10 explicitly connect row averaging
 to the valid linear shortcut:
 average `ŷ(bread, peace)` over reference peace values, giving `ŷ(bread, 0)`
 because the overall background mean is zero.
 
-Frame 13 returns to the general average over background predictions first in a
+Frame 14 returns to the general average over background predictions first in a
 centered, full-width recap. It then labels
 `v_x(S) = ŷ(x_S, x̄_−S)` as a linear model shortcut. This unstandardized identity
 holds for a linear model including its intercept. The bar denotes overall
@@ -158,19 +159,21 @@ and identifies bread as real income growth and peace as fewer war fatalities.
 The peace feature reverses the standardized war-fatalities measure, so both
 feature coefficients in the teaching model are positive.
 The equation is a stylized, centered and standardized teaching specification,
-rather than the original historical fit. The split layout begins with the
-three correlations in frame seven. Frame eight centers the three fitted
-equations in a full-width scene. Frame nine also uses the full width for the
-prediction comparison, retaining the election selector and averaging equation;
-frame ten returns to the worked layout. Frame 13 centers the general
-definition and four-coalition recap before frame 14's centered transition,
+rather than the original historical fit. Frame seven shows the three
+correlations. Frame eight introduces only the original bivariate model and the
+full-coalition prediction. Frame nine asks what happens when only bread is fixed:
+the rejected univariate refit grays, shrinks, and disappears as native scroll
+progress reveals the original-model average in the same pinned column. Frame ten
+holds that calculation for readers using Next/Previous or reduced motion.
+The two revealing orders follow in frames eleven and twelve. Frame 14 centers
+the general definition and four-coalition recap before frame 15’s transition,
 “When features interact,” showing two round body-and-face characters with
 stick limbs on a tilted map of Germany. The smiling western character wears a
 top hat; the frowning eastern character wears a patched cap and worn shoes.
 The bottom map credit names West and East Germany. The native math term
 `ability × neighborhood` connects that comparison to the illustrative earnings
-equation. The full earnings model and person selector appear in frame 15.
-The story has 30 teaching frames, plus the unchanged opening title scene.
+equation. The full earnings model and person selector appear in frame 16.
+The story has 31 teaching frames, plus the unchanged opening title scene.
 When a chart exceeds the available figure height, the figure scrolls vertically
 and shows a scroll hint. Aggregate charts retain page-scroll chaining at their
 edges and reserve scrollbar space so the chart layout remains stable.
@@ -182,9 +185,12 @@ table uses readable group names and explicit Before, After, Marginal, and Weight
 headings. The earnings equation appears with the selected observation. A concise model and background
 note retains the assumptions and interpretation for later reading; the story
 itself introduces the notation and factorial weights.
-The election selector appears after all three OLS fits are introduced. The person
-selector appears when the earnings example begins. Each example retains its
-selection when readers move between them. Frame 12 adds the prediction
+The election selector appears with the original bivariate model and the
+full-coalition prediction. The univariate refit appears only when the story asks
+how to calculate the bread-only coalition; it is explicitly rejected and removed
+by scrolling before the correct original-model average is held at the next stop.
+The person selector appears when the earnings example begins. Each example retains its
+selection when readers move between them. Frame 13 adds the prediction
 identity below its order averages:
 `ŷ(x) = ŷ(0, 0) + ϕ_bread(v_x) + ϕ_peace(v_x)`. The zero-input baseline applies to
 this centered additive model.

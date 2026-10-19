@@ -59,11 +59,14 @@ function renderCorrelations(data) {
   return `<h3>Start with three correlations (stylized Hibbs model)</h3><p class="bread-context"><span class="bread-predictor">Bread, peace</span>, and <span class="bread-outcome">observed vote share ${math('<mi class="bread-outcome">y</mi>', 'y')}</span> are centered and standardized: mean 0, SD 1.</p><div class="bread-correlations">${correlations.map(([label,symbol,value]) => `<section><p>${label}</p>${math(`${symbol}<mo>=</mo>${numeral(value)}`,`${label}: correlation ${format(value)}`)}</section>`).join('')}</div><p class="input-note">These are stipulated correlations for a stylized Bread and Peace example.</p>`;
 }
 
-function renderFits(data) {
-  return `<h3>The three OLS fits</h3><div class="bread-fits">${[
-    ['Bread-only OLS','bread',data.refit.breadOnlyCoefficient],
-    ['Peace-only OLS','peace',data.refit.peaceOnlyCoefficient],
-  ].map(([label,feature,coefficient]) => `<section><h4>${label}</h4>${math(`<msub>${yHat}<mtext>${feature}</mtext></msub><mo>=</mo>${numeral(coefficient)}<mo>×</mo><mtext>${feature}</mtext>`,`${label}: y hat equals ${format(coefficient)} times ${feature}`)}</section>`).join('')}<section class="bread-full-fit"><h4>Bivariate OLS · the model we explain</h4>${modelEquation(data)}</section></div>`;
+function coalitionPredictionEquation(mask, observation) {
+  const inputs = point(observation,mask);
+  const result = coalition(observation,mask).value;
+  return `<div class="bread-coalition-equation" role="math" aria-label="v sub x of ${mask === 3 ? 'bread and peace' : 'bread'} equals y hat of ${inputs.map(format).join(', ')} equals ${format(result)}"><span aria-hidden="true">${valueMarkup(mask,notation)}</span><span aria-hidden="true">${math(`<mo>=</mo>${prediction(inputs)}`, 'model prediction')}</span><span aria-hidden="true">${math(`<mo>=</mo>${numeral(result)}`,format(result))}</span></div>`;
+}
+
+function renderFullPrediction(data, observation) {
+  return `<h3>Both features are fixed</h3><div class="bread-full-model">${modelEquation(data)}</div>${focalInputs(observation)}${coalitionPredictionEquation(3,observation)}<p class="refit-instruction">Use this election’s bread and peace values in the fitted two-feature model.</p><p class="bread-prediction-unit">Predictions: SD of vote share.</p>`;
 }
 
 function focalInputs(observation) {
@@ -77,9 +80,36 @@ export function breadPeaceMeanPredictionMarkup(observation) {
   return `<span class="bread-mean-bridge"><span class="bread-mean-equation" role="math" aria-label="v sub x of bread is the average of y hat of ${format(observation.values[0])}, peace over background peace values, which equals y hat of ${format(observation.values[0])}, zero"><math aria-hidden="true"><mrow>${breadValue}<mo>=</mo></mrow></math><math aria-hidden="true"><mrow><munder><mtext>average</mtext><mtext>background peace</mtext></munder>${predictionWithPeace}</mrow></math><math aria-hidden="true"><mrow><mo>=</mo>${prediction(point(observation,1))}</mrow></math></span></span>`;
 }
 
-function renderRefit(data, observation) {
-  const fixed = coalition(observation,1).value;
-  return `<h3>Reveal bread with the original model</h3>${focalInputs(observation)}<p class="bread-focal-prediction"><span class="bread-model-label">Full prediction:</span> ${math(`${prediction(observation.values)}<mo>=</mo>${numeral(observation.prediction)}`,`The bivariate prediction for this election is ${format(observation.prediction)}`)}</p><div class="refit-comparison"><section class="refit-unused"><h4>Refit using bread only</h4><p>Dropping peace changes the bread coefficient to 0.75.</p><p class="refit-equation">${math(`${numeral(.75)}<mo>×</mo>${parentheses(numeral(observation.values[0]))}`, `0.75 times ${format(observation.values[0])}`)}</p><div class="refit-result">${format(observation.reducedPrediction)}<small>Reduced-model prediction.<br>Not the SHAP coalition value.</small></div></section><section><h4>Keep the original model</h4><p>Fix bread; average predictions over background peace.</p><p class="refit-equation">${math(prediction(point(observation,1)), 'The original bivariate model with this election’s bread held fixed and peace at its background mean.')}</p><div class="refit-result">${format(fixed)}<small>${valueMarkup(1,notation)}<br>Average prediction with bread fixed.</small></div><p class="refit-note">Linear model; background peace has mean 0:</p>${breadPeaceMeanPredictionMarkup(observation)}</section></div>`;
+function renderRefit(data, observation, complete = false) {
+  const bread = observation.values[0];
+  const reduced = data.refit.breadOnlyCoefficient;
+  const reducedY = `<msub>${yHat}<mtext>bread</mtext></msub>`;
+  return `<h3>What if only bread is fixed?</h3><p class="bread-fixed-input">${valueMarkup(1,notation)} = ? &nbsp; Bread in this election: ${math(numeral(bread),format(bread))}.</p><div class="refit-transform${complete ? ' refit-complete' : ''}"><section class="refit-candidate${complete ? ' is-hidden' : ''}" aria-hidden="${complete}"><h4>A bread-only refit changes the model</h4><div class="refit-equation">${math(`${reducedY}<mo>=</mo>${numeral(reduced)}<mo>×</mo><mtext>bread</mtext>`, `The bread-only model has slope ${format(reduced)}`)}</div><div class="refit-result">${math(`${reducedY}${parentheses(numeral(bread))}<mo>=</mo>${numeral(observation.reducedPrediction)}`, `The refitted model predicts ${format(observation.reducedPrediction)}`)}</div><p class="refit-warning">Not used for SHAP. We do not refit the model.</p></section><section class="refit-correct${complete ? '' : ' is-hidden'}" aria-hidden="${!complete}"><h4>Keep the model; average over peace</h4>${modelEquation(data)}<p class="refit-instruction">Hold bread fixed; predict with all eight background peace values, then average.</p>${breadPeaceMeanPredictionMarkup(observation)}<p class="refit-note">This linear model lets us use mean peace, 0:</p>${coalitionPredictionEquation(1,observation)}<p class="bread-prediction-unit">Predictions: SD of vote share.</p></section></div>`;
+}
+
+const clamp = value => Math.max(0, Math.min(1,value));
+
+export function updateBreadPeaceProgress(container, scene, progress, reducedMotion = false) {
+  const transform = container.querySelector('.refit-transform');
+  if (!transform) return;
+  const p = scene === 'ols-bread-value' ? 1 : reducedMotion ? (progress < .5 ? 0 : 1) : clamp(progress);
+  const gray = clamp((p-.12)/.22);
+  const shrink = clamp((p-.3)/.3);
+  const outgoing = 1-clamp((p-.4)/.2);
+  const incoming = clamp((p-.66)/.22);
+  const channel = Math.round(36+60*gray);
+  transform.style.setProperty('--refit-color',`rgb(${channel}, ${channel}, ${channel})`);
+  transform.style.setProperty('--refit-scale',String(1-.28*shrink));
+  transform.style.setProperty('--refit-opacity',String(outgoing));
+  transform.style.setProperty('--correct-opacity',String(incoming));
+  transform.dataset.progress = String(p);
+  transform.dataset.phase = p < .3 ? 'refit' : p < .66 ? 'dismiss' : 'average';
+  const candidate = transform.querySelector('.refit-candidate');
+  const correct = transform.querySelector('.refit-correct');
+  candidate.classList.toggle('is-hidden',outgoing === 0);
+  correct.classList.toggle('is-hidden',incoming === 0);
+  candidate.setAttribute('aria-hidden',String(p >= .66));
+  correct.setAttribute('aria-hidden',String(p < .66));
 }
 
 function renderDifference(observation, feature, beforeMask) {
@@ -145,8 +175,8 @@ function renderRecap(data, observation) {
 
 export function renderBreadPeace(scene, data, observation) {
   if (scene === 'ols-model') return renderCorrelations(data);
-  if (scene === 'ols-fits') return renderFits(data);
-  if (scene === 'ols-refit') return renderRefit(data,observation);
+  if (scene === 'ols-fits') return renderFullPrediction(data,observation);
+  if (scene === 'ols-refit' || scene === 'ols-bread-value') return renderRefit(data,observation,scene === 'ols-bread-value');
   if (scene === 'ols-income-first') return renderOrder(data,observation,[0,1]);
   if (scene === 'ols-fatalities-first') return renderOrder(data,observation,[1,0]);
   if (scene === 'ols-shap') return renderShap(data,observation);
