@@ -784,7 +784,7 @@ dialog p { font-size:16px; }
 .stage-shell.is-worked .observation-card .date,
 .stage-shell.is-worked .prediction-label { font-size:17px; line-height:1.5; }
 .stage-shell.is-worked .observation-card dl { font-size:18px; line-height:1.5; margin:18px 0; }
-.stage-shell.is-worked .prediction-number { font-size:48px; }
+.stage-shell.is-worked .prediction-number { font-size:28px; }
 .stage-shell.is-worked .coalition-comparison { font-size:28px; gap:12px 28px; justify-content:space-around; margin-bottom:12px; text-align:left; }
 .stage-shell.is-worked .coalition-label { font-size:16px; line-height:1.5; }
 .stage-shell.is-worked .visual .coalition-heading { font-size:28px; }
@@ -873,7 +873,7 @@ dialog p { font-size:16px; }
   .stage-shell.is-worked .observation-card .date,
   .stage-shell.is-worked .prediction-label { font-size:16px; }
   .stage-shell.is-worked .observation-card dl { font-size:17px; margin:14px 0; gap:10px 16px; }
-  .stage-shell.is-worked .prediction-number { font-size:42px; }
+  .stage-shell.is-worked .prediction-number { font-size:24px; }
   .stage-shell.is-worked .coalition-comparison { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; font-size:22px; margin-bottom:12px; }
   .stage-shell.is-worked .coalition-comparison>div { flex-direction:row; flex-wrap:wrap; align-items:baseline; gap:6px 12px; }
   .stage-shell.is-worked .coalition-label { font-size:16px; min-width:52px; margin:0; }
