@@ -109,11 +109,11 @@ function averageEquation(observation,feature) {
   const second = marginal(observation,feature,1 << (1-feature));
   const result = observation.shapValues[feature];
   const half = '<mfrac><mn>1</mn><mn>2</mn></mfrac>';
-  return `<section class="bread-order-step"><h4>${feature === 0 ? 'Bread' : 'Peace'}</h4><div class="bread-average-equation" role="math" aria-label="The SHAP value for ${labels[feature]} equals one half times ${signed(first)} plus one half times ${signed(second)} equals ${signed(result)}"><math aria-hidden="true"><mrow><msub><mi>ϕ</mi><mtext>${labels[feature]}</mtext></msub>${parentheses('<mi>x</mi>')}<mo>=</mo>${half}<mo>×</mo>${parentheses(signedNumeral(first))}</mrow></math><math aria-hidden="true"><mrow><mo>+</mo>${half}<mo>×</mo>${parentheses(signedNumeral(second))}<mo>=</mo>${signedNumeral(result)}</mrow></math></div></section>`;
+  return `<section class="bread-order-step"><h4>${feature === 0 ? 'Bread' : 'Peace'}</h4><div class="bread-average-equation" role="math" aria-label="The SHAP value for ${labels[feature]} equals one half times ${signed(first)} plus one half times ${signed(second)} equals ${signed(result)}"><math aria-hidden="true"><mrow><msub><mi>ϕ</mi><mtext>${labels[feature]}</mtext></msub>${parentheses('<msub><mi>v</mi><mi>x</mi></msub>')}<mo>=</mo>${half}<mo>×</mo>${parentheses(signedNumeral(first))}</mrow></math><math aria-hidden="true"><mrow><mo>+</mo>${half}<mo>×</mo>${parentheses(signedNumeral(second))}<mo>=</mo>${signedNumeral(result)}</mrow></math></div></section>`;
 }
 
 export function breadPeaceDecompositionMarkup() {
-  const credit = feature => `<msub><mi>ϕ</mi><mtext>${feature}</mtext></msub>${parentheses('<mi>x</mi>')}`;
+  const credit = feature => `<msub><mi>ϕ</mi><mtext>${feature}</mtext></msub>${parentheses('<msub><mi>v</mi><mi>x</mi></msub>')}`;
   return `<span class="bread-decomposition-identity">${math(`${yHat}${parentheses('<mi>x</mi>')}<mo>=</mo>${prediction([0,0])}<mo>+</mo>${credit('bread')}<mo>+</mo>${credit('peace')}`, 'y hat of x equals y hat of zero, zero plus the SHAP contribution for bread plus the SHAP contribution for peace')}</span>`;
 }
 

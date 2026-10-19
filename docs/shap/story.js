@@ -46,7 +46,7 @@ const formulaStops = {
   'observation-symbol':{focus:'observation',symbol:symbol('x'),meaning:'One complete input row. Its values supply every feature fixed in this explanation.'},
   'prediction-symbol':{focus:'all',symbol:predictionMarkup(),meaning:`${predictionMarkup()} is the fitted model’s prediction for the complete row ${symbol('x')}. ${symbol('y')} is observed.`},
   'background-average':{focus:'value',definition:true},
-  'feature-credit':{focus:'result',symbol:inlineMath(`${creditBody()}<mo>=</mo>${creditBody('<mi>x</mi>')}`),meaning:`Feature ${symbol('i')}’s marginal contribution is the change in the average prediction when we also fix it to its value in ${symbol('x')}.`,note:'Average these marginals across orders to get its SHAP value, in prediction units.'},
+  'feature-credit':{focus:'result',symbol:creditMarkup(),meaning:`Feature ${symbol('i')}’s marginal contribution is the change in the average prediction when we also fix it to its value in ${symbol('x')}.`,note:'Average these marginals across orders to get its SHAP value, in prediction units.'},
 };
 const transitionScenes = new Set(['bread-peace-intro', 'earnings-intro']);
 const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene) || ['ols-fits','ols-refit','ols-recap'].includes(scene);

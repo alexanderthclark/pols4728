@@ -86,7 +86,7 @@
         <section class="step formula-step" id="feature-credit" data-step="4" aria-labelledby="feature-credit-heading"><div class="step-content">
           <p class="step-number">5 / 30 · The feature’s credit</p><h2 id="feature-credit-heading">Credit for feature <math class="math-text"><mrow><mi>i</mi></mrow></math></h2>
           <ul class="slide-points">
-            <li><math class="math-text"><mrow><mrow><msub><mi>ϕ</mi><mi>i</mi></msub><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><mi>x</mi><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow></mrow></math>: feature <math class="math-text"><mrow><mi>i</mi></mrow></math>’s credit.</li>
+            <li><math class="math-text"><mrow><mrow><msub><mi>ϕ</mi><mi>i</mi></msub><mo>⁡</mo><mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo><msub><mi>v</mi><mi>x</mi></msub><mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow></mrow></mrow></math>: feature <math class="math-text"><mrow><mi>i</mi></mrow></math>’s credit.</li>
             <li>Its marginal contribution is the change in the average prediction when we also fix <math class="math-text"><mi>i</mi></math> to its value in <math class="math-text"><mi>x</mi></math>.</li>
             <li>Average these marginals across orders to get its SHAP value.</li>
             <li>Measured in prediction units.</li>
@@ -144,7 +144,7 @@
             <li>Average each feature’s two marginals.</li>
             <li>Baseline + SHAP values = prediction.</li>
           </ul>
-          <p class="static-observation bread-decomposition-identity"><math aria-label="y hat of x equals y hat of zero, zero plus the SHAP contribution for bread plus the SHAP contribution for peace"><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo stretchy="false">(</mo><mn>0</mn><mo>,</mo><mn>0</mn><mo stretchy="false">)</mo><mo>+</mo><msub><mi>ϕ</mi><mtext>bread</mtext></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>+</mo><msub><mi>ϕ</mi><mtext>peace</mtext></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></math></p>
+          <p class="static-observation bread-decomposition-identity"><math aria-label="y hat of x equals y hat of zero, zero plus the SHAP contribution for bread plus the SHAP contribution for peace"><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo stretchy="false">(</mo><mn>0</mn><mo>,</mo><mn>0</mn><mo stretchy="false">)</mo><mo>+</mo><msub><mi>ϕ</mi><mtext>bread</mtext></msub><mo stretchy="false">(</mo><msub><mi>v</mi><mi>x</mi></msub><mo stretchy="false">)</mo><mo>+</mo><msub><mi>ϕ</mi><mtext>peace</mtext></msub><mo stretchy="false">(</mo><msub><mi>v</mi><mi>x</mi></msub><mo stretchy="false">)</mo></mrow></math></p>
           <p class="static-observation">For bread <span data-bread-fact="bread">1</span> and peace <span data-bread-fact="peace">1</span>, the two orders give bread the same marginal of <span data-bread-fact="breadMarginal">+0.5</span> and peace the same marginal of <span data-bread-fact="peaceFirst">+0.5</span>. Their SHAP values add to the prediction, <span data-bread-fact="prediction">1</span>, from a zero baseline.</p>
         </div></section>
         <section class="step formula-step" id="ols-recap" data-step="12" aria-labelledby="ols-recap-heading"><div class="step-content">
@@ -218,7 +218,7 @@
         </div></section>
         <section class="step" id="waterfall" data-step="20" aria-labelledby="waterfall-heading"><div class="step-content">
           <p class="step-number">21 / 30 · From the formula to the plot</p><h2 id="waterfall-heading">Baseline + contributions</h2>
-          <div class="slide-identity" role="math" aria-label="Prediction equals baseline plus the sum of SHAP contributions"><math><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>v</mi><mi>x</mi></msub><mo stretchy="false">(</mo><mi>∅</mi><mo stretchy="false">)</mo><mo>+</mo><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>ϕ</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></math></div>
+          <div class="slide-identity" role="math" aria-label="Prediction equals baseline plus the sum of SHAP contributions"><math><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>v</mi><mi>x</mi></msub><mo stretchy="false">(</mo><mi>∅</mi><mo stretchy="false">)</mo><mo>+</mo><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>ϕ</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>v</mi><mi>x</mi></msub><mo stretchy="false">)</mo></mrow></math></div>
           <ul class="slide-points">
             <li>Bars: averaged contributions in $1,000.</li>
             <li>Inputs beside names; rows ranked by magnitude.</li>
@@ -286,7 +286,7 @@
           <div id="population-summary"></div>
         </div>
         <p>Global importance averages each feature’s absolute SHAP values across these <math aria-label="N equals 125"><mrow><mi>N</mi><mo>=</mo><mn>125</mn></mrow></math> profiles:</p>
-      <div class="equation"><math display="block" aria-label="Importance of feature j equals one over N times the sum over people of the absolute SHAP value"><mrow><msub><mi>I</mi><mi>j</mi></msub><mo>=</mo><mfrac><mn>1</mn><mi>N</mi></mfrac><munderover><mo>∑</mo><mrow><mi>r</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mo>|</mo><msub><mi>ϕ</mi><mi>j</mi></msub><mo>(</mo><msup><mi>x</mi><mrow><mo>(</mo><mi>r</mi><mo>)</mo></mrow></msup><mo>)</mo><mo>|</mo></mrow></math></div>
+      <div class="equation"><math display="block" aria-label="Importance of feature j equals one over N times the sum over people of the absolute SHAP value"><mrow><msub><mi>I</mi><mi>j</mi></msub><mo>=</mo><mfrac><mn>1</mn><mi>N</mi></mfrac><munderover><mo>∑</mo><mrow><mi>r</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mo>|</mo><msub><mi>ϕ</mi><mi>j</mi></msub><mo>(</mo><msub><mi>v</mi><msup><mi>x</mi><mrow><mo>(</mo><mi>r</mi><mo>)</mo></mrow></msup></msub><mo>)</mo><mo>|</mo></mrow></math></div>
         <p>The bars summarize magnitude, losing the direction and spread visible in the beeswarm. Their ranking describes this model, background, and population; changing the background or population can change the result.</p>
       </details>
       <p><a href="https://github.com/alexanderthclark/pols4728/tree/main/examples/shap">Calculation and reproduction files</a>.</p>

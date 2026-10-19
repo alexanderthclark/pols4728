@@ -84,7 +84,7 @@ The cohort does not replace the background.
 2. Highlight the observation `x` supplying the fixed inputs.
 3. Define `y_hat(x)`, the fixed model’s prediction for one complete input row, distinct from observed outcome `y`.
 4. Define `v_x(S)` as the average of the same fixed model’s predictions over completed background rows, retaining this observation’s values for features in `S`.
-5. Define the marginal contribution `v_x(S ∪ {i}) − v_x(S)`, then connect its average across orders to the feature’s credit, introducing `phi_i(x)` as shorthand for `phi_i(v_x)`.
+5. Define the marginal contribution `v_x(S ∪ {i}) − v_x(S)`, then connect its average across orders to the feature’s credit, `phi_i(v_x)`.
 6. Introduce the stylized Bread and Peace specification with the original Hibbs citation and course-style characters.
 7. State the three correlations for standardized bread, peace, and observed vote.
 8. Display the two univariate fits and one bivariate fit.
@@ -124,8 +124,8 @@ the same model predicts every completed row. Frame 5 connects the marginal
 contribution `v_x(S ∪ {i}) − v_x(S)` directly to feature credit: `S` supplies
 the inputs already fixed to `x`; adding feature `i` uses its value from `x`
 instead of its background values. Averaging those prediction differences across
-orders gives the feature's SHAP value. The model is not retrained. This frame
-also introduces `phi_i(x)` as shorthand for `phi_i(v_x)`. The alias `f(x) = ŷ(x)`
+orders gives the feature's SHAP value. The model is not retrained. The explainer
+uses `phi_i(v_x)` for the feature’s credit throughout. The alias `f(x) = ŷ(x)`
 is introduced with the earnings model. Frame 9 explicitly connects row averaging
 to the valid linear shortcut:
 average `ŷ(bread, peace)` over reference peace values, giving `ŷ(bread, 0)`
@@ -183,7 +183,7 @@ The election selector appears after all three OLS fits are introduced. The perso
 selector appears when the earnings example begins. Each example retains its
 selection when readers move between them. Frame 12 adds a small prediction
 identity below its order-weight caption:
-`ŷ(x) = ŷ(0, 0) + ϕ_bread(x) + ϕ_peace(x)`. The zero-input baseline applies to
+`ŷ(x) = ŷ(0, 0) + ϕ_bread(v_x) + ϕ_peace(v_x)`. The zero-input baseline applies to
 this centered additive model.
 The full formula fits on one line in the desktop figure, with type sized to
 the figure's width. Phones and narrow prose columns allow a readable line break.
