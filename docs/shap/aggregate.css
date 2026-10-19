@@ -1,0 +1,12 @@
+/* Related scenes share one pinned plot and the same quantitative horizontal scale. */
+.shap-aggregate { display:block; overflow:hidden; flex:none; width:100%; height:auto; font-family:var(--sans); font-variant-numeric:tabular-nums; }
+.shap-aggregate text { user-select:text; }
+.shap-aggregate .aggregate-dot { pointer-events:none; }
+.shap-aggregate[data-scene="feature-color"] .aggregate-dot { pointer-events:auto; cursor:pointer; }
+.shap-aggregate .aggregate-heading { font-weight:normal; }
+.stage-shell.is-aggregate .visual { justify-content:safe center; overflow-y:auto; overflow-x:hidden; overscroll-behavior-y:auto; scrollbar-gutter:stable; }
+@media(prefers-reduced-motion:reduce) {
+  .shap-aggregate * { transition:none!important; animation:none!important; }
+}
+
+.shap-aggregate .aggregate-signed-mean { font-family:'Course Math',math; }
