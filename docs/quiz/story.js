@@ -226,9 +226,9 @@ function memorize(w){
  const ky=compact?220:296;
  b+=rect(8,ky-9,10,10,'fill="white" stroke="var(--ink)"')+text(24,ky,'Observed Y');
  b+=line(w*.49,ky-4,w*.49+19,ky-4,'stroke="var(--blue)" stroke-width="2"')+text(w*.49+25,ky,'Leaf ŷ(X)');
- b+=line(8,ky+16,25,ky+16,'stroke="var(--rust)" stroke-dasharray="3 2"')+text(32,ky+20,'Residual Y − ŷ(X)');
+ b+=line(8,ky+16,25,ky+16,'stroke="var(--rust)" stroke-dasharray="3 2"')+text(32,ky+20,'Residual R = Y − ŷ(X)');
  b+=enter(text(w/2,compact?267:337,'Residuals = 0 → effect estimate = 0',`text-anchor="middle" ${w<380?'style="font-size:13px"':'class="label"'}`),.85,1,0,10);
- return svg(w,h,'The initial prediction is the overall mean outcome, 75, marked by y-bar on the vertical axis and a dashed horizontal reference. A separate fitted leaf then matches every observed student’s score. Observed outcomes are squares, fitted leaves are horizontal segments, and dashed vertical residuals shrink to zero. The proposed effect estimate equals zero.',b);
+ return svg(w,h,'The initial prediction is the overall mean outcome, 75, marked by y-bar on the vertical axis and a dashed horizontal reference. A separate fitted leaf then matches every observed student’s score. Observed outcomes are squares, fitted leaves are horizontal segments, and dashed vertical residuals R = Y minus the fitted prediction shrink to zero. The proposed effect estimate equals zero.',b);
 }
 function holdout(w){
  const cx=w/2;let b='';
@@ -236,7 +236,7 @@ function holdout(w){
  const bw=(w-25)/2,by=compact?36:52,bh=compact?58:75;
  b+=rect(0,by,bw,bh,'fill="white" stroke="var(--blue)"')+rect(bw+25,by,bw,bh,'fill="white" stroke="var(--rust)" stroke-dasharray="6 3"');
  b+=text(bw/2,by+22,'Training students','text-anchor="middle"')+text(bw/2,by+44,'Fit ŷ(X) here','text-anchor="middle"');
- b+=text(bw+25+bw/2,by+22,'Evaluation students','text-anchor="middle"')+text(bw+25+bw/2,by+44,'Compute R here','text-anchor="middle"');
+ b+=text(bw+25+bw/2,by+22,'Evaluation students','text-anchor="middle"')+text(bw+25+bw/2,by+44,'R = Y − ŷ(X)','text-anchor="middle"');
  const ty=compact?110:145;
  b+=wipe(line(bw/2,ty,bw+25+bw/2,ty,'stroke="var(--blue)" stroke-width="1.5"'),bw/2,ty-5,bw+25,10,0,.45);
  b+=circle(bw/2,ty,4,`data-transfer="${bw/2},${bw+25+bw/2}" fill="var(--blue)"`);
@@ -245,7 +245,7 @@ function holdout(w){
  b+=text(cx,compact?207:254,'Untutored: E[f(X) − ŷ(X)]','text-anchor="middle" class="label"');
  b+=line(15,compact?227:279,w-15,compact?227:279,'stroke="var(--rule)"');
  b+=enter(text(cx,compact?258:317,'Expected difference = 10',`text-anchor="middle" ${formulaAttrs(w)}`),.7,1,0,10);
- return svg(w,compact?275:345,'Fit on training students and compare residuals on evaluation students. Under randomized tutoring, the expected common baseline adjustment cancels, leaving ten points.',b);
+ return svg(w,compact?275:345,'Fit on training students and compute residuals R = Y minus the fitted prediction on evaluation students. Under randomized tutoring, the expected common baseline adjustment cancels, leaving ten points.',b);
 }
 function raw(w){
  let b='';const left=compact?8:20,gap=compact?24:35,pw=(w-left*2-gap)/2,cell=Math.min(compact?18:25,(pw-6)/4.9);
