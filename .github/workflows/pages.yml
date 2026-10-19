@@ -36,6 +36,13 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check docs/assets/coronation.js
+          node --check docs/pca/notation.mjs
+          node --check docs/pca/model.mjs
+          node --check docs/pca/app.js
+          node --check docs/pca/svd-view.mjs
+          node --check docs/pca/scroll-timeline.mjs
+          node --check docs/pca/storyboard-3d.mjs
+          node --check docs/pca/storyboard-geometry.mjs
           node --check docs/shapley/electoral-college.mjs
           node --check docs/shapley/electoral-view.js
           node --check docs/shapley/electoral-map-view.js

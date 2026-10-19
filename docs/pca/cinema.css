@@ -1,0 +1,498 @@
+/* The guided lesson shares one fixed visual field. The empty source sections
+   keep ordinary anchors and scroll distances; the explorer remains in flow. */
+.is-cinematic {
+  --movie-masthead-height: 64px;
+  --movie-height: calc(100svh - var(--movie-masthead-height));
+  --movie-copy-height: clamp(210px, 30svh, 250px);
+  --movie-readout-height: 100px;
+}
+
+.is-cinematic .movie-sequence {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.is-cinematic .movie-shell {
+  position: sticky;
+  top: var(--movie-masthead-height);
+  z-index: 2;
+  display: grid;
+  grid-template-rows: var(--movie-copy-height) minmax(0, 1fr);
+  grid-area: 1 / 1;
+  align-self: start;
+  width: 100%;
+  height: var(--movie-height);
+  margin: 0;
+  background: var(--paper);
+}
+
+.is-cinematic .movie-track {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.is-cinematic .movie-copy {
+  min-width: 0;
+  padding: 20px 0 6px;
+  align-self: start;
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.4;
+}
+
+.is-cinematic .movie-copy .eyebrow {
+  margin: 0 0 9px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.is-cinematic .movie-copy h2 {
+  margin: 0 0 11px;
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.13;
+}
+
+.is-cinematic .movie-copy h2:focus {
+  outline: none;
+}
+
+.movie-copy-hint {
+  display: none;
+}
+
+.is-cinematic .movie-copy p {
+  margin: 0 0 10px;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.is-cinematic .movie-copy .equation {
+  margin: 0;
+  padding: 2px 0;
+  font-size: 20px;
+  line-height: 1.4;
+}
+
+.is-cinematic .movie-copy .equation math {
+  font-size: 1em;
+}
+
+.is-cinematic .movie-copy .horizontal-punchline {
+  padding-top: 12px;
+  text-align: center;
+  font-size: 24px;
+}
+
+.is-cinematic .movie-stage,
+.is-cinematic .movie-stage > .stage {
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.is-cinematic .movie-stage > .stage {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) var(--movie-readout-height) 44px;
+  margin: 0;
+}
+
+.is-cinematic .movie-stage .stage-top,
+.is-cinematic .movie-stage .stage-controls,
+.is-cinematic .movie-stage .statistics,
+.is-cinematic .movie-stage .caption {
+  display: none;
+}
+
+.is-cinematic .movie-stage .diagram-wrap {
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.is-cinematic .movie-stage .diagram-wrap svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  overflow: visible;
+}
+
+.is-cinematic .movie-stage .variance-budget {
+  grid-row: 2;
+  align-self: center;
+  margin: 0;
+  padding: 7px 0 3px;
+}
+
+.is-cinematic .movie-stage .budget-heading {
+  margin: 0 0 6px !important;
+  font-size: 13px !important;
+  line-height: 1.3;
+}
+
+.is-cinematic .movie-stage .budget-track {
+  height: 9px;
+}
+
+.is-cinematic .movie-stage .budget-key {
+  gap: 14px;
+  padding-top: 6px;
+}
+
+.is-cinematic .movie-stage .budget-key span {
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.is-cinematic .movie-stage .budget-key output {
+  font-size: 23px;
+  line-height: 1.3;
+}
+
+.is-cinematic .movie-stage .score-calculation {
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  font-size: 24px;
+}
+
+.is-cinematic .movie-stage .stage-nav {
+  grid-row: 3;
+  min-height: 44px;
+  height: 44px;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.is-cinematic .movie-stage .stage-nav button {
+  padding: 4px 0;
+  min-height: 44px;
+  font-size: 15px;
+}
+
+.is-cinematic .movie-stage .motion-controls {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  z-index: 1;
+  width: max-content;
+  height: 44px;
+  min-height: 44px;
+  margin: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.is-cinematic .movie-stage .motion-controls > span {
+  display: none;
+}
+
+.is-cinematic .movie-stage .motion-controls button {
+  min-height: 44px;
+  padding: 4px 6px;
+  font-size: 14px;
+  pointer-events: auto;
+}
+
+.is-cinematic .movie-stage .stage:has(> .motion-controls:not([hidden])) .stage-nav > span {
+  visibility: hidden;
+}
+
+.is-cinematic .movie-track .step {
+  height: 115svh;
+  min-height: 115svh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  pointer-events: none;
+  scroll-margin-top: var(--movie-masthead-height);
+}
+
+.is-cinematic .movie-track .step > * {
+  display: none !important;
+}
+
+/* The final scene gets the same full interval before the shared stage releases. */
+.is-cinematic .movie-track::after {
+  content: "";
+  display: block;
+  height: var(--movie-height);
+  pointer-events: none;
+}
+
+@media (max-width: 800px) {
+  .is-cinematic {
+    --movie-masthead-height: 60px;
+    --movie-copy-height: 260px;
+  }
+
+  .is-cinematic .masthead {
+    position: sticky;
+  }
+
+  .is-cinematic .movie-copy {
+    padding-top: 17px;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+
+  .is-cinematic .movie-copy h2 {
+    font-size: 27px;
+  }
+
+  .is-cinematic .movie-copy .equation {
+    font-size: 19px;
+  }
+}
+
+@media (max-width: 480px) {
+  .is-cinematic {
+    --movie-copy-height: 284px;
+    --movie-readout-height: 120px;
+  }
+
+  .is-cinematic #explore .stage-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .is-cinematic #explore .stage-controls select {
+    max-width: 70%;
+    min-height: 44px;
+    font-size: 15px;
+  }
+
+  .is-cinematic #explore .angle-presets button {
+    min-height: 44px;
+  }
+
+  .is-cinematic .movie-copy {
+    padding-top: 15px;
+    font-size: 15px;
+    line-height: 1.35;
+  }
+
+  .is-cinematic .movie-copy .eyebrow {
+    margin-bottom: 8px;
+    font-size: 11px;
+  }
+
+  .is-cinematic .movie-copy h2 {
+    margin-bottom: 9px;
+    font-size: 23px;
+    line-height: 1.12;
+  }
+
+  .is-cinematic .movie-copy .equation {
+    font-size: 17px;
+  }
+
+  .is-cinematic .movie-stage .budget-key {
+    gap: 9px;
+  }
+
+  .is-cinematic .movie-stage .budget-key output {
+    font-size: 22px;
+  }
+
+  .is-cinematic .movie-stage .score-calculation {
+    font-size: 21px;
+  }
+}
+
+@media (max-height: 650px) {
+  .is-cinematic {
+    --movie-copy-height: 220px;
+    --movie-readout-height: 82px;
+  }
+
+  .is-cinematic .movie-copy {
+    padding-top: 10px;
+    font-size: 15px;
+    line-height: 1.3;
+  }
+
+  .is-cinematic .movie-copy h2 {
+    font-size: 24px;
+    margin-bottom: 7px;
+  }
+
+  .is-cinematic .movie-copy .eyebrow {
+    margin-bottom: 6px;
+    font-size: 11px;
+  }
+
+  .is-cinematic .movie-copy p {
+    margin-bottom: 7px;
+  }
+
+  .is-cinematic .movie-copy .equation {
+    font-size: 17px;
+  }
+
+  .is-cinematic .movie-stage .budget-key output {
+    font-size: 21px;
+  }
+}
+
+@media (max-height: 650px) and (max-width: 480px) {
+  .is-cinematic {
+    --movie-copy-height: 264px;
+  }
+
+  .is-cinematic .movie-copy h2 {
+    font-size: 22px;
+  }
+}
+
+/* Keep the plot usable when a phone has little vertical space. Longer copy
+   scrolls natively and hands scrolling back to the story at its boundaries. */
+@media screen and (max-height: 650px) and (max-width: 960px) {
+  .is-cinematic {
+    --movie-masthead-height: 44px;
+    --movie-readout-height: 120px;
+  }
+
+  .is-cinematic .masthead {
+    height: var(--movie-masthead-height);
+  }
+
+  .is-cinematic #explore .stage-controls select,
+  .is-cinematic #explore .angle-presets button {
+    min-height: 44px;
+    font-size: 15px;
+  }
+
+  .is-cinematic .movie-copy {
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-gutter: stable;
+    padding-right: 6px;
+  }
+
+  .is-cinematic .movie-copy:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: -2px;
+  }
+
+  .is-cinematic .has-more-copy .movie-copy-hint {
+    display: block;
+    position: absolute;
+    z-index: 3;
+    top: calc(var(--movie-copy-space, min(var(--movie-copy-height), 180px)) - 22px);
+    left: 0;
+    width: 100%;
+    height: 22px;
+    padding: 5px 10px 0 0;
+    background: linear-gradient(transparent, var(--paper) 35%);
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 17px;
+    text-align: right;
+    pointer-events: none;
+  }
+}
+
+@media screen and (max-height: 650px) and (max-width: 480px) {
+  .is-cinematic .movie-shell {
+    --movie-copy-space: min(var(--movie-copy-height), 180px,
+      max(80px, calc(var(--movie-height) - var(--movie-readout-height) - 44px - 180px)));
+    grid-template-rows: var(--movie-copy-space) minmax(0, 1fr);
+  }
+}
+
+@media screen and (max-height: 650px) and (min-width: 481px) and (max-width: 960px) {
+  .is-cinematic .movie-shell {
+    grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+    grid-template-rows: minmax(0, 1fr) var(--movie-readout-height);
+    column-gap: 18px;
+  }
+
+  .is-cinematic .movie-copy {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .is-cinematic .movie-stage,
+  .is-cinematic .movie-stage > .stage {
+    display: contents;
+  }
+
+  .is-cinematic .movie-stage .diagram-wrap {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: start;
+    height: calc(100% - 44px);
+  }
+
+  .is-cinematic .movie-stage .variance-budget,
+  .is-cinematic .movie-stage .score-calculation {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .is-cinematic .movie-stage .stage-nav {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: end;
+  }
+
+  .is-cinematic .movie-stage .motion-controls {
+    position: static;
+    grid-column: 2;
+    grid-row: 2;
+    align-self: end;
+    justify-self: center;
+    transform: none;
+  }
+
+  .is-cinematic .movie-copy h2 {
+    font-size: 22px;
+  }
+
+  .is-cinematic .has-more-copy .movie-copy-hint {
+    top: calc(100% - var(--movie-readout-height) - 22px);
+    width: calc((100% - 18px) * .45);
+  }
+
+  .is-cinematic .movie-stage .budget-key {
+    gap: 8px;
+  }
+}
+
+@media print {
+  .is-cinematic .movie-sequence {
+    display: block;
+  }
+
+  .is-cinematic .movie-shell {
+    display: none;
+  }
+
+  .is-cinematic .movie-track .step {
+    height: auto;
+    min-height: 0;
+    padding: 14px 0;
+    pointer-events: auto;
+  }
+
+  .is-cinematic .movie-track .step > :not(.stage) {
+    display: block !important;
+  }
+
+  .is-cinematic .movie-track::after {
+    display: none;
+  }
+}
