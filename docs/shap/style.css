@@ -24,6 +24,7 @@ a:focus-visible, button:focus-visible, select:focus-visible, summary:focus-visib
 .title-page-subtitle { max-width:34ch; margin:10px auto 0; font:26px/1.35 var(--serif); text-wrap:balance; }
 .title-page-art { margin:24px 0 0; display:flex; justify-content:center; }
 .title-page-art img { display:block; width:auto; height:auto; max-width:min(660px,100%); max-height:40svh; object-fit:contain; }
+.title-page-purpose { max-width:64ch; margin:18px auto 0; font:18px/1.5 var(--sans); text-wrap:balance; }
 .title-page-start { display:inline-flex; align-items:center; justify-content:center; gap:12px; min-height:44px; margin-top:20px; padding:6px 10px; font:15px/1.5 var(--sans); }
 .title-page-start span { font-size:20px; line-height:1; }
 @media(max-width:860px) {
