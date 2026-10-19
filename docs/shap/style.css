@@ -415,6 +415,7 @@ dialog p { font-size:16px; }
 .bread-correlations math { font-size:30px; }
 .bread-fits h4,.bread-order-step h4 { font:normal 22px/1.3 var(--serif); margin:0 0 12px; }
 .bread-fits>section>math { font-size:26px; }
+.bread-fits>section:not(.bread-full-fit) { color:var(--muted); }
 .bread-full-fit { color:var(--blue); }
 .bread-full-fit h4 { color:var(--ink); }
 .bread-full-fit .bread-equation { padding:0; margin-bottom:0; }
