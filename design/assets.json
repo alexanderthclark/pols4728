@@ -106,6 +106,13 @@
       "description": "A round, torso-less figure walks a high wire, holding a bowed balancing pole with lowered arms and clear mitten grips below the round face. Sparse monochrome outlines on a transparent field.",
       "sha256": "4b6e2e6a9316bce416a0ca34c2615a8199ebb33a70087f62a97a621d75ad7087",
       "usage": "Opening title of the Imbalanced Data explainer. Preserve full composition, transparency, proportions, and clear space; title remains real HTML text."
+    },
+    {
+      "path": "docs/neural-networks/assets/blacksmith-sine.webp",
+      "role": "neural-networks-title-illustration",
+      "description": "A round, torso-less blacksmith holds a hammer and tongs over a continuous heated rod resting partly on an anvil. Angular bends transition into a sine wave. Sparse black contours with a rust-orange heat accent on the rod, on a transparent field.",
+      "sha256": "6a267bb6fb303878f9a9e71f661bfe20472fc06cc6ea6fe9021ea4a113c1c2f6",
+      "usage": "Opening title of the ReLU neural-network scrollytelling lesson. Preserve transparency, full composition, proportions, and clear space. The heated rod is a user-requested color exception to the default monochrome character art. Keep all titles and mathematical explanations as real HTML text."
     }
   ]
 }

@@ -71,8 +71,14 @@ jobs:
           node --check docs/trees/title-motion.js
           node --check docs/trees/story.js
           for file in docs/imbalanced-data/*.js; do node --check "$file"; done
+          node --check docs/neural-networks/math.js
+          node --check docs/neural-networks/state.js
+          node --check docs/neural-networks/views.js
+          node --check docs/neural-networks/formula.js
+          node --check docs/neural-networks/vendor/katex/katex.min.js
+          node --check docs/neural-networks/story.js
       - name: Check interactive lesson calculations
-        run: node --test tests/*.test.mjs
+        run: node --test tests/*.test.mjs tests/*.test.cjs
 
   deploy:
     name: Publish GitHub Pages
