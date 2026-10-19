@@ -35,6 +35,10 @@ jobs:
           package-manager-cache: false
       - name: Check JavaScript syntax
         run: |
+          node --check docs/quiz/model.mjs
+          node --check docs/quiz/motion.mjs
+          node --check docs/quiz/animate.js
+          node --check docs/quiz/story.js
           node --check docs/assets/coronation.js
           node --check docs/shapley/electoral-college.mjs
           node --check docs/shapley/electoral-view.js
