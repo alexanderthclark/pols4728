@@ -37,7 +37,12 @@
       const stage=data.stage??Math.round(p);
       c.refs.title.textContent=data.title;c.refs.description.textContent=data.description;c.refs.eyebrow.textContent=data.eyebrow;
       if(c.refs.controls)c.refs.controls.hidden=!data.controls;
-      c.refs.canvas.innerHTML=data.svg;c.refs.equation.textContent=data.equation;c.refs.note.innerHTML=data.note||'Scroll back to retrace the argument.';
+      c.refs.canvas.innerHTML=data.svg;
+      if(data.equationMath){
+        c.refs.equation.innerHTML=window.LogisticMath[data.equationMath].html+'<span class="equation-caption"></span>';
+        c.refs.equation.querySelector('.equation-caption').textContent=data.equation;
+      }else c.refs.equation.textContent=data.equation;
+      c.refs.note.innerHTML=data.note||'Scroll back to retrace the argument.';
       c.refs.count.textContent=`${String(stage+1).padStart(2,'0')} / ${String(c.n).padStart(2,'0')}`;
       c.el.querySelector('.scene-progress span').style.width=`${progress/(c.n-1)*100}%`;
       const toggle=c.el.querySelector('.motion-toggle');toggle.textContent=motion?'Motion on':'Motion off';toggle.setAttribute('aria-pressed',String(motion));

@@ -56,7 +56,8 @@
     const aRightShare=(100*a.pRight).toFixed(3).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,'');
     return {stage,eyebrow:'04 / Decision trees',title:story[stage][0],description:story[stage][1],
       svg:stage===0?window.TreeLeaves.figure(.01,innerWidth<=650):stage===1?window.TreeRebalance.figure(retention,innerWidth<=650):stage<=3?window.TreeEntropyChords.figure(p,innerWidth<=650):gainFigure(p,cutoff,innerWidth<=650),
-      equation:stage===0?'':stage===1?`A right: 50 / (50 + ${remainingNegatives}) = ${aRightShare}%`:stage<=3?'Vertical gap = information gain':'ΔA '+(a.gain>b.gain?'>':'<')+' ΔB · gains fixed; cutoff moves',
+      equation:stage===0?'':stage===1?`A right: 50 / (50 + ${remainingNegatives}) = ${aRightShare}%`:stage<=3?'Vertical gap = information gain':'Gains fixed; cutoff moves.',
+      equationMath:stage>=4?(a.gain>b.gain?'aHigherGain':'bHigherGain'):null,
       note:stage===0?'Original sample: 100 positives and 9,900 negatives. Scroll to remove negatives.':stage===1?'Positive counts stay fixed. The changing denominator changes each mixed leaf’s positive share. Expected counts shown.':stage===5?'A 1% minimum leaf size instead excludes A and selects B.':stage===4?'Hold leaf-size and depth constraints fixed.':'Chord height is the average leaf entropy, weighted by the number of cases in each leaf.'};
   };
 

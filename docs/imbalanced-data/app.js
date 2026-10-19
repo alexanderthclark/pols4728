@@ -76,7 +76,8 @@
     $('figure').innerHTML=svg(c,`${log?'Log odds':'Probabilities'} at x 0 and 1. ${showSample?`Sampled log odds increase by ${(-Math.log(s)).toFixed(2)}.`:''} ${corrected?'Corrected curve matches population.':''}`);
     const rho=M.sampledProbability(samplePi,1,s);
     $('metrics').innerHTML=mode==='population'?`<div><span>Probability at x = 0</span><strong>1%</strong></div><div><span>Probability at x = 1</span><strong>50%</strong></div>`:`<div><span>Negative retention</span><strong>${pct(s,s<.01?2:1)}</strong></div><div><span>Added log odds</span><strong>+${(-Math.log(s)).toFixed(2)}</strong></div><div><span>Sample event rate, overall</span><strong>${pct(rho)}</strong></div>`;
-    $('formula').textContent=mode==='population'?'These two x values are not equally common; most population cases have x = 0.':corrected?`Sampled intercept + log(s) = −log(99) ≈ −4.60`:'Sampled intercept = −log(99) + log(10) ≈ −2.29';
+    if(mode==='population')$('formula').textContent='These two x values are not equally common; most population cases have x = 0.';
+    else $('formula').innerHTML=window.LogisticMath[corrected?'populationIntercept':'sampledIntercept'].html;
     $('note').textContent=mode==='population'?'A probability is conditional on x. A rare event overall can still be common at some values of x.':corrected?`At x = 0: ${pct(q(0),2)} sampled → ${pct(M.correctedProbability(q(0),1,s),0)} corrected. The correction preserves score order.`:'Every x gets the same addition. The orange line has the same slope as the blue line.';
   }
   function refreshEfficiency({state,$}){const e=M.efficiency(.01,1e6,state.batch);if($('batch-value'))$('batch-value').textContent=num(state.batch);const i=state.step;let c='';

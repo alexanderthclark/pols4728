@@ -176,7 +176,8 @@
         description: p < .5
           ? "Reuse splits A and B. The model may use just one, with the best probability fitted in each leaf."
           : "At 1% prevalence, optimize each signal’s probabilities exactly. A achieves lower population log loss. Extra training cannot reverse which signal minimizes this objective.",
-        equation: "At 1% positive influence: loss(A) = 0.0315 < loss(B) = 0.0388",
+        equation: "At 1% positive influence.",
+        equationMath: innerWidth<=650?"naturalLossNarrow":"naturalLoss",
         svg: signals(p),
         label: "Two signals compete within a model restricted to one binary signal."
       };
@@ -197,7 +198,8 @@
       eyebrow: "More examples / What the model learns",
       title: "Correct the probabilities. Keep the learned structure.",
       description: "Balancing selected B. Correcting its probabilities preserves B’s ranking. Its ROC area is higher, while its operating point admits more false alarms. Whether that helps depends on your goal.",
-      equation: "AUC(A) = 0.7500 · AUC(B) = 0.9000 · Correction preserves each ranking",
+      equation: "Correction preserves each ranking.",
+      equationMath: innerWidth<=650?"aucComparisonNarrow":"aucComparison",
       svg: roc(reveal),
       label: "Both ROC curves are drawn progressively; their ranking differences remain after correction."
     };
