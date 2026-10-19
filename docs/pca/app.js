@@ -632,10 +632,12 @@ function render() {
     setNotation($('score-calculation'), inlineMath(`${mFunction('Var', `${mVar('X')}${indexed('u', piece + 1)}`)}${mOp('=')}<mfrac>${mSup(indexed('d', piece + 1), mNum(2))}${mNum(23)}</mfrac>${mOp('=')}${mNum(fmt(d * d / 23))}`));
   }
   if (['basis', 'cloud', 'coordinates'].includes(scene)) {
-    const values = summary;
+    // Match the moving coordinates in the right panel, including intermediate
+    // bases, while the left panel keeps the destination basis directions fixed.
+    const values = scene === 'coordinates' ? pcaSummary(angle * coordinateMix, points) : summary;
     varianceBudget([
-      { label: varianceNotation(xu()), value: values.variance, color: colors.blue },
-      { label: varianceNotation(xv()), value: values.otherVariance, color: colors.rust },
+      { label: scene === 'coordinates' ? 'First coordinate' : varianceNotation(xu()), value: values.variance, color: colors.blue },
+      { label: scene === 'coordinates' ? 'Second coordinate' : varianceNotation(xv()), value: values.otherVariance, color: colors.rust },
     ], summary.totalVariance);
   } else if (scene === 'reconstruction') {
     const left = summary.otherVariance * (1 - dropMix) ** 2;

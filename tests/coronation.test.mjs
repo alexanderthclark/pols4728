@@ -4,6 +4,7 @@ import test from 'node:test';
 import { runInNewContext } from 'node:vm';
 
 const controller = readFileSync(new URL('../docs/assets/coronation.js', import.meta.url), 'utf8');
+const homepage = readFileSync(new URL('../docs/index.html', import.meta.url), 'utf8');
 
 // Exercise the real controller's clock and lifecycle. Browser checks cover
 // proportions, face alignment, and the rendered crown separately.
@@ -49,8 +50,15 @@ function setup({ reducedMotion = false, imageLoaded = true, imageBounds = {}, sc
   const svg = new Element();
   const parts = new Map([
     '.animated-eyes', '.eye-clips', '.descending-crown',
-    '.crown-contact-shadow', '.crown-rays-mask', '.pleased-smile'
-  ].map(selector => [selector, new Element()]));
+    '.crown-contact-shadow', '.crown-rays-mask',
+    '.animated-mouth', '.o-mouth', '.pleased-smile'
+  ].map(selector => {
+    const part = new Element();
+    const markup = homepage.match(new RegExp('<[^>]*class="' + selector.slice(1) + '"[^>]*>'))?.[0];
+    const opacity = markup?.match(/\bopacity="([^"]+)"/)?.[1];
+    if (opacity !== undefined) part.setAttribute('opacity', opacity);
+    return [selector, part];
+  }));
   root.querySelector = selector => selector === 'img.course-logo' ? image : selector === '.character-layer' ? svg : null;
   svg.querySelector = selector => parts.get(selector);
 
@@ -95,6 +103,11 @@ function setup({ reducedMotion = false, imageLoaded = true, imageBounds = {}, sc
     visual: () => [...parts].map(([selector, element]) => [selector, snapshot(element)]),
     pendingTimers: () => timers.size,
     pendingFrames: () => frames.size,
+    mouth: () => ({
+      cover: Number(parts.get('.animated-mouth').attrs.get('opacity')),
+      o: Number(parts.get('.o-mouth').attrs.get('opacity')),
+      smile: Number(parts.get('.pleased-smile').attrs.get('opacity'))
+    }),
     crownPosition() {
       const crown = parts.get('.descending-crown');
       const [, x, y] = crown.attrs.get('transform').match(/^translate\(([-\d.]+) ([-\d.]+)\)$/);
@@ -147,6 +160,7 @@ test('coronation starts after five visible idle seconds and ignores mouse moveme
   ui.activity('pointermove');
   ui.advance(2999);
   assert.equal(ui.state(), 'waiting');
+  assert.equal(ui.mouth().cover, 0, 'the original mouth stays visible while waiting');
   ui.advance(1);
   assert.equal(ui.state(), 'animating');
   assert.equal(ui.pendingTimers(), 0);
@@ -203,7 +217,11 @@ test('hidden documents and offscreen logos freeze animation without a resume jum
     const pause = paused => visibility === 'document' ? ui.hide(paused) : ui.intersect(!paused);
     ui.intersect(true);
     ui.advance(5000);
-    ui.advance(1000);
+    ui.advance(4000);
+    const mouth = ui.mouth();
+    assert.equal(mouth.cover, 1);
+    assert.ok(mouth.o > 0 && mouth.o < 1);
+    assert.ok(mouth.smile > 0 && mouth.smile < 1);
     const before = ui.visual();
     pause(true);
     assert.equal(ui.pendingFrames(), 0, visibility);
@@ -315,14 +333,50 @@ test('a layout change during descent recomputes the page path and retains the sa
   assert.equal(ui.crownPosition().y, 121.5);
 });
 
+test('I keeps a quiet O mouth during descent and through the crown landing', () => {
+  const ui = setup();
+  ui.intersect(true);
+  ui.advance(5000);
+  ui.advance(1000);
+  assert.deepEqual(ui.mouth(), { cover: 1, o: 1, smile: 0 });
+  ui.advance(2600);
+  assert.deepEqual(ui.mouth(), { cover: 1, o: 1, smile: 0 });
+  ui.advance(20);
+  assert.equal(ui.crownPosition().y, 121.5);
+  assert.deepEqual(ui.mouth(), { cover: 1, o: 1, smile: 0 });
+  ui.advance(100);
+  assert.deepEqual(ui.mouth(), { cover: 1, o: 1, smile: 0 });
+});
+
+test('the O becomes a full smile while the original mouth remains covered', () => {
+  const ui = setup();
+  ui.intersect(true);
+  ui.advance(5000);
+  ui.advance(3830);
+  let previous = ui.mouth();
+  assert.deepEqual(previous, { cover: 1, o: 1, smile: 0 });
+  for (const delta of [170, 150, 200, 130, 420]) {
+    ui.advance(delta);
+    const mouth = ui.mouth();
+    assert.equal(mouth.cover, 1, 'the shared patch stays opaque throughout the transition');
+    assert.ok(mouth.o <= previous.o && mouth.smile >= previous.smile);
+    assert.ok(Math.abs(mouth.o + mouth.smile - 1) < 1e-12, 'one expression replaces the other');
+    previous = mouth;
+  }
+  assert.equal(ui.state(), 'crowned');
+  assert.deepEqual(ui.mouth(), { cover: 1, o: 0, smile: 1 });
+});
+
 test('initial reduced motion reveals the static final pose after the idle delay', () => {
   const ui = setup({ reducedMotion: true });
   ui.intersect(true);
   ui.advance(4999);
   assert.equal(ui.state(), 'waiting');
+  assert.equal(ui.mouth().cover, 0);
   ui.advance(1);
   assert.equal(ui.state(), 'crowned');
   assert.equal(ui.pendingFrames(), 0);
+  assert.deepEqual(ui.mouth(), { cover: 1, o: 0, smile: 1 });
   const final = ui.visual();
   ui.advance(20000);
   assert.deepEqual(ui.visual(), final);
@@ -335,9 +389,11 @@ test('enabling reduced motion during animation finishes immediately and cancels 
   ui.advance(1000);
   assert.equal(ui.state(), 'animating');
   assert.equal(ui.pendingFrames(), 1);
+  assert.deepEqual(ui.mouth(), { cover: 1, o: 1, smile: 0 });
   ui.reduce(true);
   assert.equal(ui.state(), 'crowned');
   assert.equal(ui.pendingFrames(), 0);
+  assert.deepEqual(ui.mouth(), { cover: 1, o: 0, smile: 1 });
   const final = ui.visual();
   ui.reduce(false);
   ui.advance(20000);

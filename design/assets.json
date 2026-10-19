@@ -78,6 +78,27 @@
           "usage": "Original crown path and base geometry; local blue shading and depth support the requested decorative animation."
         }
       ]
+    },
+    {
+      "path": "docs/imbalanced-data/assets/high-wire.png",
+      "role": "imbalanced-data-title-illustration",
+      "description": "A round, torso-less figure walks a high wire while holding a long balancing pole. Sparse monochrome outlines on a transparent field.",
+      "sha256": "d8370e3af5d8ad2d84cb63304c551905a299b106c6172d3aaf00121a89824336",
+      "usage": "Opening title of the Imbalanced Data explainer. Preserve the full pole and wire, original proportions, transparency, and clear space; keep the title as real HTML text."
+    },
+    {
+      "path": "docs/shapley/assets/electoral-ballot-characters.png",
+      "role": "shapley-electoral-transition-illustration",
+      "description": "Two equally sized round, torso-less figures at a single ballot box. A figure holding a surfboard pushes a large handful of ballots into the slot; a figure wearing a cowboy hat holds exactly three ballots. Sparse black outlines on a white field, without state labels or outlines.",
+      "sha256": "9825b0c557d6060f9298e1b4c0d27bda6bcea27fcf01a0ec02c1d8b855ba3800",
+      "usage": "User-approved transition into the Electoral College application in the Shapley story. The surfboard and cowboy hat suggest California and Wyoming. Preserve the full composition, proportions, monochrome palette, and clear space; keep the Application: US Electoral College title as real HTML text."
+    },
+    {
+      "path": "design/assets/torso-less-character-lineup.png",
+      "role": "character-style-specimen",
+      "description": "Head-on and right-facing profile views of the same round, torso-less figure in the established SHAP character family. Arms and legs attach directly to the face-and-body circle, with no neck or separate torso. Sparse monochrome outlines and faint alignment rules on a transparent field.",
+      "sha256": "96476d63e7cc8bd0d76ee35778ecd4d63344a08ccada62f0837cb303ed8c77cd",
+      "usage": "Human character anatomy reference for course explainers and illustrated title scenes. Preserve equal scale, complete limbs, round proportions, white interiors, and transparency. Keep view labels and explanatory text outside the image."
     }
   ]
 }

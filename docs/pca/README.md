@@ -21,8 +21,10 @@ ordinary document flow.
 
 The variance budget uses the original dataset's total as a fixed reference.
 A full basis change redistributes variance between coordinates without changing
-that total. During dimension reduction or component subtraction, the removed
-portion remains visible alongside the retained portion. Thus the budget still
+that total. During the coordinate animation, the readout follows the two
+coordinates currently displayed, including intermediate bases. During dimension
+reduction or component subtraction, the removed portion remains visible alongside
+the retained portion. Thus the budget still
 accounts for the original total, while the remaining data have less variance.
 
 The thicker cloud has principal score variances 9 and 1, with zero covariance.
@@ -45,7 +47,7 @@ browser history support.
 An optional `#mathematical-details` section follows the takeaways. Five native
 expandable disclosures preserve the covariance derivation, eigenvectors and
 explained variance, the 2D cloud's variance formula, exact 3D directions and
-residual calculations, and the full SVD with matrix dimensions. The original
+residual calculations, and the reduced SVD with matrix dimensions. The original
 `#covariance-form` and `#principal-direction` anchors remain available. This
 keeps `Var(Xu) = uᵀSu`, `X = PDUᵀ`, `XU = PD`, and
 `Var(Xuⱼ) = dⱼ²/(n − 1)` available without interrupting the geometric sequence.
@@ -77,8 +79,8 @@ compared or reverted independently. The earlier storyboard baseline at
 git diff codex/pca-before-cinema -- docs/pca
 ```
 
-GitHub Pages publishes the `docs/` site after checks pass on `main`; the new
-lesson's published path is <https://alexanderthclark.github.io/pols4728/pca/>
+GitHub Pages publishes the `docs/` site after checks pass on `main`; the course
+homepage links to the lesson at <https://alexanderthclark.github.io/pols4728/pca/>
 after merging. Local previews do not merge or publish the revision.
 
 ## Examples and conventions
@@ -217,7 +219,7 @@ node --test tests/pca-model.test.mjs
 node --test tests/*.test.mjs
 ```
 
-The full repository suite has 279 tests. The numerical tests use independently
+The full repository suite has 313 tests. The numerical tests use independently
 specified covariance matrices and expected variances. They check unit direction scaling, full-basis inversion
 and distance preservation, 2D and 3D decorrelation, retained variance, and
 reconstruction loss. They also check residual orthogonality and covariance,

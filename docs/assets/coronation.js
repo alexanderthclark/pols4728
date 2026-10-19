@@ -11,8 +11,10 @@
   const crown = svg.querySelector('.descending-crown');
   const crownContact = svg.querySelector('.crown-contact-shadow');
   const rays = svg.querySelector('.crown-rays-mask');
+  const mouth = svg.querySelector('.animated-mouth');
+  const oMouth = svg.querySelector('.o-mouth');
   const smile = svg.querySelector('.pleased-smile');
-  if (![layer, defs, crown, crownContact, rays, smile].every(Boolean)) return;
+  if (![layer, defs, crown, crownContact, rays, mouth, oMouth, smile].every(Boolean)) return;
 
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const NS = 'http://www.w3.org/2000/svg';
@@ -73,7 +75,11 @@
     crown.setAttribute('transform','translate(1379.6 '+crownY+')');
     crownContact.setAttribute('opacity',ease((t-(landingAt-.46))/.46));
     rays.setAttribute('opacity',ease((t-.15)/1.2));
-    smile.setAttribute('opacity',ease((t-(landingAt+.21))/.65));
+    // Keep the original mouth covered while the quiet O becomes a smile.
+    const smileProgress=ease((t-(landingAt+.21))/.65);
+    mouth.setAttribute('opacity',ease((t-.36)/.45));
+    oMouth.setAttribute('opacity',1-smileProgress);
+    smile.setAttribute('opacity',smileProgress);
     eyes.forEach(eye => {
       const isI=eye.name.startsWith('i-');
       const gaze=ease((t-eye.delay)/.85);

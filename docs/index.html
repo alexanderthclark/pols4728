@@ -15,7 +15,7 @@
     a { display: inline-block; padding: .5rem; color: #234e70; text-underline-offset: .2em; }
     a:focus-visible { outline: 2px solid #234e70; outline-offset: 4px; }
   </style>
-  <script src="./assets/coronation.js" defer></script>
+  <script src="./assets/coronation.js?v=20261013" defer></script>
 </head>
 <body>
   <main aria-label="POLS 4728">
@@ -24,9 +24,10 @@
       <svg class="character-layer" viewBox="0 0 1692 930" aria-hidden="true" focusable="false">
         <defs class="eye-clips"></defs>
         <g class="animated-eyes" opacity="0"></g>
-        <g class="pleased-smile" opacity="0">
+        <g class="animated-mouth" opacity="0">
           <rect x="1434" y="393" width="60" height="39" fill="#fff"/>
-          <path d="M1443 406 C1455 418 1475 419 1485 405" fill="none" stroke="#161616" stroke-width="6" stroke-linecap="round"/>
+          <ellipse class="o-mouth" cx="1465" cy="408" rx="9" ry="12" fill="none" stroke="#161616" stroke-width="6" opacity="0"/>
+          <path class="pleased-smile" d="M1443 406 C1455 418 1475 419 1485 405" fill="none" stroke="#161616" stroke-width="6" stroke-linecap="round" opacity="0"/>
         </g>
         <g class="crown-rays-mask" opacity="0">
           <rect x="1398" y="191" width="178" height="83" fill="#fff"/>
@@ -44,7 +45,8 @@
     <a href="./trees/">Boosting with regression trees</a>
     <a href="./boosting/">Gradient Boosting</a>
     <a href="./shapley/">Shapley values for credit assignment</a>
-    <a href="./shap/">Explaining one prediction with SHAP</a>
+    <a href="./shap/">SHAP</a>
+    <a href="./pca/">PCA: a change of basis</a>
   </main>
 </body>
 </html>

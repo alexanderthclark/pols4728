@@ -40,6 +40,13 @@ calculation and checks against the SHAP package.
 
 GitHub Pages publishes the `docs/` site automatically after the checks pass on `main`. See the [hosting notes](docs/shapley/README.md#hosting) for the website addresses and manual deployment instructions.
 
+The [imbalanced data story](docs/imbalanced-data/README.md) animates why
+class-dependent sampling shifts a logistic regression's intercept, then
+separates training efficiency from changes in the objective a model learns.
+An exactly optimized restricted classifier shows why balancing can change
+learned structure even with unlimited compute, while population evaluation
+reveals the tradeoffs. Its opening title is text-only.
+
 ## Datasets
 
 The [clean regression choices](data/regression_choices/README.md) provide four
