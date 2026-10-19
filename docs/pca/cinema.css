@@ -60,6 +60,10 @@
   outline: none;
 }
 
+.movie-copy-hint {
+  display: none;
+}
+
 .is-cinematic .movie-copy p {
   margin: 0 0 10px;
   font-size: inherit;
@@ -255,7 +259,21 @@
 @media (max-width: 480px) {
   .is-cinematic {
     --movie-copy-height: 284px;
-    --movie-readout-height: 96px;
+    --movie-readout-height: 120px;
+  }
+
+  .is-cinematic #explore .stage-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .is-cinematic #explore .stage-controls select {
+    max-width: 70%;
+    min-height: 44px;
+    font-size: 15px;
+  }
+
+  .is-cinematic #explore .angle-presets button {
+    min-height: 44px;
   }
 
   .is-cinematic .movie-copy {
@@ -334,6 +352,123 @@
 
   .is-cinematic .movie-copy h2 {
     font-size: 22px;
+  }
+}
+
+/* Keep the plot usable when a phone has little vertical space. Longer copy
+   scrolls natively and hands scrolling back to the story at its boundaries. */
+@media screen and (max-height: 650px) and (max-width: 960px) {
+  .is-cinematic {
+    --movie-masthead-height: 44px;
+    --movie-readout-height: 120px;
+  }
+
+  .is-cinematic .masthead {
+    height: var(--movie-masthead-height);
+  }
+
+  .is-cinematic #explore .stage-controls select,
+  .is-cinematic #explore .angle-presets button {
+    min-height: 44px;
+    font-size: 15px;
+  }
+
+  .is-cinematic .movie-copy {
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-gutter: stable;
+    padding-right: 6px;
+  }
+
+  .is-cinematic .movie-copy:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: -2px;
+  }
+
+  .is-cinematic .has-more-copy .movie-copy-hint {
+    display: block;
+    position: absolute;
+    z-index: 3;
+    top: calc(var(--movie-copy-space, min(var(--movie-copy-height), 180px)) - 22px);
+    left: 0;
+    width: 100%;
+    height: 22px;
+    padding: 5px 10px 0 0;
+    background: linear-gradient(transparent, var(--paper) 35%);
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 17px;
+    text-align: right;
+    pointer-events: none;
+  }
+}
+
+@media screen and (max-height: 650px) and (max-width: 480px) {
+  .is-cinematic .movie-shell {
+    --movie-copy-space: min(var(--movie-copy-height), 180px,
+      max(80px, calc(var(--movie-height) - var(--movie-readout-height) - 44px - 180px)));
+    grid-template-rows: var(--movie-copy-space) minmax(0, 1fr);
+  }
+}
+
+@media screen and (max-height: 650px) and (min-width: 481px) and (max-width: 960px) {
+  .is-cinematic .movie-shell {
+    grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+    grid-template-rows: minmax(0, 1fr) var(--movie-readout-height);
+    column-gap: 18px;
+  }
+
+  .is-cinematic .movie-copy {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .is-cinematic .movie-stage,
+  .is-cinematic .movie-stage > .stage {
+    display: contents;
+  }
+
+  .is-cinematic .movie-stage .diagram-wrap {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: start;
+    height: calc(100% - 44px);
+  }
+
+  .is-cinematic .movie-stage .variance-budget,
+  .is-cinematic .movie-stage .score-calculation {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .is-cinematic .movie-stage .stage-nav {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: end;
+  }
+
+  .is-cinematic .movie-stage .motion-controls {
+    position: static;
+    grid-column: 2;
+    grid-row: 2;
+    align-self: end;
+    justify-self: center;
+    transform: none;
+  }
+
+  .is-cinematic .movie-copy h2 {
+    font-size: 22px;
+  }
+
+  .is-cinematic .has-more-copy .movie-copy-hint {
+    top: calc(100% - var(--movie-readout-height) - 22px);
+    width: calc((100% - 18px) * .45);
+  }
+
+  .is-cinematic .movie-stage .budget-key {
+    gap: 8px;
   }
 }
 

@@ -4,7 +4,7 @@ import {
   pcaSummary, coordinates, changeBasis, reconstructBasis, sampleVariance,
 } from './model.mjs';
 import { drawSVDFactors } from './svd-view.mjs?v=20261014-storyboard';
-import { drawResidualTransition, drawThirdDirection } from './storyboard-3d.mjs?v=20261014-storyboard';
+import { drawResidualTransition, drawThirdDirection } from './storyboard-3d.mjs?v=20261018-phone-layout';
 import { assembleComponents } from './storyboard-geometry.mjs?v=20261014-scroll';
 import { scrollSceneAt, scrollLocalAtProgress } from './scroll-timeline.mjs?v=20261015-continuity';
 import { mVar, mNum, mOp, mSub, mSup, mTranspose, mNorm, mTuple, mFunction, inlineMath, setNotation, notationText } from './notation.mjs?v=20261013-math-2';
@@ -48,9 +48,13 @@ const movieStage = document.createElement('div');
 movieStage.className = 'movie-stage';
 const movieTrack = document.createElement('div');
 movieTrack.className = 'movie-track';
+const movieCopyHint = document.createElement('span');
+movieCopyHint.className = 'movie-copy-hint';
+movieCopyHint.textContent = 'Scroll text ↓';
+movieCopyHint.setAttribute('aria-hidden', 'true');
 steps[0].before(movieSequence);
 movieSequence.append(movieShell, movieTrack);
-movieShell.append(movieCopy, movieStage);
+movieShell.append(movieCopy, movieStage, movieCopyHint);
 steps.slice(0, guidedCount).forEach(step => { movieTrack.append(step); step.setAttribute('aria-hidden', 'true'); });
 document.body.classList.add('is-cinematic');
 let shownMovieStep = -1;
@@ -59,6 +63,14 @@ let scrubProgress = -1;
 let scrubLocal = .12;
 let timedScrollProgress;
 let inGuidedSequence = false;
+function updateCopyAccess() {
+  const scrollable = getComputedStyle(movieCopy).overflowY === 'auto'
+    && movieCopy.scrollHeight > movieCopy.clientHeight + 1;
+  movieCopy.tabIndex = scrollable ? 0 : -1;
+  movieShell.classList.toggle('has-more-copy', scrollable
+    && movieCopy.scrollTop + movieCopy.clientHeight < movieCopy.scrollHeight - 1);
+}
+movieCopy.addEventListener('scroll', updateCopyAccess, { passive: true });
 function setMovieCopy(index, animate = false) {
   const content = document.createElement('div');
   content.className = 'movie-copy-content';
@@ -67,6 +79,10 @@ function setMovieCopy(index, animate = false) {
   const heading = content.querySelector('h2');
   heading.id = 'movie-heading';
   movieCopy.setAttribute('aria-labelledby', heading.id);
+  movieCopy.setAttribute('role', 'region');
+  movieCopy.scrollTop = 0;
+  // A compact phone can scroll a longer explanation without shrinking its plot.
+  updateCopyAccess();
   if (animate && !motion.matches) content.animate([{ opacity: .25, transform: 'translateY(6px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 240, easing: 'ease-out' });
 }
 function showMovieStep(index) {
@@ -167,8 +183,9 @@ function line(parent, a, b, color = colors.rule, width = 1, dash = '') {
   return add(parent, 'line', { x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: color, 'stroke-width': width, ...(dash ? { 'stroke-dasharray': dash } : {}) });
 }
 function label(parent, x, y, text, color = colors.muted, size = 18, anchor = 'start') {
-  const compact = matchMedia('(max-width: 800px)').matches;
-  const node = add(parent, 'text', { x, y, fill: color, 'font-size': compact ? Math.max(28, size * 1.55) : size, 'text-anchor': anchor });
+  const compact = matchMedia('(max-width: 800px), (max-height: 650px) and (max-width: 960px)').matches;
+  const compactMinimum = matchMedia('(max-height: 650px)').matches ? 32 : 28;
+  const node = add(parent, 'text', { x, y, fill: color, 'font-size': compact ? Math.max(compactMinimum, size * 1.55) : size, 'text-anchor': anchor });
   for (const run of Array.isArray(text) ? text : [text]) {
     if (typeof run === 'string') { add(node, 'tspan', {}, run); continue; }
     add(node, 'tspan', { ...(run.math ? { class: 'math-symbol', 'font-style': run.italic === false ? 'normal' : 'italic' } : {}) }, run.text);
@@ -304,7 +321,7 @@ function draw2D(parent, points, summary) {
       point(parent, right(z), false, true, 3.8);
       point(parent, right(collapsed), i === selected, false, 4);
     });
-    label(parent, 360, 415, 'The first coordinate stays fixed; the second goes to zero', colors.ink, 18, 'middle');
+    label(parent, 360, 415, 'First coordinate fixed · second → 0', colors.ink, 18, 'middle');
     return;
   }
   const cx = isScores ? 360 - 127 * collection.shift : 360;
@@ -1142,6 +1159,11 @@ addEventListener('resize', () => {
   const local = scrubLocal;
   const locked = navigationLocked;
   const focusCopy = movieCopy.contains(document.activeElement);
+  const readingFlow = !preserveGuidedPosition && (location.hash === '#explore'
+    || location.hash === '#takeaways'
+    || document.getElementById(location.hash.slice(1))?.closest('#mathematical-details'));
+  const focusedFlowControl = readingFlow && document.activeElement.closest('#explore, #takeaways, #mathematical-details')
+    ? document.activeElement : null;
   stopAnimation(true);
   if (entrancePending) entrancePending.finish();
   renderAll();
@@ -1152,6 +1174,13 @@ addEventListener('resize', () => {
     navigationLocked = locked;
     navigationUntil = locked ? performance.now() + 100 : 0;
     if (locked) timedScrollProgress = 1;
+  } else if (readingFlow) {
+    // The preceding scroll track changes height on rotation. Keep readers in
+    // their explorer or notes section, and keep a focused control in view.
+    restoreHash();
+    focusedFlowControl?.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+    navigationLocked = locked;
+    navigationUntil = locked ? performance.now() + 100 : 0;
   }
   if (focusCopy) {
     const heading = movieCopy.querySelector('h2');

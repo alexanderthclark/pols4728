@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A scroll-driven introduction to ReLU networks with one scalar input, one hidden layer, and a linear output: how width creates more joints and allows approximation.">
+  <meta name="theme-color" content="#ffffff">
+  <title>Shallow neural networks · POLS 4728</title>
+  <link rel="stylesheet" href="vendor/katex/katex.min.css?v=20261018-math">
+  <link rel="stylesheet" href="style.css?v=20261018-math">
+  <script src="math.js" defer></script>
+  <script src="state.js?v=20261018-math" defer></script>
+  <script src="views.js?v=20261018-math" defer></script>
+  <script src="vendor/katex/katex.min.js" defer></script>
+  <script src="formula.js?v=20261018-math" defer></script>
+  <script src="story.js?v=20261018-scene-titles" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#story">Skip to the explainer</a>
+  <header class="site-header">
+    <a href="../" class="course-link">POLS 4728 <span aria-hidden="true">/</span> Machine Learning</a>
+    <span class="header-topic">Neural networks</span>
+  </header>
+
+  <main>
+    <section class="title-slide" aria-labelledby="page-title">
+      <div class="title-copy">
+        <h1 id="page-title">Shallow neural networks</h1>
+        <a class="scroll-cue" href="#scene-affine"><span aria-hidden="true">↓</span> Scroll to begin</a>
+      </div>
+      <figure class="title-art">
+        <img src="assets/blacksmith-sine.webp" width="1536" height="1024" alt="A torso-less blacksmith raises a hammer over a glowing metal rod resting on an anvil. The rod is being shaped into a sine wave.">
+      </figure>
+    </section>
+
+    <noscript>
+      <style>.stage-shell{display:none!important}.narrative .step{min-height:0!important;padding-block:1.5rem!important}#story{display:block!important}.narrative{max-width:48rem!important;margin-inline:auto!important}</style>
+      <p class="noscript-note">The complete explanation is below. JavaScript enables the changing function and network diagrams.</p>
+    </noscript>
+
+    <div id="story" class="story">
+      <div id="story-stage" class="story-stage">
+      <aside class="stage-shell" id="stage-shell" aria-label="Function and neural network diagrams">
+        <div class="stage-progress" aria-hidden="true"><div id="progress" class="progress"></div></div>
+        <div class="stage-heading">
+          <div>
+            <p id="stage-part" class="stage-eyebrow">01 · Shallow networks</p>
+            <h2 id="stage-name">A linear equation, drawn as a network.</h2>
+          </div>
+          <span id="stage-count" class="stage-count">01 / 16</span>
+        </div>
+        <p id="stage-equation" class="stage-equation"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math aria-label="y hat equals w times x plus b equals one times x plus zero point five" xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo>=</mo><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi><mo>=</mo><mn>1</mn><mo>×</mo><mi>x</mi><mo>+</mo><mn>0.5</mn></mrow><annotation encoding="application/x-tex">\hat{y}=wx+b=1\times x+0.5</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.6944em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1944em;"><span class="mord">^</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.5</span></span></span></span></span></p>
+        <div class="figure-grid">
+          <figure class="function-figure">
+            <figcaption>Function</figcaption>
+            <svg id="function-plot" viewBox="0 0 620 440" role="img" aria-label="The output of the network as a function of its input"></svg>
+          </figure>
+          <figure class="network-figure">
+            <figcaption>Network <span id="active-neurons" class="active-neurons" hidden></span></figcaption>
+            <svg id="network-plot" viewBox="0 0 470 440" role="img" aria-label="The neural network producing the function"></svg>
+          </figure>
+        </div>
+        <div class="input-inspector">
+          <div class="input-control-row">
+            <label for="input-x">Input <i>x</i></label>
+            <input id="input-x" type="range" min="-2" max="2" step="0.01" value="0.4" aria-describedby="input-x-hint">
+            <output id="input-x-value" for="input-x">0.40</output>
+          </div>
+          <p id="input-x-hint" class="input-hint">Move <i>x</i> to inspect the activations.</p>
+        </div>
+        <p id="stage-caption" class="stage-caption">With no bends, the output has one constant slope.</p>
+        <div class="stage-footer">
+          <span id="stage-instruction" class="stage-instruction">Scroll to continue</span>
+          <a id="return-link" class="stage-return" href="#page-title" hidden>Back to the beginning <span aria-hidden="true">↑</span></a>
+          <nav class="scene-navigation" aria-label="Move between explanation steps">
+            <button type="button" id="previous" aria-label="Previous step">↑</button>
+            <button type="button" id="next" aria-label="Next step">↓</button>
+          </nav>
+        </div>
+        <p id="story-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true">Step 1 of 16: a straight line.</p>
+      </aside>
+      </div>
+
+      <div id="scroll-steps" class="narrative">
+        <section class="step" id="scene-affine" data-scene="affine" aria-labelledby="heading-affine">
+          <p class="part-label">01 / A shallow network</p>
+          <h2 id="heading-affine">A linear equation, drawn as a network.</h2>
+          <p class="narrative-equation">ŷ = <i>wx</i> + <i>b</i> = <i>x</i> + 0.5</p>
+          <p>The arrow from <i>x</i> has weight <i>w</i> = 1. The faint constant-1 node adds the intercept <i>b</i> = 0.5; it is not a second observed feature.</p>
+          <p>Bias connections disappear from the drawing for clarity. The intercept remains part of the equation and the model.</p>
+        </section>
+
+        <section class="step" id="scene-relu" data-scene="relu" aria-labelledby="heading-relu">
+          <h2 id="heading-relu">A ReLU clips the negative part.</h2>
+          <p>ReLU keeps positive inputs and clips negative inputs to zero, creating a <em>joint</em> at zero.</p>
+          <p class="narrative-equation">ReLU(<i>x</i>) = max(0, <i>x</i>)</p>
+        </section>
+
+        <section class="step" id="scene-hinge" data-scene="hinge" aria-labelledby="heading-hinge">
+          <h2 id="heading-hinge">Move the joint. Change the slope.</h2>
+          <p>First move the joint with <i>t</i>. Then change <i>a</i> to steepen the slope and turn it downward.</p>
+          <p class="narrative-equation"><i>a</i> ReLU(<i>x</i> − <i>t</i>)</p>
+          <p>The contribution stays zero before <i>t</i>. Faint dashed curves show comparison examples.</p>
+        </section>
+
+        <section class="step" id="scene-hill-rise" data-scene="hill-rise" aria-labelledby="heading-hill-rise">
+          <h2 id="heading-hill-rise">One neuron starts the climb.</h2>
+          <p>The first neuron activates at −1, adding +1 to the slope.</p>
+          <p class="narrative-equation"><i>f</i>(<i>x</i>) = ReLU(<i>x</i> + 1)</p>
+        </section>
+
+        <section class="step" id="scene-hill-fall" data-scene="hill-fall" aria-labelledby="heading-hill-fall">
+          <h2 id="heading-hill-fall">A second neuron turns it downward.</h2>
+          <p>The second activates at zero and adds −2 to the slope: +1 − 2 = −1. Both neurons keep contributing.</p>
+          <p class="narrative-equation"><i>f</i>(<i>x</i>) = ReLU(<i>x</i> + 1) − 2 ReLU(<i>x</i>)</p>
+        </section>
+
+        <section class="step" id="scene-hill-flat" data-scene="hill-flat" aria-labelledby="heading-hill-flat">
+          <h2 id="heading-hill-flat">A third neuron flattens it again.</h2>
+          <p>The third activates at +1 and adds +1, returning the total slope to zero.</p>
+          <p class="narrative-equation equation-multiline"><span><i>f</i>(<i>x</i>) = ReLU(<i>x</i> + 1)</span><span>− 2 ReLU(<i>x</i>) + ReLU(<i>x</i> − 1)</span></p>
+        </section>
+
+        <section class="step" id="scene-shallow" data-scene="shallow" aria-labelledby="heading-shallow">
+          <h2 id="heading-shallow">That is a shallow neural network.</h2>
+          <p>One hidden layer computes the ReLUs. A linear output adds their weighted activations and a bias.</p>
+          <p class="narrative-equation"><i>f</i>(<i>x</i>) = <i>c</i> + ∑<sub><i>j</i></sub> <i>a</i><sub><i>j</i></sub> ReLU(<i>w</i><sub><i>j</i></sub><i>x</i> + <i>b</i><sub><i>j</i></sub>)</p>
+        </section>
+
+        <section class="step" id="scene-width-one" data-scene="width-one" aria-labelledby="heading-width-one">
+          <p class="part-label">02 / What width changes</p>
+          <h2 id="heading-width-one">One neuron, one place to bend.</h2>
+          <p>The <em>width</em> is the number of neurons in our single hidden layer. One neuron can introduce at most one joint, dividing the input interval into two linear pieces.</p>
+        </section>
+
+        <section class="step" id="scene-width-two" data-scene="width-two" aria-labelledby="heading-width-two">
+          <h2 id="heading-width-two">A second neuron adds another joint.</h2>
+          <p>Add a second neuron with a different threshold. The output sums both hinges: two joints, three linear pieces.</p>
+        </section>
+
+        <section class="step" id="scene-width-three" data-scene="width-three" aria-labelledby="heading-width-three">
+          <h2 id="heading-width-three">Three neurons, four straight pieces.</h2>
+          <p>A third neuron adds another slope change. All three receive the same scalar input in parallel, producing three joints and four linear pieces.</p>
+        </section>
+
+        <section class="step" id="scene-width-many" data-scene="width-many" aria-labelledby="heading-width-many">
+          <h2 id="heading-width-many">A wider layer allows more joints.</h2>
+          <p>The layer widens from three neurons to six, giving this example six joints and seven linear pieces.</p>
+          <p>In general, width <i>m</i> allows at most <i>m</i> joints and <i>m</i> + 1 pieces. Inactive units, zero weights, coincident joints, or cancellation can reduce the count.</p>
+        </section>
+
+        <section class="step" id="scene-sine-coarse" data-scene="sine-coarse" aria-labelledby="heading-sine-coarse">
+          <p class="part-label">03 / Approximation by adding joints</p>
+          <h2 id="heading-sine-coarse">Approximate a smooth target.</h2>
+          <p>Approximate sin(<i>x</i>) on [0, 2π] with the same shallow architecture. Six hidden neurons supply the initial slope and five joints, joining selected points with straight segments.</p>
+        </section>
+
+        <section class="step" id="scene-sine-zoom" data-scene="sine-zoom" aria-labelledby="heading-sine-zoom">
+          <h2 id="heading-sine-zoom">Zoom into the gap.</h2>
+          <p>Between joints, the straight segment misses the curved target. The vertical gap is the error at this input.</p>
+        </section>
+
+        <section class="step" id="scene-sine-joint" data-scene="sine-joint" aria-labelledby="heading-sine-joint">
+          <h2 id="heading-sine-joint">Add a neuron and a joint</h2>
+          <p>Add a joint on the sine curve at the marked input. One new neuron, plus updated existing output weights, replaces one segment with two and makes the error zero here.</p>
+        </section>
+
+        <section class="step" id="scene-sine-wide" data-scene="sine-wide" aria-labelledby="heading-sine-wide">
+          <h2 id="heading-sine-wide">Keep adding places to bend.</h2>
+          <p>The layer widens from seven neurons to twenty-six. Shorter segments approach the sine curve; the result looks smooth but remains piecewise linear.</p>
+        </section>
+
+        <section class="step" id="scene-universal" data-scene="universal" aria-labelledby="heading-universal">
+          <h2 id="heading-universal">Approximate a continuous curve.</h2>
+          <p>A continuous function on a closed, bounded interval can be approximated uniformly as closely as we want by a sufficiently wide, one-hidden-layer ReLU network. Continuity lets sufficiently fine straight segments stay close throughout the interval.</p>
+          <p>This guarantees that suitable weights exist. It does not guarantee that training finds them, specify data requirements, or justify predictions outside the interval.</p>
+          <a class="return-link" href="#page-title">Back to the beginning <span aria-hidden="true">↑</span></a>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer"><a href="../">POLS 4728 · Machine Learning</a><p>ReLU = rectified linear unit. All plotted functions have one scalar input.</p></footer>
+</body>
+</html>

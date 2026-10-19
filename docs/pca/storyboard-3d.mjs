@@ -19,8 +19,9 @@ function line(parent, first, last, color = colors.rule, width = 1, dash = '') {
 }
 
 function label(parent, position, runs, color = colors.muted, size = 18, anchor = 'start') {
-  const compact = matchMedia('(max-width: 800px)').matches;
-  const text = add(parent, 'text', { x: position[0], y: position[1], fill: color, 'font-size': compact ? Math.max(28, size * 1.55) : size, 'text-anchor': anchor });
+  const compact = matchMedia('(max-width: 800px), (max-height: 650px) and (max-width: 960px)').matches;
+  const compactMinimum = matchMedia('(max-height: 650px)').matches ? 32 : 28;
+  const text = add(parent, 'text', { x: position[0], y: position[1], fill: color, 'font-size': compact ? Math.max(compactMinimum, size * 1.55) : size, 'text-anchor': anchor });
   for (const run of Array.isArray(runs) ? runs : [runs]) {
     if (typeof run === 'string') add(text, 'tspan', {}, run);
     else {

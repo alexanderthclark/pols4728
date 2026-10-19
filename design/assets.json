@@ -99,6 +99,13 @@
       "description": "Head-on and right-facing profile views of the same round, torso-less figure in the established SHAP character family. Arms and legs attach directly to the face-and-body circle, with no neck or separate torso. Sparse monochrome outlines and faint alignment rules on a transparent field.",
       "sha256": "96476d63e7cc8bd0d76ee35778ecd4d63344a08ccada62f0837cb303ed8c77cd",
       "usage": "Human character anatomy reference for course explainers and illustrated title scenes. Preserve equal scale, complete limbs, round proportions, white interiors, and transparency. Keep view labels and explanatory text outside the image."
+    },
+    {
+      "path": "docs/neural-networks/assets/blacksmith-sine.webp",
+      "role": "neural-networks-title-illustration",
+      "description": "A round, torso-less blacksmith holds a hammer and tongs over a continuous heated rod resting partly on an anvil. Angular bends transition into a sine wave. Sparse black contours with a rust-orange heat accent on the rod, on a transparent field.",
+      "sha256": "6a267bb6fb303878f9a9e71f661bfe20472fc06cc6ea6fe9021ea4a113c1c2f6",
+      "usage": "Opening title of the ReLU neural-network scrollytelling lesson. Preserve transparency, full composition, proportions, and clear space. The heated rod is a user-requested color exception to the default monochrome character art. Keep all titles and mathematical explanations as real HTML text."
     }
   ]
 }

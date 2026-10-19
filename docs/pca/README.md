@@ -4,7 +4,8 @@ A nineteen-step scrollytelling lesson first defines the principal direction:
 `u₁ := argmax_{‖u‖ = 1} Var(Xu) = argmax_{‖u‖ = 1} ‖Xu‖`.
 For centered data, the same direction maximizes score length because variance is
 its squared length divided by the fixed `n − 1`. The first eighteen steps share
-one pinned visual stage in a centered column, with a short explanation above
+one pinned visual stage, usually in a centered column with a short explanation
+above the diagram. Short landscape phones put the explanation and readout beside
 the diagram. Scrolling advances the geometric operation; scrolling backward
 reverses it. The main sequence introduces one idea per beat, with at most one
 principal display equation. The final explorer and reference notes return to
@@ -135,7 +136,7 @@ returning to the original coordinates.
 
 ## Interaction and access
 
-- Scroll through the pinned, single-column sequence or use Previous/Next.
+- Scroll through the pinned sequence or use Previous/Next.
   Left/right arrow navigation applies outside interactive controls. Step links
   and browser Back/Forward restore the scene and reading location. Keyboard
   navigation focuses the visible destination heading; resizing preserves that
@@ -186,8 +187,18 @@ returning to the original coordinates.
   or toggle. Reduced motion displays each scene's completed endpoint immediately.
 - Basis directions have direct labels and distinct solid, dashed, and dotted
   strokes. Original/reconstructed points use circles and crosses.
-- Desktop and phone layouts keep short explanations above the diagram in one
-  column, with compact readouts below it. SVG labels are enlarged on phones.
+- Desktop and taller phone layouts keep short explanations above the diagram
+  in one column, with compact readouts below it. Short landscape phones put the
+  explanation and readout on the left and a larger diagram on the right, with
+  navigation beneath the diagram. Short portrait screens reserve at least 180px
+  for the plot when the viewport permits. Longer explanations scroll natively
+  within a keyboard-focusable region, with a hint while more text remains;
+  scrolling continues into the story at the region's boundaries. Each scene
+  restores its explanation to the top. SVG labels are enlarged on phones, and
+  readouts reserve enough height for wrapped labels and values. The narrow-phone
+  explorer uses one column of controls with 44px minimum touch targets. Rotation
+  keeps the current story scene or reading section and any focused explorer
+  control in view.
 - Reduced motion shows each transition's endpoint immediately. The complete
   narrative and assumptions remain readable without JavaScript.
 
@@ -216,10 +227,10 @@ node --check docs/pca/model.mjs
 node --check docs/pca/app.js
 node --check docs/pca/svd-view.mjs
 node --test tests/pca-model.test.mjs
-node --test tests/*.test.mjs
+node --test tests/*.test.mjs tests/*.test.cjs
 ```
 
-The full repository suite has 313 tests. The numerical tests use independently
+The full repository suite has 338 tests. The numerical tests use independently
 specified covariance matrices and expected variances. They check unit direction scaling, full-basis inversion
 and distance preservation, 2D and 3D decorrelation, retained variance, and
 reconstruction loss. They also check residual orthogonality and covariance,
