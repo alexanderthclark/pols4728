@@ -138,7 +138,7 @@ export function renderWaterfall(container, {
   svg.append(svgElement('title', { id: `${id}-title` }, 'SHAP waterfall for one prediction'));
   const spokenUnit = unit === '$1,000/year' ? 'thousand dollars per year' : unit;
   const description = [
-    `The baseline prediction is ${number(baseValue, 1)} ${spokenUnit}. Read the waterfall from bottom to top.`,
+    `The baseline prediction is ${number(baseValue, 1)} ${spokenUnit}. Read the waterfall from bottom to top. Rightward contributions raise the prediction; leftward contributions lower it.`,
     ...entries.filter(entry => entry.visible).reverse().map(entry =>
       `${entry.label}, input value ${featureValue(entry.feature, entry.value)}, contributes ${signed(entry.phi)} ${spokenUnit}.`),
     `The model prediction is ${number(prediction, 1)} ${spokenUnit}. Contributions are ordered by absolute magnitude.`,

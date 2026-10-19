@@ -807,6 +807,17 @@ dialog p { font-size:16px; }
 .baseline-summary { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:4px 8px; border-top:1px solid var(--rule); padding:10px 0; font:18px/1.5 var(--sans); }
 .baseline-value { font:normal 22px/1.3 'Course Math',math; color:var(--blue); }
 .baseline-unit { font-size:16px; color:var(--muted); }
+@media(min-width:861px) {
+  .stage-shell[data-scene="background"].is-worked .visual { padding:10px 0; }
+  .stage-shell[data-scene="background"].is-worked .visual>h3 { margin-bottom:10px; }
+  .stage-shell[data-scene="background"] .focal-values { margin-bottom:8px; }
+  .stage-shell[data-scene="background"] .baseline-summary { padding:4px 0; margin-bottom:8px; }
+  .stage-shell[data-scene="background"].is-worked .input-table caption { padding-bottom:6px; }
+  .stage-shell[data-scene="background"].is-worked .input-table th,
+  .stage-shell[data-scene="background"].is-worked .input-table td { padding:4px 8px; }
+  .stage-shell[data-scene="background"].is-worked .input-table tfoot th,
+  .stage-shell[data-scene="background"].is-worked .input-table tfoot td { padding:6px 8px; }
+}
 .stage-shell.is-worked .formula-equation { font-size:28px; margin:0 0 18px; }
 .stage-shell.is-worked .weights-table { font-size:18px; line-height:1.5; }
 .stage-shell.is-worked .weights-table caption { font-size:17px; line-height:1.5; padding-bottom:10px; }
@@ -960,6 +971,10 @@ dialog p { font-size:16px; }
 .waterfall-total-label,.waterfall-total-unit { display:block; }
 .waterfall-total-equation { display:flex; justify-content:center; flex-wrap:wrap; gap:4px 6px; font-size:26px; margin:5px 0; }
 .waterfall-total-unit { font:16px/1.5 var(--sans); color:var(--muted); }
+@media(min-width:861px) {
+  .stage-shell.is-chart .waterfall-total { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:4px 14px; margin-bottom:8px; }
+  .stage-shell.is-chart .waterfall-total-equation { margin:0; }
+}
 .story-layout[data-layout="formula"] .formula-focus-note,
 .background-average-legend { font-size:18px; line-height:1.5; }
 .background-average-label { font-size:18px; }

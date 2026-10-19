@@ -30,7 +30,7 @@ const captions = [
   `${coalitionDefinitionMarkup(2)}, ${inlineMath('<mi>i</mi><mo>=</mo><mtext>ability</mtext>')}. Subtract the two prediction averages to get one marginal.`,
   `One row per preceding group ${symbol('S')}. Its weight counts how often it precedes ability.`,
   'The sum of weighted prediction differences is the feature’s SHAP value.',
-  'Start at the baseline and add contributions from bottom to top. Bar direction shows whether each contribution raises or lowers the prediction.',
+  '',
   'The length and sign stay the same; cumulative positions move to a common zero.',
   'Three dots are one person’s three contributions, in $1,000/year.',
   'These 125 profiles are being explained. The same eight background rows define every explanation; the model and baseline stay fixed.',
@@ -276,7 +276,7 @@ function renderCoalitionExplorer() {
 
 function updateFigureOverflow() {
   figureScrollHint.hidden = true;
-  const scrollable = (['worked','chart'].includes(story.dataset.layout) || ['background-average','feature-credit','ols-fits','ols-refit','ols-bread-value','ols-recap'].includes(shell.dataset.scene)) && visual.scrollHeight > visual.clientHeight + 1;
+  const scrollable = (shell.classList.contains('is-worked') || ['worked','chart'].includes(story.dataset.layout) || ['background-average','feature-credit','ols-fits','ols-refit','ols-bread-value','ols-recap'].includes(shell.dataset.scene)) && visual.scrollHeight > visual.clientHeight + 1;
   figureScrollHint.hidden = !scrollable;
   visual.classList.toggle('has-overflow', scrollable);
   if (scrollable) visual.setAttribute('aria-describedby', figureScrollHint.id);
@@ -299,7 +299,7 @@ function render() {
   const breadScene = scene.startsWith('ols-');
   const selectorContext = breadScene ? 'bread' : 'earnings';
   const hideCenteredSelector = isCenteredScene(scene) && !readableScenes.has(scene) && !['ols-fits','ols-refit','ols-bread-value','ols-recap'].includes(scene);
-  const hideCaption = isCenteredScene(scene);
+  const hideCaption = isCenteredScene(scene) || !captions[state.scene];
   $('.observation-control').hidden = aggregateScene || hideCenteredSelector || scene === 'ols-model';
   if (state.selectorContext !== selectorContext) {
     const data = breadScene ? state.breadData : state.data;
