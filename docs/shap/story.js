@@ -1,43 +1,56 @@
 import { coalition, hybridValues, marginal, precedingMasks, validateData } from './calculation.mjs';
 import { renderWaterfall } from './waterfall.js';
+import { buildPopulation } from './aggregate.mjs';
+import { renderAggregate } from './aggregate-view.js';
 import { featureLabels, shapleyFormulaMarkup, valueMarkup, joiningMarkup, predictionMarkup } from './formula.js';
 import { validateBreadPeace, breadPeaceFacts, renderBreadPeace, breadPeaceDecompositionMarkup, breadPeaceMeanPredictionMarkup } from './bread-peace.js';
 
 const $ = selector => document.querySelector(selector);
 const steps = [...document.querySelectorAll('.step')];
-const names = ['The Shapley formula', 'The observation x', 'The model prediction ŷ', 'Before and after feature i', 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'When features interact', 'An interaction model; one person', 'The term vₓ(S)', 'The term vₓ(S ∪ {i})', 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation'];
+const names = ['The Shapley formula', `The observation ${symbol('x')}`, `The model prediction ${yHatMarkup()}`, 'Average background predictions', 'The feature’s final credit', 'Bread and Peace', 'Three correlations', 'Three OLS fits', 'One election; the model to explain', 'Bread first', 'Peace first', 'Two orders; two SHAP values', 'The value-function recap', 'When features interact', 'An interaction model; one person', `The term ${valueSymbolMarkup('<mi>S</mi>')}`, `The term ${valueSymbolMarkup('<mi>S</mi><mo>∪</mo><mrow><mo stretchy="false">{</mo><mi>i</mi><mo stretchy="false">}</mo></mrow>')}`, 'The prediction difference', 'The factorial weight', 'The weighted sum', 'The complete explanation', 'One common zero', 'One person, three dots', 'Explain more people', 'Make overlap visible', 'Color by input value', 'Opposing contributions cancel', 'Measure distance from zero', 'Average the distances', 'Rank the averages'];
 const captions = [
   'Scroll to give each part its meaning in a prediction problem.',
-  'x is one complete observation; its values supply the fixed inputs.',
-  'ŷ(x) is the fitted model’s prediction for one complete input row.',
-  'Compare the same model’s average before and after fixing feature i to x.',
-  'ϕᵢ(vₓ) is feature i’s contribution relative to the background average prediction.',
+  `${symbol('x')} is one complete observation; its values supply the fixed inputs.`,
+  `${predictionMarkup()} is the fitted model’s prediction for one complete input row.`,
+  'Fix the included inputs, predict with each background row, then average the predictions.',
+  `${creditMarkup()} is feature ${symbol('i')}’s contribution relative to the background average prediction.`,
   '',
   'Standardized features and observed vote: three correlations determine the OLS fits.',
-  'Univariate slopes equal correlations. Bivariate slopes adjust for the overlap between features.',
-  'Linear model + overall background mean peace = 0:',
-  'For this linear model, averaging predictions equals predicting at the excluded input’s background mean, 0.',
-  'For this linear model, averaging predictions equals predicting at the excluded input’s background mean, 0.',
-  'Each order has weight 1/2. Predictions are in SD of vote share.',
   '',
-  'Fit f once, then hold it fixed. Here we supply a transparent teaching equation.',
-  'vₓ(∅): no columns fixed to x. Average the eight model predictions.',
-  'After fixes ability to x; before uses its background values. Other columns stay the same.',
-  'S = {neighborhood}, i = ability. Subtract the two prediction averages to get one marginal.',
-  'One row per preceding group S. Its weight counts how often it precedes ability.',
+  `Linear model + overall background mean ${inlineMath('<mtext>peace</mtext><mo>=</mo><mn>0</mn>')}:`,
+  'For this linear model, averaging predictions equals predicting at the excluded input’s background mean, 0.',
+  'For this linear model, averaging predictions equals predicting at the excluded input’s background mean, 0.',
+  `Each order has weight ${fractionMarkup(1, 2)}. Predictions are in SD of vote share.`,
+  '',
+  '',
+  `Fit ${symbol('f')} once, then hold it fixed. Here we supply a transparent teaching equation.`,
+  `${valueMarkup(0)}: no columns fixed to ${symbol('x')}. Average the eight model predictions.`,
+  `After fixes ability to ${symbol('x')}; before uses its background values. Other columns stay the same.`,
+  `${coalitionDefinitionMarkup(2)}, ${inlineMath('<mi>i</mi><mo>=</mo><mtext>ability</mtext>')}. Subtract the two prediction averages to get one marginal.`,
+  `One row per preceding group ${symbol('S')}. Its weight counts how often it precedes ability.`,
   'The sum of weighted prediction differences is the feature’s SHAP value.',
   'Credits average all six revealing orders; bars are ranked by magnitude.',
+  'The length and sign stay the same; cumulative positions move to a common zero.',
+  'Three dots are one person’s three contributions, in $1,000/year.',
+  '125 constructed people. Same model, same eight reference rows, same baseline of 47.',
+  'Horizontal position is SHAP value. Vertical packing only reveals overlap.',
+  'Low → high is relative to each input’s range. Position still gives the signed contribution.',
+  'For these balanced profiles, every signed mean is zero despite nonzero contributions.',
+  'Each point’s distance from zero is its absolute SHAP value.',
+  'Average 125 distances within each feature row; units stay $1,000/year.',
+  'Rank and rescale the summary. Units stay $1,000/year.',
 ];
+const aggregateScenes = new Set(['contribution-axis','one-person-dots','many-people','beeswarm','feature-color','signed-average','absolute-values','global-importance','importance-ranking']);
 const formulaStops = {
-  'shapley-formula':{focus:'all',meaning:'The players are input features. The game assigns credit for one observation’s prediction.',note:'<var>F</var>: all features; <span class="math-text">m = |F|</span>.'},
-  'observation-symbol':{focus:'observation',symbol:'x',meaning:'One complete input row. Its values supply every feature fixed in this explanation.'},
-  'prediction-symbol':{focus:'all',symbol:predictionMarkup(),meaning:'ŷ(x) is the fitted model’s prediction for the complete row <var>x</var>. <var>y</var> is observed. Keep the model fixed.'},
-  'joining-feature':{focus:'difference',comparison:true,meaning:'<var>S</var>: features fixed to <var>x</var>. Unfixed inputs: background rows.',note:'<var>i</var>: the additional feature. No retraining.'},
-  'feature-credit':{focus:'result',symbol:'ϕ<sub>i</sub>(v<sub>x</sub>) = ϕ<sub>i</sub>(x)',meaning:'Feature <var>i</var>’s credit relative to the background average. Average its marginal across orders; the credit uses the prediction’s units.'},
+  'shapley-formula':{focus:'all',meaning:'The players are input features. The game assigns credit for one observation’s prediction.',note:`${symbol('F')}: all features; ${inlineMath('<mi>p</mi><mo>=</mo><mrow><mo stretchy="false">|</mo><mi>F</mi><mo stretchy="false">|</mo></mrow>')}. We use interventional SHAP, not conditional SHAP.`},
+  'observation-symbol':{focus:'observation',symbol:symbol('x'),meaning:'One complete input row. Its values supply every feature fixed in this explanation.'},
+  'prediction-symbol':{focus:'all',symbol:predictionMarkup(),meaning:`${predictionMarkup()} is the fitted model’s prediction for the complete row ${symbol('x')}. ${symbol('y')} is observed.`},
+  'background-average':{focus:'value',definition:true},
+  'feature-credit':{focus:'result',symbol:inlineMath(`${creditBody()}<mo>=</mo>${creditBody('<mi>x</mi>')}`),meaning:`Feature ${symbol('i')}’s marginal contribution is the change in the average prediction when we also fix it to its value in ${symbol('x')}.`,note:'Average these marginals across orders to get its SHAP value, in prediction units.'},
 };
 const transitionScenes = new Set(['bread-peace-intro', 'earnings-intro']);
-const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene);
-const canonicalSceneId = id => ['preceding-features','value-function'].includes(id) ? 'joining-feature' : id;
+const isCenteredScene = scene => Boolean(formulaStops[scene]) || transitionScenes.has(scene) || ['ols-fits','ols-refit','ols-recap'].includes(scene);
+const canonicalSceneId = id => ({'joining-feature':'feature-credit','preceding-features':'background-average','value-function':'background-average'}[id] || id);
 const visual = $('#visual'), shell = $('.stage-shell'), story = $('#story');
 const figureScrollHint = $('#figure-scroll-hint');
 const observationSelect = $('#observation-select');
@@ -47,12 +60,40 @@ const stackedLayout = matchMedia('(max-width:649px), (max-width:860px) and (min-
 $('.stage-top').setAttribute('role', 'status');
 $('.stage-top').setAttribute('aria-live', 'polite');
 $('.stage-top').setAttribute('aria-atomic', 'true');
-const state = { data:null, observation:null, breadData:null, breadObservation:null, selectorContext:null, scene:-1, feature:0, explorerMask:0, rowsTrigger:null };
+const state = { data:null, observation:null, population:null, globalObservation:null, aggregateOrder:null, aggregateProgress:0, breadData:null, breadObservation:null, selectorContext:null, scene:-1, nameScene:-1, feature:0, explorerMask:0, rowsTrigger:null };
 const yHat = '<math aria-label="y hat"><mover accent="true"><mi>y</mi><mo>^</mo></mover></math>';
 
 function escape(value) {
   return String(value).replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
 }
+// Inline notation uses the same native MathML as the displayed formula. Keep
+// function fences at the argument's size, even beside fractions or powers.
+function inlineMath(content) { return `<math class="math-inline math-text"><mrow>${content}</mrow></math>`; }
+function symbol(letter) { return inlineMath(`<mi>${escape(letter)}</mi>`); }
+function yHatMarkup() { return inlineMath('<mover accent="true"><mi>y</mi><mo>^</mo></mover>'); }
+function parenthesesBody(argument) {
+  return `<mrow><mo stretchy="false" lspace="0em" rspace="0em">(</mo>${argument}<mo stretchy="false" lspace="0em" rspace="0em">)</mo></mrow>`;
+}
+function applicationBody(name, argument) {
+  return `<mrow>${name}<mo>⁡</mo>${parenthesesBody(argument)}</mrow>`;
+}
+function valueSymbolMarkup(argument) { return inlineMath(applicationBody('<msub><mi>v</mi><mi>x</mi></msub>', argument)); }
+function creditBody(argument = '<msub><mi>v</mi><mi>x</mi></msub>', feature = '<mi>i</mi>') {
+  return applicationBody(`<msub><mi>ϕ</mi>${feature}</msub>`, argument);
+}
+function creditMarkup(feature) { return inlineMath(creditBody(undefined, feature)); }
+function numericBody(text) {
+  const value = String(text);
+  const sign = /^[−+]/.test(value) ? `<mo>${value[0]}</mo>` : '';
+  return `${sign}<mn>${escape(sign ? value.slice(1) : value)}</mn>`;
+}
+function fractionBody(numerator, denominator) { return `<mfrac><mn>${escape(numerator)}</mn><mn>${escape(denominator)}</mn></mfrac>`; }
+function fractionMarkup(numerator, denominator) { return inlineMath(fractionBody(numerator, denominator)); }
+function setBody(mask) {
+  const members = featureLabels.filter((_, index) => mask & (1 << index));
+  return members.length ? `<mrow><mo stretchy="false">{</mo>${members.map(name => `<mtext>${escape(name)}</mtext>`).join('<mo>,</mo>')}<mo stretchy="false">}</mo></mrow>` : '<mo>∅</mo>';
+}
+function coalitionDefinitionMarkup(mask) { return inlineMath(`<mi>S</mi><mo>=</mo>${setBody(mask)}`); }
 function number(value, decimals = 1) {
   return new Intl.NumberFormat('en-US', {maximumFractionDigits:decimals}).format(value).replace('-', '−');
 }
@@ -65,7 +106,6 @@ function groupName(mask, short = false) {
   const labels = state.data.features.filter((_, index) => mask & (1 << index)).map(feature => short ? feature.shortLabel : feature.label.toLowerCase());
   return labels.length ? labels.join(short ? ' + ' : ' and ') : short ? 'None' : 'no features';
 }
-function setNotation(mask) { return mask ? `{${featureLabels.filter((_, index) => mask & (1 << index)).join(', ')}}` : '∅'; }
 
 function updateFacts() {
   const observation = state.observation;
@@ -77,23 +117,20 @@ function updateFacts() {
     abilityMeanDollars:dollars(coalition(observation, 1).value), abilityFirstDollars:dollars(marginal(observation, 0, 0), true),
     neighborhoodMeanDollars:dollars(coalition(observation, 2).value), bothMeanDollars:dollars(coalition(observation, 3).value),
     abilityAfterDollars:dollars(delta, true), abilityShapDollars:dollars(observation.shapValues[0], true),
-    contextInterpretation:delta < 0
-      ? 'Here the adverse context makes revealing this person’s ability lower the averaged prediction. This sign reversal comes from the interaction in our equation.'
-      : delta > 0 ? 'Here revealing this person’s ability raises the averaged prediction. The size of the change depends on the neighborhood value already fixed.'
-      : 'Here revealing ability does not change the averaged prediction. The main ability term and the interaction offset one another for this profile.',
   };
   document.querySelectorAll('[data-fact]').forEach(element => {element.textContent = facts[element.dataset.fact];});
   const breadFacts = breadPeaceFacts(state.breadData,state.breadObservation);
   document.querySelectorAll('[data-bread-fact]').forEach(element => {element.textContent = breadFacts[element.dataset.breadFact];});
+  $('.static-refit').innerHTML = renderBreadPeace('ols-refit',state.breadData,state.breadObservation).replace(/^<h3>.*?<\/h3>/, '');
+  $('.static-recap').innerHTML = renderBreadPeace('ols-recap',state.breadData,state.breadObservation).replace(/^<h3>.*?<\/h3>/, '');
   updateAverageNarrative();
-  $('#explanation-table').innerHTML = `<table class="input-table"><caption>${escape(observation.name)} · earnings contributions in $1,000/year</caption><thead><tr><th scope="col">Feature</th><th scope="col">Input value</th><th scope="col">SHAP value</th></tr></thead><tbody>${state.data.features.map((feature, index) => `<tr><th scope="row">${escape(feature.label)}</th><td>${inputNumber(observation.values[index])}</td><td>${signed(observation.shapValues[index])}</td></tr>`).join('')}<tr><th scope="row">Baseline</th><td colspan="2">${number(observation.baseValue)}</td></tr><tr><th scope="row">Prediction</th><td colspan="2">${number(observation.prediction)}</td></tr></tbody></table>`;
   renderCoalitionExplorer();
 }
 
 function renderFormula(scene) {
   const stop = formulaStops[scene];
-  const comparison = stop.comparison ? $(`#${scene} .formula-comparison-summary`).outerHTML + $(`#${scene} .formula-comparison`).outerHTML : '';
-  visual.innerHTML = `<h1 class="formula-intro-title">From Shapley values to SHAP</h1>${shapleyFormulaMarkup(stop.focus)}<div class="formula-explanation">${comparison}${stop.symbol ? `<p class="formula-focus-symbol math-text">${stop.symbol}</p>` : ''}<p class="formula-focus-meaning">${stop.meaning}</p>${stop.note ? `<p class="formula-focus-note">${stop.note}</p>` : ''}${scene === 'shapley-formula' ? '<p class="formula-scroll-prompt">Scroll to connect the symbols to predictions, or use Next.</p>' : ''}</div>`;
+  const definition = stop.definition ? $(`#${scene} .background-average-content`).outerHTML : '';
+  visual.innerHTML = `<h1 class="formula-intro-title">From Shapley values to SHAP</h1>${shapleyFormulaMarkup(stop.focus)}<div class="formula-explanation">${definition}${stop.symbol ? `<p class="formula-focus-symbol math-text">${stop.symbol}</p>` : ''}${stop.definition ? '' : `<p class="formula-focus-meaning">${stop.meaning}</p>`}${stop.note ? `<p class="formula-focus-note">${stop.note}</p>` : ''}${scene === 'shapley-formula' ? '<p class="formula-scroll-prompt">Scroll to connect the symbols to predictions, or use Next.</p>' : ''}</div>`;
 }
 
 function renderTransition(scene) {
@@ -103,7 +140,7 @@ function renderTransition(scene) {
 function renderObservation() {
   const observation = state.observation;
   const equation = $('#observation .prediction-equation').outerHTML;
-  visual.innerHTML = `<h3>The earnings model</h3>${equation}<p class="training-note"><var>f</var> is our earnings prediction rule · output in $1,000/year</p><div class="observation-card"><span class="date">Observation x · ${escape(observation.name)}</span><dl>${state.data.features.map((feature, index) => `<dt>${escape(feature.label)}</dt><dd>${inputNumber(observation.values[index])}${index === 1 ? observation.values[1] < 0 ? ' · adverse' : ' · favorable' : ''}</dd>`).join('')}</dl><div class="prediction-number">${dollars(observation.prediction)}<span class="prediction-label">ŷ(x) = f(x) · predicted annual earnings</span></div></div><p class="input-note">Hold this model fixed throughout the explanation.</p>`;
+  visual.innerHTML = `<h3>The earnings model</h3>${equation}<p class="training-note">${symbol('f')} is our earnings prediction rule · output in $1,000/year</p><div class="observation-card"><span class="date">Observation ${symbol('x')} · ${escape(observation.name)}</span><dl>${state.data.features.map((feature, index) => `<dt>${escape(feature.label)}</dt><dd>${inputNumber(observation.values[index])}${index === 1 ? observation.values[1] < 0 ? ' · adverse' : ' · favorable' : ''}</dd>`).join('')}</dl><div class="prediction-number">${dollars(observation.prediction)}<span class="prediction-label">${predictionMarkup()} ${inlineMath(`<mo>=</mo>${applicationBody('<mi>f</mi>', '<mi>x</mi>')}`)} · predicted annual earnings</span></div></div><p class="input-note">Hold this model fixed throughout the explanation.</p>`;
 }
 
 function inputCell(background, mask, index, newFeature = -1) {
@@ -123,7 +160,7 @@ function renderBackground(mask, beforeMask) {
   const before = beforeMask === undefined ? null : coalition(state.observation, beforeMask);
   const after = coalition(state.observation, mask);
   const newFeature = before ? 0 : -1;
-  visual.innerHTML = `${before ? joiningMarkup(beforeMask, 0) : `<h3 class="coalition-heading">${valueMarkup(mask)}</h3>`}<p class="formula-table-context">${before ? `S = ${setNotation(beforeMask)} · i = ability · after − before` : 'S = ∅ · no columns fixed to this person'}</p><p class="focal-values"><var>x</var>: ${featureLabels.map((label,index) => `<span class="feature-input">${label} = ${inputNumber(state.observation.values[index])}</span>`).join(' · ')}</p>${inputTable(mask, {beforeMask, newFeature})}<div class="table-marginal"><span>${before ? 'Ability’s marginal contribution' : 'Value of the empty coalition'}</span><span class="${before && after.value - before.value < 0 ? 'negative' : ''}">${before ? `${number(after.value)} − ${number(before.value)} = ${signed(after.value - before.value)}` : `${number(after.value)}`}</span></div>`;
+  visual.innerHTML = `${before ? joiningMarkup(beforeMask, 0) : `<h3 class="coalition-heading">${valueMarkup(mask)}</h3>`}<p class="formula-table-context">${before ? `${coalitionDefinitionMarkup(beforeMask)} · ${inlineMath('<mi>i</mi><mo>=</mo><mtext>ability</mtext>')} · ${inlineMath('<mtext>after</mtext><mo>−</mo><mtext>before</mtext>')}` : `${coalitionDefinitionMarkup(0)} · no columns fixed to this person`}</p><p class="focal-values">${symbol('x')}: ${featureLabels.map((label,index) => `<span class="feature-input">${inlineMath(`<mtext>${escape(label)}</mtext><mo>=</mo>${numericBody(inputNumber(state.observation.values[index]))}`)}</span>`).join(' · ')}</p>${inputTable(mask, {beforeMask, newFeature})}<div class="table-marginal"><span>${before ? 'Ability’s marginal contribution' : 'Value of the empty coalition'}</span><span class="${before && after.value - before.value < 0 ? 'negative' : ''}">${before ? inlineMath(`${numericBody(number(after.value))}<mo>−</mo>${numericBody(number(before.value))}<mo>=</mo>${numericBody(signed(after.value - before.value))}`) : `${number(after.value)}`}</span></div>`;
 }
 
 function renderWeights() {
@@ -134,9 +171,9 @@ function renderWeights() {
       const position = order.features.indexOf(0);
       return order.features.slice(0, position).reduce((result, index) => result | (1 << index), 0) === mask;
     }).length;
-    return `<tr><th scope="row"><span class="feature-set">${setNotation(mask)}</span></th><td>${number(coalition(observation, mask).value)}</td><td>${number(coalition(observation, mask | 1).value)}</td><td class="${marginal(observation, 0, mask) < 0 ? 'negative' : ''}">${signed(marginal(observation, 0, mask))}</td><td>${count}/6</td></tr>`;
+    return `<tr><th scope="row"><span class="feature-set">${inlineMath(setBody(mask))}</span></th><td>${number(coalition(observation, mask).value)}</td><td>${number(coalition(observation, mask | 1).value)}</td><td class="${marginal(observation, 0, mask) < 0 ? 'negative' : ''}">${signed(marginal(observation, 0, mask))}</td><td>${fractionMarkup(count, 6)}</td></tr>`;
   });
-  visual.innerHTML = `${shapleyFormulaMarkup('weight')}<p class="formula-definitions">i = ability · four possible preceding groups S</p><table class="weights-table"><caption>Prediction averages in $1,000/year</caption><thead><tr><th scope="col">S</th><th scope="col"><span class="math-text">v<sub>x</sub>(S)</span></th><th scope="col"><span class="math-text">v<sub>x</sub>(S ∪ {i})</span></th><th scope="col">Difference</th><th scope="col">Weight</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+  visual.innerHTML = `${shapleyFormulaMarkup('weight')}<p class="formula-definitions">${inlineMath('<mi>i</mi><mo>=</mo><mtext>ability</mtext>')} · four possible preceding groups ${symbol('S')}</p><table class="weights-table"><caption>Prediction averages in $1,000/year</caption><thead><tr><th scope="col">${symbol('S')}</th><th scope="col">${valueSymbolMarkup('<mi>S</mi>')}</th><th scope="col">${valueSymbolMarkup('<mi>S</mi><mo>∪</mo><mrow><mo stretchy="false">{</mo><mi>i</mi><mo stretchy="false">}</mo></mrow>')}</th><th scope="col">Difference</th><th scope="col">Weight</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
 }
 
 function featureContexts() {
@@ -152,23 +189,27 @@ function featureContexts() {
 function updateAverageNarrative() {
   const feature = state.data.features[state.feature].shortLabel;
   const contexts = featureContexts();
-  const credit = `<span class="math-text">${dollars(state.observation.shapValues[state.feature], true)}</span>`;
-  const contributions = contexts.map(context => `<span class="math-text">${dollars(context.value, true)}</span>`);
+  const credit = inlineMath(`<mtext>${escape(dollars(state.observation.shapValues[state.feature], true))}</mtext>`);
+  const contributions = contexts.map(context => inlineMath(`<mtext>${escape(dollars(context.value, true))}</mtext>`));
   $('#average-definition').textContent = `${feature}: average six orders.`;
   if (contexts.length === 2) {
     const partner = state.feature === 0 ? 'neighborhood' : 'ability';
     $('#average-context').innerHTML = `Before ${partner}: ${contributions[0]}. After: ${contributions[1]}.`;
-    $('#average-interpretation').innerHTML = `Each weight <span class="math-text">3/6</span> → ${credit}.`;
+    $('#average-interpretation').innerHTML = `Each weight ${fractionMarkup(3, 6)} → ${credit}.`;
   } else {
     $('#average-context').innerHTML = `Same marginal in all six orders: ${contributions[0]}.`;
-    $('#average-interpretation').innerHTML = `Total weight <span class="math-text">1</span> → ${credit}.`;
+    $('#average-interpretation').innerHTML = `Total weight ${inlineMath('<mn>1</mn>')} → ${credit}.`;
   }
 }
 
 function renderAverage() {
   const feature = state.data.features[state.feature];
   const contexts = featureContexts();
-  visual.innerHTML = `${shapleyFormulaMarkup('sum')}<label class="orders-feature-label" for="feature-select">Feature i to explain</label><select id="feature-select">${state.data.features.map((item, index) => `<option value="${index}" ${index === state.feature ? 'selected' : ''}>${escape(item.label)}</option>`).join('')}</select><div class="marginal-contexts">${contexts.map(context => `<div class="context-summary"><span>${escape(context.label)}</span><span class="context-number ${context.value < 0 ? 'negative' : ''}">${signed(context.value)}</span><small>total weight ${context.count}/6</small></div>`).join('')}</div><div class="shap-average"><span>${escape(feature.label)}’s SHAP value<br><span class="math-text">ϕ<sub>${featureLabels[state.feature]}</sub>(v<sub>x</sub>)</span></span><span class="number ${state.observation.shapValues[state.feature] < 0 ? 'negative' : ''}">${signed(state.observation.shapValues[state.feature])}</span></div><p class="average-arithmetic">${contexts.length === 2 ? `(3/6) × (${signed(contexts[0].value)}) + (3/6) × (${signed(contexts[1].value)})` : 'Total weight 6/6; the contribution is the same in every order.'}</p>`;
+  const weightedTerm = context => `${fractionBody(3, 6)}<mo>×</mo>${parenthesesBody(numericBody(signed(context.value)))}`;
+  const arithmetic = contexts.length === 2
+    ? `${inlineMath(weightedTerm(contexts[0]))} ${inlineMath(`<mo>+</mo>${weightedTerm(contexts[1])}`)}`
+    : `Total weight ${fractionMarkup(6, 6)}; the contribution is the same in every order.`;
+  visual.innerHTML = `${shapleyFormulaMarkup('sum')}<label class="orders-feature-label" for="feature-select">Feature ${symbol('i')} to explain</label><select id="feature-select">${state.data.features.map((item, index) => `<option value="${index}" ${index === state.feature ? 'selected' : ''}>${escape(item.label)}</option>`).join('')}</select><div class="marginal-contexts">${contexts.map(context => `<div class="context-summary"><span>${escape(context.label)}</span><span class="context-number ${context.value < 0 ? 'negative' : ''}">${signed(context.value)}</span><small>total weight ${fractionMarkup(context.count, 6)}</small></div>`).join('')}</div><div class="shap-average"><span>${escape(feature.label)}’s SHAP value<br>${creditMarkup(`<mtext>${escape(featureLabels[state.feature])}</mtext>`)}</span><span class="number ${state.observation.shapValues[state.feature] < 0 ? 'negative' : ''}">${signed(state.observation.shapValues[state.feature])}</span></div><p class="average-arithmetic">${arithmetic}</p>`;
   $('#feature-select').addEventListener('change', event => {state.feature = Number(event.target.value); render();});
 }
 
@@ -177,17 +218,49 @@ function renderFinal() {
   renderWaterfall($('#waterfall-container'), {features:state.data.features,observation:state.observation,unit:'$1,000/year'});
   $('#waterfall-container').querySelectorAll('.waterfall-contribution').forEach((bar, index, bars) => {bar.style.setProperty('--bar-delay', `${(bars.length-index-1)*.2}s`);});
   const observation = state.observation;
-  $('.waterfall-total').textContent = `${number(observation.baseValue)} ${observation.shapValues.map(value => `${value < 0 ? '−' : '+'} ${number(Math.abs(value))}`).join(' ')} = ${number(observation.prediction)} ($1,000/year)`;
+  $('.waterfall-total').innerHTML = `${inlineMath(`${numericBody(number(observation.baseValue))}${observation.shapValues.map(value => `<mo>${value < 0 ? '−' : '+'}</mo>${numericBody(number(Math.abs(value)))}`).join('')}<mo>=</mo>${numericBody(number(observation.prediction))}`)} ($1,000/year)`;
+}
+
+function renderPopulation() {
+  let container = $('#aggregate-container');
+  if (!container) {
+    visual.innerHTML = '<div id="aggregate-container"></div>';
+    container = $('#aggregate-container');
+  }
+  renderAggregate(container, {
+    scene:steps[state.scene].id, progress:state.aggregateProgress,
+    features:state.data.features, observation:state.observation, population:state.population,
+    featureOrder:state.aggregateOrder, reducedMotion:reducedMotion.matches,
+    onSelect:person => openPopulationWaterfall(person, $('#inspect')),
+  });
+}
+
+function updatePopulationSummary() {
+  const person = state.globalObservation;
+  $('#population-summary').textContent = `Ability ${inputNumber(person.values[0])}; neighborhood ${inputNumber(person.values[1])}; experience ${inputNumber(person.values[2])}. Prediction: ${number(person.prediction)} ($1,000/year).`;
+}
+
+function openPopulationWaterfall(person = state.globalObservation, trigger = $('#population-waterfall')) {
+  state.globalObservation = person;
+  $('#population-select').value = person.id;
+  updatePopulationSummary();
+  state.rowsTrigger = trigger;
+  $('#rows-heading').textContent = 'One person in the beeswarm';
+  $('#rows-description').textContent = `Ability ${inputNumber(person.values[0])}, neighborhood opportunity ${inputNumber(person.values[1])}, experience ${inputNumber(person.values[2])}. The same model and reference background give a baseline of ${number(person.baseValue)} and prediction of ${number(person.prediction)} ($1,000/year).`;
+  $('#rows-table').innerHTML = '<div class="dialog-waterfall"></div>';
+  dialog.showModal();
+  renderWaterfall($('.dialog-waterfall'), {features:state.data.features, observation:person, unit:'$1,000/year'});
+  $('#close-rows').focus();
 }
 
 function renderCoalitionExplorer() {
   $('#coalition-table').innerHTML = inputTable(state.explorerMask);
-  $('#coalition-value').textContent = `vₓ(${setNotation(state.explorerMask)}) = ${number(coalition(state.observation, state.explorerMask).value)} ($1,000/year), for ${state.observation.name.toLowerCase()}.`;
+  $('#coalition-value').innerHTML = `${valueMarkup(state.explorerMask)} ${inlineMath(`<mo>=</mo>${numericBody(number(coalition(state.observation, state.explorerMask).value))}`)} ($1,000/year), for ${escape(state.observation.name.toLowerCase())}.`;
 }
 
 function updateFigureOverflow() {
   figureScrollHint.hidden = true;
-  const scrollable = story.dataset.layout === 'worked' && visual.scrollHeight > visual.clientHeight + 1;
+  const scrollable = (story.dataset.layout === 'worked' || ['background-average','feature-credit','ols-fits','ols-refit','ols-recap'].includes(shell.dataset.scene)) && visual.scrollHeight > visual.clientHeight + 1;
   figureScrollHint.hidden = !scrollable;
   visual.classList.toggle('has-overflow', scrollable);
   if (scrollable) visual.setAttribute('aria-describedby', figureScrollHint.id);
@@ -200,12 +273,16 @@ function render() {
   const focusSelector = visual.contains(active) && active.id ? `#${active.id}` : null;
   updateFacts();
   const scene = steps[state.scene].id;
+  const aggregateScene = aggregateScenes.has(scene);
   shell.dataset.scene = scene;
+  shell.classList.toggle('is-aggregate', aggregateScene);
   story.classList.add('is-interactive');
   story.dataset.layout = isCenteredScene(scene) ? 'formula' : 'worked';
   const breadScene = scene.startsWith('ols-');
   const selectorContext = breadScene ? 'bread' : 'earnings';
-  $('.observation-control').hidden = isCenteredScene(scene) || ['ols-model','ols-fits'].includes(scene);
+  const hideCenteredSelector = isCenteredScene(scene) && !['ols-refit','ols-recap'].includes(scene);
+  const hideCaption = isCenteredScene(scene) && scene !== 'ols-refit';
+  $('.observation-control').hidden = aggregateScene || hideCenteredSelector || ['ols-model','ols-fits'].includes(scene);
   if (state.selectorContext !== selectorContext) {
     const data = breadScene ? state.breadData : state.data;
     const observation = breadScene ? state.breadObservation : state.observation;
@@ -214,16 +291,17 @@ function render() {
     $('label[for="observation-select"]').textContent = breadScene ? 'Election to explain' : 'Person to explain';
     state.selectorContext = selectorContext;
   }
-  if ($('#stage-name').textContent !== names[state.scene]) {
-    $('#stage-name').textContent = names[state.scene];
+  if (state.nameScene !== state.scene) {
+    $('#stage-name').innerHTML = names[state.scene];
     $('#stage-count').textContent = `${state.scene+1} / ${steps.length}`;
+    state.nameScene = state.scene;
   }
-  $('#stage-caption').hidden = isCenteredScene(scene);
-  $('#stage-caption').textContent = isCenteredScene(scene) ? '' : captions[state.scene];
+  $('#stage-caption').hidden = hideCaption;
+  $('#stage-caption').innerHTML = hideCaption ? '' : captions[state.scene];
   if (scene === 'ols-refit') $('#stage-caption').insertAdjacentHTML('beforeend', breadPeaceMeanPredictionMarkup(state.breadObservation));
   if (scene === 'ols-shap') $('#stage-caption').insertAdjacentHTML('beforeend', breadPeaceDecompositionMarkup());
   $('#previous').disabled = state.scene === 0;
-  $('#next').textContent = state.scene === steps.length-1 ? 'Math & Python →' : 'Next →';
+  $('#next').textContent = state.scene === steps.length-1 ? 'Notes →' : 'Next →';
   if (formulaStops[scene]) renderFormula(scene);
   else if (transitionScenes.has(scene)) renderTransition(scene);
   else if (breadScene) visual.innerHTML = renderBreadPeace(scene,state.breadData,state.breadObservation);
@@ -233,11 +311,12 @@ function render() {
   else if (scene === 'neighborhood-first') renderBackground(3, 2);
   else if (scene === 'weights') renderWeights();
   else if (scene === 'shap-value') renderAverage();
+  else if (aggregateScene) renderPopulation();
   else renderFinal();
   const ordersScene = scene === 'weights' || scene === 'shap-value';
-  $('#inspect').hidden = !['background','reveal-ability','neighborhood-first','weights','shap-value'].includes(scene);
-  $('#inspect').textContent = ordersScene ? 'Six orders' : 'Inspect rows';
-  $('#inspect').setAttribute('aria-label', ordersScene ? 'Inspect the six revealing orders' : 'Inspect hybrid input rows and predictions');
+  $('#inspect').hidden = !['background','reveal-ability','neighborhood-first','weights','shap-value','feature-color','importance-ranking'].includes(scene);
+  $('#inspect').textContent = aggregateScene ? 'Waterfall' : ordersScene ? 'Six orders' : 'Inspect rows';
+  $('#inspect').setAttribute('aria-label', aggregateScene ? 'Inspect one person’s waterfall' : ordersScene ? 'Inspect the six revealing orders' : 'Inspect hybrid input rows and predictions');
   if (focusSelector) visual.querySelector(focusSelector)?.focus({preventScroll:true});
   visual.scrollTop = 0;
   requestAnimationFrame(updateFigureOverflow);
@@ -249,7 +328,8 @@ function openRows(trigger) {
   const mask = scene === 'background' ? 0 : scene === 'reveal-ability' ? 1 : 3;
   const beforeMask = scene === 'reveal-ability' ? 0 : scene === 'neighborhood-first' ? 2 : undefined;
   $('#rows-heading').textContent = `Knowing ${groupName(mask)}`;
-  $('#rows-description').textContent = `Included columns use the selected person’s values in every row. Excluded columns keep that reference row’s values. ${beforeMask === undefined ? `vₓ(${setNotation(mask)}) = ${number(coalition(state.observation, mask).value)}.` : `Before: vₓ(${setNotation(beforeMask)}) = ${number(coalition(state.observation, beforeMask).value)}; after: vₓ(${setNotation(mask)}) = ${number(coalition(state.observation, mask).value)}. Their difference is ${signed(marginal(state.observation, 0, beforeMask))}.`} Outputs are in $1,000/year.`;
+  const valueEquation = coalitionMask => `${valueMarkup(coalitionMask)} ${inlineMath(`<mo>=</mo>${numericBody(number(coalition(state.observation, coalitionMask).value))}`)}`;
+  $('#rows-description').innerHTML = `Included columns use the selected person’s values in every row. Excluded columns keep that reference row’s values. ${beforeMask === undefined ? `${valueEquation(mask)}.` : `Before: ${valueEquation(beforeMask)}; after: ${valueEquation(mask)}. Their difference is ${signed(marginal(state.observation, 0, beforeMask))}.`} Outputs are in $1,000/year.`;
   $('#rows-table').innerHTML = inputTable(mask, {beforeMask,newFeature:beforeMask === undefined ? -1 : 0});
   dialog.showModal();
   $('#close-rows').focus();
@@ -273,6 +353,7 @@ function navigate(index, behavior = 'instant') {
   if (centeredTransition) behavior = 'instant';
   if (index < steps.length && (centeredTransition || stackedLayout.matches)) {
     state.scene = index;
+    state.aggregateProgress = 0;
     render();
   }
   if (index < steps.length && isCenteredScene(target.id)) {
@@ -294,18 +375,34 @@ function updateScroll() {
   // Keep the phone reading line consistent when the full-width intro becomes the OLS panel.
   const workedIntroHeight = Math.min(650, Math.max(440, innerHeight * .74));
   const introReadingLine = Math.min(innerHeight - 30, $('.masthead').getBoundingClientRect().height + workedIntroHeight + 60);
-  const readingLine = mobile
+  let readingLine = mobile
     ? (state.scene < 0 || isCenteredScene(steps[state.scene]?.id) ? introReadingLine : shell.getBoundingClientRect().bottom + 60)
     : innerHeight * .5;
+  // Keep the activation line stable as the OLS fits expand to the full-width
+  // stage and the following worked example returns to the compact panel.
+  if (mobile && steps[state.scene]?.id.startsWith('ols-')) readingLine = introReadingLine;
+  // A stable phone reading line prevents the chart's compact height from changing
+  // the active scene as it crosses the local-to-global boundary.
+  const firstAggregate = $('#contribution-axis');
+  if (mobile && firstAggregate.getBoundingClientRect().top < innerHeight) {
+    const aggregateHeight = Math.min(560, Math.max(395, innerHeight * .68));
+    readingLine = Math.min(innerHeight - 30, $('.masthead').getBoundingClientRect().height + aggregateHeight + 60);
+  }
   let scene = 0;
   steps.forEach((step,index) => {if (step.getBoundingClientRect().top <= readingLine) scene = index;});
+  const activeStep = steps[scene];
+  const span = steps[scene+1] ? steps[scene+1].offsetTop - activeStep.offsetTop : activeStep.offsetHeight;
+  // Leave a reading hold after each transformation, while keeping geometry
+  // controlled by native scroll position in both directions.
+  state.aggregateProgress = Math.max(0, Math.min(1, (readingLine - activeStep.getBoundingClientRect().top) / (span * .62)));
   if (state.scene !== scene) {state.scene = scene; render();}
+  else if (aggregateScenes.has(activeStep.id)) renderPopulation();
   const progress = Math.max(0,Math.min(1,(scrollY-steps[0].offsetTop)/($('#method').offsetTop-steps[0].offsetTop)));
   $('#progress').style.width = `${progress*100}%`;
 }
 function queueScroll() {if (!scrollPending) {scrollPending = true; requestAnimationFrame(updateScroll);}}
 
-$('#inspect').addEventListener('click', () => ['weights','shap-value'].includes(steps[state.scene].id) ? openOrders($('#inspect')) : openRows($('#inspect')));
+$('#inspect').addEventListener('click', () => aggregateScenes.has(steps[state.scene].id) ? openPopulationWaterfall(state.globalObservation, $('#inspect')) : ['weights','shap-value'].includes(steps[state.scene].id) ? openOrders($('#inspect')) : openRows($('#inspect')));
 $('#previous').addEventListener('click', () => navigate(Math.max(0,state.scene-1)));
 $('#next').addEventListener('click', () => navigate(state.scene+1));
 $('.title-page-start').addEventListener('click', event => {
@@ -324,14 +421,34 @@ dialog.addEventListener('close', () => {if (state.rowsTrigger?.isConnected) stat
 observationSelect.addEventListener('change', () => {
   if (state.selectorContext === 'bread') state.breadObservation = state.breadData.observations.find(item => item.id === observationSelect.value);
   else state.observation = state.data.observations.find(item => item.id === observationSelect.value);
+  state.aggregateOrder = state.data.features.map((_,index) => index).sort((a,b) => Math.abs(state.observation.shapValues[b])-Math.abs(state.observation.shapValues[a]) || a-b);
   render();
 });
+$('#population-select').addEventListener('change', event => {
+  state.globalObservation = state.population.find(person => person.id === event.target.value);
+  updatePopulationSummary();
+});
+$('#population-waterfall').addEventListener('click', () => openPopulationWaterfall());
 $('#coalition-controls').addEventListener('change', () => {
   state.explorerMask = [...$('#coalition-controls').querySelectorAll('input:checked')].reduce((mask,input) => mask | (1 << Number(input.value)),0);
   renderCoalitionExplorer();
 });
 addEventListener('scroll',queueScroll,{passive:true});
-addEventListener('resize', () => {queueScroll(); if (steps[state.scene]?.id === 'waterfall') renderFinal(); requestAnimationFrame(updateFigureOverflow);});
+addEventListener('resize', () => {
+  if (aggregateScenes.has(steps[state.scene]?.id)) {
+    const step = steps[state.scene];
+    const span = steps[state.scene+1] ? steps[state.scene+1].offsetTop-step.offsetTop : step.offsetHeight;
+    const line = stackedLayout.matches
+      ? Math.min(innerHeight-30, $('.masthead').getBoundingClientRect().height+Math.min(560,Math.max(395,innerHeight*.68))+60)
+      : innerHeight*.5;
+    scrollTo({top:scrollY+step.getBoundingClientRect().top-line+state.aggregateProgress*span*.62,behavior:'instant'});
+  }
+  queueScroll();
+  if (steps[state.scene]?.id === 'waterfall') renderFinal();
+  if (dialog.open && $('.dialog-waterfall')) renderWaterfall($('.dialog-waterfall'), {features:state.data.features,observation:state.globalObservation,unit:'$1,000/year'});
+  requestAnimationFrame(updateFigureOverflow);
+});
+reducedMotion.addEventListener('change', () => {if (aggregateScenes.has(steps[state.scene]?.id)) renderPopulation();});
 addEventListener('hashchange', () => {
   if (!state.data || !state.breadData) return;
   const index = steps.findIndex(step => step.id === canonicalSceneId(location.hash.slice(1)));
@@ -339,13 +456,19 @@ addEventListener('hashchange', () => {
 });
 
 try {
-  const responses = await Promise.all(['data.json','bread-peace.json'].map(file => fetch(new URL(file,import.meta.url))));
+  const responses = await Promise.all(['data.json','bread-peace.json','model.json'].map(file => fetch(new URL(file,import.meta.url))));
   for (const response of responses) if (!response.ok) throw new Error(`Data request failed (${response.status}).`);
-  const [earningsData,breadData] = await Promise.all(responses.map(response => response.json()));
+  const [earningsData,breadData,model] = await Promise.all(responses.map(response => response.json()));
   state.data = validateData(earningsData);
   state.breadData = validateBreadPeace(breadData);
   state.breadObservation = state.breadData.observations.find(item => item.id === state.breadData.defaultObservationId) || state.breadData.observations[0];
   state.observation = state.data.observations.find(item => item.id === state.data.defaultObservationId) || state.data.observations[0];
+  state.population = buildPopulation(state.data,model);
+  state.globalObservation = state.population.find(person => person.id === state.observation.id) || state.population[0];
+  state.aggregateOrder = state.data.features.map((_,index) => index).sort((a,b) => Math.abs(state.observation.shapValues[b])-Math.abs(state.observation.shapValues[a]) || a-b);
+  $('#population-select').innerHTML = state.population.map((person,index) => `<option value="${escape(person.id)}">${index+1} · ability ${inputNumber(person.values[0])}, neighborhood ${inputNumber(person.values[1])}, experience ${inputNumber(person.values[2])}</option>`).join('');
+  $('#population-select').value = state.globalObservation.id;
+  updatePopulationSummary();
   observationSelect.innerHTML = state.data.observations.map(item => `<option value="${escape(item.id)}">${escape(item.name)}</option>`).join('');
   observationSelect.value = state.observation.id;
   observationSelect.disabled = false;
@@ -358,7 +481,7 @@ try {
     queueScroll();
   }
 } catch (error) {
-  visual.innerHTML = '<p>The interactive data could not be loaded. The explanation and Python operation below remain available.</p>';
+  visual.innerHTML = '<p>The interactive data could not be loaded. The explanation and notes below remain available.</p>';
   $('#stage-caption').textContent = error.message;
   $('#next').disabled = true;
   console.error(error);

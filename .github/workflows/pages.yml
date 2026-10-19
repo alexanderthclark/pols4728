@@ -40,6 +40,12 @@ jobs:
           node --check docs/quiz/animate.js
           node --check docs/quiz/story.js
           node --check docs/assets/coronation.js
+          node --check docs/shapley/electoral-college.mjs
+          node --check docs/shapley/electoral-view.js
+          node --check docs/shapley/electoral-map-view.js
+          node --check docs/shapley/electoral-map-data.mjs
+          node --check docs/shapley/electoral-tile-data.mjs
+          node --check docs/shapley/electoral-map-geometry.mjs
           node --check docs/shapley/game.mjs
           node --check docs/shapley/story.js
           node --check docs/shapley/weight-view.js
@@ -49,6 +55,8 @@ jobs:
           node --check docs/shap/waterfall.js
           node --check docs/shap/formula.js
           node --check docs/shap/bread-peace.js
+          node --check docs/shap/aggregate.mjs
+          node --check docs/shap/aggregate-view.js
           node --check docs/shared/boosting-math.js
           node --check docs/boosting/story.js
           node --check docs/boosting/prediction-view.js
@@ -70,8 +78,14 @@ jobs:
           node --check docs/imbalanced-data/app.js
           node --check docs/imbalanced-data/chapter-scenes.js
           node --check docs/imbalanced-data/scrolly.js
+          node --check docs/neural-networks/math.js
+          node --check docs/neural-networks/state.js
+          node --check docs/neural-networks/views.js
+          node --check docs/neural-networks/formula.js
+          node --check docs/neural-networks/vendor/katex/katex.min.js
+          node --check docs/neural-networks/story.js
       - name: Check interactive lesson calculations
-        run: node --test tests/*.test.mjs
+        run: node --test tests/*.test.mjs tests/*.test.cjs
 
   deploy:
     name: Publish GitHub Pages

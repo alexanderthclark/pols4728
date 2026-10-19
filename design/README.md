@@ -84,6 +84,127 @@ readable figures, and usable source code. It must preserve the text's intellectu
 substance. Clear writing explains difficult ideas without removing the difficulty
 that belongs to the subject.
 
+## Scrollytelling and interactive explainers
+
+Every course visual explainer is a working scrollytelling experience unless the
+user explicitly requests another format. Scrolling is part of the explanation:
+keep the main graph, plot, diagram, or equation pinned while the reader's progress
+constructs or transforms it and brief text floats in and out. A long illustrated
+document, entrance fades alone, or an animation that runs on a timer after arrival
+does not satisfy this requirement. Storyboards and prototypes must include a
+working demonstration of the intended scroll-driven motion, not just describe it.
+The preferred style combines spare text, torso-less character figures, and
+substantial animation that does the explanatory work.
+
+### Title slides and opening scenes
+
+Begin a scrollytelling lesson with an opening title scene. For explainer openings
+and illustrated lesson title slides, the usual composition pairs a clear,
+real-text title with one spare monochrome scene of the torso-less figures doing
+something metaphorical for the lesson: adjusting a picture frame, hammering out
+a sine wave, or another simple action that captures the central idea. Let the
+action carry the visual joke. Use a small cast, a readable gesture, few props,
+and generous white space; preserve the complete scene and character proportions.
+Keep the title selectable and separate from the artwork. If the opening scene
+animates, let scrolling control the action and the transition into the lesson.
+Preserve an existing deck's title-slide convention and the registered course-cover
+and part-opening conventions below.
+
+### Visual language and spare text
+
+Use the established round, torso-less figures for human characters: one
+expressive face-and-body shape with simple arms and legs attached directly,
+no neck or separate torso. Keep sparse black outlines, white interiors, simple
+hands and feet, and little shading on a white or transparent field. Match the
+registered character artwork and preserve its proportions. Character gestures
+should help explain the idea; quantitative diagrams retain precise geometry,
+faithful scales, and direct labels. Keep essential labels and mathematics as
+real text.
+
+![The same round, torso-less SHAP-style figure shown head-on at left and in a right-facing profile at right, with arms and legs attached directly to the face-and-body circle.](assets/torso-less-character-lineup.png)
+
+Head-on (left) and profile (right): one round face-and-body shape, limbs attached
+directly, no neck or separate torso. Use this specimen as the anatomy reference
+for new human characters; view labels and explanations remain real text.
+
+Let the visual dominate each scene, with generous white space and restrained
+course colors. Keep visible prose spare: a short heading, a concise caption or
+brief explanation, and only the labels needed to understand the current state.
+Give each scroll beat one explanatory task. Split longer explanations across
+successive states instead of placing a full page of prose beside a moving
+illustration. Preserve assumptions, qualifications, and conclusions across the
+sequence; introduce notation only when needed. The sustained prose of the
+printed notes remains appropriate there; scrollytelling uses progressive visual
+explanation and brief, carefully paced text.
+
+### Scrolling as the primary control
+
+Make scrolling the complete default route through the lesson and, wherever
+possible, its only storytelling input. Omit toggles, sliders, play buttons, and
+click-to-advance steps from the core narrative. Use scrolling to construct
+objects, move observations, change parameters, reveal comparisons, and transform
+equations through meaningful intermediate states. Animation should show the
+mechanism being taught, with substantial changes to the explanatory visual;
+decorative motion or a succession of text fades is insufficient.
+
+Do not require a click, hover, toggle, or slider to reach a teaching point.
+Reserve optional controls for a distinct exploratory question after the relevant
+scroll sequence, and include them only when they add a learning benefit that
+scrolling does not provide. Every core explanation and conclusion must remain
+available by scrolling alone. Preserve native scrolling and keyboard access.
+
+### Pinned graphs and floating text
+
+The preferred scene keeps the main graph or plot pinned in a stable viewport
+position while short passages of text float in and out as the reader scrolls.
+Use the same composition for diagrams and equations when they carry the lesson.
+Coordinate each text arrival, readable hold, and departure with the corresponding
+visual transformation. Place text beside the plot or in deliberately open space;
+keep data marks, axes, labels, and equations unobscured. The plot can change
+internally while its stage stays pinned. Scrolling backward must restore both
+the earlier visual and its accompanying text.
+
+### Scene progression
+
+Plan each scene around a learning point. Specify the pinned graph, diagram, or equation,
+the scroll interval, the visual transformation, the text revealed at each stage,
+and the completed state. Let scroll position control meaningful intermediate
+states; scrolling backward must revisit them. Keep identities, scales, and color
+roles stable across related scenes so readers can follow the same observations
+through a transformation. Introduce notation as the explanation needs it, and
+hold the diagram still long enough for the accompanying text to be read.
+
+Make each lesson self-contained. Reuse a source example's setup where useful,
+preserving its wording where appropriate, but do not mention its original
+assignment, quiz, or question number in a standalone explainer. Explain the
+concrete example before introducing a general method when that sequence helps
+the reader understand why the method is needed.
+
+### Responsive layout and reduced motion
+
+On narrow screens, retain a compact pinned graph, diagram, or equation and usable
+space for text to enter, remain readable, and leave as the reader scrolls. Adapt the composition and labels to the viewport instead
+of silently replacing the experience with a static document. On short screens,
+a pinned equation can anchor a smaller diagram. Preserve a readable route through
+every conclusion with keyboard navigation. Under reduced motion, use logical
+scroll thresholds to show completed, legible states without continuous movement;
+the same explanation and results must remain available.
+
+### Browser review
+
+Before delivery, scroll the actual page forward and backward in a browser on
+desktop and narrow mobile layouts. Check that the main graph or plot stays pinned
+through related scroll beats while brief text enters, holds, and leaves without
+obscuring it. Check that intermediate geometry and text respond to scroll position
+and that reverse scrolling restores earlier visual and text states. Check keyboard navigation, reduced motion,
+label collisions, and the final mathematical values. Confirm that the complete
+lesson works without operating a toggle or slider, that visible prose stays
+spare, and that human characters follow the torso-less convention. Check the
+opening title scene for a clear metaphor and readable real-text title. Screenshots
+of final states or unit tests alone do not verify a scrollytelling experience.
+When adding an automated interaction check, assert a visual or text change caused by scrolling,
+rather than merely waiting for a timer.
+
 ## Identity and artwork
 
 The initial hierarchy preserves the repository's existing uses:
@@ -173,6 +294,10 @@ The helper advances the normal part counter and creates the contents entry and
 PDF bookmark without a duplicate visible heading. Both notes editions use it.
 For specimens, `\CoursePartScene[width]{part-key}` reuses the same composition
 without changing the part counter or adding navigation entries.
+
+The part titled `The Canon` begins with ridge regression. The preceding shrinkage
+and OLS/collinearity groundwork remains in Foundations. The regularization chapter's
+two shared source fragments preserve its complete sequence in the standalone article.
 
 ### Explanatory illustrations within chapters
 
@@ -398,7 +523,7 @@ as part of a style migration.
 ```sh
 make design-sync       # regenerate adapters after editing tokens
 make design-guide      # visual specimen at design/guide.pdf
-make figures           # regenerate all ten external vector figure inputs
+make figures           # regenerate external vector figure inputs
 make notes-print       # monochrome accents, same notes source
 make                   # all existing course-document targets
 make clean             # remove auxiliaries after reviewing the build
@@ -434,8 +559,9 @@ manual; the repository has no continuous-integration workflows.
   checks and export their PDFs through the shared TeX font setup. Regenerating
   them requires NumPy, Matplotlib, and pdflatex; the collinearity script also uses
   scikit-learn and statwrap.
-- All ten external notes figures now have maintained generators and use the
-  shared theme. The six inherited figures and the ridge coefficient path are
+- All external notes figures now have maintained generators and use the
+  shared theme, including the imported imbalance charts and the split-entropy
+  comparison. The six inherited figures and the ridge coefficient path are
   migrated. `notes/notebooks/README.md` records recovered notebook sources,
   preserved calculations, and explicit reconstructions. The legacy registry is
   empty. Regenerate vector PDFs with `make figures`; ordinary document builds

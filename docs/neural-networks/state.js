@@ -1,0 +1,98 @@
+(function(root,factory){
+  'use strict';
+  const math=typeof module==='object'&&module.exports?require('./math.js'):root.NNMath;
+  const api=factory(math);
+  if(typeof module==='object'&&module.exports)module.exports=api;
+  if(root)root.NNStoryState=api;
+})(typeof window!=='undefined'?window:globalThis,function(M){
+  'use strict';
+  const scenes=['affine','relu','hinge','hill-rise','hill-fall','hill-flat','shallow','width-one','width-two','width-three','width-many','sine-coarse','sine-zoom','sine-joint','sine-wide','universal'];
+  const widthUnits=[{t:-1.5,a:.8},{t:-.9,a:-1.2},{t:-.3,a:1.1},{t:.3,a:-1},{t:.9,a:.9},{t:1.5,a:-.6}];
+  const initial=[0,.9,1.95,3.05,4.2,5.35,M.TAU];
+  const coarse=M.modelFromKnots(initial);
+  const firstError=M.maxError(initial);
+  const jointX=firstError.x;
+  const caches=[{knots:initial,model:coarse,error:firstError.error}];
+  const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+  const f=(x,n=3)=>Number(x.toFixed(n)).toString();
+  function approximation(width){
+    const desired=clamp(Math.round(width),6,32);
+    while(caches.length<=desired-6){
+      const old=caches[caches.length-1],worst=M.maxError(old.knots);
+      const knots=M.refineAt(old.knots,worst.x),model=M.modelFromKnots(knots),error=M.maxError(knots).error;
+      caches.push({knots,model,error});
+    }
+    return caches[desired-6];
+  }
+  function blend(oldModel,newModel,alpha){
+    const p=clamp(alpha,0,1);
+    const units=newModel.neurons.map(u=>{const old=oldModel.neurons.find(v=>Math.abs(v.t-u.t)<1e-10);return{t:u.t,a:(old?old.a:0)*(1-p)+u.a*p};});
+    const model=M.createShallow(oldModel.c*(1-p)+newModel.c*p,units);
+    model.neurons[0].baseline=true;model.knots=newModel.knots.slice();
+    return model;
+  }
+  function frame(scene,progress){
+    if(!scenes.includes(scene))throw new RangeError('Unknown story scene: '+scene);
+    const p=clamp(Number(progress)||0,0,1),frame={scene,progress:p,kind:'shallow',x:.4,components:false,showNetwork:true,caption:'',equation:''};
+    const hill=()=>M.createShallow(0,[{t:-1,a:1},{t:0,a:-2},{t:1,a:1}]);
+    switch(scene){
+      case'affine':
+        frame.kind='affine';frame.x=-1.5+3*p;frame.weight=1;frame.bias=.5;frame.showBias=p<.65;
+        frame.caption=frame.showBias?'The faint constant-1 input supplies the intercept.':'The intercept is still 0.5; only its connection is hidden.';
+        frame.equation='\\hat{y}=wx+b=1\\times x+0.5';break;
+      case'relu':frame.kind='relu';frame.x=-1.5+3*p;frame.showAffine=true;frame.caption='Negative inputs become zero; positive inputs pass through.';frame.equation='h(x)=\\max(0,x)';break;
+      case'hinge':{
+        const smooth=u=>{const q=clamp(u,0,1);return q*q*(3-2*q);};
+        const t=p<.4?-.8+1.4*smooth(p/.4):.6;
+        const a=p<.4?1:p<.7?1+.6*smooth((p-.4)/.3):1.6-2.8*smooth((p-.7)/.3);
+        frame.hingeA=a;frame.hingeT=t;frame.hingePhase=p<.4?'threshold':p<.7?'steepen':'flip';
+        frame.hingeExamples=[
+          {a:1,t:-.8,label:'Original: a = 1, t = −0.8'},
+          {a:1,t:.6,label:'Shifted: a = 1, t = 0.6'}
+        ];
+        frame.model=M.createShallow(0,[{t,a}]);frame.components=true;frame.x=.9;
+        frame.caption=frame.hingePhase==='threshold'?'Shift the joint; keep the output weight fixed.':frame.hingePhase==='steepen'?'Increase the output weight to steepen the active segment.':'Lower the output weight through zero to turn the segment downward.';
+        frame.equation='\\hat{y}='+f(a,2)+'\\,\\operatorname{ReLU}(x'+(t<0?'+':'-')+f(Math.abs(t),2)+')';
+        break;
+      }
+      case'hill-rise':frame.model=M.createShallow(0,[{t:-1,a:1}]);frame.components=true;frame.caption='The first neuron adds slope +1 at −1.';frame.equation='\\hat{y}=\\operatorname{ReLU}(x+1)';break;
+      case'hill-fall':frame.model=M.createShallow(0,[{t:-1,a:1},{t:0,a:-2*p}]);frame.components=true;frame.caption='At output weight −2, the slope changes from +1 to −1.';frame.equation='\\hat{y}=\\operatorname{ReLU}(x+1)-'+f(2*p,2)+'\\,\\operatorname{ReLU}(x)';break;
+      case'hill-flat':
+        frame.model=M.createShallow(0,[{t:-1,a:1},{t:0,a:-2},{t:1,a:p}]);frame.components=true;
+        frame.caption='At output weight +1, the third neuron flattens the right-hand segment.';
+        frame.equation='\\hat{y}=\\operatorname{ReLU}(x+1)-2\\,\\operatorname{ReLU}(x)+'+f(p,2)+'\\,\\operatorname{ReLU}(x-1)';
+        frame.equationCompact='\\begin{aligned}\\hat{y}={}&\\operatorname{ReLU}(x+1)\\\\&-2\\,\\operatorname{ReLU}(x)+'+f(p,2)+'\\,\\operatorname{ReLU}(x-1)\\end{aligned}';break;
+      case'shallow':frame.model=hill();frame.x=-1.7+3.4*p;frame.caption='The output sums the weighted activations and adds a bias.';frame.equation='\\hat{y}=c+\\sum_{j=1}^{m}a_j\\,\\operatorname{ReLU}(w_jx+b_j)';break;
+      case'width-one':case'width-two':case'width-three':case'width-many':{
+        const fixed={'width-one':1,'width-two':2,'width-three':3};
+        const width=scene==='width-many'?3+Math.min(3,Math.floor(p*4)):fixed[scene];
+        frame.model=M.createShallow(0,widthUnits.slice(0,width));frame.width=width;frame.x=.4;
+        frame.caption='Here: '+width+' '+(width===1?'joint':'joints')+', '+(width+1)+' pieces. Width gives an upper bound; coincident joints, inactive units, zero weights, or cancellation can yield fewer.';
+        frame.equation='\\text{width }m:\\quad\\text{joints}\\le m,\\quad\\text{pieces}\\le m+1';
+        frame.equationCompact='\\begin{gathered}\\text{width }m:\\quad\\text{joints}\\le m\\\\\\text{pieces}\\le m+1\\end{gathered}';
+        break;
+      }
+      case'sine-coarse':case'sine-zoom':case'sine-joint':case'sine-wide':case'universal':{
+        frame.kind='sine';frame.x=jointX;frame.highlightX=jointX;frame.zoom=scene!=='sine-coarse';
+        let current=approximation(6);
+        if(scene==='sine-joint'){
+          const next=approximation(7);frame.model=blend(coarse,next.model,p);frame.oldModel=coarse;frame.width=7;
+          frame.caption='One new neuron; neighboring weights adjust. Error at the marked input: '+Math.abs(M.evaluate(frame.model,jointX)-Math.sin(jointX)).toFixed(4)+'.';
+          frame.equation='\\hat{y}(x^*)\\longrightarrow\\sin(x^*)';
+        }else{
+          const width=scene==='sine-wide'?7+Math.min(19,Math.floor(p*20)):scene==='universal'?26:6;
+          current=approximation(width);frame.model=current.model;frame.width=width;frame.maxError=current.error;
+          frame.caption=width+' neurons · '+(width-1)+' interior joints · max error ≈ '+current.error.toFixed(4)+' (2,000 sampled inputs).';
+          frame.equation=scene==='universal'?'\\forall\\,\\varepsilon>0,\\ \\exists\\,\\hat{y}:\\quad\\max_{x\\in[a,b]}\\lvert f(x)-\\hat{y}(x)\\rvert<\\varepsilon':'\\hat{y}(x)\\approx\\sin x,\\quad 0\\le x\\le 2\\pi';
+          if(scene==='universal'){
+            frame.equationCompact='\\begin{gathered}\\forall\\,\\varepsilon>0,\\ \\exists\\,\\hat{y}:\\\\\\max_{x\\in[a,b]}\\lvert f(x)-\\hat{y}(x)\\rvert<\\varepsilon\\end{gathered}';
+            frame.caption='For a continuous function on a closed, bounded interval, suitable weights exist. This does not guarantee training success or justify extrapolation.';
+          }
+        }
+        break;
+      }
+    }
+    return frame;
+  }
+  return Object.freeze({scenes:Object.freeze(scenes),initialKnots:Object.freeze(initial),jointX,approximation,blend,frame});
+});
