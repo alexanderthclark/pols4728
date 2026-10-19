@@ -130,7 +130,9 @@ uses `phi_i(v_x)` for the feature’s credit throughout. The alias `f(x) = ŷ(x)
 is introduced with the earnings model. Frames 9–10 explicitly connect row averaging
 to the valid linear shortcut:
 average `ŷ(bread, peace)` over reference peace values, giving `ŷ(bread, 0)`
-because the overall background mean is zero.
+because the overall background mean is zero. The equals sign for this shortcut
+is labeled “by linearity,” with an adjacent warning that the shortcut need not
+hold for nonlinear models.
 
 Frame 14 returns to the general average over background predictions first in a
 centered, full-width recap. It then labels

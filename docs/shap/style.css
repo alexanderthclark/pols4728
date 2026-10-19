@@ -427,6 +427,7 @@ dialog p { font-size:16px; }
 .bread-mean-bridge { display:block; color:var(--ink); margin-top:6px; }
 .bread-mean-equation { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 8px; font:18px/1.5 'Course Math',math; }
 .bread-mean-equation math { flex:0 0 auto; }
+.linearity-annotation { font:14px var(--sans); color:var(--ink); }
 .bread-decomposition { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; border-top:1px solid var(--rule); padding-top:16px; font:12px/1.4 var(--sans); }
 .bread-decomposition-identity { display:block; color:var(--ink); font:20px/1.4 'Course Math',math; margin-top:6px; }
 .bread-decomposition strong { display:block; font:normal 30px/1.3 var(--serif); margin-top:8px; color:var(--blue); }
