@@ -96,11 +96,13 @@
       body+=dot(x,fy(original),C.blue)+dot(x,fy(original+s.offset),C.orange,5.5,corrected?'opacity=".45"':'');
       if(corrected)body+=dot(x,fy(original+offset),C.teal,6);
       body+=text(x,bottom+21,g.x,C.muted,narrow?14:18,'middle');
-      const bx=x+(narrow?12:19),y1=fy(original+s.offset),y2=fy(original+(corrected?offset:0));
+      const first=g.x===0,bx=x+(first?-1:1)*(narrow?12:19),y1=fy(original+s.offset),y2=fy(original+(corrected?offset:0));
       if(Math.abs(y2-y1)>.1){
         const color=corrected?C.teal:C.orange;
         body+=line(bx,y1,bx,y2,color,'stroke-width="1.8"')+line(bx-4,y1,bx+4,y1,color,'stroke-width="1.8"')+line(bx-4,y2,bx+4,y2,color,'stroke-width="1.8"');
-        body+=text(bx+7,(y1+y2)/2+5,`${corrected?'−':'+'}${(corrected?s.offset*s.corrected:s.offset).toFixed(2)}`,color,narrow?13:17);
+        // Keep the first callout above its bracket, clear of the rising lines.
+        const labelX=first?bx:bx+7,labelY=first?Math.min(y1,y2)-(narrow?12:14):(y1+y2)/2+5;
+        body+=text(labelX,labelY,`${corrected?'−':'+'}${(corrected?s.offset*s.corrected:s.offset).toFixed(2)}`,color,narrow?13:17,first?'middle':'start',`data-shift-label="${g.x}" paint-order="stroke" stroke="white" stroke-width="3" stroke-linejoin="round"`);
       }
     });
     body+=text(width/2,bottom+(narrow?44:48),'Predictor x',C.muted,narrow?14:18,'middle');
