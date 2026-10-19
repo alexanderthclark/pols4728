@@ -42,8 +42,14 @@ stay fixed. These are constructed examples, not historical elections or Hibbs's
 estimated coefficients. The reproduction files construct eight standardized
 synthetic rows to independently verify the stipulated correlations and model
 fits; empirical SD uses denominator `n`. Those verification rows do not appear
-in the story. The optional model and background note distinguishes interventional
-replacement from conditional SHAP and reduced-model refitting.
+in the story. The main story explicitly names interventional SHAP beside the
+value-function
+definition and on the Bread and Peace introduction. It uses every original
+background row without conditioning on the included values; excluded inputs stay
+together within each background row. The bread-only calculation makes the rule
+concrete: use all eight background peace values without conditioning on bread.
+The optional model and background note also distinguishes conditional SHAP and
+reduced-model refitting.
 
 The illustrative earnings predictor is
 `f(x) = 40 + 10 × ability + 24 × ability × neighborhood + 4 × experience`, in

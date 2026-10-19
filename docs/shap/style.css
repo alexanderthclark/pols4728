@@ -701,6 +701,9 @@ dialog p { font-size:16px; }
 .stage-shell[data-scene="background-average"] .formula-explanation { margin-top:12px; padding-top:14px; min-height:0; }
 .background-average-label { font:16px/1.5 var(--sans); color:var(--blue); margin-bottom:8px!important; }
 .background-average-content .background-average-equation { margin-bottom:16px; }
+.background-average-content .interventional-rule { font:18px/1.5 var(--sans); color:var(--ink); margin:12px auto; }
+.bread-transition .transition-title { margin-bottom:8px; }
+.transition-method { font:18px/1.4 var(--sans); color:var(--blue); margin:0 0 16px!important; }
 .background-average-legend { font:14px/1.55 var(--sans); color:var(--muted); margin:12px 0 0!important; }
 @media(max-width:860px) {
   .stage-shell[data-scene="background-average"] .formula-intro-title { margin-bottom:12px; }
@@ -953,6 +956,7 @@ dialog p { font-size:16px; }
 .waterfall-total-unit { font:16px/1.5 var(--sans); color:var(--muted); }
 .story-layout[data-layout="formula"] .formula-focus-note,
 .background-average-legend { font-size:18px; line-height:1.5; }
+.background-average-label { font-size:18px; }
 .method summary { font-size:18px; }
 #population-select,#population-waterfall,#population-summary,
 #coalition-controls { font-size:16px; }
@@ -975,6 +979,9 @@ dialog p { font-size:16px; }
   .waterfall-total-equation { font-size:22px; }
   .story-layout[data-layout="formula"] .formula-focus-note,
   .background-average-legend { font-size:16px; }
+  .background-average-label,
+  .background-average-content .interventional-rule,
+  .transition-method { font-size:16px; }
   .transition-note,.transition-definitions { font-size:16px; }
   #rows-dialog .dialog-top h2 { font-size:24px; }
 }
@@ -1039,4 +1046,7 @@ dialog p { font-size:16px; }
   .refit-transform .refit-note { font-size:16px; line-height:1.45; margin:8px auto; }
   .bread-coalition-equation { font-size:26px; line-height:1.4; gap:4px 8px; margin:12px 0 10px; }
   .stage-shell:is([data-scene="ols-fits"],[data-scene="ols-refit"],[data-scene="ols-bread-value"]) .bread-prediction-unit { font-size:16px; line-height:1.45; }
+}
+@media(max-width:380px) {
+  .coalition-recap-table tbody { grid-template-columns:minmax(0,1fr); }
 }
