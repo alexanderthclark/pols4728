@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="style.css?v=5c2ef7b878">
   <link rel="stylesheet" href="formula.css?v=637c969aeb">
   <link rel="stylesheet" href="electoral.css?v=1bc336c71a">
-  <link rel="stylesheet" href="presentation.css?v=c93f8705dd">
+  <link rel="stylesheet" href="presentation.css?v=8e4e99e294">
   <link rel="stylesheet" href="electoral-map.css?v=c21298e1ef">
 </head>
 <body>
@@ -46,7 +46,7 @@
       <section class="step" data-step="4" id="scene-5"><div class="step-content"><span class="step-number">05</span><h2>Order changes the credit</h2><p class="scene-summary">In the order B → A → C, A supplies the deciding vote. Change the order and a different voter gets the credit.</p></div></section>
       <section class="step" data-step="5" id="scene-6"><div class="step-content"><span class="step-number">06</span><h2>Give every order equal weight</h2><p class="scene-summary">Average across all six equally weighted orders. A’s four joining edges appear in 2, 1, 1, and 2 orders.</p></div></section>
       <section class="step" data-step="6" id="scene-7"><div class="step-content"><span class="step-number">07</span><h2>Average A’s contributions</h2><p class="scene-summary">Multiply each contribution by its fraction of orders, then add. A receives one-third of the total credit.</p></div></section>
-      <section class="step" data-step="7" id="explore"><div class="step-content"><span class="step-number">08</span><h2 class="visually-hidden">The Hasse diagram</h2><div class="scene-detail-content" hidden><h3>About this diagram</h3><p>This is a <em>Hasse diagram</em>: each edge adds one voter to a coalition.</p><p><a href="#value-function">Connect the picture to the formula</a>.</p></div></div></section>
+      <section class="step" data-step="7" id="explore"><div class="step-content"><span class="step-number">08</span><h2>Does following B or C change the allocation?</h2><p class="scene-summary">In this <em>Hasse diagram</em>, each arrow adds one voter to a coalition. All three voters receive one-third of the total credit.</p></div></section>
       <section class="step formula-step" data-step="8" id="value-function"><div class="step-content"><span class="step-number">09</span><h2 class="visually-hidden">The value function</h2><p class="scene-summary">Write a coalition’s value as <math class="math-inline"><mrow><mi>v</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo></mrow></math>, where <math class="math-inline"><mrow><mo form="prefix" stretchy="false">|</mo><mi>S</mi><mo form="postfix" stretchy="false">|</mo></mrow></math> counts its voters. This rule assigns one to passing groups and zero otherwise.</p><div class="value-definition" aria-label="The majority-voting value function">
           <math display="block" aria-label="v of S equals one if the size of S is at least two, and zero otherwise">
             <mrow><mrow><mi>v</mi><mo>⁡</mo><mrow><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><mo stretchy="true">{</mo><mtable columnalign="left" rowspacing=".45em"><mtr><mtd><mn>1</mn><mo>,</mo></mtd><mtd><mtext>if</mtext><mspace width=".25em"/><mrow><mo form="prefix" stretchy="false">|</mo><mi>S</mi><mo form="postfix" stretchy="false">|</mo></mrow><mo>≥</mo><mn>2</mn></mtd></mtr><mtr><mtd><mn>0</mn><mo>,</mo></mtd><mtd><mtext>otherwise</mtext></mtd></mtr></mtable></mrow></mrow>
@@ -58,7 +58,7 @@
       <section class="step formula-step" data-step="11" id="formula-before"><div class="step-content"><span class="step-number">12</span><h2>Count orders before A</h2><p class="scene-summary">Hold <math class="math-inline"><mi>S</mi></math> fixed. <span class="formula-explanation">Its members can arrive before A in <math class="math-inline"><mrow><mrow><mo form="prefix" stretchy="false">|</mo><mi>S</mi><mo form="postfix" stretchy="false">|</mo></mrow><mo>!</mo></mrow></math> orders.</span></p></div></section>
       <section class="step formula-step" data-step="12" id="formula-after"><div class="step-content"><span class="step-number">13</span><h2>Count orders after A</h2><p class="scene-summary"><span class="formula-explanation">After <math class="math-inline"><mi>S</mi></math> and A arrive, <math class="math-inline"><mrow><mi>n</mi><mo>−</mo><mrow><mo form="prefix" stretchy="false">|</mo><mi>S</mi><mo form="postfix" stretchy="false">|</mo></mrow><mo>−</mo><mn>1</mn></mrow></math> voters remain. Their factorial counts the possible orders after A.</span></p></div></section>
       <section class="step formula-step" data-step="13" id="formula-weight"><div class="step-content"><span class="step-number">14</span><h2>Turn counts into weights</h2><p class="scene-summary">Multiply the before and after counts, then <span class="formula-explanation">divide by all <math class="math-inline"><mrow><mi>n</mi><mo>!</mo></mrow></math> orders</span>. The result is the fraction using this joining edge.</p></div></section>
-      <section class="step formula-step" data-step="14" id="formula-sum"><div class="step-content"><span class="step-number">15</span><h2>Add the weighted contributions</h2><p class="scene-summary"><span class="formula-explanation">The formula adds the same four weighted contributions: A’s Shapley value is one-third.</span> For another game, change the value function.</p><div class="scene-detail-content" hidden><h3>Explore another contribution</h3><p><a href="#explore">Return to the interactive diagram</a> to follow another voter or inspect an edge.</p></div></div></section>
+      <section class="step formula-step" data-step="14" id="formula-sum"><div class="step-content"><span class="step-number">15</span><h2>Add the weighted contributions</h2><p class="scene-summary"><span class="formula-explanation">The formula adds the same four weighted contributions: A’s Shapley value is one-third.</span> For another game, change the value function.</p><div class="scene-detail-content" hidden><h3>Explore another contribution</h3><p><a href="#explore">Return to the interactive diagram</a> to follow another voter and compare the allocation.</p></div></div></section>
       <section class="step electoral-step electoral-intro-step" data-step="15" id="electoral-introduction" tabindex="-1"><div class="step-content"><span class="step-number">16</span>
         <figure class="electoral-intro" id="electoral-intro"><img src="assets/electoral-ballot-characters.png" width="1536" height="1024" alt="Two round, torso-less figures at a ballot box: one holds a surfboard while pushing dozens of ballots into the slot; the other wears a cowboy hat and holds three ballots."></figure>
         <h2>Application: US Electoral College</h2>
@@ -97,6 +97,6 @@
     <a href="../">POLS 4728 home</a>
     <a href="#beginning">Back to the beginning</a>
   </footer>
-  <script type="module" src="story.js?v=c54d7a7507"></script>
+  <script type="module" src="story.js?v=e6e250545b"></script>
 </body>
 </html>
