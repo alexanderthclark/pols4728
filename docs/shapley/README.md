@@ -48,6 +48,10 @@ hat holds exactly three. The illustration has a white background and black lines
 with no labels, state outlines, or partisan colors. The original opening cover
 remains separate and unchanged.
 
+The transition artwork shares the opening title graphic’s width and responsive
+height limits, leaving white space around the illustration instead of filling
+the visual stage.
+
 The 2024/2028 allocation has 538 electoral votes and a quota of 270.
 The following tally shows California’s marginal contribution to a 250-vote coalition:
 its 54 votes raise the total to 304, crossing the threshold. Three maps follow:
