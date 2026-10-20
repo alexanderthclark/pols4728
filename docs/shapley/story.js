@@ -144,7 +144,7 @@ sceneContents.forEach(content => { content.hidden = true; });
 document.body.classList.add('is-presentation');
 
 let current = -1, selectedPlayer = 0, inspectedEdge = null, pathState = null, playbackTimer = null, scrollFrame = 0, nodeNotationVisible = false;
-const kickers = ["THE RULE", "THE SMALLEST GROUPS", "ADD C", "COMPLETE THE PAIRS", "THE COMPLETE DIAGRAM", "COUNT THE ORDERS", "THE WEIGHTED AVERAGE", "THE HASSE DIAGRAM", "THE VALUE FUNCTION", "THE SUMMATION", "THE CONTRIBUTION", "BEFORE A", "AFTER A", "THE WEIGHT", "THE SHAPLEY VALUE", "THE ELECTORAL COLLEGE", "A STATE’S CONTRIBUTION", "ELECTORAL GEOGRAPHY", "ELECTORAL VOTES", "SHAPLEY-ADJUSTED VOTES"]
+const kickers = ["THE RULE", "THE SMALLEST GROUPS", "ADD A", "COMPLETE THE PAIRS", "THE COMPLETE DIAGRAM", "COUNT THE ORDERS", "THE WEIGHTED AVERAGE", "THE HASSE DIAGRAM", "THE VALUE FUNCTION", "THE SUMMATION", "THE CONTRIBUTION", "BEFORE A", "AFTER A", "THE WEIGHT", "THE SHAPLEY VALUE", "THE ELECTORAL COLLEGE", "A STATE’S CONTRIBUTION", "ELECTORAL GEOGRAPHY", "ELECTORAL VOTES", "SHAPLEY-ADJUSTED VOTES"]
   .map((label, index) => `${String(index + 1).padStart(2, '0')} / ${label}`);
 const counts = ["3 players · majority rule", "4 groups · 3 edges", "6 coalitions · 5 edges", "7 coalitions · 9 edges", "8 groups · 12 edges", "6 imagined orders", "4 terms · 1 Shapley value", "Majority voting · 3 voters", "0 means failure · 1 means success", "i = A · n = 3", "One joining edge", "Order the voters in S", "Order the remaining voters", "Matching orders / all orders", "Four edges · one weighted sum", "", "51 blocs · 270 votes to win", "50 states + DC · 2024 / 2028", "538 electoral votes", "538 adjusted votes"];
 const formulaView = createFormulaView(game, {
@@ -250,7 +250,7 @@ function updateGraph() {
   const maxSize = current === 1 ? 1 : current <= 3 ? 2 : 3;
   const order = pathState ? game.orders[pathState.orderIndex] : null, path = order?.path.slice(0, pathState.count) ?? [];
   nodeEls.forEach((b, mask) => {
-    const node = game.nodes[mask], visible = current >= 1 && node.size <= maxSize && (!partialPairs || mask !== 3);
+    const node = game.nodes[mask], visible = current >= 1 && node.size <= maxSize && (!partialPairs || mask !== 6);
     b.classList.toggle('is-visible', visible); b.style.setProperty('--reveal-delay', `${node.size * 75}ms`);
     const involved = !order || mask === 0 || path.some(e => e.to === mask);
     b.classList.toggle('is-subdued', current >= 4 && !!order && !involved);
@@ -259,9 +259,9 @@ function updateGraph() {
     b.classList.toggle('is-formula-target', inFormula && !allFormulaEdges && mask === selectedFormulaEdge.to);
   });
   for (const e of game.edges) {
-    const addsC = e.id === '1-5' || e.id === '2-6';
-    const el = edgeEls.get(e.id), visible = current >= 1 && game.nodes[e.to].size <= maxSize && (!partialPairs || e.from === 0 || addsC);
-    let active = partialPairs && addsC;
+    const addsA = e.id === '2-3' || e.id === '4-5';
+    const el = edgeEls.get(e.id), visible = current >= 1 && game.nodes[e.to].size <= maxSize && (!partialPairs || e.from === 0 || addsA);
+    let active = partialPairs && addsA;
     if (current >= 5 && !order) active = e.playerIndex === selectedPlayer;
     if (current === 8) active = false;
     if (inFormula) active = allFormulaEdges ? e.playerIndex === 0 : e.id === selectedFormulaEdge.id;
@@ -279,7 +279,7 @@ function updateGraph() {
   document.querySelectorAll('[data-show-order]').forEach(b => b.classList.toggle('is-current', !!pathState && Number(b.dataset.showOrder) === pathState.orderIndex));
 }
 function updateCaption() {
-  const captions = ["Each player chooses yes or no.", "0 means the group fails. 1 means it passes.", "Add C to coalition", "Every two-voter coalition passes.", "Every path ends at the same full group.", "Edge labels: contribution above, fraction of orders below.", "Click a term to see which of the six paths give it its weight.", "Click a term to explain its weight, or inspect an edge below.", "The value function names the numbers already on the nodes.", "Four coalitions without A. Four starting nodes.", "The bracket measures the change along the selected edge.", "Hold the coalition fixed; count its internal orders.", "The minus one removes A from the remaining voters.", "The factorial ratio is the fraction of paths using this edge.", "The formula adds the same four weighted contributions.", "The US Electoral College.", "Adding California changes this coalition’s value from zero to one.", "Geographic shapes show where the electoral votes are.", "One square represents one electoral vote.", "One square represents one Shapley-adjusted vote; boundary squares can be fractional."];
+  const captions = ["Each player chooses yes or no.", "0 means the group fails. 1 means it passes.", "Add A to coalition", "Every two-voter coalition passes.", "Every path ends at the same full group.", "Edge labels: contribution above, fraction of orders below.", "Click a term to see which of the six paths give it its weight.", "Click a term to explain its weight, or inspect an edge below.", "The value function names the numbers already on the nodes.", "Four coalitions without A. Four starting nodes.", "The bracket measures the change along the selected edge.", "Hold the coalition fixed; count its internal orders.", "The minus one removes A from the remaining voters.", "The factorial ratio is the fraction of paths using this edge.", "The formula adds the same four weighted contributions.", "The US Electoral College.", "Adding California changes this coalition’s value from zero to one.", "Geographic shapes show where the electoral votes are.", "One square represents one electoral vote.", "One square represents one Shapley-adjusted vote; boundary squares can be fractional."];
   const text = current === 8 && nodeNotationVisible ? 'The labels now write the same numbers as the value function.' : captions[current];
   $('#stage-bottom').innerHTML = `<span class="legend-mark"></span><span>${text}</span>`;
   const caption = $('#graph-caption');
@@ -287,7 +287,7 @@ function updateCaption() {
     const o = game.orders[pathState.orderIndex], decisive = o.path.find(e => e.delta === 1), finished = pathState.count === 3;
     const joining = o.path[Math.max(0, pathState.count - 1)].player;
     caption.innerHTML = `<span class="path-order">${o.label}</span><span>${finished ? `${decisive.player} supplies the deciding vote: +1` : `Adding ${joining}…`}</span>`;
-  } else if (current === 2) caption.innerHTML = '<span class="path-order">Add C to coalition</span>';
+  } else if (current === 2) caption.innerHTML = '<span class="path-order">Add A to coalition</span>';
   else if (current === 5) caption.innerHTML = `<span class="path-order">Follow ${game.players[selectedPlayer]}</span><span>Four joining edges. Six equally weighted orders.</span>`;
   else caption.innerHTML = '';
 }
