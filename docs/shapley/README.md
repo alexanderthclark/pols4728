@@ -28,7 +28,9 @@ The active caption retains its original controls and MathML nodes. Original
 sections provide the scroll track and stable hash destinations; links focus the
 new caption heading. Optional context, methods, sources, and longer exploration
 controls open in a keyboard-accessible native dialog. Moving controls does not recreate their DOM nodes. A restrained caption transition
-is disabled when reduced motion is requested. Annotations retain stable positions in the visual.
+only introduces changed headings and summaries: repeated text stays visible as the
+diagram advances or reverses. The transition is disabled when reduced motion is
+requested. Annotations retain stable positions in the visual.
 Without JavaScript, the source captions and equations remain readable in order.
 
 Browser review should cover all twenty scenes at 1440×900, 1063×736, 768×900,

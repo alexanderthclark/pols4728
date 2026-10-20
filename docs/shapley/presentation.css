@@ -207,7 +207,7 @@ body.is-presentation{--presentation-header:68px}
   .is-presentation .electoral-selection-note{margin-top:5px}
 }
 @media(prefers-reduced-motion:no-preference){
-  .is-presentation #scene-caption .step-content{animation:scene-caption-enter .24s ease-out}
+  .is-presentation #scene-caption .step-content>:not(.is-caption-unchanged){animation:scene-caption-enter .24s ease-out}
   @keyframes scene-caption-enter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 }
 

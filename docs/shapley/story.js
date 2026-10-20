@@ -184,6 +184,14 @@ function setNodeNotation(visible) {
 }
 function showStep(index) {
   if (index === current) return;
+  // A new diagram state need not introduce new prose. Compare each text block
+  // before moving the captions so repeated headings or summaries stay visible.
+  const textSelector = ':scope > h2, :scope > .scene-summary';
+  const previousText = current < 0 ? [] : [...sceneContents[current].querySelectorAll(textSelector)];
+  sceneContents[index].querySelectorAll(textSelector).forEach(element => {
+    element.classList.toggle('is-caption-unchanged', previousText.some(previous =>
+      previous.tagName === element.tagName && previous.innerHTML === element.innerHTML));
+  });
   closeSceneDetails();
   if (current >= 0) {
     sceneContents[current].hidden = true;
