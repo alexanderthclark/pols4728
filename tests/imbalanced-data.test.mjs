@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const require = createRequire(import.meta.url);
 const model = require('../docs/imbalanced-data/model.js');
+const tree = require('../docs/imbalanced-data/tree-model.js');
 
 function close(actual, expected, label, tolerance = 1e-12) {
   assert.ok(Math.abs(actual - expected) < tolerance, `${label}: ${actual} vs ${expected}`);
@@ -28,6 +29,11 @@ test('sampling correction, exact model selection, and batch composition', () => 
   assert.equal(model.entropy(0), 0);
   assert.equal(model.entropy(1), 0);
 
+  for (const name of ["A", "B"]) {
+    close(model.SIGNALS[name].tpr, tree.splits[name].positiveLeft, "Shared positive routing");
+    close(model.SIGNALS[name].fpr, tree.splits[name].negativeLeft, "Shared negative routing");
+  }
+
   const aNatural = model.stump("A", 0.01);
   const bNatural = model.stump("B", 0.01);
   const aBalanced = model.stump("A", 0.5);
@@ -36,8 +42,9 @@ test('sampling correction, exact model selection, and batch composition', () => 
   assert.ok(bBalanced.logloss < aBalanced.logloss, "Balanced log loss chooses B");
   assert.equal(model.bestStump(0.01).name, "A");
   assert.equal(model.bestStump(0.5).name, "B");
-  close(aNatural.auc, 0.7495, "A two-level AUC");
+  close(aNatural.auc, 0.75, "A two-level AUC");
   close(bNatural.auc, 0.9, "B two-level AUC");
+  close(aNatural.precision, 1, "A pure positive leaf");
   close(bBalanced.precision, 1 / 12, "B population precision");
   assert.ok(bBalanced.highProb > bBalanced.lowProb);
   const correctedHigh = model.correctedProbability(bBalanced.highProb, s1, s0);

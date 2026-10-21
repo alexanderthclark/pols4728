@@ -1,90 +1,39 @@
 # Imbalanced Data
 
-A scrolling lesson based on Alexander Clark's Applied Issues notes. The
-opening title includes a high-wire cartoon and leads into three pinned,
-full-width chapters, with the explanation above each figure. Scroll position continuously changes the
-geometry; scrolling backward reverses the argument. No build step, external
-JavaScript dependency, or external data call is required.
+The opening title includes the transparent monochrome high-wire cartoon in
+`assets/high-wire-refined.png`, with lower arms and a clearer grip on the pole. The original remains available in `assets/high-wire.png`.
 
-The first chapter develops logistic prior correction one step at a time:
-population probabilities, case counts at a fixed predictor value, random
-negative thinning, the change in odds, the same multiplier at every predictor
-value, its conversion into an additive log-odds shift, and the intercept
-correction. The correction assumes sampling is independent of predictors
-conditional on class. The notes distinguish this exact probability identity
-from finite-sample, penalized, or misspecified logistic fits. A subsequent
-playground lets readers change the negative inclusion rate and switch between
-probabilities and log odds.
+A buildless scrollytelling lesson based on Alexander Clark's Applied Issues and Logistic Regression notes. Serve `` with any static web server. No runtime dependencies or external data calls.
 
-The efficiency chapter shrinks one million observations to twenty thousand
-and compares batch composition. Its fifty-fold reduction describes observation
-visits per pass, not a promised wall-clock speedup. It then distinguishes
-balanced training from importance weighting that restores the population
-objective in expectation.
+The title leads directly to seven scrolling stages: the model's linear log-odds assumption, probabilities as within-group counts, cancellation of the common total, negative-only retention, expansion of the logarithm, the intercept shift, and prior correction. Large fractions lead into two grouped class ratios with 1% and 50% positives. Retaining a share s of negatives adds −log(s) to the true log odds; the sampled group total also cancels. Opening formulas, scene comparisons, and the reading version’s inline and display equations are rendered from LaTeX using KaTeX, with local fonts and MathML; edit the TeX in `scripts/render-logistic-math.cjs`. The reading version is also typeset without JavaScript. Chart sizing excludes the nested SVGs used for tall parentheses and cancellation strokes. Expected count bars thin as the reader scrolls. Two points illustrate the assumed line rather than test linearity. Equal-probability sampling remains in expanded notes. The rare-events connection cites King and Zeng (2001), separating sampling correction from finite-sample bias.
 
-The learning chapter uses an analytically optimized classifier that can choose
-only one of two binary predictors and fit a free probability in each branch.
-Signal A has TPR 0.5 and FPR 0.001; B has TPR 0.9 and FPR 0.1. At a 1% event
-rate, population log loss chooses A; equal class influence chooses B. The loss
-curves and selected model change as the class influence moves. Evaluation at
-the population prevalence compares AUC, recall, precision, and corrected
-population log loss. The example demonstrates a change at convergence without
-claiming that balancing universally improves a model.
+The next chapter gives a quicker, two-stage comparison for an intentionally misspecified linear logistic model with curved true log odds. Its slope changes from 2.230 to 1.933 after retaining all positives and 10% of negatives. Intercept correction cannot recover the full-data fit. Inverse-selection weighting does recover its objective. Dashed curves show the constant shift in the true log odds separately from the refitted lines. Results minimize population cross entropy, rather than simulating a random sample; complete assumptions and tables remain in expanded notes.
 
-All populations are synthetic and all plotted losses are analytic. The page
-links further reading by Fithian and Hastie, Byrd and Lipton, and Kang et al.
+Four new slides show executed finite-sample logistic regressions before the decision-tree chapter: the two random training datasets, the correctly specified fit, the curved fit, and 500 further independent downsampling draws from each fixed dataset. Both fits are unpenalized; every negative has a 10% retention probability and every positive is kept. Coefficients and untouched-test log loss are displayed. The repeated-draw range describes conditional downsampling variation, not a population confidence interval. Raw counts, results, repeated-fit CSV, and the calculation script are downloadable.
 
-## Preview and hosting
+Decision-tree split ranking follows the executed runs. A routes 50% of positives and 0% of negatives left; B routes 90% and 10%. Exact entropy calculations (natural logs, nats) select A at 1% training prevalence and B at 50%. A gain cutoff at the original mixture selects A or no split, never B; the visible caveat distinguishes a leaf-size constraint, which can exclude A. The later one-signal example reuses these A/B rates and colors. Cutoffs use nats; divide by ln(2) for sklearn entropy units. Restricted-model learning, evaluation, and optional implementation examples follow the tree playground. Training efficiency gets one brief mention in the conclusion.
 
-From the repository root, serve `docs/` with a static web server and open
-`/imbalanced-data/`. For example, for a local development preview:
+`scrolly.js` drives reversible, full-width pinned chapters. `logistic-scenes.js` renders the grouped log-odds walkthrough. `misspec-model.js` solves the expected-loss fits; `misspec-scenes.js` presents them. `tree-model.js` and `tree-scenes.js` provide entropy calculations and keyboard-operable controls. Motion can be switched off; expanded chapter notes preserve prose and numerical tables.
 
-```sh
-python3 -m http.server 8765 --directory docs
-```
+From the repository root, run `node --test tests/imbalanced-*.test.mjs`. These check the sampling identity, exact numerical fit score equations, correctly specified control, equal sampling, independent cross entropy, inverse-selection weighting, and independent child-count gains.
 
-All asset paths are relative, so the page also works under
-`/pols4728/imbalanced-data/`. The existing GitHub Pages workflow publishes
-`docs/` after checks pass on `main`. The lesson is available directly at
+`node --test tests/imbalanced-scenes.test.mjs` checks intermediate and completed animation frames at narrow and wide sizes, comparing rendered logits and coefficient labels against independently computed counts and line geometry.
+
+`sampling-data.js` contains the recorded experiment results; `sampling-scenes.js` renders the numerical-results slides.
+
+The finite-run results comprise 1,004 executed unpenalized logistic fits. Independent audits reproduced the generated training/test data and all retention masks, checked every fit against separate score equations/Newton fits, and recomputed the untouched-test losses and repeat quantiles.
+
+`tree-leaves.js` shows both children of each candidate with expected positive/negative counts, within-leaf positive share, and class-composition bars. The walkthrough begins at 1% positives; the continuous class-balance playground updates leaf balances alongside entropy gains. Counts hold the same 100 positives fixed while thinning negatives.
+
+`tree-entropy-chords.js` joins child posterior proportions on the binary entropy curve. The chord at the parent’s prevalence is the size-weighted child entropy; the vertical gap is information gain. Scroll rebalancing recomputes both chords, and the continuous playground shares its prior control with the leaf diagrams and gain bars. A magnified view makes the rare-class gain difference legible.
+
+`tree-colors.js` keeps candidate identities consistent: A is purple and B is teal across cards, chords, and gain plots. Positive and negative counts retain their separate burnt-orange and navy class colors.
+
+The curved finite-run slide highlights a scoped takeaway: fitting the original imbalanced data wins here on untouched natural-prevalence test log loss. Expanded notes explain the population risk target under misspecification, inverse-selection weighting, and why this result does not settle recall or tree-learning objectives. The displayed downsample has 20.54% positives, not a 50/50 mixture.
+
+`tree-rebalance.js` adds a scroll-driven negative-thinning slide before entropy chords. It keeps all 100 positives and reduces negative retention from 100% to 1/99, updating both candidate leaf diagrams. A’s left leaf stays pure; its right denominator shrinks. The walkthrough has no balance tabs; scrolling advances the entire experiment, and the chord stages replay the same thinning after explicitly returning to the original mixture.
+
+The course page is available directly at
 `https://alexanderthclark.github.io/pols4728/imbalanced-data/` and is intentionally
-not linked from the course homepage.
-
-## Source and validation
-
-- `index.html` contains the title, chapter frames, complete prose, sampling
-  playground, and evaluation.
-- `model.js` contains the probability transforms, exact stump losses and
-  population metrics, and batch-composition calculations.
-- `scrolly.js` maps scroll position to chapter progress and renders the
-  logistic correction scenes.
-- `chapter-scenes.js` renders the efficiency and learning scenes.
-- `app.js` handles the sampling playground and evaluation figures.
-- `style.css` and `scrolly.css` provide the course typography, palette, and
-  responsive pinned layout.
-- `fonts/` contains locally served Latin Modern Roman fonts, attribution, and
-  the GUST Font License.
-
-The chapter dots and controls support keyboard use. Motion can be switched
-off, and the page respects reduced-motion preferences. Expandable notes
-preserve the complete reasoning alongside the animated chapters. Desktop and
-narrow-phone checks cover the pinned frames, intermediate line positions,
-backward scrolling, the A/B model switch, and the motion control.
-
-Run the analytic regression checks from the repository root:
-
-```sh
-node --test tests/imbalanced-data.test.mjs
-```
-
-The checks verify odds correction and its sign, round trips and extreme
-probabilities, optimized losses computed independently from joint class/branch
-probabilities, model selection, AUC, population precision, and batch
-composition. The PR workflow also checks all four JavaScript files for syntax
-errors and runs these checks with the existing lesson tests.
-
-
-The appended decision-tree chapter uses a separate Gini example: A routes 10% of positives and 0% of negatives left; B routes 90% and 10%. Exact calculations select A at 1% training prevalence and B at 50%. A second animation and slider hold the original gains fixed while moving `min_impurity_decrease`; A or no split can result, never B. The text distinguishes candidate admissibility (`min_samples_leaf`) from gain ranking and states the limited implication for deep forests. Existing logistic, efficiency, and log-loss chapters remain intact.
-
-`tree-model.js` computes Gini gains and child shares. `tree-scenes.js` adds five reversible scroll stages and two keyboard-operable playgrounds. `node --test tests/imbalanced-tree.test.mjs` verifies the results against independent integer child counts. The new imblearn section introduces samplers, binary sampling ratios, fold-local pipelines, and per-tree balanced forests. `imblearn_demo.py` is a complete downloadable CV example with an untouched test set and explicit forest sampling settings.
-
-This update's chart SVGs were inspected at desktop and phone sizes. Full browser interaction QA was unavailable in the editing environment.
+not linked from the course homepage. Local font attribution and the GUST Font
+License remain in `fonts/`.
