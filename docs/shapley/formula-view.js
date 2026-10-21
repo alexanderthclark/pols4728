@@ -78,6 +78,7 @@ export function createFormulaView(game, { onCoalitionChange = () => {}, onExplai
       button.setAttribute('aria-pressed', String(button.dataset.formulaEdge === currentEdge.id));
     }
     choices.hidden = currentPhase === 0 || currentPhase === 5;
+    context.hidden = currentPhase === 2;
     numerical.hidden = currentPhase !== 5;
     orders.hidden = ![2, 3, 4].includes(currentPhase);
     weightButton.hidden = ![4, 5].includes(currentPhase);
@@ -91,7 +92,7 @@ export function createFormulaView(game, { onCoalitionChange = () => {}, onExplai
     } else if (currentPhase === 1) {
       context.innerHTML = `For ${escape(coalition.label)} → ${escape(added.label)}, the contribution is <math class="math-inline" aria-label="${escape(`v of ${added.label} minus v of ${coalition.label} equals ${added.value} minus ${coalition.value} equals ${currentEdge.delta}`)}"><mrow>${valueApplication(added)}<mo>−</mo>${valueApplication(coalition)}<mo>=</mo><mn>${added.value}</mn><mo>−</mo><mn>${coalition.value}</mn><mo>=</mo><mn>${currentEdge.delta}</mn></mrow></math>.`;
     } else if (currentPhase === 2) {
-      context.textContent = `|S|! = ${coalition.size}! = ${beforeCount}: ${beforeCount === 1 ? 'one order' : `${beforeCount} orders`} for the ${coalition.size} ${coalition.size === 1 ? 'player' : 'players'} before ${player}.${coalition.size === 0 ? ' The empty group has one arrangement: 0! = 1.' : ''}`;
+      context.textContent = '';
       orders.innerHTML = orderStrips(matches);
     } else if (currentPhase === 3) {
       context.textContent = `(n − |S| − 1)! = ${afterSize}! = ${afterCount}: ${afterCount === 1 ? 'one order' : `${afterCount} orders`} for the ${afterSize} ${afterSize === 1 ? 'player' : 'players'} after ${player}.${afterSize === 0 ? ' The empty group has one arrangement: 0! = 1.' : ''}`;

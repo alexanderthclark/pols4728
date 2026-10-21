@@ -4,11 +4,11 @@
 
 A separate opening page places the real-text title above a registered monochrome illustration of three torso-free stick figures putting their ballots into one box labeled VOTE at once. “A voting application” appears at the bottom of the cover. The cover and story share the course guide’s ink, muted, and blue palette, with the full illustration preserved on desktop and phones. Serif headings use regular weight; prose introduces definitions in italics and leaves numerical conclusions in regular text. The masthead reads “Shapley values.” **Start the explanation** leads to the first teaching scene; **Back to the beginning** returns to the cover. The cover does not add a scene or change the twenty-stage sequence.
 
-The first eight frames use plain-language groups, outcomes, paths, and weights. The opening frame shows three neutral players, each with the choice “Yes or no,” above two rule lines: “2 or 3 yes votes → Pass” and “0 or 1 yes votes → Fail.” Its caption identifies the yes voters as the coalition; it shows no particular voting outcome. The next frame introduces the empty coalition and singletons. The pair level unfolds across two scroll steps: first C joins A or B, revealing {A, C}, {B, C}, and their two joining arrows under “Add C to coalition.” The next step fills in the remaining pair and the other joining arrows, with that annotation removed before the full Hasse diagram appears. Both pair steps use the same title without a paragraph. A concluding bridge names the existing node numbers as the value function `v(S)`: one for coalitions with at least two voters, zero otherwise. Entering that frame replaces each pass/fail payoff row with `v(group) = payoff`; returning to an earlier frame restores the familiar labels. Only then do six formula frames introduce `N`, `n`, and `i` and connect the general Shapley formula to the diagram, explaining the summation range, marginal contribution, arrangements before the joining voter, arrangements after, division by all orders, and the completed weighted sum. The complete diagram stays visible, and selecting a coalition changes the example edge and its counts. Math uses native MathML, without an external rendering dependency.
+The first eight frames use plain-language groups, outcomes, paths, and weights. The opening frame shows three neutral players, each with the choice “Yes or no,” above two rule lines: “2 or 3 yes votes → Pass” and “0 or 1 yes votes → Fail.” Its caption identifies the yes voters as the coalition; it shows no particular voting outcome. The next frame introduces the empty coalition and singletons. The pair level unfolds across two scroll steps: first A joins B or C, revealing {A, B}, {A, C}, and their two joining arrows under “Add A to coalition.” The next step fills in the remaining pair and the other joining arrows, with that annotation removed before the full Hasse diagram appears. Both pair steps use the same title without a paragraph. A concluding bridge names the existing node numbers as the value function `v(S)`: one for coalitions with at least two voters, zero otherwise. Entering that frame replaces each pass/fail payoff row with `v(group) = payoff`; returning to an earlier frame restores the familiar labels. Only then do six formula frames introduce `N`, `n`, and `i` and connect the general Shapley formula to the diagram, explaining the summation range, marginal contribution, arrangements before the joining voter, arrangements after, division by all orders, and the completed weighted sum. The complete diagram stays visible, and selecting a coalition changes the example edge and its counts. Math uses native MathML, without an external rendering dependency.
 
-At “Put the pieces together,” click a weight or **See the six paths behind these weights**. The optional panel displays all six Hasse diagrams in a three-column grid on wide screens, two columns on medium screens, and a scrolling column on phones. It highlights paths containing the selected joining edge and emphasizes that edge with a thicker arrow. The other paths remain faded. A’s two zero-contribution terms select different pairs of paths.
+At “Average A’s contributions,” click a weight or **See the six paths behind these weights**. The optional panel displays all six Hasse diagrams in a three-column grid on wide screens, two columns on medium screens, and a scrolling column on phones. It highlights paths containing the selected joining edge and emphasizes that edge with a thicker arrow. The other paths remain faded. A’s two zero-contribution terms select different pairs of paths.
 
-The interactive explorer also supports B and C, coalition and edge inspection, and order replay. The player selector and inspection result stay beneath the diagram in the main scene. **More exploration** opens replay and detailed edge controls; choosing an order or edge closes the panel so the result is visible. Calculation terms open the six-path explanation for the selected voter. Closing either panel returns keyboard focus to its trigger; opening one pauses any active replay. Reduced-motion preferences are respected by the story.
+The eighth scene keeps the short Hasse-diagram explanation and A/B/C selector beneath the diagram, without a visible heading. The highlighted joining edges and calculation update together, and each voter receives one-third. The inline definition identifies a *Hasse diagram*: each arrow adds one voter to a coalition. Calculation terms open the six-path explanation for the selected voter. Closing that panel returns keyboard focus to its trigger; opening it pauses any active playback. The earlier scenes demonstrate order changes; this scene keeps the voter comparison beside the diagram. Reduced-motion preferences are respected by the story.
 
 ## Single-column presentation
 
@@ -21,14 +21,21 @@ The original opening title page remains the entry point.
 The six-order scene visits accounting paths as the reader scrolls through it;
 its compact buttons also select any order. Entering the value-function scene
 names the existing coalition values and puts the rule beneath the diagram.
-Formula scenes keep the picture and equation together, highlighting the current
-factor. Short phone screens prioritize the equation in these scenes.
+Formula scenes begin with “A formula for A’s Shapley value” and keep the picture
+and equation together. On larger screens, the summation scene uses the available
+height for a larger diagram and places the equation and divider below it.
+The explanation of each highlighted term uses the same
+blue as that term. “Count orders before A” shows the arrangements without a
+separate numerical factorial calculation; the other worked calculations retain
+their matching blue. Short phone screens prioritize the equation in these scenes.
 
 The active caption retains its original controls and MathML nodes. Original
 sections provide the scroll track and stable hash destinations; links focus the
-new caption heading. Optional context, methods, sources, and longer exploration
-controls open in a keyboard-accessible native dialog. Moving controls does not recreate their DOM nodes. A restrained caption transition
-is disabled when reduced motion is requested. Annotations retain stable positions in the visual.
+new caption heading. Optional context, methods, and sources
+open in a keyboard-accessible native dialog. Background scrolling pauses while a detail dialog is open and resumes when it closes. Moving controls does not recreate their DOM nodes. A restrained caption transition
+only introduces changed headings and summaries: repeated text stays visible as the
+diagram advances or reverses. The transition is disabled when reduced motion is
+requested. Annotations retain stable positions in the visual.
 Without JavaScript, the source captions and equations remain readable in order.
 
 Browser review should cover all twenty scenes at 1440×900, 1063×736, 768×900,
@@ -45,6 +52,10 @@ ballot box. A surfer with a surfboard puts in many ballots; a figure in a cowboy
 hat holds exactly three. The illustration has a white background and black lines,
 with no labels, state outlines, or partisan colors. The original opening cover
 remains separate and unchanged.
+
+The transition artwork shares the opening title graphic’s width and responsive
+height limits, leaving white space around the illustration instead of filling
+the visual stage.
 
 The 2024/2028 allocation has 538 electoral votes and a quota of 270.
 The following tally shows California’s marginal contribution to a 250-vote coalition:
@@ -107,6 +118,13 @@ also exceed proportional power. Every other state and DC falls below it. These
 are state-bloc indices under uniform accounting orders, including a bloc
 simplification for Maine and Nebraska. They do not incorporate partisan lean,
 swing-state probabilities, population, or individual voters' power.
+
+The final scene states the comparison directly above “More detail”: California
+is decisive in a larger share of joining orders than its electoral-vote share,
+while Wyoming is decisive in a smaller share. The detail panel distinguishes
+Mann and Shapley’s 1960 Monte Carlo study from their 1962 exact calculation.
+It also makes clear that the state-bloc advantage relative to electoral-vote
+share does not imply greater voting power for an individual voter in a large state.
 
 Sources: [National Archives allocations](https://www.archives.gov/electoral-college/allocation),
 [Shapley and Shubik (1954)](https://doi.org/10.2307/1951053),

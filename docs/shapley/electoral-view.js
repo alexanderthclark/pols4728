@@ -24,7 +24,6 @@ export function createElectoralView(results) {
   element.setAttribute('aria-label', 'California’s marginal contribution to an Electoral College coalition');
   element.innerHTML = `
     <div class="electoral-scene electoral-coalition-scene">
-      <h3 class="electoral-heading">US Electoral College</h3>
       <p class="electoral-model">Adding California makes this coalition win.</p>
       <svg class="electoral-tally" role="img" aria-labelledby="${id}-coalition-title ${id}-coalition-description"></svg>
       <p class="electoral-change" aria-label="Coalition value changes from zero to one when California joins">

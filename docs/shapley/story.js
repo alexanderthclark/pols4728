@@ -1,8 +1,8 @@
 import { majority as game, fraction } from './game.mjs';
 import { createWeightView } from './weight-view.js';
-import { createFormulaView } from './formula-view.js';
+import { createFormulaView } from './formula-view.js?v=a6475981aa';
 import { electoralResults } from './electoral-college.mjs';
-import { createElectoralView } from './electoral-view.js?v=bb49d44a6b';
+import { createElectoralView } from './electoral-view.js?v=e6b609b668';
 import { createElectoralMapView } from './electoral-map-view.js?v=3af0ee42d0';
 
 const $ = selector => document.querySelector(selector);
@@ -57,9 +57,14 @@ for (const node of game.nodes) {
 const calc = document.createElement('div'); calc.className = 'calculation'; calc.hidden = true;
 calc.innerHTML = `<div class="calculation-heading"><span>CONTRIBUTION × WEIGHT</span><span id="credit-label">A’s credit</span></div><div class="terms" id="terms"></div><div class="calculation-total"><span id="total-label">Shapley value of A</span><strong id="total-value">1/3</strong></div>`;
 stageViz.append(calc);
-const controls = document.createElement('div'); controls.className = 'explore-controls'; controls.hidden = true;
-controls.innerHTML = `<div class="player-selector" role="group" aria-label="Select a voter"><span>Follow a voter</span>${game.players.map((p, i) => `<button type="button" data-select-player="${i}" aria-pressed="${i === 0}">${p}</button>`).join('')}</div><div class="replay-controls"><label for="order-select">Imagined order</label><div class="replay-row"><select id="order-select">${game.orders.map((o, i) => `<option value="${i}">${o.label}</option>`).join('')}</select><button type="button" id="replay">Replay</button></div></div><div class="edge-inspector"><span class="eyebrow">Inspect an edge</span><div id="edge-choices"></div><p id="edge-detail" aria-live="polite"></p></div>`;
-steps[7].querySelector('.step-content').append(controls);
+const playerSelector = document.createElement('div');
+playerSelector.className = 'player-selector';
+playerSelector.setAttribute('role', 'group'); playerSelector.setAttribute('aria-label', 'Select a voter');
+playerSelector.innerHTML = `<span>Follow a voter</span>${game.players.map((p, i) => `<button type="button" data-select-player="${i}" aria-pressed="${i === 0}">${p}</button>`).join('')}`;
+const inspection = document.createElement('p');
+inspection.id = 'edge-detail'; inspection.className = 'explore-inspection'; inspection.hidden = true;
+inspection.setAttribute('aria-live', 'polite');
+steps[7].querySelector('.step-content').append(playerSelector, inspection);
 const compare = document.createElement('div'); compare.className = 'order-comparison';
 compare.innerHTML = `<span>Compare imagined orders</span><div><button type="button" data-compare-order="2" aria-pressed="true">B → A → C</button><button type="button" data-compare-order="0" aria-pressed="false">A → B → C</button></div><p class="small-note">These are accounting orders, not the actual chronology of voting.</p>`;
 steps[4].querySelector('.step-content').append(compare);
@@ -108,6 +113,7 @@ function closeSceneDetails() {
   detailDialog.close();
 }
 detailDialog.addEventListener('close', () => {
+  document.body.classList.remove('scene-detail-open');
   const content = detailDialog.querySelector('#scene-detail-body').firstElementChild;
   if (content) { content.hidden = true; sceneContents[Number(content.dataset.scene)].append(content); }
   detailTrigger?.focus({ preventScroll: true });
@@ -115,13 +121,6 @@ detailDialog.addEventListener('close', () => {
 $('#scene-detail-close').addEventListener('click', closeSceneDetails);
 for (const [index, content] of sceneContents.entries()) {
   let details = content.querySelector('.scene-detail-content');
-  if (index === 7) {
-    if (!details) { details = document.createElement('div'); details.className = 'scene-detail-content'; content.append(details); }
-    details.append(controls);
-    content.append(controls.querySelector('.player-selector'));
-    const inspection = controls.querySelector('#edge-detail');
-    inspection.className = 'explore-inspection'; inspection.hidden = true; content.append(inspection);
-  }
   if (index === 16 && details) {
     const equation = content.querySelector(':scope > .value-definition');
     if (equation) details.querySelector('p').after(equation);
@@ -130,11 +129,12 @@ for (const [index, content] of sceneContents.entries()) {
   details.hidden = true; details.dataset.scene = String(index); sceneDetails.set(index, details);
   const trigger = document.createElement('button');
   trigger.type = 'button'; trigger.className = 'scene-detail-trigger';
-  trigger.textContent = index === 7 ? 'More exploration' : 'More detail';
+  trigger.textContent = 'More detail';
   trigger.setAttribute('aria-haspopup', 'dialog'); trigger.setAttribute('aria-controls', 'scene-detail-dialog');
   trigger.addEventListener('click', () => {
     stopPlayback(); detailTrigger = trigger;
     $('#scene-detail-title').textContent = content.querySelector('h2').textContent;
+    document.body.classList.add('scene-detail-open');
     details.hidden = false; $('#scene-detail-body').append(details); detailDialog.showModal();
     $('#scene-detail-close').focus();
   });
@@ -143,8 +143,8 @@ for (const [index, content] of sceneContents.entries()) {
 sceneContents.forEach(content => { content.hidden = true; });
 document.body.classList.add('is-presentation');
 
-let current = -1, selectedPlayer = 0, inspectedEdge = null, pathState = null, playbackTimer = null, scrollFrame = 0, nodeNotationVisible = false;
-const kickers = ["THE RULE", "THE SMALLEST GROUPS", "ADD C", "COMPLETE THE PAIRS", "THE COMPLETE DIAGRAM", "COUNT THE ORDERS", "THE WEIGHTED AVERAGE", "THE HASSE DIAGRAM", "THE VALUE FUNCTION", "THE SUMMATION", "THE CONTRIBUTION", "BEFORE A", "AFTER A", "THE WEIGHT", "THE SHAPLEY VALUE", "THE ELECTORAL COLLEGE", "A STATE’S CONTRIBUTION", "ELECTORAL GEOGRAPHY", "ELECTORAL VOTES", "SHAPLEY-ADJUSTED VOTES"]
+let current = -1, selectedPlayer = 0, pathState = null, playbackTimer = null, scrollFrame = 0, nodeNotationVisible = false;
+const kickers = ["THE RULE", "THE SMALLEST GROUPS", "ADD A", "COMPLETE THE PAIRS", "THE COMPLETE DIAGRAM", "COUNT THE ORDERS", "THE WEIGHTED AVERAGE", "THE HASSE DIAGRAM", "THE VALUE FUNCTION", "THE SUMMATION", "THE CONTRIBUTION", "BEFORE A", "AFTER A", "THE WEIGHT", "THE SHAPLEY VALUE", "THE ELECTORAL COLLEGE", "A STATE’S CONTRIBUTION", "ELECTORAL GEOGRAPHY", "ELECTORAL VOTES", "SHAPLEY-ADJUSTED VOTES"]
   .map((label, index) => `${String(index + 1).padStart(2, '0')} / ${label}`);
 const counts = ["3 players · majority rule", "4 groups · 3 edges", "6 coalitions · 5 edges", "7 coalitions · 9 edges", "8 groups · 12 edges", "6 imagined orders", "4 terms · 1 Shapley value", "Majority voting · 3 voters", "0 means failure · 1 means success", "i = A · n = 3", "One joining edge", "Order the voters in S", "Order the remaining voters", "Matching orders / all orders", "Four edges · one weighted sum", "", "51 blocs · 270 votes to win", "50 states + DC · 2024 / 2028", "538 electoral votes", "538 adjusted votes"];
 const formulaView = createFormulaView(game, {
@@ -164,12 +164,10 @@ stageViz.append(electoralMapView.element);
 function explainWeight(edgeId, source) {
   // Keep the story still while its optional explanation is open.
   clearTimeout(playbackTimer); playbackTimer = null;
-  $('#replay').textContent = 'Replay'; $('#replay').disabled = false;
   weightView.open(edgeId, source);
 }
 function stopPlayback() {
   clearTimeout(playbackTimer); playbackTimer = null; pathState = null;
-  const b = $('#replay'); if (b) { b.textContent = 'Replay'; b.disabled = false; }
 }
 function setNodeNotation(visible) {
   if (visible === nodeNotationVisible) return;
@@ -184,12 +182,20 @@ function setNodeNotation(visible) {
 }
 function showStep(index) {
   if (index === current) return;
+  // A new diagram state need not introduce new prose. Compare each text block
+  // before moving the captions so repeated headings or summaries stay visible.
+  const textSelector = ':scope > h2, :scope > .scene-summary';
+  const previousText = current < 0 ? [] : [...sceneContents[current].querySelectorAll(textSelector)];
+  sceneContents[index].querySelectorAll(textSelector).forEach(element => {
+    element.classList.toggle('is-caption-unchanged', previousText.some(previous =>
+      previous.tagName === element.tagName && previous.innerHTML === element.innerHTML));
+  });
   closeSceneDetails();
   if (current >= 0) {
     sceneContents[current].hidden = true;
     steps[current].append(sceneContents[current]);
   }
-  stopPlayback(); current = index; inspectedEdge = null; stage.dataset.scene = current;
+  stopPlayback(); current = index; stage.dataset.scene = current;
   const inFormula = current >= 9 && current < 15;
   const inElectoral = current >= 15;
   const inElectoralMap = current >= 17;
@@ -209,7 +215,7 @@ function showStep(index) {
   steps.forEach((s, i) => s.classList.toggle('is-active', i === current));
   $('#stage-kicker').textContent = kickers[current]; $('#stage-count').textContent = counts[current];
   $('#graph-container').setAttribute('aria-hidden', String(current < 1 || inElectoral));
-  controls.hidden = current !== 7; calc.hidden = current < 6 || current >= 8;
+  calc.hidden = current < 6 || current >= 8;
   $('#edge-detail').hidden = true;
   formulaView.element.hidden = !inFormula;
   if (inFormula) formulaView.update(current - 9);
@@ -242,7 +248,7 @@ function updateGraph() {
   const maxSize = current === 1 ? 1 : current <= 3 ? 2 : 3;
   const order = pathState ? game.orders[pathState.orderIndex] : null, path = order?.path.slice(0, pathState.count) ?? [];
   nodeEls.forEach((b, mask) => {
-    const node = game.nodes[mask], visible = current >= 1 && node.size <= maxSize && (!partialPairs || mask !== 3);
+    const node = game.nodes[mask], visible = current >= 1 && node.size <= maxSize && (!partialPairs || mask !== 6);
     b.classList.toggle('is-visible', visible); b.style.setProperty('--reveal-delay', `${node.size * 75}ms`);
     const involved = !order || mask === 0 || path.some(e => e.to === mask);
     b.classList.toggle('is-subdued', current >= 4 && !!order && !involved);
@@ -251,9 +257,9 @@ function updateGraph() {
     b.classList.toggle('is-formula-target', inFormula && !allFormulaEdges && mask === selectedFormulaEdge.to);
   });
   for (const e of game.edges) {
-    const addsC = e.id === '1-5' || e.id === '2-6';
-    const el = edgeEls.get(e.id), visible = current >= 1 && game.nodes[e.to].size <= maxSize && (!partialPairs || e.from === 0 || addsC);
-    let active = partialPairs && addsC;
+    const addsA = e.id === '2-3' || e.id === '4-5';
+    const el = edgeEls.get(e.id), visible = current >= 1 && game.nodes[e.to].size <= maxSize && (!partialPairs || e.from === 0 || addsA);
+    let active = partialPairs && addsA;
     if (current >= 5 && !order) active = e.playerIndex === selectedPlayer;
     if (current === 8) active = false;
     if (inFormula) active = allFormulaEdges ? e.playerIndex === 0 : e.id === selectedFormulaEdge.id;
@@ -262,7 +268,6 @@ function updateGraph() {
     el.group.classList.toggle('is-decisive', active && e.delta !== 0);
     el.group.classList.toggle('show-label', active && current >= 2);
     el.group.classList.toggle('show-weight', current >= 5 && !order && (!inFormula || formulaView.phase >= 4));
-    el.group.classList.toggle('is-inspected', e.id === inspectedEdge);
     el.line.setAttribute('marker-end', active ? 'url(#arrow-active)' : 'url(#arrow-neutral)');
     el.line.style.strokeWidth = current >= 5 && !order && active ? 2 + e.weight * 7 : active ? 3 : 1.35;
     if (visible && active) graphSvg.append(el.group);
@@ -271,7 +276,7 @@ function updateGraph() {
   document.querySelectorAll('[data-show-order]').forEach(b => b.classList.toggle('is-current', !!pathState && Number(b.dataset.showOrder) === pathState.orderIndex));
 }
 function updateCaption() {
-  const captions = ["Each player chooses yes or no.", "0 means the group fails. 1 means it passes.", "Add C to coalition", "Every two-voter coalition passes.", "Every path ends at the same full group.", "Edge labels: contribution above, fraction of orders below.", "Click a term to see which of the six paths give it its weight.", "Click a term to explain its weight, or inspect an edge below.", "The value function names the numbers already on the nodes.", "Four coalitions without A. Four starting nodes.", "The bracket measures the change along the selected edge.", "Hold the coalition fixed; count its internal orders.", "The minus one removes A from the remaining voters.", "The factorial ratio is the fraction of paths using this edge.", "The formula adds the same four weighted contributions.", "The US Electoral College.", "Adding California changes this coalition’s value from zero to one.", "Geographic shapes show where the electoral votes are.", "One square represents one electoral vote.", "One square represents one Shapley-adjusted vote; boundary squares can be fractional."];
+  const captions = ["Each player chooses yes or no.", "0 means the group fails. 1 means it passes.", "Add A to coalition", "Every two-voter coalition passes.", "Every path ends at the same full group.", "Edge labels: contribution above, fraction of orders below.", "Click a term to see which of the six paths give it its weight.", "Follow A, B, or C to compare their contributions and weights.", "The value function names the numbers already on the nodes.", "Four coalitions without A. Four starting nodes.", "The bracket measures the change along the selected edge.", "Hold the coalition fixed; count its internal orders.", "The minus one removes A from the remaining voters.", "The factorial ratio is the fraction of paths using this edge.", "The formula adds the same four weighted contributions.", "The US Electoral College.", "Adding California changes this coalition’s value from zero to one.", "Geographic shapes show where the electoral votes are.", "One square represents one electoral vote.", "One square represents one Shapley-adjusted vote; boundary squares can be fractional."];
   const text = current === 8 && nodeNotationVisible ? 'The labels now write the same numbers as the value function.' : captions[current];
   $('#stage-bottom').innerHTML = `<span class="legend-mark"></span><span>${text}</span>`;
   const caption = $('#graph-caption');
@@ -279,7 +284,7 @@ function updateCaption() {
     const o = game.orders[pathState.orderIndex], decisive = o.path.find(e => e.delta === 1), finished = pathState.count === 3;
     const joining = o.path[Math.max(0, pathState.count - 1)].player;
     caption.innerHTML = `<span class="path-order">${o.label}</span><span>${finished ? `${decisive.player} supplies the deciding vote: +1` : `Adding ${joining}…`}</span>`;
-  } else if (current === 2) caption.innerHTML = '<span class="path-order">Add C to coalition</span>';
+  } else if (current === 2) caption.innerHTML = '<span class="path-order">Add A to coalition</span>';
   else if (current === 5) caption.innerHTML = `<span class="path-order">Follow ${game.players[selectedPlayer]}</span><span>Four joining edges. Six equally weighted orders.</span>`;
   else caption.innerHTML = '';
 }
@@ -289,41 +294,29 @@ function updateCalculation() {
   $('#credit-label').textContent = `${player}’s credit`; $('#total-label').textContent = `Shapley value of ${player}`; $('#total-value').textContent = fraction(game.shares[selectedPlayer]);
   $('#terms').innerHTML = edges.map(e => `<button type="button" class="term ${e.delta ? 'is-nonzero' : ''}" data-term-edge="${e.id}" ${current >= 6 ? '' : 'disabled'} aria-haspopup="dialog" aria-controls="weight-dialog" aria-label="Explain ${player} joining ${game.nodes[e.from].label}: contribution ${e.delta}, weight ${e.count} out of 6"><span class="term-coalition">${game.nodes[e.from].label}</span><span class="term-product">${e.delta} <span>×</span> ${e.count}/${game.totalOrders}</span></button>`).join('<span class="term-plus" aria-hidden="true">+</span>');
   document.querySelectorAll('[data-term-edge]').forEach(b => b.addEventListener('click', () => explainWeight(b.dataset.termEdge, b)));
-  $('#edge-choices').innerHTML = edges.map(e => `<button type="button" data-inspect-edge="${e.id}" aria-pressed="${e.id === inspectedEdge}">${game.nodes[e.from].label} → ${game.nodes[e.to].label}</button>`).join('');
-  document.querySelectorAll('[data-inspect-edge]').forEach(b => b.addEventListener('click', () => inspectEdge(b.dataset.inspectEdge)));
-  if (current === 7 && !inspectedEdge) $('#edge-detail').textContent = `Select one of ${player}’s joining edges to see its contribution and weight.`;
 }
 function updateSelectedControls() { document.querySelectorAll('[data-select-player]').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.selectPlayer) === selectedPlayer))); }
 function selectPlayer(i) {
-  stopPlayback(); selectedPlayer = i; inspectedEdge = null; nodeEls.forEach(b => b.classList.remove('is-inspected'));
+  stopPlayback(); selectedPlayer = i; nodeEls.forEach(b => b.classList.remove('is-inspected'));
   $('#edge-detail').hidden = true;
   updateSelectedControls(); updateGraph(); updateCalculation(); updateCaption();
 }
-function inspectEdge(id) {
-  stopPlayback(); inspectedEdge = id; const e = game.edges.find(e => e.id === id);
-  nodeEls.forEach((b, mask) => b.classList.toggle('is-inspected', mask === e.from || mask === e.to));
-  updateGraph(); updateCalculation(); updateCaption();
-  $('#edge-detail').textContent = `${game.nodes[e.from].label} → ${game.nodes[e.to].label}: contribution ${e.delta}; weight ${e.count}/${game.totalOrders}. Weighted credit: ${fraction(e.delta * e.weight)}.`;
-  $('#edge-detail').hidden = false; closeSceneDetails();
-}
 function inspectNode(mask) {
-  stopPlayback(); inspectedEdge = null; nodeEls.forEach((b, i) => b.classList.toggle('is-inspected', i === mask));
+  stopPlayback(); nodeEls.forEach((b, i) => b.classList.toggle('is-inspected', i === mask));
   const node = game.nodes[mask]; updateGraph(); updateCalculation(); updateCaption();
   $('#edge-detail').textContent = `${node.label}: ${node.size} ${node.size === 1 ? 'voter' : 'voters'}, ${node.value ? 'passes' : 'fails'}. Value: ${node.value}.`;
   $('#edge-detail').hidden = false;
 }
 function playOrder(orderIndex, animate = true) {
-  stopPlayback(); inspectedEdge = null; nodeEls.forEach(b => b.classList.remove('is-inspected'));
+  stopPlayback(); nodeEls.forEach(b => b.classList.remove('is-inspected'));
   $('#edge-detail').hidden = true;
-  pathState = { orderIndex, count: animate && !reduced.matches ? 0 : 3 }; const replay = $('#replay');
-  if (current === 7) { replay.disabled = pathState.count < 3; replay.textContent = pathState.count < 3 ? 'Playing…' : 'Replay'; }
+  pathState = { orderIndex, count: animate && !reduced.matches ? 0 : 3 };
   const render = () => { updateGraph(); updateCaption(); }; updateCalculation(); render();
   if (pathState.count < 3) {
     const advance = () => {
       if (!pathState) return;
       pathState.count++; render();
       if (pathState.count < 3) playbackTimer = setTimeout(advance, 950);
-      else if (current === 7) { replay.disabled = false; replay.textContent = 'Replay'; }
     };
     playbackTimer = setTimeout(advance, 300);
   }
@@ -333,8 +326,6 @@ document.querySelectorAll('[data-compare-order]').forEach(b => b.addEventListene
   playOrder(Number(b.dataset.compareOrder));
 }));
 document.querySelectorAll('[data-show-order]').forEach(b => b.addEventListener('click', () => playOrder(Number(b.dataset.showOrder))));
-$('#replay').addEventListener('click', () => { playOrder(Number($('#order-select').value)); closeSceneDetails(); });
-$('#order-select').addEventListener('change', () => { playOrder(Number($('#order-select').value), false); closeSceneDetails(); });
 function updateScroll() {
   scrollFrame = 0; const header = mobile.matches ? 54 : 68;
   const anchor = header + 2;
