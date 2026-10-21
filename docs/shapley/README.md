@@ -119,6 +119,11 @@ are state-bloc indices under uniform accounting orders, including a bloc
 simplification for Maine and Nebraska. They do not incorporate partisan lean,
 swing-state probabilities, population, or individual voters' power.
 
+The final scene states the comparison directly above “More detail”: California
+is decisive in a larger share of joining orders than its electoral-vote share,
+while Wyoming is decisive in a smaller share. The detail panel distinguishes
+Mann and Shapley’s 1960 Monte Carlo study from their 1962 exact calculation.
+
 Sources: [National Archives allocations](https://www.archives.gov/electoral-college/allocation),
 [Shapley and Shubik (1954)](https://doi.org/10.2307/1951053),
 [Mann and Shapley (1962)](https://www.rand.org/pubs/research_memoranda/RM3158.html),
