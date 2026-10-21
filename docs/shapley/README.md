@@ -22,8 +22,10 @@ The six-order scene visits accounting paths as the reader scrolls through it;
 its compact buttons also select any order. Entering the value-function scene
 names the existing coalition values and puts the rule beneath the diagram.
 Formula scenes begin with “A formula for A’s Shapley value” and keep the picture
-and equation together. The explanation of each highlighted term and its worked
-calculation use the same blue as that term. Short phone screens prioritize the equation in these scenes.
+and equation together. The explanation of each highlighted term uses the same
+blue as that term. “Count orders before A” shows the arrangements without a
+separate numerical factorial calculation; the other worked calculations retain
+their matching blue. Short phone screens prioritize the equation in these scenes.
 
 The active caption retains its original controls and MathML nodes. Original
 sections provide the scroll track and stable hash destinations; links focus the

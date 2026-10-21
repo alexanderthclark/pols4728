@@ -1,8 +1,8 @@
 import { majority as game, fraction } from './game.mjs';
 import { createWeightView } from './weight-view.js';
-import { createFormulaView } from './formula-view.js';
+import { createFormulaView } from './formula-view.js?v=a6475981aa';
 import { electoralResults } from './electoral-college.mjs';
-import { createElectoralView } from './electoral-view.js?v=bb49d44a6b';
+import { createElectoralView } from './electoral-view.js?v=e6b609b668';
 import { createElectoralMapView } from './electoral-map-view.js?v=3af0ee42d0';
 
 const $ = selector => document.querySelector(selector);
