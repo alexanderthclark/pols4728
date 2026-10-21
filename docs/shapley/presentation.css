@@ -52,6 +52,14 @@ body.is-presentation{--presentation-header:68px}
 .is-presentation .formula-choices{margin-bottom:7px}
 .is-presentation .formula-choices button{min-height:44px}
 .is-presentation .formula-weight-link{min-height:44px;margin-top:5px}
+/* The summation has no extra controls; use its open space for the diagram. */
+@media(min-width:761px) and (min-height:701px){
+  .is-presentation .stage-shell[data-scene="9"] .graph-container{max-height:none}
+  .is-presentation .stage-shell[data-scene="9"] .graph-canvas{width:min(100%,calc(min(var(--graph-height,400px),620px)*1.333333));height:auto;max-height:none}
+  .is-presentation .stage-shell[data-scene="9"] .coalition-node{max-width:124px;min-height:44px}
+  .is-presentation .stage-shell[data-scene="9"] .coalition-set{font-size:16px}
+  .is-presentation .stage-shell[data-scene="9"] .coalition-value b{font-size:12px}
+}
 .is-presentation .scene-equation{flex:0 0 auto;width:100%;max-width:760px;margin:0 auto;text-align:center}
 .is-presentation .scene-equation .value-definition{margin:0;padding:0;border:0}
 .is-presentation .scene-equation math{margin:0;font-size:29px;max-width:100%}
