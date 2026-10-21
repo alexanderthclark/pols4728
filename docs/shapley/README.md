@@ -123,11 +123,8 @@ The final scene states the comparison directly above “More detail”: Californ
 is decisive in a larger share of joining orders than its electoral-vote share,
 while Wyoming is decisive in a smaller share. The detail panel distinguishes
 Mann and Shapley’s 1960 Monte Carlo study from their 1962 exact calculation.
-It also distinguishes state-bloc power relative to electoral-vote share from
-power per resident and individual voter power. Using 2020 Census resident
-populations, Wyoming’s state Shapley value per resident is about 3.43 times
-California’s; this population division does not calculate individual voters’
-Shapley values, which require a model of voting within states.
+It also makes clear that the state-bloc advantage relative to electoral-vote
+share does not imply greater voting power for an individual voter in a large state.
 
 Sources: [National Archives allocations](https://www.archives.gov/electoral-college/allocation),
 [Shapley and Shubik (1954)](https://doi.org/10.2307/1951053),
