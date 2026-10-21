@@ -30,7 +30,7 @@ their matching blue. Short phone screens prioritize the equation in these scenes
 The active caption retains its original controls and MathML nodes. Original
 sections provide the scroll track and stable hash destinations; links focus the
 new caption heading. Optional context, methods, and sources
-open in a keyboard-accessible native dialog. Moving controls does not recreate their DOM nodes. A restrained caption transition
+open in a keyboard-accessible native dialog. Background scrolling pauses while a detail dialog is open and resumes when it closes. Moving controls does not recreate their DOM nodes. A restrained caption transition
 only introduces changed headings and summaries: repeated text stays visible as the
 diagram advances or reverses. The transition is disabled when reduced motion is
 requested. Annotations retain stable positions in the visual.

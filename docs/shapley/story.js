@@ -113,6 +113,7 @@ function closeSceneDetails() {
   detailDialog.close();
 }
 detailDialog.addEventListener('close', () => {
+  document.body.classList.remove('scene-detail-open');
   const content = detailDialog.querySelector('#scene-detail-body').firstElementChild;
   if (content) { content.hidden = true; sceneContents[Number(content.dataset.scene)].append(content); }
   detailTrigger?.focus({ preventScroll: true });
@@ -133,6 +134,7 @@ for (const [index, content] of sceneContents.entries()) {
   trigger.addEventListener('click', () => {
     stopPlayback(); detailTrigger = trigger;
     $('#scene-detail-title').textContent = content.querySelector('h2').textContent;
+    document.body.classList.add('scene-detail-open');
     details.hidden = false; $('#scene-detail-body').append(details); detailDialog.showModal();
     $('#scene-detail-close').focus();
   });
