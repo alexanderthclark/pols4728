@@ -159,3 +159,7 @@
  .stage[data-scene="batch-gradient"] .visuals{grid-template-rows:minmax(0,1fr);min-height:0;max-height:none}
  .stage[data-scene="batch-gradient"] .detail{display:none}
 }
+
+/* The partition is one full-width diagram; the next scenes introduce a batch. */
+.stage[data-scene="partition"] .visuals{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr);min-height:0}
+.stage[data-scene="partition"] .detail{display:none}

@@ -142,19 +142,7 @@ function partitionDiagram(svg,e,u){
  });
  body+=text(left,h-5,'Each observation belongs to one batch.','small');
  if(w>420)body+=text(right,h-5,'32 batches × 64 = 2,048','small','end');
- set(svg,body,'Partition all 2,048 shuffled observations into 32 disjoint batches of 64. Every observation belongs to exactly one batch, with no omissions and no repeats. Batch 1 is outlined and enlarged below.');
-}
-
-function partitionBatch(svg,indices){
- const {w,h}=canvas(svg),cols=16,dx=Math.min((w-12)/cols,24),dy=Math.min((h-24)/4,16),x0=(w-cols*dx)/2;
- let body='';
- indices.forEach((id,i)=>{
-  const x=x0+(i%cols+.5)*dx,y=2+(Math.floor(i/cols)+.5)*dy,r=Math.max(1.5,Math.min(dx,dy)*.30);
-  body+=`<circle data-observation="${id}" cx="${x}" cy="${y}" r="${r}" fill="${C.rust}"/>`;
-  if(i===0)body+=circle(x,y,r+2.5,'none',C.ink,1);
- });
- body+=text(w/2,h-4,'Batch 1: 64 observations · one is circled','small','middle');
- set(svg,body,`Batch 1 contains 64 actual observations from the partition. Observation ${indices[0]+1} is circled; next we will calculate its loss.`);
+ set(svg,body,'Partition all 2,048 shuffled observations into 32 disjoint batches of 64. Every observation belongs to exactly one batch, with no omissions and no repeats. Batch 1 is outlined.');
 }
 
 function pointLoss(svg,detail,first,u){
@@ -285,8 +273,8 @@ export function renderSGD(plot,detail,scene,p,e){
  }
  if(kind==='partition'){
   const batches=e.traces[2].slice(0,32),indices=batches.flatMap(s=>s.indices),coverage=new Set(indices).size;
-  partitionDiagram(plot,e,u);partitionBatch(detail,first.indices);
-  plotTitle='A partition: disjoint groups that cover all the data';detailTitle='Look inside the first batch';
+  partitionDiagram(plot,e,u);set(detail,'','');
+  plotTitle='A partition: disjoint groups that cover all the data';detailTitle='';
   info={...info,partitionBatchCount:batches.length,partitionSize:indices.length,partitionCoverage:coverage,partitionOverlap:indices.length-coverage,batch:1,batchFirst:first.indices[0]};
  }
  if(kind==='point-loss'){
