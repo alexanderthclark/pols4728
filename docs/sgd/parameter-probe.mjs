@@ -1,7 +1,7 @@
 import {mse,predict} from './model.mjs';
 import {C,clamp,canvas,chart,line,observations,set,text} from './sgd-detail.mjs';
 
-const labels=['w₁','b₁','a₁','w₂','b₂','a₂','c'];
+const labels=['θ₁₁','θ₁₀','φ₁','θ₂₁','θ₂₀','φ₂','φ₀'];
 const keys=['w','b','a'];
 const range=.02;
 const cache=new WeakMap();

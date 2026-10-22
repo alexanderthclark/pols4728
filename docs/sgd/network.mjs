@@ -19,7 +19,14 @@ export function renderInitialNetwork(svg,model){
  const font=compact?10:13,nodeRadius=compact?16:22,biasRadius=compact?8:11;
  const input={x:compact?15:20,y:h/2},output={x:w-(compact?20:25),y:h/2},hiddenX=w*.49;
  const hiddenYs=[h*.31,h*.69],biasYs=[compact?16:30,h-(compact?18:34)];
- const displayedParameters=model.units.flatMap((unit,i)=>['w','b','a'].map(key=>({parameter:`${key}${i+1}`,label:`${key}${i===0?'₁':'₂'}`,value:unit[key]}))).concat({parameter:'c',label:'c',value:model.c});
+ const displayedParameters=model.units.flatMap((unit,i)=>{
+  const sub=i===0?'₁':'₂';
+  return [
+   {parameter:`theta${i+1}1`,label:`θ${sub}₁`,value:unit.w},
+   {parameter:`theta${i+1}0`,label:`θ${sub}₀`,value:unit.b},
+   {parameter:`phi${i+1}`,label:`φ${sub}`,value:unit.a},
+  ];
+ }).concat({parameter:'phi0',label:'φ₀',value:model.c});
  const valueLabel=(parameter,x,y,color,anchor='middle')=>{
   const entry=displayedParameters.find(item=>item.parameter===parameter);
   return `<g data-parameter="${entry.parameter}" data-value="${entry.value}" style="paint-order:stroke;stroke:white;stroke-width:3;stroke-linejoin:round">${label(x,y,`${entry.label} = ${number(entry.value)}`,color,font,anchor)}</g>`;
@@ -32,18 +39,18 @@ export function renderInitialNetwork(svg,model){
   body+=circle(hiddenX,biasY,biasRadius,color)+label(hiddenX,biasY+3.5,'1',color,compact?10:12);
   body+=circle(node.x,node.y,nodeRadius,color)+label(node.x,node.y-(compact?2:3),`h${sub}`,color,compact?12:16)+label(node.x,node.y+(compact?10:12),'ReLU',color,compact?8:10);
   const weightY=(input.y+node.y)/2+(i===0?-(compact?9:14):(compact?20:25));
-  body+=valueLabel(`w${i+1}`,(input.x+hiddenX)/2-4,weightY,color);
-  body+=valueLabel(`a${i+1}`,(hiddenX+output.x)/2,weightY,color);
-  body+=valueLabel(`b${i+1}`,hiddenX-(compact?12:17),biasY+(i===0?16:-6),color,'end');
+  body+=valueLabel(`theta${i+1}1`,(input.x+hiddenX)/2-4,weightY,color);
+  body+=valueLabel(`phi${i+1}`,(hiddenX+output.x)/2,weightY,color);
+  body+=valueLabel(`theta${i+1}0`,hiddenX-(compact?12:17),biasY+(i===0?16:-6),color,'end');
  }
  const outputBiasY=compact?16:30;
  body+=arrow(output.x,outputBiasY+biasRadius,output.x,output.y-nodeRadius-3,C.teal,true);
  body+=circle(output.x,outputBiasY,biasRadius,C.teal)+label(output.x,outputBiasY+3.5,'1',C.teal,compact?10:12);
- body+=valueLabel('c',output.x-(compact?12:17),outputBiasY+16,C.teal,'end');
+ body+=valueLabel('phi0',output.x-(compact?12:17),outputBiasY+16,C.teal,'end');
  body+=circle(input.x,input.y,compact?10:13,C.muted)+label(input.x,input.y+4,'x',C.ink,compact?12:16);
  body+=circle(output.x,output.y,nodeRadius,C.teal)+label(output.x,output.y+5,'Σ',C.teal,compact?18:24);
- body+=label(w-3,output.y+nodeRadius+(compact?15:22),'fθ(x)',C.teal,compact?11:14,'end');
+ body+=label(w-3,output.y+nodeRadius+(compact?15:22),'f(x; θ, φ)',C.teal,compact?11:14,'end');
  body+=label(3,h-3,'Dashed: bias',C.muted,compact?9:11,'start')+label(w-3,h-3,'1: constant',C.muted,compact?9:11,'end');
- set(svg,body,`Initial network: input x connects to two hidden ReLU neurons. ${displayedParameters.map(item=>`${item.parameter} = ${item.value}`).join('; ')}. Biases b1 and b2 enter the hidden neurons from constant 1; output bias c enters the sum from constant 1. Output f theta of x is a1 times h1 plus a2 times h2 plus c.`);
+ set(svg,body,`Initial network: input x connects to two hidden ReLU neurons. ${displayedParameters.map(item=>`${item.label} = ${item.value}`).join('; ')}. Hidden biases θ₁₀ and θ₂₀ enter the hidden neurons from constant 1; output bias φ₀ enters the sum from constant 1. Output f(x; θ, φ) is φ₁ times h₁ plus φ₂ times h₂ plus φ₀. Hidden-layer parameters form θ; output-layer parameters form φ.`);
  return displayedParameters;
 }

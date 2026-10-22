@@ -52,6 +52,7 @@ test('each of the first two epochs partitions the same data and preserves the pr
 });
 
 const parameters = model => model.units.flatMap(unit => [unit.w, unit.b, unit.a]).concat(model.c);
+const parameterNames = ['θ₁₁', 'θ₁₀', 'φ₁', 'θ₂₁', 'θ₂₀', 'φ₂', 'φ₀'];
 function perturb(model, index, amount) {
   const changed = copy(model);
   if (index === model.units.length * 3) changed.c += amount;
@@ -234,7 +235,12 @@ test('the supplied batch gradient has one component per parameter at the unchang
     close(frame.outputBiasGradient, meanResidual);
     assert.match(plot, /data-space="observations"/);
     assert.match(plot, /data-space="parameters"/);
-    assert.equal([...plot.matchAll(/data-parameter="[^"]+"/g)].length, 7);
+    const displayedGradient = [...plot.matchAll(/data-parameter="([^"]+)" data-gradient="([^"]+)"/g)];
+    assert.equal(displayedGradient.length, 7);
+    displayedGradient.forEach((match, index) => {
+      assert.equal(match[1], parameterNames[index]);
+      close(Number(match[2]), expected[index]);
+    });
     const displayedResiduals = [...plot.matchAll(/data-observation="(\d+)" data-batch-position="(\d+)" data-residual="([^"]+)"/g)];
     assert.equal(displayedResiduals.length, 64);
     displayedResiduals.forEach((match, index) => {
@@ -301,6 +307,7 @@ test('all seven parameters take the same simultaneous update, including the thre
     current.forEach((value, index) => {
       close(value, before[index] + fraction * (after[index] - before[index]));
       const displayed = frame.displayedParameters[index];
+      assert.equal(displayed.label, parameterNames[index]);
       close(displayed.before, before[index]);
       close(displayed.current, value);
       close(displayed.gradient, g[index]);
@@ -364,7 +371,6 @@ test('single-parameter probes compare independent nudges of the trained model wi
   const original = JSON.stringify(experiment);
   const baseline = experiment.traces[2].at(-1).after;
   const trained = experiment.runs.find(run => run.width === 2 && run.seed === 1);
-  const names = ['w₁', 'b₁', 'a₁', 'w₂', 'b₂', 'a₂', 'c'];
   const baselineValues = parameters(baseline), baselineMSE = mse(baseline);
   assert.deepEqual(baseline, trained.model);
   assert.deepEqual(renderScene('parameter-probe', 0).frame.model, renderScene('train-two', 1).frame.model);
@@ -375,7 +381,7 @@ test('single-parameter probes compare independent nudges of the trained model wi
       const frame = renderScene('parameter-probe', progress).frame;
       assert.deepEqual(frame.baselineModel, baseline);
       assert.equal(frame.parameterIndex, index);
-      assert.equal(frame.parameterName, names[index]);
+      assert.equal(frame.parameterName, parameterNames[index]);
       assert.equal(frame.completedUpdates, 9600, 'Trying a parameter is not an additional training update');
       close(frame.delta, expectedDelta);
       parameters(frame.model).forEach((value, coordinate) => {
@@ -388,7 +394,7 @@ test('single-parameter probes compare independent nudges of the trained model wi
       assert.equal(frame.trialResults.length, 7);
       frame.trialResults.forEach((result, coordinate) => {
         assert.equal(result.parameterIndex, coordinate);
-        assert.equal(result.parameterName, names[coordinate]);
+        assert.equal(result.parameterName, parameterNames[coordinate]);
         assert.equal(result.baselineValue, baselineValues[coordinate]);
         close(result.minus, mse(perturb(baseline, coordinate, -.02)));
         close(result.plus, mse(perturb(baseline, coordinate, .02)));

@@ -26,14 +26,14 @@ function network(svg,s){
   html+=connection(x0+10,y0,x1-r-3,y,color)+connection(x1+r+3,y,x2-r-3,y0,color);
   html+=`<circle cx="${x1}" cy="${y}" r="${r}" fill="white" stroke="${color}" stroke-width="1.5"/>`+text(x1,y+4,`h${j===1?'₁':'₂'}`,color,compact?11:16,'middle');
   const sub=j===1?'₁':'₂',wy=compact?(j===1?12:h-4):(y+y0)/2-11;
-  html+=text((x0+x1)/2,wy,`w${sub} = ${number(s['w'+j])}`,color,compact?10:13,'middle');
-  html+=text(x1,y+(j===1?-r-8:r+17),`b${sub} = ${number(s['b'+j])}`,color,compact?10:13,'middle');
-  html+=text((x1+x2)/2,wy,`a${sub} = ${number(s['a'+j])}`,color,compact?10:13,'middle');
+  html+=text((x0+x1)/2,wy,`θ${sub}₁ = ${number(s['w'+j])}`,color,compact?10:13,'middle');
+  html+=text(x1,y+(j===1?-r-8:r+17),`θ${sub}₀ = ${number(s['b'+j])}`,color,compact?10:13,'middle');
+  html+=text((x1+x2)/2,wy,`φ${sub} = ${number(s['a'+j])}`,color,compact?10:13,'middle');
  }
  html+=`<circle cx="${x0}" cy="${y0}" r="10" fill="white" stroke="#767676"/><circle cx="${x2}" cy="${y0}" r="${r}" fill="white" stroke="${colors.teal}" stroke-width="1.5"/>`;
- html+=text(x0,y0+4,'x','#242424',13,'middle')+text(x2,y0+4,'Σ',colors.teal,compact?13:18,'middle')+text(x2,y0-r-9,`c = ${number(s.c)}`,colors.teal,compact?10:13,'middle');
+ html+=text(x0,y0+4,'x','#242424',13,'middle')+text(x2,y0+4,'Σ',colors.teal,compact?13:18,'middle')+text(x2,y0-r-9,`φ₀ = ${number(s.c)}`,colors.teal,compact?10:13,'middle');
  if(!compact)html+=text(x1,h-10,'Hidden layer',colors.gray,12,'middle')+text(x2,h-10,'Output',colors.gray,12,'middle');
- svg.innerHTML=html;svg.setAttribute('aria-label',`Two hidden neurons: w1=${s.w1}, b1=0; w2=${s.w2}, b2=${s.b2}. Output weights a1=1, a2=${s.a2}; output bias c=${s.c}.`);
+ svg.innerHTML=html;svg.setAttribute('aria-label',`Two hidden neurons: input weight θ₁₁ = ${s.w1}, hidden bias θ₁₀ = ${s.b1}; input weight θ₂₁ = ${s.w2}, hidden bias θ₂₀ = ${s.b2}. Output weights φ₁ = ${s.a1}, φ₂ = ${s.a2}; output bias φ₀ = ${s.c}. Hidden-layer parameters form θ; output-layer parameters form φ.`);
 }
 export function renderConstruction(plot,detail,kind,p){
  const s=constructionState(kind,p),rect=plot.getBoundingClientRect(),w=Math.max(260,rect.width),h=Math.max(170,rect.height),compact=w<500;
@@ -59,11 +59,11 @@ export function renderConstruction(plot,detail,kind,p){
  if(kind==='input-second')html+=curve(x=>relu(x),1,colors.gray,.3,'4 4');
  if(kind==='flip')html+=curve(h2,1,colors.rust,.25,'4 4');
  html+=curve(h1,0,colors.blue,componentOpacity,showOutput?'5 4':'')+curve(x=>(weighted?s.a2:1)*h2(x),1,colors.rust,componentOpacity,showOutput?'5 4':'');
- const titles=weighted?['a₁h₁(x)','a₂h₂(x)']:['h₁(x)','h₂(x)'];
+ const titles=weighted?['φ₁h₁(x)','φ₂h₂(x)']:['h₁(x)','h₂(x)'];
  html+=text(bounds[0][0],16,titles[0],colors.blue,compact?11:14)+text(s.merge?bounds[0][0]+(compact?80:115):bounds[1][0],16,titles[1],colors.rust,compact?11:14);
  if(showOutput){
   const cut=s.reveal<.86?mix(-.3,1.2,s.reveal/.86):1.2;
-  html+=curve(f,0,colors.teal,1,'',cut,3.5)+text(bounds[0][0]+(compact?162:240),16,'sum + c',colors.teal,compact?11:14);
+  html+=curve(f,0,colors.teal,1,'',cut,3.5)+text(bounds[0][0]+(compact?162:240),16,'sum + φ₀',colors.teal,compact?11:14);
   if(kind==='add'){
    const x=s.reveal<.86?cut:.75,v1=h1(x),v2=s.a2*h2(x),out=f(x);
    html+=line(X(x,0),Y(0),X(x,0),Y(v1),colors.blue,3)+line(X(x,0)+5,Y(v1),X(x,0)+5,Y(out),colors.rust,3);
@@ -75,5 +75,5 @@ export function renderConstruction(plot,detail,kind,p){
  if(kind==='target')html+=`<path d="M${X(-.3,0)},${Y(0)}H${X(0,0)}M${X(0,0)},${Y(1)}H${X(1.2,0)}" fill="none" stroke="#606060" stroke-width="2" stroke-dasharray="6 5"/>`;
  plot.innerHTML=html;plot.setAttribute('aria-label',`${weighted?'Weighted contributions':'Hidden activations'} of two ReLU neurons. ${showOutput?'Their sum is shown in teal.':''}`);
  network(detail,s);
- return {...s,detailTitle:'Hidden parameters → output weights and bias',plotTitle:weighted?'Apply the output weights, then add':'Build the two hidden neurons'};
+ return {...s,detailTitle:'Hidden parameters θ → output parameters φ',plotTitle:weighted?'Apply the output weights, then add':'Build the two hidden neurons'};
 }

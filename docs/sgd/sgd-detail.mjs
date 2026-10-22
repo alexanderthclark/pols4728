@@ -31,15 +31,15 @@ export function observations(c,{batch=null,residualModel=null,amount=1}={}){
  });
  return `<path d="${dots}" fill="none" stroke="#b4b4b4" stroke-width="3" stroke-linecap="round"/><path d="${residuals}" fill="none" stroke="${C.rust}" stroke-opacity="${batch?.65:.10}" stroke-width="1"/>`+selected;
 }
-export function gradientBars(svg,g1,g2=null){const {w,h}=canvas(svg),vals=g1.units.flatMap(u=>[u.w,u.b,u.a]).concat(g1.c),other=g2?g2.units.flatMap(u=>[u.w,u.b,u.a]).concat(g2.c):null,labels=['w₁','b₁','a₁','w₂','b₂','a₂','c'];
+export function gradientBars(svg,g1,g2=null){const {w,h}=canvas(svg),vals=g1.units.flatMap(u=>[u.w,u.b,u.a]).concat(g1.c),other=g2?g2.units.flatMap(u=>[u.w,u.b,u.a]).concat(g2.c):null,labels=['θ₁₁','θ₁₀','φ₁','θ₂₁','θ₂₀','φ₂','φ₀'];
  const top=18,bottom=h-24,mid=(top+bottom)/2,scale=(bottom-top)/2/Math.max(.02,...vals.map(Math.abs),...(other||[]).map(Math.abs)),col=(w-30)/7;
  let body=line(10,mid,w-10,mid,'#999');vals.forEach((v,i)=>{const x=20+col*i;body+=line(x,mid,x,mid-v*scale,C.blue,'',5);if(other)body+=line(x+7,mid,x+7,mid-other[i]*scale,C.rust,'',5);body+=text(x+2,bottom+19,labels[i],'small','middle');});
- body+=text(10,10,other?'Blue: full data · rust: minibatch':'Gradient components (signed)','small');set(svg,body,'Gradient components for the seven trainable parameters. '+(other?'Full gradient in blue, minibatch estimate in rust.':''));
+ body+=text(10,10,other?'Blue: full data · rust: minibatch':'Gradient components (signed)','small');set(svg,body,'Gradient components for the seven trainable parameters: four hidden-layer θ parameters and three output-layer φ parameters. '+(other?'Full gradient in blue, minibatch estimate in rust.':''));
 }
 export function interpolate(a,b,t){return {c:a.c+(b.c-a.c)*t,units:a.units.map((v,i)=>Object.fromEntries(['w','b','a'].map(k=>[k,v[k]+(b.units[i][k]-v[k])*t])))};}
 
 export const sgdKinds=['sgd-opening','sgd-plan','partition','shuffle','batch','point-loss','batch-loss','batch-gradient','parameter-step','next-batch'];
-const labels=['w₁','b₁','a₁','w₂','b₂','a₂','c'];
+const labels=['θ₁₁','θ₁₀','φ₁','θ₂₁','θ₂₀','φ₂','φ₀'];
 const flatten=g=>g.units.flatMap(v=>[v.w,v.b,v.a]).concat(g.c);
 const signed=(v,d=4)=>(v<0?'−':v>0?'+':'')+Math.abs(v).toFixed(d);
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -189,7 +189,7 @@ function gradientSpaces(svg,indices,residuals,g){
  });
  body+=text(left,residualBottom+14,'1','small')+text((left+right)/2,residualBottom+14,'Position in this batch','small','middle')+text(right,residualBottom+14,'64','small','end')+'</g>';
  body+=text(w/2,h*.45,w<450?'How does each parameter change the loss?':'How does each parameter change the loss across this batch?','small','middle');
- body+='<g data-space="parameters">'+text(3,h*.54,'Parameter space · 7 gradient components','small','start',C.blue)+line(left,parameterMid,right,parameterMid,'#a7afb3')+text(left-8,parameterMid+3,'0','small','end');
+ body+='<g data-space="parameters">'+text(3,h*.54,'Parameter space · 7 components: 4 θ + 3 φ','small','start',C.blue)+line(left,parameterMid,right,parameterMid,'#a7afb3')+text(left-8,parameterMid+3,'0','small','end');
  values.forEach((v,i)=>{
   const x=left+dx*(i+.5),y=parameterMid-v*parameterScale,color=i===values.length-1?C.teal:C.blue;
   body+=`<g data-parameter="${labels[i]}" data-gradient="${v}">`;
@@ -198,19 +198,19 @@ function gradientSpaces(svg,indices,residuals,g){
   body+=text(x,v>=0?y-7:y+13,fmt(v),'small','middle',color)+text(x,h-7,labels[i],'','middle',color)+'</g>';
  });
  body+='</g>';
- set(svg,body,`Two different spaces. The upper plot contains ${residuals.length} signed residuals, one for each observation in batch order: prediction minus target. The lower plot contains ${values.length} gradient components, one for each model parameter. A component tells how the batch loss changes when that parameter changes slightly, with the others held fixed. Each component combines errors across the batch according to that parameter's effect on the predictions; residuals are not assigned one-to-one to parameters. ${labels.map((label,i)=>label+' '+values[i].toFixed(4)).join(', ')}. All seven components are calculated at the same current model. No parameters have been updated yet.`);
+ set(svg,body,`Two different spaces. The upper plot contains ${residuals.length} signed residuals, one for each observation in batch order: prediction minus target. The lower plot contains ${values.length} gradient components, one for each model parameter: four hidden-layer θ parameters and three output-layer φ parameters. A component tells how the batch loss changes when that parameter changes slightly, with the others held fixed. Each component combines errors across the batch according to that parameter's effect on the predictions; residuals are not assigned one-to-one to parameters. ${labels.map((label,i)=>label+' '+values[i].toFixed(4)).join(', ')}. All seven components are calculated at the same current model. No parameters have been updated yet.`);
 }
 
 function gradientFacts(svg,residuals,g){
  const {w,h}=canvas(svg),gap=Math.min(30,(h-6)/3),x=3,meanResidual=residuals.reduce((sum,value)=>sum+value,0)/residuals.length;
- const body=text(x,gap-1,'Move c → shift every prediction equally.','small')+
+ const body=text(x,gap-1,'Move φ₀ → shift every prediction equally.','small')+
  text(x,gap*2-1,'Its gradient is the mean of all 64 residuals:','small')+
  text(x,gap*3-1,`(r₁ + ⋯ + r₆₄) / 64 = ${signed(meanResidual)}`,'small','start',C.teal);
- set(svg,body,`For the output bias c, changing c shifts every prediction by the same amount. With half-MSE loss, its gradient component is the mean of all ${residuals.length} residuals: ${meanResidual}, displayed as ${signed(g.c)}. Other parameters affect predictions differently, so their components combine the residuals differently. The model is still fixed.`);
+ set(svg,body,`For the output bias φ₀, changing φ₀ shifts every prediction by the same amount. With half-MSE loss, its gradient component is the mean of all ${residuals.length} residuals: ${meanResidual}, displayed as ${signed(g.c)}. Other parameters affect predictions differently, so their components combine the residuals differently. The model is still fixed.`);
  return meanResidual;
 }
 
-// All seven entries share the curve's interpolation progress. The scalar c
+// All seven entries share the curve's interpolation progress. The scalar output-bias
 // illustration never changes the model; this table is the actual vector step.
 export function renderParameterUpdate(svg,before,after,g,progress){
  const {w,h}=canvas(svg),oldValues=flatten(before),values=flatten(interpolate(before,after,progress)),gradients=flatten(g);
@@ -228,14 +228,14 @@ export function renderParameterUpdate(svg,before,after,g,progress){
 
 function biasStep(svg,first,eta,u){
  const {w,h}=canvas(svg),left=28,right=w-16,y=Math.max(55,h*.57),X=v=>left+(v-.49)/.03*(right-left),c=lerp(first.before.c,first.after.c,u);
- let body=text(left,15,`Gradient: ${signed(first.gradient.c)}`,'small')+text(right,15,`η = ${eta}`,'small','end');
+ let body=text(left,15,`Gradient: ${signed(first.gradient.c)}`,'small')+text(right,15,`α = ${eta}`,'small','end');
  body+=line(left,y,right,y,'#a2aaaf');
  for(const tick of [.49,.50,.51,.52])body+=line(X(tick),y-3,X(tick),y+4,'#a2aaaf')+text(X(tick),y+20,tick.toFixed(2),'small','middle');
  body+=line(X(.5),y-14,X(.5),y+5,C.blue,'3 3')+circle(X(.5),y,4,'white',C.blue,2);
  if(u>.015)body+=arrow(X(.5),y-12,X(c),y-12,C.teal,2);
  body+=circle(X(c),y,5,C.teal)+text(X(c),y-26,c.toFixed(4),'','middle',C.teal);
  body+=text(left,h-3,'One component of the same update.','small');
- set(svg,body,`A magnified illustration of one component of the same seven-parameter update: output bias c would increase from ${first.before.c.toFixed(4)} to ${c.toFixed(4)}. The arithmetic is minus learning rate ${eta} times gradient ${signed(first.gradient.c)}. The model has not changed and no update has been counted yet; all seven parameters will take their step together in the next scene.`);
+ set(svg,body,`A magnified illustration of one component of the same seven-parameter update: output bias φ₀ would increase from ${first.before.c.toFixed(4)} to ${c.toFixed(4)}. The arithmetic is minus learning rate ${eta} times gradient ${signed(first.gradient.c)}. The model has not changed and no update has been counted yet; all seven parameters will take their step together in the next scene.`);
  return c;
 }
 
@@ -243,8 +243,8 @@ function stepArithmetic(svg,first,eta){
  const {w,h}=canvas(svg),change=first.after.c-first.before.c,space=Math.min(28,(h-8)/3),x=3;
  const body=text(x,space-2,'change = − learning rate × gradient','small')+
  text(x,space*2-2,`= −${eta} × (${signed(first.gradient.c)}) = ${signed(change)}`,'', 'start',C.teal)+
- text(x,space*3-2,`new c = ${first.before.c.toFixed(4)} + ${change.toFixed(4)} = ${first.after.c.toFixed(4)}`,'','start',C.blue);
- set(svg,body,`This is a preview of one component, not a separate model update. Using unrounded values: new output bias equals ${first.before.c} minus ${eta} times ${first.gradient.c}, giving ${first.after.c}. Displayed values are rounded.`);
+ text(x,space*3-2,`new φ₀ = ${first.before.c.toFixed(4)} + ${change.toFixed(4)} = ${first.after.c.toFixed(4)}`,'','start',C.blue);
+ set(svg,body,`This is a preview of one component, not a separate model update. Using unrounded values: new output bias φ₀ equals ${first.before.c} minus ${eta} times ${first.gradient.c}, giving ${first.after.c}. Displayed values are rounded.`);
 }
 
 function nextBatchFacts(svg,second,model,u,updateProgress){
@@ -296,12 +296,12 @@ export function renderSGD(plot,detail,scene,p,e){
  }
  if(kind==='batch-gradient'){
   gradientSpaces(plot,first.indices,residuals,first.gradient);const meanResidual=gradientFacts(detail,residuals,first.gradient);
-  plotTitle='One residual per observation; one direction per parameter';detailTitle='Example: c changes every prediction equally';
+  plotTitle='One residual per observation; one direction per parameter';detailTitle='Example: φ₀ changes every prediction equally';
   info={...info,residuals,residualCount:residuals.length,parameterCount:flatten(first.gradient).length,meanResidual,outputBiasGradient:first.gradient.c,gradientC:first.gradient.c,gradient:flatten(first.gradient),model:first.before};
  }
  if(kind==='parameter-step'){
   const c=biasStep(plot,first,eta,u);stepArithmetic(detail,first,eta);
-  plotTitle='Zoom in on c: one component of the same update';detailTitle='Preview the arithmetic; then apply all seven together';
+  plotTitle='Zoom in on φ₀: one component of the same update';detailTitle='Preview the arithmetic; then apply all seven together';
   info={...info,eta,gradientC:first.gradient.c,outputBias:first.before.c,previewOutputBias:c,deltaC:first.after.c-first.before.c,model:first.before,illustrationOnly:true};
  }
  if(kind==='next-batch'){
