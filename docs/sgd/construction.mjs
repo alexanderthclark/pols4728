@@ -1,0 +1,79 @@
+import {relu} from './model.mjs';
+const colors={blue:'#234e70',rust:'#a54f32',teal:'#007f73',gray:'#767676'};
+const clamp=x=>Math.max(0,Math.min(1,x));
+const mix=(a,b,t)=>a+(b-a)*t;
+const number=x=>Math.abs(x)<.005?'0':Number(x.toFixed(2)).toString();
+const text=(x,y,value,color='#242424',size=12,anchor='start')=>`<text x="${x}" y="${y}" text-anchor="${anchor}" style="fill:${color};font-size:${size}px">${value}</text>`;
+const line=(x1,y1,x2,y2,color,width=1,dash='')=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" stroke-dasharray="${dash}"/>`;
+export const constructionKinds=['pair','input-first','input-second','flip','add','output-bias','target'];
+export function constructionState(kind,p){
+ const u=clamp((p-.1)/.72);
+ const s={kind,u,w1:1,b1:0,w2:1,b2:0,a1:1,a2:1,c:0,merge:0,reveal:0};
+ if(kind==='input-first')s.w1=1+u;
+ if(kind==='input-second'){s.w1=2;s.w2=1+clamp(u*2);s.b2=-clamp(u*2-1);}
+ if(['flip','add','output-bias','target'].includes(kind)){s.w1=s.w2=2;s.b2=-1;s.a2=kind==='flip'?1-2*u:-1;}
+ if(kind==='add'){s.merge=clamp(u/.38);s.reveal=clamp((u-.38)/.62);}
+ if(['output-bias','target'].includes(kind)){s.merge=1;s.reveal=1;s.c=kind==='output-bias'?.3*u:.3*(1-u);}
+ return s;
+}
+function network(svg,s){
+ const rect=svg.getBoundingClientRect(),w=Math.max(260,rect.width),h=Math.max(80,rect.height),compact=h<160;
+ svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+ const x0=20,x1=w*.45,x2=w-27,y0=h/2,y1=compact?34:h*.28,y2=compact?h-34:h*.72,r=compact?12:22;
+ let html=`<defs><marker id="network-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10" fill="none" stroke="#767676" stroke-width="1.5"/></marker></defs>`;
+ const connection=(xa,ya,xb,yb,color)=>`<line x1="${xa}" y1="${ya}" x2="${xb}" y2="${yb}" stroke="${color}" stroke-width="1.4" marker-end="url(#network-arrow)"/>`;
+ for(const [j,y,color] of [[1,y1,colors.blue],[2,y2,colors.rust]]){
+  html+=connection(x0+10,y0,x1-r-3,y,color)+connection(x1+r+3,y,x2-r-3,y0,color);
+  html+=`<circle cx="${x1}" cy="${y}" r="${r}" fill="white" stroke="${color}" stroke-width="1.5"/>`+text(x1,y+4,`h${j===1?'₁':'₂'}`,color,compact?11:16,'middle');
+  const sub=j===1?'₁':'₂',wy=compact?(j===1?12:h-4):(y+y0)/2-11;
+  html+=text((x0+x1)/2,wy,`w${sub} = ${number(s['w'+j])}`,color,compact?10:13,'middle');
+  html+=text(x1,y+(j===1?-r-8:r+17),`b${sub} = ${number(s['b'+j])}`,color,compact?10:13,'middle');
+  html+=text((x1+x2)/2,wy,`a${sub} = ${number(s['a'+j])}`,color,compact?10:13,'middle');
+ }
+ html+=`<circle cx="${x0}" cy="${y0}" r="10" fill="white" stroke="#767676"/><circle cx="${x2}" cy="${y0}" r="${r}" fill="white" stroke="${colors.teal}" stroke-width="1.5"/>`;
+ html+=text(x0,y0+4,'x','#242424',13,'middle')+text(x2,y0+4,'Σ',colors.teal,compact?13:18,'middle')+text(x2,y0-r-9,`c = ${number(s.c)}`,colors.teal,compact?10:13,'middle');
+ if(!compact)html+=text(x1,h-10,'Hidden layer',colors.gray,12,'middle')+text(x2,h-10,'Output',colors.gray,12,'middle');
+ svg.innerHTML=html;svg.setAttribute('aria-label',`Two hidden neurons: w1=${s.w1}, b1=0; w2=${s.w2}, b2=${s.b2}. Output weights a1=1, a2=${s.a2}; output bias c=${s.c}.`);
+}
+export function renderConstruction(plot,detail,kind,p){
+ const s=constructionState(kind,p),rect=plot.getBoundingClientRect(),w=Math.max(260,rect.width),h=Math.max(170,rect.height),compact=w<500;
+ plot.setAttribute('viewBox',`0 0 ${w} ${h}`);
+ const top=30,bottom=h-30,gap=compact?22:54,margin=compact?24:36,panel=(w-gap)/2;
+ const united=[margin,w-12];
+ const bounds=[[mix(margin,united[0],s.merge),mix(panel-10,united[1],s.merge)],[mix(panel+gap+margin,united[0],s.merge),mix(w-12,united[1],s.merge)]];
+ const X=(x,j)=>bounds[j][0]+(x+.3)/1.5*(bounds[j][1]-bounds[j][0]);
+ const Y=y=>bottom-(y+1.6)/4.2*(bottom-top);
+ const h1=x=>relu(s.w1*x+s.b1),h2=x=>relu(s.w2*x+s.b2),f=x=>s.c+h1(x)+s.a2*h2(x);
+ let html='';
+ function curve(fn,j,color,opacity=1,dash='',end=1.2,width=3){let d='';const xs=[-.3,0,...Array.from({length:241},(_,i)=>-.3+1.5*i/240),-s.b2/s.w2,end].filter(x=>x>=-.3&&x<=end).sort((a,b)=>a-b);for(const x of xs)d+=(d?'L':'M')+X(x,j)+','+Y(fn(x));return `<path d="${d}" fill="none" stroke="${color}" stroke-width="${width}" stroke-opacity="${opacity}" stroke-dasharray="${dash}"/>`;}
+ const weighted=['flip','add','output-bias','target'].includes(kind);
+ for(let j=0;j<2;j++){
+  const axisOpacity=j===1?1-s.merge:1;
+  html+=`<g opacity="${axisOpacity}">`;
+  for(const y of [-1,0,1,2])html+=line(bounds[j][0],Y(y),bounds[j][1],Y(y),y===0?'#767676':'#e8e8e8')+text(bounds[j][0]-6,Y(y)+4,y,colors.gray,compact?9:11,'end');
+  for(const x of [0,1])html+=line(X(x,j),bottom,X(x,j),bottom+4,colors.gray)+text(X(x,j),bottom+17,x,colors.gray,compact?9:11,'middle');
+  html+=text(bounds[j][1],bottom+17,'x',colors.gray,compact?10:12,'end')+'</g>';
+ }
+ const showOutput=s.reveal>0,componentOpacity=showOutput?.32:1;
+ if(kind==='input-first')html+=curve(x=>relu(x),0,colors.gray,.3,'4 4');
+ if(kind==='input-second')html+=curve(x=>relu(x),1,colors.gray,.3,'4 4');
+ if(kind==='flip')html+=curve(h2,1,colors.rust,.25,'4 4');
+ html+=curve(h1,0,colors.blue,componentOpacity,showOutput?'5 4':'')+curve(x=>(weighted?s.a2:1)*h2(x),1,colors.rust,componentOpacity,showOutput?'5 4':'');
+ const titles=weighted?['a₁h₁(x)','a₂h₂(x)']:['h₁(x)','h₂(x)'];
+ html+=text(bounds[0][0],16,titles[0],colors.blue,compact?11:14)+text(s.merge?bounds[0][0]+(compact?80:115):bounds[1][0],16,titles[1],colors.rust,compact?11:14);
+ if(showOutput){
+  const cut=s.reveal<.86?mix(-.3,1.2,s.reveal/.86):1.2;
+  html+=curve(f,0,colors.teal,1,'',cut,3.5)+text(bounds[0][0]+(compact?162:240),16,'sum + c',colors.teal,compact?11:14);
+  if(kind==='add'){
+   const x=s.reveal<.86?cut:.75,v1=h1(x),v2=s.a2*h2(x),out=f(x);
+   html+=line(X(x,0),Y(0),X(x,0),Y(v1),colors.blue,3)+line(X(x,0)+5,Y(v1),X(x,0)+5,Y(out),colors.rust,3);
+   html+=`<circle cx="${X(x,0)}" cy="${Y(out)}" r="4" fill="${colors.teal}"/>`;
+   html+=text(bounds[0][0]+10,bottom-8,`${number(v1)} ${v2<0?'−':'+'} ${number(Math.abs(v2))} = ${number(out)}`,colors.teal,compact?12:18);
+  }
+ }
+ if(kind==='output-bias')html+=curve(x=>h1(x)-h2(x),0,colors.gray,.4,'3 4',1.2,1.5);
+ if(kind==='target')html+=`<path d="M${X(-.3,0)},${Y(0)}H${X(0,0)}M${X(0,0)},${Y(1)}H${X(1.2,0)}" fill="none" stroke="#606060" stroke-width="2" stroke-dasharray="6 5"/>`;
+ plot.innerHTML=html;plot.setAttribute('aria-label',`${weighted?'Weighted contributions':'Hidden activations'} of two ReLU neurons. ${showOutput?'Their sum is shown in teal.':''}`);
+ network(detail,s);
+ return {...s,detailTitle:'Hidden parameters → output weights and bias',plotTitle:weighted?'Apply the output weights, then add':'Build the two hidden neurons'};
+}
