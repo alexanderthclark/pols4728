@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import test from 'node:test';
 import vm from 'node:vm';
 import { copy, data, gradient, initialize, loss, mse, predict, random, shuffle, update } from '../docs/sgd/model.mjs';
@@ -7,6 +8,8 @@ import { epochState, renderEpochCounter } from '../docs/sgd/epoch-counter.mjs';
 import { scenes, foundationScenes, batchSteps } from '../docs/sgd/scenes.mjs';
 import { render } from '../docs/sgd/views.mjs';
 import { constructionKinds } from '../docs/sgd/construction.mjs';
+
+globalThis.katex = createRequire(import.meta.url)('../docs/neural-networks/vendor/katex/katex.min.js');
 
 const experiment = JSON.parse(readFileSync(new URL('../docs/sgd/experiment.json', import.meta.url)));
 const close = (actual, expected, tolerance = 1e-12) =>
@@ -411,6 +414,19 @@ test('single-parameter probes compare independent nudges of the trained model wi
   assert.equal(end.frame.delta, 0);
   assert.equal(end.frame.completedUpdates, 9600);
   assert.equal([...end.detail.matchAll(/data-parameter="[^"]+"/g)].length, 7, 'The static end state must show every independent trial');
+  assert.equal([...end.detail.matchAll(/>MSE after<\/text>/g)].length, 2, 'Both endpoint columns must identify their values as resulting MSE');
+  for (const label of ['−0.02 nudge', '+0.02 nudge', 'Baseline MSE:', 'Current trial MSE:', 'Change in MSE:']) {
+    assert.ok(end.detail.includes(label), `The trial summary must distinguish ${label}`);
+  }
+  const mathRows = [...end.detail.matchAll(/<g data-parameter="([^"]+)"[^>]*>([\s\S]*?)<\/g>/g)];
+  const expectedTex = [String.raw`\theta_{11}`, String.raw`\theta_{10}`, String.raw`\phi_1`, String.raw`\theta_{21}`, String.raw`\theta_{20}`, String.raw`\phi_2`, String.raw`\phi_0`];
+  mathRows.forEach((row, index) => {
+    assert.equal(row[1], parameterNames[index]);
+    assert.match(row[2], /<foreignObject\b/);
+    assert.match(row[2], /class="katex"/);
+    assert.ok(row[2].includes(`<annotation encoding="application/x-tex">${expectedTex[index]}</annotation>`), 'Each parameter must retain its typeset symbol and subscript');
+  });
+  assert.match(end.plot, /class="katex"/, 'The current curve trial must use the same mathematical notation');
   for (const [progress, frame] of [...seen].reverse()) {
     assert.deepEqual(renderScene('parameter-probe', progress).frame, frame);
   }

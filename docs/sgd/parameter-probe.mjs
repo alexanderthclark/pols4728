@@ -2,6 +2,7 @@ import {mse,predict} from './model.mjs';
 import {C,clamp,canvas,chart,line,observations,set,text} from './sgd-detail.mjs';
 
 const labels=['θ₁₁','θ₁₀','φ₁','θ₂₁','θ₂₀','φ₂','φ₀'];
+const parameterTex=[String.raw`\theta_{11}`,String.raw`\theta_{10}`,String.raw`\phi_1`,String.raw`\theta_{21}`,String.raw`\theta_{20}`,String.raw`\phi_2`,String.raw`\phi_0`];
 const keys=['w','b','a'];
 const range=.02;
 const cache=new WeakMap();
@@ -41,32 +42,43 @@ export function parameterProbeState(experiment,progress){
  return {...saved,model,parameterIndex,parameterName:labels[parameterIndex],delta,currentMSE:mse(model),completedUpdates:9600};
 }
 
+// Use the lesson's bundled KaTeX for real mathematical glyphs and subscripts.
+const mathCache=new Map();
+function mathLabel(x,y,width,tex,color,size=14){
+ if(!mathCache.has(tex))mathCache.set(tex,globalThis.katex.renderToString(tex,{displayMode:false,output:'htmlAndMathml',throwOnError:true,strict:'error'}));
+ return `<foreignObject x="${x}" y="${y}" width="${width}" height="${size*1.7}" class="probe-math"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:${size}px;color:${color};line-height:1.2">${mathCache.get(tex)}</div></foreignObject>`;
+}
+
 function renderTable(svg,frame){
- const {w,h}=canvas(svg),compact=h<240,tableTop=compact?49:104;
- const rowHeight=Math.max(10,Math.min(compact?17:34,(h-tableTop-8)/7));
+ const {w,h}=canvas(svg),compact=h<260,tableTop=compact?82:138;
+ const rowHeight=Math.max(13,Math.min(compact?17:34,(h-tableTop-8)/7));
  const x=7,minusX=w*.61,plusX=w-8,lossChange=frame.currentMSE-frame.baselineMSE;
- let body=text(x,14,`Baseline MSE ${frame.baselineMSE.toFixed(8)}`,'small','start',C.blue);
- body+=text(x,31,`Trial ${frame.currentMSE.toFixed(8)} · Δ ${signed(lossChange,8)}`,'small','start',C.rust);
+ let body=text(x,14,`Baseline MSE: ${frame.baselineMSE.toFixed(8)}`,'small','start',C.blue);
+ body+=text(x,30,`Current trial MSE: ${frame.currentMSE.toFixed(8)}`,'small','start',C.rust);
+ body+=text(x,46,`Change in MSE: ${signed(lossChange,8)}`,'small','start',C.rust);
  if(!compact){
-  body+=text(x,58,`Change only ${frame.parameterName} by ${signed(frame.delta,4)}`,'','start',C.rust);
-  body+=text(x,78,`${value(frame.baselineModel,frame.parameterIndex).toFixed(4)} → ${value(frame.model,frame.parameterIndex).toFixed(4)} · all others fixed`,'small');
+  body+=text(x,77,'Fixed trials: resulting MSE','', 'start',C.ink);
+  body+=text(x,97,'Each nudge starts from the trained parameter.','small');
+  body+=text(x,113,'All other parameters stay fixed.','small');
  }
- body+=text(x,tableTop,'Parameter','small')+text(minusX,tableTop,'−0.02','small','end')+text(plusX,tableTop,'+0.02','small','end');
+ body+=text(x,tableTop,'Parameter','small')+text(minusX,tableTop-14,'MSE after','small','end')+text(plusX,tableTop-14,'MSE after','small','end');
+ body+=text(minusX,tableTop,'−0.02 nudge','small','end')+text(plusX,tableTop,'+0.02 nudge','small','end');
  body+=line(x,tableTop+5,w-5,tableTop+5,'#d9dfe2');
  frame.trialResults.forEach((result,index)=>{
   const y=tableTop+(index+1)*rowHeight,active=index===frame.parameterIndex;
   body+=`<g data-parameter="${result.parameterName}" data-minus-mse="${result.minus}" data-plus-mse="${result.plus}" data-active="${active}">`;
-  if(active)body+=`<rect x="2" y="${y-rowHeight*.67}" width="${w-4}" height="${rowHeight-1}" rx="2" fill="#f6e9e3"/>`;
-  body+=text(x,y,result.parameterName,'small','start',active?C.rust:C.ink);
+  if(active)body+=`<rect x="2" y="${y-rowHeight*.72}" width="${w-4}" height="${rowHeight-1}" rx="2" fill="#f6e9e3"/>`;
+  body+=mathLabel(x,y-(compact?10:13),w*.22,parameterTex[index],active?C.rust:C.ink,compact?11:14);
   body+=text(minusX,y,result.minus.toFixed(8),'small','end')+text(plusX,y,result.plus.toFixed(8),'small','end')+'</g>';
  });
- set(svg,body,`Independent one-parameter trials after training. Baseline full-data MSE ${frame.baselineMSE.toFixed(8)}. Changing only ${frame.parameterName} by ${signed(frame.delta,4)} gives MSE ${frame.currentMSE.toFixed(8)}. Each table row reports MSE after subtracting 0.02 or adding 0.02 to that parameter, with all other parameters held fixed. `+frame.trialResults.map(row=>`${row.parameterName}: minus 0.02, ${row.minus.toFixed(8)}; plus 0.02, ${row.plus.toFixed(8)}.`).join(' '));
+ set(svg,body,`Independent one-parameter trials after training. Baseline full-data MSE ${frame.baselineMSE.toFixed(8)}. Changing only ${frame.parameterName} by ${signed(frame.delta,4)} gives current trial MSE ${frame.currentMSE.toFixed(8)}, a change in MSE of ${signed(lossChange,8)} from baseline. The table contains separate fixed trials: the resulting MSE after subtracting 0.02 or adding 0.02 to each trained parameter, with all other parameters held fixed. Table entries are MSE values, not changes in MSE. `+frame.trialResults.map(row=>`${row.parameterName}: minus 0.02, MSE ${row.minus.toFixed(8)}; plus 0.02, MSE ${row.plus.toFixed(8)}.`).join(' '));
 }
 
 export function renderParameterProbe(plot,detail,scene,p,experiment){
  const frame=parameterProbeState(experiment,p),c=chart(plot,{xmin:-1,xmax:1});
- const body=c.base+c.step()+observations(c)+c.path(x=>predict(frame.baselineModel,x),C.blue,3)+c.path(x=>predict(frame.model,x),C.rust,2,'7 5');
+ const trialTex=parameterTex[frame.parameterIndex]+String.raw`\mapsto `+parameterTex[frame.parameterIndex]+(frame.delta<0?'-':'+')+Math.abs(frame.delta).toFixed(4);
+ const body=c.base+c.step()+observations(c)+c.path(x=>predict(frame.baselineModel,x),C.blue,3)+c.path(x=>predict(frame.model,x),C.rust,2,'7 5')+mathLabel(c.left,0,c.w-c.left-5,trialTex,C.rust,c.w<450?11:15);
  set(plot,body,`${scene.title} The blue curve is the trained model after 300 epochs. The dashed rust curve changes only ${frame.parameterName} by ${signed(frame.delta,4)}, holding the other six parameters fixed. This is a what-if trial; training remains at 9,600 updates.`);
  renderTable(detail,frame);
- return {kind:scene.kind,progress:p,width:2,...frame,plotTitle:`Blue: trained fit · rust: ${frame.parameterName} ${signed(frame.delta,3)}`,detailTitle:'One-parameter trials · full-data MSE'};
+ return {kind:scene.kind,progress:p,width:2,...frame,plotTitle:'Blue: trained fit · dashed rust: current trial',detailTitle:'Full-data MSE · smaller is better'};
 }
