@@ -1,5 +1,6 @@
 import {foundationKinds,renderFoundation} from './batch-epoch.mjs';
 import {constructionKinds,renderConstruction} from './construction.mjs';
+import {renderInitialNetwork} from './network.mjs';
 import {predict,ramp,gradient,data,mse} from './model.mjs';
 import {sgdKinds,renderSGD,renderParameterUpdate,C,clamp,line,text,set,canvas,chart,facts,observations,gradientBars,interpolate} from './sgd-detail.mjs';
 function trainingPanel(svg,trace,index,mix,firstEpoch,color,width){
@@ -33,7 +34,8 @@ export function render(plot,detail,scene,p,e){
   let model=wide?e.traces[12][0].model:e.firstUpdate.before;detailTitle='Training';
   if(kind==='update'){model=interpolate(e.firstUpdate.before,e.firstUpdate.after,u);body+=c.path(x=>predict(e.firstUpdate.before,x),C.gray,2,'4 4');}
   body+=observations(c,{batch:kind==='update'?e.firstUpdate.indices:null,residualModel:kind==='loss'?model:null,amount:kind==='loss'?u:1})+c.path(x=>predict(model,x),color);
-  if(kind==='initialize'||wide)facts(detail,[['Hidden neurons',wide?'12':'2','One hidden layer'],['Trainable parameters',wide?'37':'7','Learn weights and biases']]);
+  if(kind==='initialize'){info.displayedParameters=renderInitialNetwork(detail,model);detailTitle='Initial network · weights and biases';}
+  if(wide)facts(detail,[['Hidden neurons','12','One hidden layer'],['Trainable parameters','37','Learn weights and biases']]);
   if(kind==='loss')facts(detail,[['Training MSE',e.traces[2][0].loss.toFixed(4),'All 2,048 observations'],['Residuals shown',String(Math.ceil(2048*u)),'Squared, then averaged']]);
   if(kind==='full'){gradientBars(detail,gradient(model,data));detailTitle='Full-data gradient';}
   if(kind==='update'){

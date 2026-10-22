@@ -163,3 +163,8 @@
 /* The partition is one full-width diagram; the next scenes introduce a batch. */
 .stage[data-scene="partition"] .visuals{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr);min-height:0}
 .stage[data-scene="partition"] .detail{display:none}
+
+/* Leave room for the initial network's weights and three explicit bias inputs. */
+@media screen and (max-width:700px){
+ .stage[data-scene="initialize"] .visuals{grid-template-rows:minmax(0,1fr) 218px;min-height:0}
+}
