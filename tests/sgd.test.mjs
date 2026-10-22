@@ -360,6 +360,57 @@ test('batch and epoch transitions continue from the exact preceding learned weig
   assert.equal(renderScene('train-wide', 1).frame.completedUpdates, 9600);
 });
 
+test('single-parameter probes compare independent nudges of the trained model with honest full-data losses', () => {
+  const original = JSON.stringify(experiment);
+  const baseline = experiment.traces[2].at(-1).after;
+  const trained = experiment.runs.find(run => run.width === 2 && run.seed === 1);
+  const names = ['w₁', 'b₁', 'a₁', 'w₂', 'b₂', 'a₂', 'c'];
+  const baselineValues = parameters(baseline), baselineMSE = mse(baseline);
+  assert.deepEqual(baseline, trained.model);
+  assert.deepEqual(renderScene('parameter-probe', 0).frame.model, renderScene('train-two', 1).frame.model);
+  const seen = new Map();
+  for (let index = 0; index < 7; index++) {
+    for (const [localProgress, expectedDelta] of [[0, 0], [.25, -.02], [.5, 0], [.75, .02]]) {
+      const progress = (index + localProgress) / 7;
+      const frame = renderScene('parameter-probe', progress).frame;
+      assert.deepEqual(frame.baselineModel, baseline);
+      assert.equal(frame.parameterIndex, index);
+      assert.equal(frame.parameterName, names[index]);
+      assert.equal(frame.completedUpdates, 9600, 'Trying a parameter is not an additional training update');
+      close(frame.delta, expectedDelta);
+      parameters(frame.model).forEach((value, coordinate) => {
+        if (coordinate === index) close(value, baselineValues[coordinate] + expectedDelta);
+        else assert.equal(value, baselineValues[coordinate], 'Each trial must hold every other parameter fixed');
+      });
+      close(frame.baselineMSE, baselineMSE);
+      close(frame.currentMSE, mse(frame.model));
+      close(frame.currentMSE, mse(perturb(baseline, index, expectedDelta)));
+      assert.equal(frame.trialResults.length, 7);
+      frame.trialResults.forEach((result, coordinate) => {
+        assert.equal(result.parameterIndex, coordinate);
+        assert.equal(result.parameterName, names[coordinate]);
+        assert.equal(result.baselineValue, baselineValues[coordinate]);
+        close(result.minus, mse(perturb(baseline, coordinate, -.02)));
+        close(result.plus, mse(perturb(baseline, coordinate, .02)));
+        // This observed result supports the scene's local claim; it does not
+        // assert that coordinate changes can never improve other networks.
+        assert.ok(result.minus >= baselineMSE - 1e-12);
+        assert.ok(result.plus >= baselineMSE - 1e-12);
+      });
+      seen.set(progress, frame);
+    }
+  }
+  const end = renderScene('parameter-probe', 1);
+  assert.deepEqual(end.frame.model, baseline, 'Finish by restoring the actual trained model');
+  assert.equal(end.frame.delta, 0);
+  assert.equal(end.frame.completedUpdates, 9600);
+  assert.equal([...end.detail.matchAll(/data-parameter="[^"]+"/g)].length, 7, 'The static end state must show every independent trial');
+  for (const [progress, frame] of [...seen].reverse()) {
+    assert.deepEqual(renderScene('parameter-probe', progress).frame, frame);
+  }
+  assert.equal(JSON.stringify(experiment), original, 'The probe must not change the stored experiment or later training scenes');
+});
+
 // This harness runs the real controller and renderers. Browser geometry and
 // actual scrolling are reviewed separately; here scroll events must alter and
 // restore the scientific frames and counter, without relying on a timer.
@@ -457,6 +508,38 @@ test('scroll events advance and restore the batch update and epoch counter toget
     assert.deepEqual(ui.at(stop.id, stop.progress), stop.frame);
     assert.equal(counter.innerHTML, stop.counter);
   }
+});
+
+test('parameter probes retain the completed epoch count and a complete reduced-motion summary', async () => {
+  const ui = await controller(), counter = ui.nodes.get('epoch-counter');
+  const stops = [0, .25 / 7, .75 / 7, 3.25 / 7, 3.75 / 7, 6.25 / 7, 6.75 / 7, .999];
+  const seen = new Map();
+  for (const progress of stops) {
+    const frame = ui.at('parameter-probe', progress);
+    assert.equal(counter.hidden, false);
+    assert.equal(frame.completedUpdates, 9600);
+    assert.equal(counter.dataset.completedUpdates, '9600');
+    assert.equal(counter.dataset.completedEpochs, '300');
+    seen.set(progress, { frame, counter: counter.innerHTML });
+  }
+  for (const [progress, state] of [...seen].reverse()) {
+    assert.deepEqual(ui.at('parameter-probe', progress), state.frame);
+    assert.equal(counter.innerHTML, state.counter);
+  }
+  ui.reduce(true);
+  const reduced = ui.at('parameter-probe', .1);
+  assert.deepEqual(reduced.model, experiment.traces[2].at(-1).after);
+  assert.equal(reduced.delta, 0);
+  assert.equal(reduced.trialResults.length, 7);
+  assert.equal([...ui.nodes.get('detail').innerHTML.matchAll(/data-parameter="[^"]+"/g)].length, 7);
+  assert.equal(counter.dataset.completedEpochs, '300');
+  ui.emit('document:keydown', { key: 'ArrowRight', target: { tagName: 'DIV' }, preventDefault() {} });
+  assert.equal(ui.nodes.get('stage').dataset.scene, 'initialize-wide');
+  assert.equal(counter.dataset.completedUpdates, '0');
+  assert.equal(counter.dataset.completedEpochs, '0');
+  ui.emit('document:keydown', { key: 'ArrowLeft', target: { tagName: 'DIV' }, preventDefault() {} });
+  assert.equal(ui.nodes.get('stage').dataset.scene, 'parameter-probe');
+  assert.equal(counter.dataset.completedEpochs, '300');
 });
 
 test('reduced motion and keyboard navigation retain complete losses and epoch boundaries', async () => {

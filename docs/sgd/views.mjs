@@ -1,6 +1,7 @@
 import {foundationKinds,renderFoundation} from './batch-epoch.mjs';
 import {constructionKinds,renderConstruction} from './construction.mjs';
 import {renderInitialNetwork} from './network.mjs';
+import {renderParameterProbe} from './parameter-probe.mjs';
 import {predict,ramp,gradient,data,mse} from './model.mjs';
 import {sgdKinds,renderSGD,renderParameterUpdate,C,clamp,line,text,set,canvas,chart,facts,observations,gradientBars,interpolate} from './sgd-detail.mjs';
 function trainingPanel(svg,trace,index,mix,firstEpoch,color,width){
@@ -22,6 +23,7 @@ export function render(plot,detail,scene,p,e){
  if(constructionKinds.includes(kind))return renderConstruction(plot,detail,kind,p);
  if(foundationKinds.includes(kind))return renderFoundation(plot,detail,scene,p,e);
  if(sgdKinds.includes(kind))return renderSGD(plot,detail,scene,p,e);
+ if(kind==='parameter-probe')return renderParameterProbe(plot,detail,scene,p,e);
  const c=chart(plot,{xmin:-1,xmax:1});
  let body=c.base+c.step(),detailTitle='Construction',plotTitle='Function',info={kind,progress:p};
  if(kind==='steepen'){

@@ -168,3 +168,12 @@
 @media screen and (max-width:700px){
  .stage[data-scene="initialize"] .visuals{grid-template-rows:minmax(0,1fr) 218px;min-height:0}
 }
+
+/* The one-parameter trials retain all seven results on narrow screens. */
+@media screen and (max-width:700px){
+ .stage[data-scene="parameter-probe"] .visuals{grid-template-rows:minmax(0,1fr) 205px;min-height:0}
+}
+@media screen and (max-width:700px) and (max-height:700px){
+ .stage[data-scene="parameter-probe"] #equation{min-height:34px}
+ .stage[data-scene="parameter-probe"] .visuals{grid-template-rows:minmax(0,1fr) 185px}
+}
