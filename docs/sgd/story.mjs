@@ -1,3 +1,4 @@
+import {epochState,renderEpochCounter} from './epoch-counter.mjs';
 import {scenes as allScenes,foundationScenes} from './scenes.mjs';
 const scenes=document.body.dataset.chapter==='batches'?foundationScenes:allScenes;
 import {render} from './views.mjs';
@@ -7,8 +8,8 @@ const media=matchMedia('(prefers-reduced-motion: reduce)');
 let experiment,index=0,pending=false,last='',frame;
 const typesetCache=new Map();
 const procedure=$('procedure'),procedureItems=[...procedure.children];
-function showProcedure(scene,p){
- const plan=scene.layout==='plan',active=plan?Math.min(3,Math.floor(Math.max(0,Math.min(1,(p-.1)/.72))*4)):scene.procedureStep;
+function showProcedure(scene,p,frame){
+ const plan=scene.layout==='plan',active=plan?Math.min(3,Math.floor(Math.max(0,Math.min(1,(p-.1)/.72))*4)):(frame.procedureStep??scene.procedureStep);
  procedure.hidden=!plan&&!Number.isInteger(active);
  procedureItems.forEach((item,i)=>{
   item.classList.toggle('is-current',i===active);
@@ -23,10 +24,16 @@ function draw(){pending=false;if(!experiment)return;const anchor=stage.getBoundi
  if(stage.dataset.scene!==scene.id){$('heading').textContent=scene.title;$('caption').textContent=scene.caption;$('note').textContent=scene.note;$('part').textContent=scene.part;$('count').textContent=`${String(index+1).padStart(2,'0')} / ${scenes.length}`;$('status').textContent=scene.title;stage.dataset.scene=scene.id;}
  const tex=mobile&&scene.compact?scene.compact:scene.tex;$('equation').hidden=!tex;if($('equation').dataset.tex!==tex){$('equation').innerHTML=formula(tex);$('equation').dataset.tex=tex;}
  stage.dataset.construction=String(constructionKinds.includes(scene.kind));
- stage.dataset.training=String(scene.kind.startsWith('batches')||scene.kind.startsWith('train-'));
+ stage.dataset.training=String(scene.kind.startsWith('batches')||scene.kind.startsWith('train-')||scene.kind==='epoch-two');
  stage.dataset.layout=scene.layout||'standard';
- showProcedure(scene,p);
- frame=render($('plot'),$('detail'),scene,p,experiment);$('detail-label').textContent=frame.detailTitle;$('plot-label').textContent=frame.plotTitle;$('progress').style.width=`${100*(index+p)/scenes.length}%`;
+ const counter=$('epoch-counter'),showCounter=document.body.dataset.chapter!=='batches'&&(scene.part.startsWith('02')||['initialize-wide','batches-wide','train-wide'].includes(scene.kind));
+ if(showCounter&&counter.hidden)renderEpochCounter(counter,epochState(0,experiment.config.epochs,experiment.config.batchesPerEpoch));
+ counter.hidden=!showCounter;stage.dataset.counter=String(showCounter);
+ showProcedure(scene,p,{});
+ frame=render($('plot'),$('detail'),scene,p,experiment);
+ showProcedure(scene,p,frame);
+ if(showCounter)renderEpochCounter(counter,epochState(frame.completedUpdates,experiment.config.epochs,experiment.config.batchesPerEpoch));
+ $('detail-label').textContent=frame.detailTitle;$('plot-label').textContent=frame.plotTitle;$('progress').style.width=`${100*(index+p)/scenes.length}%`;
  // Only the changing caption moves, and it remains still for most of the beat.
  const arrival=media.matches?1:Math.min(1,p/.1);$('caption').style.transform=`translateY(${(1-arrival)*6}px)`;$('caption').style.opacity=String(.65+.35*arrival);
  stage.dataset.progress=String(p);stage.dataset.frame=JSON.stringify(frame);

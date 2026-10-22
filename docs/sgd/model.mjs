@@ -42,7 +42,7 @@ export function train({width=2,seed=1,epochs=300,batchSize=64,record=false}={}) 
     const order=shuffle(rng);
     for(let b=0;b<batches;b++){
       const step=(epoch-1)*batches+b,eta=.025/(1+step/6000),indices=order.slice(b*batchSize,(b+1)*batchSize);
-      const capture=record&&(epoch===1||step%31===0||step===steps-1);
+      const capture=record&&(epoch<=2||step%31===0||step===steps-1);
       const snapshot=capture?{step,epoch,batch:b+1,eta,indices,model:copy(model),loss:loss(model)}:null;
       update(model,gradient(model,indices.map(i=>data[i])),eta);
       if(snapshot){snapshot.after=copy(model);snapshot.afterLoss=loss(model);trace.push(snapshot);}

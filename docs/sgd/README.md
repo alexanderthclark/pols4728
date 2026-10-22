@@ -1,17 +1,22 @@
 # Training neural networks
 
-A scroll-driven POLS 4728 lesson. It constructs a step approximation from two separate ReLUs, transforms their input weights and hidden biases, flips one output contribution, adds them, and applies the shared output bias. It then uses the same step target throughout training and comparison.
+A 26-scene, scroll-driven POLS 4728 lesson. It constructs a step approximation from two separate ReLUs, transforms their input weights and hidden biases, flips one output contribution, adds them, and applies the shared output bias. It then uses the same step target throughout training and comparison.
 
-The SGD chapter first introduces batches and epochs with a deliberately small teaching example: 12 numbered observations form three batches of four. The same identities persist as the groups are used one at a time, one full pass becomes an epoch, and the next epoch reshuffles the same observations. It then connects these definitions to the actual 2,048-observation experiment. `batches.html` is a focused, seven-scene introduction that ends with the definitions; the full lesson continues to the four-step SGD procedure and the detailed first-batch calculations. The inactive first neuron and its zero gradients remain explicit.
+The main SGD chapter opens with a transition and a diagram partitioning the actual 2,048 observations into 32 disjoint batches of 64. It selects the first batch, follows one observation's prediction and squared-error loss, adds the 64 point losses, and divides by 64 to obtain the mean batch loss. It then differentiates this loss, demonstrates one parameter's gradient step, and applies the update to the whole model. The inactive first neuron and its zero gradients remain explicit.
 
-The experiment uses 2,048 evenly spaced noiseless observations and plain minibatch SGD. Each epoch shuffles all observations into 32 batches of 64. Both shallow widths (2 and 12) train for 300 epochs with matched batch order and learning-rate schedule. Seed 1 is replayed for each width; all eight fixed seeds appear in the results table. The first epoch shows every update, then later epochs accelerate through checkpoints. Animation interpolates only between actual before/after parameters at a recorded update.
+The next batch uses the learned weights to compute a new loss, gradient, and update. The animation then speeds through batches 3–32, completes the first epoch, reshuffles the same observations, and performs the first update of epoch two. Learned weights remain continuous across these scenes. A lap-style counter at the bottom right shows the current epoch and the number of completed batch updates in that pass; it advances to the next epoch only after all 32 updates are complete.
 
-`model.mjs` defines the model, backpropagation, deterministic data, shuffle, and SGD. `experiment.json` records reproducible traces and results. `construction.mjs` renders the two-neuron construction; `batch-epoch.mjs` renders the introductory batches and epochs; `sgd-detail.mjs` renders the numerical batch walkthrough; `views.mjs` renders training and comparison. `scenes.mjs` supplies the narrative and batching bullets; `build-page.mjs` generates the static reading route with local KaTeX, including the complete procedure and explanations.
+`batches.html` remains a separate, focused seven-scene introduction to batches and epochs. Its small teaching example groups 12 numbered observations into three batches of four, follows one complete pass, then reshuffles the same observations for another epoch. It ends by connecting these definitions to the actual experiment's 2,048 observations and 32 batches; it does not include the loss and gradient calculations or the training counter.
+
+The experiment uses 2,048 evenly spaced noiseless observations and plain minibatch SGD. Each epoch shuffles all observations into 32 batches of 64. Both shallow widths (2 and 12) train for 300 epochs with matched batch order and learning-rate schedule. Seed 1 is replayed for each width; all eight fixed seeds appear in the results table. The first two epochs are recorded in full so the transition between passes preserves the exact model and batch order. Later training accelerates through recorded checkpoints. Animation interpolates only between actual before/after parameters at a recorded update.
+
+`model.mjs` defines the model, backpropagation, deterministic data, shuffle, and SGD. `experiment.json` records reproducible traces and results. `construction.mjs` renders the two-neuron construction; `batch-epoch.mjs` renders the focused batches-and-epochs introduction; `sgd-detail.mjs` renders the partition and numerical batch walkthrough; `views.mjs` renders training and comparison. `epoch-counter.mjs` derives the counter from completed updates. `scenes.mjs` supplies the narrative and procedure labels; `build-page.mjs` generates both pages and their complete static reading routes with local KaTeX.
 
 ```sh
 node docs/sgd/generate.mjs
 node docs/sgd/check.mjs
 node docs/sgd/build-page.mjs
+node --test tests/sgd.test.mjs
 ```
 
 Serve `docs/` over HTTP. Review forward and reverse scrolling, keyboard steps, narrow-screen rendering, and reduced motion. Scroll is the complete route through the lesson. The static reading route also works without JavaScript.

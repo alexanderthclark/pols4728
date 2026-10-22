@@ -33,22 +33,36 @@ export function render(plot,detail,scene,p,e){
   let model=wide?e.traces[12][0].model:e.firstUpdate.before;detailTitle='Training';
   if(kind==='update'){model=interpolate(e.firstUpdate.before,e.firstUpdate.after,u);body+=c.path(x=>predict(e.firstUpdate.before,x),C.gray,2,'4 4');}
   body+=observations(c,{batch:kind==='update'?e.firstUpdate.indices:null,residualModel:kind==='loss'?model:null,amount:kind==='loss'?u:1})+c.path(x=>predict(model,x),color);
-  if(kind==='initialize'||wide)facts(detail,[['Hidden neurons',wide?'12':'2','One hidden layer'],['Trainable parameters',wide?'37':'7','Weights and biases are trainable']]);
+  if(kind==='initialize'||wide)facts(detail,[['Hidden neurons',wide?'12':'2','One hidden layer'],['Trainable parameters',wide?'37':'7','Learn weights and biases']]);
   if(kind==='loss')facts(detail,[['Training MSE',e.traces[2][0].loss.toFixed(4),'All 2,048 observations'],['Residuals shown',String(Math.ceil(2048*u)),'Squared, then averaged']]);
   if(kind==='full'){gradientBars(detail,gradient(model,data));detailTitle='Backpropagated gradient';}
   if(kind==='update')facts(detail,[['Learning rate','0.025','Zero gradient: no change'],['Batch MSE',loss(model,e.firstUpdate.indices.map(i=>data[i])).toFixed(4),'One actual SGD update']]);
-  info.width=wide?12:2;
+  info.width=wide?12:2;info.completedUpdates=kind==='update'?u:0;info.outputBias=model.c;info.predictionAtZero=predict(model,0);info.model=model;
  }
  if(['batches-two','train-two','batches-wide','train-wide'].includes(kind)){
   const width=kind.endsWith('wide')?12:2,color=width===2?C.blue:C.teal,trace=e.traces[width],firstEpoch=kind.startsWith('batches');
-  const start=firstEpoch?0:31,end=firstEpoch?31:trace.length-1;
-  const position=u*(end-start+1),index=Math.min(end,start+Math.floor(position)),fraction=u===1?1:position-Math.floor(position),mix=clamp((fraction-.25)/.65),s=trace[index];
+  const firstStep=firstEpoch?(width===2?2:0):(width===2?33:32);
+  const start=trace.findIndex(s=>s.step===firstStep),end=firstEpoch?31:trace.length-1;
+  const position=(kind==='batches-two'?u**1.5:u)*(end-start+1),index=Math.min(end,start+Math.floor(position)),fraction=u===1?1:position-Math.floor(position),mix=clamp((fraction-.25)/.65),s=trace[index];
   const model=interpolate(s.model,s.after,mix);
   body+=observations(c,{batch:s.indices})+c.path(x=>predict(s.model,x),C.gray,1.8,'3 4')+c.path(x=>predict(model,x),color);
   trainingPanel(detail,trace,index,mix,firstEpoch,color,width);
   plotTitle=`Width ${width} · update ${(s.step+(mix===1?1:0)).toLocaleString('en-US')} / 9,600`;
   detailTitle=`Full-data MSE · ${loss(model).toFixed(4)} (log scale)`;
-  info={...info,width,step:s.step,epoch:s.epoch,batch:s.batch,mix,batchFirst:s.indices[0],predictionAtZero:predict(model,0)};
+  info={...info,width,step:s.step,epoch:s.epoch,batch:s.batch,mix,batchFirst:s.indices[0],predictionAtZero:predict(model,0),model,completedUpdates:s.step+mix};
+ }
+ if(kind==='epoch-two'){
+  const trace=e.traces[2],s=trace.find(s=>s.step===32),previous=trace.find(s=>s.step===31),select=clamp(u/.45),mix=clamp((u-.5)/.5),model=interpolate(s.model,s.after,mix);
+  body+=observations(c)+c.path(x=>predict(s.model,x),C.gray,1.8,'3 4')+c.path(x=>predict(model,x),C.blue);
+  for(const [indices,alpha] of [[previous.indices,1-select],[s.indices,select]]){
+   body+=`<g opacity="${alpha}">`;
+   for(const i of indices){const d=data[i];body+=`<circle cx="${c.X(d.x)}" cy="${c.Y(d.y)}" r="3.3" fill="${C.rust}" stroke="white" stroke-width=".6"/>`;}
+   body+='</g>';
+  }
+  trainingPanel(detail,trace,32,mix,false,C.blue,2);
+  plotTitle=select<1?'Same learned model · reshuffle the observations':'Epoch 2 · first batch in the new partition';
+  detailTitle=mix===0?'32 updates complete · start a new pass':'First update of epoch 2';
+  info={...info,width:2,step:32,epoch:2,batch:1,mix,batchFirst:s.indices[0],model,completedUpdates:32+mix,predictionAtZero:predict(model,0)};
  }
  if(kind==='compare'||kind==='finish'){
   const narrow=e.runs.find(r=>r.width===2&&r.seed===1),wide=e.runs.find(r=>r.width===12&&r.seed===1);
