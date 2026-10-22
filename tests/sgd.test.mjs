@@ -215,16 +215,58 @@ test('the supplied batch gradient has one component per parameter at the unchang
   const first = experiment.firstUpdate;
   const batch = first.indices.map(index => data[index]);
   const expected = parameters(gradient(first.before, batch));
+  const residuals = batch.map(row => predict(first.before, row.x) - row.y);
+  const meanResidual = residuals.reduce((sum, residual) => sum + residual, 0) / batch.length;
   for (const progress of [0, .25, .65, 1, .25, 0]) {
-    const frame = renderScene('batch-gradient', progress).frame;
+    const { frame, plot } = renderScene('batch-gradient', progress);
     assert.deepEqual(frame.model, first.before);
     assert.equal(frame.completedUpdates, 0);
+    assert.equal(frame.residualCount, batch.length);
+    assert.equal(frame.residualCount, 64);
+    assert.deepEqual(frame.residuals, residuals, 'Residual coordinates must follow observations in the batch');
+    assert.equal(frame.parameterCount, parameters(first.before).length);
+    assert.equal(frame.parameterCount, 7);
     assert.equal(frame.gradient.length, parameters(first.before).length);
     frame.gradient.forEach((value, index) => close(value, expected[index]));
     close(frame.gradientC, expected[6]);
+    close(frame.gradientC, meanResidual);
+    close(frame.meanResidual, meanResidual);
+    close(frame.outputBiasGradient, meanResidual);
+    assert.match(plot, /data-space="observations"/);
+    assert.match(plot, /data-space="parameters"/);
+    assert.equal([...plot.matchAll(/data-parameter="[^"]+"/g)].length, 7);
+    const displayedResiduals = [...plot.matchAll(/data-observation="(\d+)" data-batch-position="(\d+)" data-residual="([^"]+)"/g)];
+    assert.equal(displayedResiduals.length, 64);
+    displayedResiduals.forEach((match, index) => {
+      assert.equal(Number(match[1]), first.indices[index]);
+      assert.equal(Number(match[2]), index + 1);
+      close(Number(match[3]), residuals[index]);
+    });
   }
   assert.deepEqual(expected.slice(0, 3), [0, 0, 0]);
   assert.equal(expected.filter(value => value !== 0).length, 4);
+});
+
+test('widening the network changes the parameter-gradient dimension without changing the batch residual dimension', () => {
+  const first = experiment.traces[2][0];
+  for (const width of [2, 12]) {
+    const snapshot = experiment.traces[width][0];
+    assert.deepEqual(snapshot.indices, first.indices);
+    const rows = snapshot.indices.map(index => data[index]);
+    const residuals = rows.map(row => predict(snapshot.model, row.x) - row.y);
+    const g = gradient(snapshot.model, rows);
+    assert.equal(residuals.length, 64);
+    assert.equal(parameters(g).length, width === 2 ? 7 : 37);
+    assert.equal(parameters(g).length, parameters(snapshot.model).length);
+    const meanResidual = residuals.reduce((sum, residual) => sum + residual, 0) / rows.length;
+    // The output bias moves every prediction by the same amount. Its one
+    // gradient coordinate therefore averages all 64 residuals in either model.
+    close(g.c, meanResidual);
+    const eps = 1e-6;
+    const plus = { ...snapshot.model, c: snapshot.model.c + eps };
+    const minus = { ...snapshot.model, c: snapshot.model.c - eps };
+    close((loss(plus, rows) - loss(minus, rows)) / (2 * eps), meanResidual, 1e-9);
+  }
 });
 
 test('the single-parameter illustration leaves the actual model and update counter unchanged', () => {

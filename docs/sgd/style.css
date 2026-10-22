@@ -152,3 +152,10 @@
 @media screen and (max-width:700px){
  .stage[data-scene="update"] .visuals{grid-template-rows:minmax(0,1fr) 142px;min-height:0}
 }
+
+/* On phones, give both vector spaces the full diagram height; the caption
+   and note retain the output-bias example shown in the desktop detail. */
+@media screen and (max-width:700px){
+ .stage[data-scene="batch-gradient"] .visuals{grid-template-rows:minmax(0,1fr);min-height:0;max-height:none}
+ .stage[data-scene="batch-gradient"] .detail{display:none}
+}
