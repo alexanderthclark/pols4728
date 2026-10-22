@@ -5,12 +5,26 @@ const $=id=>document.getElementById(id),stage=document.querySelector('.stage'),s
 const media=matchMedia('(prefers-reduced-motion: reduce)');
 let experiment,index=0,pending=false,last='',frame;
 const typesetCache=new Map();
+const procedure=$('procedure'),procedureItems=[...procedure.children];
+function showProcedure(scene,p){
+ const plan=scene.layout==='plan',active=plan?Math.min(3,Math.floor(Math.max(0,Math.min(1,(p-.1)/.72))*4)):scene.procedureStep;
+ procedure.hidden=!plan&&!Number.isInteger(active);
+ procedureItems.forEach((item,i)=>{
+  item.classList.toggle('is-current',i===active);
+  item.classList.toggle('is-pending',plan&&i>active);
+  item.classList.toggle('is-done',i<active);
+  if(i===active)item.setAttribute('aria-current','step');else item.removeAttribute('aria-current');
+  item.setAttribute('aria-hidden',String(plan&&i>active));
+ });
+}
 function formula(tex){if(!typesetCache.has(tex))typesetCache.set(tex,window.katex.renderToString(tex,{displayMode:true,output:'htmlAndMathml',throwOnError:true,strict:'error'}));return typesetCache.get(tex);}
 function draw(){pending=false;if(!experiment)return;const anchor=stage.getBoundingClientRect().top;let selected=0;steps.forEach((s,i)=>{if(s.getBoundingClientRect().top<=anchor+.5)selected=i;});index=selected;const rect=steps[index].getBoundingClientRect(),scene=scenes[index];let p=Math.max(0,Math.min(1,(anchor-rect.top)/rect.height));p=Math.round(p*200)/200;if(media.matches)p=1;const mobile=innerWidth<=700,signature=[index,p,mobile,innerWidth,innerHeight].join(':');if(signature===last)return;last=signature;
  if(stage.dataset.scene!==scene.id){$('heading').textContent=scene.title;$('caption').textContent=scene.caption;$('note').textContent=scene.note;$('part').textContent=scene.part;$('count').textContent=`${String(index+1).padStart(2,'0')} / ${scenes.length}`;$('status').textContent=scene.title;stage.dataset.scene=scene.id;}
  const tex=mobile&&scene.compact?scene.compact:scene.tex;if($('equation').dataset.tex!==tex){$('equation').innerHTML=formula(tex);$('equation').dataset.tex=tex;}
  stage.dataset.construction=String(constructionKinds.includes(scene.kind));
  stage.dataset.training=String(scene.kind.startsWith('batches')||scene.kind.startsWith('train-'));
+ stage.dataset.layout=scene.layout||'standard';
+ showProcedure(scene,p);
  frame=render($('plot'),$('detail'),scene,p,experiment);$('detail-label').textContent=frame.detailTitle;$('plot-label').textContent=frame.plotTitle;$('progress').style.width=`${100*(index+p)/scenes.length}%`;
  // Only the changing caption moves, and it remains still for most of the beat.
  const arrival=media.matches?1:Math.min(1,p/.1);$('caption').style.transform=`translateY(${(1-arrival)*6}px)`;$('caption').style.opacity=String(.65+.35*arrival);

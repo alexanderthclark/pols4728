@@ -2,9 +2,11 @@
 
 A scroll-driven POLS 4728 lesson. It constructs a step approximation from two separate ReLUs, transforms their input weights and hidden biases, flips one output contribution, adds them, and applies the shared output bias. It then uses the same step target throughout training and comparison.
 
+The SGD chapter opens with a transition scene and a four-bullet procedure: shuffle, take 64, average the gradients, and update. A detailed first-batch walkthrough follows the actual shuffled observations through prediction, batch MSE, gradient averaging, a numerical output-bias update, and the move to the next disjoint batch. The inactive first neuron and its zero gradients remain explicit.
+
 The experiment uses 2,048 evenly spaced noiseless observations and plain minibatch SGD. Each epoch shuffles all observations into 32 batches of 64. Both shallow widths (2 and 12) train for 300 epochs with matched batch order and learning-rate schedule. Seed 1 is replayed for each width; all eight fixed seeds appear in the results table. The first epoch shows every update, then later epochs accelerate through checkpoints. Animation interpolates only between actual before/after parameters at a recorded update.
 
-`model.mjs` defines the model, backpropagation, deterministic data, shuffle, and SGD. `experiment.json` records reproducible traces and results. `construction.mjs` renders the two-neuron construction; `views.mjs` renders training and comparison. `scenes.mjs` supplies the narrative; `build-page.mjs` generates the static reading route with local KaTeX.
+`model.mjs` defines the model, backpropagation, deterministic data, shuffle, and SGD. `experiment.json` records reproducible traces and results. `construction.mjs` renders the two-neuron construction; `sgd-detail.mjs` renders the batch walkthrough; `views.mjs` renders training and comparison. `scenes.mjs` supplies the narrative and batching bullets; `build-page.mjs` generates the static reading route with local KaTeX, including the complete procedure and explanations.
 
 ```sh
 node docs/sgd/generate.mjs
