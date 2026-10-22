@@ -15,11 +15,14 @@ export function initialize(width, seed) {
   return {c:.5, units:Array.from({length:width}, () => ({w:2*rng()-1,b:rng()-.5,a:(2*rng()-1)/Math.sqrt(width)}))};
 }
 export function predict(model,x) { return model.c + model.units.reduce((s,u)=>s+u.a*relu(u.w*x+u.b),0); }
-export function loss(model,rows=data) { return rows.reduce((s,d)=>s+(predict(model,d.x)-d.y)**2,0)/rows.length; }
+export function mse(model,rows=data) { return rows.reduce((s,d)=>s+(predict(model,d.x)-d.y)**2,0)/rows.length; }
+// Optimize half-MSE: the derivative of one point's loss with respect to its
+// prediction is prediction minus target. Report ordinary MSE as the metric.
+export function loss(model,rows=data) { return mse(model,rows)/2; }
 export function gradient(model, rows) {
   const g = {c:0,units:model.units.map(()=>({w:0,b:0,a:0}))};
   for (const {x,y} of rows) {
-    const e = 2 * (predict(model,x)-y) / rows.length;
+    const e = (predict(model,x)-y) / rows.length;
     g.c += e;
     model.units.forEach((u,j)=>{const z=u.w*x+u.b; g.units[j].a += e*relu(z); if(z>0){g.units[j].w+=e*u.a*x;g.units[j].b+=e*u.a;}});
   }
@@ -41,13 +44,14 @@ export function train({width=2,seed=1,epochs=300,batchSize=64,record=false}={}) 
   for(let epoch=1;epoch<=epochs;epoch++) {
     const order=shuffle(rng);
     for(let b=0;b<batches;b++){
-      const step=(epoch-1)*batches+b,eta=.025/(1+step/6000),indices=order.slice(b*batchSize,(b+1)*batchSize);
+      const step=(epoch-1)*batches+b,eta=.05/(1+step/6000),indices=order.slice(b*batchSize,(b+1)*batchSize);
       const capture=record&&(epoch<=2||step%31===0||step===steps-1);
-      const snapshot=capture?{step,epoch,batch:b+1,eta,indices,model:copy(model),loss:loss(model)}:null;
+      // Preserve the recorded `loss` / `afterLoss` metric fields as ordinary MSE.
+      const snapshot=capture?{step,epoch,batch:b+1,eta,indices,model:copy(model),loss:mse(model)}:null;
       update(model,gradient(model,indices.map(i=>data[i])),eta);
-      if(snapshot){snapshot.after=copy(model);snapshot.afterLoss=loss(model);trace.push(snapshot);}
+      if(snapshot){snapshot.after=copy(model);snapshot.afterLoss=mse(model);trace.push(snapshot);}
     }
   }
   const grid=Array.from({length:4000},(_,i)=>({x:-1+(i+.5)/2000,y:target(-1+(i+.5)/2000)}));
-  return {width,seed,epochs,steps,batchSize,model:copy(model),loss:loss(model),gridMSE:loss(model,grid),trace};
+  return {width,seed,epochs,steps,batchSize,model:copy(model),loss:mse(model),gridMSE:mse(model,grid),trace};
 }

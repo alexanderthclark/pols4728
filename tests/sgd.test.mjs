@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
-import { data, gradient, loss, predict, random, shuffle } from '../docs/sgd/model.mjs';
+import { copy, data, gradient, initialize, loss, mse, predict, random, shuffle, update } from '../docs/sgd/model.mjs';
 import { epochState, renderEpochCounter } from '../docs/sgd/epoch-counter.mjs';
 import { scenes, foundationScenes, batchSteps } from '../docs/sgd/scenes.mjs';
 import { render } from '../docs/sgd/views.mjs';
@@ -51,20 +51,82 @@ test('each of the first two epochs partitions the same data and preserves the pr
   }
 });
 
-test('the batch objective is the sum of point losses divided by batch size', () => {
+const parameters = model => model.units.flatMap(unit => [unit.w, unit.b, unit.a]).concat(model.c);
+function perturb(model, index, amount) {
+  const changed = copy(model);
+  if (index === model.units.length * 3) changed.c += amount;
+  else changed.units[Math.floor(index / 3)][['w', 'b', 'a'][index % 3]] += amount;
+  return changed;
+}
+
+test('the half-MSE objective averages half-squared point errors while reporting ordinary MSE', () => {
   const first = experiment.firstUpdate;
   const rows = first.indices.map(index => data[index]);
-  const pointLosses = rows.map(row => (predict(first.before, row.x) - row.y) ** 2);
+  const pointLosses = rows.map(row => .5 * (predict(first.before, row.x) - row.y) ** 2);
   close(pointLosses.reduce((sum, value) => sum + value, 0) / rows.length, first.batchBefore);
   close(first.batchBefore, loss(first.before, rows));
-  assert.equal(first.batchBefore.toFixed(4), '0.4257');
+  close(mse(first.before, rows), 2 * first.batchBefore);
+  assert.equal(first.batchBefore.toFixed(4), '0.2129');
+  assert.equal(mse(first.before, rows).toFixed(4), '0.4257');
   const g = gradient(first.before, rows);
   const eps = 1e-6;
-  const plus = { ...first.before, c: first.before.c + eps };
-  const minus = { ...first.before, c: first.before.c - eps };
-  close((loss(plus, rows) - loss(minus, rows)) / (2 * eps), g.c, 1e-9);
+  parameters(g).forEach((value, index) => {
+    const plus = perturb(first.before, index, eps), minus = perturb(first.before, index, -eps);
+    close((loss(plus, rows) - loss(minus, rows)) / (2 * eps), value, 1e-9);
+    close(rows.reduce((sum, row) => sum + parameters(gradient(first.before, [row]))[index], 0) / rows.length, value);
+  });
+  close(experiment.traces[2][0].eta, .05);
   close(first.before.c - experiment.traces[2][0].eta * g.c, first.after.c);
   assert.equal(first.after.c.toFixed(4), '0.5084');
+  for (const width of [2, 12]) {
+    for (const snapshot of experiment.traces[width]) {
+      close(snapshot.loss, mse(snapshot.model));
+      close(snapshot.afterLoss, mse(snapshot.after));
+    }
+  }
+  for (const run of experiment.runs) close(run.loss, mse(run.model));
+});
+
+// Preserve the former squared-error derivative independently of the current
+// objective. Replaying it at the former rate detects accidental changes to the
+// learning-rate decay, update order, or gradients anywhere in training.
+function legacyMSEGradient(model, rows) {
+  const result = { c: 0, units: model.units.map(() => ({ w: 0, b: 0, a: 0 })) };
+  for (const row of rows) {
+    const errorDerivative = 2 * (predict(model, row.x) - row.y) / rows.length;
+    result.c += errorDerivative;
+    model.units.forEach((unit, index) => {
+      const preactivation = unit.w * row.x + unit.b;
+      result.units[index].a += errorDerivative * Math.max(0, preactivation);
+      if (preactivation > 0) {
+        result.units[index].w += errorDerivative * unit.a * row.x;
+        result.units[index].b += errorDerivative * unit.a;
+      }
+    });
+  }
+  return result;
+}
+
+test('half-MSE with twice the learning rate preserves every recorded update across all 300 epochs', () => {
+  for (const width of [2, 12]) {
+    const model = initialize(width, 1), rng = random(10001);
+    const recorded = new Map(experiment.traces[width].map(snapshot => [snapshot.step, snapshot]));
+    for (let epoch = 0; epoch < 300; epoch++) {
+      const order = shuffle(rng);
+      for (let batch = 0; batch < 32; batch++) {
+        const step = epoch * 32 + batch, snapshot = recorded.get(step);
+        const rows = order.slice(batch * 64, (batch + 1) * 64).map(index => data[index]);
+        const oldRate = .025 / (1 + step / 6000);
+        if (snapshot) {
+          assert.deepEqual(snapshot.model, model, `Width ${width}, step ${step}: preceding weights`);
+          assert.equal(snapshot.eta, 2 * oldRate);
+        }
+        update(model, legacyMSEGradient(model, rows), oldRate);
+        if (snapshot) assert.deepEqual(snapshot.after, model, `Width ${width}, step ${step}: updated weights`);
+      }
+    }
+    assert.deepEqual(model, experiment.runs.find(run => run.width === width && run.seed === 1).model);
+  }
 });
 
 test('epoch counters advance only after every update in the pass has completed', () => {
@@ -134,7 +196,7 @@ test('the same point loss becomes the first term of the sum before averaging', (
   const row = data[point.pointIndex];
   close(point.pointPrediction, predict(first.before, row.x));
   close(point.pointResidual, point.pointPrediction - row.y);
-  close(point.pointLoss, point.pointResidual ** 2);
+  close(point.pointLoss, .5 * point.pointResidual ** 2);
   const start = renderScene('batch-loss', 0).frame;
   assert.equal(start.lossesAdded, 1);
   assert.equal(start.normalized, false);
@@ -142,10 +204,58 @@ test('the same point loss becomes the first term of the sum before averaging', (
   const end = renderScene('batch-loss', 1).frame;
   assert.equal(end.lossesAdded, 64);
   assert.equal(end.normalized, true);
-  close(end.batchSum / 64, end.batchMSE);
-  close(end.batchMSE, first.batchBefore);
+  close(end.batchSum / 64, end.batchHalfMSE);
+  close(end.batchHalfMSE, first.batchBefore);
+  close(end.batchMSE, 2 * first.batchBefore);
   const reversed = renderScene('batch-loss', 0).frame;
   assert.deepEqual(reversed, start);
+});
+
+test('the animation carries the signed prediction error through each parameter sensitivity', () => {
+  const first = experiment.firstUpdate, eps = 1e-6;
+  const point = renderScene('point-loss', 1).frame;
+  for (const id of ['prediction-gradient', 'parameter-gradient']) {
+    const frame = renderScene(id, 1).frame, row = data[frame.pointIndex];
+    assert.equal(frame.pointIndex, point.pointIndex);
+    close(frame.pointResidual, predict(first.before, row.x) - row.y);
+    assert.ok(frame.pointResidual > 0, 'The example prediction is above its target');
+    close(frame.predictionDerivative, frame.pointResidual);
+    const pointLoss = prediction => .5 * (prediction - row.y) ** 2;
+    close((pointLoss(frame.pointPrediction + eps) - pointLoss(frame.pointPrediction - eps)) / (2 * eps), frame.predictionDerivative, 1e-9);
+    assert.equal(frame.parameterSensitivities.length, 7);
+    assert.equal(frame.pointParameterGradient.length, 7);
+    frame.parameterSensitivities.forEach((sensitivity, index) => {
+      const plus = perturb(first.before, index, eps), minus = perturb(first.before, index, -eps);
+      close((predict(plus, row.x) - predict(minus, row.x)) / (2 * eps), sensitivity, 1e-9);
+      close(frame.pointParameterGradient[index], frame.pointResidual * sensitivity);
+      close((loss(plus, [row]) - loss(minus, [row])) / (2 * eps), frame.pointParameterGradient[index], 1e-9);
+      close(frame.pointParameterGradient[index], parameters(gradient(first.before, [row]))[index]);
+    });
+    assert.deepEqual(frame.parameterSensitivities.slice(0, 3), [0, 0, 0]);
+    assert.equal(frame.parameterSensitivities[6], 1, 'The output bias changes the prediction one-for-one');
+    assert.equal(frame.pointParameterGradient[6], frame.pointResidual);
+    const start = renderScene(id, 0).frame;
+    renderScene(id, 1);
+    assert.deepEqual(renderScene(id, 0).frame, start);
+  }
+  // The batch prediction gradient includes the averaging factor; the parameter
+  // gradient additionally combines the different sensitivities of all points.
+  const batch = first.indices.map(index => data[index]);
+  const predictionGradient = batch.map(row => (predict(first.before, row.x) - row.y) / batch.length);
+  close(predictionGradient.reduce((sum, value) => sum + value, 0), gradient(first.before, batch).c);
+  for (const progress of [0, .45, 1]) {
+    const frame = renderScene('batch-gradient', progress).frame;
+    const expected = parameters(gradient(first.before, batch.slice(0, frame.contributions)))
+      .map(value => value * frame.contributions / batch.length);
+    frame.gradient.forEach((value, index) => close(value, expected[index]));
+    if (progress === 0) assert.equal(frame.contributions, 1);
+    else if (progress === 1) assert.equal(frame.contributions, 64);
+    else assert.ok(frame.contributions > 1 && frame.contributions < 64);
+  }
+  const negative = batch.find(row => predict(first.before, row.x) < row.y);
+  assert.ok(negative, 'The batch also contains a prediction below its target');
+  close(gradient(first.before, [negative]).c, predict(first.before, negative.x) - negative.y);
+  assert.ok(gradient(first.before, [negative]).c < 0);
 });
 
 test('batch and epoch transitions continue from the exact preceding learned weights', () => {
@@ -279,6 +389,11 @@ test('reduced motion and keyboard navigation retain complete losses and epoch bo
   const ui = await controller();
   ui.reduce(true);
   assert.equal(ui.at('batch-loss', .1).normalized, true);
+  for (const id of ['prediction-gradient', 'parameter-gradient']) {
+    const frame = ui.at(id, .1);
+    assert.equal(frame.gradientReveal, 1);
+    assert.equal(frame.completedUpdates, 0);
+  }
   assert.equal(ui.at('batches-two', .1).completedUpdates, 32);
   assert.equal(ui.nodes.get('epoch-counter').dataset.completedEpochs, '1');
   ui.emit('document:keydown', { key: 'ArrowRight', target: { tagName: 'DIV' }, preventDefault() {} });

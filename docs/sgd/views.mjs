@@ -1,9 +1,9 @@
 import {foundationKinds,renderFoundation} from './batch-epoch.mjs';
 import {constructionKinds,renderConstruction} from './construction.mjs';
-import {predict,ramp,gradient,data,loss} from './model.mjs';
+import {predict,ramp,gradient,data,loss,mse} from './model.mjs';
 import {sgdKinds,renderSGD,C,clamp,line,text,set,canvas,chart,facts,observations,gradientBars,interpolate} from './sgd-detail.mjs';
 function trainingPanel(svg,trace,index,mix,firstEpoch,color,width){
- const {w,h}=canvas(svg),s=trace[index],value=loss(interpolate(s.model,s.after,mix));
+ const {w,h}=canvas(svg),s=trace[index],value=mse(interpolate(s.model,s.after,mix));
  const compact=h<150,l=37,r=w-12,t=compact?57:87,b=h-24,maxStep=firstEpoch?32:9600;
  const X=step=>l+step/maxStep*(r-l),Y=v=>b-(Math.log10(Math.max(.001,v))+3)/3*(b-t);
  let html=text(0,13,`Epoch ${s.epoch} / 300`,'small')+text(w,13,`Batch ${s.batch} / 32 · 64 rows`,'small','end');
@@ -36,7 +36,7 @@ export function render(plot,detail,scene,p,e){
   if(kind==='initialize'||wide)facts(detail,[['Hidden neurons',wide?'12':'2','One hidden layer'],['Trainable parameters',wide?'37':'7','Learn weights and biases']]);
   if(kind==='loss')facts(detail,[['Training MSE',e.traces[2][0].loss.toFixed(4),'All 2,048 observations'],['Residuals shown',String(Math.ceil(2048*u)),'Squared, then averaged']]);
   if(kind==='full'){gradientBars(detail,gradient(model,data));detailTitle='Backpropagated gradient';}
-  if(kind==='update')facts(detail,[['Learning rate','0.025','Zero gradient: no change'],['Batch MSE',loss(model,e.firstUpdate.indices.map(i=>data[i])).toFixed(4),'One actual SGD update']]);
+  if(kind==='update')facts(detail,[['Learning rate',String(e.traces[2][0].eta),'Zero gradient: no change'],['Batch half-MSE',loss(model,e.firstUpdate.indices.map(i=>data[i])).toFixed(4),'One actual SGD update']]);
   info.width=wide?12:2;info.completedUpdates=kind==='update'?u:0;info.outputBias=model.c;info.predictionAtZero=predict(model,0);info.model=model;
  }
  if(['batches-two','train-two','batches-wide','train-wide'].includes(kind)){
@@ -48,7 +48,7 @@ export function render(plot,detail,scene,p,e){
   body+=observations(c,{batch:s.indices})+c.path(x=>predict(s.model,x),C.gray,1.8,'3 4')+c.path(x=>predict(model,x),color);
   trainingPanel(detail,trace,index,mix,firstEpoch,color,width);
   plotTitle=`Width ${width} · update ${(s.step+(mix===1?1:0)).toLocaleString('en-US')} / 9,600`;
-  detailTitle=`Full-data MSE · ${loss(model).toFixed(4)} (log scale)`;
+  detailTitle=`Full-data MSE · ${mse(model).toFixed(4)} (log scale)`;
   info={...info,width,step:s.step,epoch:s.epoch,batch:s.batch,mix,batchFirst:s.indices[0],predictionAtZero:predict(model,0),model,completedUpdates:s.step+mix};
  }
  if(kind==='epoch-two'){
