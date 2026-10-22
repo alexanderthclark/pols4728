@@ -38,7 +38,7 @@ export function gradientBars(svg,g1,g2=null){const {w,h}=canvas(svg),vals=g1.uni
 }
 export function interpolate(a,b,t){return {c:a.c+(b.c-a.c)*t,units:a.units.map((v,i)=>Object.fromEntries(['w','b','a'].map(k=>[k,v[k]+(b.units[i][k]-v[k])*t])))};}
 
-export const sgdKinds=['sgd-transition','sgd-plan','shuffle','batch','batch-loss','batch-gradient','parameter-step','next-batch'];
+export const sgdKinds=['sgd-plan','shuffle','batch','batch-loss','batch-gradient','parameter-step','next-batch'];
 const labels=['w₁','b₁','a₁','w₂','b₂','a₂','c'];
 const flatten=g=>g.units.flatMap(v=>[v.w,v.b,v.a]).concat(g.c);
 const signed=(v,d=4)=>(v<0?'−':v>0?'+':'')+Math.abs(v).toFixed(d);
@@ -59,33 +59,6 @@ function batchFacts(svg,indices,selected=64){
  });
  body+=text(w/2,h-4,`${selected} of 64 selected · first row of the shuffled data`,'small','middle');
  set(svg,body,`${selected} of the first batch’s 64 observations selected. This is one of 32 disjoint batches.`);
-}
-
-function chapterDiagram(svg,e,u){
- const {w,h}=canvas(svg),col=w/3,cy=h*.49,sy=Math.min(50,h*.28),r=2,first=e.firstUpdate;
- let body='';
- // These are the actual 64 observations, not a schematic random sample.
- first.indices.forEach((id,i)=>{
-  const d=data[id],orderedX=col*.13+(i%8)*col*.095,orderedY=cy-sy/2+Math.floor(i/8)*sy/7;
-  const x=lerp(orderedX,col*.15+(d.x+1)*col*.32,smooth(u*1.8)),y=lerp(orderedY,cy+sy*.4-d.y*sy*.8,smooth(u*1.8));
-  body+=circle(x,y,r,C.rust);
- });
- body+=text(col*.46,h-8,'64 observations','small','middle');
- const gs=flatten(first.gradient),scale=sy/Math.max(...gs.map(Math.abs));
- body+=line(col*1.12,cy,col*1.88,cy,'#bbb');
- gs.forEach((g,i)=>{const x=col*(1.17+.105*i);body+=line(x,cy,x,cy-g*scale*smooth(u*2-.4),g<0?C.rust:C.blue,'',4);});
- body+=text(col*1.5,h-8,'1 gradient','small','middle');
- const m=interpolate(first.before,first.after,smooth(u*2-1));
- let before='',after='';
- for(let i=0;i<=100;i++){
-  const x=-1+2*i/100,px=col*(2.1+.77*i/100),Y=v=>cy+sy/2-v*sy;
-  before+=(i?'L':'M')+px+','+Y(predict(first.before,x));
-  after+=(i?'L':'M')+px+','+Y(predict(m,x));
- }
- body+=`<path d="${before}" fill="none" stroke="#aaa" stroke-width="2" stroke-dasharray="3 3"/><path d="${after}" fill="none" stroke="${C.teal}" stroke-width="3"/>`;
- body+=text(col*2.5,h-8,'1 update','small','middle');
- body+=arrow(col*.91,cy,col*1.06,cy)+arrow(col*1.92,cy,col*2.05,cy);
- set(svg,body,'One actual batch of 64 observations produces a seven-component gradient, which changes the model in one SGD update.');
 }
 
 function planDiagram(svg,e,active){
@@ -193,10 +166,6 @@ function nextBatchFacts(svg,first,second,g2,u){
 export function renderSGD(plot,detail,scene,p,e){
  const kind=scene.kind,u=clamp((p-.10)/.72),first=e.firstUpdate,rows=first.indices.map(i=>data[i]),residuals=rows.map(d=>predict(first.before,d.x)-d.y),eta=e.traces[2][0].eta;
  let plotTitle='One minibatch, one update',detailTitle='The batching procedure',info={kind,progress:p,batchSize:64};
- if(kind==='sgd-transition'){
-  chapterDiagram(plot,e,u);stepRail(detail,Math.min(3,Math.floor(u*4)));
-  plotTitle='Stochastic gradient descent';detailTitle='Learn the weights, one small batch at a time';
- }
  if(kind==='sgd-plan'){
   const active=Math.min(3,Math.floor(u*4));planDiagram(plot,e,active);stepRail(detail,active);info.activeStep=active;
   plotTitle='From the dataset to one minibatch';detailTitle='Within one epoch';
