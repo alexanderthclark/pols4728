@@ -51,7 +51,7 @@ const arrow=(x1,y1,x2,y2,color=C.muted,width=1.5)=>{
 const circle=(x,y,r,fill,stroke='none',width=1)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${width}"/>`;
 
 function openingDiagram(svg,e,u){
- const {w,h}=canvas(svg),nodeW=(w-6)*.26,gap=(w-6)*.11,left=3,top=27,bottom=h-25,chartH=Math.max(20,bottom-top),xs=[left,left+nodeW+gap,left+2*(nodeW+gap)],narrow=w<450;
+ const {w,h}=canvas(svg),nodeW=(w-6)*.26,gap=(w-6)*.11,left=3,top=27,bottom=h-(w<450?39:25),chartH=Math.max(20,bottom-top),xs=[left,left+nodeW+gap,left+2*(nodeW+gap)],narrow=w<450;
  let body=text(xs[0]+nodeW/2,14,narrow?'2,048 points':'2,048 observations','small','middle')+text(xs[1]+nodeW/2,14,'32 batches','small','middle')+text(xs[2]+nodeW/2,14,narrow?'Update':'Learn the curve','small','middle');
  const order=e.traces[2].slice(0,32).flatMap(s=>s.indices),dx=nodeW/64,dy=chartH/32;
  order.forEach((id,i)=>body+=`<rect x="${xs[0]+i%64*dx}" y="${top+Math.floor(i/64)*dy}" width="${Math.max(.4,dx*.75)}" height="${Math.max(.4,dy*.7)}" fill="${i<64&&u>.15?C.rust:C.blue}" opacity="${i<64?1:.38}"/>`);
@@ -63,7 +63,8 @@ function openingDiagram(svg,e,u){
   body+=`<path d="${d}" fill="none" stroke="${color}" stroke-width="2.2" ${dash?`stroke-dasharray="${dash}"`:''}/>`;
  }
  body+=arrow(xs[0]+nodeW+5,(top+bottom)/2,xs[1]-6,(top+bottom)/2)+arrow(xs[1]+nodeW+5,(top+bottom)/2,xs[2]-6,(top+bottom)/2);
- body+=text(xs[0]+nodeW/2,h-5,narrow?'Training set':'Same training data','small','middle')+text(xs[1]+nodeW/2,h-5,narrow?'64 per batch':'64 in each batch','small','middle')+text(xs[2]+nodeW/2,h-5,narrow?'New weights':'One update per batch','small','middle');
+ const labelY=h-(narrow?18:5);
+ body+=text(xs[0]+nodeW/2,labelY,narrow?'Training set':'Same training data','small','middle')+text(xs[1]+nodeW/2,labelY,narrow?'64 observations':'64 observations in each batch','small','middle')+(narrow?text(xs[1]+nodeW/2,h-5,'in each batch','small','middle'):'')+text(xs[2]+nodeW/2,labelY,narrow?'New weights':'One update per batch','small','middle');
  set(svg,body,'Start with all 2,048 training observations, divide them into 32 batches of 64, and use one batch at a time to update the model.');
 }
 
