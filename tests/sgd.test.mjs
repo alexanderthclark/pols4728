@@ -211,51 +211,74 @@ test('the same point loss becomes the first term of the sum before averaging', (
   assert.deepEqual(reversed, start);
 });
 
-test('the animation carries the signed prediction error through each parameter sensitivity', () => {
-  const first = experiment.firstUpdate, eps = 1e-6;
-  const point = renderScene('point-loss', 1).frame;
-  for (const id of ['prediction-gradient', 'parameter-gradient']) {
-    const frame = renderScene(id, 1).frame, row = data[frame.pointIndex];
-    assert.equal(frame.pointIndex, point.pointIndex);
-    close(frame.pointResidual, predict(first.before, row.x) - row.y);
-    assert.ok(frame.pointResidual > 0, 'The example prediction is above its target');
-    close(frame.predictionDerivative, frame.pointResidual);
-    const pointLoss = prediction => .5 * (prediction - row.y) ** 2;
-    close((pointLoss(frame.pointPrediction + eps) - pointLoss(frame.pointPrediction - eps)) / (2 * eps), frame.predictionDerivative, 1e-9);
-    assert.equal(frame.parameterSensitivities.length, 7);
-    assert.equal(frame.pointParameterGradient.length, 7);
-    frame.parameterSensitivities.forEach((sensitivity, index) => {
-      const plus = perturb(first.before, index, eps), minus = perturb(first.before, index, -eps);
-      close((predict(plus, row.x) - predict(minus, row.x)) / (2 * eps), sensitivity, 1e-9);
-      close(frame.pointParameterGradient[index], frame.pointResidual * sensitivity);
-      close((loss(plus, [row]) - loss(minus, [row])) / (2 * eps), frame.pointParameterGradient[index], 1e-9);
-      close(frame.pointParameterGradient[index], parameters(gradient(first.before, [row]))[index]);
-    });
-    assert.deepEqual(frame.parameterSensitivities.slice(0, 3), [0, 0, 0]);
-    assert.equal(frame.parameterSensitivities[6], 1, 'The output bias changes the prediction one-for-one');
-    assert.equal(frame.pointParameterGradient[6], frame.pointResidual);
-    const start = renderScene(id, 0).frame;
-    renderScene(id, 1);
-    assert.deepEqual(renderScene(id, 0).frame, start);
-  }
-  // The batch prediction gradient includes the averaging factor; the parameter
-  // gradient additionally combines the different sensitivities of all points.
+test('the supplied batch gradient has one component per parameter at the unchanged current weights', () => {
+  const first = experiment.firstUpdate;
   const batch = first.indices.map(index => data[index]);
-  const predictionGradient = batch.map(row => (predict(first.before, row.x) - row.y) / batch.length);
-  close(predictionGradient.reduce((sum, value) => sum + value, 0), gradient(first.before, batch).c);
-  for (const progress of [0, .45, 1]) {
+  const expected = parameters(gradient(first.before, batch));
+  for (const progress of [0, .25, .65, 1, .25, 0]) {
     const frame = renderScene('batch-gradient', progress).frame;
-    const expected = parameters(gradient(first.before, batch.slice(0, frame.contributions)))
-      .map(value => value * frame.contributions / batch.length);
+    assert.deepEqual(frame.model, first.before);
+    assert.equal(frame.completedUpdates, 0);
+    assert.equal(frame.gradient.length, parameters(first.before).length);
     frame.gradient.forEach((value, index) => close(value, expected[index]));
-    if (progress === 0) assert.equal(frame.contributions, 1);
-    else if (progress === 1) assert.equal(frame.contributions, 64);
-    else assert.ok(frame.contributions > 1 && frame.contributions < 64);
+    close(frame.gradientC, expected[6]);
   }
-  const negative = batch.find(row => predict(first.before, row.x) < row.y);
-  assert.ok(negative, 'The batch also contains a prediction below its target');
-  close(gradient(first.before, [negative]).c, predict(first.before, negative.x) - negative.y);
-  assert.ok(gradient(first.before, [negative]).c < 0);
+  assert.deepEqual(expected.slice(0, 3), [0, 0, 0]);
+  assert.equal(expected.filter(value => value !== 0).length, 4);
+});
+
+test('the single-parameter illustration leaves the actual model and update counter unchanged', () => {
+  const first = experiment.firstUpdate;
+  let previousPreview = first.before.c;
+  for (const progress of [0, .3, .55, .8, 1]) {
+    const frame = renderScene('parameter-step', progress).frame;
+    assert.equal(frame.illustrationOnly, true);
+    assert.equal(frame.completedUpdates, 0);
+    assert.deepEqual(frame.model, first.before);
+    close(frame.outputBias, first.before.c);
+    assert.ok(frame.previewOutputBias >= previousPreview);
+    assert.ok(frame.previewOutputBias <= first.after.c);
+    previousPreview = frame.previewOutputBias;
+  }
+  close(previousPreview, first.after.c);
+  assert.deepEqual(renderScene('update', 0).frame.model, first.before);
+});
+
+test('all seven parameters take the same simultaneous update, including the three zero-gradient coordinates', () => {
+  const first = experiment.firstUpdate;
+  const before = parameters(first.before), after = parameters(first.after);
+  const g = parameters(first.gradient);
+  const moving = g.map((value, index) => value !== 0 ? index : null).filter(index => index !== null);
+  assert.equal(moving.length, 4);
+  const states = new Map();
+  for (const progress of [0, .3, .55, .8, 1]) {
+    const { frame, detail } = renderScene('update', progress);
+    const current = parameters(frame.model), fraction = frame.updateProgress;
+    assert.ok(fraction >= 0 && fraction <= 1);
+    assert.equal(frame.displayedParameters.length, 7);
+    current.forEach((value, index) => {
+      close(value, before[index] + fraction * (after[index] - before[index]));
+      const displayed = frame.displayedParameters[index];
+      close(displayed.before, before[index]);
+      close(displayed.current, value);
+      close(displayed.gradient, g[index]);
+      assert.equal(displayed.unchanged, g[index] === 0);
+      if (g[index] === 0) assert.equal(value, before[index]);
+      else close((value - before[index]) / (after[index] - before[index]), fraction, 1e-10);
+    });
+    const rendered = [...detail.matchAll(/data-parameter="[^"]+"/g)];
+    assert.equal(rendered.length, 7, 'All parameter values must accompany the moving model curve');
+    if (progress > .12 && progress < .82) {
+      assert.ok(fraction > 0 && fraction < 1);
+      moving.forEach(index => assert.notEqual(current[index], before[index]));
+    }
+    states.set(progress, frame);
+  }
+  assert.deepEqual(states.get(0).model, first.before);
+  assert.deepEqual(states.get(1).model, first.after);
+  for (const progress of [...states.keys()].reverse()) {
+    assert.deepEqual(renderScene('update', progress).frame, states.get(progress));
+  }
 });
 
 test('batch and epoch transitions continue from the exact preceding learned weights', () => {
@@ -264,8 +287,17 @@ test('batch and epoch transitions continue from the exact preceding learned weig
   const nextEnd = renderScene('next-batch', 1).frame;
   assert.equal(nextStart.completedUpdates, 1);
   assert.equal(nextEnd.completedUpdates, 2);
-  close(nextStart.outputBias, trace[0].after.c);
-  close(nextEnd.outputBias, trace[1].after.c);
+  assert.deepEqual(nextStart.model, trace[0].after);
+  assert.deepEqual(nextEnd.model, trace[1].after);
+  close(nextStart.outputBias, nextStart.model.c);
+  close(nextEnd.outputBias, nextEnd.model.c);
+  const partialNext = renderScene('next-batch', .65).frame;
+  assert.ok(partialNext.updateProgress > 0 && partialNext.updateProgress < 1);
+  assert.equal(partialNext.completedUpdates, 1);
+  parameters(partialNext.model).forEach((value, index) => {
+    const before = parameters(trace[1].model)[index], after = parameters(trace[1].after)[index];
+    close(value, before + partialNext.updateProgress * (after - before));
+  });
   assert.equal(nextEnd.batchOverlap, 0);
   for (const [id, progress, step, completed] of [
     ['batches-two', 0, 2, 2], ['batches-two', 1, 31, 32],
@@ -389,11 +421,13 @@ test('reduced motion and keyboard navigation retain complete losses and epoch bo
   const ui = await controller();
   ui.reduce(true);
   assert.equal(ui.at('batch-loss', .1).normalized, true);
-  for (const id of ['prediction-gradient', 'parameter-gradient']) {
-    const frame = ui.at(id, .1);
-    assert.equal(frame.gradientReveal, 1);
-    assert.equal(frame.completedUpdates, 0);
-  }
+  const gradientFrame = ui.at('batch-gradient', .1);
+  assert.equal(gradientFrame.gradient.length, 7);
+  assert.equal(gradientFrame.completedUpdates, 0);
+  const illustrationFrame = ui.at('parameter-step', .1);
+  assert.equal(illustrationFrame.illustrationOnly, true);
+  assert.equal(illustrationFrame.completedUpdates, 0);
+  assert.deepEqual(illustrationFrame.model, experiment.firstUpdate.before);
   assert.equal(ui.at('batches-two', .1).completedUpdates, 32);
   assert.equal(ui.nodes.get('epoch-counter').dataset.completedEpochs, '1');
   ui.emit('document:keydown', { key: 'ArrowRight', target: { tagName: 'DIV' }, preventDefault() {} });

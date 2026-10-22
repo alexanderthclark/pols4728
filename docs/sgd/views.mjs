@@ -1,7 +1,7 @@
 import {foundationKinds,renderFoundation} from './batch-epoch.mjs';
 import {constructionKinds,renderConstruction} from './construction.mjs';
-import {predict,ramp,gradient,data,loss,mse} from './model.mjs';
-import {sgdKinds,renderSGD,C,clamp,line,text,set,canvas,chart,facts,observations,gradientBars,interpolate} from './sgd-detail.mjs';
+import {predict,ramp,gradient,data,mse} from './model.mjs';
+import {sgdKinds,renderSGD,renderParameterUpdate,C,clamp,line,text,set,canvas,chart,facts,observations,gradientBars,interpolate} from './sgd-detail.mjs';
 function trainingPanel(svg,trace,index,mix,firstEpoch,color,width){
  const {w,h}=canvas(svg),s=trace[index],value=mse(interpolate(s.model,s.after,mix));
  const compact=h<150,l=37,r=w-12,t=compact?57:87,b=h-24,maxStep=firstEpoch?32:9600;
@@ -9,7 +9,7 @@ function trainingPanel(svg,trace,index,mix,firstEpoch,color,width){
  let html=text(0,13,`Epoch ${s.epoch} / 300`,'small')+text(w,13,`Batch ${s.batch} / 32 · 64 rows`,'small','end');
  const slot=(w-2)/32;
  for(let j=0;j<32;j++)html+=`<rect x="${j*slot}" y="23" width="${Math.max(1,slot-2)}" height="${j===s.batch-1?12:7}" fill="${j===s.batch-1?C.rust:j<s.batch-1?color:'#e8e8e8'}"/>`;
- if(!compact)html+=text(0,57,mix<.25?'Select batch → calculate gradient':'Apply gradient → update parameters','small');
+ if(!compact)html+=text(0,57,mix<.25?'Select batch → calculate gradient':'Apply gradient → all parameters together','small');
  for(const v of [.01,.1,1])html+=line(l,Y(v),r,Y(v),'#eee')+text(l-5,Y(v)+3,String(v),'small','end');
  let path='';for(let i=0;i<=index;i++)path+=(i?'L':'M')+X(trace[i].step)+','+Y(trace[i].loss);
  path+=`L${X(s.step+mix)},${Y(value)}`;
@@ -26,7 +26,7 @@ export function render(plot,detail,scene,p,e){
  if(kind==='steepen'){
   const a=2*16**u;body+=c.path(x=>ramp(x,a),C.teal);
   body+=line(c.X(0),c.Y(-.12),c.X(1/a),c.Y(-.12),C.rust,'',2);
-  facts(detail,[['Steepness a',a.toFixed(1),'Width stays at 2 neurons'],['Ramp width',(1/a).toFixed(3),'The second hinge is at 1/a']]);info.a=a;
+  facts(detail,[['Input slope k',a.toFixed(1),'Width stays at 2 neurons'],['Ramp width',(1/a).toFixed(3),'The second hinge is at 1/k']]);info.a=a;
  }
  if(['initialize','loss','full','update','initialize-wide'].includes(kind)){
   const wide=kind==='initialize-wide',color=wide?C.teal:C.blue;
@@ -35,8 +35,12 @@ export function render(plot,detail,scene,p,e){
   body+=observations(c,{batch:kind==='update'?e.firstUpdate.indices:null,residualModel:kind==='loss'?model:null,amount:kind==='loss'?u:1})+c.path(x=>predict(model,x),color);
   if(kind==='initialize'||wide)facts(detail,[['Hidden neurons',wide?'12':'2','One hidden layer'],['Trainable parameters',wide?'37':'7','Learn weights and biases']]);
   if(kind==='loss')facts(detail,[['Training MSE',e.traces[2][0].loss.toFixed(4),'All 2,048 observations'],['Residuals shown',String(Math.ceil(2048*u)),'Squared, then averaged']]);
-  if(kind==='full'){gradientBars(detail,gradient(model,data));detailTitle='Backpropagated gradient';}
-  if(kind==='update')facts(detail,[['Learning rate',String(e.traces[2][0].eta),'Zero gradient: no change'],['Batch half-MSE',loss(model,e.firstUpdate.indices.map(i=>data[i])).toFixed(4),'One actual SGD update']]);
+  if(kind==='full'){gradientBars(detail,gradient(model,data));detailTitle='Full-data gradient';}
+  if(kind==='update'){
+   info.displayedParameters=renderParameterUpdate(detail,e.firstUpdate.before,e.firstUpdate.after,e.firstUpdate.gradient,u);
+   info.updateProgress=u;
+   plotTitle='Dashed: before · blue: current model';detailTitle='All seven parameters · zero gradient means unchanged';
+  }
   info.width=wide?12:2;info.completedUpdates=kind==='update'?u:0;info.outputBias=model.c;info.predictionAtZero=predict(model,0);info.model=model;
  }
  if(['batches-two','train-two','batches-wide','train-wide'].includes(kind)){

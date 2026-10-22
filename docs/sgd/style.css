@@ -148,3 +148,7 @@
  .stage[data-counter="true"][data-training="true"] .visuals{grid-template-rows:minmax(0,1fr) 120px}
  .stage[data-counter="true"] .epoch-counter__number{font-size:24px}
 }
+/* Keep all seven entries of the simultaneous parameter update visible. */
+@media screen and (max-width:700px){
+ .stage[data-scene="update"] .visuals{grid-template-rows:minmax(0,1fr) 142px;min-height:0}
+}

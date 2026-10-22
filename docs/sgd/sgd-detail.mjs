@@ -38,7 +38,7 @@ export function gradientBars(svg,g1,g2=null){const {w,h}=canvas(svg),vals=g1.uni
 }
 export function interpolate(a,b,t){return {c:a.c+(b.c-a.c)*t,units:a.units.map((v,i)=>Object.fromEntries(['w','b','a'].map(k=>[k,v[k]+(b.units[i][k]-v[k])*t])))};}
 
-export const sgdKinds=['sgd-opening','sgd-plan','partition','shuffle','batch','point-loss','batch-loss','prediction-gradient','parameter-gradient','batch-gradient','parameter-step','next-batch'];
+export const sgdKinds=['sgd-opening','sgd-plan','partition','shuffle','batch','point-loss','batch-loss','batch-gradient','parameter-step','next-batch'];
 const labels=['w₁','b₁','a₁','w₂','b₂','a₂','c'];
 const flatten=g=>g.units.flatMap(v=>[v.w,v.b,v.a]).concat(g.c);
 const signed=(v,d=4)=>(v<0?'−':v>0?'+':'')+Math.abs(v).toFixed(d);
@@ -176,79 +176,6 @@ function pointLoss(svg,detail,first,u){
  return {pointIndex:id,pointX:d.x,pointTarget:d.y,pointPrediction:prediction,pointResidual:residual,pointLoss:square};
 }
 
-// These are derivatives of the prediction itself, before multiplying by the
-// loss derivative. Keep their order identical to the seven parameter bars.
-function pointDerivatives(first){
- const id=first.indices[0],d=data[id],model=first.before,prediction=predict(model,d.x),residual=prediction-d.y;
- const sensitivities=model.units.flatMap(unit=>{
-  const z=unit.w*d.x+unit.b,active=z>0;
-  return [active?unit.a*d.x:0,active?unit.a:0,Math.max(0,z)];
- }).concat(1);
- return {pointIndex:id,pointX:d.x,pointTarget:d.y,pointPrediction:prediction,pointResidual:residual,pointLoss:.5*residual**2,predictionDerivative:residual,parameterSensitivities:sensitivities,pointParameterGradient:sensitivities.map(value=>residual*value)};
-}
-
-function predictionGradient(svg,detail,first,u){
- const values=pointDerivatives(first),{pointX:x,pointTarget:target,pointPrediction:prediction,pointResidual:residual}=values,c=chart(svg,{xmin:-1,xmax:1}),px=c.X(x),py=c.Y(prediction),ty=c.Y(target),reveal=smooth((u-.18)/.62),offset=18*reveal;
- let body=c.base+c.step()+c.path(v=>predict(first.before,v),C.blue);
- body+=`<g opacity=".18">`+observations(c,{batch:first.indices})+'</g>';
- body+=line(px,ty,px,py,C.rust,'3 3',1.5)+circle(px,ty,5,C.rust,'white',1)+circle(px,ty,8,'none',C.ink,1)+circle(px,py,4,'white',C.blue,2);
- // The prediction derivative has exactly the same sign and length as r_i.
- // Move a copy of that residual into the derivative arrow without changing it.
- body+=`<g opacity="${reveal}">`+arrow(px+offset,ty,px+offset,py,C.teal,2.5)+'</g>';
- // Short phones leave little vertical room between the target and prediction.
- // Their arithmetic is already explicit below, so reserve this small plot for
- // the points and equal-length arrows instead of placing labels over the curve.
- if(c.h>=160){
-  const labelX=Math.min(c.right-95,px+27);
-  body+=text(labelX,ty-6,`target = ${target}`,'small','start',C.rust);
-  body+=text(labelX,py-9,`prediction ${prediction.toFixed(4)}`,'small','start',C.blue);
-  body+=text(c.left,c.top+2,`Same observation ${values.pointIndex+1}`,'small');
- }
- set(svg,body,`For observation ${values.pointIndex+1}, the residual is prediction minus target, ${signed(residual)}. As you scroll, a copy of the residual becomes the prediction-gradient arrow. Its sign and length stay the same: the derivative of half the squared residual with respect to the prediction is the residual itself. The parameters have not changed.`);
- const {w,h}=canvas(detail),gap=Math.min(27,(h-5)/3),left=3;
- let arithmetic=text(left,gap-1,`point loss ℓᵢ = ½ × rᵢ² = ${values.pointLoss.toFixed(4)}`,'','start',C.blue);
- arithmetic+=`<g opacity="${smooth(u/.45)}">`+text(left,gap*2-1,'∂ℓᵢ/∂ŷᵢ = ½ × 2rᵢ = rᵢ','','start',C.teal)+'</g>';
- arithmetic+=`<g opacity="${reveal}">`+text(left,gap*3-1,`prediction derivative = ${signed(residual)}`,'','start',C.teal)+'</g>';
- set(detail,arithmetic,`The half cancels the two from differentiating the square. The derivative with respect to this prediction is ${signed(residual)}. This is a derivative with respect to the prediction, not yet a derivative with respect to a model parameter. We have not averaged across the batch.`);
- return {...values,gradientReveal:reveal,phase:u<.18?'residual':u<.8?'differentiate':'prediction-derivative'};
-}
-
-function pointGradientBars(svg,values,reveal){
- const {w,h}=canvas(svg),left=6,right=w-6,top=12,bottom=h-23,mid=top+(bottom-top)*.5,dx=(right-left)/7,max=Math.max(.01,...values.map(Math.abs)),scale=(bottom-top)*.36/max;
- let body=line(left,mid,right,mid,'#b7b7b7');
- values.forEach((value,i)=>{
-  const x=left+(i+.5)*dx,y=mid-value*scale*reveal;
-  body+=Math.abs(value)<1e-12?circle(x,mid,2,'white',C.teal,1.2):line(x,mid,x,y,C.teal,'',4)+circle(x,y,2,C.teal);
-  body+=text(x,h-5,labels[i],'small','middle');
-  if(reveal===1)body+=text(x,value>=0?y-4:y+11,fmt(value),'small','middle',C.teal);
- });
- set(svg,body,`One observation's seven parameter derivatives, before batch averaging: ${labels.map((label,i)=>label+' '+values[i].toFixed(4)).join(', ')}. The inactive first neuron contributes three zeros.`);
-}
-
-function parameterGradient(svg,detail,first,u){
- const values=pointDerivatives(first),{w,h}=canvas(svg),left=5,right=w-6,top=h<170?2:18,rowHeight=(h-top-5)/2,narrow=w<450;
- // The common scale makes the multiplication visible: c leaves the residual
- // unchanged; a₂ scales it by the active neuron's output h₂(x_i).
- const rows=[{index:6,name:'Output bias c',sensitivity:'∂ŷᵢ/∂c = 1'},
-  {index:5,name:'Output weight a₂',sensitivity:`∂ŷᵢ/∂a₂ = h₂ = ${values.parameterSensitivities[5].toFixed(4)}`}];
- const residual=values.pointResidual,barLeft=left+3,barRight=right-4,zero=barLeft+(barRight-barLeft)*.15,scale=(barRight-zero)*.85/Math.max(.01,Math.abs(residual)),reveal=smooth((u-.18)/.62);
- let body='';
- rows.forEach((row,j)=>{
-  const y=top+j*rowHeight,factor=values.parameterSensitivities[row.index],product=values.pointParameterGradient[row.index],barY=y+rowHeight*.49,headingY=y+Math.max(11,rowHeight*.19),equationY=y+rowHeight*.83,scaled=residual*lerp(1,factor,reveal),end=zero+scaled*scale;
-  body+=text(left,headingY,narrow?row.sensitivity:row.name,'small','start',C.ink);
-  if(!narrow)body+=text(right,headingY,row.sensitivity,'small','end',C.blue);
-  body+=line(zero-7,barY,barRight,barY,'#e4e4e4')+line(zero,barY-8,zero,barY+8,'#b4b4b4');
-  body+=line(zero,barY,zero+residual*scale,barY,C.rust,'3 3',2);
-  body+=line(zero,barY, end,barY,C.teal,'',5)+circle(end,barY,3,C.teal);
-  const factorText=factor===1?'1':factor.toFixed(4),result=reveal===1?signed(product):'…';
-  body+=text(left,equationY,`${signed(residual)} × ${factorText} = ${result}`,'','start',C.teal);
-  if(!narrow)body+=text(right,equationY,reveal===1?`∂ℓᵢ/∂${row.index===6?'c':'a₂'}`:'Multiply by prediction sensitivity','small','end',C.teal);
- });
- set(svg,body,`Backpropagate the same point's residual ${signed(residual)} through the model. For output bias c, prediction sensitivity is one, so its point derivative is ${signed(values.pointParameterGradient[6])}. For output weight a₂, prediction sensitivity is the second hidden neuron's activation, ${values.parameterSensitivities[5].toFixed(4)}, so its point derivative is ${signed(values.pointParameterGradient[5])}. The teal bars transform the dashed residual into each parameter derivative using the same horizontal scale. No batch averaging or parameter update occurs yet.`);
- pointGradientBars(detail,values.pointParameterGradient,reveal);
- return {...values,gradientReveal:reveal,phase:u<.18?'prediction-derivative':u<.8?'chain-rule':'point-parameter-gradient'};
-}
-
 function squaredErrors(svg,residuals,amount,normalized){
  const {w,h}=canvas(svg),left=3,right=w-5,top=23,bottom=h-23,dx=(right-left)/64,squares=residuals.map(v=>.5*v*v),max=Math.max(...squares),sum=squares.slice(0,amount).reduce((s,v)=>s+v,0),mean=squares.reduce((s,v)=>s+v,0)/64,Y=v=>bottom-v/max*(bottom-top);
  let body=text(left,13,`Sum Sʙ = ${sum.toFixed(4)}`,'small','start',C.rust)+text(right,13,`${amount} / 64 losses added`,'small','end');
@@ -262,26 +189,42 @@ function squaredErrors(svg,residuals,amount,normalized){
  return {batchSum:sum,lossesAdded:amount,batchHalfMSE:mean,batchMSE:2*mean,normalized};
 }
 
-function componentBars(svg,g,{total=64,reference=null}={}){
- const {w,h}=canvas(svg),values=flatten(g),refs=reference?flatten(reference):null,left=10,right=w-10,dx=(right-left)/7,top=32,bottom=h-29,mid=top+(bottom-top)*.36,max=Math.max(.75,...(refs||[]).map(Math.abs)),scale=(bottom-top)*.57/max;
+function componentBars(svg,g){
+ const {w,h}=canvas(svg),values=flatten(g),left=10,right=w-10,dx=(right-left)/7,top=32,bottom=h-29,mid=(top+bottom)/2,max=Math.max(.08,...values.map(Math.abs)),scale=(bottom-top)*.32/max;
  let body=line(left,mid,right,mid,'#a7afb3');
- body+=text(left+dx*1.5,13,'Neuron 1: inactive','small','middle')+text(left+dx*4.5,13,'Neuron 2','small','middle')+text(left+dx*6.5,13,'Bias','small','middle');
+ body+=text(left+dx*1.5,13,'Neuron 1','small','middle')+text(left+dx*4.5,13,'Neuron 2','small','middle')+text(left+dx*6.5,13,'Bias','small','middle');
  values.forEach((v,i)=>{
   const x=left+dx*(i+.5),y=mid-v*scale;
-  if(refs)body+=Math.abs(refs[i])<1e-10?circle(x-4,mid,2,'white',C.blue,1.2):line(x-4,mid,x-4,mid-refs[i]*scale,C.blue,'',4);
-  if(Math.abs(v)<1e-10)body+=circle(x+4,mid,2,'white',C.rust,1.3);
-  else body+=line(x+4,mid,x+4,y,C.rust,'',4)+circle(x+4,y,2,C.rust);
-  body+=text(x,v>=0?y-7:y+15,fmt(v),'small','middle')+text(x,h-8,labels[i],'','middle');
+  body+=`<g data-parameter="${labels[i]}" data-gradient="${v}">`;
+  if(Math.abs(v)<1e-10)body+=circle(x,mid,2,'white',C.blue,1.3);
+  else body+=line(x,mid,x,y,C.blue,'',4)+circle(x,y,2,C.blue);
+  body+=text(x,v>=0?y-7:y+15,fmt(v),'small','middle')+text(x,h-8,labels[i],'','middle')+'</g>';
  });
- set(svg,body,`Batch gradient after accumulating ${total} of 64 observations. ${reference?'Blue: full-data gradient at the same weights. ':''}Batch values: ${labels.map((label,i)=>label+' '+values[i].toFixed(4)).join(', ')}. The inactive first neuron has three zero gradients.`);
+ set(svg,body,`The complete batch gradient has one component per parameter, all calculated at the same current model. ${labels.map((label,i)=>label+' '+values[i].toFixed(4)).join(', ')}. The first neuron's three zero components mean its parameters stay unchanged in this update. No parameters have been updated yet.`);
 }
 
-function biasContributions(svg,residuals,count){
- const {w,h}=canvas(svg),left=2,right=w-5,top=4,bottom=h-22,mid=(top+bottom)/2,dx=(right-left)/64,values=residuals.map(v=>v/64),max=Math.max(...values.map(Math.abs)),scale=(bottom-top)/2/max;
- let body=line(left,mid,right,mid,'#aaa');
- values.forEach((v,i)=>{const x=left+(i+.5)*dx;body+=line(x,mid,x,mid-v*scale,i<count?C.rust:'#e0e0e0','',Math.max(1,dx*.6));});
- body+=text(left,h-4,'Each bar: residual / 64','small')+text(right,h-4,`${count} / 64`,'small','end');
- set(svg,body,`For the output bias, each observation contributes its residual divided by 64, because the prediction changes one-for-one with the output bias. ${count} contributions have accumulated so far.`);
+function gradientFacts(svg){
+ const {w,h}=canvas(svg),gap=Math.min(30,(h-6)/3),x=3;
+ const body=text(x,gap-1,'7 parameters → 7 gradient components','small','start',C.blue)+
+ text(x,gap*2-1,'All evaluated at the same current weights.','small')+
+ text(x,gap*3-1,'Zero component → no change to that parameter.','small');
+ set(svg,body,'One component per parameter. Every component is evaluated at the same current weights, before any update. A zero gradient component leaves its parameter unchanged.');
+}
+
+// All seven entries share the curve's interpolation progress. The scalar c
+// illustration never changes the model; this table is the actual vector step.
+export function renderParameterUpdate(svg,before,after,g,progress){
+ const {w,h}=canvas(svg),oldValues=flatten(before),values=flatten(interpolate(before,after,progress)),gradients=flatten(g);
+ const rowTop=Math.min(37,h*.22),gap=Math.min(38,(h-rowTop-9)/6),columns={label:4,before:w*.30,arrow:w*.355,current:w*.60,gradient:w-4};
+ let body=text(columns.label,12,'Parameter','small')+text(columns.before,12,'Before','small','end')+text(columns.current,12,'Now','small','end')+text(columns.gradient,12,'Gradient','small','end')+line(0,18,w,18,'#ddd');
+ const displayedParameters=values.map((value,i)=>({label:labels[i],before:oldValues[i],current:value,gradient:gradients[i],unchanged:gradients[i]===0}));
+ displayedParameters.forEach((entry,i)=>{
+  const y=rowTop+i*gap,color=entry.unchanged?C.muted:C.teal;
+  body+=`<g data-parameter="${entry.label}" data-before="${entry.before}" data-current="${entry.current}" data-gradient="${entry.gradient}">`;
+  body+=text(columns.label,y,entry.label,'','start',C.blue)+text(columns.before,y,entry.before.toFixed(4),'small','end')+text(columns.arrow,y,'→','small','middle')+text(columns.current,y,entry.current.toFixed(4),'small','end',color)+text(columns.gradient,y,entry.unchanged?'0 · unchanged':signed(entry.gradient),'small','end',color)+'</g>';
+ });
+ set(svg,body,`All seven parameters take the same simultaneous update, at ${(progress*100).toFixed(0)} percent of the animation. Every gradient was calculated at the model before the update. ${displayedParameters.map(entry=>`${entry.label}: ${entry.before.toFixed(4)} to ${entry.current.toFixed(4)}, gradient ${signed(entry.gradient)}${entry.unchanged?', unchanged because its gradient is zero':''}`).join('. ')}. The curve uses these seven current values together.`);
+ return displayedParameters;
 }
 
 function biasStep(svg,first,eta,u){
@@ -292,8 +235,8 @@ function biasStep(svg,first,eta,u){
  body+=line(X(.5),y-14,X(.5),y+5,C.blue,'3 3')+circle(X(.5),y,4,'white',C.blue,2);
  if(u>.015)body+=arrow(X(.5),y-12,X(c),y-12,C.teal,2);
  body+=circle(X(c),y,5,C.teal)+text(X(c),y-26,c.toFixed(4),'','middle',C.teal);
- body+=text(left,h-3,'A negative gradient increases c.','small');
- set(svg,body,`The output bias increases from ${first.before.c.toFixed(4)} to ${c.toFixed(4)}. The recorded update is minus learning rate ${eta} times gradient ${signed(first.gradient.c)}.`);
+ body+=text(left,h-3,'One component of the same update.','small');
+ set(svg,body,`A magnified illustration of one component of the same seven-parameter update: output bias c would increase from ${first.before.c.toFixed(4)} to ${c.toFixed(4)}. The arithmetic is minus learning rate ${eta} times gradient ${signed(first.gradient.c)}. The model has not changed and no update has been counted yet; all seven parameters will take their step together in the next scene.`);
  return c;
 }
 
@@ -302,16 +245,16 @@ function stepArithmetic(svg,first,eta){
  const body=text(x,space-2,'change = − learning rate × gradient','small')+
  text(x,space*2-2,`= −${eta} × (${signed(first.gradient.c)}) = ${signed(change)}`,'', 'start',C.teal)+
  text(x,space*3-2,`new c = ${first.before.c.toFixed(4)} + ${change.toFixed(4)} = ${first.after.c.toFixed(4)}`,'','start',C.blue);
- set(svg,body,`Using unrounded values: new output bias equals ${first.before.c} minus ${eta} times ${first.gradient.c}, giving ${first.after.c}. Displayed values are rounded.`);
+ set(svg,body,`This is a preview of one component, not a separate model update. Using unrounded values: new output bias equals ${first.before.c} minus ${eta} times ${first.gradient.c}, giving ${first.after.c}. Displayed values are rounded.`);
 }
 
-function nextBatchFacts(svg,second,g2,model,u,updateProgress){
+function nextBatchFacts(svg,second,model,u,updateProgress){
  const {w,h}=canvas(svg),top=Math.min(21,h*.26),dx=w/32,done=updateProgress===1,batchLoss=loss(second.model,second.indices.map(i=>data[i]));
  let body=text(0,top,'Batch 2 of 32','')+text(w,top,done?'Update 2 complete':u<.15?'Take batch 2':u<.3?'Compute its loss':u<.5?'Find its gradient':'Apply update 2','small','end',done?C.teal:C.rust);
  for(let i=0;i<32;i++)body+=`<rect x="${i*dx}" y="${top+11}" width="${Math.max(1,dx-2)}" height="${i===1?9:5}" fill="${i===1?C.rust:i===0?C.blue:'#ddd'}"/>`;
- const footer=u<.15?'No observations shared with batch 1.':u<.3?`Half-MSE at the new weights: ${batchLoss.toFixed(4)}`:u<.5?`New gradient g(c) = ${signed(g2.c)}`:`Output bias c: ${second.model.c.toFixed(4)} → ${model.c.toFixed(4)}`;
+ const footer=u<.15?'No observations shared with batch 1.':u<.3?`Half-MSE at the new weights: ${batchLoss.toFixed(4)}`:u<.5?'A new gradient: one component per parameter.':`All 7 together · half-MSE ${loss(model,second.indices.map(i=>data[i])).toFixed(4)}`;
  body+=text(0,h-4,footer,'small','start',u<.5?C.rust:C.blue);
- set(svg,body,`Batch 2 has 64 observations and shares none with batch 1. Its half-MSE loss ${batchLoss.toFixed(4)} and output-bias gradient ${g2.c.toFixed(4)} are evaluated at the weights after update 1. ${done?`Update 2 is now complete; c is ${model.c.toFixed(4)}.`:updateProgress>0?`Applying the second update: c is now ${model.c.toFixed(4)}.`:u<.15?'Select the next 64 observations.':u<.3?'First evaluate their loss at the updated weights.':'Next calculate the gradient of this batch loss.'}`);
+ set(svg,body,`Batch 2 has 64 observations and shares none with batch 1. Its half-MSE loss ${batchLoss.toFixed(4)} and all seven gradient components are evaluated at the weights after update 1. ${done?'Update 2 is now complete; all seven parameters have taken their step together.':updateProgress>0?'Applying the second update to all seven parameters together; zero-gradient components stay unchanged.':u<.15?'Select the next 64 observations.':u<.3?'First evaluate their loss at the updated weights.':'Next obtain one gradient component per parameter.'} The current batch half-MSE is ${loss(model,second.indices.map(i=>data[i])).toFixed(4)}.`);
 }
 
 export function renderSGD(plot,detail,scene,p,e){
@@ -339,14 +282,6 @@ export function renderSGD(plot,detail,scene,p,e){
   info={...info,...pointLoss(plot,detail,first,u),batch:1,batchFirst:first.indices[0]};
   plotTitle='One point: prediction, target, and their difference';detailTitle='Half the squared residual is this point’s loss';
  }
- if(kind==='prediction-gradient'){
-  info={...info,...predictionGradient(plot,detail,first,u),batch:1,batchFirst:first.indices[0]};
-  plotTitle='The prediction derivative equals this point’s residual';detailTitle='Differentiate the half-square: the ½ cancels the 2';
- }
- if(kind==='parameter-gradient'){
-  info={...info,...parameterGradient(plot,detail,first,u),batch:1,batchFirst:first.indices[0]};
-  plotTitle='Residual × prediction sensitivity → parameter derivative';detailTitle='One point’s seven parameter derivatives · before averaging';
- }
  if(kind==='batch'||kind==='batch-loss'){
   const c=chart(plot,{xmin:-1,xmax:1}),count=kind==='batch'?Math.min(64,Math.floor(u*64)+1):1+Math.floor(clamp(u/.72)*63),normalized=u>=.84,selected=kind==='batch'?first.indices.slice(0,count):first.indices;
   let body=c.base+c.step()+observations(c,{batch:selected})+c.path(x=>predict(first.before,x),C.blue);
@@ -361,16 +296,14 @@ export function renderSGD(plot,detail,scene,p,e){
   info={...info,batch:1,selected:count,batchFirst:first.indices[0],batchHalfMSE:first.batchBefore,batchMSE:2*first.batchBefore};
  }
  if(kind==='batch-gradient'){
-  const count=Math.min(64,Math.floor(u*64)+1),partial=gradient(first.before,rows.slice(0,count)),factor=count/64;
-  partial.c*=factor;partial.units.forEach(unit=>{for(const key of ['w','b','a'])unit[key]*=factor;});
-  componentBars(plot,partial,{total:count});biasContributions(detail,residuals,count);
-  plotTitle=count===64?'The average gradient of 64 observations':`Accumulating scaled gradients · ${count} / 64`;detailTitle=`Inside the output-bias gradient · sum = ${signed(partial.c)}`;
-  info={...info,contributions:count,gradientC:partial.c,gradient:flatten(partial)};
+  componentBars(plot,first.gradient);gradientFacts(detail);
+  plotTitle='The batch loss gives one gradient vector';detailTitle='All seven components at the same current weights';
+  info={...info,gradientC:first.gradient.c,gradient:flatten(first.gradient),model:first.before};
  }
  if(kind==='parameter-step'){
   const c=biasStep(plot,first,eta,u);stepArithmetic(detail,first,eta);
-  plotTitle='Follow one parameter: output bias c';detailTitle='Subtract the gradient, scaled by the learning rate';
-  info={...info,eta,gradientC:first.gradient.c,outputBias:c,deltaC:first.after.c-first.before.c};
+  plotTitle='Zoom in on c: one component of the same update';detailTitle='Preview the arithmetic; then apply all seven together';
+  info={...info,eta,gradientC:first.gradient.c,outputBias:first.before.c,previewOutputBias:c,deltaC:first.after.c-first.before.c,model:first.before,illustrationOnly:true};
  }
  if(kind==='next-batch'){
   const second=e.traces[2][1],g2=gradient(second.model,second.indices.map(i=>data[i])),c=chart(plot,{xmin:-1,xmax:1}),updateProgress=smooth((u-.5)/.5),model=interpolate(second.model,second.after,updateProgress);
@@ -383,9 +316,9 @@ export function renderSGD(plot,detail,scene,p,e){
    body+='</g>';
   });
   set(plot,body,`The next 64 shuffled observations replace the first batch with no repeats. Compute their loss and gradient at the model after update 1, then apply update 2. ${updateProgress===1?'The second update is complete.':updateProgress>0?'The curve is moving through the second update.':'The weights stay fixed while the new gradient is calculated.'}`);
-  nextBatchFacts(detail,second,g2,model,u,updateProgress);
+  nextBatchFacts(detail,second,model,u,updateProgress);
   plotTitle=updateProgress===1?'Two batches used; two updates complete':u<.15?'Select the next 64 unused observations':u<.3?'Evaluate this batch’s loss at the updated weights':u<.5?'Find the gradient of this batch loss':'Apply the second update';detailTitle='Continue from the weights reached by the first update';
-  info={...info,batch:2,batchFirst:second.indices[0],outputBias:model.c,gradientC:u<.3?null:g2.c,batchOverlap:first.indices.filter(id=>second.indices.includes(id)).length,batchHalfMSE:loss(model,second.indices.map(i=>data[i])),batchHalfMSEBefore:loss(second.model,second.indices.map(i=>data[i])),batchHalfMSEAfter:loss(second.after,second.indices.map(i=>data[i])),batchMSE:2*loss(model,second.indices.map(i=>data[i])),batchMSEBefore:2*loss(second.model,second.indices.map(i=>data[i])),batchMSEAfter:2*loss(second.after,second.indices.map(i=>data[i])),updateProgress,completedUpdates:updateProgress===1?2:1,procedureStep:u<.15?0:u<.3?1:u<.5?2:3};
+  info={...info,model,batch:2,batchFirst:second.indices[0],outputBias:model.c,gradientC:u<.3?null:g2.c,batchOverlap:first.indices.filter(id=>second.indices.includes(id)).length,batchHalfMSE:loss(model,second.indices.map(i=>data[i])),batchHalfMSEBefore:loss(second.model,second.indices.map(i=>data[i])),batchHalfMSEAfter:loss(second.after,second.indices.map(i=>data[i])),batchMSE:2*loss(model,second.indices.map(i=>data[i])),batchMSEBefore:2*loss(second.model,second.indices.map(i=>data[i])),batchMSEAfter:2*loss(second.after,second.indices.map(i=>data[i])),updateProgress,completedUpdates:updateProgress===1?2:1,procedureStep:u<.15?0:u<.3?1:u<.5?2:3};
  }
  return {...info,plotTitle,detailTitle};
 }
