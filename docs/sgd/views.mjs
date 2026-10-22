@@ -65,11 +65,11 @@ export function render(plot,detail,scene,p,e){
   let model=wide?e.traces[12][0].model:e.firstUpdate.before;detailTitle='Training';
   if(kind==='update'){model=interpolate(e.firstUpdate.before,e.firstUpdate.after,u);body+=c.path(x=>predict(e.firstUpdate.before,x),C.gray,2,'4 4');}
   body+=observations(c,{batch:['batch','update'].includes(kind)?e.firstUpdate.indices:null,residualModel:['loss','batch'].includes(kind)?model:null,amount:kind==='loss'?u:1})+c.path(x=>predict(model,x),color);
-  if(kind==='initialize'||wide)facts(detail,[['Hidden neurons',wide?'12':'2','One hidden layer'],['Trainable parameters',wide?'37':'7','All weights and biases are learned']]);
+  if(kind==='initialize'||wide)facts(detail,[['Hidden neurons',wide?'12':'2','One hidden layer'],['Trainable parameters',wide?'37':'7','Weights and biases are trainable']]);
   if(kind==='loss')facts(detail,[['Training MSE',e.traces[2][0].loss.toFixed(4),'All 2,048 observations'],['Residuals shown',String(Math.ceil(2048*u)),'Squared, then averaged']]);
   if(kind==='full'){gradientBars(detail,gradient(model,data));detailTitle='Backpropagated gradient';}
   if(kind==='batch'){gradientBars(detail,gradient(model,data),e.firstUpdate.gradient);detailTitle='Full gradient and batch gradient';}
-  if(kind==='update')facts(detail,[['Learning rate','0.025','All seven parameters update'],['Batch MSE',loss(model,e.firstUpdate.indices.map(i=>data[i])).toFixed(4),'One actual SGD update']]);
+  if(kind==='update')facts(detail,[['Learning rate','0.025','Zero gradient: no change'],['Batch MSE',loss(model,e.firstUpdate.indices.map(i=>data[i])).toFixed(4),'One actual SGD update']]);
   info.width=wide?12:2;
  }
  if(['batches-two','train-two','batches-wide','train-wide'].includes(kind)){

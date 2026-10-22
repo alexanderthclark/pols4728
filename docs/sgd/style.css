@@ -10,3 +10,18 @@
 @media(max-width:700px){.stage[data-construction="true"] .visuals{grid-template-rows:minmax(175px,1.5fr) minmax(140px,1fr);min-height:330px}}
 
 @media(max-width:700px){.stage[data-training="true"] .visuals{grid-template-rows:minmax(175px,1.5fr) minmax(140px,1fr);min-height:330px}}
+
+/* Reserve space for the complete caption before sizing plots on short phones. */
+@media screen and (max-width:700px) and (max-height:700px){
+ .stage{min-height:0;padding:.4rem 0}
+ .stage-top,#heading,.copy,.stage-footer{flex-shrink:0}
+ #heading{min-height:0;margin:.25rem 0;font-size:1.2rem;line-height:1.2}
+ #equation{min-height:48px;font-size:.7rem}
+ .stage .visuals{min-height:0;max-height:none;gap:.4rem;grid-template-rows:minmax(0,1fr) 92px}
+ .stage[data-construction="true"] .visuals{min-height:0;grid-template-rows:minmax(0,1fr) 124px}
+ .stage[data-training="true"] .visuals{min-height:0;grid-template-rows:minmax(0,1fr) 140px}
+ .copy{min-height:0;padding:.4rem 0 .25rem}
+ #caption{font-size:.94rem;line-height:1.4}
+ #note{padding-top:.25rem;line-height:1.4}
+ .stage-footer{padding-top:.3rem}
+}
