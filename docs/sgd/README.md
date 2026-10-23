@@ -25,4 +25,10 @@ node --test tests/sgd.test.mjs
 
 Serve `docs/` over HTTP. Review forward and reverse scrolling, keyboard steps, narrow-screen rendering, and reduced motion. Scroll is the complete route through the lesson. The static reading route also works without JavaScript.
 
+The classroom layout uses shorter captions and larger equations, diagram labels,
+parameter values, and epoch counts. At desktop widths it fills the available
+height instead of capping the figures at 540 pixels; narrow screens retain their
+compact compositions. The full-data MSE footnote and the distinctions between
+observations, parameter directions, and simultaneous updates remain visible.
+
 The step construction converges pointwise and in integrated absolute error, not uniformly across the jump. The standard continuous-target UAT is discussed only in the methods qualification; no unrelated target function is introduced. Extra width helps these particular training runs; width 2 already has the capacity to represent a sharp ramp.

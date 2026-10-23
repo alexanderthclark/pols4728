@@ -17,28 +17,29 @@ export function constructionState(kind,p){
  return s;
 }
 function network(svg,s){
- const rect=svg.getBoundingClientRect(),w=Math.max(260,rect.width),h=Math.max(80,rect.height),compact=h<160;
+ const rect=svg.getBoundingClientRect(),w=Math.max(260,rect.width),h=Math.max(80,rect.height),compact=h<160,wide=globalThis.innerWidth>=1600;
  svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
- const x0=20,x1=w*.45,x2=w-27,y0=h/2,y1=compact?34:h*.28,y2=compact?h-34:h*.72,r=compact?12:22;
+ const x0=compact?20:wide?28:24,x1=w*.45,x2=w-(compact?27:wide?42:34),y0=h/2,y1=compact?34:h*.28,y2=compact?h-34:h*.72,r=compact?12:wide?32:26;
+ const parameterSize=compact?10:wide?24:18;
  let html=`<defs><marker id="network-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10" fill="none" stroke="#767676" stroke-width="1.5"/></marker></defs>`;
  const connection=(xa,ya,xb,yb,color)=>`<line x1="${xa}" y1="${ya}" x2="${xb}" y2="${yb}" stroke="${color}" stroke-width="1.4" marker-end="url(#network-arrow)"/>`;
  for(const [j,y,color] of [[1,y1,colors.blue],[2,y2,colors.rust]]){
   html+=connection(x0+10,y0,x1-r-3,y,color)+connection(x1+r+3,y,x2-r-3,y0,color);
-  html+=`<circle cx="${x1}" cy="${y}" r="${r}" fill="white" stroke="${color}" stroke-width="1.5"/>`+text(x1,y+4,`h${j===1?'₁':'₂'}`,color,compact?11:16,'middle');
-  const sub=j===1?'₁':'₂',wy=compact?(j===1?12:h-4):(y+y0)/2-11;
-  html+=text((x0+x1)/2,wy,`θ${sub}₁ = ${number(s['w'+j])}`,color,compact?10:13,'middle');
-  html+=text(x1,y+(j===1?-r-8:r+17),`θ${sub}₀ = ${number(s['b'+j])}`,color,compact?10:13,'middle');
-  html+=text((x1+x2)/2,wy,`φ${sub} = ${number(s['a'+j])}`,color,compact?10:13,'middle');
+  html+=`<circle cx="${x1}" cy="${y}" r="${r}" fill="white" stroke="${color}" stroke-width="1.5"/>`+text(x1,y+(wide&&!compact?8:6),`h${j===1?'₁':'₂'}`,color,compact?11:wide?26:20,'middle');
+  const sub=j===1?'₁':'₂',wy=compact?(j===1?12:h-4):(y+y0)/2+(j===1?-(wide?21:16):(wide?33:27));
+  html+=text((x0+x1)/2,wy,`θ${sub}₁ = ${number(s['w'+j])}`,color,parameterSize,'middle');
+  html+=text(x1,y+(j===1?-r-(wide&&!compact?16:12):r+(compact?14:wide?30:24)),`θ${sub}₀ = ${number(s['b'+j])}`,color,parameterSize,'middle');
+  html+=text((x1+x2)/2,wy,`φ${sub} = ${number(s['a'+j])}`,color,parameterSize,'middle');
  }
  html+=`<circle cx="${x0}" cy="${y0}" r="10" fill="white" stroke="#767676"/><circle cx="${x2}" cy="${y0}" r="${r}" fill="white" stroke="${colors.teal}" stroke-width="1.5"/>`;
- html+=text(x0,y0+4,'x','#242424',13,'middle')+text(x2,y0+4,'Σ',colors.teal,compact?13:18,'middle')+text(x2,y0-r-9,`φ₀ = ${number(s.c)}`,colors.teal,compact?10:13,'middle');
- if(!compact)html+=text(x1,h-10,'Hidden layer',colors.gray,12,'middle')+text(x2,h-10,'Output',colors.gray,12,'middle');
+ html+=text(x0,y0+(compact?4:wide?8:6),'x','#242424',compact?13:wide?24:18,'middle')+text(x2,y0+(compact?4:wide?9:7),'Σ',colors.teal,compact?13:wide?32:26,'middle')+text(x2,y0-r-(compact?9:wide?18:14),`φ₀ = ${number(s.c)}`,colors.teal,parameterSize,'end');
+ if(!compact)html+=text(x1,h-8,'Hidden layer',colors.gray,wide?20:16,'middle')+text(w-3,h-8,'Output',colors.gray,wide?20:16,'end');
  svg.innerHTML=html;svg.setAttribute('aria-label',`Two hidden neurons: input weight θ₁₁ = ${s.w1}, hidden bias θ₁₀ = ${s.b1}; input weight θ₂₁ = ${s.w2}, hidden bias θ₂₀ = ${s.b2}. Output weights φ₁ = ${s.a1}, φ₂ = ${s.a2}; output bias φ₀ = ${s.c}. Hidden-layer parameters form θ; output-layer parameters form φ.`);
 }
 export function renderConstruction(plot,detail,kind,p){
- const s=constructionState(kind,p),rect=plot.getBoundingClientRect(),w=Math.max(260,rect.width),h=Math.max(170,rect.height),compact=w<500;
+ const s=constructionState(kind,p),rect=plot.getBoundingClientRect(),w=Math.max(260,rect.width),h=Math.max(170,rect.height),compact=w<500,wide=globalThis.innerWidth>=1600;
  plot.setAttribute('viewBox',`0 0 ${w} ${h}`);
- const top=30,bottom=h-30,gap=compact?22:54,margin=compact?24:36,panel=(w-gap)/2;
+ const top=compact?30:wide?50:42,bottom=h-(compact?30:wide?44:36),gap=compact?22:wide?64:54,margin=compact?24:wide?44:36,panel=(w-gap)/2;
  const united=[margin,w-12];
  const bounds=[[mix(margin,united[0],s.merge),mix(panel-10,united[1],s.merge)],[mix(panel+gap+margin,united[0],s.merge),mix(w-12,united[1],s.merge)]];
  const X=(x,j)=>bounds[j][0]+(x+.3)/1.5*(bounds[j][1]-bounds[j][0]);
@@ -50,9 +51,9 @@ export function renderConstruction(plot,detail,kind,p){
  for(let j=0;j<2;j++){
   const axisOpacity=j===1?1-s.merge:1;
   html+=`<g opacity="${axisOpacity}">`;
-  for(const y of [-1,0,1,2])html+=line(bounds[j][0],Y(y),bounds[j][1],Y(y),y===0?'#767676':'#e8e8e8')+text(bounds[j][0]-6,Y(y)+4,y,colors.gray,compact?9:11,'end');
-  for(const x of [0,1])html+=line(X(x,j),bottom,X(x,j),bottom+4,colors.gray)+text(X(x,j),bottom+17,x,colors.gray,compact?9:11,'middle');
-  html+=text(bounds[j][1],bottom+17,'x',colors.gray,compact?10:12,'end')+'</g>';
+  for(const y of [-1,0,1,2])html+=line(bounds[j][0],Y(y),bounds[j][1],Y(y),y===0?'#767676':'#e8e8e8')+text(bounds[j][0]-6,Y(y)+(compact?4:wide?7:6),y,colors.gray,compact?9:wide?20:16,'end');
+  for(const x of [0,1])html+=line(X(x,j),bottom,X(x,j),bottom+4,colors.gray)+text(X(x,j),bottom+(compact?17:wide?30:24),x,colors.gray,compact?9:wide?20:16,'middle');
+  html+=text(bounds[j][1],bottom+(compact?17:wide?30:24),'x',colors.gray,compact?10:wide?20:16,'end')+'</g>';
  }
  const showOutput=s.reveal>0,componentOpacity=showOutput?.32:1;
  if(kind==='input-first')html+=curve(x=>relu(x),0,colors.gray,.3,'4 4');
@@ -60,15 +61,15 @@ export function renderConstruction(plot,detail,kind,p){
  if(kind==='flip')html+=curve(h2,1,colors.rust,.25,'4 4');
  html+=curve(h1,0,colors.blue,componentOpacity,showOutput?'5 4':'')+curve(x=>(weighted?s.a2:1)*h2(x),1,colors.rust,componentOpacity,showOutput?'5 4':'');
  const titles=weighted?['φ₁h₁(x)','φ₂h₂(x)']:['h₁(x)','h₂(x)'];
- html+=text(bounds[0][0],16,titles[0],colors.blue,compact?11:14)+text(s.merge?bounds[0][0]+(compact?80:115):bounds[1][0],16,titles[1],colors.rust,compact?11:14);
+ html+=text(bounds[0][0],compact?16:wide?30:24,titles[0],colors.blue,compact?11:wide?24:20)+text(s.merge?bounds[0][0]+(compact?80:wide?170:140):bounds[1][0],compact?16:wide?30:24,titles[1],colors.rust,compact?11:wide?24:20);
  if(showOutput){
   const cut=s.reveal<.86?mix(-.3,1.2,s.reveal/.86):1.2;
-  html+=curve(f,0,colors.teal,1,'',cut,3.5)+text(bounds[0][0]+(compact?162:240),16,'sum + φ₀',colors.teal,compact?11:14);
+  html+=curve(f,0,colors.teal,1,'',cut,3.5)+text(bounds[0][0]+(compact?162:wide?340:280),compact?16:wide?30:24,'sum + φ₀',colors.teal,compact?11:wide?24:20);
   if(kind==='add'){
    const x=s.reveal<.86?cut:.75,v1=h1(x),v2=s.a2*h2(x),out=f(x);
    html+=line(X(x,0),Y(0),X(x,0),Y(v1),colors.blue,3)+line(X(x,0)+5,Y(v1),X(x,0)+5,Y(out),colors.rust,3);
    html+=`<circle cx="${X(x,0)}" cy="${Y(out)}" r="4" fill="${colors.teal}"/>`;
-   html+=text(bounds[0][0]+10,bottom-8,`${number(v1)} ${v2<0?'−':'+'} ${number(Math.abs(v2))} = ${number(out)}`,colors.teal,compact?12:18);
+   html+=text(bounds[0][0]+10,bottom-8,`${number(v1)} ${v2<0?'−':'+'} ${number(Math.abs(v2))} = ${number(out)}`,colors.teal,compact?12:wide?30:24);
   }
  }
  if(kind==='output-bias')html+=curve(x=>h1(x)-h2(x),0,colors.gray,.4,'3 4',1.2,1.5);

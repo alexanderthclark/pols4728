@@ -15,9 +15,10 @@ function geometry(svg){
  // The parent supplies at least 200 px for the foundation diagram. Retaining
  // that coordinate height also makes a smaller transient resize safe to render.
  svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
- const size=mobile?Math.min(31,(w-118)/4):Math.min(54,(h-110)/3),gap=mobile?9:17;
+ const gap=mobile?9:Math.min(17,Math.max(8,(h-140)*.08));
+ const size=mobile?Math.min(31,(w-118)/4):Math.min(54,(h-114-2*gap)/3);
  const gridWidth=4*size+3*gap,gridHeight=3*size+2*gap;
- const gx=(w-gridWidth)/2,gy=mobile?32+(h-200)*.38:(h-gridHeight)/2-3;
+ const gx=(w-gridWidth)/2,gy=mobile?32+(h-200)*.38:44+(h-114-gridHeight)/2;
  const grid=ids.map((_,i)=>({x:gx+(i%4)*(size+gap),y:gy+Math.floor(i/4)*(size+gap)}));
  let groups,positions;
  if(mobile){
@@ -36,7 +37,7 @@ function geometry(svg){
 
 function tile(id,x,y,size,{used=false,active=false,opacity=1}={}){
  const stroke=used?C.teal:active?C.blue:'#aeb9c1',fill=used?'#edf5f3':active?'#f0f4f7':'white';
- return `<g data-observation="${id}" opacity="${opacity}" transform="translate(${x.toFixed(3)} ${y.toFixed(3)})"><rect width="${size}" height="${size}" rx="3" fill="${fill}" stroke="${stroke}" stroke-width="${active?1.6:1.1}"/>${number(size/2,size/2+(size<35?4:6),id,size<35?14:18,used?C.teal:C.ink)}</g>`;
+ return `<g data-observation="${id}" opacity="${opacity}" transform="translate(${x.toFixed(3)} ${y.toFixed(3)})"><rect width="${size}" height="${size}" rx="3" fill="${fill}" stroke="${stroke}" stroke-width="${active?1.6:1.1}"/>${number(size/2,size/2+(size<35?4:7),id,size<35?14:22,used?C.teal:C.ink)}</g>`;
 }
 
 function groupFrames(g,{completed=0,current=-1,opacity=1,fraction=0}={}){
@@ -67,12 +68,13 @@ function tiles(g,{order=ids,fromOrder=order,grouping=1,motion=1,completed=0,curr
 }
 
 function footer(g,first,second='',color=C.ink){
- return text(g.w/2,g.h-(second?23:8),first,g.mobile?'':'','middle',color)+(second?text(g.w/2,g.h-5,second,'small','middle'):'');
+ const firstY=g.h-(second?(g.mobile?23:36):(g.mobile?8:12)),secondY=g.h-(g.mobile?5:9);
+ return text(g.w/2,firstY,first,'','middle',color)+(second?text(g.w/2,secondY,second,'small','middle'):'');
 }
 
 function datasetDiagram(svg,kind,u){
  const g=geometry(svg),{w,h,mobile}=g;
- let body=text(w/2,15,'Small teaching example · 12 observations','small','middle');
+ let body=text(w/2,mobile?15:20,'Small teaching example · 12 observations','small','middle');
  body+=`<rect x="${g.gx-13}" y="${g.gy-12}" width="${g.gridWidth+26}" height="${g.gridHeight+24}" rx="6" fill="none" stroke="#b7bfc4" stroke-width="1.2"/>`;
  body+=tiles(g,{grouping:0,current:-1});
  if(kind==='dataset-intro'){
@@ -88,7 +90,7 @@ function datasetDiagram(svg,kind,u){
 
 function groupingDiagram(svg,u){
  const g=geometry(svg),t=smooth(u),visible=smooth((u-.25)/.5);
- let body=text(g.w/2,15,'Batch size = 4 observations','small','middle');
+ let body=text(g.w/2,g.mobile?15:20,'Batch size = 4 observations','small','middle');
  body+=groupFrames(g,{current:0,opacity:visible})+tiles(g,{grouping:t,current:u>.6?0:-1});
  body+=footer(g,'One batch = 4 observations used together.');
  set(svg,body,'The twelve observations separate into three batches of four. Batch one contains observations one through four and has a solid outline. The other two batches contain five through eight and nine through twelve. A batch is the group used together.');
@@ -97,7 +99,7 @@ function groupingDiagram(svg,u){
 
 function passDiagram(svg,u,complete=false){
  const g=geometry(svg),position=complete?3:u*3,completed=Math.min(3,Math.floor(position+1e-9)),current=completed<3?completed:-1,fraction=current<0?0:position-completed;
- let body=text(g.w/2,15,complete?'Every observation used once':current<0?'All three batches have been used':`Use batch ${current+1}, then move to the next`,'small','middle');
+ let body=text(g.w/2,g.mobile?15:20,complete?'Every observation used once':current<0?'All three batches have been used':`Use batch ${current+1}, then move to the next`,'small','middle');
  body+=groupFrames(g,{completed,current,fraction})+tiles(g,{completed,current});
  body+=complete?footer(g,'1 complete pass = 1 epoch','12 / 12 observations · 3 / 3 batches',C.teal):footer(g,`${completed*4} / 12 observations used`,`${completed} / 3 batches complete`);
  set(svg,body,complete?'All three batches are complete and checked. All twelve observations have been used exactly once. One complete pass through the dataset is one epoch.':`${completed} of three batches complete, so ${completed*4} of twelve observations have been used. ${current<0?'The complete pass is finished.':`Currently using batch ${current+1}; completed batches are checked.`}`);
@@ -106,7 +108,7 @@ function passDiagram(svg,u,complete=false){
 
 function repeatDiagram(svg,u){
  const g=geometry(svg),started=u>.06,motion=smooth((u-.12)/.72),completed=started?0:3,current=motion===1?0:-1;
- let body=text(g.w/2,15,started?'Epoch 2 · reshuffle the same data':'Epoch 1 · one complete pass','small','middle');
+ let body=text(g.w/2,g.mobile?15:20,started?'Epoch 2 · reshuffle the same data':'Epoch 1 · one complete pass','small','middle');
  body+=groupFrames(g,{completed,current})+tiles(g,{order:nextOrder,fromOrder:ids,motion,completed,current});
  body+=started?footer(g,'0 / 12 used · 0 / 3 batches complete','New order. Keep what the model learned.'):footer(g,'12 / 12 used · 3 / 3 batches complete','Ready for another pass through the same data.');
  set(svg,body,started?'Epoch two begins. The same twelve numbered observations move to a new shuffled order and form three new batches of four. No observation is added or removed. The count used in this epoch resets to zero, while the model keeps what it learned.':'Epoch one is complete. All twelve observations have been used and all three batches are checked. The next scroll movement begins a second pass through the same dataset.');
@@ -114,11 +116,11 @@ function repeatDiagram(svg,u){
 }
 
 function scaleDiagram(svg,u){
- const {w,h,mobile}=geometry(svg),cols=mobile?4:8,rows=32/cols,margin=mobile?8:Math.max(20,w*.1),left=margin,right=w-margin,top=mobile?39:51,bottom=h-(mobile?42:48),gap=mobile?3:12,cellW=(right-left-(cols-1)*gap)/cols,cellH=(bottom-top-(rows-1)*gap)/rows,count=Math.min(32,Math.floor(u*32)+1);
- let body=text(w/2,15,'2,048 observations in the full dataset','small','middle')+text(w/2,32,'Each box is a batch of 64','small','middle');
+ const {w,h,mobile}=geometry(svg),short=!mobile&&h<300,cols=mobile?4:8,rows=32/cols,margin=mobile?8:Math.max(20,w*.1),left=margin,right=w-margin,top=mobile?39:short?40:72,bottom=h-(mobile?42:60),gap=mobile?3:short?6:12,cellW=(right-left-(cols-1)*gap)/cols,cellH=(bottom-top-(rows-1)*gap)/rows,count=Math.min(32,Math.floor(u*32)+1);
+ let body=short?text(w/2,20,'2,048 observations · 64 in each batch','small','middle'):text(w/2,mobile?15:20,'2,048 observations in the full dataset','small','middle')+text(w/2,mobile?32:46,'Each box is a batch of 64','small','middle');
  for(let i=0;i<32;i++){
   const x=left+(i%cols)*(cellW+gap),y=top+Math.floor(i/cols)*(cellH+gap),shown=i<count;
-  body+=`<g data-batch="${i+1}" opacity="${shown?1:.16}"><rect x="${x}" y="${y}" width="${cellW}" height="${cellH}" rx="2" fill="${i===0?'#f0f4f7':'white'}" stroke="${i===0?C.blue:'#9fadb7'}" stroke-width="${i===0?1.8:1}"/>${number(x+cellW/2,y+cellH/2+(mobile?3:5),'64',mobile?10:15,i===0?C.blue:C.muted)}</g>`;
+  body+=`<g data-batch="${i+1}" opacity="${shown?1:.16}"><rect x="${x}" y="${y}" width="${cellW}" height="${cellH}" rx="2" fill="${i===0?'#f0f4f7':'white'}" stroke="${i===0?C.blue:'#9fadb7'}" stroke-width="${i===0?1.8:1}"/>${number(x+cellW/2,y+cellH/2+(mobile?3:cellH<26?5:7),'64',mobile?10:cellH<26?16:22,i===0?C.blue:C.muted)}</g>`;
  }
  body+=footer({w,h,mobile},'32 batches × 64 = 2,048','Use all 32 batches → 1 epoch');
  set(svg,body,'The actual training dataset has 2,048 observations. With batch size 64, it divides exactly into 32 batches, shown as 32 boxes. Each box is a batch of 64 observations. Using all 32 batches completes one epoch.');

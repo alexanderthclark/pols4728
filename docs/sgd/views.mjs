@@ -6,13 +6,13 @@ import {predict,ramp,gradient,data,mse} from './model.mjs';
 import {sgdKinds,renderSGD,renderParameterUpdate,C,clamp,line,text,set,canvas,chart,facts,observations,gradientBars,interpolate} from './sgd-detail.mjs';
 function trainingPanel(svg,trace,index,mix,firstEpoch,color,width){
  const {w,h}=canvas(svg),s=trace[index],value=mse(interpolate(s.model,s.after,mix));
- const compact=h<150,l=37,r=w-12,t=compact?57:87,b=h-24,maxStep=firstEpoch?32:9600;
+ const projected=globalThis.innerWidth>=1000,compact=h<150,l=projected?48:37,r=w-12,t=compact?42:projected?100:87,b=h-(projected?32:24),maxStep=firstEpoch?32:9600;
  const X=step=>l+step/maxStep*(r-l),Y=v=>b-(Math.log10(Math.max(.001,v))+3)/3*(b-t);
- let html=text(0,13,`Epoch ${s.epoch} / 300`,'small')+text(w,13,`Batch ${s.batch} / 32 · 64 rows`,'small','end');
+ let html=text(0,projected?20:13,`Batch ${s.batch} / 32 · 64 observations`,'small');
  const slot=(w-2)/32;
- for(let j=0;j<32;j++)html+=`<rect x="${j*slot}" y="23" width="${Math.max(1,slot-2)}" height="${j===s.batch-1?12:7}" fill="${j===s.batch-1?C.rust:j<s.batch-1?color:'#e8e8e8'}"/>`;
- if(!compact)html+=text(0,57,mix<.25?'Select batch → calculate gradient':'Apply gradient → all parameters together','small');
- for(const v of [.01,.1,1])html+=line(l,Y(v),r,Y(v),'#eee')+text(l-5,Y(v)+3,String(v),'small','end');
+ for(let j=0;j<32;j++)html+=`<rect x="${j*slot}" y="${projected?32:23}" width="${Math.max(1,slot-2)}" height="${j===s.batch-1?12:7}" fill="${j===s.batch-1?C.rust:j<s.batch-1?color:'#e8e8e8'}"/>`;
+ if(!compact)html+=text(0,projected?70:57,mix<.25?'Batch → gradient':'Update all parameters','small');
+ for(const v of (compact?[.01,1]:[.01,.1,1]))html+=line(l,Y(v),r,Y(v),'#eee')+text(l-5,Y(v)+3,String(v),'small','end');
  let path='';for(let i=0;i<=index;i++)path+=(i?'L':'M')+X(trace[i].step)+','+Y(trace[i].loss);
  path+=`L${X(s.step+mix)},${Y(value)}`;
  html+=`<path d="${path}" stroke="${color}" fill="none" stroke-width="2"/><circle cx="${X(s.step+mix)}" cy="${Y(value)}" r="3" fill="${color}"/>`+line(l,b,r,b,'#767676')+text(l,b+18,'0','small')+text(r,b+18,`${maxStep.toLocaleString('en-US')} updates`,'small','end');
@@ -43,7 +43,7 @@ export function render(plot,detail,scene,p,e){
   if(kind==='update'){
    info.displayedParameters=renderParameterUpdate(detail,e.firstUpdate.before,e.firstUpdate.after,e.firstUpdate.gradient,u);
    info.updateProgress=u;
-   plotTitle='Dashed: before · blue: current model';detailTitle='All seven parameters · zero gradient means unchanged';
+   plotTitle='Dashed: before · blue: current model';detailTitle='All seven parameters update together';
   }
   info.width=wide?12:2;info.completedUpdates=kind==='update'?u:0;info.outputBias=model.c;info.predictionAtZero=predict(model,0);info.model=model;
  }
@@ -55,7 +55,7 @@ export function render(plot,detail,scene,p,e){
   const model=interpolate(s.model,s.after,mix);
   body+=observations(c,{batch:s.indices})+c.path(x=>predict(s.model,x),C.gray,1.8,'3 4')+c.path(x=>predict(model,x),color);
   trainingPanel(detail,trace,index,mix,firstEpoch,color,width);
-  plotTitle=`Width ${width} · update ${(s.step+(mix===1?1:0)).toLocaleString('en-US')} / 9,600`;
+  plotTitle=`${width} neurons · current batch in rust`;
   detailTitle=`Full-data MSE · ${mse(model).toFixed(4)} (log scale)`;
   info={...info,width,step:s.step,epoch:s.epoch,batch:s.batch,mix,batchFirst:s.indices[0],predictionAtZero:predict(model,0),model,completedUpdates:s.step+mix};
  }
