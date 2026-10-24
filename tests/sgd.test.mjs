@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import test from 'node:test';
 import vm from 'node:vm';
-import { copy, data, gradient, initialize, loss, mse, predict, random, shuffle, target, update } from '../docs/sgd/model.mjs';
+import { copy, data, gradient, initialize, loss, mse, predict, ramp, random, shuffle, target, update } from '../docs/sgd/model.mjs';
 import { epochState, renderEpochCounter } from '../docs/sgd/epoch-counter.mjs';
 import { scenes, foundationScenes, batchSteps } from '../docs/sgd/scenes.mjs';
 import { render } from '../docs/sgd/views.mjs';
@@ -33,7 +33,8 @@ function renderScene(id, progress, width = 850, height = 430) {
 test('the static opening introduces the noiseless training data before constructing ReLUs', async () => {
   assert.equal(scenes[0].id, 'step-target');
   assert.equal(scenes[0].kind, 'step-target');
-  assert.equal(scenes[1].id, 'pair');
+  assert.equal(scenes[1].id, 'two-hinges');
+  assert.equal(scenes[2].id, 'pair');
   const opening = renderScene('step-target', 0);
   const staticFrame = ({ progress, ...frame }) => frame;
   assert.equal(opening.detail, '', 'The data-generating process comes before any network diagram');
@@ -85,7 +86,47 @@ test('the static opening introduces the noiseless training data before construct
   ui.reduce(true);
   assert.deepEqual(staticFrame(ui.at('step-target', .1)), first);
   ui.emit('document:keydown', { key: 'ArrowRight', target: { tagName: 'DIV' }, preventDefault() {} });
+  assert.equal(ui.nodes.get('stage').dataset.scene, 'two-hinges');
+  ui.emit('document:keydown', { key: 'ArrowRight', target: { tagName: 'DIV' }, preventDefault() {} });
   assert.equal(ui.nodes.get('stage').dataset.scene, 'pair');
+});
+
+test('the two-neuron preview has two continuous hinges and three linear regions, rather than an exact step', async () => {
+  const preview = renderScene('two-hinges', 0), { model, width, hinges, regionSlopes } = preview.frame;
+  assert.equal(width, 2);
+  assert.equal(model.units.length, 2);
+  assert.deepEqual(hinges, [0, .5]);
+  assert.deepEqual(regionSlopes, [0, 2, 0]);
+  assert.deepEqual(model, { c: 0, units: [{ w: 2, b: 0, a: 1 }, { w: 2, b: -1, a: -1 }] });
+  assert.deepEqual(model.units.map(unit => -unit.b / unit.w || 0), hinges);
+  const displayedHinges = [...new Set([...preview.plot.matchAll(/data-hinge="([^"]+)"/g)].map(match => Number(match[1])))];
+  assert.deepEqual(displayedHinges, hinges);
+  const regions = [...preview.plot.matchAll(/<[^>]+\bdata-region="(\d+)"[^>]*>/g)]
+    .map(match => ({ index: Number(match[1]), slope: Number(match[0].match(/data-slope="([^"]+)"/)[1]) }));
+  assert.deepEqual(regions, regionSlopes.map((slope, index) => ({ index: index + 1, slope })));
+  for (const x of [-1, -.2, 0, .1, .25, .5, .75, 1]) close(predict(model, x), ramp(x, 2));
+  const epsilon = 1e-5;
+  for (const [index, x] of [-.5, .25, .75].entries()) {
+    close((predict(model, x + epsilon) - predict(model, x - epsilon)) / (2 * epsilon), regionSlopes[index], 1e-9);
+  }
+  for (const hinge of hinges) {
+    assert.ok(Math.abs(predict(model, hinge - epsilon) - predict(model, hinge + epsilon)) <= 2 * epsilon + 1e-12, 'The ramp joins continuously at each hinge');
+  }
+  close(predict(model, 0), 0);
+  close(predict(model, .5), 1);
+  close(predict(model, .25), .5);
+  assert.notEqual(predict(model, .25), target(.25), 'The transition is a ramp, not the discontinuous target');
+  const staticFrame = ({ progress, ...frame }) => frame;
+  for (const progress of [.5, 1, .5, 0]) {
+    const result = renderScene('two-hinges', progress);
+    assert.deepEqual({ ...result, frame: staticFrame(result.frame) }, { ...preview, frame: staticFrame(preview.frame) });
+  }
+  const ui = await controller(), first = staticFrame(ui.at('two-hinges', .25));
+  ui.at('pair', .5);
+  assert.deepEqual(staticFrame(ui.at('two-hinges', .25)), first, 'Returning from the ReLU construction restores the same preview');
+  assert.equal(ui.nodes.get('epoch-counter').hidden, true);
+  ui.reduce(true);
+  assert.deepEqual(staticFrame(ui.at('two-hinges', .1)), first);
 });
 
 test('the DGP cases brace uses the bundled large-delimiter font and every declared font resolves locally', () => {

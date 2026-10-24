@@ -3,6 +3,7 @@ import {constructionKinds,renderConstruction} from './construction.mjs';
 import {renderInitialNetwork} from './network.mjs';
 import {renderParameterProbe} from './parameter-probe.mjs';
 import {renderStepTarget} from './step-target.mjs';
+import {renderTwoHinges} from './two-hinges.mjs';
 import {predict,ramp,gradient,data,mse} from './model.mjs';
 import {sgdKinds,renderSGD,renderParameterUpdate,C,clamp,line,text,set,canvas,chart,facts,observations,gradientBars,interpolate} from './sgd-detail.mjs';
 function trainingPanel(svg,trace,index,mix,firstEpoch,color,width){
@@ -22,6 +23,7 @@ function trainingPanel(svg,trace,index,mix,firstEpoch,color,width){
 export function render(plot,detail,scene,p,e){
  const u=clamp((p-.12)/.7),kind=scene.kind;
  if(kind==='step-target')return renderStepTarget(plot,detail,scene,p);
+ if(kind==='two-hinges')return renderTwoHinges(plot,detail,scene,p);
  if(constructionKinds.includes(kind))return renderConstruction(plot,detail,kind,p);
  if(foundationKinds.includes(kind))return renderFoundation(plot,detail,scene,p,e);
  if(sgdKinds.includes(kind))return renderSGD(plot,detail,scene,p,e);
