@@ -1,4 +1,5 @@
 import {foundationKinds,renderFoundation} from './batch-epoch.mjs';
+import {richText} from './math.mjs';
 import {constructionKinds,renderConstruction} from './construction.mjs';
 import {renderInitialNetwork} from './network.mjs';
 import {renderParameterProbe} from './parameter-probe.mjs';
@@ -13,7 +14,7 @@ function trainingPanel(svg,trace,index,mix,firstEpoch,color,width){
  let html=text(0,projected?20:13,`Batch ${s.batch} / 32 · 64 observations`,'small');
  const slot=(w-2)/32;
  for(let j=0;j<32;j++)html+=`<rect x="${j*slot}" y="${projected?32:23}" width="${Math.max(1,slot-2)}" height="${j===s.batch-1?12:7}" fill="${j===s.batch-1?C.rust:j<s.batch-1?color:'#e8e8e8'}"/>`;
- if(!compact)html+=text(0,projected?70:57,mix<.25?'Batch → gradient':'Update all parameters','small');
+ if(!compact)html+=richText(0,projected?70:57,mix<.25?String.raw`Batch \(\to\) gradient`:'Update all parameters','small');
  for(const v of (compact?[.01,1]:[.01,.1,1]))html+=line(l,Y(v),r,Y(v),'#eee')+text(l-5,Y(v)+3,String(v),'small','end');
  let path='';for(let i=0;i<=index;i++)path+=(i?'L':'M')+X(trace[i].step)+','+Y(trace[i].loss);
  path+=`L${X(s.step+mix)},${Y(value)}`;

@@ -1,13 +1,12 @@
 import {C,canvas,set} from './sgd-detail.mjs';
+import {mathText} from './math.mjs';
 
-const number=value=>(value<0?'−':'')+Math.abs(value).toFixed(4);
+const number=value=>(value<0?'-':'')+Math.abs(value).toFixed(4);
 const label=(x,y,value,color,size,anchor='middle')=>`<text x="${x}" y="${y}" text-anchor="${anchor}" style="fill:${color};font-size:${size}px">${value}</text>`;
+const mathLabel=(x,y,value,color,size,anchor='middle',width)=>mathText(x,y,value,'',anchor,color,{size,width});
 const circle=(x,y,r,color)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="white" stroke="${color}" stroke-width="1.5"/>`;
-let outputMath;
 function outputLabel(right,y,size){
- outputMath??=globalThis.katex.renderToString(String.raw`\hat f(x;\theta,\phi)`,{displayMode:false,output:'htmlAndMathml',throwOnError:true,strict:'error'});
- const width=size*7;
- return `<foreignObject x="${right-width}" y="${y}" width="${width}" height="${size*2}" class="probe-math network-output-math"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:${size}px;color:${C.blue};line-height:1.2;text-align:right">${outputMath}</div></foreignObject>`;
+ return mathLabel(right,y+size,String.raw`\hat f(x;\theta,\phi)`,C.blue,size,'end',size*7);
 }
 function arrow(x1,y1,x2,y2,color,dashed=false){
  const angle=Math.atan2(y2-y1,x2-x1),size=5;
@@ -28,25 +27,25 @@ export function renderInitialNetwork(svg,model){
  const displayedParameters=model.units.flatMap((unit,i)=>{
   const sub=i===0?'₁':'₂';
   return [
-   {parameter:`theta${i+1}1`,label:`θ${sub}₁`,value:unit.w},
-   {parameter:`theta${i+1}0`,label:`θ${sub}₀`,value:unit.b},
-   {parameter:`phi${i+1}`,label:`φ${sub}`,value:unit.a},
+   {parameter:`theta${i+1}1`,label:`θ${sub}₁`,tex:`\\theta_{${i+1}1}`,value:unit.w},
+   {parameter:`theta${i+1}0`,label:`θ${sub}₀`,tex:`\\theta_{${i+1}0}`,value:unit.b},
+   {parameter:`phi${i+1}`,label:`φ${sub}`,tex:`\\phi_{${i+1}}`,value:unit.a},
   ];
- }).concat({parameter:'phi0',label:'φ₀',value:model.c});
+ }).concat({parameter:'phi0',label:'φ₀',tex:'\\phi_0',value:model.c});
  const valueLabel=(parameter,x,y,color,anchor='middle',stacked=false)=>{
   const entry=displayedParameters.find(item=>item.parameter===parameter);
   const content=stacked
-   ?label(x,y-(wide?11:9),entry.label,color,font,anchor)+label(x,y+(wide?17:13),number(entry.value),color,font,anchor)
-   :label(x,y,`${entry.label} = ${number(entry.value)}`,color,font,anchor);
-  return `<g data-parameter="${entry.parameter}" data-value="${entry.value}" style="paint-order:stroke;stroke:white;stroke-width:4;stroke-linejoin:round">${content}</g>`;
+   ?mathLabel(x,y-(wide?11:9),entry.tex,color,font,anchor)+mathLabel(x,y+(wide?17:13),number(entry.value),color,font,anchor)
+   :mathLabel(x,y,`${entry.tex}=${number(entry.value)}`,color,font,anchor);
+  return `<g class="network-math-label" data-parameter="${entry.parameter}" data-value="${entry.value}">${content}</g>`;
  };
  let body='';
  for(let i=0;i<2;i++){
-  const node={x:hiddenX,y:hiddenYs[i]},color=i===0?C.blue:C.rust,biasY=biasYs[i],sub=i===0?'₁':'₂';
+  const node={x:hiddenX,y:hiddenYs[i]},color=i===0?C.blue:C.rust,biasY=biasYs[i];
   body+=connection(input,node,compact?10:13,nodeRadius,color)+connection(node,output,nodeRadius,nodeRadius,color);
   body+=arrow(hiddenX,biasY+(i===0?biasRadius:-biasRadius),hiddenX,node.y+(i===0?-nodeRadius-3:nodeRadius+3),color,true);
   body+=circle(hiddenX,biasY,biasRadius,color)+label(hiddenX,biasY+(compact?3.5:wide?7:5),'1',color,compact?10:wide?20:16);
-  body+=circle(node.x,node.y,nodeRadius,color)+label(node.x,node.y-(compact?2:3),`h${sub}`,color,compact?12:wide?24:20)+label(node.x,node.y+(compact?10:wide?18:15),'ReLU',color,compact?8:wide?16:13);
+  body+=circle(node.x,node.y,nodeRadius,color)+mathLabel(node.x,node.y-(compact?2:3),`h_{${i+1}}`,color,compact?12:wide?24:20)+mathLabel(node.x,node.y+(compact?10:wide?18:15),'\\operatorname{ReLU}',color,compact?8:wide?16:13);
   const weightY=(input.y+node.y)/2+(i===0?-(compact?9:wide?27:21):(compact?20:wide?30:24));
   body+=valueLabel(`theta${i+1}1`,(input.x+hiddenX)/2-4,weightY,color,'middle',!compact);
   body+=valueLabel(`phi${i+1}`,(hiddenX+output.x)/2,weightY,color,'middle',!compact);
@@ -56,8 +55,8 @@ export function renderInitialNetwork(svg,model){
  body+=arrow(output.x,outputBiasY+biasRadius,output.x,output.y-nodeRadius-3,C.teal,true);
  body+=circle(output.x,outputBiasY,biasRadius,C.teal)+label(output.x,outputBiasY+(compact?3.5:wide?7:5),'1',C.teal,compact?10:wide?20:16);
  body+=valueLabel('phi0',output.x-(compact?12:wide?24:20),outputBiasY+(wide&&!compact?20:16),C.teal,'end');
- body+=circle(input.x,input.y,compact?10:wide?17:14,C.muted)+label(input.x,input.y+(compact?4:wide?8:6),'x',C.ink,compact?12:wide?24:20);
- body+=circle(output.x,output.y,nodeRadius,C.blue)+label(output.x,output.y+(compact?5:wide?9:7),'Σ',C.blue,compact?18:wide?34:28);
+ body+=circle(input.x,input.y,compact?10:wide?17:14,C.muted)+mathLabel(input.x,input.y+(compact?4:wide?8:6),'x',C.ink,compact?12:wide?24:20);
+ body+=circle(output.x,output.y,nodeRadius,C.blue)+mathLabel(output.x,output.y+(compact?5:wide?9:7),'\\sum',C.blue,compact?18:wide?34:28);
  body+=outputLabel(w-3,output.y+nodeRadius+(compact?3:wide?8:6),compact?11:wide?22:18);
  body+=label(3,h-3,'Dashed: bias',C.muted,compact?9:wide?20:16,'start')+label(w-3,h-3,'1: constant',C.muted,compact?9:wide?20:16,'end');
  set(svg,body,`Initial network: input x connects to two hidden ReLU neurons. ${displayedParameters.map(item=>`${item.label} = ${item.value}`).join('; ')}. Hidden biases θ₁₀ and θ₂₀ enter the hidden neurons from constant 1; output bias φ₀ enters the sum from constant 1. Network output f-hat(x; θ, φ) is φ₁ times h₁ plus φ₂ times h₂ plus φ₀. Hidden-layer parameters form θ; output-layer parameters form φ.`);

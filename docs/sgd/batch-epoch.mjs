@@ -1,4 +1,5 @@
 import {C,clamp,line,text,set,canvas} from './sgd-detail.mjs';
+import {richText} from './math.mjs';
 
 // A deliberately small teaching example, separate from the recorded experiment.
 // IDs remain attached to the same observations throughout every transformation.
@@ -69,7 +70,7 @@ function tiles(g,{order=ids,fromOrder=order,grouping=1,motion=1,completed=0,curr
 
 function footer(g,first,second='',color=C.ink){
  const firstY=g.h-(second?(g.mobile?23:36):(g.mobile?8:12)),secondY=g.h-(g.mobile?5:9);
- return text(g.w/2,firstY,first,'','middle',color)+(second?text(g.w/2,secondY,second,'small','middle'):'');
+ return richText(g.w/2,firstY,first,'','middle',color)+(second?richText(g.w/2,secondY,second,'small','middle'):'');
 }
 
 function datasetDiagram(svg,kind,u){
@@ -82,7 +83,7 @@ function datasetDiagram(svg,kind,u){
   body+=`<rect x="${first.x-3}" y="${first.y-3}" width="${g.size+6}" height="${g.size+6}" rx="5" fill="none" stroke="${C.blue}" stroke-width="2" opacity="${amount}"/>`;
   body+=footer(g,'Each tile is one observation.','The same number follows the same observation.');
  }else{
-  body+=footer(g,mobile?'Dataset → batches → epoch':'One dataset → small batches → one complete pass');
+  body+=footer(g,mobile?String.raw`Dataset \(\to\) batches \(\to\) epoch`:String.raw`One dataset \(\to\) small batches \(\to\) one complete pass`);
  }
  set(svg,body,kind==='dataset-intro'?'Small teaching example with twelve observations, numbered one through twelve. Each numbered tile is one observation; its number keeps its identity visible.':'Batches and epochs: start with one dataset, work through small batches, and complete a pass through every observation. The diagram uses a small example of twelve observations.');
  return {example:true,observationCount:12,batchSize:4,batchCount:3,ids:[...ids],order:[...ids],epoch:0,completedEpochs:0,used:0,completedBatches:0,currentBatch:0};
@@ -90,9 +91,9 @@ function datasetDiagram(svg,kind,u){
 
 function groupingDiagram(svg,u){
  const g=geometry(svg),t=smooth(u),visible=smooth((u-.25)/.5);
- let body=text(g.w/2,g.mobile?15:20,'Batch size = 4 observations','small','middle');
+ let body=richText(g.w/2,g.mobile?15:20,String.raw`Batch size \(=4\) observations`,'small','middle');
  body+=groupFrames(g,{current:0,opacity:visible})+tiles(g,{grouping:t,current:u>.6?0:-1});
- body+=footer(g,'One batch = 4 observations used together.');
+ body+=footer(g,String.raw`One batch \(=4\) observations used together.`);
  set(svg,body,'The twelve observations separate into three batches of four. Batch one contains observations one through four and has a solid outline. The other two batches contain five through eight and nine through twelve. A batch is the group used together.');
  return {example:true,observationCount:12,batchSize:4,batchCount:3,ids:[...ids],order:[...ids],grouping:t,epoch:1,completedEpochs:0,used:0,completedBatches:0,currentBatch:1};
 }
@@ -101,7 +102,7 @@ function passDiagram(svg,u,complete=false){
  const g=geometry(svg),position=complete?3:u*3,completed=Math.min(3,Math.floor(position+1e-9)),current=completed<3?completed:-1,fraction=current<0?0:position-completed;
  let body=text(g.w/2,g.mobile?15:20,complete?'Every observation used once':current<0?'All three batches have been used':`Use batch ${current+1}, then move to the next`,'small','middle');
  body+=groupFrames(g,{completed,current,fraction})+tiles(g,{completed,current});
- body+=complete?footer(g,'1 complete pass = 1 epoch','12 / 12 observations · 3 / 3 batches',C.teal):footer(g,`${completed*4} / 12 observations used`,`${completed} / 3 batches complete`);
+ body+=complete?footer(g,String.raw`\(1\) complete pass \(=1\) epoch`,'12 / 12 observations · 3 / 3 batches',C.teal):footer(g,`${completed*4} / 12 observations used`,`${completed} / 3 batches complete`);
  set(svg,body,complete?'All three batches are complete and checked. All twelve observations have been used exactly once. One complete pass through the dataset is one epoch.':`${completed} of three batches complete, so ${completed*4} of twelve observations have been used. ${current<0?'The complete pass is finished.':`Currently using batch ${current+1}; completed batches are checked.`}`);
  return {example:true,observationCount:12,batchSize:4,batchCount:3,ids:[...ids],order:[...ids],epoch:1,completedEpochs:completed===3?1:0,used:completed*4,completedBatches:completed,currentBatch:current+1,batchProgress:fraction};
 }
@@ -122,7 +123,7 @@ function scaleDiagram(svg,u){
   const x=left+(i%cols)*(cellW+gap),y=top+Math.floor(i/cols)*(cellH+gap),shown=i<count;
   body+=`<g data-batch="${i+1}" opacity="${shown?1:.16}"><rect x="${x}" y="${y}" width="${cellW}" height="${cellH}" rx="2" fill="${i===0?'#f0f4f7':'white'}" stroke="${i===0?C.blue:'#9fadb7'}" stroke-width="${i===0?1.8:1}"/>${number(x+cellW/2,y+cellH/2+(mobile?3:cellH<26?5:7),'64',mobile?10:cellH<26?16:22,i===0?C.blue:C.muted)}</g>`;
  }
- body+=footer({w,h,mobile},'32 batches × 64 = 2,048','Use all 32 batches → 1 epoch');
+ body+=footer({w,h,mobile},String.raw`\(32\text{ batches}\times64=2{,}048\)`,String.raw`Use all 32 batches \(\to1\) epoch`);
  set(svg,body,'The actual training dataset has 2,048 observations. With batch size 64, it divides exactly into 32 batches, shown as 32 boxes. Each box is a batch of 64 observations. Using all 32 batches completes one epoch.');
  return {example:false,observationCount:2048,batchSize:64,batchCount:32,shownBatches:count,epoch:0,completedEpochs:0,used:0,completedBatches:0,currentBatch:0};
 }

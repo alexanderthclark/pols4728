@@ -1,4 +1,5 @@
 import {predict,gradient,data,loss} from './model.mjs';
+import {mathText,richText,plainText} from './math.mjs';
 
 // Shared geometry keeps the detailed SGD sequence on the same axes and palette.
 export const C={blue:'#234e70',rust:'#a54f32',ink:'#242424',muted:'#606060',teal:'#007f73',gray:'#aaa'};
@@ -8,7 +9,7 @@ const projected=()=>globalThis.innerWidth>=1000;
 export const fmt=x=>Math.abs(x)<1e-10?'0':Number(x.toFixed(3)).toString();
 export const line=(x1,y1,x2,y2,color=C.ink,dash='',width=1)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" ${dash?`stroke-dasharray="${dash}"`:''}/>`;
 export const text=(x,y,t,cls='',anchor='start',color='')=>`<text x="${x}" y="${y}" class="${cls}" text-anchor="${anchor}" ${color?`style="fill:${color}"`:''}>${t}</text>`;
-export function set(svg,body,label){svg.innerHTML=body;svg.setAttribute('aria-label',label);}
+export function set(svg,body,label){svg.innerHTML=body;svg.setAttribute('aria-label',plainText(label));}
 export function canvas(svg){const r=svg.getBoundingClientRect();const w=Math.max(260,r.width),h=Math.max(70,r.height);svg.setAttribute('viewBox',`0 0 ${w} ${h}`);return {w,h};}
 export function chart(svg,{xmin=-1,xmax=1.2,ymin=-.25,ymax=1.4,xticks=[-1,0,1],yticks=[0,.5,1]}={}){
  const {w,h}=canvas(svg),large=projected(),left=large?48:37,right=w-(large?25:17),top=large?23:15,bottom=h-(large?39:27);
@@ -17,12 +18,12 @@ export function chart(svg,{xmin=-1,xmax=1.2,ymin=-.25,ymax=1.4,xticks=[-1,0,1],y
  for(const y of yticks)base+=line(left,Y(y),right,Y(y),'#e7e7e7')+text(left-8,Y(y)+4,fmt(y),'small','end');
  base+=line(left,bottom,right,bottom,'#767676');
  for(const x of xticks)base+=line(X(x),bottom,X(x),bottom+4,'#767676')+text(X(x),bottom+(large?27:19),fmt(x),'small','middle');
- base+=text(right+8,bottom+(large?27:19),'x','small');
+ base+=mathText(right+8,bottom+(large?27:19),'x','small');
  const path=(fn,color=C.blue,width=3,dash='',opacity=1)=>{let d='';for(let i=0;i<=420;i++){const x=xmin+(xmax-xmin)*i/420;d+=(i?'L':'M')+X(x).toFixed(2)+','+Y(fn(x)).toFixed(2);}return `<path d="${d}" fill="none" stroke="${color}" stroke-width="${width}" stroke-opacity="${opacity}" ${dash?`stroke-dasharray="${dash}"`:''} clip-path="url(#clip-${svg.id})"/>`;};
  const step=()=>`<path d="M${X(xmin)},${Y(0)}H${X(0)}M${X(0)},${Y(1)}H${X(xmax)}" fill="none" stroke="${C.muted}" stroke-width="2" stroke-dasharray="6 5"/><circle cx="${X(0)}" cy="${Y(0)}" r="3" fill="${C.muted}"/><circle cx="${X(0)}" cy="${Y(1)}" r="3" fill="white" stroke="${C.muted}" stroke-width="1.5"/>`;
  return {w,h,X,Y,path,step,base,left,right,top,bottom,xmin,xmax};
 }
-export function facts(svg,entries){const {w,h}=canvas(svg),large=projected();let html='';if(h<150){const cols=entries.length;entries.forEach((e,i)=>{const x=6+i*w/cols;html+=text(x,18,e[0],'small')+text(x,47,e[1],cols>2?'':'large','start',e[3]||'')+(e[2]&&cols<3?text(x,68,e[2],'small'):'');});}else{const space=Math.min(large?135:100,(h-20)/entries.length);entries.forEach((e,i)=>{const y=24+i*space;html+=text(10,y,e[0],'small')+text(10,y+(large?44:37),e[1],'large','start',e[3]||'')+(e[2]?text(10,y+(large?73:59),e[2],'small'):'');});}set(svg,html,entries.map(e=>e.slice(0,3).join(': ')).join('. '));}
+export function facts(svg,entries){const {w,h}=canvas(svg),large=projected();let html='';if(h<150){const cols=entries.length;entries.forEach((e,i)=>{const x=6+i*w/cols;html+=richText(x,18,e[0],'small')+richText(x,47,e[1],cols>2?'':'large','start',e[3]||'')+(e[2]&&cols<3?richText(x,68,e[2],'small'):'');});}else{const space=Math.min(large?135:100,(h-20)/entries.length);entries.forEach((e,i)=>{const y=24+i*space;html+=richText(10,y,e[0],'small')+richText(10,y+(large?44:37),e[1],'large','start',e[3]||'')+(e[2]?richText(10,y+(large?73:59),e[2],'small'):'');});}set(svg,html,entries.map(e=>e.slice(0,3).join(': ')).join('. '));}
 export function observations(c,{batch=null,residualModel=null,amount=1}={}){
  // Dense observations share one SVG path; each highlighted batch remains explicit.
  let dots='',residuals='',selected='';const active=new Set(batch||[]);
@@ -33,17 +34,18 @@ export function observations(c,{batch=null,residualModel=null,amount=1}={}){
  });
  return `<path d="${dots}" fill="none" stroke="#b4b4b4" stroke-width="3" stroke-linecap="round"/><path d="${residuals}" fill="none" stroke="${C.rust}" stroke-opacity="${batch?.65:.10}" stroke-width="1"/>`+selected;
 }
-export function gradientBars(svg,g1,g2=null){const {w,h}=canvas(svg),vals=g1.units.flatMap(u=>[u.w,u.b,u.a]).concat(g1.c),other=g2?g2.units.flatMap(u=>[u.w,u.b,u.a]).concat(g2.c):null,labels=['θ₁₁','θ₁₀','φ₁','θ₂₁','θ₂₀','φ₂','φ₀'];
+export function gradientBars(svg,g1,g2=null){const {w,h}=canvas(svg),vals=g1.units.flatMap(u=>[u.w,u.b,u.a]).concat(g1.c),other=g2?g2.units.flatMap(u=>[u.w,u.b,u.a]).concat(g2.c):null;
  const large=projected(),top=large?32:18,bottom=h-(large?34:24),mid=(top+bottom)/2,scale=(bottom-top)/2/Math.max(.02,...vals.map(Math.abs),...(other||[]).map(Math.abs)),col=(w-30)/7;
- let body=line(10,mid,w-10,mid,'#999');vals.forEach((v,i)=>{const x=20+col*i;body+=line(x,mid,x,mid-v*scale,C.blue,'',5);if(other)body+=line(x+7,mid,x+7,mid-other[i]*scale,C.rust,'',5);body+=text(x+2,bottom+19,labels[i],'small','middle');});
+ let body=line(10,mid,w-10,mid,'#999');vals.forEach((v,i)=>{const x=20+col*i;body+=line(x,mid,x,mid-v*scale,C.blue,'',5);if(other)body+=line(x+7,mid,x+7,mid-other[i]*scale,C.rust,'',5);body+=mathText(x+2,bottom+19,mathLabels[i],'small','middle');});
  body+=text(10,projected()?19:10,other?'Blue: full data · rust: minibatch':'Gradient components (signed)','small');set(svg,body,'Gradient components for the seven trainable parameters: four hidden-layer θ parameters and three output-layer φ parameters. '+(other?'Full gradient in blue, minibatch estimate in rust.':''));
 }
 export function interpolate(a,b,t){return {c:a.c+(b.c-a.c)*t,units:a.units.map((v,i)=>Object.fromEntries(['w','b','a'].map(k=>[k,v[k]+(b.units[i][k]-v[k])*t])))};}
 
 export const sgdKinds=['sgd-plan','partition','shuffle','batch','point-loss','batch-loss','batch-gradient','parameter-step','next-batch'];
 const labels=['θ₁₁','θ₁₀','φ₁','θ₂₁','θ₂₀','φ₂','φ₀'];
+const mathLabels=['\\theta_{11}','\\theta_{10}','\\phi_1','\\theta_{21}','\\theta_{20}','\\phi_2','\\phi_0'];
 const flatten=g=>g.units.flatMap(v=>[v.w,v.b,v.a]).concat(g.c);
-const signed=(v,d=4)=>(v<0?'−':v>0?'+':'')+Math.abs(v).toFixed(d);
+const signed=(v,d=4)=>(v<0?'-':v>0?'+':'')+Math.abs(v).toFixed(d);
 const lerp=(a,b,t)=>a+(b-a)*t;
 const smooth=t=>{t=clamp(t);return t*t*(3-2*t);};
 const arrow=(x1,y1,x2,y2,color=C.muted,width=1.5)=>{
@@ -59,7 +61,7 @@ function batchFacts(svg,indices,selected=64){
   const x=x0+(i%cols+.5)*dx,y=y0+(Math.floor(i/cols)+.5)*dy;
   body+=circle(x,y,Math.max(1.5,Math.min(dx,dy)*.32),i<selected?C.rust:'#ddd');
  });
- body+=text(w/2,h-4,`${selected} / 64 observations selected`,'small','middle');
+ body+=text(w/2,h-4,`${selected} of 64 observations selected`,'small','middle');
  set(svg,body,`${selected} of the first batch’s 64 observations selected. This is one of 32 disjoint batches.`);
 }
 
@@ -94,7 +96,7 @@ function shuffleDiagram(svg,e,u){
  const {w,h}=canvas(svg),left=22,right=w-6,top=23,bottom=h-22,dx=(right-left)/64,dy=(bottom-top)/32;
  const order=e.traces[2].slice(0,32).flatMap(s=>s.indices),position=Array(data.length);
  order.forEach((id,slot)=>position[id]=slot);
- let body=text(left,12,u<.01?'Ordered by x':'Same observations · shuffled order','small');
+ let body=richText(left,12,u<.01?String.raw`Ordered by \(x\)`:'Same observations · shuffled order','small');
  data.forEach((d,id)=>{
   const dest=position[id],t=smooth(u),x=left+lerp(id%64,dest%64,t)*dx,y=top+lerp(Math.floor(id/64),Math.floor(dest/64),t)*dy;
   body+=`<rect data-observation="${id}" x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${Math.max(.7,dx*.76)}" height="${Math.max(.65,dy*.7)}" fill="${d.y?C.rust:'white'}" ${d.y?'':`stroke="${C.blue}" stroke-width="${Math.min(.65,dx*.16,dy*.16)}"`}/>`;
@@ -115,8 +117,8 @@ function partitionDiagram(svg,e,u){
  batches.forEach((batch,j)=>{
   const x=left+(j%cols)*(gw+gapX),y=top+Math.floor(j/cols)*(gh+gapY);
   body+=`<g data-batch="${j+1}" data-count="${batch.indices.length}"><rect x="${x}" y="${y}" width="${gw}" height="${gh}" rx="2" fill="white" fill-opacity="${t}" stroke="${j===0?C.rust:'#9aa7b0'}" stroke-width="${j===0?1.7:1}" stroke-opacity="${t}"/>`;
-  if(compact)body+=`<text x="${x+gw/2}" y="${y+gh/2+3}" text-anchor="middle" opacity="${t}" style="font:10px Arial;fill:${j===0?C.rust:C.ink}">B${j+1}</text>`;
-  else body+=`<text x="${x+4}" y="${y+labelSpace-4}" opacity="${t}" style="font:${labelFont}px Arial;fill:${j===0?C.rust:C.muted}">B${j+1} · 64</text>`;
+  if(compact)body+=`<g opacity="${t}">`+mathText(x+gw/2,y+gh/2+3,`B_{${j+1}}`,'small','middle',j===0?C.rust:C.ink,{size:10,width:gw})+'</g>';
+  else body+=`<g opacity="${t}">`+richText(x+4,y+labelSpace-4,`\\(B_{${j+1}}\\) · 64`,'small','start',j===0?C.rust:C.muted,{size:labelFont,width:gw-8})+'</g>';
   body+='</g>';
  });
  if(!compact)order.forEach((id,i)=>{
@@ -126,7 +128,7 @@ function partitionDiagram(svg,e,u){
   body+=`<rect data-observation="${id}" x="${x-mark/2}" y="${y-mark/2}" width="${mark}" height="${mark}" fill="${group===0?C.rust:C.blue}" opacity="${group===0?1:.5}"/>`;
  });
  body+=text(left,h-5,'Each observation belongs to one batch.','small');
- if(w>420)body+=text(right,h-5,'32 batches × 64 = 2,048','small','end');
+ if(w>420)body+=richText(right,h-5,String.raw`\(32\times64=2{,}048\)`,'small','end');
  set(svg,body,'Partition all 2,048 shuffled observations into 32 disjoint batches of 64. Every observation belongs to exactly one batch, with no omissions and no repeats. Batch 1 is outlined.');
 }
 
@@ -138,19 +140,19 @@ function pointLoss(svg,detail,first,u){
  body+=circle(px,ty,5,C.rust,'white',1)+circle(px,ty,8,'none',C.ink,1);
  body+=`<g opacity="${reveal}">`+line(px,ty,px,py,C.rust,'',2)+circle(px,py,4,'white',C.blue,2)+'</g>';
  const labelX=Math.min(c.right-(projected()?170:118),px+12);
- body+=text(labelX,ty-7,`target yᵢ = ${d.y}`,'small','start',C.rust);
+ body+=richText(labelX,ty-7,`target \\(y_i=${d.y}\\)`,'small','start',C.rust);
  body+=`<g opacity="${reveal}">`+text(labelX,py-9,`prediction ${prediction.toFixed(4)}`,'small','start',C.blue)+'</g>';
  body+=text(c.left,c.top+2,`Observation ${id+1} from batch 1`,'small');
  set(svg,body,`For observation ${id+1}, x is ${d.x.toFixed(4)} and the target is ${d.y}. The current model predicts ${prediction.toFixed(4)}. The vertical segment is the residual: prediction minus target. Half its square is the point loss ${square.toFixed(4)}.`);
  const {w,h}=canvas(detail),large=projected(),gap=Math.min(27,(h-6)/3),x=3;
  let arithmetic;
  if(large){
-  arithmetic=text(x,24,'Residual = prediction − target','small')+text(x,54,`${prediction.toFixed(4)} − ${d.y} = ${residual.toFixed(4)}`,'','start',C.rust);
-  arithmetic+=`<g opacity="${smooth((u-.35)/.45)}">`+text(x,103,'Point loss = ½ × residual²','small')+text(x,133,`½(${residual.toFixed(4)})² = ${square.toFixed(4)}`,'','start',C.rust)+'</g>';
+  arithmetic=richText(x,24,String.raw`Residual \(=\) prediction \(-\) target`,'small')+mathText(x,54,`${prediction.toFixed(4)}-${d.y}=${residual.toFixed(4)}`,'','start',C.rust,{width:w-6});
+  arithmetic+=`<g opacity="${smooth((u-.35)/.45)}">`+richText(x,103,String.raw`Point loss \(=\frac12\times\text{residual}^2\)`,'small')+mathText(x,133,`\\tfrac12(${residual.toFixed(4)})^2=${square.toFixed(4)}`,'','start',C.rust,{width:w-6})+'</g>';
  }else{
-  arithmetic=text(x,gap-1,`prediction − target = ${prediction.toFixed(4)} − ${d.y}`,'');
-  arithmetic+=text(x,gap*2-1,`residual = ${residual.toFixed(4)}`,'','start',C.rust);
-  arithmetic+=`<g opacity="${smooth((u-.35)/.45)}">`+text(x,gap*3-1,`point loss ℓᵢ = ½(${residual.toFixed(4)})² = ${square.toFixed(4)}`,'','start',C.rust)+'</g>';
+  arithmetic=richText(x,gap-1,`prediction \\(-\\) target \\(=${prediction.toFixed(4)}-${d.y}\\)`,'','start','',{width:w-6});
+  arithmetic+=richText(x,gap*2-1,`residual \\(=${residual.toFixed(4)}\\)`,'','start',C.rust);
+  arithmetic+=`<g opacity="${smooth((u-.35)/.45)}">`+mathText(x,gap*3-1,`\\ell_i=\\tfrac12(${residual.toFixed(4)})^2=${square.toFixed(4)}`,'','start',C.rust,{width:w-6})+'</g>';
  }
  set(detail,arithmetic,`Prediction minus target is ${residual.toFixed(4)}. Taking half the squared residual gives point loss ${square.toFixed(4)}. Numbers are displayed rounded.`);
  return {pointIndex:id,pointX:d.x,pointTarget:d.y,pointPrediction:prediction,pointResidual:residual,pointLoss:square};
@@ -158,14 +160,14 @@ function pointLoss(svg,detail,first,u){
 
 function squaredErrors(svg,residuals,amount,normalized){
  const {w,h}=canvas(svg),large=projected(),left=3,right=w-5,top=large?62:23,bottom=h-(large?55:23),dx=(right-left)/64,squares=residuals.map(v=>.5*v*v),max=Math.max(...squares),sum=squares.slice(0,amount).reduce((s,v)=>s+v,0),mean=squares.reduce((s,v)=>s+v,0)/64,Y=v=>bottom-v/max*(bottom-top);
- let body=text(left,large?20:13,`Sum Sʙ = ${sum.toFixed(4)}`,'small','start',C.rust)+text(large?left:right,large?44:13,`${amount} / 64 losses added`,'small',large?'start':'end');
+ let body=richText(left,large?20:13,`Sum \\(S_B=${sum.toFixed(4)}\\)`,'small','start',C.rust)+text(large?left:right,large?44:13,`${amount} of 64 losses added`,'small',large?'start':'end');
  body+=line(left,bottom,right,bottom,'#999');
  squares.forEach((v,i)=>{const x=left+(i+.5)*dx;body+=line(x,bottom,x,Y(v),i<amount?C.rust:'#e2e2e2','',Math.max(1,dx*.6));});
  // Retain the same first observation as its loss becomes one term of the sum.
  body+=circle(left+dx*.5,Y(squares[0]),2.4,'white',C.ink,1);
  if(normalized)body+=line(left,Y(mean),right,Y(mean),C.blue,'4 3',1.7);
- if(large&&normalized)body+=text(left,h-28,'Batch loss = sum / 64','small','start',C.blue)+text(left,h-4,`${sum.toFixed(4)} / 64 = ${mean.toFixed(4)}`,'','start',C.blue);
- else body+=text(left,h-4,normalized?`Batch loss Lʙ = ${sum.toFixed(4)} / 64 = ${mean.toFixed(4)}`:'Each point loss = ½ × residual²','small','start',normalized?C.blue:C.muted);
+ if(large&&normalized)body+=richText(left,h-34,String.raw`Batch loss \(=\text{sum}/64\)`,'small','start',C.blue)+mathText(left,h-9,`\\frac{${sum.toFixed(4)}}{64}=${mean.toFixed(4)}`,'','start',C.blue,{width:w-8});
+ else body+=richText(left,h-9,normalized?`Batch loss \\(L_B=\\frac{${sum.toFixed(4)}}{64}=${mean.toFixed(4)}\\)`:String.raw`Each point loss \(=\frac12\times\text{residual}^2\)`,'small','start',normalized?C.blue:C.muted,{width:w-8});
  set(svg,body,`${amount} half-squared errors have been added to the running sum S_B, now ${sum.toFixed(4)}. ${normalized?`All 64 half-squared errors sum to ${sum.toFixed(4)}. Divide this sum by 64 to obtain the mean batch loss L_B = ${mean.toFixed(4)}. The dashed line marks the mean.`:'The circled first bar is the point loss from the preceding scene. The mean will be calculated after all 64 terms have been added.'}`);
  return {batchSum:sum,lossesAdded:amount,batchHalfMSE:mean,batchMSE:2*mean,normalized};
 }
@@ -180,13 +182,13 @@ function gradientSpaces(svg,indices,residuals,g){
   body+=`<g data-observation="${indices[i]}" data-batch-position="${i+1}" data-residual="${v}">`+line(x,residualMid,x,y,C.rust,'',Math.max(1,rx*.62))+'</g>';
  });
  body+=text(left,residualBottom+(large?22:14),'1','small')+text((left+right)/2,residualBottom+(large?22:14),'Position in this batch','small','middle')+text(right,residualBottom+(large?22:14),'64','small','end')+'</g>';
- body+='<g data-space="parameters">'+text(3,h*.54,'Parameter space · 7 components: 4 θ + 3 φ','small','start',C.blue)+line(left,parameterMid,right,parameterMid,'#a7afb3')+text(left-8,parameterMid+3,'0','small','end');
+ body+='<g data-space="parameters">'+richText(3,h*.54,String.raw`Parameter space · 7 components: \(4\theta+3\phi\)`,'small','start',C.blue,{width:w-6})+line(left,parameterMid,right,parameterMid,'#a7afb3')+text(left-8,parameterMid+3,'0','small','end');
  values.forEach((v,i)=>{
   const x=left+dx*(i+.5),y=parameterMid-v*parameterScale,color=i===values.length-1?C.teal:C.blue;
   body+=`<g data-parameter="${labels[i]}" data-gradient="${v}">`;
   if(Math.abs(v)<1e-10)body+=circle(x,parameterMid,2,'white',color,1.3);
   else body+=line(x,parameterMid,x,y,color,'',4)+circle(x,y,2,color);
-  body+=text(x,v>=0?y-9:y+(large?20:13),fmt(v),'small','middle',color)+text(x,h-7,labels[i],'','middle',color)+'</g>';
+  body+=text(x,v>=0?y-9:y+(large?20:13),fmt(v),'small','middle',color)+mathText(x,h-7,mathLabels[i],'','middle',color)+'</g>';
  });
  body+='</g>';
  set(svg,body,`Two different spaces. The upper plot contains ${residuals.length} signed residuals, one for each observation in batch order: prediction minus target. The lower plot contains ${values.length} gradient components, one for each model parameter: four hidden-layer θ parameters and three output-layer φ parameters. A component tells how the batch loss changes when that parameter changes slightly, with the others held fixed. Each component combines errors across the batch according to that parameter's effect on the predictions; residuals are not assigned one-to-one to parameters. ${labels.map((label,i)=>label+' '+values[i].toFixed(4)).join(', ')}. All seven components are calculated at the same current model. No parameters have been updated yet.`);
@@ -194,8 +196,8 @@ function gradientSpaces(svg,indices,residuals,g){
 
 function gradientFacts(svg,residuals,g){
  const {w,h}=canvas(svg),large=projected(),gap=Math.min(large?43:30,(h-6)/3),x=3,meanResidual=residuals.reduce((sum,value)=>sum+value,0)/residuals.length;
- const body=text(x,gap-1,'Gradient = mean of the 64 residuals','small')+
- text(x,gap*2-1,`(r₁ + ⋯ + r₆₄) / 64 = ${signed(meanResidual)}`,'','start',C.teal);
+ const body=richText(x,gap-1,String.raw`Gradient \(=\) mean of the 64 residuals`,'small')+
+ mathText(x,gap*2-1,`\\dfrac{r_1+\\cdots+r_{64}}{64}=${signed(meanResidual)}`,'','start',C.teal,{width:w-6});
  set(svg,body,`For the output bias φ₀, changing φ₀ shifts every prediction by the same amount. With half-MSE loss, its gradient component is the mean of all ${residuals.length} residuals: ${meanResidual}, displayed as ${signed(g.c)}. Other parameters affect predictions differently, so their components combine the residuals differently. The model is still fixed.`);
  return meanResidual;
 }
@@ -210,16 +212,16 @@ export function renderParameterUpdate(svg,before,after,g,progress){
  displayedParameters.forEach((entry,i)=>{
   const y=rowTop+i*gap,color=entry.unchanged?C.muted:C.teal;
   body+=`<g data-parameter="${entry.label}" data-before="${entry.before}" data-current="${entry.current}" data-gradient="${entry.gradient}">`;
-  body+=text(columns.label,y,entry.label,'','start',C.blue)+text(columns.before,y,entry.before.toFixed(4),'small','end')+text(columns.arrow,y,'→','small','middle')+text(columns.current,y,entry.current.toFixed(4),'small','end',color)+text(columns.gradient,y,entry.unchanged?(large?'0':'0 · unchanged'):signed(entry.gradient),'small','end',color)+'</g>';
+  body+=mathText(columns.label,y,mathLabels[i],'','start',C.blue)+text(columns.before,y,entry.before.toFixed(4),'small','end')+mathText(columns.arrow,y,'\\to','small','middle')+text(columns.current,y,entry.current.toFixed(4),'small','end',color)+text(columns.gradient,y,entry.unchanged?(large?'0':'0 · unchanged'):signed(entry.gradient),'small','end',color)+'</g>';
  });
- if(large)body+=text(4,rowTop+6*gap+29,'0 gradient → no change','small');
+ if(large)body+=richText(4,rowTop+6*gap+29,String.raw`0 gradient \(\to\) no change`,'small');
  set(svg,body,`All seven parameters take the same simultaneous update, at ${(progress*100).toFixed(0)} percent of the animation. Every gradient was calculated at the model before the update. ${displayedParameters.map(entry=>`${entry.label}: ${entry.before.toFixed(4)} to ${entry.current.toFixed(4)}, gradient ${signed(entry.gradient)}${entry.unchanged?', unchanged because its gradient is zero':''}`).join('. ')}. The curve uses these seven current values together.`);
  return displayedParameters;
 }
 
 function biasStep(svg,first,eta,u){
  const {w,h}=canvas(svg),large=projected(),left=large?38:28,right=w-(large?27:16),y=Math.max(large?85:55,h*.57),X=v=>left+(v-.49)/.03*(right-left),c=lerp(first.before.c,first.after.c,u);
- let body=text(left,large?22:15,`Gradient: ${signed(first.gradient.c)}`,'small')+text(right,large?22:15,`α = ${eta}`,'small','end');
+ let body=richText(left,large?22:15,`Gradient: \\(${signed(first.gradient.c)}\\)`,'small')+mathText(right,large?22:15,`\\alpha=${eta}`,'small','end');
  body+=line(left,y,right,y,'#a2aaaf');
  for(const tick of [.49,.50,.51,.52])body+=line(X(tick),y-3,X(tick),y+4,'#a2aaaf')+text(X(tick),y+(large?30:20),tick.toFixed(2),'small','middle');
  body+=line(X(.5),y-14,X(.5),y+5,C.blue,'3 3')+circle(X(.5),y,4,'white',C.blue,2);
@@ -232,9 +234,9 @@ function biasStep(svg,first,eta,u){
 
 function stepArithmetic(svg,first,eta){
  const {w,h}=canvas(svg),large=projected(),change=first.after.c-first.before.c,space=Math.min(large?42:28,(h-8)/3),x=3;
- const body=text(x,space-2,'Change = − learning rate × gradient','small')+
- text(x,space*2-2,`= −${eta} × (${signed(first.gradient.c)}) = ${signed(change)}`,'', 'start',C.teal)+
- text(x,space*3-2,`φ₀: ${first.before.c.toFixed(4)} + ${change.toFixed(4)} = ${first.after.c.toFixed(4)}`,'','start',C.teal);
+ const body=richText(x,space-2,String.raw`Change \(=-\) learning rate \(\times\) gradient`,'small','start','',{width:w-6})+
+ mathText(x,space*2-2,`=-${eta}\\times(${signed(first.gradient.c)})=${signed(change)}`,'', 'start',C.teal,{width:w-6})+
+ mathText(x,space*3-2,`\\phi_0:\ ${first.before.c.toFixed(4)}+${change.toFixed(4)}=${first.after.c.toFixed(4)}`,'','start',C.teal,{width:w-6});
  set(svg,body,`This is a preview of one component, not a separate model update. Using unrounded values: new output bias φ₀ equals ${first.before.c} minus ${eta} times ${first.gradient.c}, giving ${first.after.c}. Displayed values are rounded.`);
 }
 
@@ -255,8 +257,8 @@ export function renderSGD(plot,detail,scene,p,e){
   plotTitle='From the dataset to one minibatch';detailTitle='Within one epoch';
  }
  if(kind==='shuffle'){
-  shuffleDiagram(plot,e,u);facts(detail,[['Data remain fixed','2,048','Only their order changes'],['One epoch','32 × 64','Each appears once']]);
-  plotTitle='Shuffle the order once per epoch';detailTitle='Open: y = 0 · filled: y = 1';info.shuffleProgress=u;
+  shuffleDiagram(plot,e,u);facts(detail,[['Data remain fixed','2,048','Only their order changes'],['One epoch',String.raw`\(32\times64\)`,'Each appears once']]);
+  plotTitle='Shuffle the order once per epoch';detailTitle=String.raw`Open: \(y=0\) · filled: \(y=1\)`;info.shuffleProgress=u;
  }
  if(kind==='partition'){
   const batches=e.traces[2].slice(0,32),indices=batches.flatMap(s=>s.indices),coverage=new Set(indices).size;
@@ -277,18 +279,18 @@ export function renderSGD(plot,detail,scene,p,e){
   }
   set(plot,body,`${scene.title} ${scene.caption}`);
   if(kind==='batch')batchFacts(detail,first.indices,count);else info={...info,...squaredErrors(detail,residuals,count,normalized)};
-  plotTitle=kind==='batch'?'Take the first 64 shuffled observations':normalized?'Divide the sum by the batch size':`Add the losses from all 64 observations · ${count} / 64`;
+  plotTitle=kind==='batch'?'Take the first 64 shuffled observations':normalized?'Divide the sum by the batch size':`Add the losses from all 64 observations · ${count} of 64`;
   detailTitle=kind==='batch'?'Batch 1 of 32 · no replacement':normalized?'The sum becomes the mean batch loss':'Each bar is half a squared residual';
   info={...info,batch:1,selected:count,batchFirst:first.indices[0],batchHalfMSE:first.batchBefore,batchMSE:2*first.batchBefore};
  }
  if(kind==='batch-gradient'){
   gradientSpaces(plot,first.indices,residuals,first.gradient);const meanResidual=gradientFacts(detail,residuals,first.gradient);
-  plotTitle='One residual per observation; one direction per parameter';detailTitle='Example: φ₀ changes every prediction equally';
+  plotTitle='One residual per observation; one direction per parameter';detailTitle=String.raw`Example: \(\phi_0\) changes every prediction equally`;
   info={...info,residuals,residualCount:residuals.length,parameterCount:flatten(first.gradient).length,meanResidual,outputBiasGradient:first.gradient.c,gradientC:first.gradient.c,gradient:flatten(first.gradient),model:first.before};
  }
  if(kind==='parameter-step'){
   const c=biasStep(plot,first,eta,u);stepArithmetic(detail,first,eta);
-  plotTitle='Zoom in on φ₀: one component of the same update';detailTitle='Preview the arithmetic; then apply all seven together';
+  plotTitle=String.raw`Zoom in on \(\phi_0\): one component of the same update`;detailTitle='Preview the arithmetic; then apply all seven together';
   info={...info,eta,gradientC:first.gradient.c,outputBias:first.before.c,previewOutputBias:c,deltaC:first.after.c-first.before.c,model:first.before,illustrationOnly:true};
  }
  if(kind==='next-batch'){

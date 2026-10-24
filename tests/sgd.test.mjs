@@ -7,6 +7,7 @@ import { copy, data, gradient, initialize, loss, mse, predict, ramp, random, shu
 import { epochState, renderEpochCounter } from '../docs/sgd/epoch-counter.mjs';
 import { scenes, foundationScenes, batchSteps } from '../docs/sgd/scenes.mjs';
 import { render } from '../docs/sgd/views.mjs';
+import {renderText,plainText} from '../docs/sgd/math.mjs';
 import { constructionKinds, constructionState } from '../docs/sgd/construction.mjs';
 
 globalThis.katex = createRequire(import.meta.url)('../docs/neural-networks/vendor/katex/katex.min.js');
@@ -803,7 +804,7 @@ test('single-parameter probes compare independent nudges of the trained model wi
   assert.equal(end.frame.completedUpdates, 9600);
   assert.equal([...end.detail.matchAll(/data-parameter="[^"]+"/g)].length, 7, 'The static end state must show every independent trial');
   assert.equal([...end.detail.matchAll(/>MSE after<\/text>/g)].length, 2, 'Both endpoint columns must identify their values as resulting MSE');
-  for (const label of ['−0.02 nudge', '+0.02 nudge', 'Baseline MSE:', 'Current trial MSE:', 'Change in MSE:']) {
+  for (const label of [renderText(String.raw`\(-0.02\) nudge`), renderText(String.raw`\(+0.02\) nudge`), 'Baseline MSE:', 'Current trial MSE:', 'Change in MSE:']) {
     assert.ok(end.detail.includes(label), `The trial summary must distinguish ${label}`);
   }
   const mathRows = [...end.detail.matchAll(/<g data-parameter="([^"]+)"[^>]*>([\s\S]*?)<\/g>/g)];
@@ -861,7 +862,7 @@ async function controller(chapter = 'full') {
   });
   const media = { matches: false, addEventListener: (type, callback) => on(`media:${type}`, callback) };
   context = {
-    allScenes: scenes, foundationScenes, constructionKinds, constructionState, render, epochState, renderEpochCounter,
+    allScenes: scenes, foundationScenes, constructionKinds, constructionState, render, renderText, plainText, epochState, renderEpochCounter,
     console, Math, Map, JSON, Number, String, innerWidth: 320, innerHeight: 568,
     scrollY: 0, location: { hash: '' }, matchMedia: () => media,
     requestAnimationFrame: callback => frames.push(callback), addEventListener: on,
@@ -986,8 +987,37 @@ test('both static reading routes contain the same substantive captions and defin
     assert.equal((reading.match(/<section>/g) || []).length, lesson.length);
     for (const scene of lesson) {
       const narration = scene.reading || scene.caption;
-      assert.ok(steps.includes(narration) && steps.includes(scene.note), `${file}: ${scene.id} fallback`);
-      assert.ok(reading.includes(narration) && reading.includes(scene.note), `${file}: ${scene.id} reading`);
+      assert.ok(steps.includes(renderText(narration)) && steps.includes(renderText(scene.note)), `${file}: ${scene.id} fallback`);
+      assert.ok(reading.includes(renderText(narration)) && reading.includes(renderText(scene.note)), `${file}: ${scene.id} reading`);
     }
   }
+});
+
+test('inline prose math keeps LaTeX semantics and escapes ordinary text', () => {
+  const source = String.raw`Bias \(\phi_0\) < 1 & residual \(r_i\).`;
+  const html = renderText(source);
+  assert.match(html, /<annotation encoding="application\/x-tex">\\phi_0<\/annotation>/);
+  assert.match(html, /<annotation encoding="application\/x-tex">r_i<\/annotation>/);
+  assert.ok(html.includes('&lt; 1 &amp; residual'));
+  assert.doesNotMatch(plainText(source), /\\[()]/);
+  assert.match(plainText(source), /Bias/);
+});
+
+test('every lesson diagram renders symbolic notation with KaTeX rather than SVG text', () => {
+  const previousWidth = globalThis.innerWidth, previousHeight = globalThis.innerHeight;
+  const bareMath = /[αθφϕℓΣ∑₀-₉ᵢⱼ⁰¹²³⁴⁵⁶⁷⁸⁹≤≥≠±×½⋯]|\b(?:x|y|h_[12]|B\d+)\b|=/;
+  try {
+    for (const viewport of [{width:320,height:568},{width:1280,height:720},{width:1920,height:1080}]) {
+      globalThis.innerWidth=viewport.width; globalThis.innerHeight=viewport.height;
+      for (const scene of [...scenes,...foundationScenes]) for (const progress of [0,.5,1]) {
+        const svg=id=>({id,innerHTML:'',getBoundingClientRect:()=>({width:viewport.width<=700?288:760,height:id==='plot'?300:140}),setAttribute(){}});
+        const plot=svg('plot'),detail=svg('detail');
+        render(plot,detail,scene,progress,experiment);
+        for (const match of (plot.innerHTML+detail.innerHTML).matchAll(/<text\b[^>]*>([\s\S]*?)<\/text>/g)) {
+          const visible=match[1].replace(/<[^>]*>/g,'');
+          assert.doesNotMatch(visible,bareMath,`${scene.id}: math must use KaTeX, found ${visible}`);
+        }
+      }
+    }
+  } finally { globalThis.innerWidth=previousWidth; globalThis.innerHeight=previousHeight; }
 });

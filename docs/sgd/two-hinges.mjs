@@ -1,4 +1,5 @@
 import {ramp} from './model.mjs';
+import {mathText} from './math.mjs';
 import {C,clamp,canvas,line,text,set} from './sgd-detail.mjs';
 
 const mathCache=new Map();
@@ -24,7 +25,7 @@ export function renderTwoHinges(plot,detail,scene,p){
  for(const y of [0,1])body+=line(left,Y(y),right,Y(y),'#e7e7e7')+text(left-9,Y(y)+5,String(y),'small','end');
  body+=line(left,bottom,right,bottom,'#767676');
  for(const x of [-1,0,1])body+=line(X(x),bottom,X(x),bottom+4,'#767676')+text(X(x),bottom+(large?27:20),String(x).replace('-','−'),'small','middle');
- body+=text(right+9,bottom+(large?27:20),'<tspan style="font-family:Georgia,serif;font-style:italic">x</tspan>','small');
+ body+=mathText(right+9,bottom+(large?27:20),'x','small');
  const vertices=[-1,0,1/k,1];
  body+=`<path data-network="two-hinges" d="${vertices.map((x,i)=>`${i?'L':'M'}${X(x)},${Y(ramp(x,k))}`).join('')}" fill="none" stroke="${C.teal}" stroke-width="${large?3.5:2.6}" stroke-linejoin="round"/>`;
  // Draw the dashed target on top so both curves remain visible where they agree.

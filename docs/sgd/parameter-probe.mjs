@@ -1,4 +1,5 @@
 import {mse,predict} from './model.mjs';
+import {richText} from './math.mjs';
 import {C,clamp,canvas,chart,line,observations,set} from './sgd-detail.mjs';
 
 const labels=['θ₁₁','θ₁₀','φ₁','θ₂₁','θ₂₀','φ₂','φ₀'];
@@ -58,10 +59,10 @@ function renderTable(svg,frame){
  const readoutSize=compact?10:wide?24:20,readoutTop=compact?14:wide?26:22,readoutGap=compact?16:wide?32:26;
  let body=label(x,readoutTop,`Baseline MSE: ${frame.baselineMSE.toFixed(8)}`,'start',C.blue,readoutSize);
  body+=label(x,readoutTop+readoutGap,`Current trial MSE: ${frame.currentMSE.toFixed(8)}`,'start',C.rust,readoutSize);
- body+=label(x,readoutTop+readoutGap*2,`Change in MSE: ${signed(lossChange,8)}`,'start',C.rust,readoutSize);
+ body+=richText(x,readoutTop+readoutGap*2,String.raw`Change in MSE: \(${signed(lossChange,8).replace('−','-')}\)`,'','start',C.rust,{size:readoutSize});
  if(!compact&&!short)body+=label(x,wide?134:110,'Fixed trials: resulting MSE','start',C.ink);
  body+=label(x,tableTop,'Parameter')+label(minusX,tableTop-(compact?14:wide?27:22),'MSE after','end')+label(plusX,tableTop-(compact?14:wide?27:22),'MSE after','end');
- body+=label(minusX,tableTop,'−0.02 nudge','end')+label(plusX,tableTop,'+0.02 nudge','end');
+ body+=richText(minusX,tableTop,String.raw`\(-0.02\) nudge`,'','end',C.muted,{size:compact?10:wide?22:18})+richText(plusX,tableTop,String.raw`\(+0.02\) nudge`,'','end',C.muted,{size:compact?10:wide?22:18});
  body+=line(x,tableTop+5,w-5,tableTop+5,'#d9dfe2');
  frame.trialResults.forEach((result,index)=>{
   const y=tableTop+(index+1)*rowHeight,active=index===frame.parameterIndex;
