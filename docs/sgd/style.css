@@ -294,3 +294,4 @@
 .svg-math-label .katex{font-size:1em}
 #heading .katex,#caption .katex,#note .katex,figcaption .katex{font-size:1em}
 .network-math-label .katex{background:white}
+.network-bias-node{opacity:.75}

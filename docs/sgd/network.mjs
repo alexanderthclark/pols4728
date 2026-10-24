@@ -44,7 +44,7 @@ export function renderInitialNetwork(svg,model){
   const node={x:hiddenX,y:hiddenYs[i]},color=i===0?C.blue:C.rust,biasY=biasYs[i];
   body+=connection(input,node,compact?10:13,nodeRadius,color)+connection(node,output,nodeRadius,nodeRadius,color);
   body+=arrow(hiddenX,biasY+(i===0?biasRadius:-biasRadius),hiddenX,node.y+(i===0?-nodeRadius-3:nodeRadius+3),color,true);
-  body+=circle(hiddenX,biasY,biasRadius,color)+label(hiddenX,biasY+(compact?3.5:wide?7:5),'1',color,compact?10:wide?20:16);
+  body+='<g class="network-bias-node">'+circle(hiddenX,biasY,biasRadius,color)+label(hiddenX,biasY+(compact?3.5:wide?7:5),'1',color,compact?10:wide?20:16)+'</g>';
   body+=circle(node.x,node.y,nodeRadius,color)+mathLabel(node.x,node.y-(compact?2:3),`h_{${i+1}}`,color,compact?12:wide?24:20)+mathLabel(node.x,node.y+(compact?10:wide?18:15),'\\operatorname{ReLU}',color,compact?8:wide?16:13);
   const weightY=(input.y+node.y)/2+(i===0?-(compact?9:wide?27:21):(compact?20:wide?30:24));
   body+=valueLabel(`theta${i+1}1`,(input.x+hiddenX)/2-4,weightY,color,'middle',!compact);
@@ -53,7 +53,7 @@ export function renderInitialNetwork(svg,model){
  }
  const outputBiasY=compact?16:wide?30:24;
  body+=arrow(output.x,outputBiasY+biasRadius,output.x,output.y-nodeRadius-3,C.teal,true);
- body+=circle(output.x,outputBiasY,biasRadius,C.teal)+label(output.x,outputBiasY+(compact?3.5:wide?7:5),'1',C.teal,compact?10:wide?20:16);
+ body+='<g class="network-bias-node">'+circle(output.x,outputBiasY,biasRadius,C.teal)+label(output.x,outputBiasY+(compact?3.5:wide?7:5),'1',C.teal,compact?10:wide?20:16)+'</g>';
  body+=valueLabel('phi0',output.x-(compact?12:wide?24:20),outputBiasY+(wide&&!compact?20:16),C.teal,'end');
  body+=circle(input.x,input.y,compact?10:wide?17:14,C.muted)+mathLabel(input.x,input.y+(compact?4:wide?8:6),'x',C.ink,compact?12:wide?24:20);
  body+=circle(output.x,output.y,nodeRadius,C.blue)+mathLabel(output.x,output.y+(compact?5:wide?9:7),'\\sum',C.blue,compact?18:wide?34:28);
