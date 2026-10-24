@@ -7,7 +7,7 @@ let outputMath;
 function outputLabel(right,y,size){
  outputMath??=globalThis.katex.renderToString(String.raw`\hat f(x;\theta,\phi)`,{displayMode:false,output:'htmlAndMathml',throwOnError:true,strict:'error'});
  const width=size*7;
- return `<foreignObject x="${right-width}" y="${y}" width="${width}" height="${size*2}" class="probe-math network-output-math"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:${size}px;color:${C.teal};line-height:1.2;text-align:right">${outputMath}</div></foreignObject>`;
+ return `<foreignObject x="${right-width}" y="${y}" width="${width}" height="${size*2}" class="probe-math network-output-math"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:${size}px;color:${C.blue};line-height:1.2;text-align:right">${outputMath}</div></foreignObject>`;
 }
 function arrow(x1,y1,x2,y2,color,dashed=false){
  const angle=Math.atan2(y2-y1,x2-x1),size=5;
@@ -57,7 +57,7 @@ export function renderInitialNetwork(svg,model){
  body+=circle(output.x,outputBiasY,biasRadius,C.teal)+label(output.x,outputBiasY+(compact?3.5:wide?7:5),'1',C.teal,compact?10:wide?20:16);
  body+=valueLabel('phi0',output.x-(compact?12:wide?24:20),outputBiasY+(wide&&!compact?20:16),C.teal,'end');
  body+=circle(input.x,input.y,compact?10:wide?17:14,C.muted)+label(input.x,input.y+(compact?4:wide?8:6),'x',C.ink,compact?12:wide?24:20);
- body+=circle(output.x,output.y,nodeRadius,C.teal)+label(output.x,output.y+(compact?5:wide?9:7),'Σ',C.teal,compact?18:wide?34:28);
+ body+=circle(output.x,output.y,nodeRadius,C.blue)+label(output.x,output.y+(compact?5:wide?9:7),'Σ',C.blue,compact?18:wide?34:28);
  body+=outputLabel(w-3,output.y+nodeRadius+(compact?3:wide?8:6),compact?11:wide?22:18);
  body+=label(3,h-3,'Dashed: bias',C.muted,compact?9:wide?20:16,'start')+label(w-3,h-3,'1: constant',C.muted,compact?9:wide?20:16,'end');
  set(svg,body,`Initial network: input x connects to two hidden ReLU neurons. ${displayedParameters.map(item=>`${item.label} = ${item.value}`).join('; ')}. Hidden biases θ₁₀ and θ₂₀ enter the hidden neurons from constant 1; output bias φ₀ enters the sum from constant 1. Network output f-hat(x; θ, φ) is φ₁ times h₁ plus φ₂ times h₂ plus φ₀. Hidden-layer parameters form θ; output-layer parameters form φ.`);

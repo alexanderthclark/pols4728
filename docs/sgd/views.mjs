@@ -36,7 +36,7 @@ export function render(plot,detail,scene,p,e){
   if(kind==='update'){model=interpolate(e.firstUpdate.before,e.firstUpdate.after,u);body+=c.path(x=>predict(e.firstUpdate.before,x),C.gray,2,'4 4');}
   body+=observations(c,{batch:kind==='update'?e.firstUpdate.indices:null,residualModel:kind==='loss'?model:null,amount:kind==='loss'?u:1})+c.path(x=>predict(model,x),color);
   if(kind==='initialize'){info.displayedParameters=renderInitialNetwork(detail,model);detailTitle='Initial network · weights and biases';}
-  if(wide)facts(detail,[['Hidden neurons','12','One hidden layer'],['Trainable parameters','37','Learn weights and biases']]);
+  if(wide)facts(detail,[['Hidden neurons','12','One hidden layer',C.teal],['Trainable parameters','37','Learn weights and biases',C.teal]]);
   if(kind==='loss')facts(detail,[['Training MSE',e.traces[2][0].loss.toFixed(4),'All 2,048 observations'],['Residuals shown',String(Math.ceil(2048*u)),'Squared, then averaged']]);
   if(kind==='full'){gradientBars(detail,gradient(model,data));detailTitle='Full-data gradient';}
   if(kind==='update'){
@@ -75,7 +75,7 @@ export function render(plot,detail,scene,p,e){
   const narrow=e.runs.find(r=>r.width===2&&r.seed===1),wide=e.runs.find(r=>r.width===12&&r.seed===1);
   body+=observations(c)+c.path(x=>predict(narrow.model,x),C.blue)+c.path(x=>predict(wide.model,x),C.teal,3,'10 4');
   if(kind==='finish')body+=c.path(x=>ramp(x,64),C.rust,2.5,'2 4');
-  facts(detail,[['Width 2 · MSE',narrow.loss.toFixed(4),'7 parameters'],['Width 12 · MSE',wide.loss.toFixed(4),'37 parameters']]);
+  facts(detail,[['Width 2 · MSE',narrow.loss.toFixed(4),'7 parameters',C.blue],['Width 12 · MSE',wide.loss.toFixed(4),'37 parameters',C.teal]]);
   plotTitle='Predictions after 300 epochs';detailTitle='One hidden layer · same data and update count';
  }
  set(plot,body,`${scene.title} ${scene.caption}`);return {...info,detailTitle,plotTitle};

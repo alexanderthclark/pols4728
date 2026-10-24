@@ -25,7 +25,8 @@ function constructionFormula(scene,p,mobile){
  // Both coefficients occupy the same KaTeX slot while 2 gives way to k.
  const coefficient=String.raw`\htmlClass{coefficient-slot}{\htmlClass{coefficient-old}{2}\htmlClass{coefficient-new}{k}}`;
  const expression=mobile?String.raw`\begin{aligned}\hat f(x)&=\operatorname{ReLU}(${coefficient}x)\\&\quad-\operatorname{ReLU}(${coefficient}x-1)\end{aligned}`:String.raw`\hat f(x)=h_1(x)-h_2(x)=\operatorname{ReLU}(${coefficient}x)-\operatorname{ReLU}(${coefficient}x-1)`;
- const dataTex=mobile?String.raw`\begin{gathered}\mathcal D=\{(x_i,y_i)\}_{i=1}^{2048}\\y_i=f(x_i)\end{gathered}`:String.raw`\mathcal D=\{(x_i,y_i)\}_{i=1}^{2048},\qquad y_i=f(x_i)`;
+ const dataScene=allScenes.find(item=>item.kind==='sgd-opening');
+ const dataTex=mobile?dataScene.compact:dataScene.tex;
  $('equation').style.setProperty('--coefficient-progress',state.symbol);
  $('equation').style.setProperty('--data-progress',state.dataReveal);
  const key=`construction:${mobile}:${state.symbol>=.5}:${state.dataReveal>=.5}`;

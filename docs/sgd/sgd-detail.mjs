@@ -22,7 +22,7 @@ export function chart(svg,{xmin=-1,xmax=1.2,ymin=-.25,ymax=1.4,xticks=[-1,0,1],y
  const step=()=>`<path d="M${X(xmin)},${Y(0)}H${X(0)}M${X(0)},${Y(1)}H${X(xmax)}" fill="none" stroke="${C.muted}" stroke-width="2" stroke-dasharray="6 5"/><circle cx="${X(0)}" cy="${Y(0)}" r="3" fill="${C.muted}"/><circle cx="${X(0)}" cy="${Y(1)}" r="3" fill="white" stroke="${C.muted}" stroke-width="1.5"/>`;
  return {w,h,X,Y,path,step,base,left,right,top,bottom,xmin,xmax};
 }
-export function facts(svg,entries){const {w,h}=canvas(svg),large=projected();let html='';if(h<150){const cols=entries.length;entries.forEach((e,i)=>{const x=6+i*w/cols;html+=text(x,18,e[0],'small')+text(x,47,e[1],cols>2?'':'large')+(e[2]&&cols<3?text(x,68,e[2],'small'):'');});}else{const space=Math.min(large?135:100,(h-20)/entries.length);entries.forEach((e,i)=>{const y=24+i*space;html+=text(10,y,e[0],'small')+text(10,y+(large?44:37),e[1],'large')+(e[2]?text(10,y+(large?73:59),e[2],'small'):'');});}set(svg,html,entries.map(e=>e.join(': ')).join('. '));}
+export function facts(svg,entries){const {w,h}=canvas(svg),large=projected();let html='';if(h<150){const cols=entries.length;entries.forEach((e,i)=>{const x=6+i*w/cols;html+=text(x,18,e[0],'small')+text(x,47,e[1],cols>2?'':'large','start',e[3]||'')+(e[2]&&cols<3?text(x,68,e[2],'small'):'');});}else{const space=Math.min(large?135:100,(h-20)/entries.length);entries.forEach((e,i)=>{const y=24+i*space;html+=text(10,y,e[0],'small')+text(10,y+(large?44:37),e[1],'large','start',e[3]||'')+(e[2]?text(10,y+(large?73:59),e[2],'small'):'');});}set(svg,html,entries.map(e=>e.slice(0,3).join(': ')).join('. '));}
 export function observations(c,{batch=null,residualModel=null,amount=1}={}){
  // Dense observations share one SVG path; each highlighted batch remains explicit.
  let dots='',residuals='',selected='';const active=new Set(batch||[]);
@@ -146,11 +146,11 @@ function pointLoss(svg,detail,first,u){
  let arithmetic;
  if(large){
   arithmetic=text(x,24,'Residual = prediction − target','small')+text(x,54,`${prediction.toFixed(4)} − ${d.y} = ${residual.toFixed(4)}`,'','start',C.rust);
-  arithmetic+=`<g opacity="${smooth((u-.35)/.45)}">`+text(x,103,'Point loss = ½ × residual²','small')+text(x,133,`½(${residual.toFixed(4)})² = ${square.toFixed(4)}`,'','start',C.blue)+'</g>';
+  arithmetic+=`<g opacity="${smooth((u-.35)/.45)}">`+text(x,103,'Point loss = ½ × residual²','small')+text(x,133,`½(${residual.toFixed(4)})² = ${square.toFixed(4)}`,'','start',C.rust)+'</g>';
  }else{
   arithmetic=text(x,gap-1,`prediction − target = ${prediction.toFixed(4)} − ${d.y}`,'');
   arithmetic+=text(x,gap*2-1,`residual = ${residual.toFixed(4)}`,'','start',C.rust);
-  arithmetic+=`<g opacity="${smooth((u-.35)/.45)}">`+text(x,gap*3-1,`point loss ℓᵢ = ½(${residual.toFixed(4)})² = ${square.toFixed(4)}`,'','start',C.blue)+'</g>';
+  arithmetic+=`<g opacity="${smooth((u-.35)/.45)}">`+text(x,gap*3-1,`point loss ℓᵢ = ½(${residual.toFixed(4)})² = ${square.toFixed(4)}`,'','start',C.rust)+'</g>';
  }
  set(detail,arithmetic,`Prediction minus target is ${residual.toFixed(4)}. Taking half the squared residual gives point loss ${square.toFixed(4)}. Numbers are displayed rounded.`);
  return {pointIndex:id,pointX:d.x,pointTarget:d.y,pointPrediction:prediction,pointResidual:residual,pointLoss:square};
@@ -234,7 +234,7 @@ function stepArithmetic(svg,first,eta){
  const {w,h}=canvas(svg),large=projected(),change=first.after.c-first.before.c,space=Math.min(large?42:28,(h-8)/3),x=3;
  const body=text(x,space-2,'Change = − learning rate × gradient','small')+
  text(x,space*2-2,`= −${eta} × (${signed(first.gradient.c)}) = ${signed(change)}`,'', 'start',C.teal)+
- text(x,space*3-2,`φ₀: ${first.before.c.toFixed(4)} + ${change.toFixed(4)} = ${first.after.c.toFixed(4)}`,'','start',C.blue);
+ text(x,space*3-2,`φ₀: ${first.before.c.toFixed(4)} + ${change.toFixed(4)} = ${first.after.c.toFixed(4)}`,'','start',C.teal);
  set(svg,body,`This is a preview of one component, not a separate model update. Using unrounded values: new output bias φ₀ equals ${first.before.c} minus ${eta} times ${first.gradient.c}, giving ${first.after.c}. Displayed values are rounded.`);
 }
 

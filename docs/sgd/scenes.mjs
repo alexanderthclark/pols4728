@@ -1,3 +1,4 @@
+import {colorSceneEquations} from './equation-colors.mjs';
 export const batchSteps = [
  {label:'Batch',title:'Take the next batch.',text:'Select the next 64 observations in the partition.'},
  {label:'Loss',title:'Build the batch loss.',text:'Sum the point losses, then divide by the batch size.'},
@@ -43,4 +44,4 @@ export const scenes = [
  {id:'train-wide',part:'03 · Train twelve neurons',title:'Train the wider network.',tex:String.raw`m=12,\qquad300\text{ epochs}=9{,}600\text{ updates}`,compact:String.raw`m=12,\quad9{,}600\text{ updates}`,caption:'This run learns a narrower transition. Labels are exact; changing batches cause the variation between updates.',note:'Same 9,600 updates; more computation per update.',kind:'train-wide',length:2.4},
  {id:'compare',part:'03 · Compare the learned fits',title:'Same data. Same updates. Different fits.',tex:String.raw`m=2\qquad\text{versus}\qquad m=12`,caption:'Twelve neurons reach lower loss here. Extra width helps this run, but two neurons can already represent a sharp ramp.',note:'Blue solid: width 2 · teal long dashes: width 12 · gray: target step',kind:'compare'},
  {id:'finish',part:'03 · What the example tells us',title:'A solution can exist without SGD finding it.',tex:String.raw`\text{Representation}\ \ne\ \text{optimization}`,caption:'Two neurons can represent a sharp ramp. Finding those weights is a different problem. Extra width may help learning, without guaranteeing success.',note:'Dotted rust: hand-chosen width 2 · blue and teal: trained networks',kind:'finish'}
-];
+].map(colorSceneEquations);
