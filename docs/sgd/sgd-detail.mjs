@@ -40,7 +40,7 @@ export function gradientBars(svg,g1,g2=null){const {w,h}=canvas(svg),vals=g1.uni
 }
 export function interpolate(a,b,t){return {c:a.c+(b.c-a.c)*t,units:a.units.map((v,i)=>Object.fromEntries(['w','b','a'].map(k=>[k,v[k]+(b.units[i][k]-v[k])*t])))};}
 
-export const sgdKinds=['sgd-opening','sgd-plan','partition','shuffle','batch','point-loss','batch-loss','batch-gradient','parameter-step','next-batch'];
+export const sgdKinds=['sgd-plan','partition','shuffle','batch','point-loss','batch-loss','batch-gradient','parameter-step','next-batch'];
 const labels=['θ₁₁','θ₁₀','φ₁','θ₂₁','θ₂₀','φ₂','φ₀'];
 const flatten=g=>g.units.flatMap(v=>[v.w,v.b,v.a]).concat(g.c);
 const signed=(v,d=4)=>(v<0?'−':v>0?'+':'')+Math.abs(v).toFixed(d);
@@ -51,24 +51,6 @@ const arrow=(x1,y1,x2,y2,color=C.muted,width=1.5)=>{
  return line(x1,y1,x2,y2,color,'',width)+`<path d="M${x2-s*Math.cos(a-.55)},${y2-s*Math.sin(a-.55)}L${x2},${y2}L${x2-s*Math.cos(a+.55)},${y2-s*Math.sin(a+.55)}" fill="none" stroke="${color}" stroke-width="${width}"/>`;
 };
 const circle=(x,y,r,fill,stroke='none',width=1)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${width}"/>`;
-
-function openingDiagram(svg,e,u){
- const {w,h}=canvas(svg),large=projected(),nodeW=(w-6)*.26,gap=(w-6)*.11,left=3,top=large?35:27,bottom=h-(w<450?39:large?38:25),chartH=Math.max(20,bottom-top),xs=[left,left+nodeW+gap,left+2*(nodeW+gap)],narrow=w<450;
- let body=text(xs[0]+nodeW/2,large?20:14,narrow?'2,048 points':'2,048 observations','small','middle')+text(xs[1]+nodeW/2,large?20:14,'32 batches','small','middle')+text(xs[2]+nodeW/2,large?20:14,narrow?'Update':'Learn the curve','small','middle');
- const order=e.traces[2].slice(0,32).flatMap(s=>s.indices),dx=nodeW/64,dy=chartH/32;
- order.forEach((id,i)=>body+=`<rect x="${xs[0]+i%64*dx}" y="${top+Math.floor(i/64)*dy}" width="${Math.max(.4,dx*.75)}" height="${Math.max(.4,dy*.7)}" fill="${i<64&&u>.15?C.rust:C.blue}" opacity="${i<64?1:.38}"/>`);
- const bx=nodeW/8,by=chartH/4;
- for(let i=0;i<32;i++)body+=`<rect x="${xs[1]+i%8*bx+1}" y="${top+Math.floor(i/8)*by+1}" width="${Math.max(1,bx-3)}" height="${Math.max(1,by-3)}" fill="${i===0&&u>.35?C.rust:'white'}" stroke="${i===0?C.rust:'#91a2ae'}" stroke-width="1"/>`;
- const model=interpolate(e.firstUpdate.before,e.firstUpdate.after,smooth((u-.55)/.45));
- for(const [m,color,dash] of [[e.firstUpdate.before,'#aab1b6','4 3'],[model,C.blue,'']]){
-  let d='';for(let i=0;i<=80;i++){const x=-1+i/40,y=predict(m,x);d+=`${i?'L':'M'}${xs[2]+i/80*nodeW},${bottom-(y+.05)/1.1*chartH}`;}
-  body+=`<path d="${d}" fill="none" stroke="${color}" stroke-width="2.2" ${dash?`stroke-dasharray="${dash}"`:''}/>`;
- }
- body+=arrow(xs[0]+nodeW+5,(top+bottom)/2,xs[1]-6,(top+bottom)/2)+arrow(xs[1]+nodeW+5,(top+bottom)/2,xs[2]-6,(top+bottom)/2);
- const labelY=h-(narrow?18:large?8:5);
- body+=text(xs[0]+nodeW/2,labelY,narrow?'Training set':'Same training data','small','middle')+text(xs[1]+nodeW/2,labelY,narrow?'64 observations':'64 observations in each batch','small','middle')+(narrow?text(xs[1]+nodeW/2,h-5,'in each batch','small','middle'):'')+text(xs[2]+nodeW/2,labelY,narrow?'New weights':'One update per batch','small','middle');
- set(svg,body,'Start with all 2,048 training observations, divide them into 32 batches of 64, and use one batch at a time to update the model.');
-}
 
 function batchFacts(svg,indices,selected=64){
  const {w,h}=canvas(svg),cols=16,dx=Math.min((w-16)/cols,24),dy=Math.min((h-27)/4,17),x0=(w-cols*dx)/2,y0=3;
@@ -268,10 +250,6 @@ function nextBatchFacts(svg,second,model,u,updateProgress){
 export function renderSGD(plot,detail,scene,p,e){
  const kind=scene.kind,u=clamp((p-.10)/.72),first=e.firstUpdate,rows=first.indices.map(i=>data[i]),residuals=rows.map(d=>predict(first.before,d.x)-d.y),eta=e.traces[2][0].eta;
  let plotTitle='One minibatch, one update',detailTitle='The batching procedure',info={kind,progress:p,batchSize:64,completedUpdates:0};
- if(kind==='sgd-opening'){
-  openingDiagram(plot,e,u);set(detail,'','The SGD chapter begins with batches.');
-  plotTitle='Partition the data; learn one batch at a time';detailTitle='';
- }
  if(kind==='sgd-plan'){
   const active=Math.min(3,Math.floor(u*4));planDiagram(plot,e,active);stepRail(detail,active);info.activeStep=active;
   plotTitle='From the dataset to one minibatch';detailTitle='Within one epoch';

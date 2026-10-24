@@ -30,11 +30,6 @@ export function render(plot,detail,scene,p,e){
  if(kind==='parameter-probe')return renderParameterProbe(plot,detail,scene,p,e);
  const c=chart(plot,{xmin:-1,xmax:1});
  let body=c.base+c.step(),detailTitle='Construction',plotTitle='Function',info={kind,progress:p};
- if(kind==='steepen'){
-  const a=2*16**u;body+=c.path(x=>ramp(x,a),C.teal);
-  body+=line(c.X(0),c.Y(-.12),c.X(1/a),c.Y(-.12),C.rust,'',2);
-  facts(detail,[['Input slope k',a.toFixed(1),'Width stays at 2 neurons'],['Ramp width',(1/a).toFixed(3),'The second hinge is at 1/k']]);info.a=a;
- }
  if(['initialize','loss','full','update','initialize-wide'].includes(kind)){
   const wide=kind==='initialize-wide',color=wide?C.teal:C.blue;
   let model=wide?e.traces[12][0].model:e.firstUpdate.before;detailTitle='Training';

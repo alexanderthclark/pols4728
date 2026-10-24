@@ -2,7 +2,7 @@ import {epochState,renderEpochCounter} from './epoch-counter.mjs';
 import {scenes as allScenes,foundationScenes} from './scenes.mjs';
 const scenes=document.body.dataset.chapter==='batches'?foundationScenes:allScenes;
 import {render} from './views.mjs';
-import {constructionKinds} from './construction.mjs';
+import {constructionKinds,constructionState} from './construction.mjs';
 const $=id=>document.getElementById(id),stage=document.querySelector('.stage'),steps=[...document.querySelectorAll('.step')];
 const media=matchMedia('(prefers-reduced-motion: reduce)');
 let experiment,index=0,pending=false,last='',frame;
@@ -19,14 +19,28 @@ function showProcedure(scene,p,frame){
   item.setAttribute('aria-hidden',String(plan&&i>active));
  });
 }
-function formula(tex){if(!tex)return '';if(!typesetCache.has(tex))typesetCache.set(tex,window.katex.renderToString(tex,{displayMode:true,output:'htmlAndMathml',throwOnError:true,strict:'error'}));return typesetCache.get(tex);}
+function formula(tex){if(!tex)return '';if(!typesetCache.has(tex))typesetCache.set(tex,window.katex.renderToString(tex,{displayMode:true,output:'htmlAndMathml',throwOnError:true,strict:code=>code==='htmlExtension'?'ignore':'error',trust:context=>context.command==='\\htmlClass'}));return typesetCache.get(tex);}
+function constructionFormula(scene,p,mobile){
+ const state=constructionState(scene.kind,p);
+ // Both coefficients occupy the same KaTeX slot while 2 gives way to k.
+ const coefficient=String.raw`\htmlClass{coefficient-slot}{\htmlClass{coefficient-old}{2}\htmlClass{coefficient-new}{k}}`;
+ const expression=mobile?String.raw`\begin{aligned}\hat f(x)&=\operatorname{ReLU}(${coefficient}x)\\&\quad-\operatorname{ReLU}(${coefficient}x-1)\end{aligned}`:String.raw`\hat f(x)=h_1(x)-h_2(x)=\operatorname{ReLU}(${coefficient}x)-\operatorname{ReLU}(${coefficient}x-1)`;
+ const dataTex=mobile?String.raw`\begin{gathered}\mathcal D=\{(x_i,y_i)\}_{i=1}^{2048}\\y_i=f(x_i)\end{gathered}`:String.raw`\mathcal D=\{(x_i,y_i)\}_{i=1}^{2048},\qquad y_i=f(x_i)`;
+ $('equation').style.setProperty('--coefficient-progress',state.symbol);
+ $('equation').style.setProperty('--data-progress',state.dataReveal);
+ const key=`construction:${mobile}:${state.symbol>=.5}:${state.dataReveal>=.5}`;
+ const accessibleTex=state.dataReveal>=.5?dataTex:expression.split(coefficient).join(state.symbol>=.5?'k':'2');
+ if($('equation').dataset.tex!==key){$('equation').innerHTML=`<div class="construction-equations" aria-hidden="true"><div class="construction-equation">${formula(expression)}</div><div class="finite-data-equation">${formula(dataTex)}</div></div><div class="sr-only">${formula(accessibleTex)}</div>`;$('equation').dataset.tex=key;}
+ $('equation').hidden=false;
+}
 function draw(){pending=false;if(!experiment)return;const anchor=stage.getBoundingClientRect().top;let selected=0;steps.forEach((s,i)=>{if(s.getBoundingClientRect().top<=anchor+.5)selected=i;});index=selected;const rect=steps[index].getBoundingClientRect(),scene=scenes[index];let p=Math.max(0,Math.min(1,(anchor-rect.top)/rect.height));p=Math.round(p*200)/200;if(media.matches)p=1;const mobile=innerWidth<=700,signature=[index,p,mobile,innerWidth,innerHeight].join(':');if(signature===last)return;last=signature;
  if(stage.dataset.scene!==scene.id){$('heading').textContent=scene.title;$('caption').textContent=scene.caption;$('note').textContent=scene.note;$('part').textContent=scene.part;$('count').textContent=`${String(index+1).padStart(2,'0')} / ${scenes.length}`;$('status').textContent=scene.title;stage.dataset.scene=scene.id;}
- const tex=mobile&&scene.compact?scene.compact:scene.tex;$('equation').hidden=!tex;if($('equation').dataset.tex!==tex){$('equation').innerHTML=formula(tex);$('equation').dataset.tex=tex;}
+ if(scene.layout==='construction-flow')constructionFormula(scene,p,mobile);
+ else{const tex=mobile&&scene.compact?scene.compact:scene.tex;$('equation').hidden=!tex;if($('equation').dataset.tex!==tex){$('equation').innerHTML=formula(tex);$('equation').dataset.tex=tex;}}
  stage.dataset.construction=String(constructionKinds.includes(scene.kind));
  stage.dataset.training=String(scene.kind.startsWith('batches')||scene.kind.startsWith('train-')||scene.kind==='epoch-two');
  stage.dataset.layout=scene.layout||'standard';
- const counter=$('epoch-counter'),showCounter=document.body.dataset.chapter!=='batches'&&(scene.part.startsWith('02')||['initialize-wide','batches-wide','train-wide'].includes(scene.kind));
+ const counter=$('epoch-counter'),showCounter=document.body.dataset.chapter!=='batches'&&scene.kind!=='sgd-opening'&&(scene.part.startsWith('02')||['initialize-wide','batches-wide','train-wide'].includes(scene.kind));
  if(showCounter&&counter.hidden)renderEpochCounter(counter,epochState(0,experiment.config.epochs,experiment.config.batchesPerEpoch));
  counter.hidden=!showCounter;stage.dataset.counter=String(showCounter);
  showProcedure(scene,p,{});

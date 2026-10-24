@@ -268,3 +268,23 @@
 @media screen and (min-width:1000px){
  .stage[data-scene="two-hinges"] #heading{font-size:clamp(2.3rem,3.6vw,4rem);margin:1.1rem 0 .5rem}
 }
+
+/* Slides 7–9 share the same pinned figure bounds while the coordinates reframe. */
+.stage[data-layout="construction-flow"] .copy{display:none}
+.stage[data-layout="construction-flow"] .visuals{min-height:0;max-height:none}
+.stage[data-layout="construction-flow"] #equation{position:relative;min-height:80px}
+.construction-equations{display:grid;width:100%;align-items:center}
+.construction-equation,.finite-data-equation{grid-area:1/1}
+.construction-equation{opacity:calc(1 - var(--data-progress,0))}
+.finite-data-equation{opacity:var(--data-progress,0)}
+.coefficient-slot{display:inline-grid!important;position:relative;width:.6em;text-align:center}
+.coefficient-old,.coefficient-new{grid-area:1/1;display:inline-block}
+.coefficient-old{opacity:calc(1 - var(--coefficient-progress,0));transform:translateY(calc(-.35em * var(--coefficient-progress,0)))}
+.coefficient-new{opacity:var(--coefficient-progress,0);transform:translateY(calc(.35em * (1 - var(--coefficient-progress,0))))}
+.learning-context p{margin:0}
+.learning-context .katex{font-size:1em}
+@media(max-width:700px){
+ .stage[data-layout="construction-flow"] #heading{min-height:2.5em;display:flex;align-items:center}
+ .stage[data-layout="construction-flow"] #equation{min-height:84px;font-size:.8rem}
+ .stage[data-layout="construction-flow"] .visuals{grid-template-rows:minmax(0,1fr) 144px;min-height:0;max-height:none}
+}

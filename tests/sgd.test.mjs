@@ -7,7 +7,7 @@ import { copy, data, gradient, initialize, loss, mse, predict, ramp, random, shu
 import { epochState, renderEpochCounter } from '../docs/sgd/epoch-counter.mjs';
 import { scenes, foundationScenes, batchSteps } from '../docs/sgd/scenes.mjs';
 import { render } from '../docs/sgd/views.mjs';
-import { constructionKinds } from '../docs/sgd/construction.mjs';
+import { constructionKinds, constructionState } from '../docs/sgd/construction.mjs';
 
 globalThis.katex = createRequire(import.meta.url)('../docs/neural-networks/vendor/katex/katex.min.js');
 
@@ -259,6 +259,163 @@ test('adding the ReLUs reveals their complete sum without a moving point or vert
       assert.doesNotMatch(figure, /<text\b[^>]*>[^<]*[θφΣ₀₁₂]/, 'Math symbols must be typeset rather than assembled with Unicode subscripts');
     }
   }
+});
+
+const svgAttributes = element => Object.fromEntries([...element.matchAll(/([\w-]+)="([^"]*)"/g)].map(match => match.slice(1)));
+const figureGeometry = figure => [...figure.replace(/<foreignObject\b[\s\S]*?<\/foreignObject>/g, '').matchAll(/<(path|line|circle)\b[^>]*>/g)]
+  .map(match => ({ tag: match[1], ...svgAttributes(match[0]) }))
+  .filter(element => !Object.hasOwn(element, 'data-observation'))
+  .map(element => Object.fromEntries(['tag', 'd', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r'].filter(key => key in element).map(key => [key, element[key]])));
+const targetCoordinates = preview => {
+  const element = preview.plot.match(/<path\b[^>]*data-target="step"[^>]*>/)?.[0];
+  assert.ok(element, 'The target remains visible while the framing changes');
+  return [...svgAttributes(element).d.matchAll(/-?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?/gi)].map(match => Number(match[0]));
+};
+
+test('the sum keeps its graph and network geometry across both construction-to-data boundaries', () => {
+  assert.ok(constructionKinds.includes('steepen'));
+  assert.ok(constructionKinds.includes('sgd-opening'));
+  const ids = scenes.map(scene => scene.id);
+  assert.equal(ids[ids.indexOf('add') + 1], 'steepen');
+  assert.equal(ids[ids.indexOf('steepen') + 1], 'sgd-transition');
+  for (const [from, to] of [['add', 'steepen'], ['steepen', 'sgd-transition']]) {
+    for (const [width, height] of [[850, 430], [288, 240]]) {
+      const before = renderScene(from, 1, width, height), after = renderScene(to, 0, width, height);
+      assert.deepEqual(figureGeometry(after.plot), figureGeometry(before.plot), `${from} → ${to}: the graph must not jump at the boundary`);
+      assert.deepEqual(figureGeometry(after.detail), figureGeometry(before.detail), `${from} → ${to}: the network must not jump at the boundary`);
+      for (const parameter of ['w1', 'b1', 'w2', 'b2', 'a1', 'a2', 'c']) {
+        close(after.frame[parameter], before.frame[parameter]);
+      }
+    }
+  }
+});
+
+test('the numeric slope becomes k before the ramp steepens and the framing changes gradually', () => {
+  const start = renderScene('steepen', 0), substitution = renderScene('steepen', .22), framed = renderScene('steepen', .38), end = renderScene('steepen', 1);
+  close(start.frame.a, 2);
+  close(start.frame.symbol, 0);
+  close(start.frame.reframe, 0);
+  close(substitution.frame.symbol, 1);
+  close(framed.frame.reframe, 1);
+  close(end.frame.a, 32);
+  const bounds = [targetCoordinates(start), targetCoordinates(framed)];
+  assert.notDeepEqual(bounds[0], bounds[1], 'The new framing must actually move the visible axes and target');
+  let previousSlope = 2;
+  for (const progress of [0, .04, .1, .16, .22, .3, .38, .4, .55, .7, .88, 1]) {
+    const preview = renderScene('steepen', progress), frame = preview.frame;
+    close(frame.w1, frame.a);
+    close(frame.w2, frame.a);
+    close(frame.b1, 0);
+    close(frame.b2, -1);
+    close(frame.a1, 1);
+    close(frame.a2, -1);
+    close(frame.c, 0);
+    close(frame.dataReveal, 0);
+    if (progress <= .4) close(frame.a, 2);
+    if (progress > .4 && progress < .88) assert.ok(frame.a > previousSlope && frame.a < 32, 'Steepening starts after the substitution and continues smoothly');
+    previousSlope = frame.a;
+    if (progress > .1 && progress < .38) {
+      assert.ok(frame.reframe > 0 && frame.reframe < 1);
+      const coordinates = targetCoordinates(preview);
+      assert.equal(coordinates.length, bounds[0].length);
+      coordinates.forEach((value, i) => {
+        assert.ok(value >= Math.min(bounds[0][i], bounds[1][i]) - 1e-9 && value <= Math.max(bounds[0][i], bounds[1][i]) + 1e-9, 'Intermediate target coordinates remain between the two framings');
+      });
+      assert.notDeepEqual(coordinates, bounds[0]);
+      assert.notDeepEqual(coordinates, bounds[1]);
+    }
+    for (const x of [-1, 0, .5 / frame.a, 1 / frame.a, 1]) {
+      close(frame.c + frame.a1 * Math.max(0, frame.w1 * x + frame.b1) + frame.a2 * Math.max(0, frame.w2 * x + frame.b2), ramp(x, frame.a));
+    }
+  }
+  for (const id of ['steepen', 'sgd-transition']) {
+    const scene = scenes.find(item => item.id === id);
+    assert.equal(scene.caption, '');
+    assert.equal(scene.note, '');
+  }
+});
+
+test('the fitting introduction reveals real finite observations from the same DGP before any update', () => {
+  const original = JSON.stringify(experiment), start = renderScene('sgd-transition', 0), end = renderScene('sgd-transition', 1);
+  close(start.frame.dataReveal, 0);
+  close(end.frame.dataReveal, 1);
+  for (const progress of [0, .08, .2, .42, .75, 1, .75, .2, 0]) {
+    const preview = renderScene('sgd-transition', progress), frame = preview.frame;
+    assert.equal(frame.trainingDataCount, data.length);
+    assert.equal(frame.trainingDataCount, 2048);
+    assert.equal(frame.completedUpdates, 0);
+    close(frame.a, 32);
+    for (const parameter of ['w1', 'b1', 'w2', 'b2', 'a1', 'a2', 'c']) close(frame[parameter], start.frame[parameter]);
+    if (progress > .08 && progress < .42) assert.ok(frame.dataReveal > 0 && frame.dataReveal < 1);
+    const shown = frame.displayedObservations;
+    assert.equal(shown.length, 32);
+    assert.equal(new Set(shown.map(point => point.index)).size, shown.length);
+    assert.deepEqual([...new Set(shown.map(point => point.y))].sort(), [0, 1]);
+    const plotted = [...preview.plot.matchAll(/<circle\b[^>]*data-observation="(\d+)"[^>]*>/g)].map(match => svgAttributes(match[0]));
+    assert.equal(plotted.length, frame.dataReveal > 0 ? shown.length : 0);
+    const sum = svgAttributes(preview.plot.match(/<path\b[^>]*data-curve="sum"[^>]*>/)?.[0] || "");
+    close(Number(sum['stroke-opacity']), 1 - frame.dataReveal);
+    if (frame.dataReveal > 0) {
+      const observationGroup = svgAttributes(preview.plot.match(/<g\b[^>]*data-observations="finite-data"[^>]*>/)?.[0] || "");
+      close(Number(observationGroup.opacity), frame.dataReveal);
+    }
+    for (const point of shown) {
+      assert.deepEqual({ x: point.x, y: point.y }, data[point.index]);
+      assert.equal(point.y, target(point.x));
+      if (frame.dataReveal === 0) continue;
+      const dot = plotted.find(item => Number(item['data-observation']) === point.index);
+      assert.ok(dot, `Observation ${point.index} must be plotted`);
+      assert.equal(Number(dot['data-x']), point.x);
+      assert.equal(Number(dot['data-y']), point.y);
+      const coordinates = targetCoordinates(preview);
+      close(Number(dot.cy), point.y === 0 ? coordinates[1] : coordinates[4]);
+      close(Number(dot.cx), coordinates[0] + (point.x + 1) / 2 * (coordinates[5] - coordinates[0]));
+    }
+    if (frame.dataReveal > 0) assert.match(preview.detail, /32 of 2,048 observations shown/);
+  }
+  assert.equal(JSON.stringify(experiment), original, 'Introducing the fitting problem does not change training data or recorded updates');
+});
+
+test('scrolling reverses the construction-to-data transition and reduced motion completes its stages', async () => {
+  const ui = await controller();
+  const equationProgress = frame => {
+    const style = ui.nodes.get('equation').style;
+    close(Number(style['--coefficient-progress']), frame.symbol);
+    close(Number(style['--data-progress']), frame.dataReveal);
+  };
+  const stops = [['add', .9], ['steepen', 0], ['steepen', .16], ['steepen', .3], ['steepen', .55], ['steepen', .9], ['sgd-transition', 0], ['sgd-transition', .2], ['sgd-transition', .75]];
+  const seen = stops.map(([id, progress]) => {
+    const frame = ui.at(id, progress);
+    assert.equal(ui.nodes.get('stage').dataset.construction, 'true');
+    equationProgress(frame);
+    assert.equal(ui.nodes.get('epoch-counter').hidden, true, 'The fitting introduction has no training counter yet');
+    return { id, progress, frame, plot: ui.nodes.get('plot').innerHTML, detail: ui.nodes.get('detail').innerHTML, equation: ui.nodes.get('equation').innerHTML };
+  });
+  for (const saved of seen.reverse()) {
+    assert.deepEqual(ui.at(saved.id, saved.progress), saved.frame);
+    equationProgress(saved.frame);
+    assert.equal(ui.nodes.get('plot').innerHTML, saved.plot);
+    assert.equal(ui.nodes.get('detail').innerHTML, saved.detail);
+    assert.equal(ui.nodes.get('equation').innerHTML, saved.equation);
+  }
+  ui.reduce(true);
+  for (const id of ['steepen', 'sgd-transition']) {
+    const frame = ui.at(id, .1);
+    close(frame.a, 32);
+    close(frame.symbol, 1);
+    close(frame.reframe, 1);
+    close(frame.dataReveal, id === 'sgd-transition' ? 1 : 0);
+    equationProgress(frame);
+    assert.deepEqual(ui.at(id, .75), frame);
+    equationProgress(frame);
+  }
+  ui.at('steepen', .1);
+  ui.emit('document:keydown', { key: 'ArrowRight', target: { tagName: 'DIV' }, preventDefault() {} });
+  assert.equal(ui.nodes.get('stage').dataset.scene, 'sgd-transition');
+  close(JSON.parse(ui.nodes.get('stage').dataset.frame).dataReveal, 1);
+  ui.emit('document:keydown', { key: 'ArrowLeft', target: { tagName: 'DIV' }, preventDefault() {} });
+  assert.equal(ui.nodes.get('stage').dataset.scene, 'steepen');
+  close(JSON.parse(ui.nodes.get('stage').dataset.frame).a, 32);
 });
 
 test('each of the first two epochs partitions the same data and preserves the preceding update', () => {
@@ -704,7 +861,7 @@ async function controller(chapter = 'full') {
   });
   const media = { matches: false, addEventListener: (type, callback) => on(`media:${type}`, callback) };
   context = {
-    allScenes: scenes, foundationScenes, constructionKinds, render, epochState, renderEpochCounter,
+    allScenes: scenes, foundationScenes, constructionKinds, constructionState, render, epochState, renderEpochCounter,
     console, Math, Map, JSON, Number, String, innerWidth: 320, innerHeight: 568,
     scrollY: 0, location: { hash: '' }, matchMedia: () => media,
     requestAnimationFrame: callback => frames.push(callback), addEventListener: on,
