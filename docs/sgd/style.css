@@ -180,6 +180,9 @@
 
 .probe-math{overflow:visible;pointer-events:none}
 .probe-math .katex{font-size:1em}
+.construction-math{overflow:visible;pointer-events:none}
+.construction-math .katex{font-size:1em;background:white}
+.stage[data-scene="add"] .copy{display:none}
 
 /* Classroom projection: use the available canvas and make the teaching text
    readable at a distance. Phone layouts keep their compact compositions. */

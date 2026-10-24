@@ -200,6 +200,62 @@ test('the target reference accompanies the combined output without obscuring the
   assert.equal(targetPath(renderScene('add', .3)).length, 0, 'Reverse scrolling restores the separate-contribution view');
 });
 
+test('adding the ReLUs reveals their complete sum without a moving point or vertical measurement bars', () => {
+  const scene = scenes.find(item => item.id === 'add');
+  assert.equal(scene.caption, '');
+  assert.equal(scene.note, '');
+  assert.ok(scene.reading, 'The reading view retains an explanation of the sum');
+  const attributes = element => Object.fromEntries([...element.matchAll(/([\w-]+)="([^"]*)"/g)].map(match => match.slice(1)));
+  const curve = (preview, color) => {
+    const paths = (preview.plot.match(/<path\b[^>]*>/g) || []).map(attributes).filter(path => path.stroke === color);
+    assert.equal(paths.length, 1, `Exactly one ${color} curve is visible`);
+    return paths[0];
+  };
+  const points = path => [...path.d.matchAll(/[ML]([-\d.e+]+),([-\d.e+]+)/g)].map(match => match.slice(1).map(Number));
+  let completeSum;
+  for (const progress of [.4, .55, .7, 1, .7, .4]) {
+    const preview = renderScene('add', progress);
+    assert.ok(preview.frame.reveal > 0);
+    const sum = curve(preview, '#007f73');
+    const first = curve(preview, '#234e70'), second = curve(preview, '#a54f32');
+    const sumPoints = points(sum), firstPoints = points(first), secondPoints = points(second);
+    assert.ok(sumPoints.length > 2, 'The sum is a curve rather than a moving endpoint');
+    assert.equal(sumPoints.length, firstPoints.length);
+    assert.equal(sumPoints.length, secondPoints.length);
+    const zeroY = sumPoints[0][1];
+    for (let i = 0; i < sumPoints.length; i++) {
+      close(sumPoints[i][0], firstPoints[i][0]);
+      close(sumPoints[i][0], secondPoints[i][0]);
+      close(sumPoints[i][1], firstPoints[i][1] + secondPoints[i][1] - zeroY);
+    }
+    assert.ok(sumPoints.at(-1)[0] > sumPoints[0][0]);
+    assert.ok(sumPoints.at(-1)[1] < zeroY, 'The summed curve rises to its upper plateau');
+    completeSum ??= sum.d;
+    assert.equal(sum.d, completeSum, 'The entire sum is shown throughout the fade, including on reverse scrolling');
+    close(Number(sum['stroke-opacity']), preview.frame.reveal);
+    for (const component of [first, second]) {
+      assert.ok(component['stroke-dasharray'], 'Both weighted ReLUs remain visible as dashed curves');
+      assert.ok(Number(component['stroke-opacity']) > 0);
+    }
+    const circles = (preview.plot.match(/<circle\b[^>]*>/g) || []).map(attributes);
+    assert.equal(circles.length, 2, 'Only the fixed open and closed target endpoints remain');
+    assert.ok(circles.every(circle => circle.fill !== '#007f73'), 'There is no moving teal endpoint');
+    const coloredMeasurements = (preview.plot.match(/<line\b[^>]*>/g) || []).map(attributes)
+      .filter(line => ['#234e70', '#a54f32'].includes(line.stroke));
+    assert.deepEqual(coloredMeasurements, [], 'The figure no longer measures individual heights with vertical bars');
+    assert.doesNotMatch(preview.plot, />\s*[-\d.]+\s*[+−]\s*[-\d.]+\s*=\s*[-\d.]+\s*</);
+    assert.doesNotMatch(preview.detail, /Hidden layer|>Output</);
+
+    for (const figure of [preview.plot, preview.detail]) {
+      assert.match(figure, /<foreignObject\b/);
+      assert.match(figure, /construction-math/);
+      assert.match(figure, /class="katex"/);
+      assert.match(figure, /<annotation encoding="application\/x-tex">/);
+      assert.doesNotMatch(figure, /<text\b[^>]*>[^<]*[θφΣ₀₁₂]/, 'Math symbols must be typeset rather than assembled with Unicode subscripts');
+    }
+  }
+});
+
 test('each of the first two epochs partitions the same data and preserves the preceding update', () => {
   for (const width of [2, 12]) {
     const trace = experiment.traces[width];

@@ -295,10 +295,6 @@ PDF bookmark without a duplicate visible heading. Both notes editions use it.
 For specimens, `\CoursePartScene[width]{part-key}` reuses the same composition
 without changing the part counter or adding navigation entries.
 
-The part titled `The Canon` begins with ridge regression. The preceding shrinkage
-and OLS/collinearity groundwork remains in Foundations. The regularization chapter's
-two shared source fragments preserve its complete sequence in the standalone article.
-
 ### Explanatory illustrations within chapters
 
 Freedman, Pisani, and Purves's *Statistics* (4th ed., W. W. Norton, 2007) is a
@@ -343,6 +339,19 @@ relationships that the explanation does not establish.
   do not apply print-size plot text to a full lecture-room slide.
 - Use one caption to state what the reader should notice. Avoid repeating the
   same title in the figure, caption, and surrounding paragraph.
+
+### Mathematics in figures
+
+Typeset mathematical figure labels from LaTeX in the first draft, before
+polishing the layout or animation. This applies to function names, parameters,
+axis and legend labels, network weights and biases, and mathematical annotations
+in print, slides, and interactive explainers. Use the format's math renderer
+(for example, native LaTeX, Matplotlib mathtext, or the page's KaTeX renderer).
+Use proper subscripts, superscripts, hats, and operators; do not substitute
+Unicode lookalikes or manually position text fragments to imitate mathematics.
+Ordinary prose and simple numeric ticks can remain regular text. Keep notation
+consistent with the notes, and check the rendered labels for collisions and
+legibility at the intended printed, mobile, or projector size.
 
 ## Color and monochrome
 
