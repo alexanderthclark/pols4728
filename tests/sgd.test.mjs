@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import test from 'node:test';
 import vm from 'node:vm';
-import { copy, data, gradient, initialize, loss, mse, predict, random, shuffle, update } from '../docs/sgd/model.mjs';
+import { copy, data, gradient, initialize, loss, mse, predict, random, shuffle, target, update } from '../docs/sgd/model.mjs';
 import { epochState, renderEpochCounter } from '../docs/sgd/epoch-counter.mjs';
 import { scenes, foundationScenes, batchSteps } from '../docs/sgd/scenes.mjs';
 import { render } from '../docs/sgd/views.mjs';
@@ -27,8 +27,75 @@ function renderScene(id, progress, width = 850, height = 430) {
   assert.ok(scene, `Unknown scene ${id}`);
   const frame = render(plot, detail, scene, progress, experiment);
   assert.doesNotMatch(plot.innerHTML + detail.innerHTML, /NaN|Infinity|undefined/);
-  return { frame, plot: plot.innerHTML, detail: detail.innerHTML };
+  return { frame, plot: plot.innerHTML, detail: detail.innerHTML, plotLabel: plot.attrs['aria-label'] };
 }
+
+test('the opening introduces the actual step target before constructing ReLUs and reverses across its jump', async () => {
+  assert.equal(scenes[0].id, 'step-target');
+  assert.equal(scenes[0].kind, 'step-target');
+  assert.equal(scenes[1].id, 'pair');
+  const snapshots = new Map();
+  for (const progress of [0, .25, .5, .50001, .75, 1]) {
+    const result = renderScene('step-target', progress);
+    assert.equal(result.frame.probeY, target(result.frame.probeX));
+    assert.equal(result.detail, '', 'The target comes before any network diagram');
+    snapshots.set(progress, result);
+  }
+  close(snapshots.get(0).frame.probeX, -.8);
+  close(snapshots.get(.5).frame.probeX, 0);
+  close(snapshots.get(1).frame.probeX, .8);
+  assert.equal(snapshots.get(.5).frame.probeY, 0, 'The target is zero at the threshold itself');
+  assert.equal(snapshots.get(.50001).frame.probeY, 1, 'The upper branch starts strictly to the right of zero');
+  for (const [progress, result] of [...snapshots].reverse()) {
+    assert.deepEqual(renderScene('step-target', progress), result);
+  }
+  const opening = snapshots.get(0);
+  const marker = kind => {
+    const element = opening.plot.match(new RegExp(`<circle\\b[^>]*data-target-boundary="${kind}"[^>]*>`))?.[0];
+    assert.ok(element, `${kind} must be visibly marked`);
+    return Object.fromEntries([...element.matchAll(/([\w-]+)="([^"]*)"/g)].map(match => match.slice(1)));
+  };
+  const closed = marker('closed-zero'), open = marker('open-one');
+  assert.equal(closed.cx, open.cx);
+  assert.ok(Number(closed.cy) > Number(open.cy), 'Both threshold endpoints share x=0, with one above zero');
+  assert.ok(closed.fill && !['white', '#fff', '#ffffff', 'none'].includes(closed.fill));
+  assert.equal(open.fill, 'white');
+  assert.match(opening.plotLabel, /step/i);
+  assert.match(opening.plotLabel, /x\s*(?:≤|<=)\s*0/);
+  assert.match(opening.plotLabel, /x\s*>\s*0/);
+
+  const ui = await controller();
+  const left = ui.at('step-target', .25), right = ui.at('step-target', .75);
+  assert.equal(left.probeY, 0);
+  assert.equal(right.probeY, 1);
+  assert.deepEqual(ui.at('step-target', .25), left, 'Reverse scrolling restores the lower branch');
+  assert.equal(ui.nodes.get('epoch-counter').hidden, true);
+  ui.reduce(true);
+  const reduced = ui.at('step-target', .1);
+  assert.equal(reduced.probeY, target(reduced.probeX));
+  ui.emit('document:keydown', { key: 'ArrowRight', target: { tagName: 'DIV' }, preventDefault() {} });
+  assert.equal(ui.nodes.get('stage').dataset.scene, 'pair');
+});
+
+test('the target reference accompanies the combined output without obscuring the individual ReLUs', () => {
+  const targetPath = result => result.plot.match(/<path data-target="step"[^>]*>/g) || [];
+  for (const id of ['pair', 'input-first', 'input-second', 'flip']) {
+    for (const progress of [0, .5, 1]) assert.equal(targetPath(renderScene(id, progress)).length, 0);
+  }
+  for (const progress of [0, .3]) assert.equal(targetPath(renderScene('add', progress)).length, 0);
+  const revealed = renderScene('add', .5);
+  assert.ok(revealed.frame.reveal > 0);
+  assert.equal(targetPath(revealed).length, 1);
+  assert.match(revealed.plotLabel, /target step/);
+  const reference = targetPath(renderScene('add', 1))[0];
+  assert.ok(reference);
+  for (const progress of [0, .5, 1]) {
+    const shifted = renderScene('output-bias', progress);
+    assert.deepEqual(targetPath(shifted), [reference], 'Changing the output bias must not move or duplicate the target');
+    assert.match(shifted.plotLabel, /target step/);
+  }
+  assert.equal(targetPath(renderScene('add', .3)).length, 0, 'Reverse scrolling restores the separate-contribution view');
+});
 
 test('each of the first two epochs partitions the same data and preserves the preceding update', () => {
   for (const width of [2, 12]) {

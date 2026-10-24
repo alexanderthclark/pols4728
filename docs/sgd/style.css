@@ -231,3 +231,19 @@
  .epoch-counter__label,.epoch-counter__batch{font-size:16px}
  .epoch-counter__number{font-size:48px}
 }
+
+/* Introduce the target on its own, before showing any hidden neurons. */
+.stage[data-scene="step-target"] .visuals{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr);min-height:0}
+.stage[data-scene="step-target"] .detail{display:none}
+svg .target-label,svg .target-readout{font-size:16px}
+@media screen and (min-width:1000px){
+ svg .target-label{font-size:20px}
+ svg .target-readout{font-size:22px}
+}
+@media screen and (min-width:1600px) and (min-height:801px){
+ svg .target-label{font-size:24px}
+ svg .target-readout{font-size:26px}
+}
+@media screen and (max-width:700px){
+ svg .target-label,svg .target-readout{font-size:14px}
+}

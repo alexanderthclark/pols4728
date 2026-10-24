@@ -72,9 +72,8 @@ export function renderConstruction(plot,detail,kind,p){
    html+=text(bounds[0][0]+10,bottom-8,`${number(v1)} ${v2<0?'−':'+'} ${number(Math.abs(v2))} = ${number(out)}`,colors.teal,compact?12:wide?30:24);
   }
  }
- if(kind==='output-bias')html+=curve(x=>h1(x)-h2(x),0,colors.gray,.4,'3 4',1.2,1.5);
- if(kind==='target')html+=`<path d="M${X(-.3,0)},${Y(0)}H${X(0,0)}M${X(0,0)},${Y(1)}H${X(1.2,0)}" fill="none" stroke="#606060" stroke-width="2" stroke-dasharray="6 5"/>`;
- plot.innerHTML=html;plot.setAttribute('aria-label',`${weighted?'Weighted contributions':'Hidden activations'} of two ReLU neurons. ${showOutput?'Their sum is shown in teal.':''}`);
+ if(showOutput)html+=`<path data-target="step" d="M${X(-.3,0)},${Y(0)}H${X(0,0)}M${X(0,0)},${Y(1)}H${X(1.2,0)}" fill="none" stroke="#606060" stroke-width="2" stroke-dasharray="6 5"/><circle cx="${X(0,0)}" cy="${Y(0)}" r="3" fill="#606060"/><circle cx="${X(0,0)}" cy="${Y(1)}" r="3" fill="white" stroke="#606060" stroke-width="1.5"/>`;
+ plot.innerHTML=html;plot.setAttribute('aria-label',`${weighted?'Weighted contributions':'Hidden activations'} of two ReLU neurons. ${showOutput?'Their sum is shown in teal against the dashed gray target step: zero for x ≤ 0 and one for x > 0.':''}`);
  network(detail,s);
  return {...s,detailTitle:'Hidden parameters θ → output parameters φ',plotTitle:weighted?'Apply the output weights, then add':'Build the two hidden neurons'};
 }
