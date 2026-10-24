@@ -192,10 +192,15 @@ test('the target reference accompanies the combined output without obscuring the
   assert.match(revealed.plotLabel, /target step/);
   const reference = targetPath(renderScene('add', 1))[0];
   assert.ok(reference);
-  for (const progress of [0, .5, 1]) {
-    const shifted = renderScene('output-bias', progress);
-    assert.deepEqual(targetPath(shifted), [reference], 'Changing the output bias must not move or duplicate the target');
-    assert.match(shifted.plotLabel, /target step/);
+  for (const progress of [.5, .75, 1, .75, .5]) {
+    assert.deepEqual(targetPath(renderScene('add', progress)), [reference], 'Revealing the sum must not move or duplicate the target');
+  }
+  const sum = renderScene('add', 1).frame;
+  const next = scenes[scenes.findIndex(scene => scene.id === 'add') + 1];
+  const steepening = renderScene(next.id, 0).frame;
+  for (const x of [-.3, 0, .1, .5, 1, 1.2]) {
+    const combined = sum.c + sum.a1 * Math.max(0, sum.w1 * x + sum.b1) + sum.a2 * Math.max(0, sum.w2 * x + sum.b2);
+    close(combined, ramp(x, steepening.a));
   }
   assert.equal(targetPath(renderScene('add', .3)).length, 0, 'Reverse scrolling restores the separate-contribution view');
 });
