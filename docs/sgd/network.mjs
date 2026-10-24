@@ -3,6 +3,12 @@ import {C,canvas,set} from './sgd-detail.mjs';
 const number=value=>(value<0?'−':'')+Math.abs(value).toFixed(4);
 const label=(x,y,value,color,size,anchor='middle')=>`<text x="${x}" y="${y}" text-anchor="${anchor}" style="fill:${color};font-size:${size}px">${value}</text>`;
 const circle=(x,y,r,color)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="white" stroke="${color}" stroke-width="1.5"/>`;
+let outputMath;
+function outputLabel(right,y,size){
+ outputMath??=globalThis.katex.renderToString(String.raw`\hat f(x;\theta,\phi)`,{displayMode:false,output:'htmlAndMathml',throwOnError:true,strict:'error'});
+ const width=size*7;
+ return `<foreignObject x="${right-width}" y="${y}" width="${width}" height="${size*2}" class="probe-math network-output-math"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:${size}px;color:${C.teal};line-height:1.2;text-align:right">${outputMath}</div></foreignObject>`;
+}
 function arrow(x1,y1,x2,y2,color,dashed=false){
  const angle=Math.atan2(y2-y1,x2-x1),size=5;
  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="1.5" ${dashed?'stroke-dasharray="4 3"':''}/><path d="M${x2-size*Math.cos(angle-.55)},${y2-size*Math.sin(angle-.55)}L${x2},${y2}L${x2-size*Math.cos(angle+.55)},${y2-size*Math.sin(angle+.55)}" fill="none" stroke="${color}" stroke-width="1.5"/>`;
@@ -52,8 +58,8 @@ export function renderInitialNetwork(svg,model){
  body+=valueLabel('phi0',output.x-(compact?12:wide?24:20),outputBiasY+(wide&&!compact?20:16),C.teal,'end');
  body+=circle(input.x,input.y,compact?10:wide?17:14,C.muted)+label(input.x,input.y+(compact?4:wide?8:6),'x',C.ink,compact?12:wide?24:20);
  body+=circle(output.x,output.y,nodeRadius,C.teal)+label(output.x,output.y+(compact?5:wide?9:7),'Σ',C.teal,compact?18:wide?34:28);
- body+=label(w-3,output.y+nodeRadius+(compact?15:wide?32:26),'f(x; θ, φ)',C.teal,compact?11:wide?22:18,'end');
+ body+=outputLabel(w-3,output.y+nodeRadius+(compact?3:wide?8:6),compact?11:wide?22:18);
  body+=label(3,h-3,'Dashed: bias',C.muted,compact?9:wide?20:16,'start')+label(w-3,h-3,'1: constant',C.muted,compact?9:wide?20:16,'end');
- set(svg,body,`Initial network: input x connects to two hidden ReLU neurons. ${displayedParameters.map(item=>`${item.label} = ${item.value}`).join('; ')}. Hidden biases θ₁₀ and θ₂₀ enter the hidden neurons from constant 1; output bias φ₀ enters the sum from constant 1. Output f(x; θ, φ) is φ₁ times h₁ plus φ₂ times h₂ plus φ₀. Hidden-layer parameters form θ; output-layer parameters form φ.`);
+ set(svg,body,`Initial network: input x connects to two hidden ReLU neurons. ${displayedParameters.map(item=>`${item.label} = ${item.value}`).join('; ')}. Hidden biases θ₁₀ and θ₂₀ enter the hidden neurons from constant 1; output bias φ₀ enters the sum from constant 1. Network output f-hat(x; θ, φ) is φ₁ times h₁ plus φ₂ times h₂ plus φ₀. Hidden-layer parameters form θ; output-layer parameters form φ.`);
  return displayedParameters;
 }
