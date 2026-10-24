@@ -232,18 +232,28 @@
  .epoch-counter__number{font-size:48px}
 }
 
-/* Introduce the target on its own, before showing any hidden neurons. */
-.stage[data-scene="step-target"] .visuals{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr);min-height:0}
-.stage[data-scene="step-target"] .detail{display:none}
-svg .target-label,svg .target-readout{font-size:16px}
-@media screen and (min-width:1000px){
- svg .target-label{font-size:20px}
- svg .target-readout{font-size:22px}
-}
-@media screen and (min-width:1600px) and (min-height:801px){
- svg .target-label{font-size:24px}
- svg .target-readout{font-size:26px}
+/* A standalone, static introduction to the noiseless data-generating process. */
+@media screen{
+ .stage[data-layout="dgp"]{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);grid-template-rows:auto auto minmax(0,1fr) minmax(0,1fr) auto;column-gap:4vw}
+ .stage[data-layout="dgp"] .stage-top{grid-column:1/-1}
+ .stage[data-layout="dgp"] #heading{grid-column:1/-1;font-size:clamp(2.3rem,3.6vw,4rem);margin:1.1rem 0 .5rem}
+ .stage[data-layout="dgp"] #equation{grid-column:1;grid-row:3;align-self:end;min-height:0;padding-bottom:.8rem;font-size:clamp(1.5rem,2vw,2.35rem);color:var(--ink)}
+ .stage[data-layout="dgp"] .copy{grid-column:1;grid-row:4;align-self:start;min-height:0;padding:1.4rem 0 0;max-width:32ch}
+ .stage[data-layout="dgp"] #caption{font-size:clamp(1.2rem,1.55vw,1.85rem);line-height:1.45;opacity:1!important;transform:none!important}
+ .stage[data-layout="dgp"] #note{font:clamp(1.15rem,1.4vw,1.65rem)/1.45 Georgia,'Times New Roman',serif;color:var(--ink);padding-top:.85rem}
+ .stage[data-layout="dgp"] .stage-body{grid-column:2;grid-row:3/5;justify-content:center}
+ .stage[data-layout="dgp"] .visuals{display:grid;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr);min-height:0;height:min(54svh,480px);max-height:none;flex:none}
+ .stage[data-layout="dgp"] .detail,.stage[data-layout="dgp"] figcaption{display:none}
+ .stage[data-layout="dgp"] .stage-footer{grid-column:1/-1;grid-row:5;width:100%}
 }
 @media screen and (max-width:700px){
- svg .target-label,svg .target-readout{font-size:14px}
+ .stage[data-layout="dgp"]{display:flex;gap:0;min-height:0}
+ .stage[data-layout="dgp"] #heading{font-size:clamp(1.7rem,6.5vw,2.4rem);margin:.8rem 0 1rem}
+ .stage[data-layout="dgp"] #equation{order:1;align-self:flex-start;font-size:clamp(1rem,4.3vw,1.5rem);padding:0;min-height:0}
+ .stage[data-layout="dgp"] .copy{order:2;padding:1rem 0 .6rem;max-width:38ch;flex-shrink:0}
+ .stage[data-layout="dgp"] #caption,.stage[data-layout="dgp"] #note{font-size:clamp(.95rem,3.8vw,1.2rem);line-height:1.4}
+ .stage[data-layout="dgp"] #note{padding-top:.5rem}
+ .stage[data-layout="dgp"] .stage-body{order:3;flex:1;min-height:0;justify-content:center}
+ .stage[data-layout="dgp"] .visuals{height:100%;max-height:300px;min-height:0;flex:1}
+ .stage[data-layout="dgp"] .stage-footer{order:4;flex-shrink:0}
 }

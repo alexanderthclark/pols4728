@@ -30,26 +30,34 @@ function renderScene(id, progress, width = 850, height = 430) {
   return { frame, plot: plot.innerHTML, detail: detail.innerHTML, plotLabel: plot.attrs['aria-label'] };
 }
 
-test('the opening introduces the actual step target before constructing ReLUs and reverses across its jump', async () => {
+test('the static opening introduces the noiseless training data before constructing ReLUs', async () => {
   assert.equal(scenes[0].id, 'step-target');
   assert.equal(scenes[0].kind, 'step-target');
   assert.equal(scenes[1].id, 'pair');
-  const snapshots = new Map();
-  for (const progress of [0, .25, .5, .50001, .75, 1]) {
+  const opening = renderScene('step-target', 0);
+  const staticFrame = ({ progress, ...frame }) => frame;
+  assert.equal(opening.detail, '', 'The data-generating process comes before any network diagram');
+  assert.equal(opening.frame.dataCount, data.length);
+  assert.equal(opening.frame.dataCount, 2048);
+  const shown = opening.frame.shownPoints;
+  assert.ok(shown.length > 0 && shown.length < data.length, 'The display is a subset of the training observations');
+  assert.equal(new Set(shown.map(point => point.index)).size, shown.length);
+  assert.deepEqual([...new Set(shown.map(point => point.y))].sort(), [0, 1]);
+  const plotted = [...opening.plot.matchAll(/<circle\b[^>]*data-observation="(\d+)"[^>]*>/g)]
+    .map(match => Object.fromEntries([...match[0].matchAll(/([\w-]+)="([^"]*)"/g)].map(attribute => attribute.slice(1))));
+  assert.equal(plotted.length, shown.length);
+  for (const point of shown) {
+    assert.deepEqual({ x: point.x, y: point.y }, data[point.index]);
+    assert.equal(point.y, target(point.x));
+    const dot = plotted.find(item => Number(item['data-observation']) === point.index);
+    assert.ok(dot, `Observation ${point.index} must be plotted`);
+    assert.equal(Number(dot['data-x']), point.x);
+    assert.equal(Number(dot['data-y']), point.y);
+  }
+  for (const progress of [.25, .5, .75, 1, .75, .25, 0]) {
     const result = renderScene('step-target', progress);
-    assert.equal(result.frame.probeY, target(result.frame.probeX));
-    assert.equal(result.detail, '', 'The target comes before any network diagram');
-    snapshots.set(progress, result);
+    assert.deepEqual({ ...result, frame: staticFrame(result.frame) }, { ...opening, frame: staticFrame(opening.frame) }, 'The standalone DGP slide remains static while scrolling');
   }
-  close(snapshots.get(0).frame.probeX, -.8);
-  close(snapshots.get(.5).frame.probeX, 0);
-  close(snapshots.get(1).frame.probeX, .8);
-  assert.equal(snapshots.get(.5).frame.probeY, 0, 'The target is zero at the threshold itself');
-  assert.equal(snapshots.get(.50001).frame.probeY, 1, 'The upper branch starts strictly to the right of zero');
-  for (const [progress, result] of [...snapshots].reverse()) {
-    assert.deepEqual(renderScene('step-target', progress), result);
-  }
-  const opening = snapshots.get(0);
   const marker = kind => {
     const element = opening.plot.match(new RegExp(`<circle\\b[^>]*data-target-boundary="${kind}"[^>]*>`))?.[0];
     assert.ok(element, `${kind} must be visibly marked`);
@@ -60,21 +68,47 @@ test('the opening introduces the actual step target before constructing ReLUs an
   assert.ok(Number(closed.cy) > Number(open.cy), 'Both threshold endpoints share x=0, with one above zero');
   assert.ok(closed.fill && !['white', '#fff', '#ffffff', 'none'].includes(closed.fill));
   assert.equal(open.fill, 'white');
+  for (const dot of plotted) {
+    assert.equal(Number(dot.cy), Number(dot['data-y']) === 0 ? Number(closed.cy) : Number(open.cy), 'Every displayed observation lies exactly on its target branch');
+  }
   assert.match(opening.plotLabel, /step/i);
   assert.match(opening.plotLabel, /x\s*(?:≤|<=)\s*0/);
   assert.match(opening.plotLabel, /x\s*>\s*0/);
+  assert.match(opening.plotLabel, /no noise/i);
+  assert.match(opening.plotLabel, /evenly spaced/i);
 
   const ui = await controller();
-  const left = ui.at('step-target', .25), right = ui.at('step-target', .75);
-  assert.equal(left.probeY, 0);
-  assert.equal(right.probeY, 1);
-  assert.deepEqual(ui.at('step-target', .25), left, 'Reverse scrolling restores the lower branch');
+  const first = staticFrame(ui.at('step-target', .25));
+  assert.deepEqual(staticFrame(ui.at('step-target', .75)), first);
+  assert.deepEqual(staticFrame(ui.at('step-target', .25)), first);
   assert.equal(ui.nodes.get('epoch-counter').hidden, true);
   ui.reduce(true);
-  const reduced = ui.at('step-target', .1);
-  assert.equal(reduced.probeY, target(reduced.probeX));
+  assert.deepEqual(staticFrame(ui.at('step-target', .1)), first);
   ui.emit('document:keydown', { key: 'ArrowRight', target: { tagName: 'DIV' }, preventDefault() {} });
   assert.equal(ui.nodes.get('stage').dataset.scene, 'pair');
+});
+
+test('the DGP cases brace uses the bundled large-delimiter font and every declared font resolves locally', () => {
+  const opening = scenes.find(scene => scene.id === 'step-target');
+  const html = globalThis.katex.renderToString(opening.tex, { displayMode: true, output: 'htmlAndMathml', throwOnError: true, strict: 'error' });
+  assert.match(html, /class="[^"]*delimsizing[^"]*"/);
+  assert.match(html, /class="[^"]*delim-size4[^"]*"/, 'The cases brace needs the Size4 glyphs');
+  const styleUrl = new URL('../docs/neural-networks/vendor/katex/katex.min.css', import.meta.url);
+  const css = readFileSync(styleUrl, 'utf8');
+  assert.match(css, /\.delim-size4>span\{[^}]*font-family:KaTeX_Size4/);
+  const faces = [...css.matchAll(/@font-face\s*\{([^}]+)\}/g)].map(match => match[1]);
+  assert.ok(faces.some(face => /font-family:KaTeX_Size4(?:;|$)/.test(face)), 'The large-brace family must have an actual font-face declaration');
+  for (const face of faces) {
+    const sources = [...face.matchAll(/url\(["']?([^"')]+)["']?\)/g)].map(match => match[1]);
+    assert.ok(sources.length > 0);
+    for (const source of sources) {
+      const fontUrl = new URL(source, styleUrl);
+      assert.equal(fontUrl.protocol, 'file:', 'Math fonts must be bundled with the lesson');
+      const font = readFileSync(fontUrl);
+      assert.equal(font.subarray(0, 4).toString('ascii'), 'wOF2', `${source} must contain a WOFF2 font`);
+      assert.equal(font.readUInt32BE(8), font.length, `${source} must not be truncated`);
+    }
+  }
 });
 
 test('the target reference accompanies the combined output without obscuring the individual ReLUs', () => {
