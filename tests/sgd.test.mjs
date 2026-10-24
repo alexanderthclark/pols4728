@@ -91,42 +91,70 @@ test('the static opening introduces the noiseless training data before construct
   assert.equal(ui.nodes.get('stage').dataset.scene, 'pair');
 });
 
-test('the two-neuron preview has two continuous hinges and three linear regions, rather than an exact step', async () => {
-  const preview = renderScene('two-hinges', 0), { model, width, hinges, regionSlopes } = preview.frame;
-  assert.equal(width, 2);
-  assert.equal(model.units.length, 2);
-  assert.deepEqual(hinges, [0, .5]);
-  assert.deepEqual(regionSlopes, [0, 2, 0]);
-  assert.deepEqual(model, { c: 0, units: [{ w: 2, b: 0, a: 1 }, { w: 2, b: -1, a: -1 }] });
-  assert.deepEqual(model.units.map(unit => -unit.b / unit.w || 0), hinges);
-  const displayedHinges = [...new Set([...preview.plot.matchAll(/data-hinge="([^"]+)"/g)].map(match => Number(match[1])))];
-  assert.deepEqual(displayedHinges, hinges);
-  const regions = [...preview.plot.matchAll(/<[^>]+\bdata-region="(\d+)"[^>]*>/g)]
-    .map(match => ({ index: Number(match[1]), slope: Number(match[0].match(/data-slope="([^"]+)"/)[1]) }));
-  assert.deepEqual(regions, regionSlopes.map((slope, index) => ({ index: index + 1, slope })));
-  for (const x of [-1, -.2, 0, .1, .25, .5, .75, 1]) close(predict(model, x), ramp(x, 2));
-  const epsilon = 1e-5;
-  for (const [index, x] of [-.5, .25, .75].entries()) {
-    close((predict(model, x + epsilon) - predict(model, x - epsilon)) / (2 * epsilon), regionSlopes[index], 1e-9);
+test('the width-two approximation steepens reversibly while the target step stays fixed', async () => {
+  const scene = scenes.find(item => item.id === 'two-hinges');
+  assert.equal(scene.title, 'Width of Two is Mathematically Sufficient');
+  assert.equal(scene.caption, '');
+  assert.equal(scene.note, '');
+  const progressStops = [0, .25, .5, .75, 1];
+  const frames = progressStops.map(progress => renderScene('two-hinges', progress));
+  const targetPaths = result => result.plot.match(/<path\b[^>]*data-target="step"[^>]*>/g) || [];
+  const reference = targetPaths(frames[0]);
+  assert.equal(reference.length, 1);
+  close(frames[0].frame.steepness, 2);
+  close(frames.at(-1).frame.steepness, 24);
+  let previousSlope = 0, previousMSE = Infinity;
+  for (const preview of frames) {
+    const { model, width, hinges, regionSlopes, steepness } = preview.frame;
+    assert.equal(width, 2);
+    assert.equal(model.units.length, 2, 'A sharper approximation must not require additional neurons');
+    assert.equal(preview.detail, '');
+    assert.deepEqual(targetPaths(preview), reference, 'Only the approximation moves; the target step is fixed');
+    assert.doesNotMatch(preview.plot, /Flat|Rising|Hinge \d|data-hinge=|data-region=/, 'The plot compares two functions without hinge or region annotations');
+    assert.match(preview.plot, /data-network="two-hinges"/);
+    assert.deepEqual(hinges, [0, 1 / steepness]);
+    assert.deepEqual(regionSlopes, [0, steepness, 0]);
+    assert.deepEqual(model.units.map(unit => -unit.b / unit.w || 0), hinges);
+    const epsilon = 1e-6;
+    for (const x of [-1, -.2, 0, .25 / steepness, .5 / steepness, 1 / steepness, .75, 1]) {
+      close(predict(model, x), ramp(x, steepness));
+    }
+    for (const [index, x] of [-.5, .5 / steepness, .75].entries()) {
+      close((predict(model, x + epsilon) - predict(model, x - epsilon)) / (2 * epsilon), regionSlopes[index], 2e-9);
+    }
+    for (const hinge of hinges) {
+      assert.ok(Math.abs(predict(model, hinge - epsilon) - predict(model, hinge + epsilon)) <= steepness * epsilon + 1e-12, 'The two ReLUs remain continuous at both joins');
+    }
+    close(predict(model, 0), 0);
+    close(predict(model, 1 / steepness), 1);
+    close(predict(model, .5 / steepness), .5);
+    assert.notEqual(predict(model, .5 / steepness), target(.5 / steepness), 'A finite ramp approximates the discontinuity without claiming exact equality');
+    const approximationMSE = mse(model);
+    assert.ok(steepness > previousSlope, 'Forward scrolling makes the ramp steeper');
+    assert.ok(approximationMSE < previousMSE, 'The fixed-width approximation gets closer to the true target');
+    previousSlope = steepness;
+    previousMSE = approximationMSE;
   }
-  for (const hinge of hinges) {
-    assert.ok(Math.abs(predict(model, hinge - epsilon) - predict(model, hinge + epsilon)) <= 2 * epsilon + 1e-12, 'The ramp joins continuously at each hinge');
+  const networkPath = result => result.plot.match(/<path\b[^>]*data-network="two-hinges"[^>]*>/)?.[0].match(/\bd="([^"]+)"/)?.[1];
+  assert.ok(networkPath(frames[0]) && networkPath(frames.at(-1)));
+  assert.notEqual(networkPath(frames[0]), networkPath(frames.at(-1)), 'The visible approximation must animate with the mathematical model');
+  for (const [index, progress] of progressStops.entries()) {
+    assert.deepEqual(renderScene('two-hinges', progress), frames[index]);
   }
-  close(predict(model, 0), 0);
-  close(predict(model, .5), 1);
-  close(predict(model, .25), .5);
-  assert.notEqual(predict(model, .25), target(.25), 'The transition is a ramp, not the discontinuous target');
-  const staticFrame = ({ progress, ...frame }) => frame;
-  for (const progress of [.5, 1, .5, 0]) {
-    const result = renderScene('two-hinges', progress);
-    assert.deepEqual({ ...result, frame: staticFrame(result.frame) }, { ...preview, frame: staticFrame(preview.frame) });
+  for (const [index, progress] of [...progressStops.entries()].reverse()) {
+    assert.deepEqual(renderScene('two-hinges', progress), frames[index], 'Reverse scrolling restores the same curve');
   }
-  const ui = await controller(), first = staticFrame(ui.at('two-hinges', .25));
+  const ui = await controller(), first = ui.at('two-hinges', .25);
+  ui.at('two-hinges', .75);
+  assert.deepEqual(ui.at('two-hinges', .25), first);
   ui.at('pair', .5);
-  assert.deepEqual(staticFrame(ui.at('two-hinges', .25)), first, 'Returning from the ReLU construction restores the same preview');
+  assert.deepEqual(ui.at('two-hinges', .25), first, 'Returning from the ReLU construction restores the same approximation');
   assert.equal(ui.nodes.get('epoch-counter').hidden, true);
   ui.reduce(true);
-  assert.deepEqual(staticFrame(ui.at('two-hinges', .1)), first);
+  const reduced = ui.at('two-hinges', .1);
+  assert.deepEqual(reduced.model, frames.at(-1).frame.model, 'Reduced motion shows the final steep approximation');
+  close(reduced.steepness, 24);
+  assert.deepEqual(ui.at('two-hinges', .75), reduced);
 });
 
 test('the DGP cases brace uses the bundled large-delimiter font and every declared font resolves locally', () => {
@@ -739,8 +767,9 @@ test('both static reading routes contain the same substantive captions and defin
     assert.equal((steps.match(/class="step"/g) || []).length, lesson.length);
     assert.equal((reading.match(/<section>/g) || []).length, lesson.length);
     for (const scene of lesson) {
-      assert.ok(steps.includes(scene.caption) && steps.includes(scene.note), `${file}: ${scene.id} fallback`);
-      assert.ok(reading.includes(scene.caption) && reading.includes(scene.note), `${file}: ${scene.id} reading`);
+      const narration = scene.reading || scene.caption;
+      assert.ok(steps.includes(narration) && steps.includes(scene.note), `${file}: ${scene.id} fallback`);
+      assert.ok(reading.includes(narration) && reading.includes(scene.note), `${file}: ${scene.id} reading`);
     }
   }
 });

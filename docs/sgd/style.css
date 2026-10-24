@@ -260,9 +260,8 @@
 
 /* Establish the network's capacity before manipulating its parameters. */
 .stage[data-scene="two-hinges"] .stage-body{justify-content:center}
-.stage[data-scene="two-hinges"] .visuals{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr);min-height:0;max-height:500px}
-.stage[data-scene="two-hinges"] .detail{display:none}
-.stage[data-scene="two-hinges"] #caption{opacity:1!important;transform:none!important}
+.stage[data-scene="two-hinges"] .visuals{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr);min-height:0;max-height:620px}
+.stage[data-scene="two-hinges"] .detail,.stage[data-scene="two-hinges"] .copy,.stage[data-scene="two-hinges"] #plot-label{display:none}
 @media screen and (min-width:1000px){
  .stage[data-scene="two-hinges"] #heading{font-size:clamp(2.3rem,3.6vw,4rem);margin:1.1rem 0 .5rem}
 }
