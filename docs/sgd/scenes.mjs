@@ -16,7 +16,7 @@ export const foundationScenes = [
 ];
 
 export const scenes = [
- {id:'step-target',part:'01 · The data-generating process',title:'Step Function',tex:String.raw`y_i=f(x_i)=\begin{cases}0,&x_i\le0,\\[5pt]1,&x_i>0.\end{cases}`,caption:'Training data: 2,048 observations, with x uniformly spaced between −1 and 1.',note:'No noise.',kind:'step-target',layout:'dgp',length:1},
+ {id:'step-target',part:'01 · The data-generating process',title:'Target: Step Function',tex:String.raw`y_i=f(x_i)=\begin{cases}0,&x_i\le0,\\[5pt]1,&x_i>0.\end{cases}`,caption:'Training data: 2,048 observations, with x uniformly spaced between −1 and 1.',note:'No noise.',kind:'step-target',layout:'dgp',length:1},
  {id:'two-hinges',part:'01 · What the network can represent',title:'Two Hinges, Three Regions',tex:'',caption:'A shallow ReLU network with width 2 can represent this ramp.',note:'One hidden layer, two neurons, one hinge each. Narrow the ramp to approximate the step.',kind:'two-hinges',length:1},
  {id:'pair',part:'01 · Build two neurons',title:'Start with two ReLU building blocks.',tex:String.raw`h_1(x)=\operatorname{ReLU}(x),\qquad h_2(x)=\operatorname{ReLU}(x)`,compact:String.raw`h_1(x)=h_2(x)=\operatorname{ReLU}(x)`,caption:'Combine two ReLUs to approximate the step. Both begin with a hinge at zero.',note:'',kind:'pair'},
  {id:'input-first',part:'01 · Build two neurons',title:'Steepen the first neuron.',tex:String.raw`h_1(x)=\operatorname{ReLU}(\theta_{10}+\theta_{11}x),\qquad \theta_{11}:1\to2,\ \theta_{10}=0`,compact:String.raw`h_1(x)=\operatorname{ReLU}(\theta_{11}x),\quad \theta_{11}:1\to2`,caption:'Raise θ₁₁ from 1 to 2. The positive branch steepens; zero bias keeps the hinge at zero.',note:'',kind:'input-first'},
