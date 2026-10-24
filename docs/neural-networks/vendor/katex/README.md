@@ -11,11 +11,14 @@ also retains precompiled markup in the HTML. No remote requests are required.
 ## Included files
 
 - `katex.min.js`: unmodified upstream runtime.
-- `katex.min.css`: upstream rules with font declarations limited to the four
+- `katex.min.css`: upstream rules with font declarations limited to the eight
   required faces and WOFF2 sources.
 - `fonts/KaTeX_Main-Regular.woff2`: upright operators and numbers.
 - `fonts/KaTeX_Math-Italic.woff2`: mathematical variables.
 - `fonts/KaTeX_Size1-Regular.woff2` and `KaTeX_Size2-Regular.woff2`: large operators.
+- `fonts/KaTeX_Size3-Regular.woff2` and `KaTeX_Size4-Regular.woff2`: tall delimiters, including cases braces.
+- `fonts/KaTeX_AMS-Regular.woff2`: blackboard-bold letters and mathematical symbols.
+- `fonts/KaTeX_Caligraphic-Regular.woff2`: calligraphic mathematical letters.
 - `LICENSE`: upstream MIT license for code and CSS.
 - `FONT-LICENSE.txt`: SIL Open Font License 1.1 and the copyright notices from
   the corresponding upstream font metadata.
