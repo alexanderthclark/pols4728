@@ -275,7 +275,7 @@
 .stage[data-layout="construction-flow"] #equation{position:relative;min-height:80px}
 .construction-equations{display:grid;width:100%;align-items:center}
 .construction-equation,.finite-data-equation{grid-area:1/1}
-.construction-equation{opacity:calc(1 - var(--data-progress,0))}
+.construction-equation{color:#007f73;opacity:calc(1 - var(--data-progress,0))}
 .finite-data-equation{opacity:var(--data-progress,0)}
 .coefficient-slot{display:inline-grid!important;position:relative;width:.6em;text-align:center}
 .coefficient-old,.coefficient-new{grid-area:1/1;display:inline-block}
