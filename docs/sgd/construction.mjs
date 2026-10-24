@@ -1,4 +1,5 @@
 import {relu,data} from './model.mjs';
+import {mathText} from './math.mjs';
 const colors={blue:'#234e70',rust:'#a54f32',teal:'#007f73',gray:'#767676'};
 const clamp=x=>Math.max(0,Math.min(1,x));
 const mix=(a,b,t)=>a+(b-a)*t;
@@ -90,7 +91,14 @@ export function renderConstruction(plot,detail,kind,p){
  if(kind==='flip')html+=curve(h2,1,colors.rust,.25,'4 4');
  html+=`<g clip-path="url(#construction-clip-${plot.id})">`+curve(h1,0,colors.blue,componentOpacity,showOutput?'5 4':'',xmax,3,'first')+curve(x=>(weighted?s.a2:1)*h2(x),1,colors.rust,componentOpacity,showOutput?'5 4':'',xmax,3,'second')+'</g>';
  const titles=weighted?[String.raw`\phi_1h_1(x)`,String.raw`\phi_2h_2(x)`]:['h_1(x)','h_2(x)'];
- html+=`<g opacity="${1-s.reframe}">`+math(bounds[0][0],compact?16:wide?30:24,titles[0],colors.blue,compact?11:wide?24:20)+math(s.merge?bounds[0][0]+(compact?80:wide?170:140):bounds[1][0],compact?16:wide?30:24,titles[1],colors.rust,compact?11:wide?24:20)+'</g>';
+ const titleY=compact?16:wide?30:24,titleSize=compact?11:wide?24:20;
+ html+=`<g opacity="${1-s.reframe}">`+math(bounds[0][0],titleY,titles[0],colors.blue,titleSize);
+ if(kind==='flip'){
+  const x=bounds[1][0],second=x+(compact?37:wide?84:70),swatch=compact?12:wide?26:22,space=compact?4:6,lineY=titleY-titleSize*.28;
+  html+='<g class="contribution-key">'+line(x,lineY,x+swatch,lineY,colors.rust,3,'4 4')+mathText(x+swatch+space,titleY,'h_2','','start',colors.rust,{size:titleSize});
+  html+=line(second,lineY,second+swatch,lineY,colors.rust,3)+mathText(second+swatch+space,titleY,String.raw`\phi_2h_2`,'','start',colors.rust,{size:titleSize})+'</g>';
+ }else html+=math(s.merge?bounds[0][0]+(compact?80:wide?170:140):bounds[1][0],titleY,titles[1],colors.rust,titleSize);
+ html+='</g>';
  if(showOutput){
   html+=curve(f,0,colors.teal,s.reveal*(1-s.dataReveal),'',xmax,3.5,'sum')+`<g opacity="${1-s.dataReveal}">`+math(bounds[0][0]+(compact?162:wide?340:280)*(1-s.reframe),compact?16:wide?30:24,String.raw`\hat f(x)`,colors.teal,compact?11:wide?24:20)+'</g>';
  }
@@ -99,7 +107,7 @@ export function renderConstruction(plot,detail,kind,p){
  if(showOutput)html+=`<path data-target="step" d="M${X(xmin,0)},${Y(0)}H${X(0,0)}M${X(0,0)},${Y(1)}H${X(xmax,0)}" fill="none" stroke="#606060" stroke-width="2" stroke-dasharray="6 5"/><circle cx="${X(0,0)}" cy="${Y(0)}" r="3" fill="#606060"/><circle cx="${X(0,0)}" cy="${Y(1)}" r="3" fill="white" stroke="#606060" stroke-width="1.5"/>`;
  const displayedObservations=kind==='sgd-opening'?shownIndices.map(index=>({index,...data[index]})):[];
  if(s.dataReveal>0)html+=`<g data-observations="finite-data" opacity="${s.dataReveal}">`+displayedObservations.map(d=>`<circle data-observation="${d.index}" data-x="${d.x}" data-y="${d.y}" cx="${X(d.x,0)}" cy="${Y(d.y)}" r="${compact?3:5}" fill="${colors.blue}" stroke="white" stroke-width="1"/>`).join('')+'</g>';
- plot.innerHTML=html;plot.setAttribute('aria-label',`${weighted?'Weighted contributions':'Hidden activations'} of two ReLU neurons. ${showOutput?'Their sum is shown in teal against the dashed gray target step: zero for x ≤ 0 and one for x > 0.':''}`);
+ plot.innerHTML=html;plot.setAttribute('aria-label',`${weighted?'Weighted contributions':'Hidden activations'} of two ReLU neurons. ${kind==='flip'?'Dashed rust shows the unchanged hidden activation h₂; solid rust shows its weighted contribution φ₂h₂. ':''}${showOutput?'Their sum is shown in teal against the dashed gray target step: zero for x ≤ 0 and one for x > 0.':''}`);
  network(detail,s);
  if(kind==='sgd-opening'){
   learningContext(detail,s,p);

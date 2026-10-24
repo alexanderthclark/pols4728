@@ -153,8 +153,7 @@
  .stage[data-scene="update"] .visuals{grid-template-rows:minmax(0,1fr) 142px;min-height:0}
 }
 
-/* On phones, give both vector spaces the full diagram height; the caption
-   and note retain the output-bias example shown in the desktop detail. */
+/* On phones, the main gradient diagram also carries the output-bias example. */
 @media screen and (max-width:700px){
  .stage[data-scene="batch-gradient"] .visuals{grid-template-rows:minmax(0,1fr);min-height:0;max-height:none}
  .stage[data-scene="batch-gradient"] .detail{display:none}
@@ -295,3 +294,15 @@
 #heading .katex,#caption .katex,#note .katex,figcaption .katex{font-size:1em}
 .network-math-label .katex{background:white}
 .network-bias-node{opacity:.75}
+
+/* Short teaching lines leave the rest of the viewport to the main figures. */
+body[data-chapter="full"] .stage .copy{min-height:0;flex-shrink:0}
+body[data-chapter="full"] .stage[data-copy="false"] .copy{display:none}
+body[data-chapter="full"] .stage .visuals{max-height:none}
+/* The complete construction uses one frame, including the three continuous beats. */
+.stage[data-construction="true"] #equation{min-height:80px}
+@media(max-width:700px){
+ .stage[data-construction="true"] #heading{min-height:2.5em;display:flex;align-items:center}
+ .stage[data-construction="true"] #equation{min-height:84px;font-size:.8rem}
+ .stage[data-construction="true"] .visuals{grid-template-rows:minmax(0,1fr) 144px;min-height:0}
+}

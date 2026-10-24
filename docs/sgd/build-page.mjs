@@ -8,7 +8,7 @@ globalThis.katex=katex;
 const math=(tex,displayMode=true)=>tex?katex.renderToString(tex,{displayMode,output:'htmlAndMathml',throwOnError:true,strict:'error'}):'';
 for(const s of scenes){math(s.tex);if(s.compact)math(s.compact);}
 const bullets=()=>`<ul class="batch-reading">${batchSteps.map(s=>`<li><strong>${renderText(s.title)}</strong> ${renderText(s.text)}</li>`).join('')}</ul>`;
-const reading=s=>`${s.kind==='sgd-plan'?bullets():''}<p>${renderText(s.reading||s.caption)}</p><p class="reading-note">${renderText(s.note||'')}</p>`;
+const reading=s=>`${s.kind==='sgd-plan'?bullets():''}<p>${renderText(s.reading??s.caption)}</p><p class="reading-note">${renderText(s.readingNote??s.note??'')}</p>`;
 const procedure=batchSteps.map((s,i)=>`<li><span class="procedure-marker" aria-hidden="true"></span><div><span class="procedure-label">${renderText(s.label)}</span><span class="procedure-title">${renderText(s.title)}</span><span class="procedure-text">${renderText(s.text)}</span></div></li>`).join('');
 const e=JSON.parse(readFileSync(new URL('./experiment.json',import.meta.url)));
 const rows=e.runs.filter(r=>r.width===2).map(r=>{const wide=e.runs.find(w=>w.width===12&&w.seed===r.seed);return `<tr><th scope="row">${r.seed}</th><td>${r.loss.toFixed(4)}</td><td>${wide.loss.toFixed(4)}</td><td>${r.gridMSE.toFixed(4)}</td><td>${wide.gridMSE.toFixed(4)}</td></tr>`}).join('');

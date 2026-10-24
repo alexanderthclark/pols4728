@@ -986,9 +986,10 @@ test('both static reading routes contain the same substantive captions and defin
     assert.equal((steps.match(/class="step"/g) || []).length, lesson.length);
     assert.equal((reading.match(/<section>/g) || []).length, lesson.length);
     for (const scene of lesson) {
-      const narration = scene.reading || scene.caption;
-      assert.ok(steps.includes(renderText(narration)) && steps.includes(renderText(scene.note)), `${file}: ${scene.id} fallback`);
-      assert.ok(reading.includes(renderText(narration)) && reading.includes(renderText(scene.note)), `${file}: ${scene.id} reading`);
+      const narration = scene.reading ?? scene.caption;
+      const note = scene.readingNote ?? scene.note;
+      assert.ok(steps.includes(renderText(narration)) && steps.includes(renderText(note)), `${file}: ${scene.id} fallback`);
+      assert.ok(reading.includes(renderText(narration)) && reading.includes(renderText(note)), `${file}: ${scene.id} reading`);
     }
   }
 });

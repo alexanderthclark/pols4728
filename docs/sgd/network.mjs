@@ -1,5 +1,5 @@
 import {C,canvas,set} from './sgd-detail.mjs';
-import {mathText} from './math.mjs';
+import {mathText,richText} from './math.mjs';
 
 const number=value=>(value<0?'-':'')+Math.abs(value).toFixed(4);
 const label=(x,y,value,color,size,anchor='middle')=>`<text x="${x}" y="${y}" text-anchor="${anchor}" style="fill:${color};font-size:${size}px">${value}</text>`;
@@ -49,7 +49,7 @@ export function renderInitialNetwork(svg,model){
   const weightY=(input.y+node.y)/2+(i===0?-(compact?9:wide?27:21):(compact?20:wide?30:24));
   body+=valueLabel(`theta${i+1}1`,(input.x+hiddenX)/2-4,weightY,color,'middle',!compact);
   body+=valueLabel(`phi${i+1}`,(hiddenX+output.x)/2,weightY,color,'middle',!compact);
-  body+=valueLabel(`theta${i+1}0`,hiddenX-(compact?12:wide?24:20),biasY+(i===0?(wide&&!compact?20:16):-6),color,'end');
+  body+=valueLabel(`theta${i+1}0`,hiddenX-(compact?12:wide?24:20),biasY+(i===0?(wide&&!compact?20:16):-(compact?14:wide?12:8)),color,'end');
  }
  const outputBiasY=compact?16:wide?30:24;
  body+=arrow(output.x,outputBiasY+biasRadius,output.x,output.y-nodeRadius-3,C.teal,true);
@@ -58,7 +58,9 @@ export function renderInitialNetwork(svg,model){
  body+=circle(input.x,input.y,compact?10:wide?17:14,C.muted)+mathLabel(input.x,input.y+(compact?4:wide?8:6),'x',C.ink,compact?12:wide?24:20);
  body+=circle(output.x,output.y,nodeRadius,C.blue)+mathLabel(output.x,output.y+(compact?5:wide?9:7),'\\sum',C.blue,compact?18:wide?34:28);
  body+=outputLabel(w-3,output.y+nodeRadius+(compact?3:wide?8:6),compact?11:wide?22:18);
- body+=label(3,h-3,'Dashed: bias',C.muted,compact?9:wide?20:16,'start')+label(w-3,h-3,'1: constant',C.muted,compact?9:wide?20:16,'end');
+ const keySize=compact?9:wide?20:16,keyY=h-(compact?18:wide?31:24);
+ body+=richText(3,keyY,String.raw`\(\theta\): hidden layer`,'','start',C.muted,{size:keySize})+richText(w-3,keyY,String.raw`\(\phi\): output layer`,'','end',C.muted,{size:keySize});
+ body+=label(3,h-3,'Dashed: bias',C.muted,keySize,'start')+label(w-3,h-3,'1: constant',C.muted,keySize,'end');
  set(svg,body,`Initial network: input x connects to two hidden ReLU neurons. ${displayedParameters.map(item=>`${item.label} = ${item.value}`).join('; ')}. Hidden biases θ₁₀ and θ₂₀ enter the hidden neurons from constant 1; output bias φ₀ enters the sum from constant 1. Network output f-hat(x; θ, φ) is φ₁ times h₁ plus φ₂ times h₂ plus φ₀. Hidden-layer parameters form θ; output-layer parameters form φ.`);
  return displayedParameters;
 }

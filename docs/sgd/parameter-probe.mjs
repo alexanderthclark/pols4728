@@ -80,5 +80,5 @@ export function renderParameterProbe(plot,detail,scene,p,experiment){
  const body=c.base+c.step()+observations(c)+c.path(x=>predict(frame.baselineModel,x),C.blue,3)+c.path(x=>predict(frame.model,x),C.rust,2,'7 5')+mathLabel(c.left,0,c.w-c.left-5,trialTex,C.rust,c.w<450?11:globalThis.innerWidth>=1600?26:22);
  set(plot,body,`${scene.title} The blue curve is the trained model after 300 epochs. The dashed rust curve changes only ${frame.parameterName} by ${signed(frame.delta,4)}, holding the other six parameters fixed. This is a what-if trial; training remains at 9,600 updates.`);
  renderTable(detail,frame);
- return {kind:scene.kind,progress:p,width:2,...frame,plotTitle:'Blue: trained fit · dashed rust: current trial',detailTitle:'Full-data MSE¹ · smaller is better'};
+ return {kind:scene.kind,progress:p,width:2,...frame,plotTitle:'Blue: trained fit · dashed rust: current trial',detailTitle:'Full-data MSE · smaller is better'};
 }
