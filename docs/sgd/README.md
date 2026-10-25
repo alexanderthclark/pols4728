@@ -14,7 +14,24 @@ After width 2 finishes 300 epochs, a separate inspection varies each of its seve
 
 `batches.html` remains a separate, focused seven-scene introduction to batches and epochs. Its small teaching example groups 12 numbered observations into three batches of four, follows one complete pass, then reshuffles the same observations for another epoch. It ends by connecting these definitions to the actual experiment's 2,048 observations and 32 batches; it does not include the loss and gradient calculations or the training counter.
 
-The experiment uses 2,048 evenly spaced noiseless observations and plain minibatch SGD. Each epoch shuffles all observations into 32 batches of 64. Both shallow widths (2 and 12) train for 300 epochs with matched batch order and learning-rate schedule. The training objective is half-MSE and the learning rate is `0.05 / (1 + step / 6000)`. This is exactly equivalent to the previous ordinary-MSE objective with a `0.025` initial rate: every parameter update and final prediction is preserved. Performance plots and result tables continue to report ordinary MSE; batch calculations explicitly report half-MSE. `loss()` evaluates the objective and `mse()` evaluates the metric. For compatibility, the recorded trace `loss`/`afterLoss` and run `loss` fields remain ordinary MSE; `firstUpdate.batchBefore`/`batchAfter` are half-MSE objectives. Seed 1 is replayed for each width; all eight fixed seeds appear in the results table. The first two epochs are recorded in full so the transition between passes preserves the exact model and batch order. Later training accelerates through recorded checkpoints. Animation interpolates only between actual before/after parameters at a recorded update.
+The experiment uses a scalar input, one hidden ReLU layer, and a linear output. All weights and biases train with plain minibatch SGD, without momentum, weight decay, or early stopping. The 2,048 noiseless inputs are evenly spaced midpoints of $[-1,1]$, with no deliberately empty interval around the jump. Each epoch shuffles all observations without replacement into 32 batches of 64. Both shallow widths (2 and 12) train for 300 epochs with matched batch order and learning-rate schedule: 9,600 updates and 614,400 observation visits per run. Width 2 has seven parameters; width 12 has 37. Update counts and data visits match, although wider updates cost more computation. These are illustrative runs, not a benchmark of the best achievable fit.
+
+The training objective is half-MSE and the learning rate is `0.05 / (1 + step / 6000)`. This is exactly equivalent to the previous ordinary-MSE objective with a `0.025` initial rate: every parameter update and final prediction is preserved. Performance plots and result tables report ordinary MSE, twice the half-MSE objective; batch calculations explicitly report half-MSE. `loss()` evaluates the objective and `mse()` evaluates the metric. For compatibility, the recorded trace `loss`/`afterLoss` and run `loss` fields remain ordinary MSE; `firstUpdate.batchBefore`/`batchAfter` are half-MSE objectives. Full-data MSE can rise on an individual minibatch update.
+
+For width $m$, input weights are uniform on $[-1,1]$, hidden biases on $[-0.5,0.5]$, and output weights on $[-1,1]/\sqrt m$; the output bias starts at 0.5. Initialization and shuffling use separate seeded random streams. Seed 1 is replayed for each width; all eight fixed seeds appear below. The first two epochs are recorded in full so the transition between passes preserves the exact model and batch order. Later training accelerates through recorded checkpoints. Animation interpolates only between actual before/after parameters at a recorded update.
+
+Training MSE uses all 2,048 observations; grid MSE uses 4,000 evenly spaced midpoints of $[-1,1]$. Values below are rounded to four decimal places; `experiment.json` retains full precision. Every width-12 run improves on its paired width-2 run for these eight seeds.
+
+| Seed | Train, width 2 | Train, width 12 | Grid, width 2 | Grid, width 12 |
+| --- | ---: | ---: | ---: | ---: |
+| 1 | 0.0556 | 0.0215 | 0.0556 | 0.0215 |
+| 2 | 0.0153 | 0.0143 | 0.0153 | 0.0143 |
+| 3 | 0.0556 | 0.0132 | 0.0556 | 0.0132 |
+| 4 | 0.0556 | 0.0134 | 0.0556 | 0.0134 |
+| 5 | 0.0556 | 0.0151 | 0.0556 | 0.0151 |
+| 6 | 0.0556 | 0.0133 | 0.0556 | 0.0133 |
+| 7 | 0.0556 | 0.0125 | 0.0556 | 0.0125 |
+| 8 | 0.0451 | 0.0141 | 0.0451 | 0.0141 |
 
 `model.mjs` defines the model, backpropagation, deterministic data, shuffle, and SGD. `experiment.json` records reproducible traces and results. `step-target.mjs` introduces the target; `two-hinges.mjs` motivates the width-2 architecture; `construction.mjs` renders the two-neuron construction; `batch-epoch.mjs` renders the focused batches-and-epochs introduction; `sgd-detail.mjs` renders the partition and numerical batch walkthrough; `views.mjs` renders training and comparison; `parameter-probe.mjs` handles the independent final-model trials. `epoch-counter.mjs` derives the counter from completed updates. `math.mjs` supplies shared KaTeX rendering for mathematical figure labels and inline notation in headings, captions, notes, and reading routes; ordinary prose and numeric ticks remain text. `scenes.mjs` supplies the narrative and procedure labels; `build-page.mjs` generates both pages and their complete static reading routes with local KaTeX.
 
@@ -37,8 +54,8 @@ inside the figures; fixed-parameter cues remain during loss calculation. The
 output-bias mean-error explanation remains in the reading route. The full-data MSE footnote remains in the reading version, while the
 trial figure labels its measure directly.
 
-The lesson ends by comparing the two trained widths.
+The lesson ends by comparing the two trained widths, followed by a brief reference to Simon J. D. Prince's *Understanding Deep Learning* and the optional complete reading route. Experiment configuration, reproducibility details, and the full paired results stay here in the source documentation rather than in a separate classroom appendix.
 
-The step construction converges pointwise and in integrated absolute error, not uniformly across the jump. The standard continuous-target UAT is discussed only in the methods qualification; no unrelated target function is introduced. Extra width helps these particular training runs; width 2 already has the capacity to represent a sharp ramp.
+The sharp reference fits use hand-chosen parameters. For the original ramp $\operatorname{ReLU}(kx)-\operatorname{ReLU}(kx-1)$ with $k\geq1$ and target $f(0)=0$, the integrated absolute error on $[-1,1]$ is $1/(2k)$. Its supremum error on any interval containing points immediately to the right of zero is 1 for every finite $k$. The construction therefore converges pointwise and in integrated absolute error, but not uniformly across the jump. This does not contradict the universal approximation theorem's uniform-approximation statement for continuous targets. Extra width helps these particular training runs; width 2 already has the capacity to represent a sharp ramp.
 
 Notation checks render every main and foundation scene at three progress points and three viewport sizes, rejecting mathematical labels drawn as plain SVG text. The generated pages retain KaTeX MathML for accessible notation.
