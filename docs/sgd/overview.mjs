@@ -14,5 +14,5 @@ export function renderOverview(){
  <li class="sgd-loop-gradient">${number(3)}<h3>Calculate the gradient</h3><div class="sgd-loop-visual">${math(String.raw`g_B=\nabla_{(\theta,\phi)}L_B`)}</div><p>One vector.<br> One component per parameter.</p></li>
  <li class="sgd-loop-update">${number(4)}<h3>Update the parameters</h3><div class="sgd-loop-visual">${math(String.raw`(\theta,\phi)\leftarrow(\theta,\phi)-\alpha g_B`)}</div><p>Move opposite the gradient.<br> Learning rate ${math(String.raw`\alpha`)} sets the step size.</p></li>
  <li class="sgd-loop-repeat">${number(5)}<div><h3>Repeat with a new batch</h3><p>Keep the updated parameters.</p></div></li>
- </ol><div class="sgd-overview-controls"><p><span>Other settings</span>Batch size · maximum epochs · regularization strength</p><p><span>Early stopping</span>Stop when validation improvement stalls.</p></div>`;
+ </ol>`;
 }
