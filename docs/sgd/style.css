@@ -180,15 +180,6 @@ svg .gradient-panel-title{font-size:20px}
  .stage[data-scene="initialize"] .visuals{grid-template-rows:minmax(0,1fr) 218px;min-height:0}
 }
 
-/* The one-parameter trials retain all seven results on narrow screens. */
-@media screen and (max-width:700px){
- .stage[data-scene="parameter-probe"] .visuals{grid-template-rows:minmax(0,1fr) 220px;min-height:0}
-}
-@media screen and (max-width:700px) and (max-height:700px){
- .stage[data-scene="parameter-probe"] #equation{min-height:34px}
- .stage[data-scene="parameter-probe"] .visuals{grid-template-rows:minmax(0,1fr) 220px}
-}
-
 .probe-math{overflow:visible;pointer-events:none}
 .probe-math .katex{font-size:1em}
 .construction-math{overflow:visible;pointer-events:none}
@@ -322,7 +313,7 @@ body[data-chapter="full"] .stage .visuals{max-height:none}
 /* Fade between the gradient and update layouts before any weights move. */
 .stage:is([data-scene="batch-gradient"],[data-scene="update"]) :is(#equation,.visuals,.copy){opacity:var(--gradient-handoff-opacity,1)}
 
-/* Keep the gradient-to-training sequence in one stable viewport frame. */
+/* Keep the gradient, training, and post-training inspection in one frame. */
 @media screen{
  .stage[data-learning-flow="true"] #heading{min-height:1.25em;flex-shrink:0}
  .stage[data-learning-flow="true"] #equation{height:100px;min-height:100px}
@@ -349,4 +340,11 @@ body[data-chapter="full"] .stage .visuals{max-height:none}
 }
 @media screen and (min-width:1600px) and (min-height:801px){
  body[data-chapter="full"] .stage[data-learning-flow="true"] .copy{height:72px;min-height:72px}
+}
+
+/* The model stays pinned while the loss history gives way to parameter trials. */
+.stage:is([data-scene="train-two"],[data-scene="parameter-probe"]) :is(#equation,#plot-label,.detail,.copy){opacity:var(--probe-handoff-opacity,1)}
+@media screen and (max-width:700px){
+ /* Reuse the reserved caption space for the seven-row table, below the fixed plot. */
+ .stage[data-scene="parameter-probe"] .detail{margin-bottom:-54px}
 }

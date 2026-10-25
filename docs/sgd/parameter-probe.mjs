@@ -1,6 +1,6 @@
 import {mse,predict} from './model.mjs';
 import {richText} from './math.mjs';
-import {C,clamp,canvas,chart,line,observations,set} from './sgd-detail.mjs';
+import {C,clamp,canvas,trainingChart,batchSelection,line,observations,set} from './sgd-detail.mjs';
 
 const labels=['θ₁₁','θ₁₀','φ₁','θ₂₁','θ₂₀','φ₂','φ₀'];
 const parameterTex=[String.raw`\theta_{11}`,String.raw`\theta_{10}`,String.raw`\phi_1`,String.raw`\theta_{21}`,String.raw`\theta_{20}`,String.raw`\phi_2`,String.raw`\phi_0`];
@@ -51,7 +51,7 @@ function mathLabel(x,y,width,tex,color,size=14){
 }
 
 function renderTable(svg,frame){
- const {w,h}=canvas(svg),compact=w<340||h<220,wide=globalThis.innerWidth>=1600,short=h<(wide?400:350),tableTop=compact?82:short?(wide?158:132):(wide?190:156);
+ const {w,h}=canvas(svg),compact=w<340||h<220,wide=globalThis.innerWidth>=1600,short=h<(wide?400:350),tableTop=compact?72:short?(wide?158:132):(wide?190:156);
  const rowHeight=Math.max(13,Math.min(compact?17:wide?52:44,(h-tableTop-10)/7));
  const x=7,minusX=w*.61,plusX=w-8,lossChange=frame.currentMSE-frame.baselineMSE;
  const label=(px,py,value,anchor='start',color=C.muted,size=compact?10:wide?22:18)=>
@@ -75,10 +75,13 @@ function renderTable(svg,frame){
 }
 
 export function renderParameterProbe(plot,detail,scene,p,experiment){
- const frame=parameterProbeState(experiment,p),c=chart(plot,{xmin:-1,xmax:1});
+ const frame=parameterProbeState(experiment,p),c=trainingChart(plot),entry=clamp(p/.04),handoffProgress=entry*entry*(3-2*entry);
  const trialTex=parameterTex[frame.parameterIndex]+String.raw`\mapsto `+parameterTex[frame.parameterIndex]+(frame.delta<0?'-':'+')+Math.abs(frame.delta).toFixed(4);
- const body=c.base+c.step()+observations(c)+c.path(x=>predict(frame.baselineModel,x),C.blue,3)+c.path(x=>predict(frame.model,x),C.rust,2,'7 5')+mathLabel(c.left,0,c.w-c.left-5,trialTex,C.rust,c.w<450?11:globalThis.innerWidth>=1600?26:22);
+ // Retain the last trained frame while its batch gives way to the trial layer.
+ const batch=batchSelection(c,[],experiment.traces[2].at(-1).indices,1-handoffProgress);
+ const trial=c.path(x=>predict(frame.model,x),C.rust,2,'7 5')+mathLabel(c.left,0,c.w-c.left-5,trialTex,C.rust,c.w<450?11:globalThis.innerWidth>=1600?26:22);
+ const body=c.base+c.step()+observations(c)+`<g data-probe-layer="last-batch">${batch}</g>`+c.path(x=>predict(frame.baselineModel,x),C.blue,3)+`<g data-probe-layer="trial" opacity="${handoffProgress}">${trial}</g>`;
  set(plot,body,`${scene.title} The blue curve is the trained model after 300 epochs. The dashed rust curve changes only ${frame.parameterName} by ${signed(frame.delta,4)}, holding the other six parameters fixed. This is a what-if trial; training remains at 9,600 updates.`);
  renderTable(detail,frame);
- return {kind:scene.kind,progress:p,width:2,...frame,plotTitle:'Blue: trained fit · dashed rust: current trial',detailTitle:'Full-data MSE · smaller is better'};
+ return {kind:scene.kind,progress:p,width:2,...frame,handoffProgress,plotTitle:'Blue: trained fit · dashed rust: current trial',detailTitle:'Full-data MSE · nudge one, hold six'};
 }

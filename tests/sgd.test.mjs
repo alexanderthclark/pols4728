@@ -743,7 +743,7 @@ test('batch and epoch transitions continue from the exact preceding learned weig
 });
 
 test('the detailed update and training sequence keeps its target axes and boundary predictions fixed', () => {
-  const sequence = ['update', 'next-batch', 'batches-two', 'epoch-two', 'train-two'];
+  const sequence = ['update', 'next-batch', 'batches-two', 'epoch-two', 'train-two', 'parameter-probe'];
   const originalWidth = globalThis.innerWidth, originalHeight = globalThis.innerHeight;
   const attributes = element => Object.fromEntries([...element.matchAll(/([\w-]+)="([^"]*)"/g)].map(match => match.slice(1)));
   const geometry = plot => {
@@ -918,6 +918,39 @@ test('single-parameter probes compare independent nudges of the trained model wi
   assert.equal(JSON.stringify(experiment), original, 'The probe must not change the stored experiment or later training scenes');
 });
 
+test('the trained curve stays pinned as the final batch gives way to the parameter trial', () => {
+  const rustCircles = svg => [...svg.matchAll(/<circle\b[^>]*fill="#a54f32"[^>]*\/>/g)].map(match => match[0]);
+  const originalWidth = globalThis.innerWidth;
+  try {
+    for (const [viewportWidth, width, height] of [[320, 288, 240], [1280, 760, 340], [1920, 1130, 650]]) {
+      globalThis.innerWidth = viewportWidth;
+      const trained = renderScene('train-two', 1, width, height), entering = renderScene('parameter-probe', 0, width, height);
+      const finalBatch = rustCircles(trained.plot).slice(-64);
+      assert.equal(finalBatch.length, 64);
+      assert.deepEqual(rustCircles(entering.plot), finalBatch, `The incoming scene retains the same final minibatch at the same coordinates at ${viewportWidth}px`);
+    }
+  } finally {
+    if (originalWidth === undefined) delete globalThis.innerWidth;
+    else globalThis.innerWidth = originalWidth;
+  }
+  const start = renderScene('parameter-probe', 0);
+  assert.equal(start.frame.handoffProgress, 0);
+  assert.match(start.plot, /data-probe-layer="trial" opacity="0"/, 'The trained curve is initially shown without an abrupt trial overlay');
+  const seen = [];
+  for (const progress of [0, .01, .02, .03, .04]) {
+    const preview = renderScene('parameter-probe', progress);
+    const reveal = preview.frame.handoffProgress;
+    assert.equal(preview.frame.completedUpdates, 9600);
+    assert.equal([...preview.detail.matchAll(/data-parameter="[^"]+"/g)].length, 7, 'The full trial summary is retained during the handoff');
+    assert.match(preview.plot, new RegExp(`data-probe-layer="trial" opacity="${reveal}"`));
+    assert.match(preview.plot, new RegExp(`<g opacity="${1-reveal}"><circle`), 'The final minibatch fades while the trial layer appears');
+    seen.push({progress,preview});
+  }
+  assert.ok(seen[2].preview.frame.handoffProgress > 0 && seen[2].preview.frame.handoffProgress < 1, 'The handoff has a continuous intermediate state');
+  assert.equal(seen.at(-1).preview.frame.handoffProgress, 1);
+  for (const {progress,preview} of seen.reverse()) assert.deepEqual(renderScene('parameter-probe', progress), preview, 'Reverse scrolling restores the exact layer opacity and parameter state');
+});
+
 // This harness runs the real controller and renderers. Browser geometry and
 // actual scrolling are reviewed separately; here scroll events must alter and
 // restore the scientific frames and counter, without relying on a timer.
@@ -1047,6 +1080,60 @@ test('parameter probes retain the completed epoch count and a complete reduced-m
   ui.emit('document:keydown', { key: 'ArrowLeft', target: { tagName: 'DIV' }, preventDefault() {} });
   assert.equal(ui.nodes.get('stage').dataset.scene, 'parameter-probe');
   assert.equal(counter.dataset.completedEpochs, '300');
+});
+
+test('the training-to-probe handoff retains the plot framing while its surrounding explanation changes', async () => {
+  const ui = await controller(), stage = ui.nodes.get('stage'), seen = [];
+  const opacity = () => Number(stage.style['--probe-handoff-opacity']);
+  const baseline = experiment.traces[2].at(-1).after;
+  const trainIndex = scenes.findIndex(scene => scene.id === 'train-two');
+  assert.equal(scenes[trainIndex + 1].id, 'parameter-probe');
+  const outgoing = [], incoming = [];
+  for (const [id, stops, values] of [
+    ['train-two', [.92, .94, .96, .98, .999], outgoing],
+    ['parameter-probe', [0, .01, .02, .03, .04], incoming]
+  ]) {
+    for (const progress of stops) {
+      const frame = ui.at(id, progress);
+      assert.equal(stage.dataset.learningFlow, 'true', 'Both scenes must retain the shared learning layout');
+      assert.equal(stage.dataset.learningFit, 'true', 'The prediction plot stays in the same fit frame on both sides');
+      assert.equal(frame.completedUpdates, 9600, 'The handoff does not train the model again');
+      if (id === 'train-two') assert.deepEqual(frame.model, baseline, 'Training finishes before its explanation fades');
+      else {
+        assert.equal([...ui.nodes.get('detail').innerHTML.matchAll(/data-parameter="[^"]+"/g)].length, 7);
+        assert.equal(ui.nodes.get('detail-label').innerHTML, 'Full-data MSE · nudge one, hold six', 'The figure retains the essential one-parameter trial key');
+      }
+      values.push(opacity());
+      seen.push({ id, progress, frame, opacity: opacity(), detail: ui.nodes.get('detail').innerHTML });
+    }
+  }
+  assert.equal(outgoing[0], 1);
+  assert.equal(outgoing.at(-1), 0);
+  assert.equal(incoming[0], 0);
+  assert.equal(incoming.at(-1), 1);
+  for (let index = 0; index < outgoing.length; index++) {
+    close(outgoing[index] + incoming[index], 1);
+    if (index) {
+      assert.ok(outgoing[index] < outgoing[index - 1], 'The training explanation fades continuously away');
+      assert.ok(incoming[index] > incoming[index - 1], 'The trial explanation is progressively revealed');
+    }
+  }
+  for (const stop of seen.reverse()) {
+    assert.deepEqual(ui.at(stop.id, stop.progress), stop.frame);
+    assert.equal(opacity(), stop.opacity, 'Reverse scrolling restores the same explanation visibility');
+    assert.equal(ui.nodes.get('detail').innerHTML, stop.detail);
+  }
+  ui.reduce(true);
+  for (const id of ['train-two', 'parameter-probe']) {
+    const frame = ui.at(id, .98);
+    assert.equal(opacity(), 1, 'Reduced motion keeps each complete explanation visible');
+    assert.deepEqual(frame.model, baseline);
+    assert.equal(frame.completedUpdates, 9600);
+  }
+  assert.equal([...ui.nodes.get('detail').innerHTML.matchAll(/data-parameter="[^"]+"/g)].length, 7);
+  ui.at('initialize-wide', 0);
+  assert.equal(stage.dataset.learningFlow, 'false');
+  assert.equal(stage.dataset.learningFit, 'false');
 });
 
 test('reduced motion and keyboard navigation retain complete losses and epoch boundaries', async () => {
