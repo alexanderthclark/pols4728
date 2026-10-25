@@ -19,21 +19,32 @@ function attrs(markup) {
   return Object.fromEntries([...markup.matchAll(/([\w-]+)="([^"]*)"/g)].map(match => [match[1], match[2]]));
 }
 
-function assertTypesetEquation(app, frame = app.frame()) {
-  const equation = app.element('stage-equation');
-  const source = frame.compact && frame.equationCompact ? frame.equationCompact : frame.equation;
+function assertTypesetNode(app, id, source, label) {
+  const equation = app.element(id);
   const markup = equation.innerHTML;
-  assert.equal(equation.attrs['data-tex'], source, `${frame.scene}: the current formula source is exposed`);
-  assert(/class="[^"]*\bkatex-html\b/.test(markup), `${frame.scene}: visible mathematical typesetting is present`);
-  assert(/class="[^"]*\bkatex-mathml\b/.test(markup), `${frame.scene}: semantic MathML is present`);
-  assert(!/class="[^"]*\bkatex-error\b/.test(markup), `${frame.scene}: the formula has no parse error`);
+  assert.equal(equation.attrs['data-tex'], source, `${label}: the current formula source is exposed`);
+  assert(/class="[^"]*\bkatex-html\b/.test(markup), `${label}: visible mathematical typesetting is present`);
+  assert(/class="[^"]*\bkatex-mathml\b/.test(markup), `${label}: semantic MathML is present`);
+  assert(!/class="[^"]*\bkatex-error\b/.test(markup), `${label}: the formula has no parse error`);
   const annotation = markup.match(/<annotation\b([^>]*)>([\s\S]*?)<\/annotation>/);
-  assert(annotation, `${frame.scene}: MathML preserves its exact formula source`);
+  assert(annotation, `${label}: MathML preserves its exact formula source`);
   assert.equal(attrs(annotation[1]).encoding, 'application/x-tex');
   const entities = { amp: '&', lt: '<', gt: '>', quot: '"', '#x27': "'" };
   const annotatedSource = annotation[2].replace(/&(amp|lt|gt|quot|#x27);/g, (_, name) => entities[name]);
-  assert.equal(annotatedSource, source, `${frame.scene}: the rendered MathML matches the current source`);
+  assert.equal(annotatedSource, source, `${label}: the rendered MathML matches the current source`);
   return markup;
+}
+
+function assertTypesetEquation(app, frame = app.frame()) {
+  if (frame.equationComparison) {
+    return ['logistic', 'neural'].map(model => {
+      const source = frame.compact && frame[model + 'EquationCompact']
+        ? frame[model + 'EquationCompact'] : frame[model + 'Equation'];
+      return assertTypesetNode(app, model + '-equation', source, frame.scene + ': ' + model);
+    }).join('');
+  }
+  const source = frame.compact && frame.equationCompact ? frame.equationCompact : frame.equation;
+  return assertTypesetNode(app, 'stage-equation', source, frame.scene);
 }
 
 function mount({ mobile = false, reduced = false } = {}) {
@@ -192,8 +203,8 @@ function mount({ mobile = false, reduced = false } = {}) {
       emit(documentEvents, 'keydown', event); flush(); return event;
     },
     checkSvg(label) {
-      if (this.frame().equationOnly) {
-        assert.equal(this.frame().scene, 'conflict', `${label}: only the historical equation replaces both plots`);
+      if (this.frame().equationOnly || this.frame().equationComparison) {
+        assert(['conflict', 'sigmoid-one'].includes(this.frame().scene), `${label}: model equations replace both plots`);
         assert.equal(document.getElementById('figure-grid').hidden, true, `${label}: the figure area is hidden`);
         for (const id of ['function-plot', 'network-plot']) {
           assert.equal(document.getElementById(id).innerHTML, '', `${label}: ${id} has no stale diagram`);
@@ -202,6 +213,8 @@ function mount({ mobile = false, reduced = false } = {}) {
         return;
       }
       assert.equal(document.getElementById('figure-grid').hidden, false, `${label}: plotted scenes retain their figure area`);
+      assert.equal(document.getElementById('model-comparison').hidden, true, `${label}: plotted scenes hide the formula comparison`);
+      assert.equal(document.getElementById('stage-equation').hidden, false, `${label}: plotted scenes retain their current formula`);
       for (const id of ['function-plot', 'network-plot']) {
         const node = document.getElementById(id), markup = node.innerHTML;
         assert(markup.includes('<path') || markup.includes('<circle'), `${label}: ${id} draws geometry`);
@@ -785,7 +798,7 @@ test('the universal-approximation assumptions remain present before the classifi
   }
 });
 
-test('the historical application centers named-expit Equation 3 and restores plots in either direction', () => {
+test('the historical sigmoid equation leads to a model comparison before plotted flexibility, in either direction', () => {
   for (const mobile of [false, true]) for (const reduced of [false, true]) {
     const app = mount({ mobile, reduced });
     app.scroll('universal', .5);
@@ -795,37 +808,74 @@ test('the historical application centers named-expit Equation 3 and restores plo
     assert.equal(historical.scene, 'conflict');
     assert.equal(historical.equationOnly, true);
     assert.equal(app.element('figure-grid').hidden, true);
+    assert.equal(app.element('model-comparison').hidden, true);
+    assert.equal(app.element('stage-equation').hidden, false);
     assert(app.element('stage-shell').classes.has('is-equation-only'));
     assert.equal(app.element('input-inspector').hidden, true);
     const equationMarkup = assertTypesetEquation(app, historical);
     const equationSource = app.element('stage-equation').attrs['data-tex'];
     assert(equationSource.includes(String.raw`Y_i`) && equationSource.includes(String.raw`\operatorname{Bernoulli}(\pi_i)`),
       'Equation 3 retains the Bernoulli outcome model');
-    assert(equationSource.includes(String.raw`\operatorname{expit}`), 'The logistic function has a named operator');
-    assert(equationSource.includes(String.raw`\operatorname{expit}(z)=\frac{1}{1+e^{-z}}`),
-      'The named operator is defined as the inverse logit');
-    assert(!equationSource.includes(String.raw`\sigma`), 'The historical equation no longer uses sigma notation');
+    assert(equationSource.includes(String.raw`\operatorname{sigmoid}`), 'The activation uses its requested function name');
+    assert(equationSource.includes(String.raw`\operatorname{sigmoid}(z)=\frac{1}{1+e^{-z}}`),
+      'The named activation retains the inverse-logit definition');
+    assert(!equationSource.includes(String.raw`\operatorname{expit}`), 'Sigmoid replaces the expit name in the equation');
+    assert(!equationSource.includes(String.raw`\sigma`), 'The historical equation uses a named function rather than sigma');
     assert(equationSource.includes(String.raw`\gamma_0`), 'The output intercept remains explicit');
     if (mobile) {
-      assert(equationSource.includes(String.raw`\sum_{j=1}^{M}\gamma_j\operatorname{expit}(X_i\beta_{(j)})`),
+      assert(equationSource.includes(String.raw`\sum_{j=1}^{M}\gamma_j\operatorname{sigmoid}(X_i\beta_{(j)})`),
         'The compact equation includes every indexed hidden neuron');
     } else {
       for (const index of ['1', '2', 'M']) {
-        assert(equationSource.includes(String.raw`\gamma_` + index + String.raw`\operatorname{expit}(X_i\beta_{(` + index + ')})'),
+        assert(equationSource.includes(String.raw`\gamma_` + index + String.raw`\operatorname{sigmoid}(X_i\beta_{(` + index + ')})'),
           `The expanded equation includes the paper's hidden term ${index}`);
       }
     }
     app.checkSvg('historical equation');
 
     app.click('next');
-    assert.equal(app.frame().scene, 'sigmoid-one');
+    const comparison = app.frame();
+    assert.equal(comparison.scene, 'sigmoid-one');
+    assert.equal(comparison.equationComparison, true);
+    assert.equal(app.element('figure-grid').hidden, true, 'The comparison has no probability plot or feature plot');
+    assert.equal(app.element('stage-equation').hidden, true, 'The comparison uses its own two formulas');
+    assert.equal(app.element('model-comparison').hidden, false);
+    assert.equal(app.element('input-inspector').hidden, true);
+    const comparisonMarkup = assertTypesetEquation(app, comparison);
+    const logistic = app.element('logistic-equation').attrs['data-tex'];
+    const neural = app.element('neural-equation').attrs['data-tex'];
+    for (const source of [logistic, neural]) {
+      assert(source.includes(String.raw`\operatorname{Bernoulli}(\pi_i)`), 'Both models predict the same Bernoulli outcome');
+      assert(source.includes(String.raw`\operatorname{sigmoid}`), 'Both models use the same named sigmoid function');
+    }
+    assert(logistic.includes(String.raw`X_i\beta`), 'Logistic regression acts directly on the linear predictor');
+    assert.equal(logistic.match(/\\operatorname\{sigmoid\}/g).length, 1, 'Logistic regression has no hidden sigmoid layer');
+    assert(!logistic.includes(String.raw`\gamma`), 'Logistic regression does not acquire hidden-layer output weights');
+    assert(neural.includes(String.raw`\gamma_0`) && neural.includes(String.raw`\gamma_j`) && neural.includes(String.raw`X_i\beta_{(j)}`),
+      'The neural-network comparison preserves its hidden features and output intercept');
+    assert(neural.includes(String.raw`\sum_{j=1}^{M}`), 'The comparison includes M hidden neurons');
+    assert.equal(neural.match(/\\operatorname\{sigmoid\}/g).length, 2, 'The network applies sigmoid at the hidden layer and the output');
+    app.checkSvg('model comparison');
+
+    app.click('next');
+    assert.equal(app.frame().scene, 'sigmoid-two');
     assert.equal(app.element('figure-grid').hidden, false);
+    assert.equal(app.element('model-comparison').hidden, true);
+    assert.equal(app.element('stage-equation').hidden, false);
     assert(!app.element('stage-shell').classes.has('is-equation-only'));
-    app.checkSvg('after historical equation');
-    assert.notEqual(assertTypesetEquation(app), equationMarkup, 'The next scene displays its own equation');
+    app.checkSvg('flexibility after comparison');
+    assert.notEqual(assertTypesetEquation(app), equationMarkup, 'The flexibility scene displays its own formula');
 
     app.click('previous');
+    assert.equal(app.frame().scene, 'sigmoid-one');
+    assert.equal(app.element('model-comparison').hidden, false);
+    assert.equal(app.element('stage-equation').hidden, true);
+    assert.equal(assertTypesetEquation(app), comparisonMarkup, 'Reverse navigation restores both comparison equations exactly');
+    app.checkSvg('reversed comparison');
+    app.click('previous');
     assert.equal(app.frame().scene, 'conflict');
+    assert.equal(app.element('model-comparison').hidden, true);
+    assert.equal(app.element('stage-equation').hidden, false);
     assert.equal(assertTypesetEquation(app), equationMarkup, 'Reverse navigation restores Equation 3 exactly');
     assert(app.element('stage-shell').classes.has('is-equation-only'));
     app.checkSvg('reversed historical equation');

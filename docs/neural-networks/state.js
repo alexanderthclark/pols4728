@@ -45,9 +45,19 @@
       frame.sourceLabel='Beck, King & Zeng (2000), Equation 3';
       if(scene==='conflict'){
         frame.equationOnly=true;
-        frame.equation=String.raw`\begin{gathered}\begin{aligned}Y_i&\sim\operatorname{Bernoulli}(\pi_i),\\[1.2em]\pi_i&=\operatorname{expit}\!\Bigl[\gamma_0+\gamma_1\operatorname{expit}(X_i\beta_{(1)})\\&\qquad+\gamma_2\operatorname{expit}(X_i\beta_{(2)})+\cdots+\gamma_M\operatorname{expit}(X_i\beta_{(M)})\Bigr].\end{aligned}\\[2em]\operatorname{expit}(z)=\frac{1}{1+e^{-z}}\end{gathered}`;
-        frame.equationCompact=String.raw`\begin{gathered}Y_i\sim\operatorname{Bernoulli}(\pi_i),\\[1.2em]\pi_i=\operatorname{expit}\!\Bigl[\gamma_0+\sum_{j=1}^{M}\gamma_j\operatorname{expit}(X_i\beta_{(j)})\Bigr].\\[2em]\operatorname{expit}(z)=\frac{1}{1+e^{-z}}\end{gathered}`;
-        frame.caption='Each inner expit is a hidden neuron. Their weighted sum passes through one final expit to give the probability of international conflict.';
+        frame.equation=String.raw`\begin{gathered}\begin{aligned}Y_i&\sim\operatorname{Bernoulli}(\pi_i),\\[1.2em]\pi_i&=\operatorname{sigmoid}\!\Bigl[\gamma_0+\gamma_1\operatorname{sigmoid}(X_i\beta_{(1)})\\&\qquad+\gamma_2\operatorname{sigmoid}(X_i\beta_{(2)})+\cdots+\gamma_M\operatorname{sigmoid}(X_i\beta_{(M)})\Bigr].\end{aligned}\\[2em]\operatorname{sigmoid}(z)=\frac{1}{1+e^{-z}}\end{gathered}`;
+        frame.equationCompact=String.raw`\begin{gathered}Y_i\sim\operatorname{Bernoulli}(\pi_i),\\[1.2em]\pi_i=\operatorname{sigmoid}\!\Bigl[\gamma_0+\sum_{j=1}^{M}\gamma_j\operatorname{sigmoid}(X_i\beta_{(j)})\Bigr].\\[2em]\operatorname{sigmoid}(z)=\frac{1}{1+e^{-z}}\end{gathered}`;
+        frame.caption='Beck, King, and Zeng train a neural network with a sigmoid activation function to predict international conflict.';
+        frame.source+='#page=5';
+      }else if(scene==='sigmoid-one'){
+        frame.equationOnly=true;frame.equationComparison=true;
+        frame.logisticEquation=String.raw`\begin{gathered}Y_i\sim\operatorname{Bernoulli}(\pi_i)\\[1.2em]\pi_i=\operatorname{sigmoid}(X_i\beta)\end{gathered}`;
+        frame.neuralEquation=String.raw`\begin{gathered}Y_i\sim\operatorname{Bernoulli}(\pi_i)\\[1.2em]\pi_i=\operatorname{sigmoid}\!\Bigl[\gamma_0+\sum_{j=1}^{M}\gamma_j\operatorname{sigmoid}(X_i\beta_{(j)})\Bigr]\end{gathered}`;
+        frame.logisticEquationCompact=frame.logisticEquation;
+        frame.neuralEquationCompact=frame.neuralEquation;
+        frame.equation=frame.neuralEquation;
+        frame.equationCompact=frame.neuralEquationCompact;
+        frame.caption='The network combines several sigmoid features before the final sigmoid. This lets it express more complicated shapes.';
         frame.source+='#page=5';
       }else if(scene==='representation'){
         frame.equation=String.raw`\underbrace{\mathbf h(\mathbf x)}_{\text{representation}}\quad\longrightarrow\quad\underbrace{\sigma(\phi_0+\boldsymbol\phi^\top\mathbf h(\mathbf x))}_{\text{classification head}}`;
@@ -56,7 +66,7 @@
       }else{
         frame.equation=String.raw`h_j(x)=\sigma\!\left(30(x-t_j)\right),\quad\widehat p(x)=\sigma\!\left(-3+\sum_{j=1}^{`+frame.width+String.raw`}\phi_jh_j(x)\right)`;
         frame.equationCompact=String.raw`\begin{gathered}h_j(x)=\sigma\!\left(30(x-t_j)\right)\\\widehat p(x)=\sigma\!\left(-3+\sum_{j=1}^{`+frame.width+String.raw`}\phi_jh_j(x)\right)\end{gathered}`;
-        frame.caption=scene==='sigmoid-one'?'One hidden sigmoid followed by an output sigmoid is monotone, but is not ordinary logit. The dashed reference matches its midpoint and slope.':scene==='sigmoid-two'?'The second neuron has a negative output weight. It pulls the probability down after the first neuron raises it.':'Add a positive contribution and then a negative one. Four neurons can produce two peaks; the earlier neurons stay fixed.';
+        frame.caption=scene==='sigmoid-two'?'With one hidden neuron, this probability rises. Add a second neuron with a negative output weight, and it can rise and then fall.':'Add a positive contribution and then a negative one. Four neurons can produce two peaks; the earlier neurons stay fixed.';
       }
       return frame;
     }

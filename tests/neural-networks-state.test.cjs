@@ -314,7 +314,6 @@ test('adding fixed sigmoid features changes a monotone probability into one hump
       close(current.sigmoidBias, before.sigmoidBias);
     }
   }
-  assert.match(one.caption, /not ordinary logit/i, 'The nested sigmoid is distinguished from ordinary logistic regression');
 });
 
 test('classification separates coordinate movement from the later boundary reveal at every progress value', () => {

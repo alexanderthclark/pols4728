@@ -43,8 +43,11 @@
       byId('input-inspector').hidden=!!frame.hideInspector;
       byId('stage-shell').classList.toggle('is-extension',!!frame.hideInspector);
       byId('stage-shell').classList.toggle('is-equation-only',!!frame.equationOnly);
-      byId('stage-shell').setAttribute('aria-label',frame.equationOnly?'Historical neural-network model':'Function and neural network diagrams');
+      byId('stage-shell').classList.toggle('is-model-comparison',!!frame.equationComparison);
+      byId('stage-shell').setAttribute('aria-label',frame.equationComparison?'Logistic regression and neural-network models':frame.equationOnly?'Historical neural-network model':'Function and neural network diagrams');
       byId('figure-grid').hidden=!!frame.equationOnly;
+      byId('model-comparison').hidden=!frame.equationComparison;
+      byId('stage-equation').hidden=!!frame.equationComparison;
       lastFrame=frame;
       if(frame.equationOnly){byId('function-plot').innerHTML='';byId('network-plot').innerHTML='';}
       else if(frame.hideInspector)window.NNExtensionViews.render(byId('function-plot'),byId('network-plot'),frame);
@@ -59,6 +62,10 @@
       const source=byId('stage-source');source.hidden=!frame.source;
       if(frame.source){source.href=frame.source;source.textContent=frame.sourceLabel;}
       window.NNFormula.render(byId('stage-equation'),frame);
+      if(frame.equationComparison){
+        window.NNFormula.render(byId('logistic-equation'),{equation:frame.logisticEquation,equationCompact:frame.logisticEquationCompact,compact:mobile});
+        window.NNFormula.render(byId('neural-equation'),{equation:frame.neuralEquation,equationCompact:frame.neuralEquationCompact,compact:mobile});
+      }
       const activationModel=frame.model||(frame.kind==='relu'?window.NNMath.createShallow(0,[{t:0,a:1}]):null);
       const counter=byId('active-neurons');
       frame.hiddenCount=activationModel?activationModel.width:0;

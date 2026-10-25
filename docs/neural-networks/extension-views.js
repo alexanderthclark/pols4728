@@ -81,10 +81,9 @@
     const compact = frame.compact, weights = frame.sigmoidWeights || [6, -6, 6, -6];
     const slope = finite(frame.sigmoidSlope, 30), bias = finite(frame.sigmoidBias, -3);
     const ts = frame.sigmoidThresholds || thresholds;
-    const count = weights.length, one = frame.scene === 'sigmoid-one';
+    const count = weights.length;
     const b = canvas(svg, 620, compact ? 350 : 390,
       'Constructed probability curve from ' + count + ' sigmoid hidden neuron' + (count === 1 ? '' : 's') + ' and a sigmoid output. ' +
-      (one ? 'A dashed ordinary logistic curve is a comparison, not another hidden neuron. ' : '') +
       'Existing feature parameters stay fixed while the new output weights change.', compact);
     svg.removeAttribute('data-morph');
     const box = { left: 62, right: 575, top: compact ? 76 : 77, bottom: compact ? 287 : 321 };
@@ -94,15 +93,7 @@
     const xs = Array.from({ length: 301 }, (_, i) => i / 300);
     const value = x => sigmoid(bias + weights.reduce((sum, a, j) => sum + a * sigmoid(slope * (x - ts[j])), 0));
     b.line(63, 20, 92, 20, 'stroke="' + C.blue + '" stroke-width="3.5"');
-    b.text(101, compact ? 27 : 25, one ? 'Nested sigmoids' : count + ' hidden neurons');
-    if (one) {
-      b.line(compact ? 339 : 335, 20, compact ? 369 : 365, 20, 'stroke="' + C.muted + '" stroke-width="1.8" stroke-dasharray="7 5"');
-      b.text(compact ? 379 : 375, compact ? 27 : 25, 'Ordinary logit');
-      // This ordinary logit is tangent at the first hidden feature's midpoint.
-      const referenceSlope = weights[0] * slope / 4;
-      b.path(curve(xs, x => sigmoid(bias + weights[0] / 2 + referenceSlope * (x - ts[0])), p.px, p.py),
-        'fill="none" stroke="' + C.muted + '" stroke-width="1.8" stroke-dasharray="7 5" opacity=".65" data-ordinary-logit-reference="true" data-reference-slope="' + referenceSlope + '"');
-    }
+    b.text(101, compact ? 27 : 25, count + ' hidden neuron' + (count === 1 ? '' : 's'));
     b.line(box.left, p.py(0.5), box.right, p.py(0.5), 'stroke="' + C.pale + '" stroke-width="1" stroke-dasharray="3 5"');
     b.path(curve(xs, value, p.px, p.py), 'fill="none" stroke="' + C.blue + '" stroke-width="3.5" data-sigmoid-probability="true" data-hidden-slope="' + slope + '" data-output-bias="' + bias + '" data-weights="' + weights.join(',') + '"');
     b.text(62, compact ? 342 : 376, 'Illustrative functions; these weights are chosen.',
