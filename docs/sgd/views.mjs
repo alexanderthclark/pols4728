@@ -2,10 +2,11 @@ import {foundationKinds,renderFoundation} from './batch-epoch.mjs';
 import {richText} from './math.mjs';
 import {constructionKinds,renderConstruction} from './construction.mjs';
 import {renderInitialNetwork} from './network.mjs';
+import {renderGradientComparison} from './batch-gradient-comparison.mjs';
 import {renderParameterProbe} from './parameter-probe.mjs';
 import {renderStepTarget} from './step-target.mjs';
 import {renderTwoHinges} from './two-hinges.mjs';
-import {predict,ramp,gradient,data,mse} from './model.mjs';
+import {predict,gradient,data,mse} from './model.mjs';
 import {sgdKinds,renderSGD,renderParameterUpdate,C,clamp,line,text,set,canvas,chart,facts,observations,gradientBars,interpolate} from './sgd-detail.mjs';
 function trainingPanel(svg,trace,index,mix,firstEpoch,color,width){
  const {w,h}=canvas(svg),s=trace[index],value=mse(interpolate(s.model,s.after,mix));
@@ -21,10 +22,9 @@ function trainingPanel(svg,trace,index,mix,firstEpoch,color,width){
  html+=`<path d="${path}" stroke="${color}" fill="none" stroke-width="2"/><circle cx="${X(s.step+mix)}" cy="${Y(value)}" r="3" fill="${color}"/>`+line(l,b,r,b,'#767676')+text(l,b+18,'0','small')+text(r,b+18,`${maxStep.toLocaleString('en-US')} updates`,'small','end');
  set(svg,html,`Width ${width}. Epoch ${s.epoch}, batch ${s.batch} of 32, 64 observations. Training MSE ${value.toFixed(4)}; logarithmic loss axis.`);
 }
-function comparisonKey(c,handChosen){
+function comparisonKey(c){
  const large=globalThis.innerWidth>=1000,firstY=large?17:11,rowHeight=large?27:20,sample=large?35:25,gap=large?10:7,col=(c.right-c.left)/2;
  const entries=[['Width 2',C.blue,'',3],['Width 12',C.teal,'10 4',3],['Target',C.muted,'6 5',2]];
- if(handChosen)entries.push(['Width 2 · by hand',C.rust,'2 4',2.5]);
  return '<g data-legend="curve-styles">'+entries.map(([label,color,dash,width],i)=>{
   const x=c.left+(i%2)*col,y=firstY+Math.floor(i/2)*rowHeight;
   return line(x,y,x+sample,y,color,dash,width)+text(x+sample+gap,y+4,label,'small','start',color);
@@ -37,8 +37,9 @@ export function render(plot,detail,scene,p,e){
  if(constructionKinds.includes(kind))return renderConstruction(plot,detail,kind,p);
  if(foundationKinds.includes(kind))return renderFoundation(plot,detail,scene,p,e);
  if(sgdKinds.includes(kind))return renderSGD(plot,detail,scene,p,e);
+ if(kind==='batch-gradient-comparison')return renderGradientComparison(plot,detail,scene,p,e);
  if(kind==='parameter-probe')return renderParameterProbe(plot,detail,scene,p,e);
- const comparison=kind==='compare'||kind==='finish',c=chart(plot,{xmin:-1,xmax:1,topInset:comparison?(globalThis.innerWidth>=1000?52:36):kind==='update'?(globalThis.innerWidth>=1000?28:18):0});
+ const comparison=kind==='compare',c=chart(plot,{xmin:-1,xmax:1,topInset:comparison?(globalThis.innerWidth>=1000?52:36):kind==='update'?(globalThis.innerWidth>=1000?28:18):0});
  let body=c.base+c.step(),detailTitle='Construction',plotTitle='Function',info={kind,progress:p};
  if(['initialize','loss','full','update','initialize-wide'].includes(kind)){
   const wide=kind==='initialize-wide',color=wide?C.teal:C.blue;
@@ -47,7 +48,7 @@ export function render(plot,detail,scene,p,e){
   body+=observations(c,{batch:kind==='update'?e.firstUpdate.indices:null,residualModel:kind==='loss'?model:null,amount:kind==='loss'?u:1})+c.path(x=>predict(model,x),color);
   if(kind==='initialize'){info.displayedParameters=renderInitialNetwork(detail,model);detailTitle='Initial network · weights and biases';}
   if(wide)facts(detail,[['Hidden neurons','12','One hidden layer',C.teal],['Trainable parameters','37','Learn weights and biases',C.teal]]);
-  if(kind==='loss')facts(detail,[['Training MSE',e.traces[2][0].loss.toFixed(4),'All 2,048 observations'],['Residuals shown',String(Math.ceil(2048*u)),'Squared, then averaged']]);
+  if(kind==='loss')facts(detail,[['Training MSE',e.traces[2][0].loss.toFixed(4),'All 2,048 observations'],['Prediction errors shown',String(Math.ceil(2048*u)),'Squared, then averaged']]);
   if(kind==='full'){gradientBars(detail,gradient(model,data));detailTitle='Full-data gradient';}
   if(kind==='update'){
    body+=text(c.left,globalThis.innerWidth>=1000?20:13,'Gradients from the same starting model','small');
@@ -85,8 +86,7 @@ export function render(plot,detail,scene,p,e){
  if(comparison){
   const narrow=e.runs.find(r=>r.width===2&&r.seed===1),wide=e.runs.find(r=>r.width===12&&r.seed===1);
   body+=observations(c)+c.path(x=>predict(narrow.model,x),C.blue)+c.path(x=>predict(wide.model,x),C.teal,3,'10 4');
-  if(kind==='finish')body+=c.path(x=>ramp(x,64),C.rust,2.5,'2 4');
-  body+=comparisonKey(c,kind==='finish');
+  body+=comparisonKey(c);
   facts(detail,[['Width 2 · MSE',narrow.loss.toFixed(4),'7 parameters',C.blue],['Width 12 · MSE',wide.loss.toFixed(4),'37 parameters',C.teal]]);
   plotTitle='Predictions after 300 epochs';detailTitle='One hidden layer · same data and update count';
  }

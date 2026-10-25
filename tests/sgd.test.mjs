@@ -667,6 +667,66 @@ test('widening the network changes the parameter-gradient dimension without chan
   }
 });
 
+test('batch-gradient comparisons isolate batch composition at one unchanged initial model', () => {
+  const first = experiment.firstUpdate, initial = copy(first.before);
+  const batches = experiment.traces[2].slice(0, 2).map(snapshot => snapshot.indices);
+  const expected = {
+    batch1: parameters(gradient(initial, batches[0].map(index => data[index]))),
+    batch2: parameters(gradient(initial, batches[1].map(index => data[index]))),
+    full: parameters(gradient(initial, data))
+  };
+  const secondAfterUpdate = parameters(gradient(first.after, batches[1].map(index => data[index])));
+  assert.ok(expected.batch2.some((value, index) => Math.abs(value - secondAfterUpdate[index]) > 1e-8), 'The comparison must distinguish changing a batch from changing the model');
+  assert.ok(expected.batch1.some((value, index) => Math.abs(value - expected.batch2[index]) > 1e-8));
+  for (const name of ['batch1', 'batch2']) {
+    assert.ok(expected[name].some((value, index) => Math.abs(value - expected.full[index]) > 1e-8), `${name} is an estimate, not the exact full-data gradient`);
+  }
+  const allBatchGradients = experiment.traces[2].slice(0, 32)
+    .map(snapshot => parameters(gradient(initial, snapshot.indices.map(index => data[index]))));
+  const meanOfBatches = Array(7).fill(0);
+  for (const values of allBatchGradients) {
+    values.forEach((value, index) => { meanOfBatches[index] += value / 32; });
+  }
+  meanOfBatches.forEach((value, index) => close(value, expected.full[index]));
+
+  const seen = new Map(), fixedCurve = result => result.detail.match(/<path\b[^>]*data-curve="fixed-model"[^>]*>/)?.[0].match(/\bd="([^"]+)"/)?.[1];
+  let previousReveal = -1;
+  for (const progress of [0, .25, .5, .75, 1]) {
+    const result = renderScene('batch-gradient-comparison', progress), { frame } = result;
+    assert.deepEqual(frame.model, initial);
+    assert.deepEqual(frame.batches, batches);
+    assert.equal(frame.batches[0].length, 64);
+    assert.equal(frame.batches[1].length, 64);
+    assert.equal(new Set(frame.batches.flat()).size, 128, 'The first two batches are disjoint parts of the actual epoch');
+    assert.equal(frame.completedUpdates, 0);
+    assert.equal(epochState(frame.completedUpdates).completedEpochs, 0);
+    assert.ok(frame.batchReveal >= previousReveal && frame.batchReveal <= 1);
+    previousReveal = frame.batchReveal;
+    for (const [source, values] of Object.entries(expected)) {
+      assert.equal(frame.gradients[source].length, 7);
+      frame.gradients[source].forEach((value, index) => close(value, values[index]));
+      const markers = [...result.plot.matchAll(/<g data-gradient-source="([^"]+)" data-parameter="([^"]+)" data-gradient="([^"]+)"/g)]
+        .filter(match => match[1] === source);
+      assert.equal(markers.length, 7, `All seven ${source} components need visible marks`);
+      markers.forEach((match, index) => close(Number(match[3]), values[index]));
+    }
+    assert.equal(frame.allBatchGradients.length, 32);
+    frame.allBatchGradients.forEach((values, batch) => values.forEach((value, index) => close(value, allBatchGradients[batch][index])));
+    assert.ok(frame.gradients.batch2.some((value, index) => Math.abs(value - secondAfterUpdate[index]) > 1e-8));
+    assert.ok(fixedCurve(result), 'The visible prediction curve must identify the model held fixed');
+    if (seen.size) assert.equal(fixedCurve(result), fixedCurve(seen.get(0)), 'Batch highlighting cannot move the fixed prediction curve');
+    seen.set(progress, result);
+  }
+  close(seen.get(0).frame.batchReveal, 0);
+  close(seen.get(1).frame.batchReveal, 1);
+  close(seen.get(0).frame.spreadReveal, 0);
+  close(seen.get(1).frame.spreadReveal, 1);
+  for (const [progress, result] of [...seen].reverse()) {
+    assert.deepEqual(renderScene('batch-gradient-comparison', progress), result, 'Reverse scrolling restores the same comparison, not a new training update');
+  }
+  assert.deepEqual(first.before, initial, 'Rendering cannot mutate the recorded initial parameters');
+});
+
 test('the single-parameter illustration leaves the actual model and update counter unchanged', () => {
   const first = experiment.firstUpdate;
   let previousPreview = first.before.c;
@@ -976,6 +1036,46 @@ test('reduced motion and keyboard navigation retain complete losses and epoch bo
   const focused = await controller('batches');
   focused.at('epoch-repeat', .5);
   assert.equal(focused.nodes.get('epoch-counter').hidden, true);
+});
+
+test('the fixed-model gradient comparison reverses and completes with keyboard and reduced motion without training', async () => {
+  const id = 'batch-gradient-comparison', index = scenes.findIndex(scene => scene.id === id);
+  assert.ok(index > 0);
+  assert.equal(scenes[index - 1].id, 'batch-gradient');
+  assert.equal(scenes[index + 1].id, 'parameter-step');
+  assert.equal(scenes[index].layout, 'gradient-comparison');
+  assert.equal(scenes.at(-1).id, 'compare', 'The comparison is the final teaching scene');
+  assert.equal(scenes.some(scene => scene.id === 'finish'), false, 'The repeated concluding scene is removed');
+  const ui = await controller(), counter = ui.nodes.get('epoch-counter'), seen = new Map();
+  for (const progress of [0, .25, .5, .75, .995]) {
+    const frame = ui.at(id, progress);
+    assert.deepEqual(frame.model, experiment.firstUpdate.before);
+    assert.equal(frame.completedUpdates, 0);
+    assert.equal(counter.dataset.completedUpdates, '0');
+    assert.equal(counter.dataset.completedEpochs, '0');
+    seen.set(progress, frame);
+  }
+  for (const [progress, frame] of [...seen].reverse()) assert.deepEqual(ui.at(id, progress), frame);
+  ui.at('batch-gradient', .5);
+  ui.emit('document:keydown', { key: 'ArrowRight', target: { tagName: 'DIV' }, preventDefault() {} });
+  assert.equal(ui.nodes.get('stage').dataset.scene, id);
+  assert.equal(ui.nodes.get('stage').dataset.layout, 'gradient-comparison');
+  assert.equal(counter.dataset.completedUpdates, '0');
+  ui.reduce(true);
+  const reduced = ui.at(id, .1), complete = renderScene(id, 1).frame;
+  close(reduced.batchReveal, 1);
+  assert.deepEqual(reduced.model, complete.model);
+  assert.deepEqual(reduced.gradients, complete.gradients);
+  assert.equal(reduced.completedUpdates, 0);
+  assert.equal(counter.dataset.completedEpochs, '0');
+  assert.deepEqual(ui.at(id, .6), reduced, 'Reduced motion always presents the completed comparison');
+  ui.emit('document:keydown', { key: 'ArrowRight', target: { tagName: 'DIV' }, preventDefault() {} });
+  assert.equal(ui.nodes.get('stage').dataset.scene, 'parameter-step');
+  assert.equal(counter.dataset.completedUpdates, '0');
+  ui.emit('document:keydown', { key: 'ArrowLeft', target: { tagName: 'DIV' }, preventDefault() {} });
+  assert.equal(ui.nodes.get('stage').dataset.scene, id);
+  assert.deepEqual(JSON.parse(ui.nodes.get('stage').dataset.frame), reduced);
+  assert.equal(counter.dataset.completedUpdates, '0');
 });
 
 test('both static reading routes contain the same substantive captions and definitions', () => {

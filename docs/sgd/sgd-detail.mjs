@@ -144,18 +144,18 @@ function pointLoss(svg,detail,first,u){
  body+=`<g opacity="${reveal}">`+text(labelX,py-9,`prediction ${prediction.toFixed(4)}`,'small','start',C.blue)+'</g>';
  body+=text(c.left,projected()?20:13,'Parameters fixed','small');
  body+=text(c.left,c.top+2,`Observation ${id+1} from batch 1`,'small');
- set(svg,body,`For observation ${id+1}, x is ${d.x.toFixed(4)} and the target is ${d.y}. The current model predicts ${prediction.toFixed(4)}. The vertical segment is the residual: prediction minus target. Half its square is the point loss ${square.toFixed(4)}.`);
+ set(svg,body,`For observation ${id+1}, x is ${d.x.toFixed(4)} and the target is ${d.y}. The current model predicts ${prediction.toFixed(4)}. The vertical segment is the prediction error: prediction minus target. Half its square is the point loss ${square.toFixed(4)}.`);
  const {w,h}=canvas(detail),large=projected(),gap=Math.min(27,(h-6)/3),x=3;
  let arithmetic;
  if(large){
-  arithmetic=richText(x,24,String.raw`Residual \(=\) prediction \(-\) target`,'small')+mathText(x,54,`${prediction.toFixed(4)}-${d.y}=${residual.toFixed(4)}`,'','start',C.rust,{width:w-6});
-  arithmetic+=`<g opacity="${smooth((u-.35)/.45)}">`+richText(x,103,String.raw`Point loss \(=\frac12\times\text{residual}^2\)`,'small')+mathText(x,133,`\\tfrac12(${residual.toFixed(4)})^2=${square.toFixed(4)}`,'','start',C.rust,{width:w-6})+'</g>';
+  arithmetic=richText(x,24,String.raw`Prediction error \(e_i=\hat f(x_i)-y_i\)`,'small')+mathText(x,54,`e_i=${prediction.toFixed(4)}-${d.y}=${residual.toFixed(4)}`,'','start',C.rust,{width:w-6});
+  arithmetic+=`<g opacity="${smooth((u-.35)/.45)}">`+richText(x,103,String.raw`Point loss \(=\frac12\times e_i^2\)`,'small')+mathText(x,133,`\\tfrac12(${residual.toFixed(4)})^2=${square.toFixed(4)}`,'','start',C.rust,{width:w-6})+'</g>';
  }else{
   arithmetic=richText(x,gap-1,`prediction \\(-\\) target \\(=${prediction.toFixed(4)}-${d.y}\\)`,'','start','',{width:w-6});
-  arithmetic+=richText(x,gap*2-1,`residual \\(=${residual.toFixed(4)}\\)`,'','start',C.rust);
+  arithmetic+=richText(x,gap*2-1,`prediction error \\(e_i=${residual.toFixed(4)}\\)`,'','start',C.rust);
   arithmetic+=`<g opacity="${smooth((u-.35)/.45)}">`+mathText(x,gap*3-1,`\\ell_i=\\tfrac12(${residual.toFixed(4)})^2=${square.toFixed(4)}`,'','start',C.rust,{width:w-6})+'</g>';
  }
- set(detail,arithmetic,`Prediction minus target is ${residual.toFixed(4)}. Taking half the squared residual gives point loss ${square.toFixed(4)}. Numbers are displayed rounded.`);
+ set(detail,arithmetic,`Prediction minus target is ${residual.toFixed(4)}. Taking half the squared prediction error gives point loss ${square.toFixed(4)}. Numbers are displayed rounded.`);
  return {pointIndex:id,pointX:d.x,pointTarget:d.y,pointPrediction:prediction,pointResidual:residual,pointLoss:square};
 }
 
@@ -168,7 +168,7 @@ function squaredErrors(svg,residuals,amount,normalized){
  body+=circle(left+dx*.5,Y(squares[0]),2.4,'white',C.ink,1);
  if(normalized)body+=line(left,Y(mean),right,Y(mean),C.blue,'4 3',1.7);
  if(large&&normalized)body+=richText(left,h-34,String.raw`Batch half-MSE \(=\text{sum}/64\)`,'small','start',C.blue)+mathText(left,h-9,`\\frac{${sum.toFixed(4)}}{64}=${mean.toFixed(4)}`,'','start',C.blue,{width:w-8});
- else body+=richText(left,h-9,normalized?`Half-MSE \\(L_B=\\frac{${sum.toFixed(4)}}{64}=${mean.toFixed(4)}\\)`:String.raw`Each point loss \(=\frac12\times\text{residual}^2\)`,'small','start',normalized?C.blue:C.muted,{width:w-8});
+ else body+=richText(left,h-9,normalized?`Half-MSE \\(L_B=\\frac{${sum.toFixed(4)}}{64}=${mean.toFixed(4)}\\)`:String.raw`Each point loss \(=\frac12\times e_i^2\)`,'small','start',normalized?C.blue:C.muted,{width:w-8});
  set(svg,body,`${amount} half-squared errors have been added to the running sum S_B, now ${sum.toFixed(4)}. ${normalized?`All 64 half-squared errors sum to ${sum.toFixed(4)}. Divide this sum by 64 to obtain the mean batch loss L_B = ${mean.toFixed(4)}. The dashed line marks the mean.`:'The circled first bar is the point loss from the preceding scene. The mean will be calculated after all 64 terms have been added.'}`);
  return {batchSum:sum,lossesAdded:amount,batchHalfMSE:mean,batchMSE:2*mean,normalized};
 }
@@ -177,14 +177,14 @@ function gradientSpaces(svg,indices,residuals,g){
  const {w,h}=canvas(svg),large=projected(),phone=globalThis.innerWidth<=700,diagramHeight=h-(phone?58:0),values=flatten(g),left=large?36:27,right=w-9,dx=(right-left)/values.length;
  const residualTop=large?38:27,residualBottom=diagramHeight*.30,residualMid=(residualTop+residualBottom)/2,residualScale=(residualBottom-residualTop)*.45/Math.max(...residuals.map(Math.abs)),rx=(right-left)/residuals.length;
  const parameterTop=diagramHeight*.59,parameterBottom=diagramHeight-(large?43:31),parameterMid=(parameterTop+parameterBottom)/2,parameterScale=(parameterBottom-parameterTop)*(large?.30:.34)/Math.max(.08,...values.map(Math.abs));
- let body='<g data-space="observations">'+text(3,large?20:13,'Observation space · 64 residuals','small','start',C.rust)+line(left,residualMid,right,residualMid,'#c5b5ae')+text(left-8,residualMid+3,'0','small','end');
+ let body='<g data-space="observations">'+text(3,large?20:13,'64 prediction errors','small','start',C.rust)+line(left,residualMid,right,residualMid,'#c5b5ae')+text(left-8,residualMid+3,'0','small','end');
  body+=text(right,large?20:13,'Parameters fixed','small','end');
  residuals.forEach((v,i)=>{
   const x=left+rx*(i+.5),y=residualMid-v*residualScale;
   body+=`<g data-observation="${indices[i]}" data-batch-position="${i+1}" data-residual="${v}">`+line(x,residualMid,x,y,C.rust,'',Math.max(1,rx*.62))+'</g>';
  });
  body+=text(left,residualBottom+(large?22:14),'1','small')+text((left+right)/2,residualBottom+(large?22:14),'Position in this batch','small','middle')+text(right,residualBottom+(large?22:14),'64','small','end')+'</g>';
- body+='<g data-space="parameters">'+richText(3,diagramHeight*.54,String.raw`Parameter space · 7 components: \(4\theta+3\phi\)`,'small','start',C.blue,{width:w-6})+line(left,parameterMid,right,parameterMid,'#a7afb3')+text(left-8,parameterMid+3,'0','small','end');
+ body+='<g data-space="parameters">'+richText(3,diagramHeight*.54,'7 directions: 4 hidden + 3 output','small','start',C.blue,{width:w-6})+line(left,parameterMid,right,parameterMid,'#a7afb3')+text(left-8,parameterMid+3,'0','small','end');
  values.forEach((v,i)=>{
   const x=left+dx*(i+.5),y=parameterMid-v*parameterScale,color=i===values.length-1?C.teal:C.blue;
   body+=`<g data-parameter="${labels[i]}" data-gradient="${v}">`;
@@ -196,16 +196,16 @@ function gradientSpaces(svg,indices,residuals,g){
  if(phone){
   body+=line(3,h-53,right,h-53,'#e7e7e7');
   body+=richText(3,h-36,String.raw`\(\phi_0\) shifts every prediction equally`,'small','start',C.teal);
-  body+=mathText(3,h-16,`\\frac{\\partial L_{B_1}}{\\partial\\phi_0}=\\text{mean residual}=${signed(g.c)}`,'small','start',C.teal,{width:w-6});
+  body+=mathText(3,h-16,`\\frac{\\partial L_{B_1}}{\\partial\\phi_0}=\\text{mean error}=${signed(g.c)}`,'small','start',C.teal,{width:w-6});
  }
- set(svg,body,`Two different spaces. The upper plot contains ${residuals.length} signed residuals, one for each observation in batch order: prediction minus target. The lower plot contains ${values.length} gradient components, one for each model parameter: four hidden-layer θ parameters and three output-layer φ parameters. A component tells how the batch loss changes when that parameter changes slightly, with the others held fixed. Each component combines errors across the batch according to that parameter's effect on the predictions; residuals are not assigned one-to-one to parameters. ${labels.map((label,i)=>label+' '+values[i].toFixed(4)).join(', ')}. All seven components are calculated at the same current model. No parameters have been updated yet.`);
+ set(svg,body,`Two different spaces. The upper plot contains ${residuals.length} signed prediction errors, one for each observation in batch order: prediction minus target. The lower plot contains ${values.length} gradient components, one for each model parameter: four hidden-layer θ parameters and three output-layer φ parameters. A component tells how the batch loss changes when that parameter changes slightly, with the others held fixed. Each component combines errors across the batch according to that parameter's effect on the predictions; prediction errors are not assigned one-to-one to parameters. ${labels.map((label,i)=>label+' '+values[i].toFixed(4)).join(', ')}. All seven components are calculated at the same current model. No parameters have been updated yet.`);
 }
 
 function gradientFacts(svg,residuals,g){
  const {w,h}=canvas(svg),large=projected(),gap=Math.min(large?43:30,(h-6)/3),x=3,meanResidual=residuals.reduce((sum,value)=>sum+value,0)/residuals.length;
- const body=richText(x,gap-1,String.raw`Gradient \(=\) mean of the 64 residuals`,'small')+
- mathText(x,gap*2-1,`\\dfrac{r_1+\\cdots+r_{64}}{64}=${signed(meanResidual)}`,'','start',C.teal,{width:w-6});
- set(svg,body,`For the output bias φ₀, changing φ₀ shifts every prediction by the same amount. With half-MSE loss, its gradient component is the mean of all ${residuals.length} residuals: ${meanResidual}, displayed as ${signed(g.c)}. Other parameters affect predictions differently, so their components combine the residuals differently. The model is still fixed.`);
+ const body=richText(x,gap-1,String.raw`Gradient \(=\) mean prediction error`,'small')+
+ mathText(x,gap*2-1,`\\frac{1}{64}\\sum_{i\\in B_1}e_i=${signed(meanResidual)}`,'','start',C.teal,{width:w-6});
+ set(svg,body,`For the output bias φ₀, changing φ₀ shifts every prediction by the same amount. With half-MSE loss, its gradient component is the mean of all ${residuals.length} prediction errors: ${meanResidual}, displayed as ${signed(g.c)}. Other parameters affect predictions differently, so their components combine the prediction errors differently. The model is still fixed.`);
  return meanResidual;
 }
 
@@ -275,7 +275,7 @@ export function renderSGD(plot,detail,scene,p,e){
  }
  if(kind==='point-loss'){
   info={...info,...pointLoss(plot,detail,first,u),batch:1,batchFirst:first.indices[0]};
-  plotTitle='One point: prediction, target, and their difference';detailTitle='Half the squared residual is this point’s loss';
+  plotTitle='One point: prediction, target, and their difference';detailTitle='Half the squared prediction error is this point’s loss';
  }
  if(kind==='batch'||kind==='batch-loss'){
   const c=chart(plot,{xmin:-1,xmax:1,topInset:projected()?28:18}),count=kind==='batch'?Math.min(64,Math.floor(u*64)+1):1+Math.floor(clamp(u/.72)*63),normalized=u>=.84,selected=kind==='batch'?first.indices.slice(0,count):first.indices;
@@ -293,12 +293,12 @@ export function renderSGD(plot,detail,scene,p,e){
   set(plot,body,`${scene.title} ${scene.reading??scene.caption}`);
   if(kind==='batch')batchFacts(detail,first.indices,count);else info={...info,...squaredErrors(detail,residuals,count,normalized)};
   plotTitle=kind==='batch'?'Take the first 64 shuffled observations':normalized?'Divide the sum by the batch size':`Add the losses from all 64 observations · ${count} of 64`;
-  detailTitle=kind==='batch'?'Batch 1 of 32 · no replacement':normalized?'The sum becomes the mean batch loss':'Each bar is half a squared residual';
+  detailTitle=kind==='batch'?'Batch 1 of 32 · no replacement':normalized?'The sum becomes the mean batch loss':'Each bar is half a squared prediction error';
   info={...info,batch:1,selected:count,batchFirst:first.indices[0],batchHalfMSE:first.batchBefore,batchMSE:2*first.batchBefore};
  }
  if(kind==='batch-gradient'){
   gradientSpaces(plot,first.indices,residuals,first.gradient);const meanResidual=gradientFacts(detail,residuals,first.gradient);
-  plotTitle='One residual per observation; one direction per parameter';detailTitle=String.raw`Example: \(\phi_0\) changes every prediction equally`;
+  plotTitle='Boosting: prediction directions · network: parameter directions';detailTitle=String.raw`Example: \(\phi_0\) changes every prediction equally`;
   info={...info,residuals,residualCount:residuals.length,parameterCount:flatten(first.gradient).length,meanResidual,outputBiasGradient:first.gradient.c,gradientC:first.gradient.c,gradient:flatten(first.gradient),model:first.before};
  }
  if(kind==='parameter-step'){
