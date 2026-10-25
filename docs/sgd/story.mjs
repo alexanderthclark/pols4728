@@ -46,6 +46,8 @@ function draw(){pending=false;if(!experiment)return;const anchor=stage.getBoundi
  else{const tex=mobile&&scene.compact?scene.compact:scene.tex;$('equation').hidden=!tex;if($('equation').dataset.tex!==tex){$('equation').innerHTML=formula(tex);$('equation').dataset.tex=tex;}}
  // Reframe the figures while invisible, then reveal the unchanged model before updating.
  stage.style.setProperty('--gradient-handoff-opacity',gradientHandoffOpacity(scene.kind,p));
+ stage.dataset.learningFlow=String(['batch-gradient','update','next-batch','batches-two','epoch-two','train-two'].includes(scene.kind));
+ stage.dataset.learningFit=String(['update','next-batch','batches-two','epoch-two','train-two'].includes(scene.kind));
  stage.dataset.construction=String(constructionKinds.includes(scene.kind));
  stage.dataset.training=String(scene.kind.startsWith('batches')||scene.kind.startsWith('train-')||scene.kind==='epoch-two');
  stage.dataset.layout=scene.layout||'standard';

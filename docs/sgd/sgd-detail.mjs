@@ -23,6 +23,13 @@ export function chart(svg,{xmin=-1,xmax=1.2,ymin=-.25,ymax=1.4,xticks=[-1,0,1],y
  const step=()=>`<path d="M${X(xmin)},${Y(0)}H${X(0)}M${X(0)},${Y(1)}H${X(xmax)}" fill="none" stroke="${C.muted}" stroke-width="2" stroke-dasharray="6 5"/><circle cx="${X(0)}" cy="${Y(0)}" r="3" fill="${C.muted}"/><circle cx="${X(0)}" cy="${Y(1)}" r="3" fill="white" stroke="${C.muted}" stroke-width="1.5"/>`;
  return {w,h,X,Y,path,step,base,left,right,top,bottom,xmin,xmax};
 }
+// Keep one coordinate system throughout the update sequence.
+export const trainingChart=svg=>chart(svg,{xmin:-1,xmax:1});
+export function batchSelection(c,previous,current,progress){
+ return [[previous,1-progress],[current,progress]].map(([indices,opacity])=>`<g opacity="${opacity}">`+indices.map(i=>{
+  const d=data[i];return `<circle cx="${c.X(d.x)}" cy="${c.Y(d.y)}" r="3.3" fill="${C.rust}" stroke="white" stroke-width=".6"/>`;
+ }).join('')+'</g>').join('');
+}
 export function facts(svg,entries){const {w,h}=canvas(svg),large=projected();let html='';if(h<150){const cols=entries.length;entries.forEach((e,i)=>{const x=6+i*w/cols;html+=richText(x,18,e[0],'small')+richText(x,47,e[1],cols>2?'':'large','start',e[3]||'')+(e[2]&&cols<3?richText(x,68,e[2],'small'):'');});}else{const space=Math.min(large?135:100,(h-20)/entries.length);entries.forEach((e,i)=>{const y=24+i*space;html+=richText(10,y,e[0],'small')+richText(10,y+(large?44:37),e[1],'large','start',e[3]||'')+(e[2]?richText(10,y+(large?73:59),e[2],'small'):'');});}set(svg,html,entries.map(e=>e.slice(0,3).join(': ')).join('. '));}
 export function observations(c,{batch=null,residualModel=null,amount=1}={}){
  // Dense observations share one SVG path; each highlighted batch remains explicit.
@@ -199,7 +206,7 @@ function gradientSpaces(svg,indices,residuals,g){
 export function renderParameterUpdate(svg,before,after,g,progress){
  const {w,h}=canvas(svg),large=projected(),oldValues=flatten(before),values=flatten(interpolate(before,after,progress)),gradients=flatten(g);
  const rowTop=Math.min(large?54:37,h*.22),gap=Math.min(large?42:38,(h-rowTop-(large?36:9))/6),columns=large?{label:4,before:w*.32,arrow:w*.405,current:w*.66,gradient:w-4}:{label:4,before:w*.30,arrow:w*.355,current:w*.60,gradient:w-4},header=large?21:12;
- let body=text(columns.label,header,large?'Param.':'Parameter','small')+text(columns.before,header,'Before','small','end')+text(columns.current,header,'Now','small','end')+text(columns.gradient,header,'Gradient','small','end')+line(0,header+(large?9:6),w,header+(large?9:6),'#ddd');
+ let body=text(columns.label,header,'Param.','small')+text(columns.before,header,'Before','small','end')+text(columns.current,header,'Now','small','end')+text(columns.gradient,header,'Gradient','small','end')+line(0,header+(large?9:6),w,header+(large?9:6),'#ddd');
  const displayedParameters=values.map((value,i)=>({label:labels[i],before:oldValues[i],current:value,gradient:gradients[i],unchanged:gradients[i]===0}));
  displayedParameters.forEach((entry,i)=>{
   const y=rowTop+i*gap,color=entry.unchanged?C.muted:C.teal;
@@ -266,18 +273,15 @@ export function renderSGD(plot,detail,scene,p,e){
   info={...info,residuals,residualCount:residuals.length,parameterCount:flatten(first.gradient).length,meanResidual,outputBiasGradient:first.gradient.c,gradientC:first.gradient.c,gradient:flatten(first.gradient),model:first.before};
  }
  if(kind==='next-batch'){
-  const second=e.traces[2][1],g2=gradient(second.model,second.indices.map(i=>data[i])),c=chart(plot,{xmin:-1,xmax:1}),updateProgress=smooth((u-.5)/.5),model=interpolate(second.model,second.after,updateProgress);
-  let body=c.base+c.step()+observations(c)+c.path(x=>predict(second.model,x),C.gray,2,'4 4')+c.path(x=>predict(model,x),C.blue);
-  const oldAlpha=1-smooth(u/.3),newAlpha=smooth(u/.3);
-  [first.indices,second.indices].forEach((indices,j)=>{
-   const alpha=j?newAlpha:oldAlpha;
-   body+=`<g opacity="${alpha}">`;
-   indices.forEach(i=>{const d=data[i];if(j)body+=line(c.X(d.x),c.Y(d.y),c.X(d.x),c.Y(predict(model,d.x)),C.rust,'',1);body+=circle(c.X(d.x),c.Y(d.y),3.3,C.rust,'white',.7);});
-   body+='</g>';
-  });
+  const second=e.traces[2][1],g2=gradient(second.model,second.indices.map(i=>data[i])),c=trainingChart(plot),updateProgress=smooth((u-.5)/.5),model=interpolate(second.model,second.after,updateProgress),selection=smooth(u/.3);
+  let body=c.base+c.step()+observations(c)+batchSelection(c,first.indices,second.indices,selection);
+  // Prediction-error segments finish their teaching role before the next batch enters.
+  body+=`<g opacity="${selection*(1-smooth((u-.8)/.2))}">`;
+  second.indices.forEach(i=>{const d=data[i];body+=line(c.X(d.x),c.Y(d.y),c.X(d.x),c.Y(predict(model,d.x)),C.rust,'',1);});
+  body+='</g>'+c.path(x=>predict(second.model,x),C.gray,2,'4 4',1-updateProgress)+c.path(x=>predict(model,x),C.blue);
   set(plot,body,`The next 64 shuffled observations replace the first batch with no repeats. Compute their loss and gradient at the model after update 1, then apply update 2. ${updateProgress===1?'The second update is complete.':updateProgress>0?'The curve is moving through the second update.':'The weights stay fixed while the new gradient is calculated.'}`);
   nextBatchFacts(detail,second,model,u,updateProgress);
-  plotTitle=updateProgress===1?'Two batches used; two updates complete':u<.15?'Select the next 64 unused observations':u<.3?'Evaluate this batch’s loss at the updated weights':u<.5?'Find the gradient of this batch loss':'Apply the second update';detailTitle='Continue from the weights reached by the first update';
+  plotTitle=updateProgress===1?'Two batches used; two updates complete':u<.15?'Select the next 64 unused observations':u<.3?'Evaluate this batch’s loss at the updated weights':u<.5?'Find the gradient of this batch loss':'Apply the second update';detailTitle='Continue from the first update';
   info={...info,model,batch:2,batchFirst:second.indices[0],outputBias:model.c,gradientC:u<.3?null:g2.c,batchOverlap:first.indices.filter(id=>second.indices.includes(id)).length,batchHalfMSE:loss(model,second.indices.map(i=>data[i])),batchHalfMSEBefore:loss(second.model,second.indices.map(i=>data[i])),batchHalfMSEAfter:loss(second.after,second.indices.map(i=>data[i])),batchMSE:2*loss(model,second.indices.map(i=>data[i])),batchMSEBefore:2*loss(second.model,second.indices.map(i=>data[i])),batchMSEAfter:2*loss(second.after,second.indices.map(i=>data[i])),updateProgress,completedUpdates:updateProgress===1?2:1,procedureStep:u<.15?0:u<.3?1:u<.5?2:3};
  }
  return {...info,plotTitle,detailTitle};

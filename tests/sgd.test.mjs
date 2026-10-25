@@ -17,13 +17,13 @@ const close = (actual, expected, tolerance = 1e-12) =>
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} should equal ${expected}`);
 
 // Inspect the real SVG output and numerical frame without making layout claims.
-function renderScene(id, progress, width = 850, height = 430) {
+function renderScene(id, progress, width = 850, height = 430, detailHeight = 110) {
   const svg = (name, h) => ({
     id: name, innerHTML: '', attrs: {},
     getBoundingClientRect() { return { width, height: h }; },
     setAttribute(key, value) { this.attrs[key] = value; }
   });
-  const plot = svg('plot', height), detail = svg('detail', 110);
+  const plot = svg('plot', height), detail = svg('detail', detailHeight);
   const scene = scenes.find(item => item.id === id);
   assert.ok(scene, `Unknown scene ${id}`);
   const frame = render(plot, detail, scene, progress, experiment);
@@ -740,6 +740,119 @@ test('batch and epoch transitions continue from the exact preceding learned weig
   }
   assert.equal(renderScene('train-wide', 0).frame.completedUpdates, 32);
   assert.equal(renderScene('train-wide', 1).frame.completedUpdates, 9600);
+});
+
+test('the detailed update and training sequence keeps its target axes and boundary predictions fixed', () => {
+  const sequence = ['update', 'next-batch', 'batches-two', 'epoch-two', 'train-two'];
+  const originalWidth = globalThis.innerWidth, originalHeight = globalThis.innerHeight;
+  const attributes = element => Object.fromEntries([...element.matchAll(/([\w-]+)="([^"]*)"/g)].map(match => match.slice(1)));
+  const geometry = plot => {
+    const clip = plot.match(/<clipPath id="clip-plot">(<rect\b[^>]*\/>)/)?.[1];
+    assert.ok(clip, 'The prediction plot must declare its fixed plotting area');
+    const target = [...plot.matchAll(/<path\b[^>]*\/>/g)].map(match => attributes(match[0]))
+      .filter(path => path.stroke === '#606060' && path['stroke-dasharray'] === '6 5');
+    assert.equal(target.length, 1, 'One stationary target step anchors the prediction plot');
+    const endpoints = [...plot.matchAll(/<circle\b[^>]*\/>/g)].map(match => attributes(match[0]))
+      .filter(circle => circle.fill === '#606060' || circle.stroke === '#606060');
+    assert.equal(endpoints.length, 2, 'Both open and closed target endpoints remain visible');
+    return { clip: attributes(clip), target: target[0].d, endpoints };
+  };
+  const prediction = plot => {
+    const paths = [...plot.matchAll(/<path\b[^>]*\/>/g)].map(match => attributes(match[0]))
+      .filter(path => path.stroke === '#234e70' && path['clip-path'] === 'url(#clip-plot)' && !path['stroke-dasharray']);
+    assert.equal(paths.length, 1, 'A single blue curve shows the current model');
+    return paths[0].d;
+  };
+  try {
+    for (const [viewportWidth, viewportHeight, plotWidth, plotHeight] of [[320, 568, 288, 240], [1280, 720, 760, 340], [1920, 1080, 1130, 650]]) {
+      globalThis.innerWidth = viewportWidth;
+      globalThis.innerHeight = viewportHeight;
+      const reference = geometry(renderScene(sequence[0], 0, plotWidth, plotHeight).plot);
+      const seen = [];
+      for (const id of sequence) {
+        for (const progress of [0, .35, .65, 1]) {
+          const preview = renderScene(id, progress, plotWidth, plotHeight);
+          assert.deepEqual(geometry(preview.plot), reference, `${id} must not shift or rescale the target at ${viewportWidth}px`);
+          seen.push({ id, progress, preview });
+        }
+      }
+      for (let i = 1; i < sequence.length; i++) {
+        const outgoing = renderScene(sequence[i - 1], 1, plotWidth, plotHeight);
+        const incoming = renderScene(sequence[i], 0, plotWidth, plotHeight);
+        assert.deepEqual(incoming.frame.model, outgoing.frame.model, 'Each scene starts from the exact preceding learned weights');
+        assert.equal(prediction(incoming.plot), prediction(outgoing.plot), 'The visible model must not jump when the batch or epoch changes');
+        assert.equal(incoming.frame.completedUpdates, outgoing.frame.completedUpdates);
+      }
+      for (const stop of seen.reverse()) {
+        assert.deepEqual(renderScene(stop.id, stop.progress, plotWidth, plotHeight), stop.preview, 'Reverse scrolling restores the same coordinates and numerical state');
+      }
+    }
+  } finally {
+    if (originalWidth === undefined) delete globalThis.innerWidth;
+    else globalThis.innerWidth = originalWidth;
+    if (originalHeight === undefined) delete globalThis.innerHeight;
+    else globalThis.innerHeight = originalHeight;
+  }
+});
+
+test('the loss history zooms from one epoch to the full run while its axes and learned model stay fixed', async () => {
+  const originalWidth = globalThis.innerWidth, originalHeight = globalThis.innerHeight;
+  const attributes = element => Object.fromEntries([...element.matchAll(/([\w-]+)="([^"]*)"/g)].map(match => match.slice(1)));
+  const history = detail => {
+    const domain = detail.match(/>([\d,]+) updates<\/text>/)?.[1];
+    assert.ok(domain, 'The loss plot must label the visible update domain');
+    const lines = [...detail.matchAll(/<line\b[^>]*\/>/g)].map(match => attributes(match[0]));
+    const axis = lines.find(line => line.stroke === '#767676');
+    assert.ok(axis, 'The loss history keeps a visible horizontal axis');
+    const marker = [...detail.matchAll(/<circle\b[^>]*\/>/g)].map(match => attributes(match[0]))
+      .find(circle => circle.fill === '#234e70');
+    assert.ok(marker, 'The current loss must remain marked throughout the zoom');
+    return { domain: Number(domain.replaceAll(',', '')), axis, grid: lines.filter(line => line.stroke === '#eee'), marker };
+  };
+  try {
+    for (const [viewportWidth, viewportHeight, width, detailHeight] of [[320, 568, 288, 110], [1280, 720, 360, 330], [1920, 1080, 510, 650]]) {
+      globalThis.innerWidth = viewportWidth;
+      globalThis.innerHeight = viewportHeight;
+      const preview = (id, progress) => renderScene(id, progress, width, 430, detailHeight);
+      const previous = preview('batches-two', 1), start = preview('epoch-two', 0), first = history(start.detail);
+      assert.equal(first.domain, 32);
+      assert.deepEqual(first, history(previous.detail), 'The loss plot enters the reshuffle at the exact last point and scale of epoch one');
+      const baselineModel = start.frame.model, seen = [];
+      let previousDomain = first.domain, previousX = Number(first.marker.cx);
+      for (const progress of [0, .18, .24, .3, .36, .44]) {
+        const current = preview('epoch-two', progress), graph = history(current.detail);
+        assert.deepEqual(graph.axis, first.axis, 'Zooming the update domain must not move the horizontal axis');
+        assert.deepEqual(graph.grid, first.grid, 'The vertical loss scale and grid remain fixed');
+        assert.deepEqual(current.frame.model, baselineModel, 'Reshuffling and reframing the history must not train the model');
+        assert.equal(current.frame.completedUpdates, 32);
+        assert.equal(graph.marker.cy, first.marker.cy, 'The current loss stays constant while the history zooms');
+        assert.ok(graph.domain >= previousDomain && graph.domain <= 9600);
+        assert.ok(Number(graph.marker.cx) <= previousX, 'The same 32 completed updates move continuously toward the left as the domain expands');
+        close(Number(graph.marker.cx), Number(graph.axis.x1) + 32 / graph.domain * (Number(graph.axis.x2) - Number(graph.axis.x1)));
+        previousDomain = graph.domain;
+        previousX = Number(graph.marker.cx);
+        seen.push({ progress, current });
+      }
+      assert.equal(previousDomain, 9600, 'The full-run framing is established before the next update');
+      assert.ok(history(seen[2].current.detail).domain > 32 && history(seen[2].current.detail).domain < 9600, 'The history has an intermediate scale rather than a sudden jump');
+      const end = preview('epoch-two', 1), next = preview('train-two', 0);
+      assert.equal(history(end.detail).domain, 9600);
+      assert.deepEqual(history(next.detail), history(end.detail), 'The longer training sequence inherits the same loss point, axes, and full-run domain');
+      for (const stop of seen.reverse()) assert.deepEqual(preview('epoch-two', stop.progress), stop.current, 'Reversing the reshuffle restores its exact intermediate zoom');
+    }
+    const ui = await controller();
+    ui.at('epoch-two', .3);
+    const intermediate = ui.nodes.get('detail').innerHTML;
+    ui.at('epoch-two', .8);
+    ui.at('train-two', .4);
+    ui.at('epoch-two', .3);
+    assert.equal(ui.nodes.get('detail').innerHTML, intermediate, 'Actual controller scroll events restore the same intermediate loss-history framing');
+  } finally {
+    if (originalWidth === undefined) delete globalThis.innerWidth;
+    else globalThis.innerWidth = originalWidth;
+    if (originalHeight === undefined) delete globalThis.innerHeight;
+    else globalThis.innerHeight = originalHeight;
+  }
 });
 
 test('single-parameter probes compare independent nudges of the trained model with honest full-data losses', () => {
