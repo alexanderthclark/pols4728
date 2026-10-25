@@ -10,7 +10,7 @@
   byId('scroll-steps').setAttribute('aria-hidden','true');
   byId('scroll-steps').setAttribute('inert','');
   let currentIndex=0,renderSignature='',pending=0,inspectionX=null,lastFrame=null;
-  const chapter=scene=>scene.startsWith('width-')?'02 · Width and joints':scene.startsWith('sine-')||scene==='universal'?'03 · Approximation':'01 · Shallow networks';
+  const chapter=scene=>scene.startsWith('class-')?'05 · Learned representations':scene==='conflict'||scene.startsWith('sigmoid-')||scene==='representation'?'04 · Sigmoid classification':scene.startsWith('width-')?'02 · Width and joints':scene.startsWith('sine-')||scene==='universal'?'03 · Approximation':'01 · Shallow networks';
   function update(){
     pending=0;
     const mobile=window.matchMedia('(max-width: 760px)').matches;
@@ -30,8 +30,9 @@
       renderSignature=signature;
       const frame=State.frame(scene,progress);
       frame.compact=mobile;
+      frame.reducedMotion=reduced;
       const domain=frame.kind==='sine'?[0,2*Math.PI]:[-2,2];
-      if(inspectionX!==null){
+      if(inspectionX!==null&&!frame.hideInspector){
         frame.x=Math.max(domain[0],Math.min(domain[1],inspectionX));
         frame.inspectInput=true;
       }
@@ -39,13 +40,20 @@
       input.min=String(domain[0]);input.max=String(domain[1]);input.value=String(frame.x);
       input.setAttribute('aria-valuetext','x = '+frame.x.toFixed(2));
       byId('input-x-value').textContent=frame.x.toFixed(2);
+      byId('input-inspector').hidden=!!frame.hideInspector;
+      byId('stage-shell').classList.toggle('is-extension',!!frame.hideInspector);
       lastFrame=frame;
-      Views.render(byId('function-plot'),byId('network-plot'),frame);
+      if(frame.hideInspector)window.NNExtensionViews.render(byId('function-plot'),byId('network-plot'),frame);
+      else Views.render(byId('function-plot'),byId('network-plot'),frame);
+      byId('function-label').textContent=frame.kind==='sigmoid'?'Predicted probability':frame.kind==='classification'?(frame.morph===1?'Learned representation':frame.morph>0?'Changing coordinates':'Original coordinates'):'Function';
+      byId('network-label').textContent=frame.kind==='sigmoid'?(scene==='conflict'||scene==='representation'?'Representation and head':'Weighted hidden features'):frame.kind==='classification'&&(scene==='class-move'||scene==='class-head'||scene==='class-compare')?'Original coordinates':'Network';
       const sceneTitle=steps[index].querySelector('h2,h3')?.textContent||scene;
       byId('stage-part').textContent=chapter(scene);
       byId('stage-name').textContent=sceneTitle;
       byId('stage-count').textContent=String(index+1).padStart(2,'0')+' / '+steps.length;
       byId('stage-caption').textContent=frame.caption;
+      const source=byId('stage-source');source.hidden=!frame.source;
+      if(frame.source){source.href=frame.source;source.textContent=frame.sourceLabel;}
       window.NNFormula.render(byId('stage-equation'),frame);
       const activationModel=frame.model||(frame.kind==='relu'?window.NNMath.createShallow(0,[{t:0,a:1}]):null);
       const counter=byId('active-neurons');
@@ -55,8 +63,8 @@
       counter.textContent=activationModel?frame.activeCount+' of '+frame.hiddenCount+' neurons active · x = '+frame.x.toFixed(2):'';
       if(byId('previous'))byId('previous').disabled=index===0;
       if(byId('next'))byId('next').disabled=index===steps.length-1;
-      byId('return-link').hidden=scene!=='universal';
-      byId('stage-instruction').hidden=scene==='universal';
+      byId('return-link').hidden=index!==steps.length-1;
+      byId('stage-instruction').hidden=index===steps.length-1;
       if(byId('story-status')&&byId('story-status').dataset.scene!==scene){byId('story-status').dataset.scene=scene;byId('story-status').textContent=sceneTitle;}
       steps.forEach((s,i)=>{s.classList.toggle('is-active',i===index);if(i===index)s.setAttribute('aria-current','step');else s.removeAttribute('aria-current');});
       const story=byId('story');if(story)story.dataset.scene=scene;

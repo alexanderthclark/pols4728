@@ -1,12 +1,13 @@
 (function(root,factory){
   'use strict';
   const math=typeof module==='object'&&module.exports?require('./math.js'):root.NNMath;
-  const api=factory(math);
+  const data=typeof module==='object'&&module.exports?require('./classification-data.js'):root.NNClassificationData;
+  const api=factory(math,data);
   if(typeof module==='object'&&module.exports)module.exports=api;
   if(root)root.NNStoryState=api;
-})(typeof window!=='undefined'?window:globalThis,function(M){
+})(typeof window!=='undefined'?window:globalThis,function(M,D){
   'use strict';
-  const scenes=['affine','relu','hinge','hill-rise','hill-fall','hill-flat','shallow','width-one','width-two','width-three','width-many','sine-coarse','sine-zoom','sine-joint','sine-wide','universal'];
+  const scenes=['affine','relu','hinge','hill-rise','hill-fall','hill-flat','shallow','width-one','width-two','width-three','width-many','sine-coarse','sine-zoom','sine-joint','sine-wide','universal','conflict','sigmoid-one','sigmoid-two','sigmoid-four','representation','class-input','class-trace','class-move','class-head','class-compare'];
   const widthUnits=[{t:-1.5,a:.8},{t:-.9,a:-1.2},{t:-.3,a:1.1},{t:.3,a:-1},{t:.9,a:.9},{t:1.5,a:-.6}];
   const initial=[0,.9,1.95,3.05,4.2,5.35,M.TAU];
   const coarse=M.modelFromKnots(initial);
@@ -14,6 +15,7 @@
   const jointX=firstError.x;
   const caches=[{knots:initial,model:coarse,error:firstError.error}];
   const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+  const ease=x=>{const t=clamp(x,0,1);return t*t*(3-2*t);};
   const f=(x,n=3)=>Number(x.toFixed(n)).toString();
   function approximation(width){
     const desired=clamp(Math.round(width),6,32);
@@ -34,6 +36,57 @@
   function frame(scene,progress){
     if(!scenes.includes(scene))throw new RangeError('Unknown story scene: '+scene);
     const p=clamp(Number(progress)||0,0,1),frame={scene,progress:p,kind:'shallow',x:.4,components:false,showNetwork:true,caption:'',equation:''};
+    if(scene==='conflict'||scene.startsWith('sigmoid-')||scene==='representation'){
+      frame.kind='sigmoid';frame.hideInspector=true;frame.sigmoidBias=-3;frame.sigmoidSlope=30;
+      frame.sigmoidThresholds=[.2,.4,.6,.8];
+      frame.sigmoidWeights=scene==='sigmoid-two'?[6,-6*ease((p-.12)/.7)]:scene==='sigmoid-four'?[6,-6,6*ease(p*2),-6*ease(p*2-1)]:scene==='representation'?[6,-6,6,-6]:[6];
+      frame.width=frame.sigmoidWeights.length;
+      frame.source='https://gking.harvard.edu/files/improv.pdf';
+      frame.sourceLabel='Beck, King & Zeng (2000), Equation 3';
+      if(scene==='conflict'){
+        frame.equation=String.raw`h_j(\mathbf x)=\sigma(\theta_{j0}+\boldsymbol\theta_j^\top\mathbf x),\quad \widehat p(\mathbf x)=\sigma\!\left(\phi_0+\sum_{j=1}^m\phi_jh_j(\mathbf x)\right)`;
+        frame.equationCompact=String.raw`\begin{gathered}h_j=\sigma(\theta_{j0}+\boldsymbol\theta_j^\top\mathbf x)\\\widehat p=\sigma\!\left(\phi_0+\sum_{j=1}^m\phi_jh_j\right)\end{gathered}`;
+        frame.caption='Beck, King, and Zeng used a shallow sigmoid network to model international conflict. The curves here are constructed illustrations with one input.';
+      }else if(scene==='representation'){
+        frame.equation=String.raw`\underbrace{\mathbf h(\mathbf x)}_{\text{representation}}\quad\longrightarrow\quad\underbrace{\sigma(\phi_0+\boldsymbol\phi^\top\mathbf h(\mathbf x))}_{\text{classification head}}`;
+        frame.equationCompact=String.raw`\begin{gathered}\mathbf h(\mathbf x):\ \text{representation}\\\widehat p=\underbrace{\sigma(\phi_0+\boldsymbol\phi^\top\mathbf h)}_{\text{classification head}}\end{gathered}`;
+        frame.caption='With the representation fixed, the head is logistic regression on its features. Fitting learns the representation and head together; our next example uses fitted weights.';
+      }else{
+        frame.equation=String.raw`h_j(x)=\sigma\!\left(30(x-t_j)\right),\quad\widehat p(x)=\sigma\!\left(-3+\sum_{j=1}^{`+frame.width+String.raw`}\phi_jh_j(x)\right)`;
+        frame.equationCompact=String.raw`\begin{gathered}h_j(x)=\sigma\!\left(30(x-t_j)\right)\\\widehat p(x)=\sigma\!\left(-3+\sum_{j=1}^{`+frame.width+String.raw`}\phi_jh_j(x)\right)\end{gathered}`;
+        frame.caption=scene==='sigmoid-one'?'One hidden sigmoid followed by an output sigmoid is monotone, but is not ordinary logit. The dashed reference matches its midpoint and slope.':scene==='sigmoid-two'?'The second neuron has a negative output weight. It pulls the probability down after the first neuron raises it.':'Add a positive contribution and then a negative one. Four neurons can produce two peaks; the earlier neurons stay fixed.';
+      }
+      return frame;
+    }
+    if(scene.startsWith('class-')){
+      frame.kind='classification';frame.hideInspector=true;
+      frame.morph=scene==='class-move'?ease((p-.12)/.72):scene==='class-head'||scene==='class-compare'?1:0;
+      frame.boundaryOpacity=scene==='class-head'?ease((p-.15)/.65):scene==='class-compare'?1:0;
+      frame.traceIndex=Math.floor(D.inputs.length/8);
+      frame.equation=String.raw`h_j(\mathbf x)=\operatorname{ReLU}(\theta_{j0}+\theta_{j1}x_1+\theta_{j2}x_2),\quad j=1,2`;
+      frame.equationCompact=String.raw`\begin{gathered}h_j=\operatorname{ReLU}(\theta_{j0}+\theta_{j1}x_1+\theta_{j2}x_2)\\j=1,2\end{gathered}`;
+      if(scene==='class-input')frame.caption='A fitted binary example: two inputs, two ReLU hidden neurons, and one sigmoid output. No straight line separates these two curved groups in the input space.';
+      if(scene==='class-trace'){
+        frame.equation=String.raw`(x_1,x_2)\longmapsto\mathbf h(\mathbf x)=(h_1(\mathbf x),h_2(\mathbf x))`;
+        frame.equationCompact=String.raw`(x_1,x_2)\longmapsto(h_1,h_2)`;
+        frame.caption='Follow the marked observation through the fitted hidden neurons. Their two activations give it two new coordinates.';
+      }
+      if(scene==='class-move'){
+        frame.equation=String.raw`\mathbf x\longmapsto\mathbf h(\mathbf x)`;
+        frame.caption='The same observations move to their actual hidden activations. This transition changes the coordinate display; the fitted weights stay fixed. The boundary is still hidden.';
+      }
+      if(scene==='class-head'){
+        frame.equation=String.raw`\widehat p=\sigma(\phi_0+\phi_1h_1+\phi_2h_2),\quad\widehat p=\tfrac12\iff\phi_0+\phi_1h_1+\phi_2h_2=0`;
+        frame.equationCompact=String.raw`\begin{gathered}\widehat p=\sigma(\phi_0+\phi_1h_1+\phi_2h_2)\\\widehat p=\tfrac12\iff\phi_0+\phi_1h_1+\phi_2h_2=0\end{gathered}`;
+        frame.caption='Now reveal the fitted head: one straight line separates the learned features. At the 0.5 cutoff it correctly classifies all '+D.inputs.length+' training observations.';
+      }
+      if(scene==='class-compare'){
+        frame.equation=String.raw`\mathbf x\ \xrightarrow{\text{learned representation}}\ \mathbf h(\mathbf x)\ \xrightarrow{\text{logistic head}}\ \widehat p`;
+        frame.equationCompact=String.raw`\mathbf x\longrightarrow\mathbf h(\mathbf x)\longrightarrow\widehat p`;
+        frame.caption='One fitted classifier, two coordinate systems: a nonlinear boundary in the inputs and a straight boundary in the representation. Perfect training classification does not guarantee perfect predictions on new observations.';
+      }
+      return frame;
+    }
     const hill=()=>M.createShallow(0,[{t:-1,a:1},{t:0,a:-2},{t:1,a:1}]);
     switch(scene){
       case'affine':
