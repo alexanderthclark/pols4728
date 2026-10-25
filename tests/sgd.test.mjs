@@ -35,7 +35,8 @@ test('the static opening introduces the noiseless training data before construct
   assert.equal(scenes[0].id, 'step-target');
   assert.equal(scenes[0].kind, 'step-target');
   assert.equal(scenes[1].id, 'two-hinges');
-  assert.equal(scenes[2].id, 'pair');
+  assert.equal(scenes[2].id, 'sgd-overview');
+  assert.equal(scenes[3].id, 'pair');
   const opening = renderScene('step-target', 0);
   const staticFrame = ({ progress, ...frame }) => frame;
   assert.equal(opening.detail, '', 'The data-generating process comes before any network diagram');
@@ -89,7 +90,53 @@ test('the static opening introduces the noiseless training data before construct
   ui.emit('document:keydown', { key: 'ArrowRight', target: { tagName: 'DIV' }, preventDefault() {} });
   assert.equal(ui.nodes.get('stage').dataset.scene, 'two-hinges');
   ui.emit('document:keydown', { key: 'ArrowRight', target: { tagName: 'DIV' }, preventDefault() {} });
+  assert.equal(ui.nodes.get('stage').dataset.scene, 'sgd-overview');
+  ui.emit('document:keydown', { key: 'ArrowRight', target: { tagName: 'DIV' }, preventDefault() {} });
   assert.equal(ui.nodes.get('stage').dataset.scene, 'pair');
+});
+
+test('the SGD overview introduces five ordered steps before construction without advancing training', async () => {
+  const scene = scenes[2], original = JSON.stringify(experiment);
+  assert.equal(scene.id, 'sgd-overview');
+  assert.equal(scene.list.length, 5);
+  assert.match(scene.settings, /batch size/i);
+  assert.match(scene.settings, /epochs/i);
+  assert.match(scene.settings, /regularization/i);
+  assert.match(scene.settings, /early stopping/i);
+  assert.match(scene.settings, /validation/i);
+  assert.doesNotMatch([...scene.list, scene.settings].join(' '), /sklearn|scikit-learn/i);
+  const html = readFileSync(new URL('../docs/sgd/index.html', import.meta.url), 'utf8');
+  const blocks = [...html.matchAll(/<ol class="sgd-overview-steps">([\s\S]*?)<\/ol><p class="sgd-overview-settings">([\s\S]*?)<\/p>/g)];
+  assert.equal(blocks.length, 3, 'The live slide, no-JavaScript fallback, and reading view all include the overview');
+  for (const block of blocks) {
+    assert.deepEqual([...block[1].matchAll(/<li>([\s\S]*?)<\/li>/g)].map(match => match[1]), scene.list.map(renderText));
+    assert.equal(block[2], renderText(scene.settings));
+  }
+  for (const progress of [0, .5, 1, .5, 0]) {
+    const preview = renderScene(scene.id, progress);
+    assert.equal(preview.frame.completedUpdates, 0);
+    assert.equal(preview.plot, '');
+    assert.equal(preview.detail, '');
+  }
+  const ui = await controller(), panel = ui.nodes.get('overview'), stage = ui.nodes.get('stage');
+  for (const reduced of [false, true]) {
+    ui.reduce(reduced);
+    ui.at('two-hinges', .5);
+    assert.equal(panel.hidden, true);
+    for (const [key, id] of [['ArrowRight', 'sgd-overview'], ['ArrowRight', 'pair'], ['ArrowLeft', 'sgd-overview'], ['ArrowLeft', 'two-hinges']]) {
+      ui.emit('document:keydown', { key, target: { tagName: 'DIV' }, preventDefault() {} });
+      assert.equal(stage.dataset.scene, id);
+      assert.equal(panel.hidden, id !== 'sgd-overview');
+      assert.equal(ui.nodes.get('epoch-counter').hidden, true);
+      if (id === 'sgd-overview') {
+        assert.equal(stage.dataset.layout, 'sgd-overview');
+        assert.equal(JSON.parse(stage.dataset.frame).completedUpdates, 0);
+        assert.equal(ui.nodes.get('plot').innerHTML, '');
+        assert.equal(ui.nodes.get('detail').innerHTML, '');
+      } else assert.ok(ui.nodes.get('plot').innerHTML, 'Leaving the overview restores the neighboring figure');
+    }
+  }
+  assert.equal(JSON.stringify(experiment), original, 'An introductory overview never changes the stored experiment');
 });
 
 test('the width-two approximation steepens reversibly while the target step stays fixed', async () => {
@@ -1160,9 +1207,9 @@ test('reduced motion and keyboard navigation retain complete losses and epoch bo
 test('the batch gradient leads directly into the same simultaneous update and reverses with keyboard and reduced motion', async () => {
   const first = experiment.firstUpdate, original = JSON.stringify(experiment);
   const index = scenes.findIndex(scene => scene.id === 'batch-gradient');
-  assert.equal(index, 14);
+  assert.equal(index, 15);
   assert.equal(scenes[index + 1].id, 'update');
-  assert.equal(scenes.length, 25);
+  assert.equal(scenes.length, 26);
   assert.equal(scenes.some(scene => ['batch-gradient-comparison', 'parameter-step', 'finish'].includes(scene.id)), false);
   assert.equal(scenes.at(-1).id, 'compare');
   const supplied = renderScene('batch-gradient', 1).frame;

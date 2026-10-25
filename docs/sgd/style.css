@@ -348,3 +348,25 @@ body[data-chapter="full"] .stage .visuals{max-height:none}
  /* Reuse the reserved caption space for the seven-row table, below the fixed plot. */
  .stage[data-scene="parameter-probe"] .detail{margin-bottom:-54px}
 }
+
+/* A short, fully visible roadmap before the detailed construction. */
+.sgd-overview[hidden]{display:none}
+.sgd-overview{width:100%;max-width:1100px;margin:clamp(1rem,5svh,4rem) 0 auto}
+.stage[data-layout="sgd-overview"] .stage-body{justify-content:center}
+.stage[data-layout="sgd-overview"] .visuals{display:none}
+.sgd-overview-steps{margin:0;padding-left:1.7em;line-height:1.4}
+.sgd-overview-steps li+li{margin-top:.65em}
+.sgd-overview-steps li::marker{color:var(--blue)}
+.sgd-overview-settings{margin-top:1.4em;border-top:1px solid #ddd;padding-top:1em;line-height:1.5}
+.sgd-overview .sgd-overview-steps{font-size:clamp(1.35rem,2.5vw,2.2rem)}
+.sgd-overview .sgd-overview-settings{font-size:clamp(1rem,1.4vw,1.35rem)}
+@media screen and (max-width:700px){
+ .sgd-overview .sgd-overview-steps{font-size:1.15rem}
+ .sgd-overview .sgd-overview-settings{font-size:.95rem}
+}
+@media screen and (max-width:700px) and (max-height:700px){
+ .stage[data-layout="sgd-overview"] #heading{min-height:0;font-size:1.35rem;margin:.55rem 0}
+ .sgd-overview .sgd-overview-steps{font-size:1rem;line-height:1.35}
+ .sgd-overview-steps li+li{margin-top:.5em}
+ .sgd-overview .sgd-overview-settings{font-size:.85rem;line-height:1.4;margin-top:1em;padding-top:.8em}
+}

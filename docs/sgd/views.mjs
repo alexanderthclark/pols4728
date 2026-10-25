@@ -31,6 +31,7 @@ function comparisonKey(c){
 }
 export function render(plot,detail,scene,p,e){
  const u=clamp((p-.12)/.7),kind=scene.kind;
+ if(kind==='sgd-overview'){set(plot,'','');set(detail,'','');return {kind,progress:p,completedUpdates:0,plotTitle:'',detailTitle:''};}
  if(kind==='step-target')return renderStepTarget(plot,detail,scene,p);
  if(kind==='two-hinges')return renderTwoHinges(plot,detail,scene,p);
  if(constructionKinds.includes(kind))return renderConstruction(plot,detail,kind,p);

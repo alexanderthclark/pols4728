@@ -57,6 +57,7 @@ function draw(){pending=false;if(!experiment)return;const anchor=stage.getBoundi
  stage.dataset.construction=String(constructionKinds.includes(scene.kind));
  stage.dataset.training=String(scene.kind.startsWith('batches')||scene.kind.startsWith('train-')||scene.kind==='epoch-two');
  stage.dataset.layout=scene.layout||'standard';
+ $('overview').hidden=scene.kind!=='sgd-overview';
  stage.dataset.copy=String(Boolean(scene.caption||scene.note));
  const counter=$('epoch-counter'),showCounter=document.body.dataset.chapter!=='batches'&&scene.kind!=='sgd-opening'&&(scene.part.startsWith('02')||['initialize-wide','batches-wide','train-wide'].includes(scene.kind));
  if(showCounter&&counter.hidden)renderEpochCounter(counter,epochState(0,experiment.config.epochs,experiment.config.batchesPerEpoch));
