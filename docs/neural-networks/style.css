@@ -57,6 +57,7 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
 .stage-equation .katex-display { margin: 0; max-width: 100%; text-align: left; }
 .stage-equation .katex-display > .katex { text-align: left; }
 .figure-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: .8rem; align-items: stretch; flex: 1; min-height: 0; max-height: 510px; }
+.figure-grid[hidden] { display: none; }
 .figure-grid figure { min-width: 0; min-height: 0; display: flex; flex-direction: column; position: relative; }
 .figure-grid figcaption { padding: .35rem 0 .55rem; border-top: 1px solid var(--light-rule); color: var(--muted); font: .66rem/1.3 var(--sans); }
 .network-figure figcaption { display: flex; align-items: baseline; flex-wrap: wrap; gap: .25rem .6rem; }
@@ -263,6 +264,22 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+/* The historical application opens with the paper's model as the visual. */
+.story.is-enhanced .stage-shell.is-equation-only .stage-equation {
+  flex: 1;
+  min-height: 0;
+  justify-content: center;
+  padding: 1rem 0;
+  font-size: clamp(1rem, 1.75vw, 1.5rem);
+}
+.stage-shell.is-equation-only .stage-equation .katex-display,
+.stage-shell.is-equation-only .stage-equation .katex-display > .katex { text-align: center; }
+.stage-shell.is-equation-only .stage-caption { align-self: center; text-align: center; }
+.stage-shell.is-equation-only .stage-source { align-self: center; }
+@media (max-width: 760px) {
+  .story.is-enhanced .stage-shell.is-equation-only .stage-equation { font-size: clamp(.95rem, 4.2vw, 1.15rem); }
 }
 
 @media print {

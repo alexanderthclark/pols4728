@@ -192,6 +192,16 @@ function mount({ mobile = false, reduced = false } = {}) {
       emit(documentEvents, 'keydown', event); flush(); return event;
     },
     checkSvg(label) {
+      if (this.frame().equationOnly) {
+        assert.equal(this.frame().scene, 'conflict', `${label}: only the historical equation replaces both plots`);
+        assert.equal(document.getElementById('figure-grid').hidden, true, `${label}: the figure area is hidden`);
+        for (const id of ['function-plot', 'network-plot']) {
+          assert.equal(document.getElementById(id).innerHTML, '', `${label}: ${id} has no stale diagram`);
+        }
+        assertTypesetEquation(this);
+        return;
+      }
+      assert.equal(document.getElementById('figure-grid').hidden, false, `${label}: plotted scenes retain their figure area`);
       for (const id of ['function-plot', 'network-plot']) {
         const node = document.getElementById(id), markup = node.innerHTML;
         assert(markup.includes('<path') || markup.includes('<circle'), `${label}: ${id} draws geometry`);
@@ -772,6 +782,58 @@ test('the universal-approximation assumptions remain present before the classifi
     assert.equal(app.element('stage-instruction').hidden, false, 'The reader can continue into classification');
     app.click('next');
     assert.equal(app.frame().scene, 'conflict');
+  }
+});
+
+test('the historical application centers named-expit Equation 3 and restores plots in either direction', () => {
+  for (const mobile of [false, true]) for (const reduced of [false, true]) {
+    const app = mount({ mobile, reduced });
+    app.scroll('universal', .5);
+    app.checkSvg('before historical equation');
+    app.click('next');
+    const historical = app.frame();
+    assert.equal(historical.scene, 'conflict');
+    assert.equal(historical.equationOnly, true);
+    assert.equal(app.element('figure-grid').hidden, true);
+    assert(app.element('stage-shell').classes.has('is-equation-only'));
+    assert.equal(app.element('input-inspector').hidden, true);
+    const equationMarkup = assertTypesetEquation(app, historical);
+    const equationSource = app.element('stage-equation').attrs['data-tex'];
+    assert(equationSource.includes(String.raw`Y_i`) && equationSource.includes(String.raw`\operatorname{Bernoulli}(\pi_i)`),
+      'Equation 3 retains the Bernoulli outcome model');
+    assert(equationSource.includes(String.raw`\operatorname{expit}`), 'The logistic function has a named operator');
+    assert(equationSource.includes(String.raw`\operatorname{expit}(z)=\frac{1}{1+e^{-z}}`),
+      'The named operator is defined as the inverse logit');
+    assert(!equationSource.includes(String.raw`\sigma`), 'The historical equation no longer uses sigma notation');
+    assert(equationSource.includes(String.raw`\gamma_0`), 'The output intercept remains explicit');
+    if (mobile) {
+      assert(equationSource.includes(String.raw`\sum_{j=1}^{M}\gamma_j\operatorname{expit}(X_i\beta_{(j)})`),
+        'The compact equation includes every indexed hidden neuron');
+    } else {
+      for (const index of ['1', '2', 'M']) {
+        assert(equationSource.includes(String.raw`\gamma_` + index + String.raw`\operatorname{expit}(X_i\beta_{(` + index + ')})'),
+          `The expanded equation includes the paper's hidden term ${index}`);
+      }
+    }
+    app.checkSvg('historical equation');
+
+    app.click('next');
+    assert.equal(app.frame().scene, 'sigmoid-one');
+    assert.equal(app.element('figure-grid').hidden, false);
+    assert(!app.element('stage-shell').classes.has('is-equation-only'));
+    app.checkSvg('after historical equation');
+    assert.notEqual(assertTypesetEquation(app), equationMarkup, 'The next scene displays its own equation');
+
+    app.click('previous');
+    assert.equal(app.frame().scene, 'conflict');
+    assert.equal(assertTypesetEquation(app), equationMarkup, 'Reverse navigation restores Equation 3 exactly');
+    assert(app.element('stage-shell').classes.has('is-equation-only'));
+    app.checkSvg('reversed historical equation');
+    app.click('previous');
+    assert.equal(app.frame().scene, 'universal');
+    assert(!app.element('stage-shell').classes.has('is-equation-only'));
+    assert.equal(app.element('input-inspector').hidden, false);
+    app.checkSvg('reversed before historical equation');
   }
 });
 

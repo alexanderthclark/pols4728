@@ -93,7 +93,11 @@ linear outputs remain continuous and piecewise linear.
 
 ## Classification and representations
 
-Part 4 cites [Beck, King, and Zeng (2000), Equation 3](https://gking.harvard.edu/files/improv.pdf).
+Part 4 opens with a centered typesetting of [Beck, King, and Zeng (2000), Equation 3](https://gking.harvard.edu/files/improv.pdf#page=5), with no diagrams in that opening scene.
+It preserves the paper's Bernoulli model and parameter notation, spelling out
+the logistic function as `expit` rather than using sigma. Desktop shows the
+expanded terms; phones use the equivalent summation. The following scenes
+return to the course notation and constructed plots.
 The hidden features are sigmoids of affine input scores, and the output is a
 sigmoid of an affine combination of those features. An ordinary logit model is
 one sigmoid output directly on the inputs, with no hidden layer. One sigmoid

@@ -14,7 +14,9 @@ Preserve the five-part sequence:
 3. Universal approximation by widening the same shallow architecture, using
    a piecewise linear sine approximation and local joint insertion.
 4. Beck, King, and Zeng (2000), Equation 3: sigmoid hidden activations and a
-   sigmoid classification head, illustrated with fixed one-input constructions.
+   sigmoid classification head. Open with a centered equation in the paper's
+   notation, using the function name expit and no diagrams. Follow with fixed
+   one-input constructions in the course notation.
 5. A fitted binary network: move the same observations into their actual two
    hidden activations before revealing the fitted head's straight boundary.
 

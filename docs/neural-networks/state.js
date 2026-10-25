@@ -44,9 +44,11 @@
       frame.source='https://gking.harvard.edu/files/improv.pdf';
       frame.sourceLabel='Beck, King & Zeng (2000), Equation 3';
       if(scene==='conflict'){
-        frame.equation=String.raw`h_j(\mathbf x)=\sigma(\theta_{j0}+\boldsymbol\theta_j^\top\mathbf x),\quad \widehat p(\mathbf x)=\sigma\!\left(\phi_0+\sum_{j=1}^m\phi_jh_j(\mathbf x)\right)`;
-        frame.equationCompact=String.raw`\begin{gathered}h_j=\sigma(\theta_{j0}+\boldsymbol\theta_j^\top\mathbf x)\\\widehat p=\sigma\!\left(\phi_0+\sum_{j=1}^m\phi_jh_j\right)\end{gathered}`;
-        frame.caption='Beck, King, and Zeng used a shallow sigmoid network to model international conflict. The curves here are constructed illustrations with one input.';
+        frame.equationOnly=true;
+        frame.equation=String.raw`\begin{gathered}\begin{aligned}Y_i&\sim\operatorname{Bernoulli}(\pi_i),\\[1.2em]\pi_i&=\operatorname{expit}\!\Bigl[\gamma_0+\gamma_1\operatorname{expit}(X_i\beta_{(1)})\\&\qquad+\gamma_2\operatorname{expit}(X_i\beta_{(2)})+\cdots+\gamma_M\operatorname{expit}(X_i\beta_{(M)})\Bigr].\end{aligned}\\[2em]\operatorname{expit}(z)=\frac{1}{1+e^{-z}}\end{gathered}`;
+        frame.equationCompact=String.raw`\begin{gathered}Y_i\sim\operatorname{Bernoulli}(\pi_i),\\[1.2em]\pi_i=\operatorname{expit}\!\Bigl[\gamma_0+\sum_{j=1}^{M}\gamma_j\operatorname{expit}(X_i\beta_{(j)})\Bigr].\\[2em]\operatorname{expit}(z)=\frac{1}{1+e^{-z}}\end{gathered}`;
+        frame.caption='Each inner expit is a hidden neuron. Their weighted sum passes through one final expit to give the probability of international conflict.';
+        frame.source+='#page=5';
       }else if(scene==='representation'){
         frame.equation=String.raw`\underbrace{\mathbf h(\mathbf x)}_{\text{representation}}\quad\longrightarrow\quad\underbrace{\sigma(\phi_0+\boldsymbol\phi^\top\mathbf h(\mathbf x))}_{\text{classification head}}`;
         frame.equationCompact=String.raw`\begin{gathered}\mathbf h(\mathbf x):\ \text{representation}\\\widehat p=\underbrace{\sigma(\phi_0+\boldsymbol\phi^\top\mathbf h)}_{\text{classification head}}\end{gathered}`;

@@ -42,8 +42,12 @@
       byId('input-x-value').textContent=frame.x.toFixed(2);
       byId('input-inspector').hidden=!!frame.hideInspector;
       byId('stage-shell').classList.toggle('is-extension',!!frame.hideInspector);
+      byId('stage-shell').classList.toggle('is-equation-only',!!frame.equationOnly);
+      byId('stage-shell').setAttribute('aria-label',frame.equationOnly?'Historical neural-network model':'Function and neural network diagrams');
+      byId('figure-grid').hidden=!!frame.equationOnly;
       lastFrame=frame;
-      if(frame.hideInspector)window.NNExtensionViews.render(byId('function-plot'),byId('network-plot'),frame);
+      if(frame.equationOnly){byId('function-plot').innerHTML='';byId('network-plot').innerHTML='';}
+      else if(frame.hideInspector)window.NNExtensionViews.render(byId('function-plot'),byId('network-plot'),frame);
       else Views.render(byId('function-plot'),byId('network-plot'),frame);
       byId('function-label').textContent=frame.kind==='sigmoid'?'Predicted probability':frame.kind==='classification'?(frame.morph===1?'Learned representation':frame.morph>0?'Changing coordinates':'Original coordinates'):'Function';
       byId('network-label').textContent=frame.kind==='sigmoid'?(scene==='conflict'||scene==='representation'?'Representation and head':'Weighted hidden features'):frame.kind==='classification'&&(scene==='class-move'||scene==='class-head'||scene==='class-compare')?'Original coordinates':'Network';
