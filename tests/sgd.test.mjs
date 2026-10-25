@@ -107,11 +107,26 @@ test('the SGD overview introduces five ordered steps before construction without
   assert.doesNotMatch([...scene.list, scene.settings].join(' '), /sklearn|scikit-learn/i);
   const html = readFileSync(new URL('../docs/sgd/index.html', import.meta.url), 'utf8');
   const blocks = [...html.matchAll(/<ol class="sgd-overview-steps">([\s\S]*?)<\/ol><p class="sgd-overview-settings">([\s\S]*?)<\/p>/g)];
-  assert.equal(blocks.length, 3, 'The live slide, no-JavaScript fallback, and reading view all include the overview');
+  assert.equal(blocks.length, 2, 'The no-JavaScript fallback and reading view preserve the complete five-step explanation');
   for (const block of blocks) {
     assert.deepEqual([...block[1].matchAll(/<li>([\s\S]*?)<\/li>/g)].map(match => match[1]), scene.list.map(renderText));
     assert.equal(block[2], renderText(scene.settings));
   }
+  const visualLists = [...html.matchAll(/<ol class="sgd-loop"[^>]*>([\s\S]*?)<\/ol>/g)];
+  assert.equal(visualLists.length, 1, 'The live introduction presents one ordered visual process');
+  const steps = [...visualLists[0][1].matchAll(/<li class="sgd-loop-([^"]+)">([\s\S]*?)<\/li>/g)];
+  assert.deepEqual(steps.map(step => step[1]), ['initialize', 'loss', 'gradient', 'update', 'repeat']);
+  const step = name => steps.find(item => item[1] === name)[2];
+  assert.match(step('initialize'), /Initialize once\./);
+  assert.match(step('loss'), /Select a small batch from the data to calculate one loss value\./);
+  assert.match(step('gradient'), /One vector\./);
+  assert.match(step('gradient'), /One component per parameter\./);
+  assert.match(step('gradient'), /<annotation encoding="application\/x-tex">g_B=\\nabla_\{\(\\theta,\\phi\)\}L_B<\/annotation>/);
+  assert.match(step('update'), /<annotation encoding="application\/x-tex">[\s\S]*\\leftarrow[\s\S]*-\\alpha g_B[\s\S]*<\/annotation>/);
+  assert.match(step('update'), /sets the step size\./);
+  assert.match(step('repeat'), /Repeat with a new batch/);
+  assert.match(step('repeat'), /Keep the updated parameters\./);
+  assert.doesNotMatch([...scene.list, scene.reading, visualLists[0][1]].join(' '), /gradient for each parameter/i);
   for (const progress of [0, .5, 1, .5, 0]) {
     const preview = renderScene(scene.id, progress);
     assert.equal(preview.frame.completedUpdates, 0);
