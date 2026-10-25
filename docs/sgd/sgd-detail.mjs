@@ -174,17 +174,16 @@ function squaredErrors(svg,residuals,amount,normalized){
 }
 
 function gradientSpaces(svg,indices,residuals,g){
- const {w,h}=canvas(svg),large=projected(),phone=globalThis.innerWidth<=700,diagramHeight=h-(phone?58:0),values=flatten(g),left=large?36:27,right=w-9,dx=(right-left)/values.length;
- const residualTop=large?38:27,residualBottom=diagramHeight*.30,residualMid=(residualTop+residualBottom)/2,residualScale=(residualBottom-residualTop)*.45/Math.max(...residuals.map(Math.abs)),rx=(right-left)/residuals.length;
- const parameterTop=diagramHeight*.59,parameterBottom=diagramHeight-(large?43:31),parameterMid=(parameterTop+parameterBottom)/2,parameterScale=(parameterBottom-parameterTop)*(large?.30:.34)/Math.max(.08,...values.map(Math.abs));
- let body='<g data-space="observations">'+text(3,large?20:13,'64 prediction errors','small','start',C.rust)+line(left,residualMid,right,residualMid,'#c5b5ae')+text(left-8,residualMid+3,'0','small','end');
- body+=text(right,large?20:13,'Parameters fixed','small','end');
+ const {w,h}=canvas(svg),large=projected(),diagramHeight=h,values=flatten(g),left=large?36:27,right=w-9,dx=(right-left)/values.length;
+ const residualTop=large?54:38,residualBottom=diagramHeight*.35,residualMid=(residualTop+residualBottom)/2,residualScale=(residualBottom-residualTop)*.45/Math.max(...residuals.map(Math.abs)),rx=(right-left)/residuals.length;
+ const parameterTop=diagramHeight*.63,parameterBottom=diagramHeight-(large?43:31),parameterMid=(parameterTop+parameterBottom)/2,parameterScale=(parameterBottom-parameterTop)*(large?.30:.34)/Math.max(.08,...values.map(Math.abs));
+ let body='<g data-space="observations">'+text(w/2,large?29:23,'64 prediction errors','gradient-panel-title','middle',C.rust)+line(left,residualMid,right,residualMid,'#c5b5ae')+text(left-8,residualMid+3,'0','small','end');
  residuals.forEach((v,i)=>{
   const x=left+rx*(i+.5),y=residualMid-v*residualScale;
   body+=`<g data-observation="${indices[i]}" data-batch-position="${i+1}" data-residual="${v}">`+line(x,residualMid,x,y,C.rust,'',Math.max(1,rx*.62))+'</g>';
  });
  body+=text(left,residualBottom+(large?22:14),'1','small')+text((left+right)/2,residualBottom+(large?22:14),'Position in this batch','small','middle')+text(right,residualBottom+(large?22:14),'64','small','end')+'</g>';
- body+='<g data-space="parameters">'+richText(3,diagramHeight*.54,'7 directions: 4 hidden + 3 output','small','start',C.blue,{width:w-6})+line(left,parameterMid,right,parameterMid,'#a7afb3')+text(left-8,parameterMid+3,'0','small','end');
+ body+='<g data-space="parameters">'+text(w/2,diagramHeight*.54,'7 parameter directions','gradient-panel-title','middle',C.blue)+line(left,parameterMid,right,parameterMid,'#a7afb3')+text(left-8,parameterMid+3,'0','small','end');
  values.forEach((v,i)=>{
   const x=left+dx*(i+.5),y=parameterMid-v*parameterScale,color=i===values.length-1?C.teal:C.blue;
   body+=`<g data-parameter="${labels[i]}" data-gradient="${v}">`;
@@ -193,20 +192,7 @@ function gradientSpaces(svg,indices,residuals,g){
   body+=text(x,v>=0?y-9:y+(large?20:13),fmt(v),'small','middle',color)+mathText(x,diagramHeight-7,mathLabels[i],'','middle',color)+'</g>';
  });
  body+='</g>';
- if(phone){
-  body+=line(3,h-53,right,h-53,'#e7e7e7');
-  body+=richText(3,h-36,String.raw`\(\phi_0\) shifts every prediction equally`,'small','start',C.teal);
-  body+=mathText(3,h-16,`\\frac{\\partial L_{B_1}}{\\partial\\phi_0}=\\text{mean error}=${signed(g.c)}`,'small','start',C.teal,{width:w-6});
- }
  set(svg,body,`Two different spaces. The upper plot contains ${residuals.length} signed prediction errors, one for each observation in batch order: prediction minus target. The lower plot contains ${values.length} gradient components, one for each model parameter: four hidden-layer θ parameters and three output-layer φ parameters. A component tells how the batch loss changes when that parameter changes slightly, with the others held fixed. Each component combines errors across the batch according to that parameter's effect on the predictions; prediction errors are not assigned one-to-one to parameters. ${labels.map((label,i)=>label+' '+values[i].toFixed(4)).join(', ')}. All seven components are calculated at the same current model. No parameters have been updated yet.`);
-}
-
-function gradientFacts(svg,residuals,g){
- const {w,h}=canvas(svg),large=projected(),gap=Math.min(large?43:30,(h-6)/3),x=3,meanResidual=residuals.reduce((sum,value)=>sum+value,0)/residuals.length;
- const body=richText(x,gap-1,String.raw`Gradient \(=\) mean prediction error`,'small')+
- mathText(x,gap*2-1,`\\frac{1}{64}\\sum_{i\\in B_1}e_i=${signed(meanResidual)}`,'','start',C.teal,{width:w-6});
- set(svg,body,`For the output bias φ₀, changing φ₀ shifts every prediction by the same amount. With half-MSE loss, its gradient component is the mean of all ${residuals.length} prediction errors: ${meanResidual}, displayed as ${signed(g.c)}. Other parameters affect predictions differently, so their components combine the prediction errors differently. The model is still fixed.`);
- return meanResidual;
 }
 
 // All seven entries share the curve's interpolation progress. The scalar output-bias
@@ -297,8 +283,8 @@ export function renderSGD(plot,detail,scene,p,e){
   info={...info,batch:1,selected:count,batchFirst:first.indices[0],batchHalfMSE:first.batchBefore,batchMSE:2*first.batchBefore};
  }
  if(kind==='batch-gradient'){
-  gradientSpaces(plot,first.indices,residuals,first.gradient);const meanResidual=gradientFacts(detail,residuals,first.gradient);
-  plotTitle='Boosting: prediction directions · network: parameter directions';detailTitle=String.raw`Example: \(\phi_0\) changes every prediction equally`;
+  gradientSpaces(plot,first.indices,residuals,first.gradient);const meanResidual=residuals.reduce((sum,value)=>sum+value,0)/residuals.length;
+  set(detail,'','');plotTitle='';detailTitle='';
   info={...info,residuals,residualCount:residuals.length,parameterCount:flatten(first.gradient).length,meanResidual,outputBiasGradient:first.gradient.c,gradientC:first.gradient.c,gradient:flatten(first.gradient),model:first.before};
  }
  if(kind==='parameter-step'){

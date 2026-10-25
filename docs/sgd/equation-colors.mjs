@@ -29,7 +29,7 @@ export function colorEquation(kind,tex){
   case 'batch':return paint('rust',tex);
   case 'point-loss':return terms(tex,[[String.raw`\ell_i(\theta,\phi)`,'rust'],[String.raw`\hat f(x_i;\theta,\phi)`,'blue'],[String.raw`\hat f(x_i)`,'blue'],[String.raw`y_i`,'rust'],[String.raw`B_1`,'rust']]);
   case 'batch-loss':return terms(tex,[[String.raw`S_{B_1}(\theta,\phi)`,'rust'],[String.raw`\ell_i(\theta,\phi)`,'rust'],[String.raw`L_{B_1}(\theta,\phi)`,'blue']]);
-  case 'batch-gradient':return paint('blue',terms(tex,[[String.raw`e_{B_1}\in\mathbb R^{64}`,'rust']]));
+  case 'batch-gradient':return paint('blue',terms(tex,[[String.raw`\phi_0`,'teal']]));
   case 'batch-gradient-comparison':return terms(tex,[[String.raw`g_B`,'rust'],[String.raw`L_B`,'rust'],[String.raw`g_{\mathcal D}`,'blue'],[String.raw`L_{\mathcal D}`,'blue']]);
   case 'initialize':case 'update':case 'next-batch':case 'parameter-probe':return paint('blue',tex);
   case 'train-two':return terms(tex,[['m=2','blue']]);

@@ -153,10 +153,22 @@
  .stage[data-scene="update"] .visuals{grid-template-rows:minmax(0,1fr) 142px;min-height:0}
 }
 
-/* On phones, the main gradient diagram also carries the output-bias example. */
+/* The expanded network equation anchors one full-width gradient diagram. */
+.stage[data-scene="batch-gradient"] .visuals{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr);min-height:0;max-height:none}
+.stage[data-scene="batch-gradient"] .detail,.stage[data-scene="batch-gradient"] #plot-label{display:none}
+svg .gradient-panel-title{font-size:20px}
+@media screen and (min-width:701px){
+ .stage[data-scene="batch-gradient"] #equation{min-height:100px;font-size:clamp(1rem,1.8vw,1.8rem)}
+}
+@media screen and (min-width:1000px){
+ svg .gradient-panel-title{font-size:24px}
+}
+@media screen and (min-width:1600px) and (min-height:801px){
+ svg .gradient-panel-title{font-size:28px}
+}
 @media screen and (max-width:700px){
- .stage[data-scene="batch-gradient"] .visuals{grid-template-rows:minmax(0,1fr);min-height:0;max-height:none}
- .stage[data-scene="batch-gradient"] .detail{display:none}
+ svg .gradient-panel-title{font-size:16px}
+ .stage[data-scene="batch-gradient"] #equation{min-height:96px;font-size:.8rem}
 }
 
 /* The partition is one full-width diagram; the next scenes introduce a batch. */
