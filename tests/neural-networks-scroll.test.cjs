@@ -738,8 +738,11 @@ test('the single stage retains the scene caption and accessible scene status wit
     for (const scene of sceneNames) {
       const frame = app.scroll(scene, .5);
       assert.equal(caption.textContent, frame.caption, `The ${scene} stage retains its current short caption`);
-      assert(caption.textContent.trim().length > 0);
-      assert(!caption.hidden, 'The stage caption remains visible');
+      const intro = app.element('stage-intro');
+      assert.equal(intro.textContent, frame.intro || '');
+      assert.equal(intro.hidden, !frame.intro, 'The introduction appears only in its scene');
+      assert.equal(caption.hidden, !frame.caption, 'Only nonempty captions appear below the visual');
+      assert((intro.textContent || caption.textContent).trim().length > 0);
       assert.notEqual(caption.attrs['aria-hidden'], 'true');
       assert(!('inert' in caption.attrs), 'The stage caption remains accessible');
       assert.equal(status.dataset.scene, scene);

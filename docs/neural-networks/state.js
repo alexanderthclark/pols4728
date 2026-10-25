@@ -47,7 +47,7 @@
         frame.equationOnly=true;
         frame.equation=String.raw`\begin{gathered}\begin{aligned}Y_i&\sim\operatorname{Bernoulli}(\pi_i),\\[1.2em]\pi_i&=\operatorname{sigmoid}\!\Bigl[\gamma_0+\gamma_1\operatorname{sigmoid}(X_i\beta_{(1)})\\&\qquad+\gamma_2\operatorname{sigmoid}(X_i\beta_{(2)})+\cdots+\gamma_M\operatorname{sigmoid}(X_i\beta_{(M)})\Bigr].\end{aligned}\\[2em]\operatorname{sigmoid}(z)=\frac{1}{1+e^{-z}}\end{gathered}`;
         frame.equationCompact=String.raw`\begin{gathered}Y_i\sim\operatorname{Bernoulli}(\pi_i),\\[1.2em]\pi_i=\operatorname{sigmoid}\!\Bigl[\gamma_0+\sum_{j=1}^{M}\gamma_j\operatorname{sigmoid}(X_i\beta_{(j)})\Bigr].\\[2em]\operatorname{sigmoid}(z)=\frac{1}{1+e^{-z}}\end{gathered}`;
-        frame.caption='Beck, King, and Zeng train a neural network with a sigmoid activation function to predict international conflict.';
+        frame.intro='Beck, King, and Zeng train a neural network with a sigmoid activation function to predict international conflict.';
         frame.source+='#page=5';
       }else if(scene==='sigmoid-one'){
         frame.equationOnly=true;frame.equationComparison=true;

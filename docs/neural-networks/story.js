@@ -58,7 +58,10 @@
       byId('stage-part').textContent=chapter(scene);
       byId('stage-name').textContent=sceneTitle;
       byId('stage-count').textContent=String(index+1).padStart(2,'0')+' / '+steps.length;
+      byId('stage-intro').textContent=frame.intro||'';
+      byId('stage-intro').hidden=!frame.intro;
       byId('stage-caption').textContent=frame.caption;
+      byId('stage-caption').hidden=!frame.caption;
       const source=byId('stage-source');source.hidden=!frame.source;
       if(frame.source){source.href=frame.source;source.textContent=frame.sourceLabel;}
       window.NNFormula.render(byId('stage-equation'),frame);

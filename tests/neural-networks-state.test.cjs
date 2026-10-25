@@ -50,7 +50,7 @@ test('the scroll story preserves the original 16 scenes and adds ten classificat
       assert.equal(typeof frame.x, 'number');
       assert.ok(!Object.hasOwn(frame, 'depth'));
       assert.ok(frame.progress >= 0 && frame.progress <= 1);
-      assert.ok(frame.caption.length > 0, `${scene} needs a caption`);
+      assert.ok((frame.intro || frame.caption).length > 0, `${scene} needs an introduction or caption`);
       assert.ok(frame.equation.length > 0, `${scene} needs an equation`);
       allNumbersFinite(frame);
       if (frame.model) {

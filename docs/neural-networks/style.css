@@ -267,6 +267,15 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
 }
 
 /* The historical application opens with the paper's model as the visual. */
+.stage-intro {
+  flex-shrink: 0;
+  align-self: center;
+  max-width: 52rem;
+  margin: clamp(1.5rem, 4vh, 3rem) auto 0;
+  color: var(--ink);
+  font: 400 clamp(1.1rem, 2vw, 1.6rem)/1.5 var(--sans);
+  text-align: center;
+}
 .story.is-enhanced .stage-shell.is-equation-only .stage-equation {
   flex: 1;
   min-height: 0;
@@ -278,7 +287,7 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
 .stage-shell.is-equation-only .stage-equation .katex-display > .katex { text-align: center; }
 .stage-shell.is-equation-only .stage-caption { align-self: center; text-align: center; }
 .stage-shell.is-equation-only .stage-source { align-self: center; }
-.stage-equation[hidden], .model-comparison[hidden] { display: none !important; }
+.stage-intro[hidden], .stage-caption[hidden], .stage-equation[hidden], .model-comparison[hidden] { display: none !important; }
 .model-comparison {
   flex: 1;
   display: grid;
