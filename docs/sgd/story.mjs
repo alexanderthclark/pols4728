@@ -35,10 +35,17 @@ function constructionFormula(scene,p,mobile){
  if($('equation').dataset.tex!==key){$('equation').innerHTML=`<div class="construction-equations" aria-hidden="true"><div class="construction-equation">${formula(expression)}</div><div class="finite-data-equation">${formula(dataTex)}</div></div><div class="sr-only">${formula(accessibleTex)}</div>`;$('equation').dataset.tex=key;}
  $('equation').hidden=false;
 }
+function gradientHandoffOpacity(kind,p){
+ if(media.matches)return 1;
+ const t=Math.max(0,Math.min(1,kind==='batch-gradient'?(1-p)/.1:kind==='update'?p/.1:1));
+ return t*t*(3-2*t);
+}
 function draw(){pending=false;if(!experiment)return;const anchor=stage.getBoundingClientRect().top;let selected=0;steps.forEach((s,i)=>{if(s.getBoundingClientRect().top<=anchor+.5)selected=i;});index=selected;const rect=steps[index].getBoundingClientRect(),scene=scenes[index];let p=Math.max(0,Math.min(1,(anchor-rect.top)/rect.height));p=Math.round(p*200)/200;if(media.matches)p=1;const mobile=innerWidth<=700,signature=[index,p,mobile,innerWidth,innerHeight].join(':');if(signature===last)return;last=signature;
  if(stage.dataset.scene!==scene.id){$('heading').innerHTML=renderText(scene.title);$('caption').innerHTML=renderText(scene.caption);$('note').innerHTML=renderText(scene.note);$('part').textContent=scene.part;$('count').textContent=`${String(index+1).padStart(2,'0')} / ${scenes.length}`;$('status').textContent=plainText(scene.title);stage.dataset.scene=scene.id;}
  if(scene.layout==='construction-flow')constructionFormula(scene,p,mobile);
  else{const tex=mobile&&scene.compact?scene.compact:scene.tex;$('equation').hidden=!tex;if($('equation').dataset.tex!==tex){$('equation').innerHTML=formula(tex);$('equation').dataset.tex=tex;}}
+ // Reframe the figures while invisible, then reveal the unchanged model before updating.
+ stage.style.setProperty('--gradient-handoff-opacity',gradientHandoffOpacity(scene.kind,p));
  stage.dataset.construction=String(constructionKinds.includes(scene.kind));
  stage.dataset.training=String(scene.kind.startsWith('batches')||scene.kind.startsWith('train-')||scene.kind==='epoch-two');
  stage.dataset.layout=scene.layout||'standard';

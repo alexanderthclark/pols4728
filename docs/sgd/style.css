@@ -319,10 +319,5 @@ body[data-chapter="full"] .stage .visuals{max-height:none}
  .stage[data-construction="true"] .visuals{grid-template-rows:minmax(0,1fr) 144px;min-height:0}
 }
 
-/* Keep the fixed-model batch comparison legible beside the unchanged fit. */
-.stage[data-layout="gradient-comparison"] .visuals{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);min-height:0}
-@media screen and (max-width:700px){
- .stage[data-layout="gradient-comparison"] .visuals{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 130px;min-height:0;gap:.4rem}
- .stage[data-layout="gradient-comparison"] #equation{min-height:56px;font-size:.69rem}
- .stage[data-layout="gradient-comparison"] #heading{min-height:0}
-}
+/* Fade between the gradient and update layouts before any weights move. */
+.stage:is([data-scene="batch-gradient"],[data-scene="update"]) :is(#equation,.visuals,.copy){opacity:var(--gradient-handoff-opacity,1)}

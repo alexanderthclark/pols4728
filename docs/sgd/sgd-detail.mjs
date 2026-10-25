@@ -41,7 +41,7 @@ export function gradientBars(svg,g1,g2=null){const {w,h}=canvas(svg),vals=g1.uni
 }
 export function interpolate(a,b,t){return {c:a.c+(b.c-a.c)*t,units:a.units.map((v,i)=>Object.fromEntries(['w','b','a'].map(k=>[k,v[k]+(b.units[i][k]-v[k])*t])))};}
 
-export const sgdKinds=['sgd-plan','partition','shuffle','batch','point-loss','batch-loss','batch-gradient','parameter-step','next-batch'];
+export const sgdKinds=['sgd-plan','partition','shuffle','batch','point-loss','batch-loss','batch-gradient','next-batch'];
 const labels=['θ₁₁','θ₁₀','φ₁','θ₂₁','θ₂₀','φ₂','φ₀'];
 const mathLabels=['\\theta_{11}','\\theta_{10}','\\phi_1','\\theta_{21}','\\theta_{20}','\\phi_2','\\phi_0'];
 const flatten=g=>g.units.flatMap(v=>[v.w,v.b,v.a]).concat(g.c);
@@ -195,8 +195,7 @@ function gradientSpaces(svg,indices,residuals,g){
  set(svg,body,`Two different spaces. The upper plot contains ${residuals.length} signed prediction errors, one for each observation in batch order: prediction minus target. The lower plot contains ${values.length} gradient components, one for each model parameter: four hidden-layer θ parameters and three output-layer φ parameters. A component tells how the batch loss changes when that parameter changes slightly, with the others held fixed. Each component combines errors across the batch according to that parameter's effect on the predictions; prediction errors are not assigned one-to-one to parameters. ${labels.map((label,i)=>label+' '+values[i].toFixed(4)).join(', ')}. All seven components are calculated at the same current model. No parameters have been updated yet.`);
 }
 
-// All seven entries share the curve's interpolation progress. The scalar output-bias
-// illustration never changes the model; this table is the actual vector step.
+// All seven entries use the gradient just shown and share the curve's update progress.
 export function renderParameterUpdate(svg,before,after,g,progress){
  const {w,h}=canvas(svg),large=projected(),oldValues=flatten(before),values=flatten(interpolate(before,after,progress)),gradients=flatten(g);
  const rowTop=Math.min(large?54:37,h*.22),gap=Math.min(large?42:38,(h-rowTop-(large?36:9))/6),columns=large?{label:4,before:w*.32,arrow:w*.405,current:w*.66,gradient:w-4}:{label:4,before:w*.30,arrow:w*.355,current:w*.60,gradient:w-4},header=large?21:12;
@@ -212,27 +211,6 @@ export function renderParameterUpdate(svg,before,after,g,progress){
  return displayedParameters;
 }
 
-function biasStep(svg,first,eta,u){
- const {w,h}=canvas(svg),large=projected(),left=large?38:28,right=w-(large?27:16),y=Math.max(large?85:55,h*.57),X=v=>left+(v-.49)/.03*(right-left),c=lerp(first.before.c,first.after.c,u);
- let body=richText(left,large?22:15,`Gradient: \\(${signed(first.gradient.c)}\\)`,'small')+mathText(right,large?22:15,`\\alpha=${eta}`,'small','end');
- body+=line(left,y,right,y,'#a2aaaf');
- for(const tick of [.49,.50,.51,.52])body+=line(X(tick),y-3,X(tick),y+4,'#a2aaaf')+text(X(tick),y+(large?30:20),tick.toFixed(2),'small','middle');
- body+=line(X(.5),y-14,X(.5),y+5,C.blue,'3 3')+circle(X(.5),y,4,'white',C.blue,2);
- if(u>.015)body+=arrow(X(.5),y-12,X(c),y-12,C.teal,2);
- body+=circle(X(c),y,5,C.teal)+text(X(c),y-26,c.toFixed(4),'','middle',C.teal);
- body+=text(left,h-3,'One component of the same update.','small');
- set(svg,body,`A magnified illustration of one component of the same seven-parameter update: output bias φ₀ would increase from ${first.before.c.toFixed(4)} to ${c.toFixed(4)}. The arithmetic is minus learning rate ${eta} times gradient ${signed(first.gradient.c)}. The model has not changed and no update has been counted yet; all seven parameters will take their step together in the next scene.`);
- return c;
-}
-
-function stepArithmetic(svg,first,eta){
- const {w,h}=canvas(svg),large=projected(),change=first.after.c-first.before.c,space=Math.min(large?42:28,(h-8)/3),x=3;
- const body=richText(x,space-2,String.raw`Change \(=-\) learning rate \(\times\) gradient`,'small','start','',{width:w-6})+
- mathText(x,space*2-2,`=-${eta}\\times(${signed(first.gradient.c)})=${signed(change)}`,'', 'start',C.teal,{width:w-6})+
- mathText(x,space*3-2,`\\phi_0:\ ${first.before.c.toFixed(4)}+${change.toFixed(4)}=${first.after.c.toFixed(4)}`,'','start',C.teal,{width:w-6});
- set(svg,body,`This is a preview of one component, not a separate model update. Using unrounded values: new output bias φ₀ equals ${first.before.c} minus ${eta} times ${first.gradient.c}, giving ${first.after.c}. Displayed values are rounded.`);
-}
-
 function nextBatchFacts(svg,second,model,u,updateProgress){
  const {w,h}=canvas(svg),large=projected(),top=Math.min(large?25:21,h*.26),dx=w/32,done=updateProgress===1,batchLoss=loss(second.model,second.indices.map(i=>data[i]));
  let body=text(0,top,'Batch 2 of 32','')+text(w,top,done?'Update 2 complete':u<.15?'Take batch 2':u<.3?'Compute its loss':u<.5?'Find its gradient':'Apply update 2','small','end',done?C.teal:C.rust);
@@ -243,7 +221,7 @@ function nextBatchFacts(svg,second,model,u,updateProgress){
 }
 
 export function renderSGD(plot,detail,scene,p,e){
- const kind=scene.kind,u=clamp((p-.10)/.72),first=e.firstUpdate,rows=first.indices.map(i=>data[i]),residuals=rows.map(d=>predict(first.before,d.x)-d.y),eta=e.traces[2][0].eta;
+ const kind=scene.kind,u=clamp((p-.10)/.72),first=e.firstUpdate,rows=first.indices.map(i=>data[i]),residuals=rows.map(d=>predict(first.before,d.x)-d.y);
  let plotTitle='One minibatch, one update',detailTitle='The batching procedure',info={kind,progress:p,batchSize:64,completedUpdates:0};
  if(kind==='sgd-plan'){
   const active=Math.min(3,Math.floor(u*4));planDiagram(plot,e,active);stepRail(detail,active);info.activeStep=active;
@@ -286,11 +264,6 @@ export function renderSGD(plot,detail,scene,p,e){
   gradientSpaces(plot,first.indices,residuals,first.gradient);const meanResidual=residuals.reduce((sum,value)=>sum+value,0)/residuals.length;
   set(detail,'','');plotTitle='';detailTitle='';
   info={...info,residuals,residualCount:residuals.length,parameterCount:flatten(first.gradient).length,meanResidual,outputBiasGradient:first.gradient.c,gradientC:first.gradient.c,gradient:flatten(first.gradient),model:first.before};
- }
- if(kind==='parameter-step'){
-  const c=biasStep(plot,first,eta,u);stepArithmetic(detail,first,eta);
-  plotTitle=String.raw`Zoom in on \(\phi_0\): one component of the same update`;detailTitle='Preview the arithmetic; then apply all seven together';
-  info={...info,eta,gradientC:first.gradient.c,outputBias:first.before.c,previewOutputBias:c,deltaC:first.after.c-first.before.c,model:first.before,illustrationOnly:true};
  }
  if(kind==='next-batch'){
   const second=e.traces[2][1],g2=gradient(second.model,second.indices.map(i=>data[i])),c=chart(plot,{xmin:-1,xmax:1}),updateProgress=smooth((u-.5)/.5),model=interpolate(second.model,second.after,updateProgress);

@@ -2,7 +2,6 @@ import {foundationKinds,renderFoundation} from './batch-epoch.mjs';
 import {richText} from './math.mjs';
 import {constructionKinds,renderConstruction} from './construction.mjs';
 import {renderInitialNetwork} from './network.mjs';
-import {renderGradientComparison} from './batch-gradient-comparison.mjs';
 import {renderParameterProbe} from './parameter-probe.mjs';
 import {renderStepTarget} from './step-target.mjs';
 import {renderTwoHinges} from './two-hinges.mjs';
@@ -37,7 +36,6 @@ export function render(plot,detail,scene,p,e){
  if(constructionKinds.includes(kind))return renderConstruction(plot,detail,kind,p);
  if(foundationKinds.includes(kind))return renderFoundation(plot,detail,scene,p,e);
  if(sgdKinds.includes(kind))return renderSGD(plot,detail,scene,p,e);
- if(kind==='batch-gradient-comparison')return renderGradientComparison(plot,detail,scene,p,e);
  if(kind==='parameter-probe')return renderParameterProbe(plot,detail,scene,p,e);
  const comparison=kind==='compare',c=chart(plot,{xmin:-1,xmax:1,topInset:comparison?(globalThis.innerWidth>=1000?52:36):kind==='update'?(globalThis.innerWidth>=1000?28:18):0});
  let body=c.base+c.step(),detailTitle='Construction',plotTitle='Function',info={kind,progress:p};
