@@ -370,3 +370,13 @@ body[data-chapter="full"] .stage .visuals{max-height:none}
  .sgd-overview-steps li+li{margin-top:.5em}
  .sgd-overview .sgd-overview-settings{font-size:.85rem;line-height:1.4;margin-top:1em;padding-top:.8em}
 }
+
+/* Keep the opening words selectable and give the downhill scene room to breathe. */
+.title-scene--sgd{min-height:100svh;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(1.5rem,3vw,3rem)}
+.title-scene--sgd h1{margin-bottom:1rem}
+.title-subtitle{font-size:clamp(1.2rem,1.8vw,1.8rem);line-height:1.4;color:var(--muted)}
+.title-scene--sgd img{max-height:650px}
+@media screen and (max-width:700px){
+ .title-scene--sgd{grid-template-columns:1fr;align-content:center;gap:clamp(.9rem,3svh,2rem);padding:clamp(1.2rem,4svh,2rem) 6vw}
+ .title-scene--sgd img{max-width:520px;max-height:min(350px,40svh)}
+}
