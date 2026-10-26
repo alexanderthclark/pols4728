@@ -91,4 +91,4 @@ assert.ok(moduleSources.includes('exploration.js'), 'The appended exploration.js
 assert.equal(moduleSources.filter(src => src === 'app.js').length, 1);
 assert.equal(moduleSources.filter(src => src === 'exploration.js').length, 1);
 
-console.log('Original-preservation checks passed: only the explicitly recorded neural-network clarification changes differ from the original. Original diagrams, calculations, styling, artwork, hero and afterword are preserved, and the exploration still follows them.');
+console.log('Original-preservation checks passed: only the explicitly recorded clarity changes differ from the original. Unrelated original diagrams, calculations, styling, artwork, hero and afterword are preserved, and the exploration still follows them.');

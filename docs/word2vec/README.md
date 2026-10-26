@@ -103,3 +103,11 @@ scroll restores the earlier calculation. The original matrix walkthrough
 then develops those operations. The retained representation is the whole input
 embedding table, with one fixed vector per vocabulary word. The network
 derivation by Xin Rong is linked in the final references.
+
+## Explicit training pairs
+
+The training-pair scene shows two rows with input x and target y, retaining the
+word notation x = w_c and y = w_o. Scrolling duplicates the center-word input and
+selects the support–reform example. The following network equation explicitly
+identifies d_c as the one-hot encoding of x. Other walkthrough scenes remain
+unchanged, and the homepage remains unlisted.

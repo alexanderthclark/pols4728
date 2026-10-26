@@ -1,5 +1,5 @@
 {
-  "purpose": "User-requested neural-network clarity review, October 26, 2026. Only these explicit original-source changes are permitted by the preservation check.",
+  "purpose": "User-requested neural-network and training-pair clarity revisions. Only these explicit original-source changes are permitted by the preservation check.",
   "replacements": [
     {
       "file": "app.js",
@@ -54,6 +54,18 @@
       "before": "function init(){\n",
       "after": "function init(){\n // Preserve the original scroll distance per scene when adding the network overview.\n story.style.height=`${100+1300*scenes.length/15}svh`;\n",
       "reason": "Preserve the original scroll distance per scene after inserting the overview."
+    },
+    {
+      "file": "app.js",
+      "before": "  {chapter:'01 \u00b7 The prediction task',title:'One sentence gives us training pairs.',eq:String.raw`(w_c,w_o)=(\\text{support},\\text{reform})`,caption:'With \u201csupport\u201d in the center, each nearby word becomes a separate target.',detail:'We will follow the pair (support, reform) through the model.',alt:'Support forms two training pairs, one with voters and one with reform. The reform pair is selected.'},",
+      "after": "  {chapter:'01 \u00b7 The prediction task',title:'One input word gives two training examples.',eq:String.raw`x=w_c,\\qquad y=w_o`,caption:'Each nearby word gives a separate input\u2013target example.',detail:'Both examples have the same input. We will follow the pair with target \u201creform.\u201d',alt:'Two separate training examples in columns labelled input x and target y: support to voters, and support to reform. The second row is highlighted for the walkthrough.'},",
+      "reason": "Show both training examples with the familiar input x and target y roles."
+    },
+    {
+      "file": "app.js",
+      "before": " if(i===1){\n  const p=ease(t);s+=text('voters support reform',mid,50,19,MUTED);\n  const cx=n?110:340,ox=n?294:665,cy=n?215:200;\n  s+=chip('support',cx,cy,{color:BLUE,w:n?130:190});\n  for(let j=0;j<2;j++){let y=cy+(j?1:-1)*mix(0,70,p);s+=line(cx+(n?70:100),cy,ox-(n?72:102),y,j===1?RUST:RULE,2,true);s+=chip(j?'reform':'voters',ox,y,{color:j?RUST:MUTED,w:n?130:190,fill:j?'#faeee8':'white'})}\n  s+=group(text('Follow this pair',ox,cy+120,14,RUST),p);\n }\n",
+      "after": " if(i===1){\n  const p=ease(t*1.7),selected=ease((t-.62)/.38);\n  const cx=n?104:340,ox=n?294:665,cy=225,half=n?65:95;\n  s+=text('voters support reform',mid,45,19,MUTED);\n  s+=m(String.raw`\\text{input }x`,cx,92,200,38,n?22:25,BLUE);\n  s+=m(String.raw`\\text{target }y`,ox,92,200,38,n?22:25,RUST);\n  s+=text('center word',cx,119,13,MUTED)+text('context word',ox,119,13,MUTED);\n  s+=group(rect(n?23:225,250,n?354:555,70,RUST,'#fff8f4',3,1.5),selected);\n  for(let j=0;j<2;j++){\n   const y=j?285:170,inputY=mix(cy,y,p);\n   s+=line(cx+half+8,inputY,ox-half-10,y,j?RUST:MUTED,1.5,true);\n   if(j===0||p>0)s+=chip('support',cx,inputY,{color:BLUE,w:2*half});\n   s+=chip(j?'reform':'voters',ox,y,{color:j?RUST:INK,w:2*half,fill:j?'#faeee8':'white'});\n  }\n  s+=group(m(String.raw`(x,y)=(\\text{support},\\text{reform})`,mid,366,n?390:650,45,n?21:27,RUST)+text('Follow this example',mid,404,14,RUST),selected);\n }\n",
+      "reason": "Duplicate the common input into two explicit rows, then highlight the selected example with scrolling."
     }
   ]
 }

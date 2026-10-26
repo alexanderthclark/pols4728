@@ -6,7 +6,7 @@ const story=document.querySelector('#story'), svg=document.querySelector('#diagr
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches||new URLSearchParams(location.search).get('motion')==='reduce';
 const scenes=[
   {chapter:'01 · The prediction task',title:'Learn from the words around a word.',eq:String.raw`\text{center word}\;\longrightarrow\;\text{context words}`,caption:'Skip-gram word2vec predicts nearby words from a center word.',detail:'A window of one word on either side supplies the context here.¹',alt:'The sentence voters support reform; support is the center and the other two words are its context.'},
-  {chapter:'01 · The prediction task',title:'One sentence gives us training pairs.',eq:String.raw`(w_c,w_o)=(\text{support},\text{reform})`,caption:'With “support” in the center, each nearby word becomes a separate target.',detail:'We will follow the pair (support, reform) through the model.',alt:'Support forms two training pairs, one with voters and one with reform. The reform pair is selected.'},
+  {chapter:'01 · The prediction task',title:'One input word gives two training examples.',eq:String.raw`x=w_c,\qquad y=w_o`,caption:'Each nearby word gives a separate input–target example.',detail:'Both examples have the same input. We will follow the pair with target “reform.”',alt:'Two separate training examples in columns labelled input x and target y: support to voters, and support to reform. The second row is highlighted for the walkthrough.'},
   {chapter:'02 · The input matrix',title:'A one-hot vector identifies the word.',eq:String.raw`d_c\in\{0,1\}^{|V|},\qquad |V|=6`,caption:'Only the position for “support” is 1. Every other position is 0.',detail:'This vector records identity. It does not yet express similarity.',alt:'The six-word vocabulary is aligned with a one-hot column; only the second entry, support, is one.'},
   {chapter:'02 · The input matrix',title:'The input matrix stores one vector per word.',eq:String.raw`W_{\mathrm{in}}\in\mathbb{R}^{k\times|V|},\qquad k=2`,caption:'Each word labels a column. Each column contains two trainable coordinates.',detail:'Six words, two coordinates: 2 rows and 6 columns. These are illustrative starting weights.',alt:'W in is a two by six matrix with vocabulary words labeling columns. Support is the second column.'},
   {chapter:'02 · The input matrix',title:'Multiplication becomes a lookup.',eq:String.raw`h_c=W_{\mathrm{in}}d_c`,caption:'The 1 selects the “support” column. That column is the input embedding.',detail:'The hidden layer uses the identity (linear) activation: it passes these coordinates through unchanged.',alt:'The support column, 0.6 and 0.4, moves out of W in as the vector h c.'},
@@ -82,11 +82,20 @@ function render(i,t,n){
   s+=text('a context window of one word on each side',mid,n?365:360,13,MUTED);
  }
  if(i===1){
-  const p=ease(t);s+=text('voters support reform',mid,50,19,MUTED);
-  const cx=n?110:340,ox=n?294:665,cy=n?215:200;
-  s+=chip('support',cx,cy,{color:BLUE,w:n?130:190});
-  for(let j=0;j<2;j++){let y=cy+(j?1:-1)*mix(0,70,p);s+=line(cx+(n?70:100),cy,ox-(n?72:102),y,j===1?RUST:RULE,2,true);s+=chip(j?'reform':'voters',ox,y,{color:j?RUST:MUTED,w:n?130:190,fill:j?'#faeee8':'white'})}
-  s+=group(text('Follow this pair',ox,cy+120,14,RUST),p);
+  const p=ease(t*1.7),selected=ease((t-.62)/.38);
+  const cx=n?104:340,ox=n?294:665,cy=225,half=n?65:95;
+  s+=text('voters support reform',mid,45,19,MUTED);
+  s+=m(String.raw`\text{input }x`,cx,92,200,38,n?22:25,BLUE);
+  s+=m(String.raw`\text{target }y`,ox,92,200,38,n?22:25,RUST);
+  s+=text('center word',cx,119,13,MUTED)+text('context word',ox,119,13,MUTED);
+  s+=group(rect(n?23:225,250,n?354:555,70,RUST,'#fff8f4',3,1.5),selected);
+  for(let j=0;j<2;j++){
+   const y=j?285:170,inputY=mix(cy,y,p);
+   s+=line(cx+half+8,inputY,ox-half-10,y,j?RUST:MUTED,1.5,true);
+   if(j===0||p>0)s+=chip('support',cx,inputY,{color:BLUE,w:2*half});
+   s+=chip(j?'reform':'voters',ox,y,{color:j?RUST:INK,w:2*half,fill:j?'#faeee8':'white'});
+  }
+  s+=group(m(String.raw`(x,y)=(\text{support},\text{reform})`,mid,366,n?390:650,45,n?21:27,RUST)+text('Follow this example',mid,404,14,RUST),selected);
  }
  if(i===2){
   const x=n?185:500, y=n?100:65,ch=n?42:43;
