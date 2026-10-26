@@ -51,13 +51,18 @@
         frame.source+='#page=5';
       }else if(scene==='sigmoid-one'){
         frame.equationOnly=true;frame.equationComparison=true;
+        frame.comparisonOpen=ease((p-.2)/.15);
+        frame.comparisonMix=ease((p-.6)/.18);
+        frame.comparisonPlotOpacity=frame.comparisonOpen;
+        frame.comparisonPlots=frame.comparisonOpen>0;
+        frame.comparisonPhase=p<.2?'equations':p<.69?'logistic':'neural';
         frame.logisticEquation=String.raw`\begin{gathered}Y_i\sim\operatorname{Bernoulli}(\pi_i)\\[1.2em]\pi_i=\operatorname{sigmoid}(X_i\beta)\end{gathered}`;
         frame.neuralEquation=String.raw`\begin{gathered}Y_i\sim\operatorname{Bernoulli}(\pi_i)\\[1.2em]\pi_i=\operatorname{sigmoid}\!\Bigl[\gamma_0+\sum_{j=1}^{M}\gamma_j\operatorname{sigmoid}(X_i\beta_{(j)})\Bigr]\end{gathered}`;
         frame.logisticEquationCompact=frame.logisticEquation;
         frame.neuralEquationCompact=frame.neuralEquation;
         frame.equation=frame.neuralEquation;
         frame.equationCompact=frame.neuralEquationCompact;
-        frame.caption='The network combines several sigmoid features before the final sigmoid. This lets it express more complicated shapes.';
+        frame.caption=frame.comparisonPhase==='equations'?'The network combines sigmoid features before the final sigmoid. Scroll to compare the shapes these models can express.':frame.comparisonPhase==='logistic'?'Logistic regression: a monotone probability curve and a straight classification boundary. The weights are illustrative; the observations stay fixed.':'A sigmoid network can rise and fall, and enclose a group with a curved boundary. The weights are illustrative; the observations stay fixed.';
         frame.source+='#page=5';
       }else if(scene==='representation'){
         frame.equation=String.raw`\underbrace{\mathbf h(\mathbf x)}_{\text{representation}}\quad\longrightarrow\quad\underbrace{\sigma(\phi_0+\boldsymbol\phi^\top\mathbf h(\mathbf x))}_{\text{classification head}}`;

@@ -233,6 +233,7 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
 }
 .story.is-enhanced .step[data-scene="sine-wide"] { min-height: 260svh; }
 .story.is-enhanced .step[data-scene="hinge"] { min-height: 180svh; }
+.story.is-enhanced .step[data-scene="sigmoid-one"] { min-height: 420svh; }
 .story.is-enhanced .step[data-scene="sigmoid-four"] { min-height: 180svh; }
 .story.is-enhanced .step[data-scene="class-move"] { min-height: 200svh; }
 
@@ -289,22 +290,57 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
 .stage-shell.is-equation-only .stage-source { align-self: center; }
 .stage-intro[hidden], .stage-caption[hidden], .stage-equation[hidden], .model-comparison[hidden] { display: none !important; }
 .model-comparison {
+  --comparison-open: 0;
+  --logistic-focus: 1;
+  --neural-focus: 1;
+  position: relative;
   flex: 1;
+  min-height: 0;
+}
+.comparison-equations {
+  position: absolute;
+  top: calc(50% * (1 - var(--comparison-open)));
+  width: 100%;
   display: grid;
   grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr);
   align-items: center;
   gap: clamp(1rem, 3vw, 3rem);
-  min-height: 0;
+  transform: translateY(calc(-50% * (1 - var(--comparison-open))));
 }
-.model-comparison section { min-width: 0; text-align: center; }
-.model-comparison h3 { margin: 0 0 1.5rem; font: 400 clamp(1rem, 1.6vw, 1.4rem)/1.3 var(--serif); }
-.comparison-equation { min-height: 10rem; color: var(--primary); font-size: clamp(.75rem, 1.28vw, 1.1rem); }
+.comparison-model { min-width: 0; text-align: center; }
+#logistic-model { --focus: var(--logistic-focus); }
+#neural-model { --focus: var(--neural-focus); }
+.comparison-model {
+  opacity: calc(.16 + .84 * var(--focus));
+  transform: scale(calc(.88 + .12 * var(--focus)));
+  transform-origin: center top;
+}
+.model-comparison h3 { margin: 0 0 1.1rem; font: 400 clamp(1rem, 1.6vw, 1.4rem)/1.3 var(--serif); }
+.comparison-equation { color: var(--primary); font-size: clamp(.75rem, 1.28vw, 1.1rem); }
 .comparison-equation .katex-display { margin: 0; }
+.comparison-plots[hidden] { display: none !important; }
+.comparison-plots {
+  position: absolute;
+  inset: clamp(12rem, 28%, 17rem) 0 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(1rem, 3vw, 3rem);
+  opacity: var(--comparison-open);
+  transform: translateY(calc(2rem * (1 - var(--comparison-open))));
+}
+.comparison-plots figure { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.comparison-plots figcaption { border-top: 1px solid var(--light-rule); padding-top: .45rem; color: var(--muted); font: .75rem/1.4 var(--sans); }
+.comparison-plots svg { display: block; width: 100%; flex: 1; min-height: 0; overflow: visible; }
 @media (max-width: 760px) {
   .story.is-enhanced .stage-shell.is-equation-only .stage-equation { font-size: clamp(.85rem, 3.9vw, 1.1rem); }
-  .model-comparison { grid-template-columns: minmax(0, 1fr); align-content: center; gap: 2rem; }
-  .model-comparison h3 { margin-bottom: 1rem; font-size: 1.15rem; }
-  .comparison-equation { min-height: 0; font-size: clamp(.83rem, 3.65vw, 1rem); }
+  .comparison-equations { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .comparison-model { grid-area: 1 / 1; opacity: var(--focus); }
+  #logistic-model { transform: translateY(calc(-80% * (1 - var(--comparison-open)))); }
+  #neural-model { transform: translateY(calc(65% * (1 - var(--comparison-open)))); }
+  .model-comparison h3 { margin-bottom: .75rem; font-size: 1.1rem; }
+  .comparison-equation { font-size: clamp(.83rem, 3.65vw, 1rem); }
+  .comparison-plots { inset: 10.2rem 0 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); gap: .4rem; }
+  .comparison-plots figcaption { font-size: .68rem; padding-top: .25rem; }
 }
 
 @media print {
@@ -341,6 +377,7 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
   .story.is-enhanced .step:first-child,
   .story.is-enhanced .step:last-child,
   .story.is-enhanced .step[data-scene="hinge"],
+  .story.is-enhanced .step[data-scene="sigmoid-one"],
   .story.is-enhanced .step[data-scene="sigmoid-four"],
   .story.is-enhanced .step[data-scene="class-move"],
   .story.is-enhanced .step[data-scene="sine-wide"] {

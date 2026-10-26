@@ -17,8 +17,12 @@ Preserve the five-part sequence:
    sigmoid classification head. Open with a centered equation in the paper's
    notation, using the function name sigmoid and no diagrams. Briefly state
    that BKZ train a network with sigmoid activations. Next compare that model
-   with logistic regression side by side, without plots or a nested-sigmoid
-   tangent comparison. Then show how additional hidden neurons permit more
+   with logistic regression side by side. Scroll within that comparison to
+   foreground logistic regression with one-input and two-input plots, then
+   foreground the sigmoid network and its more flexible shapes. Keep the
+   observations fixed, use actual model probabilities and boundaries, and
+   retain all three beats under reduced motion and keyboard navigation.
+   Do not add a nested-sigmoid tangent comparison. Then show how additional hidden neurons permit more
    complicated shapes using fixed one-input constructions in the course notation.
 5. A fitted binary network: move the same observations into their actual two
    hidden activations before revealing the fitted head's straight boundary.

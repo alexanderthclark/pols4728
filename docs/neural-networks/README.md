@@ -97,8 +97,18 @@ Part 4 opens with a centered typesetting of [Beck, King, and Zeng (2000), Equati
 It preserves the paper's Bernoulli model and parameter notation, spelling out
 the function name `sigmoid`. Desktop shows the expanded terms; phones use the
 equivalent summation. The next scene compares the BKZ model with ordinary
-logistic regression using equations alone, side by side on desktop and stacked
-on phones. The following scenes return to the course notation and demonstrate
+logistic regression using equations side by side on desktop and stacked
+on phones. Continued scrolling foregrounds logistic regression and reveals
+a one-input probability curve and a two-input classification boundary.
+The network then takes focus: its curve can rise and fall, and its boundary
+can enclose the inner class. The observations remain fixed. `comparison-model.js`
+contains the chosen weights and exact sigmoid forward passes; `comparison-views.js`
+renders the two models as separate crossfading layers, not an interpolated fit.
+The two-input boundary is a level set of the actual four-unit network, not an
+imposed circle. The 1D example uses two sigmoid hidden units. These constructions
+illustrate capacity and are not estimates from BKZ. Reduced motion switches
+between all three beats, and the arrow controls visit the same stops.
+The following scenes return to the course notation and demonstrate
 more complicated probability curves as hidden neurons are added.
 The hidden features are sigmoids of affine input scores, and the output is a
 sigmoid of an affine combination of those features. An ordinary logit model is
@@ -159,6 +169,7 @@ Run the mathematical and scroll/render checks from the repository root:
 node --test tests/neural-networks-state.test.cjs
 node --test tests/neural-networks-scroll.test.cjs
 node --test tests/neural-classification-model.test.cjs
+node --test tests/neural-comparison-model.test.cjs
 ```
 
 The model tests independently recompute hidden features, scores, training

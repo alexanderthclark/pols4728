@@ -47,6 +47,25 @@ function assertTypesetEquation(app, frame = app.frame()) {
   return assertTypesetNode(app, 'stage-equation', source, frame.scene);
 }
 
+function assertComparisonPlots(app, label) {
+  const frame = app.frame();
+  assert.equal(app.element('comparison-plots').hidden, !frame.comparisonPlots,
+    `${label}: the probability and boundary plots follow the scroll reveal`);
+  if (!frame.comparisonPlots) return;
+  for (const id of ['comparison-probability-plot', 'comparison-boundary-plot']) {
+    const node = app.element(id), markup = node.innerHTML;
+    assert(markup.includes('<path'), `${label}: ${id} draws model geometry`);
+    assert(!/NaN|undefined|Infinity/.test(markup), `${label}: ${id} contains finite geometry`);
+    assert(!/class="[^"]*\bkatex-error\b/.test(markup), `${label}: ${id} has no math parse errors`);
+    assert(/class="[^"]*\bkatex-html\b/.test(markup), `${label}: ${id} typesets mathematical labels`);
+    assert(/class="[^"]*\bkatex-mathml\b/.test(markup), `${label}: ${id} retains semantic MathML`);
+    assert(node.attrs['aria-label'].length > 10, `${label}: ${id} has an accessible description`);
+    const box = node.attrs.viewBox.split(/\s+/).map(Number);
+    assert.equal(box.length, 4);
+    assert(box.every(Number.isFinite) && box[2] > 0 && box[3] > 0);
+  }
+}
+
 function mount({ mobile = false, reduced = false } = {}) {
   const elements = new Map(), windowEvents = new Map(), documentEvents = new Map(), raf = new Map();
   let nextRaf = 1, renders = 0;
@@ -63,7 +82,32 @@ function mount({ mobile = false, reduced = false } = {}) {
       removeAttribute(name) { delete this.attrs[name]; },
       getAttribute(name) { return this.attrs[name]; },
       addEventListener(name, callback) { listen(this.events, name, callback); },
-      querySelector() { return { textContent: this.heading || '' }; },
+      querySelector(selector) {
+        if (selector === 'h2,h3') return { textContent: this.heading || '' };
+        return this.querySelectorAll(selector)[0] || null;
+      },
+      querySelectorAll(selector) {
+        const attribute = selector.match(/^\[([\w-]+)\]$/)?.[1];
+        assert(attribute, `Unexpected node selector ${selector}`);
+        // Retained SVG layers mutate their attributes without replacing their
+        // parent. Reflect those mutations in the serialized markup as a browser
+        // does, so opacity and re-entry assertions inspect the actual result.
+        return [...this.innerHTML.matchAll(/<[^/!][^>]*>/g)]
+          .filter(match => Object.hasOwn(attrs(match[0]), attribute))
+          .map(match => {
+            let tag = match[0];
+            return {
+              getAttribute(name) { return attrs(tag)[name] ?? null; },
+              setAttribute: (name, value) => {
+                const pattern = new RegExp('\\b' + name + '="[^"]*"');
+                const replacement = name + '="' + String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '"';
+                const updated = pattern.test(tag) ? tag.replace(pattern, replacement) : tag.replace(/>$/, ' ' + replacement + '>');
+                this.innerHTML = this.innerHTML.replace(tag, updated);
+                tag = updated;
+              }
+            };
+          });
+      },
       getBoundingClientRect() {
         if (attributes.id === 'stage-shell' || attributes.id === 'story-stage') {
           const height = runtime.mobile ? 496 : 768, top = runtime.mobile ? 0 : 16;
@@ -72,6 +116,8 @@ function mount({ mobile = false, reduced = false } = {}) {
         return { top: 0, bottom: 0, height: 0 };
       }
     };
+    node.style.setProperty = function(name, value) { this[name] = String(value); };
+    node.style.removeProperty = function(name) { const old = this[name] || ''; delete this[name]; return old; };
     // Native textContent replacement removes existing element children (MathML
     // included). Keep that behavior here rather than retaining stale markup.
     let markup = '', text = '';
@@ -121,7 +167,7 @@ function mount({ mobile = false, reduced = false } = {}) {
     return node;
   });
   function heightOf(index) {
-    return runtime.innerHeight * (sceneNames[index] === 'sine-wide' ? 2.6 : sceneNames[index] === 'hinge' ? 1.8 : 1);
+    return runtime.innerHeight * (sceneNames[index] === 'sigmoid-one' ? 4.2 : sceneNames[index] === 'sine-wide' ? 2.6 : sceneNames[index] === 'hinge' ? 1.8 : 1);
   }
   const document = {
     compatMode: 'CSS1Compat',
@@ -210,6 +256,7 @@ function mount({ mobile = false, reduced = false } = {}) {
           assert.equal(document.getElementById(id).innerHTML, '', `${label}: ${id} has no stale diagram`);
         }
         assertTypesetEquation(this);
+        if (this.frame().equationComparison) assertComparisonPlots(this, label);
         return;
       }
       assert.equal(document.getElementById('figure-grid').hidden, false, `${label}: plotted scenes retain their figure area`);
@@ -344,6 +391,10 @@ test('reduced motion uses finite completed scenes and discrete widening', () => 
     const frame = app.scroll(scene, .53);
     assert.equal(frame.scene, scene);
     if (scene === 'affine') assert([0, 1].includes(frame.progress), 'Reduced-motion affine scenes use complete visible/hidden bias states');
+    else if (scene === 'sigmoid-one') {
+      assert.equal(frame.progress, .45, 'Reduced motion keeps the middle comparison beat available');
+      assert.equal(frame.comparisonPhase, 'logistic');
+    }
     else if (!['width-many', 'sine-wide'].includes(scene)) assert.equal(frame.progress, 1);
     else assert(Math.abs(frame.progress * 10 - Math.round(frame.progress * 10)) < 1e-9);
     if (scene === 'sine-joint') {
@@ -840,7 +891,9 @@ test('the historical sigmoid equation leads to a model comparison before plotted
     const comparison = app.frame();
     assert.equal(comparison.scene, 'sigmoid-one');
     assert.equal(comparison.equationComparison, true);
-    assert.equal(app.element('figure-grid').hidden, true, 'The comparison has no probability plot or feature plot');
+    assert.equal(comparison.comparisonPhase, 'equations');
+    assert.equal(app.element('figure-grid').hidden, true, 'The comparison uses its own plot area');
+    assert.equal(app.element('comparison-plots').hidden, true, 'Both equations appear before any plot is revealed');
     assert.equal(app.element('stage-equation').hidden, true, 'The comparison uses its own two formulas');
     assert.equal(app.element('model-comparison').hidden, false);
     assert.equal(app.element('input-inspector').hidden, true);
@@ -861,6 +914,15 @@ test('the historical sigmoid equation leads to a model comparison before plotted
     app.checkSvg('model comparison');
 
     app.click('next');
+    assert.equal(app.frame().scene, 'sigmoid-one');
+    assert.equal(app.frame().comparisonPhase, 'logistic');
+    assert.equal(app.element('comparison-plots').hidden, false);
+    app.checkSvg('logistic comparison plots');
+    app.click('next');
+    assert.equal(app.frame().scene, 'sigmoid-one');
+    assert.equal(app.frame().comparisonPhase, 'neural');
+    app.checkSvg('neural comparison plots');
+    app.click('next');
     assert.equal(app.frame().scene, 'sigmoid-two');
     assert.equal(app.element('figure-grid').hidden, false);
     assert.equal(app.element('model-comparison').hidden, true);
@@ -871,10 +933,16 @@ test('the historical sigmoid equation leads to a model comparison before plotted
 
     app.click('previous');
     assert.equal(app.frame().scene, 'sigmoid-one');
+    assert.equal(app.frame().comparisonPhase, 'neural', 'Reverse navigation enters the last comparison beat');
     assert.equal(app.element('model-comparison').hidden, false);
     assert.equal(app.element('stage-equation').hidden, true);
     assert.equal(assertTypesetEquation(app), comparisonMarkup, 'Reverse navigation restores both comparison equations exactly');
     app.checkSvg('reversed comparison');
+    app.click('previous');
+    assert.equal(app.frame().comparisonPhase, 'logistic');
+    app.click('previous');
+    assert.equal(app.frame().comparisonPhase, 'equations');
+    assert.equal(app.element('comparison-plots').hidden, true, 'Reverse navigation hides the plots before leaving the comparison');
     app.click('previous');
     assert.equal(app.frame().scene, 'conflict');
     assert.equal(app.element('model-comparison').hidden, true);
@@ -887,6 +955,145 @@ test('the historical sigmoid equation leads to a model comparison before plotted
     assert(!app.element('stage-shell').classes.has('is-equation-only'));
     assert.equal(app.element('input-inspector').hidden, false);
     app.checkSvg('reversed before historical equation');
+  }
+});
+
+test('the equation comparison unfolds into logistic and neural plots, then reverses exactly', () => {
+  for (const mobile of [false, true]) for (const reduced of [false, true]) {
+    const app = mount({ mobile, reduced });
+    const snapshots = new Map();
+    const stops = [[.12, 'equations', 0, 0], [.45, 'logistic', 1, 0], [.9, 'neural', 1, 1]];
+    for (const [progress, phase, open, mix] of stops) {
+      const frame = app.scroll('sigmoid-one', progress);
+      assert.equal(frame.comparisonPhase, phase);
+      assert.equal(frame.comparisonOpen, open);
+      assert.equal(frame.comparisonMix, mix);
+      assert.equal(frame.comparisonPlotOpacity, open);
+      assert.equal(frame.comparisonPlots, Boolean(open));
+      assert.equal(Number(app.element('model-comparison').style['--comparison-open']), open,
+        'The formulas move to their plotted layout only after the opening comparison');
+      assert.equal(Number(app.element('model-comparison').style['--logistic-focus']), 1 - open * mix,
+        'The logistic equation recedes when the network takes focus');
+      assert.equal(Number(app.element('model-comparison').style['--neural-focus']), 1 - open * (1 - mix),
+        'The network equation comes forward with its flexible plots');
+      assert.equal(app.element('stage-count').textContent, '18 / 26', 'All comparison beats remain on slide 18');
+      assert.equal(app.element('input-inspector').hidden, true, 'Scrolling controls the entire comparison');
+      app.checkSvg(`${phase} ${mobile ? 'mobile' : 'desktop'} ${reduced ? 'reduced' : 'animated'}`);
+      snapshots.set(phase, {
+        formulas: assertTypesetEquation(app),
+        probability: app.element('comparison-probability-plot').innerHTML,
+        boundary: app.element('comparison-boundary-plot').innerHTML,
+        caption: app.element('stage-caption').textContent
+      });
+    }
+    for (const [progress, phase] of stops.slice().reverse()) {
+      app.scroll('sigmoid-one', progress);
+      const saved = snapshots.get(phase);
+      assert.equal(assertTypesetEquation(app), saved.formulas, 'Reverse scrolling restores the comparison formulas');
+      assert.equal(app.element('comparison-probability-plot').innerHTML, saved.probability,
+        'Reverse scrolling restores the exact one-input model display');
+      assert.equal(app.element('comparison-boundary-plot').innerHTML, saved.boundary,
+        'Reverse scrolling restores the exact two-input model display');
+      assert.equal(app.element('stage-caption').textContent, saved.caption);
+    }
+    app.scroll('sigmoid-one', .9);
+    app.scroll('sigmoid-two', .5);
+    assert.equal(app.element('model-comparison').hidden, true);
+    for (const id of ['comparison-probability-plot', 'comparison-boundary-plot']) {
+      assert.equal(app.element(id).innerHTML, '', 'Leaving slide 18 clears its diagrams');
+    }
+  }
+});
+
+test('comparison animation has intermediate scroll frames while reduced motion retains all three beats', () => {
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    const opening = app.scroll('sigmoid-one', .275);
+    assert(opening.comparisonOpen > 0 && opening.comparisonOpen < 1, 'The plot introduction has intermediate positions');
+    assert.equal(opening.comparisonMix, 0, 'The first introduction focuses on logistic regression');
+    const transition = app.scroll('sigmoid-one', .69);
+    assert.equal(transition.comparisonOpen, 1);
+    assert(transition.comparisonMix > 0 && transition.comparisonMix < 1,
+      'Scrolling crossfades the two model displays through intermediate states');
+    app.checkSvg('mid-transition');
+    const before = app.element('comparison-boundary-plot').innerHTML;
+    app.scroll('sigmoid-one', .91);
+    app.scroll('sigmoid-one', .69);
+    assert.equal(app.element('comparison-boundary-plot').innerHTML, before,
+      'Intermediate graph frames are reversible without elapsed-time animations');
+    const reduced = mount({ mobile, reduced: true });
+    for (const [progress, expected, phase] of [[.05, .12, 'equations'], [.27, .45, 'logistic'], [.69, .9, 'neural']]) {
+      const frame = reduced.scroll('sigmoid-one', progress);
+      assert.equal(frame.progress, expected);
+      assert.equal(frame.comparisonPhase, phase);
+      assert([0, 1].includes(frame.comparisonOpen));
+      assert([0, 1].includes(frame.comparisonMix));
+      reduced.checkSvg('reduced ' + phase);
+    }
+  }
+});
+
+test('the comparison changes its model curves and boundaries while the two-class observations stay fixed', () => {
+  const points = markup => [...markup.matchAll(/<g\b[^>]*data-comparison-point-id="[^"]+"[^>]*>/g)]
+    .map(match => attrs(match[0]));
+  const layers = markup => [...markup.matchAll(/<g\b[^>]*data-comparison-model="[^"]+"[^>]*>/g)]
+    .map(match => attrs(match[0]));
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    app.scroll('sigmoid-one', .45);
+    const initial = new Map();
+    for (const [id, pathAttribute] of [
+      ['comparison-probability-plot', 'data-comparison-curve'],
+      ['comparison-boundary-plot', 'data-comparison-boundary']
+    ]) {
+      const markup = app.element(id).innerHTML;
+      const observations = points(markup);
+      assert(observations.length > 10, 'Each view shows a genuine set of fixed binary observations');
+      assert.equal(new Set(observations.map(p => p['data-comparison-point-id'])).size, observations.length);
+      assert.deepEqual([...new Set(observations.map(p => p['data-label']))].sort(), ['0', '1']);
+      assert(observations.every(p => /^translate\([\d\s.,-]+\)$/.test(p.transform)),
+        'Each point has an explicit finite plot position');
+      const curves = [...markup.matchAll(/<path\b[^>]*>/g)].map(match => attrs(match[0]))
+        .filter(p => p[pathAttribute]);
+      assert.equal(curves.length, 2, 'Both model geometries are retained for the crossfade');
+      assert.deepEqual(curves.map(p => p[pathAttribute]).sort(), ['logistic', 'network']);
+      assert.notEqual(curves[0].d, curves[1].d, 'The network supplies a different curve or decision boundary');
+      assert.deepEqual(layers(markup).map(layer => [layer['data-comparison-model'], Number(layer.opacity)]),
+        [['logistic', 1], ['network', 0]], 'Logistic regression begins in the foreground');
+      initial.set(id, observations);
+    }
+    for (const progress of [.69, .9]) {
+      const frame = app.scroll('sigmoid-one', progress);
+      for (const id of initial.keys()) {
+        const markup = app.element(id).innerHTML;
+        assert.deepEqual(points(markup), initial.get(id), 'Model comparison preserves point identities, coordinates, shapes, and class labels');
+        const modelLayers = layers(markup);
+        assert.equal(Number(modelLayers[0].opacity), 1 - frame.comparisonMix);
+        assert.equal(Number(modelLayers[1].opacity), frame.comparisonMix);
+      }
+    }
+  }
+});
+
+test('arrow keys visit every comparison beat before advancing to the next scene', () => {
+  for (const mobile of [false, true]) for (const reduced of [false, true]) {
+    const app = mount({ mobile, reduced });
+    app.scroll('conflict', .5);
+    for (const phase of ['equations', 'logistic', 'neural']) {
+      assert(app.key('ArrowRight').defaultPrevented);
+      assert.equal(app.frame().scene, 'sigmoid-one');
+      assert.equal(app.frame().comparisonPhase, phase);
+      assert.equal(app.runtime.scrollCalls.at(-1).behavior, reduced ? 'auto' : 'smooth');
+    }
+    app.key('ArrowRight');
+    assert.equal(app.frame().scene, 'sigmoid-two');
+    for (const phase of ['neural', 'logistic', 'equations']) {
+      assert(app.key('ArrowLeft').defaultPrevented);
+      assert.equal(app.frame().scene, 'sigmoid-one');
+      assert.equal(app.frame().comparisonPhase, phase);
+    }
+    app.key('ArrowLeft');
+    assert.equal(app.frame().scene, 'conflict');
   }
 });
 

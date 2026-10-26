@@ -24,7 +24,7 @@
     let progress=Math.max(0,Math.min(1,(focus-rect.top)/Math.max(rect.height,1)));
     // Quantization prevents needless SVG work on fractional-pixel scroll events.
     progress=Math.round(progress*100)/100;
-    if(reduced)progress=scene==='affine'?(progress<.65?0:1):scene==='width-many'||scene==='sine-wide'?Math.round(progress*10)/10:1;
+    if(reduced)progress=scene==='sigmoid-one'?(progress<.2?.12:progress<.6?.45:.9):scene==='affine'?(progress<.65?0:1):scene==='width-many'||scene==='sine-wide'?Math.round(progress*10)/10:1;
     const signature=scene+':'+progress+':'+(mobile?'compact':'desktop')+':'+(inspectionX===null?'story':inspectionX);
     if(signature!==renderSignature){
       renderSignature=signature;
@@ -48,6 +48,14 @@
       byId('figure-grid').hidden=!!frame.equationOnly;
       byId('model-comparison').hidden=!frame.equationComparison;
       byId('stage-equation').hidden=!!frame.equationComparison;
+      const comparison=byId('model-comparison');
+      comparison.dataset.phase=frame.comparisonPhase||'';
+      comparison.style.setProperty('--comparison-open',frame.comparisonOpen||0);
+      comparison.style.setProperty('--logistic-focus',1-(frame.comparisonOpen||0)*(frame.comparisonMix||0));
+      comparison.style.setProperty('--neural-focus',1-(frame.comparisonOpen||0)*(1-(frame.comparisonMix||0)));
+      byId('comparison-plots').hidden=!frame.comparisonPlots;
+      if(frame.comparisonPlots)window.NNComparisonViews.render(byId('comparison-probability-plot'),byId('comparison-boundary-plot'),frame);
+      else{byId('comparison-probability-plot').innerHTML='';byId('comparison-boundary-plot').innerHTML='';}
       lastFrame=frame;
       if(frame.equationOnly){byId('function-plot').innerHTML='';byId('network-plot').innerHTML='';}
       else if(frame.hideInspector)window.NNExtensionViews.render(byId('function-plot'),byId('network-plot'),frame);
@@ -88,11 +96,19 @@
   }
   function queue(){if(!pending)pending=window.requestAnimationFrame(update);}
   function go(delta){
-    const target=steps[Math.max(0,Math.min(steps.length-1,currentIndex+delta))];
+    let targetIndex=Math.max(0,Math.min(steps.length-1,currentIndex+delta)),stop=.12;
+    // Give the comparison's three scroll beats the same keyboard route.
+    if(steps[currentIndex].dataset.scene==='sigmoid-one'){
+      const p=lastFrame?.progress||0;
+      if(delta>0&&p<.75){targetIndex=currentIndex;stop=p<.3?.45:.9;}
+      if(delta<0&&p>.3){targetIndex=currentIndex;stop=p>.75?.45:.12;}
+    }
+    const target=steps[targetIndex];
+    if(targetIndex!==currentIndex&&delta<0&&target.dataset.scene==='sigmoid-one')stop=.9;
     const rect=target.getBoundingClientRect();
     const offset=byId('story-stage').getBoundingClientRect().top;
     // Land inside the scene so boundary rounding cannot select its predecessor.
-    window.scrollTo({top:(window.scrollY||0)+rect.top-offset+rect.height*.12,behavior:reduced?'auto':'smooth'});
+    window.scrollTo({top:(window.scrollY||0)+rect.top-offset+rect.height*stop,behavior:reduced?'auto':'smooth'});
   }
   if(byId('previous'))byId('previous').addEventListener('click',()=>go(-1));
   if(byId('next'))byId('next').addEventListener('click',()=>go(1));
