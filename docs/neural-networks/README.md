@@ -59,7 +59,7 @@ not a change to the model.
 
 `state.js` supplies LaTeX for every stage equation, including compact line breaks
 for longer formulas. `formula.js` renders these with local KaTeX to visible HTML
-and semantic MathML. The runtime, stylesheet, and six required fonts are
+and semantic MathML. The runtime, stylesheet, and ten required fonts are
 self-hosted in `vendor/katex/`; no external requests are required. Network
 parameter labels in the original scenes retain selectable SVG text with italic
 mathematical variables. New plot and network labels use KaTeX HTML and MathML

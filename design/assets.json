@@ -106,6 +106,13 @@
       "description": "A round, torso-less blacksmith holds a hammer and tongs over a continuous heated rod resting partly on an anvil. Angular bends transition into a sine wave. Sparse black contours with a rust-orange heat accent on the rod, on a transparent field.",
       "sha256": "6a267bb6fb303878f9a9e71f661bfe20472fc06cc6ea6fe9021ea4a113c1c2f6",
       "usage": "Opening title of the ReLU neural-network scrollytelling lesson. Preserve transparency, full composition, proportions, and clear space. The heated rod is a user-requested color exception to the default monochrome character art. Keep all titles and mathematical explanations as real HTML text."
+    },
+    {
+      "path": "docs/sgd/assets/hovercraft-descent.png",
+      "role": "sgd-title-illustration",
+      "description": "Two round, torso-less figures steer separate small racing hovercraft down a hilly landscape with a coarse triangular mesh. Sparse black contours, white interiors, and pale gray facets on a transparent field.",
+      "sha256": "458d723cba4750e80b74789da80492956f2af509d600d9aba7605ee394a805b3",
+      "usage": "Opening title of the stochastic gradient descent explainer. Preserve transparency, the complete terrain and both hovercraft, original proportions, and clear space. Keep the Training neural networks title and Stochastic Gradient Descent subtitle as real HTML text."
     }
   ]
 }

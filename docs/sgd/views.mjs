@@ -1,0 +1,89 @@
+import {foundationKinds,renderFoundation} from './batch-epoch.mjs';
+import {richText} from './math.mjs';
+import {constructionKinds,renderConstruction} from './construction.mjs';
+import {renderInitialNetwork} from './network.mjs';
+import {renderParameterProbe} from './parameter-probe.mjs';
+import {renderStepTarget} from './step-target.mjs';
+import {renderTwoHinges} from './two-hinges.mjs';
+import {predict,gradient,data,mse} from './model.mjs';
+import {sgdKinds,renderSGD,renderParameterUpdate,C,clamp,line,text,set,canvas,chart,trainingChart,batchSelection,facts,observations,gradientBars,interpolate} from './sgd-detail.mjs';
+function trainingPanel(svg,trace,index,mix,firstEpoch,color,width,maxStep=firstEpoch?32:9600){
+ const {w,h}=canvas(svg),s=trace[index],value=mse(interpolate(s.model,s.after,mix));
+ const projected=globalThis.innerWidth>=1000,compact=h<150,l=projected?48:37,r=w-12,t=compact?42:projected?100:87,b=h-(projected?32:24);
+ const X=step=>l+step/maxStep*(r-l),Y=v=>b-(Math.log10(Math.max(.001,v))+3)/3*(b-t);
+ let html=text(0,projected?20:13,`Batch ${s.batch} / 32 · 64 observations`,'small');
+ const slot=(w-2)/32;
+ for(let j=0;j<32;j++)html+=`<rect x="${j*slot}" y="${projected?32:23}" width="${Math.max(1,slot-2)}" height="${j===s.batch-1?12:7}" fill="${j===s.batch-1?C.rust:j<s.batch-1?color:'#e8e8e8'}"/>`;
+ if(!compact)html+=richText(0,projected?70:57,mix<.25?String.raw`Batch \(\to\) gradient`:'Update all parameters','small');
+ for(const v of (compact?[.01,1]:[.01,.1,1]))html+=line(l,Y(v),r,Y(v),'#eee')+text(l-5,Y(v)+3,String(v),'small','end');
+ let path='';for(let i=0;i<=index;i++)path+=(i?'L':'M')+X(trace[i].step)+','+Y(trace[i].loss);
+ path+=`L${X(s.step+mix)},${Y(value)}`;
+ html+=`<path d="${path}" stroke="${color}" fill="none" stroke-width="2"/><circle cx="${X(s.step+mix)}" cy="${Y(value)}" r="3" fill="${color}"/>`+line(l,b,r,b,'#767676')+text(l,b+18,'0','small')+text(r,b+18,`${maxStep.toLocaleString('en-US')} updates`,'small','end');
+ set(svg,html,`Width ${width}. Epoch ${s.epoch}, batch ${s.batch} of 32, 64 observations. Training MSE ${value.toFixed(4)}; logarithmic loss axis.`);
+}
+function comparisonKey(c){
+ const large=globalThis.innerWidth>=1000,firstY=large?17:11,rowHeight=large?27:20,sample=large?35:25,gap=large?10:7,col=(c.right-c.left)/2;
+ const entries=[['Width 2',C.blue,'',3],['Width 12',C.teal,'10 4',3],['Target',C.muted,'6 5',2]];
+ return '<g data-legend="curve-styles">'+entries.map(([label,color,dash,width],i)=>{
+  const x=c.left+(i%2)*col,y=firstY+Math.floor(i/2)*rowHeight;
+  return line(x,y,x+sample,y,color,dash,width)+text(x+sample+gap,y+4,label,'small','start',color);
+ }).join('')+'</g>';
+}
+export function render(plot,detail,scene,p,e){
+ const u=clamp((p-.12)/.7),kind=scene.kind;
+ if(kind==='sgd-overview'){set(plot,'','');set(detail,'','');return {kind,progress:p,completedUpdates:0,plotTitle:'',detailTitle:''};}
+ if(kind==='step-target')return renderStepTarget(plot,detail,scene,p);
+ if(kind==='two-hinges')return renderTwoHinges(plot,detail,scene,p);
+ if(constructionKinds.includes(kind))return renderConstruction(plot,detail,kind,p);
+ if(foundationKinds.includes(kind))return renderFoundation(plot,detail,scene,p,e);
+ if(sgdKinds.includes(kind))return renderSGD(plot,detail,scene,p,e);
+ if(kind==='parameter-probe')return renderParameterProbe(plot,detail,scene,p,e);
+ const comparison=kind==='compare',continuousTraining=['update','batches-two','epoch-two','train-two'].includes(kind),c=continuousTraining?trainingChart(plot):chart(plot,{xmin:-1,xmax:1,topInset:comparison?(globalThis.innerWidth>=1000?52:36):0});
+ let body=c.base+c.step(),detailTitle='Construction',plotTitle='Function',info={kind,progress:p};
+ if(['initialize','loss','full','update','initialize-wide'].includes(kind)){
+  const wide=kind==='initialize-wide',color=wide?C.teal:C.blue;
+  let model=wide?e.traces[12][0].model:e.firstUpdate.before;detailTitle='Training';
+  if(kind==='update'){model=interpolate(e.firstUpdate.before,e.firstUpdate.after,u);body+=c.path(x=>predict(e.firstUpdate.before,x),C.gray,2,'4 4',1-u);}
+  body+=observations(c,{batch:kind==='update'?e.firstUpdate.indices:null,residualModel:kind==='loss'?model:null,amount:kind==='loss'?u:1})+c.path(x=>predict(model,x),color);
+  if(kind==='initialize'){info.displayedParameters=renderInitialNetwork(detail,model);detailTitle='Initial network · weights and biases';}
+  if(wide)facts(detail,[['Hidden neurons','12','One hidden layer',C.teal],['Trainable parameters','37','Learn weights and biases',C.teal]]);
+  if(kind==='loss')facts(detail,[['Training MSE',e.traces[2][0].loss.toFixed(4),'All 2,048 observations'],['Prediction errors shown',String(Math.ceil(2048*u)),'Squared, then averaged']]);
+  if(kind==='full'){gradientBars(detail,gradient(model,data));detailTitle='Full-data gradient';}
+  if(kind==='update'){
+   info.displayedParameters=renderParameterUpdate(detail,e.firstUpdate.before,e.firstUpdate.after,e.firstUpdate.gradient,u);
+   info.updateProgress=u;
+   plotTitle='Dashed: before · blue: current model';detailTitle='All seven parameters update together';
+  }
+  info.width=wide?12:2;info.completedUpdates=kind==='update'?u:0;info.outputBias=model.c;info.predictionAtZero=predict(model,0);info.model=model;
+ }
+ if(['batches-two','train-two','batches-wide','train-wide'].includes(kind)){
+  const width=kind.endsWith('wide')?12:2,color=width===2?C.blue:C.teal,trace=e.traces[width],firstEpoch=kind.startsWith('batches');
+  const firstStep=firstEpoch?(width===2?2:0):(width===2?33:32);
+  const start=trace.findIndex(s=>s.step===firstStep),end=firstEpoch?31:trace.length-1;
+  const position=(kind==='batches-two'?u**1.5:u)*(end-start+1),index=Math.min(end,start+Math.floor(position)),fraction=u===1?1:position-Math.floor(position),mix=clamp((fraction-.25)/.65),s=trace[index],selection=clamp(fraction/.25);
+  const model=interpolate(s.model,s.after,mix);
+  body+=width===2?observations(c)+batchSelection(c,trace[index-1].indices,s.indices,selection*selection*(3-2*selection)):observations(c,{batch:s.indices});
+  body+=c.path(x=>predict(s.model,x),C.gray,1.8,'3 4',width===2?1-mix:1)+c.path(x=>predict(model,x),color);
+  trainingPanel(detail,trace,index,mix,firstEpoch,color,width);
+  plotTitle=`${width} neurons · current batch in rust`;
+  detailTitle=`Full-data MSE · ${mse(model).toFixed(4)} (log scale)`;
+  info={...info,width,step:s.step,epoch:s.epoch,batch:s.batch,mix,batchFirst:s.indices[0],predictionAtZero:predict(model,0),model,completedUpdates:s.step+mix};
+ }
+ if(kind==='epoch-two'){
+  const trace=e.traces[2],s=trace.find(s=>s.step===32),previous=trace.find(s=>s.step===31),select=clamp(u/.45),selection=select*select*(3-2*select),mix=clamp((u-.5)/.5),model=interpolate(s.model,s.after,mix);
+  body+=observations(c)+batchSelection(c,previous.indices,s.indices,selection)+c.path(x=>predict(s.model,x),C.gray,1.8,'3 4',1-mix)+c.path(x=>predict(model,x),C.blue);
+  // Expand the loss history during the reshuffle, without changing its axes or the learned model.
+  trainingPanel(detail,trace,32,mix,false,C.blue,2,Math.round(32*300**selection));
+  plotTitle=select<1?'Same learned model · reshuffle the observations':'Epoch 2 · first batch in the new partition';
+  detailTitle=mix===0?'32 updates complete · start a new pass':'First update of epoch 2';
+  info={...info,width:2,step:32,epoch:2,batch:1,mix,batchFirst:s.indices[0],model,completedUpdates:32+mix,predictionAtZero:predict(model,0)};
+ }
+ if(comparison){
+  const narrow=e.runs.find(r=>r.width===2&&r.seed===1),wide=e.runs.find(r=>r.width===12&&r.seed===1);
+  body+=observations(c)+c.path(x=>predict(narrow.model,x),C.blue)+c.path(x=>predict(wide.model,x),C.teal,3,'10 4');
+  body+=comparisonKey(c);
+  facts(detail,[['Width 2 · MSE',narrow.loss.toFixed(4),'7 parameters',C.blue],['Width 12 · MSE',wide.loss.toFixed(4),'37 parameters',C.teal]]);
+  plotTitle='Predictions after 300 epochs';detailTitle='One hidden layer · same data and update count';
+ }
+ set(plot,body,`${scene.title} ${scene.reading??scene.caption}`);return {...info,detailTitle,plotTitle};
+}
