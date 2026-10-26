@@ -66,4 +66,26 @@ reduced-motion behavior. Those require review of the running page.
 
 The first version was inspected in the in-app browser at its desktop viewport and a 390 × 844 phone viewport. Review covered the opening lantern artwork, input-column extraction, the two matrix layouts, dot products, softmax, parameter updates, geometry, forward and backward scrolling, native PageDown navigation, and the reduced-motion route. No browser console errors were observed. Mathematical and layout rendering checks supplement the manual review; this is not an accessibility certification.
 
-Opening artwork is registered in the repository’s `design/assets.json`. It was generated with the built-in image tool using the course's round torsoless character specimen; word labels and the title remain real text. The prompt is retained outside this site's repository.
+Opening artwork is registered in design/assets.json. It was generated with the built-in image tool using the course's round torsoless character specimen; word labels and the title remain real text. The prompt is retained outside this site's repository.
+
+## Appended word-vector exploration
+
+The original title, all 15 scenes, model calculations, styling, artwork, endnotes,
+and sources are preserved. Ten new scenes follow the original afterword on the
+same page. The addition covers stored vectors, normalization, cosine similarity,
+signed addition, nearest-neighbor ranking, multiplicative scoring, Euclidean
+distance on unit vectors, and interpreting a t-SNE map.
+
+The addition uses exact calculations on invented 2D word vectors; the neighbors
+are not Google News results. Its separate t-SNE map is an actual fit to 18
+synthetic 6D unit vectors, with recorded source and map neighbors.
+`generate_projection.py` reproduces that authoring asset; no pretrained model
+was downloaded. These parameters and software are authoring choices, not student
+requirements.
+
+The added code lives in `exploration.js`, with CSS scoped to the added
+section in `exploration.css`. It does not override the original title or
+story styles. `original-preservation.test.mjs` checks the original file hashes,
+exact original title/story/afterword markup, append order, and unique IDs against
+`preservation.json`. Run it with the model and render checks above, plus
+`node exploration-math.test.mjs` and `node exploration-render.test.mjs`.

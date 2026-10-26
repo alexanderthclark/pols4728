@@ -82,12 +82,16 @@ jobs:
           node --check docs/neural-networks/story.js
           node --check docs/word2vec/model.js
           node --check docs/word2vec/app.js
+          node --check docs/word2vec/exploration.js
       - name: Check interactive lesson calculations
         run: |
           node --test tests/*.test.mjs tests/*.test.cjs
           cd docs/word2vec
           node model.test.mjs
           node render.test.mjs
+          node original-preservation.test.mjs
+          node exploration-math.test.mjs
+          node exploration-render.test.mjs
 
   deploy:
     name: Publish GitHub Pages
