@@ -234,7 +234,6 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
 .story.is-enhanced .step[data-scene="sine-wide"] { min-height: 260svh; }
 .story.is-enhanced .step[data-scene="hinge"] { min-height: 180svh; }
 .story.is-enhanced .step[data-scene="sigmoid-one"] { min-height: 420svh; }
-.story.is-enhanced .step[data-scene="sigmoid-four"] { min-height: 180svh; }
 .story.is-enhanced .step[data-scene="class-move"] { min-height: 200svh; }
 
 @media (max-width: 760px) {
@@ -378,7 +377,6 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
   .story.is-enhanced .step:last-child,
   .story.is-enhanced .step[data-scene="hinge"],
   .story.is-enhanced .step[data-scene="sigmoid-one"],
-  .story.is-enhanced .step[data-scene="sigmoid-four"],
   .story.is-enhanced .step[data-scene="class-move"],
   .story.is-enhanced .step[data-scene="sine-wide"] {
     display: block;

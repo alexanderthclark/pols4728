@@ -282,8 +282,8 @@ function mount({ mobile = false, reduced = false } = {}) {
 }
 
 test('the HTML is scroll driven, has one labelled input inspector, and its local assets resolve', () => {
-  assert.equal(sceneNames.length, 26);
-  assert.equal(new Set(sceneNames).size, 26);
+  assert.equal(sceneNames.length, 24);
+  assert.equal(new Set(sceneNames).size, 24);
   assert(!/<select\b|<form\b/i.test(html), 'No form controls substitute for scrolling');
   const inputs = [...html.matchAll(/<input\b[^>]*>/gi)].map(match => attrs(match[0]));
   assert.equal(inputs.length, 1, 'The input inspector is the only input');
@@ -318,7 +318,7 @@ test('the HTML is scroll driven, has one labelled input inspector, and its local
   }
 });
 
-test('scroll alone traverses all 26 scenes and reverses the sine construction', () => {
+test('scroll alone traverses all 24 scenes and reverses the sine construction', () => {
   const app = mount();
   assert.equal(app.frame().scene, 'affine');
   assert(app.element('previous').disabled);
@@ -332,7 +332,7 @@ test('scroll alone traverses all 26 scenes and reverses the sine construction', 
     assert.equal(app.element('story').dataset.scene, scene);
     assert.equal(app.steps.filter(step => step.classes.has('is-active')).length, 1);
     assert.equal(app.steps.find(step => step.classes.has('is-active')).attrs['aria-current'], 'step');
-    assert.equal(app.element('stage-count').textContent, String(seen.length).padStart(2, '0') + ' / 26');
+    assert.equal(app.element('stage-count').textContent, String(seen.length).padStart(2, '0') + ' / 24');
     if (scene === 'sine-coarse') {
       assert.equal(frame.width, 6);
       assert(!app.element('function-plot').innerHTML.includes('A closer look'));
@@ -976,7 +976,7 @@ test('the equation comparison unfolds into logistic and neural plots, then rever
         'The logistic equation recedes when the network takes focus');
       assert.equal(Number(app.element('model-comparison').style['--neural-focus']), 1 - open * (1 - mix),
         'The network equation comes forward with its flexible plots');
-      assert.equal(app.element('stage-count').textContent, '18 / 26', 'All comparison beats remain on slide 18');
+      assert.equal(app.element('stage-count').textContent, '18 / 24', 'All comparison beats remain on slide 18');
       assert.equal(app.element('input-inspector').hidden, true, 'Scrolling controls the entire comparison');
       app.checkSvg(`${phase} ${mobile ? 'mobile' : 'desktop'} ${reduced ? 'reduced' : 'animated'}`);
       snapshots.set(phase, {
@@ -1220,6 +1220,33 @@ function representationBoundaries(markup) {
   return [...markup.matchAll(/<g\b[^>]*data-classification-boundary="representation"[^>]*>/g)]
     .map(match => attrs(match[0]));
 }
+
+test('the fitted network slide typesets its actual parameters before the observation trace', () => {
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    const frame = app.scroll('class-input', .5);
+    const model = app.window.NNClassificationData;
+    const expected = [
+      model.hiddenBias[0], ...model.hiddenWeights[0],
+      model.hiddenBias[1], ...model.hiddenWeights[1],
+      model.outputBias, ...model.outputWeights
+    ].map(value => Number(value.toFixed(3)));
+    const markup = assertTypesetEquation(app, frame);
+    const source = app.element('stage-equation').attrs['data-tex'];
+    const values = [...source.replace(/\s/g, '').matchAll(/[+-]?\d+\.\d{3}/g)].map(match => Number(match[0]));
+    assert.deepEqual(values, Array.from(expected), 'Visible formulas expose the fitted hidden and output parameters');
+    assert.equal(app.element('stage-count').textContent, '20 / 24');
+    app.click('previous');
+    assert.equal(app.frame().scene, 'sigmoid-two', 'Removed scenes no longer intervene before the fitted example');
+    app.click('next');
+    assert.equal(app.frame().scene, 'class-input');
+    assert.equal(assertTypesetEquation(app), markup, 'Returning restores the same fitted parameter formulas');
+    app.click('next');
+    assert.equal(app.frame().scene, 'class-trace');
+    assert.equal(app.frame().boundaryOpacity, 0, 'The boundary remains hidden while tracing an observation');
+    app.checkSvg(`fitted parameter transition ${mobile ? 'compact' : 'desktop'}`);
+  }
+});
 
 test('observations move before any straight classification boundary appears, then reverse exactly', () => {
   for (const mobile of [false, true]) {

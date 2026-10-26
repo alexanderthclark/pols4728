@@ -24,8 +24,11 @@ Preserve the five-part sequence:
    retain all three beats under reduced motion and keyboard navigation.
    Do not add a nested-sigmoid tangent comparison. Then show how additional hidden neurons permit more
    complicated shapes using fixed one-input constructions in the course notation.
-5. A fitted binary network: move the same observations into their actual two
-   hidden activations before revealing the fitted head's straight boundary.
+5. A fitted binary network: open with all fitted weights and biases in the
+   two hidden-neuron equations and the head, rounded for display only. Move
+   the same observations into their actual two hidden activations before
+   revealing the fitted head's straight boundary. Skip the separate second-peak
+   and representation-introduction scenes.
 
 The binary example is a documented new fit inspired by the notes' adjacent
 curved classes, not the unavailable original three-class fit. Use its frozen

@@ -10,7 +10,7 @@
   byId('scroll-steps').setAttribute('aria-hidden','true');
   byId('scroll-steps').setAttribute('inert','');
   let currentIndex=0,renderSignature='',pending=0,inspectionX=null,lastFrame=null;
-  const chapter=scene=>scene.startsWith('class-')?'05 · Learned representations':scene==='conflict'||scene.startsWith('sigmoid-')||scene==='representation'?'04 · Sigmoid classification':scene.startsWith('width-')?'02 · Width and joints':scene.startsWith('sine-')||scene==='universal'?'03 · Approximation':'01 · Shallow networks';
+  const chapter=scene=>scene.startsWith('class-')?'05 · Learned representations':scene==='conflict'||scene.startsWith('sigmoid-')?'04 · Sigmoid classification':scene.startsWith('width-')?'02 · Width and joints':scene.startsWith('sine-')||scene==='universal'?'03 · Approximation':'01 · Shallow networks';
   function update(){
     pending=0;
     const mobile=window.matchMedia('(max-width: 760px)').matches;
@@ -61,7 +61,7 @@
       else if(frame.hideInspector)window.NNExtensionViews.render(byId('function-plot'),byId('network-plot'),frame);
       else Views.render(byId('function-plot'),byId('network-plot'),frame);
       byId('function-label').textContent=frame.kind==='sigmoid'?'Predicted probability':frame.kind==='classification'?(frame.morph===1?'Learned representation':frame.morph>0?'Changing coordinates':'Original coordinates'):'Function';
-      byId('network-label').textContent=frame.kind==='sigmoid'?(scene==='conflict'||scene==='representation'?'Representation and head':'Weighted hidden features'):frame.kind==='classification'&&(scene==='class-move'||scene==='class-head'||scene==='class-compare')?'Original coordinates':'Network';
+      byId('network-label').textContent=frame.kind==='sigmoid'?'Weighted hidden features':frame.kind==='classification'&&(scene==='class-move'||scene==='class-head'||scene==='class-compare')?'Original coordinates':'Network';
       const sceneTitle=steps[index].querySelector('h2,h3')?.textContent||scene;
       byId('stage-part').textContent=chapter(scene);
       byId('stage-name').textContent=sceneTitle;

@@ -131,36 +131,6 @@
     b.finish();
   }
 
-  function sigmoidNetwork(svg, frame) {
-    const compact = frame.compact, width = compact ? 620 : 500, height = compact ? 220 : 390;
-    const weights = frame.sigmoidWeights || [6, -6, 6, -6], count = weights.length;
-    const slope = finite(frame.sigmoidSlope, 30);
-    const b = canvas(svg, width, height,
-      'One input feeds ' + count + ' sigmoid neurons. Their activations form the representation h. The classification head weights those activations, adds an intercept, and applies a final sigmoid.', compact);
-    const inputX = compact ? 53 : 55, hiddenX = compact ? 295 : 244, outputX = compact ? 550 : 434;
-    const centerY = compact ? 112 : 191, radius = compact ? 18 : 23;
-    b.text(hiddenX, compact ? 23 : 31, 'Representation', 'text-anchor="middle"');
-    b.text(outputX, compact ? 23 : 31, 'Head', 'text-anchor="middle"');
-    const ys = weights.map((_, j) => centerY + (j - (count - 1) / 2) * (compact ? 40 : 60));
-    ys.forEach((y, j) => {
-      b.line(inputX + radius, centerY, hiddenX - radius, y, 'stroke="' + C.rule + '" stroke-width="1.3" opacity=".6"');
-      b.line(hiddenX + radius, y, outputX - radius, centerY,
-        'stroke="' + unitColors[j] + '" stroke-width="2"' + (weights[j] < 0 ? ' stroke-dasharray="5 4"' : ''));
-      b.circle(hiddenX, y, radius, 'fill="#fff" stroke="' + unitColors[j] + '" stroke-width="2"');
-      b.math(hiddenX, y, 'h_' + (j + 1), 48, compact ? 22 : 20, 'style="color:' + unitColors[j] + '"');
-      if (count < 4 || !compact) b.math((hiddenX + outputX) / 2, (y + centerY) / 2 - 9, '\\phi_' + (j + 1) + '=' + texNumber(weights[j]), 100, compact ? 20 : 16);
-    });
-    b.circle(inputX, centerY, radius, 'fill="#fff" stroke="' + C.ink + '" stroke-width="1.6"');
-    b.math(inputX, centerY, 'x', 45, compact ? 25 : 22);
-    b.circle(outputX, centerY, radius + 3, 'fill="#fff" stroke="' + C.blue + '" stroke-width="2.2"');
-    b.math(outputX, centerY, '\\sigma', 45, compact ? 25 : 25, 'style="color:' + C.blue + '"');
-    if (!compact) {
-      b.math(hiddenX, 342, 'h_j=\\sigma(' + texNumber(slope) + '(x-t_j))', 300, 18);
-      b.text(250, 376, 'Intercepts remain in the model.', 'text-anchor="middle" style="font-size:13px;fill:' + C.muted + '"');
-    } else b.math(309, 205, 'h_j=\\sigma(' + texNumber(slope) + '(x-t_j))', 330, 22);
-    b.finish();
-  }
-
   function hidden(model, input) {
     return model.hiddenWeights.map((w, j) => Math.max(0, w[0] * input[0] + w[1] * input[1] + model.hiddenBias[j]));
   }
@@ -362,10 +332,7 @@
   function render(functionSvg, networkSvg, frame) {
     if (frame.kind === 'sigmoid') {
       if (functionSvg) sigmoidPlot(functionSvg, frame);
-      if (networkSvg) {
-        if (frame.scene === 'conflict' || frame.scene === 'representation') sigmoidNetwork(networkSvg, frame);
-        else sigmoidContributions(networkSvg, frame);
-      }
+      if (networkSvg) sigmoidContributions(networkSvg, frame);
       return;
     }
     const model = root.NNClassificationData;

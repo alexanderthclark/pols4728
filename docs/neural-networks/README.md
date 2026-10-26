@@ -1,7 +1,7 @@
 # Shallow neural networks
 
 A scroll-driven introduction to shallow networks and learned representations.
-The narrative contains twenty-six scenes in five parts: shallow ReLU networks
+The narrative contains twenty-four scenes in five parts: shallow ReLU networks
 as sums of hinges, width as the number of available joints, constructive sine
 approximation, sigmoid classification in Beck, King, and Zeng (2000), and a
 fitted binary example with two hidden features. Scrolling backward reverses the story.
@@ -117,12 +117,15 @@ hidden unit followed by a sigmoid head is a composition, not generally an
 ordinary logit model.
 
 The one-input illustrations begin in the third classification scene and use
-fixed hidden thresholds 0.2, 0.4, 0.6, and 0.8,
-slope 30, output intercept −3, and successive output weights +6, −6, +6, −6.
-They progress from a monotone curve to one high-probability interval to two.
+fixed hidden thresholds 0.2 and 0.4, slope 30, output intercept −3, and
+successive output weights +6 and −6. They progress from a monotone curve
+to one high-probability interval.
 Their weights are hand-chosen to illustrate capacity; they are not estimates
-from the paper. The representation scene names the hidden activations as h
-and identifies the affine score plus final sigmoid as the classification head.
+from the paper. The fitted example then introduces the hidden activations as h and the
+affine score plus final sigmoid as the classification head. Its opening
+displays both hidden-neuron equations and the head with all fitted weights
+and biases, rounded to three decimals from the frozen model. All plots
+continue to use full precision.
 
 Part 5 uses a new constructed binary dataset inspired by adjacent curved groups
 in the course notes. `classification-data.js` contains 82 observations, the

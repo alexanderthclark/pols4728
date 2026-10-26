@@ -7,7 +7,7 @@
   if(root)root.NNStoryState=api;
 })(typeof window!=='undefined'?window:globalThis,function(M,D){
   'use strict';
-  const scenes=['affine','relu','hinge','hill-rise','hill-fall','hill-flat','shallow','width-one','width-two','width-three','width-many','sine-coarse','sine-zoom','sine-joint','sine-wide','universal','conflict','sigmoid-one','sigmoid-two','sigmoid-four','representation','class-input','class-trace','class-move','class-head','class-compare'];
+  const scenes=['affine','relu','hinge','hill-rise','hill-fall','hill-flat','shallow','width-one','width-two','width-three','width-many','sine-coarse','sine-zoom','sine-joint','sine-wide','universal','conflict','sigmoid-one','sigmoid-two','class-input','class-trace','class-move','class-head','class-compare'];
   const widthUnits=[{t:-1.5,a:.8},{t:-.9,a:-1.2},{t:-.3,a:1.1},{t:.3,a:-1},{t:.9,a:.9},{t:1.5,a:-.6}];
   const initial=[0,.9,1.95,3.05,4.2,5.35,M.TAU];
   const coarse=M.modelFromKnots(initial);
@@ -36,10 +36,10 @@
   function frame(scene,progress){
     if(!scenes.includes(scene))throw new RangeError('Unknown story scene: '+scene);
     const p=clamp(Number(progress)||0,0,1),frame={scene,progress:p,kind:'shallow',x:.4,components:false,showNetwork:true,caption:'',equation:''};
-    if(scene==='conflict'||scene.startsWith('sigmoid-')||scene==='representation'){
+    if(scene==='conflict'||scene.startsWith('sigmoid-')){
       frame.kind='sigmoid';frame.hideInspector=true;frame.sigmoidBias=-3;frame.sigmoidSlope=30;
       frame.sigmoidThresholds=[.2,.4,.6,.8];
-      frame.sigmoidWeights=scene==='sigmoid-two'?[6,-6*ease((p-.12)/.7)]:scene==='sigmoid-four'?[6,-6,6*ease(p*2),-6*ease(p*2-1)]:scene==='representation'?[6,-6,6,-6]:[6];
+      frame.sigmoidWeights=scene==='sigmoid-two'?[6,-6*ease((p-.12)/.7)]:[6];
       frame.width=frame.sigmoidWeights.length;
       frame.source='https://gking.harvard.edu/files/improv.pdf';
       frame.sourceLabel='Beck, King & Zeng (2000), Equation 3';
@@ -64,14 +64,10 @@
         frame.equationCompact=frame.neuralEquationCompact;
         frame.caption=frame.comparisonPhase==='equations'?'The network combines sigmoid features before the final sigmoid. Scroll to compare the shapes these models can express.':frame.comparisonPhase==='logistic'?'Logistic regression: a monotone probability curve and a straight classification boundary. The weights are illustrative; the observations stay fixed.':'A sigmoid network can rise and fall, and enclose a group with a curved boundary. The weights are illustrative; the observations stay fixed.';
         frame.source+='#page=5';
-      }else if(scene==='representation'){
-        frame.equation=String.raw`\underbrace{\mathbf h(\mathbf x)}_{\text{representation}}\quad\longrightarrow\quad\underbrace{\sigma(\phi_0+\boldsymbol\phi^\top\mathbf h(\mathbf x))}_{\text{classification head}}`;
-        frame.equationCompact=String.raw`\begin{gathered}\mathbf h(\mathbf x):\ \text{representation}\\\widehat p=\underbrace{\sigma(\phi_0+\boldsymbol\phi^\top\mathbf h)}_{\text{classification head}}\end{gathered}`;
-        frame.caption='With the representation fixed, the head is logistic regression on its features. Fitting learns the representation and head together; our next example uses fitted weights.';
       }else{
         frame.equation=String.raw`h_j(x)=\sigma\!\left(30(x-t_j)\right),\quad\widehat p(x)=\sigma\!\left(-3+\sum_{j=1}^{`+frame.width+String.raw`}\phi_jh_j(x)\right)`;
         frame.equationCompact=String.raw`\begin{gathered}h_j(x)=\sigma\!\left(30(x-t_j)\right)\\\widehat p(x)=\sigma\!\left(-3+\sum_{j=1}^{`+frame.width+String.raw`}\phi_jh_j(x)\right)\end{gathered}`;
-        frame.caption=scene==='sigmoid-two'?'With one hidden neuron, this probability rises. Add a second neuron with a negative output weight, and it can rise and then fall.':'Add a positive contribution and then a negative one. Four neurons can produce two peaks; the earlier neurons stay fixed.';
+        frame.caption='With one hidden neuron, this probability rises. Add a second neuron with a negative output weight, and it can rise and then fall.';
       }
       return frame;
     }
@@ -82,7 +78,15 @@
       frame.traceIndex=Math.floor(D.inputs.length/8);
       frame.equation=String.raw`h_j(\mathbf x)=\operatorname{ReLU}(\theta_{j0}+\theta_{j1}x_1+\theta_{j2}x_2),\quad j=1,2`;
       frame.equationCompact=String.raw`\begin{gathered}h_j=\operatorname{ReLU}(\theta_{j0}+\theta_{j1}x_1+\theta_{j2}x_2)\\j=1,2\end{gathered}`;
-      if(scene==='class-input')frame.caption='A fitted binary example: two inputs, two ReLU hidden neurons, and one sigmoid output. No straight line separates these two curved groups in the input space.';
+      if(scene==='class-input'){
+        const coefficient=value=>Math.abs(value).toFixed(3);
+        const term=(value,variable)=>(value<0?'-':'+')+coefficient(value)+variable;
+        const hidden=D.hiddenWeights.map((weights,j)=>'h_'+(j+1)+String.raw`(\mathbf x)&\approx\operatorname{ReLU}\!\left(`+D.hiddenBias[j].toFixed(3)+term(weights[0],'x_1')+term(weights[1],'x_2')+String.raw`\right)`);
+        const head=String.raw`\widehat p&\approx\operatorname{sigmoid}\!\left(`+D.outputBias.toFixed(3)+term(D.outputWeights[0],'h_1')+term(D.outputWeights[1],'h_2')+String.raw`\right)`;
+        frame.equation=String.raw`\begin{aligned}`+hidden.join(String.raw`\\[.25em]`)+String.raw`\\[.25em]`+head+String.raw`\end{aligned}`;
+        frame.equationCompact=frame.equation;
+        frame.caption='A fitted binary example: two inputs, two ReLU hidden neurons, and one sigmoid output. Parameters are rounded to three decimals; plots use full precision.';
+      }
       if(scene==='class-trace'){
         frame.equation=String.raw`(x_1,x_2)\longmapsto\mathbf h(\mathbf x)=(h_1(\mathbf x),h_2(\mathbf x))`;
         frame.equationCompact=String.raw`(x_1,x_2)\longmapsto(h_1,h_2)`;

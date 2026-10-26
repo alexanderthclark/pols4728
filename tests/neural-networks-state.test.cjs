@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const M = require('../docs/neural-networks/math.js');
 const S = require('../docs/neural-networks/state.js');
+const D = require('../docs/neural-networks/classification-data.js');
 
 function close(actual, expected, tolerance = 1e-10, message = '') {
   assert.ok(Number.isFinite(actual), `Nonfinite value: ${actual}. ${message}`);
@@ -34,12 +35,12 @@ function sampledError(model, intervals = 10000) {
   return error;
 }
 
-test('the scroll story preserves the original 16 scenes and adds ten classification scenes', () => {
-  assert.equal(S.scenes.length, 26);
-  assert.equal(new Set(S.scenes).size, 26);
+test('the scroll story preserves the original 16 scenes and adds eight classification scenes', () => {
+  assert.equal(S.scenes.length, 24);
+  assert.equal(new Set(S.scenes).size, 24);
   assert.equal(S.scenes[0], 'affine');
   assert.deepEqual(S.scenes.slice(0, 16), ['affine', 'relu', 'hinge', 'hill-rise', 'hill-fall', 'hill-flat', 'shallow', 'width-one', 'width-two', 'width-three', 'width-many', 'sine-coarse', 'sine-zoom', 'sine-joint', 'sine-wide', 'universal']);
-  assert.deepEqual(S.scenes.slice(16), ['conflict', 'sigmoid-one', 'sigmoid-two', 'sigmoid-four', 'representation', 'class-input', 'class-trace', 'class-move', 'class-head', 'class-compare']);
+  assert.deepEqual(S.scenes.slice(16), ['conflict', 'sigmoid-one', 'sigmoid-two', 'class-input', 'class-trace', 'class-move', 'class-head', 'class-compare']);
   assert.throws(() => S.frame('missing-scene', 0.5), RangeError);
 
   for (const scene of S.scenes) {
@@ -279,7 +280,7 @@ test('weight blending is linear in function space, including outside the plotted
   }
 });
 
-test('adding fixed sigmoid features changes a monotone probability into one hump and then two', () => {
+test('adding fixed sigmoid features changes a monotone probability into one hump', () => {
   const sigmoid = value => 1 / (1 + Math.exp(-value));
   const probability = (frame, x) => sigmoid(frame.sigmoidBias + frame.sigmoidWeights.reduce(
     (sum, weight, j) => sum + weight * sigmoid(30 * (x - frame.sigmoidThresholds[j])), 0));
@@ -289,21 +290,19 @@ test('adding fixed sigmoid features changes a monotone probability into one hump
   };
   const one = S.frame('sigmoid-one', 1);
   const two = S.frame('sigmoid-two', 1);
-  const four = S.frame('sigmoid-four', 1);
-  assert.deepEqual([one.width, two.width, four.width], [1, 2, 4]);
+  assert.deepEqual([one.width, two.width], [1, 2]);
   let previous = 0;
   for (const x of grid(0, 1, 1000)) {
     const value = probability(one, x);
     assert(value > previous, 'A single hidden sigmoid remains monotone');
     previous = value;
-    for (const frame of [one, two, four]) {
+    for (const frame of [one, two]) {
       assert(probability(frame, x) > 0 && probability(frame, x) < 1, 'The output sigmoid is a probability');
     }
   }
   assert.equal(peaks(one), 0);
   assert.equal(peaks(two), 1);
-  assert.equal(peaks(four), 2);
-  for (const [beforeScene, afterScene] of [['sigmoid-one', 'sigmoid-two'], ['sigmoid-two', 'sigmoid-four']]) {
+  for (const [beforeScene, afterScene] of [['sigmoid-one', 'sigmoid-two']]) {
     const before = S.frame(beforeScene, 1), after = S.frame(afterScene, 0);
     for (const x of grid(0, 1)) close(probability(before, x), probability(after, x));
     for (const progress of grid(0, 1, 20)) {
@@ -313,6 +312,28 @@ test('adding fixed sigmoid features changes a monotone probability into one hump
       assert.deepEqual(current.sigmoidThresholds, before.sigmoidThresholds);
       close(current.sigmoidBias, before.sigmoidBias);
     }
+  }
+});
+
+test('the fitted binary network exposes all nine frozen parameters to three decimals', () => {
+  const frame = S.frame('class-input', .5);
+  const expected = [
+    D.hiddenBias[0], ...D.hiddenWeights[0],
+    D.hiddenBias[1], ...D.hiddenWeights[1],
+    D.outputBias, ...D.outputWeights
+  ].map(value => Number(value.toFixed(3)));
+  assert.equal(S.scenes.indexOf('class-input'), 19, 'The fitted network now appears on slide 20');
+  for (const source of [frame.equation, frame.equationCompact]) {
+    assert.match(source, /h_1/);
+    assert.match(source, /h_2/);
+    assert.equal((source.match(/\\operatorname\{ReLU\}/g) || []).length, 2,
+      'Both hidden neurons retain their ReLU activation');
+    assert.equal((source.match(/\\operatorname\{sigmoid\}/g) || []).length, 1,
+      'The fitted classification head uses a sigmoid');
+    assert.equal((source.match(/\\approx/g) || []).length, 3,
+      'Rounded parameter formulas are marked as approximations');
+    const values = [...source.replace(/\s/g, '').matchAll(/[+-]?\d+\.\d{3}/g)].map(match => Number(match[0]));
+    assert.deepEqual(values, expected, 'The displayed coefficients match the frozen fit in neuron and input order');
   }
 });
 
