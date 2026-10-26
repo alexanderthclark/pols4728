@@ -8,7 +8,7 @@ mathematical notation.
 
 ## Viewing
 
-Serve `docs/word2vec/` with any local static web server and open its `index.html` over
+Serve `dist/` with any local static web server and open its `index.html` over
 HTTP. No build step or external runtime request is needed. Scroll forward to
 develop the explanation and backward to revisit earlier states. The page also
 provides a complete reading version and links to its sources.
@@ -29,7 +29,7 @@ two, the input matrix has 2 rows and 6 columns; the output matrix has 6 rows and
 
 The numerical example uses illustrative starting weights. Its first pair is
 support → reform. One gradient step changes the selected input column and every
-output row, raising the observed target probability from 0.22497 to 0.26856.
+output row, raising the probability of the observed context word from 0.22497 to 0.26856.
 The next scene uses directed adjacent-word pairs from four short sentences.
 This demonstration is too small to produce a useful semantic model. The final
 similarity and analogy diagrams are separate illustrative geometry, not fitted
@@ -106,8 +106,9 @@ derivation by Xin Rong is linked in the final references.
 
 ## Explicit training pairs
 
-The training-pair scene shows two rows with input x and target y, retaining the
-word notation x = w_c and y = w_o. Scrolling duplicates the center-word input and
+The training-pair scene shows two rows with center word x (input) and context
+word y (output), retaining the word notation x = w_c and y = w_o. Scrolling duplicates the center-word input and
 selects the support–reform example. The following network equation explicitly
-identifies d_c as the one-hot encoding of x. Other walkthrough scenes remain
-unchanged, and the homepage remains unlisted.
+identifies d_c as the one-hot encoding of x. The loss explanation uses the same
+context-word terminology. Other walkthrough scenes remain unchanged, and the
+homepage remains unlisted.
