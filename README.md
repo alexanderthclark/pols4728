@@ -40,8 +40,6 @@ An exactly optimized restricted classifier shows why balancing can change
 learned structure even with unlimited compute, while population evaluation
 reveals the tradeoffs. Its opening title is text-only.
 
-The [word2vec story](docs/word2vec/README.md) follows skip-gram from a center–context pair through a shallow neural-network diagram and the input and output embedding matrices, prediction, and one gradient update. It distinguishes context prediction from similarity between learned input vectors, with a lantern-lit vector-cave title scene and a brief CBOW endnote. Ten appended scenes then cover querying learned vectors, normalization, vector arithmetic, multiplicative scoring, and t-SNE.
-
 ## Datasets
 
 The [clean regression choices](data/regression_choices/README.md) provide four
