@@ -5,7 +5,7 @@ export const networkScene = {
   title: 'A small neural network learns the embedding.',
   eq: String.raw`d_c=\operatorname{onehot}(x),\qquad h_c=W_{\mathrm{in}}d_c`,
   caption: 'Skip-gram is a shallow neural network with one linear hidden layer and a nonlinear softmax output.',
-  detail: 'This full-softmax example has six input units, two hidden units, and six output probabilities. Each hidden unit is one embedding coordinate.',
+  detail: '',
   alt: 'A neural network with six one-hot input units, two linear hidden units, and six score units followed by nonlinear softmax. W in has 2 rows and 6 columns; W out has 6 rows and 2 columns. The support input selects hidden coordinates 0.6 and 0.4. Both coordinates contribute to every score, and softmax converts all scores into probabilities.'
 };
 
