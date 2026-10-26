@@ -15,13 +15,25 @@ assert.ok(siteRoot, `Could not find index.html in: ${possibleRoots.join(', ')}`)
 const baseline = JSON.parse(readFileSync(join(testDirectory, 'preservation.json'), 'utf8'));
 assert.equal(baseline.schemaVersion, 1);
 const hash = value => createHash('sha256').update(value).digest('hex');
+const approved = JSON.parse(readFileSync(join(testDirectory, 'clarity-changes.json'), 'utf8'));
+function beforeRequestedClarifications(file, value) {
+  const replacements = approved.replacements.filter(change => change.file === file).toReversed();
+  let source = value.toString('utf8');
+  for (const { before, after, reason } of replacements) {
+    assert.equal(source.split(after).length - 1, 1, `Missing or repeated approved change: ${reason}`);
+    source = source.replace(after, before);
+  }
+  return source;
+}
 
 for (const [file, expected] of Object.entries(baseline.files)) {
-  assert.equal(hash(readFileSync(join(siteRoot, file))), expected,
+  const content = readFileSync(join(siteRoot, file));
+  const original = file === 'app.js' ? beforeRequestedClarifications(file, content) : content;
+  assert.equal(hash(original), expected,
     `Original asset changed: ${file}. Append the exploration without rewriting this asset.`);
 }
 
-const html = readFileSync(join(siteRoot, 'index.html'), 'utf8');
+const html = beforeRequestedClarifications('index.html', readFileSync(join(siteRoot, 'index.html')));
 const attributes = tag => Object.fromEntries([...tag.matchAll(/([:\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)]
   .map(([, name, doubleQuoted, singleQuoted]) => [name, doubleQuoted ?? singleQuoted]));
 const classList = tag => (attributes(tag).class || '').split(/\s+/);
@@ -79,4 +91,4 @@ assert.ok(moduleSources.includes('exploration.js'), 'The appended exploration.js
 assert.equal(moduleSources.filter(src => src === 'app.js').length, 1);
 assert.equal(moduleSources.filter(src => src === 'exploration.js').length, 1);
 
-console.log('Original-preservation checks passed: all four original assets are byte-identical; the hero, 15-scene story markup, and afterword are unchanged; the exploration follows them; there is one hero, unique IDs, and both independent modules.');
+console.log('Original-preservation checks passed: only the explicitly recorded neural-network clarification changes differ from the original. Original diagrams, calculations, styling, artwork, hero and afterword are preserved, and the exploration still follows them.');

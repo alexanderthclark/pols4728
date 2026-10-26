@@ -1,0 +1,59 @@
+{
+  "purpose": "User-requested neural-network clarity review, October 26, 2026. Only these explicit original-source changes are permitted by the preservation check.",
+  "replacements": [
+    {
+      "file": "app.js",
+      "before": "import { vocabulary as vocab, initial, forward, step, interpolateModel } from './model.js';",
+      "after": "import { vocabulary as vocab, initial, forward, step, interpolateModel } from './model.js';\nimport { networkScene, renderNetwork } from './network.js';",
+      "reason": "Load the requested neural-network diagram."
+    },
+    {
+      "file": "app.js",
+      "before": "];\n\nconst f0=",
+      "after": "];\n\n// Requested clarity addition: orient readers before the matrix walkthrough.\nscenes.splice(2,0,networkScene);\n\nconst f0=",
+      "reason": "Insert one overview after the training pair, preserving the original sequence."
+    },
+    {
+      "file": "app.js",
+      "before": "The embedding is learned; the one-hot vector simply chooses it. There is no activation between the two matrices.",
+      "after": "The hidden layer uses the identity (linear) activation: it passes these coordinates through unchanged.",
+      "reason": "Explicitly identify the hidden-layer activation."
+    },
+    {
+      "file": "app.js",
+      "before": "Here we keep the columns of the input matrix as the word embeddings for later tasks.",
+      "after": "Here we keep the whole input matrix as the embedding table: one fixed vector per word, reused across its occurrences.",
+      "reason": "Distinguish the retained embedding table from one selected vector."
+    },
+    {
+      "file": "app.js",
+      "before": "\nconst markers=",
+      "after": "\nfunction renderScene(i,t,n){\n if(i===2)return renderNetwork(t,n,{m,text,line,rect,group,ease,clamp,fmt,vocab,initial,forward,BLUE,RUST,INK,MUTED,RULE});\n return render(i>2?i-1:i,t,n);\n}\n\nconst markers=",
+      "reason": "Add the overview renderer without rewriting the original diagrams."
+    },
+    {
+      "file": "app.js",
+      "before": "svg.innerHTML=markers+render(i,t,n);",
+      "after": "svg.innerHTML=markers+renderScene(i,t,n);",
+      "reason": "Route the inserted scene while preserving original render indices."
+    },
+    {
+      "file": "index.html",
+      "before": "<span id=\"counter\">1 / 15</span>",
+      "after": "<span id=\"counter\">1 / 16</span>",
+      "reason": "Account for the one requested additional scene."
+    },
+    {
+      "file": "index.html",
+      "before": "<h3>Sources &amp; further reading</h3>\n<p class=\"reference\">Query semantics:",
+      "after": "<h3>Sources &amp; further reading</h3>\n<p class=\"reference\">Network architecture and derivation: Xin Rong, <a href=\"https://arxiv.org/html/1411.2738v4\">word2vec Parameter Learning Explained</a>, especially the skip-gram model and its linear hidden layer.</p>\n<p class=\"reference\">Query semantics:",
+      "reason": "Cite the neural-network diagram and activation explanation at the end."
+    },
+    {
+      "file": "app.js",
+      "before": "function init(){\n",
+      "after": "function init(){\n // Preserve the original scroll distance per scene when adding the network overview.\n story.style.height=`${100+1300*scenes.length/15}svh`;\n",
+      "reason": "Preserve the original scroll distance per scene after inserting the overview."
+    }
+  ]
+}

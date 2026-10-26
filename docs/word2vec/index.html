@@ -33,7 +33,7 @@
     <section id="story" class="story" aria-label="Scroll through the word2vec explanation">
       <div class="stage">
         <div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
-        <div class="stage-top"><span id="chapter">01 · The prediction task</span><span id="counter">1 / 15</span></div>
+        <div class="stage-top"><span id="chapter">01 · The prediction task</span><span id="counter">1 / 16</span></div>
         <h2 id="scene-title">Learn from the words around a word.</h2>
         <div id="equation" class="equation"></div>
         <div class="visual"><svg id="diagram" role="img" aria-label="The current step in the skip-gram model"></svg></div>
@@ -77,6 +77,7 @@
 <p>The two-dimensional word vectors in this lesson are invented to make the calculations visible. Their neighbors are computed exactly from those numbers. They are not results from the Google News model. The final map is an actual t-SNE fit to a separate, explicitly synthetic set of 18 six-dimensional vectors. Even here, neighborhoods are only approximate: A5’s three nearest source neighbors are A4, A6, and A1; on the map they are A4, A6, and A3.</p>
 <div class="notes"><p>Pretrained Google News vectors let us query representations learned from a large text corpus. Querying the stored vectors does not retrain the input and output matrices. This lesson follows its named-word query convention: normalize each source vector before signed addition. Its raw-vector query instead adds the stored vectors before comparing directions. Named-word inputs are excluded from their own result lists; a raw vector carries no word identities to exclude.</p><p>Before mapping a subset, check that each token exists, preserve capitalization, and remove duplicate entries. Filtering a list of 100 words can leave fewer than 100. t-SNE perplexity must be smaller than the number of points. The choice of words, perplexity, and initialization can all change the map.</p></div>
 <h3>Sources &amp; further reading</h3>
+<p class="reference">Network architecture and derivation: Xin Rong, <a href="https://arxiv.org/html/1411.2738v4">word2vec Parameter Learning Explained</a>, especially the skip-gram model and its linear hidden layer.</p>
 <p class="reference">Query semantics: <a href="https://radimrehurek.com/gensim/models/keyedvectors.html">Gensim’s word-vector documentation</a> and <a href="https://github.com/piskvorky/gensim/blob/develop/gensim/models/keyedvectors.py">implementation</a>. The named-word and raw-vector conventions shown here follow these definitions.</p>
 <p class="reference">Omer Levy and Yoav Goldberg (2014), <a href="https://aclanthology.org/W14-1618/">Linguistic Regularities in Sparse and Explicit Word Representations</a>, for additive and multiplicative analogy scores.</p>
 <p class="reference">Laurens van der Maaten and Geoffrey Hinton (2008), <a href="https://jmlr.org/papers/v9/vandermaaten08a.html">Visualizing Data using t-SNE</a>. Martin Wattenberg, Fernanda Viégas, and Ian Johnson (2016), <a href="https://distill.pub/2016/misread-tsne/">How to Use t-SNE Effectively</a>, for interpreting the maps.</p>

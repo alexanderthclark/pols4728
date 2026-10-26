@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import vm from 'node:vm';
+import { networkScene, renderNetwork } from './network.js';
 import {
   vocabulary as vocab, initial, forward, step, interpolateModel,
 } from './model.js';
@@ -27,13 +28,13 @@ const katex = {
 const source = readFileSync(new URL('./app.js', import.meta.url), 'utf8');
 assert.ok(source.includes('\nconst markers='), 'The render harness boundary moved.');
 const renderSource = source.split('\nconst markers=')[0]
-  .replace(/^import[^\n]*\n/m, '')
+  .replace(/^import[^\n]*\n/gm, '')
   .replace(/^const story=document[^\n]*\n/m, '')
   .replace(/^const reduced=matchMedia[^\n]*\n/m, '');
-const context = vm.createContext({ katex, vocab, initial, forward, step, interpolateModel });
-vm.runInContext(`${renderSource}\nglobalThis.harness={scenes,render,latex,first,corpus,final};`, context);
+const context = vm.createContext({ katex, vocab, initial, forward, step, interpolateModel, networkScene, renderNetwork });
+vm.runInContext(`${renderSource}\nglobalThis.harness={scenes,render:renderScene,latex,first,corpus,final};`, context);
 const { scenes, render, latex, first, corpus, final } = context.harness;
-assert.equal(scenes.length, 15);
+assert.equal(scenes.length, 16);
 
 const attrs = tag => Object.fromEntries(
   [...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map(([, key, value]) => [key, value]),
@@ -89,7 +90,7 @@ function checkGeometry(markup, narrow, label) {
   }
   // Ignore KaTeX's own internal SVG paths; they have their own coordinate system.
   const diagram = markup.replace(/<foreignObject\b[\s\S]*?<\/foreignObject>/g, '');
-  for (const [tag, kind] of diagram.matchAll(/<(line|rect|text|path)\b[^>]*>/g)) {
+  for (const [tag, kind] of diagram.matchAll(/<(line|rect|circle|text|path)\b[^>]*>/g)) {
     const a = attrs(tag);
     if (kind === 'line') {
       within(number(a, 'x1'), number(a, 'y1'), width, height, `${label} line start`);
@@ -100,6 +101,11 @@ function checkGeometry(markup, narrow, label) {
       assert.ok(w >= 0 && h >= 0, `${label} negative rectangle dimension`);
       within(x, y, width, height, `${label} rectangle start`);
       within(x + w, y + h, width, height, `${label} rectangle end`);
+    } else if (kind === 'circle') {
+      const x = number(a, 'cx'), y = number(a, 'cy'), r = number(a, 'r');
+      assert.ok(r >= 0, `${label} negative circle radius`);
+      within(x - r, y - r, width, height, `${label} circle start`);
+      within(x + r, y + r, width, height, `${label} circle end`);
     } else if (kind === 'text') {
       within(number(a, 'x'), number(a, 'y'), width, height, `${label} text anchor`);
     } else checkPathEndpoints(a.d, width, height, `${label} path endpoint`);
@@ -127,7 +133,7 @@ for (const [, equation] of html.matchAll(/data-math="([^"]*)"/g)) latex(equation
 // Test the numerical/visual integration, rather than reimplementing SGD here.
 const annotations = markup => [...markup.matchAll(/<annotation encoding="application\/x-tex">([\s\S]*?)<\/annotation>/g)].map(match => match[1]);
 for (const narrow of [false, true]) {
-  const before = render(9, 0, narrow), after = render(9, 1, narrow);
+  const before = render(10, 0, narrow), after = render(10, 1, narrow);
   assert.notEqual(before, after, 'The update scene must change with scroll phase.');
   const math = annotations(after);
   const updatedH = forward(first).h;
@@ -135,12 +141,14 @@ for (const narrow of [false, true]) {
     'The update scene must display the model’s updated input column.');
   assert.ok(after.includes(forward(first).p[2].toFixed(3)),
     'The update scene must display the recomputed probability.');
-  assert.notEqual(render(10, 0, narrow), render(10, 1, narrow),
+  assert.notEqual(render(11, 0, narrow), render(11, 1, narrow),
     'The corpus scene must evolve across its complete sequence.');
-  assert.notEqual(render(12, 0, narrow), render(12, 1, narrow),
-    'The similarity scene must show its angle change.');
   assert.notEqual(render(13, 0, narrow), render(13, 1, narrow),
+    'The similarity scene must show its angle change.');
+  assert.notEqual(render(14, 0, narrow), render(14, 1, narrow),
     'The analogy scene must translate its difference vector.');
+  assert.notEqual(render(2, 0, narrow), render(2, 1, narrow),
+    'The network overview must show the forward calculation with scrolling.');
 }
 assert.ok(corpus.length > 2);
 assert.ok(final.Win.flat().some((value, index) => value !== initial.Win.flat()[index]));
