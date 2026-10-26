@@ -126,6 +126,42 @@
       "before": "A window of one word on either side supplies the context here.¹",
       "after": "Here we use one word on each side. Larger windows include more surrounding words.¹",
       "reason": "Clarify that the one-word window is an example and larger context windows are possible, as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "eq:String.raw`W_{\\mathrm{out}}\\in\\mathbb{R}^{|V|\\times k}`",
+      "after": "eq:String.raw`\\begin{gathered}W_{\\mathrm{out}}\\in\\mathbb{R}^{|V|\\times k}\\\\u_o^{\\mathsf T}=\\text{row }o\\text{ of }W_{\\mathrm{out}}\\end{gathered}`",
+      "reason": "Define the output embedding as a row of W_out before its dot product, as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "W in has one column per word. W out has one row per word. The two matrices have separate numeric values.",
+      "after": "W in has one column per word. W out has one row per word, denoted u o transpose. The highlighted reform row is labelled u reform transpose. The two matrices have separate numeric values.",
+      "reason": "Define the output embedding as a row of W_out before its dot product, as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "The “reform” output vector takes a dot product with the “support” input vector.",
+      "after": "The “reform” row of the output matrix takes a dot product with the “support” input vector.",
+      "reason": "Define the output embedding as a row of W_out before its dot product, as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "The reform row 0.4 and 0.6 multiplies the support embedding 0.6 and 0.4; the products sum to 0.48.",
+      "after": "The vector u reform transpose is the reform row of W out, with entries 0.4 and 0.6. It multiplies the support embedding 0.6 and 0.4; the products sum to 0.48.",
+      "reason": "Define the output embedding as a row of W_out before its dot product, as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "  s+=group(n?rect(210,242,118,176,RUST,'none',0,2):rect(739,111,142,240,RUST,'none',0,2),ease(t));",
+      "after": "  s+=group(n?rect(210,242,118,176,RUST,'none',0,2):rect(739,111,142,240,RUST,'none',0,2),ease(t));\n  s+=line(n?331:884,n?316:212,n?339:902,n?316:212,RUST,1.5);\n  s+=m(String.raw`u_{\\text{reform}}^{\\mathsf T}`,n?367:945,n?316:212,n?66:105,38,n?17:23,RUST);",
+      "reason": "Define the output embedding as a row of W_out before its dot product, as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "  s+=vector([.4,.6],a,y,{color:RUST,label:String.raw`u_{\\text{reform}}^{\\mathsf T}`,horizontal:true,size:n?23:30});",
+      "after": "  s+=m(String.raw`\\text{reform's row in }W_{\\mathrm{out}}`,a,y-85,n?190:360,26,n?12:18,RUST);\n  s+=vector([.4,.6],a,y,{color:RUST,label:String.raw`u_{\\text{reform}}^{\\mathsf T}`,horizontal:true,size:n?23:30});",
+      "reason": "Define the output embedding as a row of W_out before its dot product, as requested."
     }
   ]
 }
