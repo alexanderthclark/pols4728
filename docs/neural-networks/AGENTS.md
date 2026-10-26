@@ -1,9 +1,11 @@
 # Neural-network lesson scope
 
-Keep this explainer focused on one scalar input, one hidden layer of ReLU
-neurons, and one linear output. An affine function may introduce the setup.
+Keep the original construction focused on one scalar input, one hidden layer
+of ReLU neurons, and one linear output. An affine function introduces the setup.
+The instructor-authorized extension follows it with sigmoid classification and
+a binary, two-input, two-ReLU-hidden-neuron learned representation.
 
-Preserve the three-part sequence:
+Preserve the six-part sequence:
 
 1. Functions produced by a shallow ReLU network with a univariate input.
 2. Hidden-layer width and the number of joints. A width of m permits at most
@@ -11,20 +13,52 @@ Preserve the three-part sequence:
    cancellation, and inactive units can reduce the realized count.
 3. Universal approximation by widening the same shallow architecture, using
    a piecewise linear sine approximation and local joint insertion.
+4. Beck, King, and Zeng (2000), Equation 3: sigmoid hidden activations and a
+   sigmoid classification head. Open with a centered equation in the paper's
+   notation, using the function name sigmoid and no diagrams. Briefly state
+   that BKZ train a network with sigmoid activations. Next compare that model
+   with logistic regression side by side. Scroll within that comparison to
+   foreground logistic regression with one-input and two-input plots, then
+   foreground the sigmoid network and its more flexible shapes. Keep the
+   observations fixed, use actual model probabilities and boundaries, and
+   retain all three beats under reduced motion and keyboard navigation.
+   Do not add a nested-sigmoid tangent comparison. Then show how additional hidden neurons permit more
+   complicated shapes using fixed one-input constructions in the course notation.
+5. A fitted binary network: open with all fitted weights and biases in the
+   two hidden-neuron equations and the head, rounded for display only. Move
+   the same observations into their actual two hidden activations before
+   revealing the fitted head's straight boundary. Skip the separate second-peak
+   and representation-introduction scenes.
+6. Zoom the original-coordinate panel, add a fixed noisy sample, and widen
+   jointly fitted ReLU/sigmoid networks from 2 through 256 neurons. Preserve
+   point identities and class encodings. Use the frozen actual fitted contours,
+   training-only initialization selection, and independent-test metrics.
+   Distinguish measured classification results from the separately labeled
+   double-descent schematic. All eight illustrative fits already classify every
+   training label correctly; they do not establish a full double-descent curve.
 
-Scrolling drives the mathematical changes in all three parts. Preserve the
+The binary example is a documented new fit inspired by the notes' adjacent
+curved classes, not the unavailable original three-class fit. Use its frozen
+fitted weights consistently in both spaces. Never substitute a different
+classifier, arbitrary point destinations, or a projection of a wider hidden
+layer. Distinguish perfect training classification from generalization and
+from exact probability estimates. The sigmoid constructions are not learned.
+
+Scrolling drives the mathematical changes in all six parts. Preserve the
 course design guide, blacksmith title illustration, and the readable mobile
 and reduced-motion versions.
 
-Keep the function and network diagrams together in one pinned visual stage,
-with a scene-specific heading, the equation, and concise stage caption. Do not add a separate explanation
-column. Keep the bias caption synchronized with the bias node's removal and
-explain that omitting intercepts from the drawing does not change the model.
-Retain the full prose as the print and no-JavaScript reading route.
+Keep the related diagrams together in one pinned visual stage with a
+scene-specific heading, equation, and concise caption. Do not add a separate
+explanation column. Keep the bias caption synchronized with the bias node's
+removal and explain that omitting intercepts from the drawing does not change
+the model. Retain the full prose as the print and no-JavaScript reading route.
 Use the local LaTeX renderer for stage equations, with compact line breaks
-where needed. Keep SVG parameter labels selectable, with italic variables and
-upright numbers. Captions should add information rather than repeat labels.
+where needed. Typeset new mathematical plot and network labels with local
+KaTeX, including axis labels and parameter subscripts. Captions should add
+information rather than repeat labels.
 
-Keep the input-x slider available for inspecting which neurons activate at
-a chosen input. It changes the traced input and activations while scrolling
-continues to control the model weights, width, and narrative progression.
+Keep the input-x slider in the original univariate ReLU scenes. Hide it in the
+classification extension, whose complete story is controlled by scrolling.
+The boundary must remain hidden for the entire representation-movement scene,
+including under reduced motion and when scrolling backward from its reveal.

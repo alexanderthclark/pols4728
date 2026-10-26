@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const M = require('../docs/neural-networks/math.js');
 const S = require('../docs/neural-networks/state.js');
+const D = require('../docs/neural-networks/classification-data.js');
 
 function close(actual, expected, tolerance = 1e-10, message = '') {
   assert.ok(Number.isFinite(actual), `Nonfinite value: ${actual}. ${message}`);
@@ -34,22 +35,23 @@ function sampledError(model, intervals = 10000) {
   return error;
 }
 
-test('the scroll story contains exactly 16 distinct, valid scenes', () => {
-  assert.equal(S.scenes.length, 16);
-  assert.equal(new Set(S.scenes).size, 16);
+test('the scroll story preserves the original 16 scenes and adds classification and generalization scenes', () => {
+  assert.equal(S.scenes.length, 30);
+  assert.equal(new Set(S.scenes).size, 30);
   assert.equal(S.scenes[0], 'affine');
-  assert.equal(S.scenes.at(-1), 'universal');
+  assert.deepEqual(S.scenes.slice(0, 16), ['affine', 'relu', 'hinge', 'hill-rise', 'hill-fall', 'hill-flat', 'shallow', 'width-one', 'width-two', 'width-three', 'width-many', 'sine-coarse', 'sine-zoom', 'sine-joint', 'sine-wide', 'universal']);
+  assert.deepEqual(S.scenes.slice(16, 24), ['conflict', 'sigmoid-one', 'sigmoid-two', 'class-input', 'class-trace', 'class-move', 'class-head', 'class-compare']);
   assert.throws(() => S.frame('missing-scene', 0.5), RangeError);
 
   for (const scene of S.scenes) {
     for (const progress of [-1, 0, 0.125, 0.5, 0.875, 1, 2, NaN]) {
       const frame = S.frame(scene, progress);
       assert.equal(frame.scene, scene);
-      assert.ok(['affine', 'relu', 'shallow', 'sine'].includes(frame.kind));
+      assert.ok(['affine', 'relu', 'shallow', 'sine', 'sigmoid', 'classification', 'width-experiment'].includes(frame.kind));
       assert.equal(typeof frame.x, 'number');
       assert.ok(!Object.hasOwn(frame, 'depth'));
       assert.ok(frame.progress >= 0 && frame.progress <= 1);
-      assert.ok(frame.caption.length > 0, `${scene} needs a caption`);
+      assert.ok((frame.intro || frame.caption).length > 0, `${scene} needs an introduction or caption`);
       assert.ok(frame.equation.length > 0, `${scene} needs an equation`);
       allNumbersFinite(frame);
       if (frame.model) {
@@ -276,4 +278,91 @@ test('weight blending is linear in function space, including outside the plotted
       }
     }
   }
+});
+
+test('adding fixed sigmoid features changes a monotone probability into one hump', () => {
+  const sigmoid = value => 1 / (1 + Math.exp(-value));
+  const probability = (frame, x) => sigmoid(frame.sigmoidBias + frame.sigmoidWeights.reduce(
+    (sum, weight, j) => sum + weight * sigmoid(30 * (x - frame.sigmoidThresholds[j])), 0));
+  const peaks = frame => {
+    const values = grid(0, 1, 2000).map(x => probability(frame, x));
+    return values.slice(1, -1).filter((value, i) => value > values[i] && value > values[i + 2]).length;
+  };
+  const one = S.frame('sigmoid-one', 1);
+  const two = S.frame('sigmoid-two', 1);
+  assert.deepEqual([one.width, two.width], [1, 2]);
+  let previous = 0;
+  for (const x of grid(0, 1, 1000)) {
+    const value = probability(one, x);
+    assert(value > previous, 'A single hidden sigmoid remains monotone');
+    previous = value;
+    for (const frame of [one, two]) {
+      assert(probability(frame, x) > 0 && probability(frame, x) < 1, 'The output sigmoid is a probability');
+    }
+  }
+  assert.equal(peaks(one), 0);
+  assert.equal(peaks(two), 1);
+  for (const [beforeScene, afterScene] of [['sigmoid-one', 'sigmoid-two']]) {
+    const before = S.frame(beforeScene, 1), after = S.frame(afterScene, 0);
+    for (const x of grid(0, 1)) close(probability(before, x), probability(after, x));
+    for (const progress of grid(0, 1, 20)) {
+      const current = S.frame(afterScene, progress);
+      assert.deepEqual(current.sigmoidWeights.slice(0, before.width), before.sigmoidWeights,
+        'Additional neurons preserve every existing contribution');
+      assert.deepEqual(current.sigmoidThresholds, before.sigmoidThresholds);
+      close(current.sigmoidBias, before.sigmoidBias);
+    }
+  }
+});
+
+test('the fitted binary network exposes all nine frozen parameters to three decimals', () => {
+  const frame = S.frame('class-input', .5);
+  const expected = [
+    D.hiddenBias[0], ...D.hiddenWeights[0],
+    D.hiddenBias[1], ...D.hiddenWeights[1],
+    D.outputBias, ...D.outputWeights
+  ].map(value => Number(value.toFixed(3)));
+  assert.equal(S.scenes.indexOf('class-input'), 19, 'The fitted network now appears on slide 20');
+  for (const source of [frame.equation, frame.equationCompact]) {
+    assert.match(source, /h_1/);
+    assert.match(source, /h_2/);
+    assert.equal((source.match(/\\operatorname\{ReLU\}/g) || []).length, 2,
+      'Both hidden neurons retain their ReLU activation');
+    assert.equal((source.match(/\\operatorname\{sigmoid\}/g) || []).length, 1,
+      'The fitted classification head uses a sigmoid');
+    assert.equal((source.match(/\\approx/g) || []).length, 3,
+      'Rounded parameter formulas are marked as approximations');
+    const values = [...source.replace(/\s/g, '').matchAll(/[+-]?\d+\.\d{3}/g)].map(match => Number(match[0]));
+    assert.deepEqual(values, expected, 'The displayed coefficients match the frozen fit in neuron and input order');
+  }
+});
+
+test('classification separates coordinate movement from the later boundary reveal at every progress value', () => {
+  let previousMorph = -1, previousOpacity = -1;
+  for (const progress of grid(0, 1, 100)) {
+    const moving = S.frame('class-move', progress);
+    assert.equal(moving.kind, 'classification');
+    assert(moving.morph >= previousMorph && moving.morph <= 1);
+    assert.equal(moving.boundaryOpacity, 0, 'Even the completed movement has no head boundary');
+    previousMorph = moving.morph;
+    const head = S.frame('class-head', progress);
+    assert.equal(head.morph, 1, 'The head acts on completed hidden coordinates');
+    assert(head.boundaryOpacity >= previousOpacity && head.boundaryOpacity <= 1);
+    previousOpacity = head.boundaryOpacity;
+  }
+  assert.equal(S.frame('class-move', 0).morph, 0);
+  assert.equal(S.frame('class-move', 1).morph, 1);
+  assert.equal(S.frame('class-head', 0).boundaryOpacity, 0);
+  assert.equal(S.frame('class-head', 1).boundaryOpacity, 1);
+  for (const scene of ['class-input', 'class-trace']) {
+    const frame = S.frame(scene, 1);
+    assert.equal(frame.morph, 0);
+    assert.equal(frame.boundaryOpacity, 0);
+  }
+  const compare = S.frame('class-compare', .5);
+  assert.equal(compare.morph, 1);
+  assert.equal(compare.boundaryOpacity, 1);
+  const earlier = S.frame('class-move', .37);
+  S.frame('class-head', 1); S.frame('class-compare', 1);
+  assert.deepEqual(S.frame('class-move', .37), earlier, 'Reverse scrolling returns to the same intermediate representation');
 });

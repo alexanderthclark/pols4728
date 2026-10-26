@@ -9,7 +9,8 @@ const vm = require('node:vm');
 
 const directory = path.resolve(__dirname, '../docs/neural-networks');
 const html = fs.readFileSync(path.join(directory, 'index.html'), 'utf8');
-const scripts = ['math.js', 'state.js', 'views.js', 'vendor/katex/katex.min.js', 'formula.js', 'story.js'];
+const scripts = [...html.matchAll(/<script\b[^>]*src="([^"]+)"[^>]*>/g)]
+  .map(match => match[1].split(/[?#]/)[0]);
 const sceneMarkup = [...html.matchAll(/<section\b([^>]*\bdata-scene="([^"]+)"[^>]*)>([\s\S]*?)<\/section>/g)];
 const sceneNames = sceneMarkup.map(match => match[2]);
 const svgSnapshots = [];
@@ -18,21 +19,51 @@ function attrs(markup) {
   return Object.fromEntries([...markup.matchAll(/([\w-]+)="([^"]*)"/g)].map(match => [match[1], match[2]]));
 }
 
-function assertTypesetEquation(app, frame = app.frame()) {
-  const equation = app.element('stage-equation');
-  const source = frame.compact && frame.equationCompact ? frame.equationCompact : frame.equation;
+function assertTypesetNode(app, id, source, label) {
+  const equation = app.element(id);
   const markup = equation.innerHTML;
-  assert.equal(equation.attrs['data-tex'], source, `${frame.scene}: the current formula source is exposed`);
-  assert(/class="[^"]*\bkatex-html\b/.test(markup), `${frame.scene}: visible mathematical typesetting is present`);
-  assert(/class="[^"]*\bkatex-mathml\b/.test(markup), `${frame.scene}: semantic MathML is present`);
-  assert(!/class="[^"]*\bkatex-error\b/.test(markup), `${frame.scene}: the formula has no parse error`);
+  assert.equal(equation.attrs['data-tex'], source, `${label}: the current formula source is exposed`);
+  assert(/class="[^"]*\bkatex-html\b/.test(markup), `${label}: visible mathematical typesetting is present`);
+  assert(/class="[^"]*\bkatex-mathml\b/.test(markup), `${label}: semantic MathML is present`);
+  assert(!/class="[^"]*\bkatex-error\b/.test(markup), `${label}: the formula has no parse error`);
   const annotation = markup.match(/<annotation\b([^>]*)>([\s\S]*?)<\/annotation>/);
-  assert(annotation, `${frame.scene}: MathML preserves its exact formula source`);
+  assert(annotation, `${label}: MathML preserves its exact formula source`);
   assert.equal(attrs(annotation[1]).encoding, 'application/x-tex');
   const entities = { amp: '&', lt: '<', gt: '>', quot: '"', '#x27': "'" };
   const annotatedSource = annotation[2].replace(/&(amp|lt|gt|quot|#x27);/g, (_, name) => entities[name]);
-  assert.equal(annotatedSource, source, `${frame.scene}: the rendered MathML matches the current source`);
+  assert.equal(annotatedSource, source, `${label}: the rendered MathML matches the current source`);
   return markup;
+}
+
+function assertTypesetEquation(app, frame = app.frame()) {
+  if (frame.equationComparison) {
+    return ['logistic', 'neural'].map(model => {
+      const source = frame.compact && frame[model + 'EquationCompact']
+        ? frame[model + 'EquationCompact'] : frame[model + 'Equation'];
+      return assertTypesetNode(app, model + '-equation', source, frame.scene + ': ' + model);
+    }).join('');
+  }
+  const source = frame.compact && frame.equationCompact ? frame.equationCompact : frame.equation;
+  return assertTypesetNode(app, 'stage-equation', source, frame.scene);
+}
+
+function assertComparisonPlots(app, label) {
+  const frame = app.frame();
+  assert.equal(app.element('comparison-plots').hidden, !frame.comparisonPlots,
+    `${label}: the probability and boundary plots follow the scroll reveal`);
+  if (!frame.comparisonPlots) return;
+  for (const id of ['comparison-probability-plot', 'comparison-boundary-plot']) {
+    const node = app.element(id), markup = node.innerHTML;
+    assert(markup.includes('<path'), `${label}: ${id} draws model geometry`);
+    assert(!/NaN|undefined|Infinity/.test(markup), `${label}: ${id} contains finite geometry`);
+    assert(!/class="[^"]*\bkatex-error\b/.test(markup), `${label}: ${id} has no math parse errors`);
+    assert(/class="[^"]*\bkatex-html\b/.test(markup), `${label}: ${id} typesets mathematical labels`);
+    assert(/class="[^"]*\bkatex-mathml\b/.test(markup), `${label}: ${id} retains semantic MathML`);
+    assert(node.attrs['aria-label'].length > 10, `${label}: ${id} has an accessible description`);
+    const box = node.attrs.viewBox.split(/\s+/).map(Number);
+    assert.equal(box.length, 4);
+    assert(box.every(Number.isFinite) && box[2] > 0 && box[3] > 0);
+  }
 }
 
 function mount({ mobile = false, reduced = false } = {}) {
@@ -51,7 +82,32 @@ function mount({ mobile = false, reduced = false } = {}) {
       removeAttribute(name) { delete this.attrs[name]; },
       getAttribute(name) { return this.attrs[name]; },
       addEventListener(name, callback) { listen(this.events, name, callback); },
-      querySelector() { return { textContent: this.heading || '' }; },
+      querySelector(selector) {
+        if (selector === 'h2,h3') return { textContent: this.heading || '' };
+        return this.querySelectorAll(selector)[0] || null;
+      },
+      querySelectorAll(selector) {
+        const attribute = selector.match(/^\[([\w-]+)\]$/)?.[1];
+        assert(attribute, `Unexpected node selector ${selector}`);
+        // Retained SVG layers mutate their attributes without replacing their
+        // parent. Reflect those mutations in the serialized markup as a browser
+        // does, so opacity and re-entry assertions inspect the actual result.
+        return [...this.innerHTML.matchAll(/<[^/!][^>]*>/g)]
+          .filter(match => Object.hasOwn(attrs(match[0]), attribute))
+          .map(match => {
+            let tag = match[0];
+            return {
+              getAttribute(name) { return attrs(tag)[name] ?? null; },
+              setAttribute: (name, value) => {
+                const pattern = new RegExp('\\b' + name + '="[^"]*"');
+                const replacement = name + '="' + String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '"';
+                const updated = pattern.test(tag) ? tag.replace(pattern, replacement) : tag.replace(/>$/, ' ' + replacement + '>');
+                this.innerHTML = this.innerHTML.replace(tag, updated);
+                tag = updated;
+              }
+            };
+          });
+      },
       getBoundingClientRect() {
         if (attributes.id === 'stage-shell' || attributes.id === 'story-stage') {
           const height = runtime.mobile ? 496 : 768, top = runtime.mobile ? 0 : 16;
@@ -60,6 +116,8 @@ function mount({ mobile = false, reduced = false } = {}) {
         return { top: 0, bottom: 0, height: 0 };
       }
     };
+    node.style.setProperty = function(name, value) { this[name] = String(value); };
+    node.style.removeProperty = function(name) { const old = this[name] || ''; delete this[name]; return old; };
     // Native textContent replacement removes existing element children (MathML
     // included). Keep that behavior here rather than retaining stale markup.
     let markup = '', text = '';
@@ -109,7 +167,7 @@ function mount({ mobile = false, reduced = false } = {}) {
     return node;
   });
   function heightOf(index) {
-    return runtime.innerHeight * (sceneNames[index] === 'sine-wide' ? 2.6 : sceneNames[index] === 'hinge' ? 1.8 : 1);
+    return runtime.innerHeight * (sceneNames[index] === 'sigmoid-one' ? 4.2 : sceneNames[index] === 'sine-wide' ? 2.6 : sceneNames[index] === 'hinge' ? 1.8 : 1);
   }
   const document = {
     compatMode: 'CSS1Compat',
@@ -139,12 +197,14 @@ function mount({ mobile = false, reduced = false } = {}) {
       emit(windowEvents, 'scroll');
     }
   };
-  const context = vm.createContext({ window, document, console,
+  // In a browser the global object is window; this also gives UMD libraries
+  // (including local KaTeX) the same global location as ordinary script code.
+  const context = vm.createContext(Object.assign(window, { window, console,
     setTimeout() { throw new Error('Story must not use timers'); },
     setInterval() { throw new Error('Story must not use timers'); },
     clearTimeout() { throw new Error('Story must not use timers'); },
     clearInterval() { throw new Error('Story must not use timers'); }
-  });
+  }));
   for (const script of scripts) {
     vm.runInContext(fs.readFileSync(path.join(directory, script), 'utf8'), context, { filename: script });
     if (script === 'views.js') {
@@ -189,10 +249,28 @@ function mount({ mobile = false, reduced = false } = {}) {
       emit(documentEvents, 'keydown', event); flush(); return event;
     },
     checkSvg(label) {
-      for (const id of ['function-plot', 'network-plot']) {
+      if (this.frame().equationOnly || this.frame().equationComparison) {
+        assert(['conflict', 'sigmoid-one'].includes(this.frame().scene), `${label}: model equations replace both plots`);
+        assert.equal(document.getElementById('figure-grid').hidden, true, `${label}: the figure area is hidden`);
+        for (const id of ['function-plot', 'network-plot']) {
+          assert.equal(document.getElementById(id).innerHTML, '', `${label}: ${id} has no stale diagram`);
+        }
+        assertTypesetEquation(this);
+        if (this.frame().equationComparison) assertComparisonPlots(this, label);
+        return;
+      }
+      assert.equal(document.getElementById('figure-grid').hidden, false, `${label}: plotted scenes retain their figure area`);
+      assert.equal(document.getElementById('model-comparison').hidden, true, `${label}: plotted scenes hide the formula comparison`);
+      assert.equal(document.getElementById('stage-equation').hidden, false, `${label}: plotted scenes retain their current formula`);
+      for (const id of (this.frame().kind === 'width-experiment' ? ['network-plot'] : ['function-plot', 'network-plot'])) {
         const node = document.getElementById(id), markup = node.innerHTML;
         assert(markup.includes('<path') || markup.includes('<circle'), `${label}: ${id} draws geometry`);
         assert(!/NaN|undefined|Infinity/.test(markup), `${label}: ${id} contains finite geometry`);
+        assert(!/class="[^"]*\bkatex-error\b/.test(markup), `${label}: diagram labels have no math parse errors`);
+        if (window.NNScrollStory.getFrame().hideInspector) {
+          assert(/class="[^"]*\bkatex-html\b/.test(markup), `${label}: mathematical diagram labels use LaTeX`);
+          assert(/class="[^"]*\bkatex-mathml\b/.test(markup), `${label}: mathematical diagram labels retain semantic MathML`);
+        }
         assert(node.attrs['aria-label'].length > 10, `${label}: ${id} has an accessible description`);
         const viewBox = node.attrs.viewBox.split(/\s+/).map(Number);
         assert.equal(viewBox.length, 4); assert(viewBox.every(Number.isFinite));
@@ -204,8 +282,8 @@ function mount({ mobile = false, reduced = false } = {}) {
 }
 
 test('the HTML is scroll driven, has one labelled input inspector, and its local assets resolve', () => {
-  assert.equal(sceneNames.length, 16);
-  assert.equal(new Set(sceneNames).size, 16);
+  assert.equal(sceneNames.length, 30);
+  assert.equal(new Set(sceneNames).size, 30);
   assert(!/<select\b|<form\b/i.test(html), 'No form controls substitute for scrolling');
   const inputs = [...html.matchAll(/<input\b[^>]*>/gi)].map(match => attrs(match[0]));
   assert.equal(inputs.length, 1, 'The input inspector is the only input');
@@ -240,13 +318,13 @@ test('the HTML is scroll driven, has one labelled input inspector, and its local
   }
 });
 
-test('scroll alone traverses all 16 scenes and reverses the sine construction', () => {
+test('scroll alone traverses all 30 scenes and reverses the sine construction', () => {
   const app = mount();
   assert.equal(app.frame().scene, 'affine');
   assert(app.element('previous').disabled);
   const seen = [];
   for (const scene of sceneNames) {
-    const frame = app.scroll(scene, scene === 'sine-wide' ? .99 : .5);
+    const frame = app.scroll(scene, scene === 'sine-wide' || scene === 'generalize-descent' ? .99 : .5);
     seen.push(frame.scene);
     assert.equal(frame.scene, scene);
     assert.notEqual(frame.inspectInput, true, 'Automatic scrolling needs no slider interaction');
@@ -254,7 +332,7 @@ test('scroll alone traverses all 16 scenes and reverses the sine construction', 
     assert.equal(app.element('story').dataset.scene, scene);
     assert.equal(app.steps.filter(step => step.classes.has('is-active')).length, 1);
     assert.equal(app.steps.find(step => step.classes.has('is-active')).attrs['aria-current'], 'step');
-    assert.equal(app.element('stage-count').textContent, String(seen.length).padStart(2, '0') + ' / 16');
+    assert.equal(app.element('stage-count').textContent, String(seen.length).padStart(2, '0') + ' / 30');
     if (scene === 'sine-coarse') {
       assert.equal(frame.width, 6);
       assert(!app.element('function-plot').innerHTML.includes('A closer look'));
@@ -279,10 +357,10 @@ test('scroll alone traverses all 16 scenes and reverses the sine construction', 
 test('mobile scroll keeps updating and renders the compact views', () => {
   const app = mount({ mobile: true });
   for (const scene of sceneNames) {
-    const frame = app.scroll(scene, scene === 'sine-wide' ? .99 : .5);
+    const frame = app.scroll(scene, scene === 'sine-wide' || scene === 'generalize-descent' ? .99 : .5);
     assert.equal(frame.scene, scene);
     assert.equal(app.element('function-plot').attrs.viewBox, '0 0 620 350');
-    assert.equal(app.element('network-plot').attrs.viewBox, '0 0 620 220');
+    assert.equal(app.element('network-plot').attrs.viewBox, frame.kind === 'width-experiment' ? '0 0 620 540' : '0 0 620 220');
     if (scene === 'sine-wide') assert.equal(frame.width, 26);
     app.checkSvg('compact ' + scene);
   }
@@ -313,6 +391,11 @@ test('reduced motion uses finite completed scenes and discrete widening', () => 
     const frame = app.scroll(scene, .53);
     assert.equal(frame.scene, scene);
     if (scene === 'affine') assert([0, 1].includes(frame.progress), 'Reduced-motion affine scenes use complete visible/hidden bias states');
+    else if (scene === 'sigmoid-one') {
+      assert.equal(frame.progress, .45, 'Reduced motion keeps the middle comparison beat available');
+      assert.equal(frame.comparisonPhase, 'logistic');
+    }
+    else if (scene.startsWith('generalize-')) assert.equal(frame.progress, app.window.NNStoryState.reducedProgress(scene, .53));
     else if (!['width-many', 'sine-wide'].includes(scene)) assert.equal(frame.progress, 1);
     else assert(Math.abs(frame.progress * 10 - Math.round(frame.progress * 10)) < 1e-9);
     if (scene === 'sine-joint') {
@@ -707,14 +790,17 @@ test('the single stage retains the scene caption and accessible scene status wit
     for (const scene of sceneNames) {
       const frame = app.scroll(scene, .5);
       assert.equal(caption.textContent, frame.caption, `The ${scene} stage retains its current short caption`);
-      assert(caption.textContent.trim().length > 0);
-      assert(!caption.hidden, 'The stage caption remains visible');
+      const intro = app.element('stage-intro');
+      assert.equal(intro.textContent, frame.intro || '');
+      assert.equal(intro.hidden, !frame.intro, 'The introduction appears only in its scene');
+      assert.equal(caption.hidden, !frame.caption, 'Only nonempty captions appear below the visual');
+      assert((intro.textContent || caption.textContent).trim().length > 0);
       assert.notEqual(caption.attrs['aria-hidden'], 'true');
       assert(!('inert' in caption.attrs), 'The stage caption remains accessible');
       assert.equal(status.dataset.scene, scene);
       assert.equal(status.textContent, app.steps.find(step => step.dataset.scene === scene).heading);
       assert.equal(app.element('stage-name').textContent, status.textContent, 'The visible title identifies the current step');
-      assert.equal(app.element('return-link').hidden, scene !== 'universal', 'The return link appears only in the final scene');
+      assert.equal(app.element('return-link').hidden, true, 'The return link waits for the final explanatory beat');
     }
     app.scroll('sine-zoom', .5);
     const before = caption.textContent;
@@ -754,6 +840,264 @@ test('the affine stage caption follows the bias drawing in both directions', () 
   }
 });
 
+test('the universal-approximation assumptions remain present before the classification extension', () => {
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    const frame = app.scroll('universal', .9);
+    assert(frame.caption.includes('continuous function on a closed, bounded interval'));
+    assert(/does not guarantee (?:successful training|training success)/.test(frame.caption));
+    assert.equal(app.element('return-link').hidden, true, 'The approximation is no longer the last scene');
+    assert.equal(app.element('stage-instruction').hidden, false, 'The reader can continue into classification');
+    app.click('next');
+    assert.equal(app.frame().scene, 'conflict');
+  }
+});
+
+test('the historical sigmoid equation leads to a model comparison before plotted flexibility, in either direction', () => {
+  for (const mobile of [false, true]) for (const reduced of [false, true]) {
+    const app = mount({ mobile, reduced });
+    app.scroll('universal', .5);
+    app.checkSvg('before historical equation');
+    app.click('next');
+    const historical = app.frame();
+    assert.equal(historical.scene, 'conflict');
+    assert.equal(historical.equationOnly, true);
+    assert.equal(app.element('figure-grid').hidden, true);
+    assert.equal(app.element('model-comparison').hidden, true);
+    assert.equal(app.element('stage-equation').hidden, false);
+    assert(app.element('stage-shell').classes.has('is-equation-only'));
+    assert.equal(app.element('input-inspector').hidden, true);
+    const equationMarkup = assertTypesetEquation(app, historical);
+    const equationSource = app.element('stage-equation').attrs['data-tex'];
+    assert(equationSource.includes(String.raw`Y_i`) && equationSource.includes(String.raw`\operatorname{Bernoulli}(\pi_i)`),
+      'Equation 3 retains the Bernoulli outcome model');
+    assert(equationSource.includes(String.raw`\operatorname{sigmoid}`), 'The activation uses its requested function name');
+    assert(equationSource.includes(String.raw`\operatorname{sigmoid}(z)=\frac{1}{1+e^{-z}}`),
+      'The named activation retains the inverse-logit definition');
+    assert(!equationSource.includes(String.raw`\operatorname{expit}`), 'Sigmoid replaces the expit name in the equation');
+    assert(!equationSource.includes(String.raw`\sigma`), 'The historical equation uses a named function rather than sigma');
+    assert(equationSource.includes(String.raw`\gamma_0`), 'The output intercept remains explicit');
+    if (mobile) {
+      assert(equationSource.includes(String.raw`\sum_{j=1}^{M}\gamma_j\operatorname{sigmoid}(X_i\beta_{(j)})`),
+        'The compact equation includes every indexed hidden neuron');
+    } else {
+      for (const index of ['1', '2', 'M']) {
+        assert(equationSource.includes(String.raw`\gamma_` + index + String.raw`\operatorname{sigmoid}(X_i\beta_{(` + index + ')})'),
+          `The expanded equation includes the paper's hidden term ${index}`);
+      }
+    }
+    app.checkSvg('historical equation');
+
+    app.click('next');
+    const comparison = app.frame();
+    assert.equal(comparison.scene, 'sigmoid-one');
+    assert.equal(comparison.equationComparison, true);
+    assert.equal(comparison.comparisonPhase, 'equations');
+    assert.equal(app.element('figure-grid').hidden, true, 'The comparison uses its own plot area');
+    assert.equal(app.element('comparison-plots').hidden, true, 'Both equations appear before any plot is revealed');
+    assert.equal(app.element('stage-equation').hidden, true, 'The comparison uses its own two formulas');
+    assert.equal(app.element('model-comparison').hidden, false);
+    assert.equal(app.element('input-inspector').hidden, true);
+    const comparisonMarkup = assertTypesetEquation(app, comparison);
+    const logistic = app.element('logistic-equation').attrs['data-tex'];
+    const neural = app.element('neural-equation').attrs['data-tex'];
+    for (const source of [logistic, neural]) {
+      assert(source.includes(String.raw`\operatorname{Bernoulli}(\pi_i)`), 'Both models predict the same Bernoulli outcome');
+      assert(source.includes(String.raw`\operatorname{sigmoid}`), 'Both models use the same named sigmoid function');
+    }
+    assert(logistic.includes(String.raw`X_i\beta`), 'Logistic regression acts directly on the linear predictor');
+    assert.equal(logistic.match(/\\operatorname\{sigmoid\}/g).length, 1, 'Logistic regression has no hidden sigmoid layer');
+    assert(!logistic.includes(String.raw`\gamma`), 'Logistic regression does not acquire hidden-layer output weights');
+    assert(neural.includes(String.raw`\gamma_0`) && neural.includes(String.raw`\gamma_j`) && neural.includes(String.raw`X_i\beta_{(j)}`),
+      'The neural-network comparison preserves its hidden features and output intercept');
+    assert(neural.includes(String.raw`\sum_{j=1}^{M}`), 'The comparison includes M hidden neurons');
+    assert.equal(neural.match(/\\operatorname\{sigmoid\}/g).length, 2, 'The network applies sigmoid at the hidden layer and the output');
+    app.checkSvg('model comparison');
+
+    app.click('next');
+    assert.equal(app.frame().scene, 'sigmoid-one');
+    assert.equal(app.frame().comparisonPhase, 'logistic');
+    assert.equal(app.element('comparison-plots').hidden, false);
+    app.checkSvg('logistic comparison plots');
+    app.click('next');
+    assert.equal(app.frame().scene, 'sigmoid-one');
+    assert.equal(app.frame().comparisonPhase, 'neural');
+    app.checkSvg('neural comparison plots');
+    app.click('next');
+    assert.equal(app.frame().scene, 'sigmoid-two');
+    assert.equal(app.element('figure-grid').hidden, false);
+    assert.equal(app.element('model-comparison').hidden, true);
+    assert.equal(app.element('stage-equation').hidden, false);
+    assert(!app.element('stage-shell').classes.has('is-equation-only'));
+    app.checkSvg('flexibility after comparison');
+    assert.notEqual(assertTypesetEquation(app), equationMarkup, 'The flexibility scene displays its own formula');
+
+    app.click('previous');
+    assert.equal(app.frame().scene, 'sigmoid-one');
+    assert.equal(app.frame().comparisonPhase, 'neural', 'Reverse navigation enters the last comparison beat');
+    assert.equal(app.element('model-comparison').hidden, false);
+    assert.equal(app.element('stage-equation').hidden, true);
+    assert.equal(assertTypesetEquation(app), comparisonMarkup, 'Reverse navigation restores both comparison equations exactly');
+    app.checkSvg('reversed comparison');
+    app.click('previous');
+    assert.equal(app.frame().comparisonPhase, 'logistic');
+    app.click('previous');
+    assert.equal(app.frame().comparisonPhase, 'equations');
+    assert.equal(app.element('comparison-plots').hidden, true, 'Reverse navigation hides the plots before leaving the comparison');
+    app.click('previous');
+    assert.equal(app.frame().scene, 'conflict');
+    assert.equal(app.element('model-comparison').hidden, true);
+    assert.equal(app.element('stage-equation').hidden, false);
+    assert.equal(assertTypesetEquation(app), equationMarkup, 'Reverse navigation restores Equation 3 exactly');
+    assert(app.element('stage-shell').classes.has('is-equation-only'));
+    app.checkSvg('reversed historical equation');
+    app.click('previous');
+    assert.equal(app.frame().scene, 'universal');
+    assert(!app.element('stage-shell').classes.has('is-equation-only'));
+    assert.equal(app.element('input-inspector').hidden, false);
+    app.checkSvg('reversed before historical equation');
+  }
+});
+
+test('the equation comparison unfolds into logistic and neural plots, then reverses exactly', () => {
+  for (const mobile of [false, true]) for (const reduced of [false, true]) {
+    const app = mount({ mobile, reduced });
+    const snapshots = new Map();
+    const stops = [[.12, 'equations', 0, 0], [.45, 'logistic', 1, 0], [.9, 'neural', 1, 1]];
+    for (const [progress, phase, open, mix] of stops) {
+      const frame = app.scroll('sigmoid-one', progress);
+      assert.equal(frame.comparisonPhase, phase);
+      assert.equal(frame.comparisonOpen, open);
+      assert.equal(frame.comparisonMix, mix);
+      assert.equal(frame.comparisonPlotOpacity, open);
+      assert.equal(frame.comparisonPlots, Boolean(open));
+      assert.equal(Number(app.element('model-comparison').style['--comparison-open']), open,
+        'The formulas move to their plotted layout only after the opening comparison');
+      assert.equal(Number(app.element('model-comparison').style['--logistic-focus']), 1 - open * mix,
+        'The logistic equation recedes when the network takes focus');
+      assert.equal(Number(app.element('model-comparison').style['--neural-focus']), 1 - open * (1 - mix),
+        'The network equation comes forward with its flexible plots');
+      assert.equal(app.element('stage-count').textContent, '18 / 30', 'All comparison beats remain on slide 18');
+      assert.equal(app.element('input-inspector').hidden, true, 'Scrolling controls the entire comparison');
+      app.checkSvg(`${phase} ${mobile ? 'mobile' : 'desktop'} ${reduced ? 'reduced' : 'animated'}`);
+      snapshots.set(phase, {
+        formulas: assertTypesetEquation(app),
+        probability: app.element('comparison-probability-plot').innerHTML,
+        boundary: app.element('comparison-boundary-plot').innerHTML,
+        caption: app.element('stage-caption').textContent
+      });
+    }
+    for (const [progress, phase] of stops.slice().reverse()) {
+      app.scroll('sigmoid-one', progress);
+      const saved = snapshots.get(phase);
+      assert.equal(assertTypesetEquation(app), saved.formulas, 'Reverse scrolling restores the comparison formulas');
+      assert.equal(app.element('comparison-probability-plot').innerHTML, saved.probability,
+        'Reverse scrolling restores the exact one-input model display');
+      assert.equal(app.element('comparison-boundary-plot').innerHTML, saved.boundary,
+        'Reverse scrolling restores the exact two-input model display');
+      assert.equal(app.element('stage-caption').textContent, saved.caption);
+    }
+    app.scroll('sigmoid-one', .9);
+    app.scroll('sigmoid-two', .5);
+    assert.equal(app.element('model-comparison').hidden, true);
+    for (const id of ['comparison-probability-plot', 'comparison-boundary-plot']) {
+      assert.equal(app.element(id).innerHTML, '', 'Leaving slide 18 clears its diagrams');
+    }
+  }
+});
+
+test('comparison animation has intermediate scroll frames while reduced motion retains all three beats', () => {
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    const opening = app.scroll('sigmoid-one', .275);
+    assert(opening.comparisonOpen > 0 && opening.comparisonOpen < 1, 'The plot introduction has intermediate positions');
+    assert.equal(opening.comparisonMix, 0, 'The first introduction focuses on logistic regression');
+    const transition = app.scroll('sigmoid-one', .69);
+    assert.equal(transition.comparisonOpen, 1);
+    assert(transition.comparisonMix > 0 && transition.comparisonMix < 1,
+      'Scrolling crossfades the two model displays through intermediate states');
+    app.checkSvg('mid-transition');
+    const before = app.element('comparison-boundary-plot').innerHTML;
+    app.scroll('sigmoid-one', .91);
+    app.scroll('sigmoid-one', .69);
+    assert.equal(app.element('comparison-boundary-plot').innerHTML, before,
+      'Intermediate graph frames are reversible without elapsed-time animations');
+    const reduced = mount({ mobile, reduced: true });
+    for (const [progress, expected, phase] of [[.05, .12, 'equations'], [.27, .45, 'logistic'], [.69, .9, 'neural']]) {
+      const frame = reduced.scroll('sigmoid-one', progress);
+      assert.equal(frame.progress, expected);
+      assert.equal(frame.comparisonPhase, phase);
+      assert([0, 1].includes(frame.comparisonOpen));
+      assert([0, 1].includes(frame.comparisonMix));
+      reduced.checkSvg('reduced ' + phase);
+    }
+  }
+});
+
+test('the comparison changes its model curves and boundaries while the two-class observations stay fixed', () => {
+  const points = markup => [...markup.matchAll(/<g\b[^>]*data-comparison-point-id="[^"]+"[^>]*>/g)]
+    .map(match => attrs(match[0]));
+  const layers = markup => [...markup.matchAll(/<g\b[^>]*data-comparison-model="[^"]+"[^>]*>/g)]
+    .map(match => attrs(match[0]));
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    app.scroll('sigmoid-one', .45);
+    const initial = new Map();
+    for (const [id, pathAttribute] of [
+      ['comparison-probability-plot', 'data-comparison-curve'],
+      ['comparison-boundary-plot', 'data-comparison-boundary']
+    ]) {
+      const markup = app.element(id).innerHTML;
+      const observations = points(markup);
+      assert(observations.length > 10, 'Each view shows a genuine set of fixed binary observations');
+      assert.equal(new Set(observations.map(p => p['data-comparison-point-id'])).size, observations.length);
+      assert.deepEqual([...new Set(observations.map(p => p['data-label']))].sort(), ['0', '1']);
+      assert(observations.every(p => /^translate\([\d\s.,-]+\)$/.test(p.transform)),
+        'Each point has an explicit finite plot position');
+      const curves = [...markup.matchAll(/<path\b[^>]*>/g)].map(match => attrs(match[0]))
+        .filter(p => p[pathAttribute]);
+      assert.equal(curves.length, 2, 'Both model geometries are retained for the crossfade');
+      assert.deepEqual(curves.map(p => p[pathAttribute]).sort(), ['logistic', 'network']);
+      assert.notEqual(curves[0].d, curves[1].d, 'The network supplies a different curve or decision boundary');
+      assert.deepEqual(layers(markup).map(layer => [layer['data-comparison-model'], Number(layer.opacity)]),
+        [['logistic', 1], ['network', 0]], 'Logistic regression begins in the foreground');
+      initial.set(id, observations);
+    }
+    for (const progress of [.69, .9]) {
+      const frame = app.scroll('sigmoid-one', progress);
+      for (const id of initial.keys()) {
+        const markup = app.element(id).innerHTML;
+        assert.deepEqual(points(markup), initial.get(id), 'Model comparison preserves point identities, coordinates, shapes, and class labels');
+        const modelLayers = layers(markup);
+        assert.equal(Number(modelLayers[0].opacity), 1 - frame.comparisonMix);
+        assert.equal(Number(modelLayers[1].opacity), frame.comparisonMix);
+      }
+    }
+  }
+});
+
+test('arrow keys visit every comparison beat before advancing to the next scene', () => {
+  for (const mobile of [false, true]) for (const reduced of [false, true]) {
+    const app = mount({ mobile, reduced });
+    app.scroll('conflict', .5);
+    for (const phase of ['equations', 'logistic', 'neural']) {
+      assert(app.key('ArrowRight').defaultPrevented);
+      assert.equal(app.frame().scene, 'sigmoid-one');
+      assert.equal(app.frame().comparisonPhase, phase);
+      assert.equal(app.runtime.scrollCalls.at(-1).behavior, reduced ? 'auto' : 'smooth');
+    }
+    app.key('ArrowRight');
+    assert.equal(app.frame().scene, 'sigmoid-two');
+    for (const phase of ['neural', 'logistic', 'equations']) {
+      assert(app.key('ArrowLeft').defaultPrevented);
+      assert.equal(app.frame().scene, 'sigmoid-one');
+      assert.equal(app.frame().comparisonPhase, phase);
+    }
+    app.key('ArrowLeft');
+    assert.equal(app.frame().scene, 'conflict');
+  }
+});
+
 test('the final stage caption and return link remain available at and beyond the end of the story', () => {
   for (const mobile of [false, true]) {
     for (const reduced of [false, true]) {
@@ -762,11 +1106,11 @@ test('the final stage caption and return link remain available at and beyond the
       const link = app.element('return-link');
       assert.equal(link.attrs.href, '#page-title', 'The final link returns to the page heading');
       assert.equal(app.element('page-title').attrs.id, 'page-title', 'The return destination exists');
-      for (const progress of [.12, .5, .96, 1, 1.2]) {
-        const frame = app.scroll('universal', progress);
+      for (const progress of [.96, 1, 1.2]) {
+        const frame = app.scroll('generalize-descent', progress);
+        assert.equal(frame.scene, 'generalize-descent');
         assert.equal(caption.textContent, frame.caption, `The final caption stays current at progress ${progress}`);
-        assert(caption.textContent.includes('continuous function on a closed, bounded interval'), 'The approximation assumptions remain present');
-        assert(/does not guarantee (?:successful training|training success)/.test(caption.textContent), 'The conclusion preserves the capacity-versus-training distinction');
+        assert(caption.textContent.length > 20);
         assert(!caption.hidden, `The final caption stays visible at progress ${progress}`);
         assert.notEqual(caption.style.opacity, '0');
         assert.notEqual(caption.attrs['aria-hidden'], 'true');
@@ -776,10 +1120,10 @@ test('the final stage caption and return link remain available at and beyond the
         assert.notEqual(link.attrs['aria-hidden'], 'true');
         assert(!('inert' in link.attrs), 'The return link remains keyboard accessible');
       }
-      const earlier = app.scroll('sine-wide', .5);
+      const earlier = app.scroll('class-head', .5);
       assert.equal(caption.textContent, earlier.caption, 'Reverse scrolling restores the earlier caption');
       assert.equal(link.hidden, true, 'The final return link hides when leaving the conclusion');
-      const final = app.scroll('universal', 1);
+      const final = app.scroll('generalize-descent', 1);
       assert.equal(caption.textContent, final.caption, 'Returning to the end restores the final caption');
       assert.equal(link.hidden, false, 'Returning to the end restores the final link');
     }
@@ -834,6 +1178,277 @@ test('hinge reference curves remain examples while scrolling controls one actual
   }
 });
 
+test('the scalar input inspector hides only for the extension and restores the chosen scalar on return', () => {
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    const inspector = app.element('input-inspector');
+    app.scroll('shallow', .4);
+    app.input('input-x', 1.25);
+    assert.equal(inspector.hidden, false);
+    for (const scene of sceneNames.slice(16)) {
+      const frame = app.scroll(scene, .5);
+      assert.equal(inspector.hidden, true, `${scene} does not expose an irrelevant scalar input`);
+      assert.equal(frame.hideInspector, true);
+      assert.notEqual(frame.inspectInput, true, 'A previous slider selection does not alter the extension');
+      assert.equal(app.element('active-neurons').hidden, true, 'The old scalar activation counter is not reused');
+    }
+    const restored = app.scroll('shallow', .4);
+    assert.equal(inspector.hidden, false);
+    assert.equal(restored.inspectInput, true);
+    assert.equal(restored.x, 1.25);
+    assert.equal(Number(app.element('input-x').value), 1.25);
+    for (const scene of sceneNames.slice(0, 16)) {
+      app.scroll(scene, .5);
+      assert.equal(inspector.hidden, false, `The original ${scene} inspector stays available`);
+    }
+  }
+});
+
+function observationGeometry(markup) {
+  return [...markup.matchAll(/<(?:circle|rect)\b[^>]*data-point-id="[^"]+"[^>]*>/g)].map(match => {
+    const a = attrs(match[0]);
+    const circle = match[0].startsWith('<circle');
+    return {
+      id: a['data-point-id'], space: a['data-space'],
+      x: circle ? Number(a.cx) : Number(a.x) + Number(a.width) / 2,
+      y: circle ? Number(a.cy) : Number(a.y) + Number(a.height) / 2,
+      shape: circle ? 'circle' : 'square', fill: a.fill
+    };
+  });
+}
+
+function representationBoundaries(markup) {
+  return [...markup.matchAll(/<g\b[^>]*data-classification-boundary="representation"[^>]*>/g)]
+    .map(match => attrs(match[0]));
+}
+
+test('the fitted network slide typesets its actual parameters before the observation trace', () => {
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    const frame = app.scroll('class-input', .5);
+    const model = app.window.NNClassificationData;
+    const expected = [
+      model.hiddenBias[0], ...model.hiddenWeights[0],
+      model.hiddenBias[1], ...model.hiddenWeights[1],
+      model.outputBias, ...model.outputWeights
+    ].map(value => Number(value.toFixed(3)));
+    const markup = assertTypesetEquation(app, frame);
+    const source = app.element('stage-equation').attrs['data-tex'];
+    const values = [...source.replace(/\s/g, '').matchAll(/[+-]?\d+\.\d{3}/g)].map(match => Number(match[0]));
+    assert.deepEqual(values, Array.from(expected), 'Visible formulas expose the fitted hidden and output parameters');
+    assert.equal(app.element('stage-count').textContent, '20 / 30');
+    app.click('previous');
+    assert.equal(app.frame().scene, 'sigmoid-two', 'Removed scenes no longer intervene before the fitted example');
+    app.click('next');
+    assert.equal(app.frame().scene, 'class-input');
+    assert.equal(assertTypesetEquation(app), markup, 'Returning restores the same fitted parameter formulas');
+    app.click('next');
+    assert.equal(app.frame().scene, 'class-trace');
+    assert.equal(app.frame().boundaryOpacity, 0, 'The boundary remains hidden while tracing an observation');
+    app.checkSvg(`fitted parameter transition ${mobile ? 'compact' : 'desktop'}`);
+  }
+});
+
+test('observations move before any straight classification boundary appears, then reverse exactly', () => {
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    const plot = app.element('function-plot');
+    const observations = app.window.NNClassificationData.inputs;
+    const positions = [];
+    for (const progress of [0, .25, .5, .75, .99]) {
+      const frame = app.scroll('class-move', progress);
+      assert.equal(frame.scene, 'class-move');
+      const points = observationGeometry(plot.innerHTML);
+      assert.equal(points.length, observations.length, 'Every observation has its own plotted marker');
+      assert.equal(new Set(points.map(point => point.id)).size, observations.length, 'Observation identities are unique');
+      assert(points.every(point => Number.isFinite(point.x) && Number.isFinite(point.y)));
+      assert.equal(representationBoundaries(plot.innerHTML).length, 0,
+        'The head boundary is not present during movement, even near its completed state');
+      if (positions.length) {
+        assert.deepEqual(points.map(({ id, shape, fill }) => ({ id, shape, fill })),
+          positions[0].map(({ id, shape, fill }) => ({ id, shape, fill })),
+          'Observation identities, shapes, and colors survive the change of coordinates');
+      }
+      positions.push(points);
+      app.checkSvg(`movement ${progress} ${mobile ? 'compact' : 'desktop'}`);
+    }
+    const moved = positions.at(-1).filter((point, i) =>
+      Math.hypot(point.x - positions[0][i].x, point.y - positions[0][i].y) > 1);
+    assert(moved.length > observations.length / 2, 'Scrolling changes actual marker coordinates');
+    assert.notDeepEqual(positions[1], positions[2], 'The movement has intermediate geometry');
+    assert.notDeepEqual(positions[2], positions[3], 'The movement is not only an endpoint jump');
+
+    app.scroll('class-move', .35);
+    const earlierMarkup = plot.innerHTML;
+    app.scroll('class-head', .75);
+    const boundaries = representationBoundaries(plot.innerHTML);
+    assert.equal(boundaries.length, 1, 'The next scene reveals the single straight binary head boundary');
+    assert(Number(boundaries[0].opacity) > 0, 'The revealed boundary is visible');
+    assert(Number(boundaries[0]['data-boundary-opacity']) > 0);
+    app.scroll('class-move', .35);
+    assert.equal(plot.innerHTML, earlierMarkup, 'Reverse scrolling restores the exact intermediate point configuration');
+    assert.equal(representationBoundaries(plot.innerHTML).length, 0, 'Reverse scrolling removes the straight boundary again');
+  }
+});
+
+test('the rendered straight head boundary actually separates the transformed observations', () => {
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile });
+    app.scroll('class-compare', .5);
+    const plot = app.element('function-plot').innerHTML;
+    const points = observationGeometry(plot);
+    const model = app.window.NNClassificationData;
+    const lines = [...plot.matchAll(/<line\b[^>]*data-zero-logit="true"[^>]*>/g)].map(match => attrs(match[0]));
+    assert.equal(lines.length, 1, 'The binary head has one straight decision boundary');
+    const line = lines[0], ax = Number(line.x1), ay = Number(line.y1), bx = Number(line.x2), by = Number(line.y2);
+    const signs = [new Set(), new Set()];
+    points.forEach(point => {
+      const side = (bx - ax) * (point.y - ay) - (by - ay) * (point.x - ax);
+      assert(Math.abs(side) > 1e-5, 'Every marker lies strictly to one side of the visible boundary');
+      signs[model.labels[Number(point.id)]].add(Math.sign(side));
+    });
+    assert.equal(signs[0].size, 1, 'All class-zero markers occupy one side');
+    assert.equal(signs[1].size, 1, 'All class-one markers occupy one side');
+    assert.notEqual([...signs[0]][0], [...signs[1]][0], 'The two classes occupy opposite sides');
+    const pointTags = [...plot.matchAll(/<(?:circle|rect)\b[^>]*data-point-id="[^"]+"[^>]*>/g)].map(match => attrs(match[0]));
+    pointTags.forEach(point => {
+      const i = Number(point['data-point-id']), input = model.inputs[i];
+      for (let j = 0; j < 2; j++) {
+        const expected = Math.max(0, model.hiddenBias[j] + model.hiddenWeights[j][0] * input[0] + model.hiddenWeights[j][1] * input[1]);
+        assert(Math.abs(Number(point['data-h' + (j + 1)]) - expected) < 1e-10,
+          'Each displayed hidden coordinate is the fitted neuron activation');
+      }
+    });
+    const reference = app.element('network-plot').innerHTML;
+    const referenceIds = [...reference.matchAll(/data-reference-point-id="([^"]+)"/g)].map(match => match[1]);
+    assert.deepEqual(referenceIds, points.map(point => point.id), 'The comparison preserves the identical observations in both spaces');
+    assert(reference.includes('data-classification-boundary="input"'), 'The original-space view shows the corresponding fitted boundary');
+  }
+});
+
+test('reduced motion preserves the representation reveal as a separate scene from the head', () => {
+  for (const mobile of [false, true]) {
+    const app = mount({ mobile, reduced: true });
+    const plot = app.element('function-plot');
+    app.scroll('class-trace', .5);
+    const original = observationGeometry(plot.innerHTML);
+    app.click('next');
+    assert.equal(app.frame().scene, 'class-move');
+    assert.equal(app.frame().progress, 1, 'The motion completes immediately for reduced motion');
+    const transformed = observationGeometry(plot.innerHTML);
+    assert.equal(transformed.length, original.length);
+    assert(transformed.every(point => point.space === 'representation'), 'All points have reached their hidden coordinates');
+    assert.notDeepEqual(transformed, original);
+    assert.equal(representationBoundaries(plot.innerHTML).length, 0, 'Completed movement still does not reveal the line');
+    app.click('next');
+    assert.equal(app.frame().scene, 'class-head');
+    assert(representationBoundaries(plot.innerHTML).some(boundary => Number(boundary.opacity) > 0));
+    app.click('previous');
+    assert.equal(app.frame().scene, 'class-move');
+    assert.equal(representationBoundaries(plot.innerHTML).length, 0);
+    assert.deepEqual(observationGeometry(plot.innerHTML), transformed, 'Returning leaves the fully transformed points but hides the line');
+  }
+});
+
+test('the original-coordinate panel expands with scrolling and restores on reversal', () => {
+  for (const mobile of [false, true]) {
+    const app=mount({mobile});
+    app.scroll('class-compare',.8);
+    const original=app.element('network-plot').innerHTML;
+    app.scroll('generalize-zoom',.1);
+    assert.equal(app.element('network-plot').innerHTML,original,'The zoom starts with the same fitted plot');
+    assert.equal(Number(app.element('stage-shell').style['--input-zoom']),0);
+    app.scroll('generalize-zoom',.5);
+    const mid=Number(app.element('stage-shell').style['--input-zoom']);
+    assert(mid>0&&mid<1,'Scroll progress drives an intermediate expansion');
+    assert(app.element('stage-shell').classes.has('is-input-zoom'));
+    app.scroll('generalize-zoom',.95);
+    assert.equal(Number(app.element('stage-shell').style['--input-zoom']),1);
+    app.scroll('generalize-zoom',.5);
+    assert.equal(Number(app.element('stage-shell').style['--input-zoom']),mid);
+    app.scroll('class-compare',.8);
+    assert(!app.element('stage-shell').classes.has('is-input-zoom'));
+    assert.equal(app.element('network-plot').innerHTML,original);
+  }
+});
+
+test('noise moves the same observations before revealing the new fitted boundary', () => {
+  const points=markup=>[...markup.matchAll(/<(?:rect|circle)\b[^>]*data-width-point-id="[^>]+>/g)].map(m=>attrs(m[0]));
+  for(const mobile of [false,true]){
+    const app=mount({mobile}),data=app.window.NNWidthData;
+    app.scroll('generalize-noise',.12);
+    const clean=points(app.element('network-plot').innerHTML);
+    app.scroll('generalize-noise',.45);
+    const moving=points(app.element('network-plot').innerHTML);
+    assert.equal(moving.length,82);
+    assert(!app.element('network-plot').innerHTML.includes('data-fitted-boundary'));
+    assert(moving.some((point,i)=>point['data-display-x2']!==clean[i]['data-display-x2']));
+    app.scroll('generalize-noise',.95);
+    const finished=app.element('network-plot').innerHTML;
+    points(finished).forEach((point,i)=>{
+      assert.equal(Number(point['data-display-x2']),data.inputs[i][1]);
+      assert.equal(point['data-label'],clean[i]['data-label']);
+      assert.equal(point['data-width-point-id'],clean[i]['data-width-point-id']);
+    });
+    assert(finished.includes('data-width-boundary="2"'));
+    app.scroll('generalize-noise',.45);
+    assert(!app.element('network-plot').innerHTML.includes('data-fitted-boundary'));
+    app.scroll('generalize-noise',.95);
+    assert.equal(app.element('network-plot').innerHTML,finished);
+  }
+});
+
+test('widening retains point identity and actual model layers at every keyboard and reduced-motion stop', () => {
+  for(const mobile of [false,true])for(const reduced of [false,true]){
+    const app=mount({mobile,reduced}),S=app.window.NNStoryState;
+    const stops=S.stops('generalize-width'),widths=app.window.NNWidthData.models.map(m=>m.width);
+    app.scroll('generalize-width',stops[0]);
+    let pointAttrs;
+    widths.forEach((width,i)=>{
+      const frame=app.frame(),svg=app.element('network-plot'),markup=svg.innerHTML;
+      assert.equal(frame.width,width,'Every width is available without a pointer');
+      assert(markup.includes('data-width-network="'+width+'"'));
+      assert(markup.includes('data-width-boundary="'+width+'"'));
+      const ids=[...markup.matchAll(/<(?:rect|circle)\b[^>]*data-width-point-id="[^>]+>/g)].map(m=>attrs(m[0]));
+      if(pointAttrs)assert.deepEqual(ids,pointAttrs,'Training observations stay fixed through refits');
+      pointAttrs=ids;
+      if(i<widths.length-1)app.key('ArrowRight');
+    });
+    for(let i=widths.length-2;i>=0;i--){app.key('ArrowLeft');assert.equal(app.frame().width,widths[i]);}
+    app.scroll('generalize-width',.15);
+    if(!reduced){assert(app.frame().modelMix>0&&app.frame().modelMix<1);assert(app.element('network-plot').innerHTML.includes('data-width-boundary="2"'));}
+    const middle=app.element('network-plot').innerHTML;
+    app.scroll('generalize-width',.96);app.scroll('generalize-width',.15);
+    assert.equal(app.element('network-plot').innerHTML,middle,'Reversing restores the same fitted layers');
+  }
+});
+
+test('test observations and measured errors remain distinct from the conceptual double-descent diagram', () => {
+  for(const reduced of [false,true]){
+    const app=mount({reduced});
+    app.scroll('generalize-test',.3);
+    const first=app.element('network-plot').innerHTML;
+    assert.equal((first.match(/data-test-point-id=/g)||[]).length,160);
+    assert(app.element('stage-caption').textContent.includes('378 mistakes out of 40,000'));
+    app.key('ArrowRight');
+    assert.equal(app.frame().width,256);
+    assert(app.element('stage-caption').textContent.includes('281 mistakes out of 40,000'));
+    app.scroll('generalize-errors',.97);
+    const plot=app.element('network-plot');
+    assert.equal(plot.attrs['data-measured-error'],'true');
+    assert.equal((plot.innerHTML.match(/data-error-kind="testError"/g)||[]).length,8);
+    app.scroll('generalize-descent',.95);
+    assert.equal(plot.attrs['data-double-descent-schematic'],'true');
+    assert.equal(plot.attrs['data-measured-error'],undefined);
+    assert(plot.innerHTML.includes('Schematic'));
+    assert.equal(plot.attrs['data-schematic-progress'],'1');
+    assert.equal(app.element('return-link').hidden,false);
+    app.scroll('generalize-errors',.97);
+    assert.equal(plot.attrs['data-double-descent-schematic'],undefined);
+    assert.equal(plot.attrs['data-measured-error'],'true');
+  }
+});
+
 test('all generated SVG samples are balanced and contain valid XML entities', () => {
   // A deliberately small XML well-formedness check keeps the test Node-only.
   // Values/geometry are checked above; these views use only the SVG tags below.
@@ -851,7 +1466,8 @@ test('all generated SVG samples are balanced and contain valid XML entities', ()
       } else {
         const tag = token.match(/^<([\w:-]+)/)?.[1];
         assert(tag, 'Every SVG token has a valid tag name');
-        assert(!/=(?!"[^"]*"|'[^']*')/.test(token), 'SVG attributes are quoted');
+        assert(/^<[\w:-]+(?:\s+[\w:.-]+\s*=\s*(?:"[^"]*"|'[^']*'))*\s*\/?>$/.test(token),
+          'SVG attributes are quoted, including mathematical source strings containing equals signs');
         if (!token.endsWith('/>')) stack.push(tag);
       }
     }

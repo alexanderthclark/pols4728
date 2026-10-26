@@ -57,6 +57,7 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
 .stage-equation .katex-display { margin: 0; max-width: 100%; text-align: left; }
 .stage-equation .katex-display > .katex { text-align: left; }
 .figure-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: .8rem; align-items: stretch; flex: 1; min-height: 0; max-height: 510px; }
+.figure-grid[hidden] { display: none; }
 .figure-grid figure { min-width: 0; min-height: 0; display: flex; flex-direction: column; position: relative; }
 .figure-grid figcaption { padding: .35rem 0 .55rem; border-top: 1px solid var(--light-rule); color: var(--muted); font: .66rem/1.3 var(--sans); }
 .network-figure figcaption { display: flex; align-items: baseline; flex-wrap: wrap; gap: .25rem .6rem; }
@@ -71,6 +72,12 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
 .input-control-row output { width: 3.7rem; flex-shrink: 0; color: var(--primary); text-align: right; font-variant-numeric: tabular-nums; }
 .input-hint { margin-top: -.1rem; color: var(--muted); font: .68rem/1.4 var(--sans); }
 .stage-caption { margin-top: .75rem; min-height: 3.1rem; max-width: 48rem; color: var(--muted); font: .74rem/1.5 var(--sans); }
+.stage-source { align-self: flex-start; margin-block: .2rem .45rem; font: .68rem/1.4 var(--sans); }
+.stage-source[hidden], .input-inspector[hidden] { display: none; }
+.stage-shell.is-extension .stage-equation { min-height: 4rem; }
+.narrative [data-latex] .katex-display { text-align: left; margin: .2em 0; }
+.narrative span[data-latex] .katex { font-size: 1.08em; }
+.narrative p[data-latex] { overflow-x: auto; }
 .stage-footer { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-top: .55rem; margin-top: auto; border-top: 1px solid var(--light-rule); font: .65rem/1.4 var(--sans); color: var(--muted); }
 .scene-navigation { display: flex; gap: .4rem; }
 .scene-navigation button { border: 1px solid var(--light-rule); background: white; color: var(--primary); width: 44px; height: 44px; padding: 0; cursor: pointer; font: .95rem/1 var(--sans); }
@@ -213,6 +220,7 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
   /* Keep the final visual pinned until its own scroll interval is complete. */
   padding-bottom: var(--story-height);
   visibility: hidden;
+  overflow: clip;
   pointer-events: none;
   user-select: none;
 }
@@ -225,6 +233,29 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
 }
 .story.is-enhanced .step[data-scene="sine-wide"] { min-height: 260svh; }
 .story.is-enhanced .step[data-scene="hinge"] { min-height: 180svh; }
+.story.is-enhanced .step[data-scene="sigmoid-one"] { min-height: 420svh; }
+.story.is-enhanced .step[data-scene="class-move"] { min-height: 200svh; }
+.story.is-enhanced .step[data-scene="generalize-zoom"] { min-height: 150svh; }
+.story.is-enhanced .step[data-scene="generalize-noise"] { min-height: 220svh; }
+.story.is-enhanced .step[data-scene="generalize-width"] { min-height: 640svh; }
+.story.is-enhanced .step[data-scene="generalize-test"] { min-height: 260svh; }
+.story.is-enhanced .step[data-scene="generalize-errors"] { min-height: 420svh; }
+.story.is-enhanced .step[data-scene="generalize-descent"] { min-height: 280svh; }
+
+/* Expand the existing input-coordinate panel from its actual grid position. */
+.is-input-zoom .figure-grid { position: relative; display: block; }
+.is-input-zoom .function-figure { position: absolute; left: 0; top: 0; width: calc((100% - .8rem) * 5 / 9); height: 100%; opacity: calc(1 - var(--input-zoom)); }
+.is-input-zoom .network-figure { position: absolute; top: 0; height: 100%; left: calc((55.5556% + .4444rem) * (1 - var(--input-zoom))); width: calc(100% - (55.5556% + .4444rem) * (1 - var(--input-zoom))); }
+.is-width-experiment .figure-grid { display: block; position: relative; max-height: 560px; }
+.is-width-experiment .function-figure { display: none; }
+.is-width-experiment .network-figure { width: 100%; height: 100%; }
+.is-width-experiment .stage-equation { justify-content: center; }
+@media (max-width: 760px) {
+  .is-input-zoom .function-figure { width: 100%; height: calc((100% - .3rem) * 350 / 570); }
+  .is-input-zoom .network-figure { left: 0; width: 100%; top: calc((61.4035% + .1842rem) * (1 - var(--input-zoom))); height: calc(100% - (61.4035% + .1842rem) * (1 - var(--input-zoom))); }
+  .story.is-enhanced .stage-shell.is-width-experiment .figure-grid { max-height: none; }
+  .story.is-enhanced .stage-shell.is-width-experiment .stage-equation { min-height: 2.5rem; font-size: .65rem; }
+}
 
 @media (max-width: 760px) {
   .story.is-enhanced { --story-top: 0px; --story-height: 100svh; }
@@ -238,6 +269,9 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
   .story.is-enhanced .figure-grid { max-height: calc(92vw - .15rem); }
   .story.is-enhanced .stage-caption { display: block; }
   .story.is-enhanced .input-control-row { min-height: 44px; }
+  .story.is-enhanced .stage-shell.is-extension .figure-grid { max-height: none; }
+  .story.is-enhanced .stage-shell.is-extension .stage-equation { min-height: 3.7rem; font-size: .67rem; }
+  .stage-source { font-size: .62rem; }
 }
 
 @media (max-width: 760px) and (max-height: 700px) {
@@ -251,6 +285,82 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+/* The historical application opens with the paper's model as the visual. */
+.stage-intro {
+  flex-shrink: 0;
+  align-self: center;
+  max-width: 52rem;
+  margin: clamp(1.5rem, 4vh, 3rem) auto 0;
+  color: var(--ink);
+  font: 400 clamp(1.1rem, 2vw, 1.6rem)/1.5 var(--sans);
+  text-align: center;
+}
+.story.is-enhanced .stage-shell.is-equation-only .stage-equation {
+  flex: 1;
+  min-height: 0;
+  justify-content: center;
+  padding: 1rem 0;
+  font-size: clamp(1rem, 1.75vw, 1.5rem);
+}
+.stage-shell.is-equation-only .stage-equation .katex-display,
+.stage-shell.is-equation-only .stage-equation .katex-display > .katex { text-align: center; }
+.stage-shell.is-equation-only .stage-caption { align-self: center; text-align: center; }
+.stage-shell.is-equation-only .stage-source { align-self: center; }
+.stage-intro[hidden], .stage-caption[hidden], .stage-equation[hidden], .model-comparison[hidden] { display: none !important; }
+.model-comparison {
+  --comparison-open: 0;
+  --logistic-focus: 1;
+  --neural-focus: 1;
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.comparison-equations {
+  position: absolute;
+  top: calc(50% * (1 - var(--comparison-open)));
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr);
+  align-items: center;
+  gap: clamp(1rem, 3vw, 3rem);
+  transform: translateY(calc(-50% * (1 - var(--comparison-open))));
+}
+.comparison-model { min-width: 0; text-align: center; }
+#logistic-model { --focus: var(--logistic-focus); }
+#neural-model { --focus: var(--neural-focus); }
+.comparison-model {
+  opacity: calc(.16 + .84 * var(--focus));
+  transform: scale(calc(.88 + .12 * var(--focus)));
+  transform-origin: center top;
+}
+.model-comparison h3 { margin: 0 0 1.1rem; font: 400 clamp(1rem, 1.6vw, 1.4rem)/1.3 var(--serif); }
+.comparison-equation { color: var(--primary); font-size: clamp(.75rem, 1.28vw, 1.1rem); }
+.comparison-equation .katex-display { margin: 0; }
+.comparison-plots[hidden] { display: none !important; }
+.comparison-plots {
+  position: absolute;
+  inset: clamp(12rem, 28%, 17rem) 0 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(1rem, 3vw, 3rem);
+  opacity: var(--comparison-open);
+  transform: translateY(calc(2rem * (1 - var(--comparison-open))));
+}
+.comparison-plots figure { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.comparison-plots figcaption { border-top: 1px solid var(--light-rule); padding-top: .45rem; color: var(--muted); font: .75rem/1.4 var(--sans); }
+.comparison-plots svg { display: block; width: 100%; flex: 1; min-height: 0; overflow: visible; }
+@media (max-width: 760px) {
+  .story.is-enhanced .stage-shell.is-equation-only .stage-equation { font-size: clamp(.85rem, 3.9vw, 1.1rem); }
+  .comparison-equations { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .comparison-model { grid-area: 1 / 1; opacity: var(--focus); }
+  #logistic-model { transform: translateY(calc(-80% * (1 - var(--comparison-open)))); }
+  #neural-model { transform: translateY(calc(65% * (1 - var(--comparison-open)))); }
+  .model-comparison h3 { margin-bottom: .75rem; font-size: 1.1rem; }
+  .comparison-equation { font-size: clamp(.83rem, 3.65vw, 1rem); }
+  .comparison-plots { inset: 10.2rem 0 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); gap: .4rem; }
+  .comparison-plots figcaption { font-size: .68rem; padding-top: .25rem; }
 }
 
 @media print {
@@ -287,6 +397,8 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
   .story.is-enhanced .step:first-child,
   .story.is-enhanced .step:last-child,
   .story.is-enhanced .step[data-scene="hinge"],
+  .story.is-enhanced .step[data-scene="sigmoid-one"],
+  .story.is-enhanced .step[data-scene="class-move"],
   .story.is-enhanced .step[data-scene="sine-wide"] {
     display: block;
     min-height: 0;
