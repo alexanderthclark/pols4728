@@ -1,5 +1,5 @@
 {
-  "purpose": "User-requested neural-network and training-pair clarity revisions. Only these explicit original-source changes are permitted by the preservation check.",
+  "purpose": "User-requested neural-network, training-pair, and cosine-comparison clarity revisions. Only these explicit original-source changes are permitted by the preservation check.",
   "replacements": [
     {
       "file": "app.js",
@@ -47,7 +47,8 @@
       "file": "index.html",
       "before": "<h3>Sources &amp; further reading</h3>\n<p class=\"reference\">Query semantics:",
       "after": "<h3>Sources &amp; further reading</h3>\n<p class=\"reference\">Network architecture and derivation: Xin Rong, <a href=\"https://arxiv.org/html/1411.2738v4\">word2vec Parameter Learning Explained</a>, especially the skip-gram model and its linear hidden layer.</p>\n<p class=\"reference\">Query semantics:",
-      "reason": "Cite the neural-network diagram and activation explanation at the end."
+      "reason": "Cite the neural-network diagram and activation explanation at the end.",
+      "archived": true
     },
     {
       "file": "app.js",
@@ -162,6 +163,66 @@
       "before": "  s+=vector([.4,.6],a,y,{color:RUST,label:String.raw`u_{\\text{reform}}^{\\mathsf T}`,horizontal:true,size:n?23:30});",
       "after": "  s+=m(String.raw`\\text{reform's row in }W_{\\mathrm{out}}`,a,y-85,n?190:360,26,n?12:18,RUST);\n  s+=vector([.4,.6],a,y,{color:RUST,label:String.raw`u_{\\text{reform}}^{\\mathsf T}`,horizontal:true,size:n?23:30});",
       "reason": "Define the output embedding as a row of W_out before its dot product, as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "import { networkScene, renderNetwork } from './network.js';",
+      "after": "import { networkScene, renderNetwork } from './network.js';\nimport { analogyVectors, cosineScene, renderCosine } from './cosine.js';",
+      "reason": "Load the requested cosine-distance pause and shared illustrative analogy coordinates."
+    },
+    {
+      "file": "app.js",
+      "before": "scenes.splice(2,0,networkScene);",
+      "after": "scenes.splice(2,0,networkScene);\nscenes.splice(15,0,cosineScene);",
+      "reason": "Pause immediately after the king/queen analogy to explain cosine similarity and distance."
+    },
+    {
+      "file": "app.js",
+      "before": "caption:'An analogy compares differences between vectors, rather than just their closeness.'",
+      "after": "caption:'Subtract “man” from “king,” then add “woman.” This gives a query vector to compare with candidate words.'",
+      "reason": "Connect analogy arithmetic to a cosine nearest-neighbor query."
+    },
+    {
+      "file": "app.js",
+      "before": "alt:'An illustrative parallelogram connects man, woman, king, queen. Translating the man-to-king difference from woman reaches near queen.'",
+      "after": "alt:'Translating the man-to-king difference from woman produces the query vector, ending near but not exactly at queen. The next scene compares their directions.'",
+      "reason": "Describe the approximate analogy and the following direction comparison."
+    },
+    {
+      "file": "app.js",
+      "before": "man=pt([.45,.3]),woman=pt([1.35,.5]),king=pt([.75,1.65]),queen=pt([1.65,1.85]);",
+      "after": "man=pt(analogyVectors.man),woman=pt(analogyVectors.woman),king=pt(analogyVectors.king),queen=pt(analogyVectors.queen);\n  const query=[woman[0]+king[0]-man[0],woman[1]+king[1]-man[1]];",
+      "reason": "Use consistent illustrative vectors and distinguish the query from the nearby queen vector."
+    },
+    {
+      "file": "app.js",
+      "before": "b=[mix(king[0],queen[0],p),mix(king[1],queen[1],p)];",
+      "after": "b=[mix(king[0],query[0],p),mix(king[1],query[1],p)];",
+      "reason": "Translate the actual man-to-king difference without forcing an exact identity with queen."
+    },
+    {
+      "file": "app.js",
+      "before": " return render(i>2?i-1:i,t,n);",
+      "after": " if(i===15)return renderCosine(t,n,{m,text,line,ease,mix,fmt,BLUE,RUST,MUTED});\n return render(i>15?i-2:i>2?i-1:i,t,n);",
+      "reason": "Route the new cosine pause while preserving the other scene renderers."
+    },
+    {
+      "file": "index.html",
+      "before": "<span id=\"counter\">1 / 16</span>",
+      "after": "<span id=\"counter\">1 / 17</span>",
+      "reason": "Keep the initial scene count consistent with the added cosine pause."
+    },
+    {
+      "file": "index.html",
+      "before": "      <details id=\"reading\">",
+      "after": "      <p class=\"reference\">Network architecture and derivation: Xin Rong, <a href=\"https://arxiv.org/html/1411.2738v4\">word2vec Parameter Learning Explained</a>, especially the skip-gram model and its linear hidden layer.</p>\n      <details id=\"reading\">",
+      "reason": "Retain the architecture source with the active lesson after archiving the later exploration."
     }
-  ]
+  ],
+  "archivedExploration": {
+    "path": "../../archive/word2vec-exploration/section.html",
+    "sourceCommit": "ca23823142ffe26c9076f4a6565e2053a1ff1a28",
+    "sha256": "410fa8fbabacfa3ed517bdbacf8b604cb0bbed56ca1e2413ec656bde89e77f9e",
+    "reason": "User requested removal of the Now use the word vectors section from the active lesson, with the complete material retained for future reuse."
+  }
 }

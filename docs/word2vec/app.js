@@ -1,5 +1,6 @@
 import { vocabulary as vocab, initial, forward, step, interpolateModel } from './model.js';
 import { networkScene, renderNetwork } from './network.js';
+import { analogyVectors, cosineScene, renderCosine } from './cosine.js';
 
 const BLUE='#234e70', RUST='#a54f32', INK='#242424', MUTED='#606060', RULE='#d9d9d5';
 const story=document.querySelector('#story'), svg=document.querySelector('#diagram');
@@ -18,12 +19,13 @@ const scenes=[
   {chapter:'04 · Learning both matrices',title:'Repeat across words and contexts.',eq:String.raw`\min_{W_{\mathrm{in}},W_{\mathrm{out}}}\;\sum_{(c,o)}-\log p(w_o\mid w_c)`,caption:'Each new pair selects its own input column. Both matrices accumulate what the corpus teaches.',detail:'This short sequence demonstrates updates on a tiny corpus. Useful embeddings require much more text.',alt:'Different center-context pairs select different input columns while all output rows keep learning.'},
   {chapter:'05 · Reading the representation',title:'The same word has two learned vectors.',eq:String.raw`\text{input embedding}\;\neq\;\text{output embedding}`,caption:'“Support” has a column in the input matrix and a separate row in the output matrix.',detail:'Here we keep the whole input matrix as the embedding table: one fixed vector per word, reused across its occurrences.',alt:'Support is highlighted in both matrices. Its input and output vectors are separately learned. The input matrix supplies the embeddings retained after training.'},
   {chapter:'05 · Reading the representation',title:'Similar contexts can yield similar vectors.',eq:String.raw`\operatorname{cos}(h_a,h_b)=\frac{h_a^{\mathsf T}h_b}{\|h_a\|\,\|h_b\|}`,caption:'To examine similarity, compare two input embeddings. A small angle gives a large cosine.',detail:'Illustrative geometry: not output from our tiny model. Similar usage can reflect meaning or grammatical role; it need not mean synonymy.',alt:'Two input vectors, voters and citizens, approach similar directions. A small angle between them corresponds to high cosine similarity.'},
-  {chapter:'05 · Reading the representation',title:'Relationships can have directions, too.',eq:String.raw`h_{\text{king}}-h_{\text{man}}+h_{\text{woman}}\approx h_{\text{queen}}`,caption:'An analogy compares differences between vectors, rather than just their closeness.',detail:'Illustrative projection. Such patterns can emerge in trained embeddings; they are not guaranteed identities.',alt:'An illustrative parallelogram connects man, woman, king, queen. Translating the man-to-king difference from woman reaches near queen.'},
+  {chapter:'05 · Reading the representation',title:'Relationships can have directions, too.',eq:String.raw`h_{\text{king}}-h_{\text{man}}+h_{\text{woman}}\approx h_{\text{queen}}`,caption:'Subtract “man” from “king,” then add “woman.” This gives a query vector to compare with candidate words.',detail:'Illustrative projection. Such patterns can emerge in trained embeddings; they are not guaranteed identities.',alt:'Translating the man-to-king difference from woman produces the query vector, ending near but not exactly at queen. The next scene compares their directions.'},
   {chapter:'05 · Reading the representation',title:'The geometry is learned through prediction.',eq:String.raw`d_c\;\xrightarrow{\;W_{\mathrm{in}}\;}\;h_c\;\xrightarrow{\;W_{\mathrm{out}}\;}\;z_c\;\longrightarrow\;p`,caption:'We supplied words and their contexts. Training supplied the coordinates.',detail:'The two matrices make the learning task work; the input vectors become a representation we can reuse.',alt:'The complete path from a one-hot word through W in to an embedding, then through W out to scores and probabilities.'}
 ];
 
 // Requested clarity addition: orient readers before the matrix walkthrough.
 scenes.splice(2,0,networkScene);
+scenes.splice(15,0,cosineScene);
 
 const f0=forward(initial), first=step(initial);
 // Exact gradient updates on every adjacent directed pair in four toy sentences.
@@ -181,10 +183,11 @@ function render(i,t,n){
  }
  if(i===13){
   const p=ease(t),ox=n?35:180,oy=n?365:350,scale=n?140:155;
-  const pt=([x,y])=>[ox+x*scale,oy-y*scale],man=pt([.45,.3]),woman=pt([1.35,.5]),king=pt([.75,1.65]),queen=pt([1.65,1.85]);
+  const pt=([x,y])=>[ox+x*scale,oy-y*scale],man=pt(analogyVectors.man),woman=pt(analogyVectors.woman),king=pt(analogyVectors.king),queen=pt(analogyVectors.queen);
+  const query=[woman[0]+king[0]-man[0],woman[1]+king[1]-man[1]];
   for(const [name,a] of [['man',man],['woman',woman],['king',king],['queen',queen]]){s+=line(ox,oy,a[0],a[1],BLUE,1.5,true);s+=m(`h_{\\text{${name}}}`,a[0],a[1]+(name==='man'||name==='woman'?30:-23),160,42,n?20:26,BLUE)}
   s+=line(man[0],man[1],king[0],king[1],INK,2.5,true,'5 4');
-  const a=[mix(man[0],woman[0],p),mix(man[1],woman[1],p)],b=[mix(king[0],queen[0],p),mix(king[1],queen[1],p)];
+  const a=[mix(man[0],woman[0],p),mix(man[1],woman[1],p)],b=[mix(king[0],query[0],p),mix(king[1],query[1],p)];
   s+=line(a[0],a[1],b[0],b[1],INK,3,true);
   if(!n)s+=m(String.raw`h_{\text{king}}-h_{\text{man}}`,790,155,340,50,25)+text('a difference between vectors',790,200,15,MUTED);
   s+=text('illustrative projection · relationships are approximate',mid,n?429:408,n?10:13,MUTED);
@@ -201,7 +204,8 @@ function render(i,t,n){
 
 function renderScene(i,t,n){
  if(i===2)return renderNetwork(t,n,{m,text,line,rect,group,ease,clamp,fmt,vocab,initial,forward,BLUE,RUST,INK,MUTED,RULE});
- return render(i>2?i-1:i,t,n);
+ if(i===15)return renderCosine(t,n,{m,text,line,ease,mix,fmt,BLUE,RUST,MUTED});
+ return render(i>15?i-2:i>2?i-1:i,t,n);
 }
 
 const markers=`<defs>${[['blue',BLUE],['rust',RUST],['ink',MUTED]].map(([name,col])=>`<marker id="arrow-${name}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="${col}" stroke-width="1.5"/></marker>`).join('')}</defs>`;
