@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="A visual explanation of skip-gram word2vec: input embeddings, output embeddings, prediction, and learning.">
+  <title>Word2vec — Learning a geometry from context</title>
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="vendor/katex/katex.min.js"></script>
+  <script type="module" src="app.js"></script>
+  <link rel="stylesheet" href="exploration.css">
+  <script type="module" src="exploration.js"></script>
+</head>
+<body>
+  <a class="skip" href="#reading">Skip to the reading version</a>
+  <header class="site-header"><span>Machine learning for political science</span><a href="#references">Notes &amp; sources</a></header>
+  <main>
+    <section class="hero" aria-labelledby="title">
+      <div class="hero-copy">
+        <p class="eyebrow">Learning representations</p>
+        <h1 id="title">Word2vec</h1>
+        <p class="subtitle">How predicting nearby words<br class="wide-only"> creates a geometry.</p>
+        <p class="intro">A word begins as a name in a vocabulary. How does it become a vector with useful relationships to other words?</p>
+        <a class="begin" href="#story">Follow the words <span aria-hidden="true">↓</span></a>
+      </div>
+      <figure class="hero-art">
+        <img src="assets/vector-cave.png" width="1536" height="1024" alt="Two round, torsoless explorers enter a cavern of enormous arrows. One holds up a lantern; the other climbs over a vector, looking apprehensive.">
+        <span class="word-label king">king</span><span class="word-label man">man</span><span class="word-label queen">queen</span><span class="word-label woman">woman</span>
+      </figure>
+    </section>
+
+    <section id="story" class="story" aria-label="Scroll through the word2vec explanation">
+      <div class="stage">
+        <div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
+        <div class="stage-top"><span id="chapter">01 · The prediction task</span><span id="counter">1 / 16</span></div>
+        <h2 id="scene-title">Learn from the words around a word.</h2>
+        <div id="equation" class="equation"></div>
+        <div class="visual"><svg id="diagram" role="img" aria-label="The current step in the skip-gram model"></svg></div>
+        <div class="narration"><p id="caption"></p><p id="detail"></p></div>
+        <div class="stage-bottom"><span id="scope">Skip-gram word2vec<sup><a href="#cbow" aria-label="Footnote 1: alternative architecture">1</a></sup></span><span>Scroll to unfold · scroll back to revisit</span></div>
+      </div>
+    </section>
+
+    <section class="afterword" id="references">
+      <p class="eyebrow">What the model leaves us with</p>
+      <h2>A representation learned through prediction.</h2>
+      <p>The input matrix stores a vector for every word. The output matrix makes those vectors useful for predicting context during training. Training both together can produce structure that we can reuse after the prediction task is finished.</p>
+      <div class="closing-math" data-math="\underbrace{W_{\mathrm{in}}}_{\text{input vectors}}\quad\longrightarrow\quad\text{representations for other tasks}"></div>
+      <div class="notes">
+        <p id="cbow"><sup>1</sup> Word2vec also has an alternative architecture, continuous bag of words (CBOW).</p>
+        <p><sup>2</sup> This lesson uses full softmax and omits bias terms. The six-word, two-coordinate model has illustrative starting weights and demonstrates the calculations; it is not a useful semantic model. The final geometric sketches are separate illustrations, not results fitted to these sentences.</p>
+      </div>
+      <h3>Sources &amp; further reading</h3>
+      <p class="reference">Visual and conceptual inspiration: Chris Olah (2014), <a href="https://colah.github.io/posts/2014-07-NLP-RNNs-Representations/">Deep Learning, NLP, and Representations</a>. The central idea is that useful representations can emerge from learning a prediction task.</p>
+      <p class="reference">Tomas Mikolov, Kai Chen, Greg Corrado, and Jeffrey Dean (2013), <a href="https://arxiv.org/abs/1301.3781">Efficient Estimation of Word Representations in Vector Space</a>.</p>
+      <details id="reading"><summary>Read the complete explanation</summary><div id="transcript"></div></details>
+      <a class="return" href="#title">Back to the beginning ↑</a>
+    </section>
+    <section class="afterword exploration-intro" id="exploration">
+      <p class="eyebrow">Using the learned representations</p>
+      <h2>Now use the word vectors.</h2>
+      <p>Once vectors have been learned, we can compare words, combine directions, and explore a map of their neighborhoods. The following examples develop those operations.</p>
+      <a class="begin" href="#exploration-story">Continue with word vectors <span aria-hidden="true">↓</span></a>
+    </section>
+<section id="exploration-story" class="story" aria-label="Scroll through the word-vector exploration">
+<div class="stage"><div class="progress-track" aria-hidden="true"><div id="exploration-progress"></div></div>
+<div class="stage-top"><span id="exploration-chapter">06 · Stored vectors</span><span id="exploration-counter">1 / 10</span></div>
+<h2 id="exploration-scene-title">Start with a learned vector for each word.</h2><div id="exploration-equation" class="equation"></div>
+<div class="visual"><svg id="exploration-diagram" role="img" aria-label="Stored word vectors"></svg></div>
+<div class="narration"><p id="exploration-caption"></p><p id="exploration-detail"></p></div>
+<div class="stage-bottom"><span id="exploration-scope">Illustrative vectors · exact calculations</span><span>Scroll to unfold · scroll back to revisit</span></div>
+</div></section>
+<section class="afterword" id="exploration-references">
+<p class="eyebrow">From vectors to evidence</p><h2>A query is a calculation. Its result is empirical.</h2>
+<p>Vector arithmetic defines a direction to search. Which word lies nearest depends on the learned vectors, the candidate vocabulary, and the scoring rule. An analogy such as king − man + woman proposes a query; it does not establish a guaranteed identity.</p>
+<p>The two-dimensional word vectors in this lesson are invented to make the calculations visible. Their neighbors are computed exactly from those numbers. They are not results from the Google News model. The final map is an actual t-SNE fit to a separate, explicitly synthetic set of 18 six-dimensional vectors. Even here, neighborhoods are only approximate: A5’s three nearest source neighbors are A4, A6, and A1; on the map they are A4, A6, and A3.</p>
+<div class="notes"><p>Pretrained Google News vectors let us query representations learned from a large text corpus. Querying the stored vectors does not retrain the input and output matrices. This lesson follows its named-word query convention: normalize each source vector before signed addition. Its raw-vector query instead adds the stored vectors before comparing directions. Named-word inputs are excluded from their own result lists; a raw vector carries no word identities to exclude.</p><p>Before mapping a subset, check that each token exists, preserve capitalization, and remove duplicate entries. Filtering a list of 100 words can leave fewer than 100. t-SNE perplexity must be smaller than the number of points. The choice of words, perplexity, and initialization can all change the map.</p></div>
+<h3>Sources &amp; further reading</h3>
+<p class="reference">Network architecture and derivation: Xin Rong, <a href="https://arxiv.org/html/1411.2738v4">word2vec Parameter Learning Explained</a>, especially the skip-gram model and its linear hidden layer.</p>
+<p class="reference">Query semantics: <a href="https://radimrehurek.com/gensim/models/keyedvectors.html">Gensim’s word-vector documentation</a> and <a href="https://github.com/piskvorky/gensim/blob/develop/gensim/models/keyedvectors.py">implementation</a>. The named-word and raw-vector conventions shown here follow these definitions.</p>
+<p class="reference">Omer Levy and Yoav Goldberg (2014), <a href="https://aclanthology.org/W14-1618/">Linguistic Regularities in Sparse and Explicit Word Representations</a>, for additive and multiplicative analogy scores.</p>
+<p class="reference">Laurens van der Maaten and Geoffrey Hinton (2008), <a href="https://jmlr.org/papers/v9/vandermaaten08a.html">Visualizing Data using t-SNE</a>. Martin Wattenberg, Fernanda Viégas, and Ian Johnson (2016), <a href="https://distill.pub/2016/misread-tsne/">How to Use t-SNE Effectively</a>, for interpreting the maps.</p>
+<p class="reference">Visual and conceptual inspiration: Chris Olah (2014), <a href="https://colah.github.io/posts/2014-07-NLP-RNNs-Representations/">Deep Learning, NLP, and Representations</a>.</p>
+<details id="exploration-reading"><summary>Read the complete explanation</summary><div id="exploration-transcript"></div></details>
+<a class="return" href="#title">Back to the beginning ↑</a>
+</section>
+    <noscript><p class="noscript">This animated lesson needs JavaScript. The model learns input and output word vectors by predicting context words from a center word. Please enable JavaScript to follow the matrix calculations, or read the linked original sources above.</p></noscript>
+  </main>
+  <footer>Word2vec · A visual lesson in representation learning</footer>
+</body>
+</html>
