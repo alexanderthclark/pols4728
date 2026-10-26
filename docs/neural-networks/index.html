@@ -6,18 +6,20 @@
   <meta name="description" content="A scroll-driven introduction to shallow networks: ReLU approximation, sigmoid classification, and a learned representation that lets one logistic head separate two classes.">
   <meta name="theme-color" content="#ffffff">
   <title>Shallow neural networks · POLS 4728</title>
-  <link rel="stylesheet" href="vendor/katex/katex.min.css?v=20261025-fitted-parameters">
-  <link rel="stylesheet" href="style.css?v=20261025-fitted-parameters">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css?v=20261025-generalization">
+  <link rel="stylesheet" href="style.css?v=20261025-generalization">
   <script src="math.js" defer></script>
-  <script src="classification-data.js?v=20261025-fitted-parameters" defer></script>
-  <script src="comparison-model.js?v=20261025-fitted-parameters" defer></script>
-  <script src="state.js?v=20261025-fitted-parameters" defer></script>
+  <script src="classification-data.js?v=20261025-generalization" defer></script>
+  <script src="width-data.js?v=20261025-generalization" defer></script>
+  <script src="comparison-model.js?v=20261025-generalization" defer></script>
+  <script src="state.js?v=20261025-generalization" defer></script>
   <script src="views.js?v=20261018-math" defer></script>
   <script src="vendor/katex/katex.min.js" defer></script>
   <script src="formula.js?v=20261018-math" defer></script>
-  <script src="extension-views.js?v=20261025-fitted-parameters" defer></script>
-  <script src="comparison-views.js?v=20261025-fitted-parameters" defer></script>
-  <script src="story.js?v=20261025-fitted-parameters" defer></script>
+  <script src="extension-views.js?v=20261025-generalization" defer></script>
+  <script src="comparison-views.js?v=20261025-generalization" defer></script>
+  <script src="width-views.js?v=20261025-generalization" defer></script>
+  <script src="story.js?v=20261025-generalization" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#story">Skip to the explainer</a>
@@ -51,7 +53,7 @@
             <p id="stage-part" class="stage-eyebrow">01 · Shallow networks</p>
             <h2 id="stage-name">A linear equation, drawn as a network.</h2>
           </div>
-          <span id="stage-count" class="stage-count">01 / 24</span>
+          <span id="stage-count" class="stage-count">01 / 30</span>
         </div>
         <p id="stage-intro" class="stage-intro" hidden></p>
         <p id="stage-equation" class="stage-equation"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math aria-label="y hat equals w times x plus b equals one times x plus zero point five" xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mover accent="true"><mi>y</mi><mo>^</mo></mover><mo>=</mo><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi><mo>=</mo><mn>1</mn><mo>×</mo><mi>x</mi><mo>+</mo><mn>0.5</mn></mrow><annotation encoding="application/x-tex">\hat{y}=wx+b=1\times x+0.5</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.6944em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1944em;"><span class="mord">^</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.5</span></span></span></span></span></p>
@@ -105,7 +107,7 @@
             <button type="button" id="next" aria-label="Next step">↓</button>
           </nav>
         </div>
-        <p id="story-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true">Step 1 of 24: a straight line.</p>
+        <p id="story-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true">Step 1 of 30: a straight line.</p>
       </aside>
       </div>
 
@@ -257,6 +259,39 @@ c-1 5-5 9-11 9h-2L532 67 19 159h-2c-5 0-9-4-11-9l-5-22c-1-6 2-12 8-13z"/></svg><
           <h2 id="heading-class-compare">A simple head on learned features.</h2>
           <p>The same fitted classifier has a nonlinear boundary in the original inputs and a straight boundary in the hidden representation. The hidden layer learned features that make these training observations linearly separable; the classification head is logistic regression on those features.</p>
           <p>The representation and head were learned together from the labels. Perfect training classification does not imply perfect probability estimates or perfect predictions for new observations.</p>
+        </section>
+        <section class="step" id="scene-generalize-zoom" data-scene="generalize-zoom" aria-labelledby="heading-generalize-zoom">
+          <p class="part-label">06 · Width and generalization</p>
+          <h2 id="heading-generalize-zoom">Return to the original coordinates.</h2>
+          <p>Enlarge the original-coordinate graph. We can keep plotting the decision boundary here as the hidden layer grows, even when the learned representation has more than two dimensions.</p>
+        </section>
+        <section class="step" id="scene-generalize-noise" data-scene="generalize-noise" aria-labelledby="heading-generalize-noise">
+          <h2 id="heading-generalize-noise">Add variation around the class curves.</h2>
+          <p>The same 82 observations receive independent vertical Gaussian perturbations. Class labels and horizontal coordinates stay fixed. Hold this new sample constant throughout the width comparison.</p>
+          <p class="narrative-equation" data-latex="x_2=-\sin^2(x_1)+0.9y+\varepsilon,\qquad\varepsilon\sim\mathcal N(0,0.18^2)"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>x</mi><mn>2</mn></msub><mo>=</mo><mo>−</mo><msup><mrow><mi>sin</mi><mo>⁡</mo></mrow><mn>2</mn></msup><mo stretchy="false">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false">)</mo><mo>+</mo><mn>0.9</mn><mi>y</mi><mo>+</mo><mi>ε</mi><mo separator="true">,</mo><mspace width="2em"/><mi>ε</mi><mo>∼</mo><mi mathvariant="script">N</mi><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><msup><mn>0.18</mn><mn>2</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">x_2=-\sin^2(x_1)+0.9y+\varepsilon,\qquad\varepsilon\sim\mathcal N(0,0.18^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.1219em;vertical-align:-0.25em;"></span><span class="mord">−</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop"><span class="mop">sin</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8719em;"><span style="top:-3.1208em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8389em;vertical-align:-0.1944em;"></span><span class="mord">0.9</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">ε</span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">ε</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∼</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord mathcal" style="margin-right:0.14736em;">N</span><span class="mopen">(</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">0.1</span><span class="mord"><span class="mord">8</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span></p>
+          <p>For this experiment, jointly fit the ReLU hidden layer and sigmoid head using cross-entropy and gradient updates, with no explicit penalty. Each width gets the same training procedure; choose among four initializations using training loss alone.</p>
+        </section>
+        <section class="step" id="scene-generalize-width" data-scene="generalize-width" aria-labelledby="heading-generalize-width">
+          <h2 id="heading-generalize-width">More neurons, a rounder boundary.</h2>
+          <p>Increase the hidden width from 2 to 4, 8, 16, 32, 64, 128, and 256. Every displayed boundary comes from that width’s fitted parameters. The scroll transition crossfades separate fits; it does not depict a training trajectory.</p>
+          <p>All eight models classify all 82 training observations correctly. The wide model has a rounder boundary here, although every finite ReLU boundary is still piecewise linear. More width does not guarantee a smoother boundary at every step.</p>
+        </section>
+        <section class="step" id="scene-generalize-test" data-scene="generalize-test" aria-labelledby="heading-generalize-test">
+          <h2 id="heading-generalize-test">Does it predict new observations better?</h2>
+          <p>Generate 40,000 independent observations from the same two-class process after freezing the models. The plot shows a fixed subset as hollow markers; rings identify mistakes. Both networks are evaluated on the same complete test sample.</p>
+          <p>The two-neuron network makes 378 mistakes, an error rate of 0.945%. The 256-neuron network makes 281 mistakes, or 0.7025%. It corrects 150 mistakes and introduces 53 new ones. In this example, the wider network improves classification beyond a perfect training fit.</p>
+          <p>This comparison concerns class predictions at a 0.5 cutoff. It does not establish calibrated probabilities or guarantee that wider networks generalize better.</p>
+        </section>
+        <section class="step" id="scene-generalize-errors" data-scene="generalize-errors" aria-labelledby="heading-generalize-errors">
+          <h2 id="heading-generalize-errors">Training accuracy is already perfect.</h2>
+          <p>The measured error curve shows every fitted width. Training classification error is zero throughout; test error varies and does not decline at every step. The two-neuron model already separates the training labels, so this experiment does not locate an interpolation threshold or measure a complete double-descent curve.</p>
+          <p>Three additional training draws checked the same procedure on the fresh test sample. The wider endpoint made fewer classification mistakes in each draw, but one two-neuron fit failed to fit its training data, and one improvement was smaller than test-sample uncertainty. These checks support an illustration, not a general rule about width.</p>
+        </section>
+        <section class="step" id="scene-generalize-descent" data-scene="generalize-descent" aria-labelledby="heading-generalize-descent">
+          <h2 id="heading-generalize-descent">Beyond interpolation: double descent.</h2>
+          <p>The final diagram is a schematic, separate from our measured results. In double descent, test error first falls, rises near the capacity needed to interpolate the training data, then falls again at greater capacity. The fitting procedure influences which solution the larger model selects.</p>
+          <p>Our example motivates the last part of that argument: adding capacity can improve predictions even after every training label is classified correctly. The full pattern must be evaluated across an appropriate range of capacities; it is not implied by a rounder-looking boundary.</p>
+          <p><a href="https://doi.org/10.1073/pnas.1903070116">Belkin et al. (2019), Reconciling modern machine-learning practice and the classical bias–variance trade-off.</a></p>
           <a class="return-link" href="#page-title">Back to the beginning <span aria-hidden="true">↑</span></a>
         </section>
       </div>

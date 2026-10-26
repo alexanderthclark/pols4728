@@ -2,12 +2,26 @@
   'use strict';
   const math=typeof module==='object'&&module.exports?require('./math.js'):root.NNMath;
   const data=typeof module==='object'&&module.exports?require('./classification-data.js'):root.NNClassificationData;
-  const api=factory(math,data);
+  const widthData=typeof module==='object'&&module.exports?require('./width-data.js'):root.NNWidthData;
+  const api=factory(math,data,widthData);
   if(typeof module==='object'&&module.exports)module.exports=api;
   if(root)root.NNStoryState=api;
-})(typeof window!=='undefined'?window:globalThis,function(M,D){
+})(typeof window!=='undefined'?window:globalThis,function(M,D,W){
   'use strict';
-  const scenes=['affine','relu','hinge','hill-rise','hill-fall','hill-flat','shallow','width-one','width-two','width-three','width-many','sine-coarse','sine-zoom','sine-joint','sine-wide','universal','conflict','sigmoid-one','sigmoid-two','class-input','class-trace','class-move','class-head','class-compare'];
+  const scenes=['affine','relu','hinge','hill-rise','hill-fall','hill-flat','shallow','width-one','width-two','width-three','width-many','sine-coarse','sine-zoom','sine-joint','sine-wide','universal','conflict','sigmoid-one','sigmoid-two','class-input','class-trace','class-move','class-head','class-compare','generalize-zoom','generalize-noise','generalize-width','generalize-test','generalize-errors','generalize-descent'];
+  const widthStops=Object.freeze(Array.from({length:8},(_,i)=>(i+.55)/8));
+  function stops(scene){
+    return scene==='sigmoid-one'?[.12,.45,.9]:scene==='generalize-width'||scene==='generalize-errors'?widthStops:scene==='generalize-test'?[.3,.9]:scene==='generalize-noise'?[.12,.55,.95]:scene==='generalize-descent'?[.2,.55,.95]:[.12];
+  }
+  function reducedProgress(scene,p){
+    if(scene==='sigmoid-one')return p<.2?.12:p<.6?.45:.9;
+    if(scene==='generalize-width'||scene==='generalize-errors')return widthStops[Math.min(7,Math.floor(p*8))];
+    if(scene==='generalize-test')return p<.5?.3:.9;
+    if(scene==='generalize-noise')return p<.25?.12:p<.7?.55:.95;
+    if(scene==='generalize-descent')return p<.35?.2:p<.7?.55:.95;
+    if(scene==='affine')return p<.65?0:1;
+    return scene==='width-many'||scene==='sine-wide'?Math.round(p*10)/10:1;
+  }
   const widthUnits=[{t:-1.5,a:.8},{t:-.9,a:-1.2},{t:-.3,a:1.1},{t:.3,a:-1},{t:.9,a:.9},{t:1.5,a:-.6}];
   const initial=[0,.9,1.95,3.05,4.2,5.35,M.TAU];
   const coarse=M.modelFromKnots(initial);
@@ -36,6 +50,38 @@
   function frame(scene,progress){
     if(!scenes.includes(scene))throw new RangeError('Unknown story scene: '+scene);
     const p=clamp(Number(progress)||0,0,1),frame={scene,progress:p,kind:'shallow',x:.4,components:false,showNetwork:true,caption:'',equation:''};
+    if(scene.startsWith('generalize-')){
+      frame.kind='width-experiment';frame.hideInspector=true;frame.widthExperiment=true;
+      frame.modelIndex=0;frame.previousModelIndex=0;frame.modelMix=1;frame.noiseMix=1;frame.testOpacity=0;frame.boundaryOpacity=1;frame.errorReveal=p;
+      frame.equation=String.raw`\widehat p(\mathbf x)=\operatorname{sigmoid}\!\left(\phi_0+\sum_{j=1}^{m}\phi_j\operatorname{ReLU}(\theta_{j0}+\boldsymbol\theta_j^{\mathsf T}\mathbf x)\right)`;
+      frame.equationCompact=String.raw`\widehat p=\operatorname{sigmoid}\!\left(\phi_0+\sum_{j=1}^{m}\phi_jh_j\right)`;
+      if(scene==='generalize-zoom'){
+        frame.kind='classification';frame.inputZoom=ease((p-.1)/.75);frame.morph=1;
+        frame.equation=String.raw`(x_1,x_2)\longmapsto\widehat p(\mathbf x)`;frame.equationCompact=frame.equation;
+        frame.caption='Return to the original coordinates. What happens to this boundary when we add hidden neurons?';
+      }else if(scene==='generalize-noise'){
+        frame.noiseMix=ease((p-.18)/.48);frame.boundaryOpacity=ease((p-.74)/.15);
+        frame.equation=String.raw`x_2=-\sin^2(x_1)+0.9y+\varepsilon,\qquad\varepsilon\sim\mathcal N(0,0.18^2)`;
+        frame.equationCompact=String.raw`\begin{gathered}x_2=-\sin^2(x_1)+0.9y+\varepsilon\\\varepsilon\sim\mathcal N(0,0.18^2)\end{gathered}`;
+        frame.caption=p<.7?'Add variation around the same two class curves. Each point keeps its class; this noisy sample will stay fixed.':'Refit the two-neuron network. This experiment trains all layers with cross-entropy and gradient updates, with no explicit penalty.';
+      }else if(scene==='generalize-width'||scene==='generalize-errors'){
+        const position=Math.min(7.999,p*8),index=Math.floor(position);
+        frame.modelIndex=index;frame.previousModelIndex=Math.max(0,index-1);frame.modelMix=index===0?1:ease((position-index)/.32);
+        frame.errorReveal=(index+1)/8;frame.compareBaseline=index===7;
+        frame.caption=scene==='generalize-width'?'Add neurons to the same hidden layer and refit. The observations stay fixed. The wider boundary is rounder here; it is still piecewise linear.':'Measured classification errors on 40,000 fresh observations. All eight widths classify every training point correctly; test error does not fall at every step.';
+      }else if(scene==='generalize-test'){
+        frame.testOpacity=ease((p-.06)/.18);frame.modelIndex=p<.5?0:7;frame.previousModelIndex=0;frame.modelMix=p<.5?1:ease((p-.5)/.2);frame.showErrors=true;
+        const model=W.models[frame.modelIndex];
+        frame.caption='New observations from the same process: '+model.testMistakes.toLocaleString('en-US')+' mistakes out of 40,000 with '+model.width+' neurons. Hollow points show a fixed subset; rings mark mistakes.';
+      }else{
+        frame.errorReveal=clamp(p/.92,0,1);
+        frame.equation=String.raw`\text{More capacity can improve prediction beyond interpolation.}`;frame.equationCompact=String.raw`\text{Beyond interpolation}`;
+        frame.caption='Double descent: test error can fall, rise near interpolation, and fall again. This schematic introduces the broader pattern; our example measured improvement after perfect training classification.';
+        frame.source='https://doi.org/10.1073/pnas.1903070116';frame.sourceLabel='Belkin et al. (2019), double descent';
+      }
+      frame.width=W.models[frame.modelIndex].width;
+      return frame;
+    }
     if(scene==='conflict'||scene.startsWith('sigmoid-')){
       frame.kind='sigmoid';frame.hideInspector=true;frame.sigmoidBias=-3;frame.sigmoidSlope=30;
       frame.sigmoidThresholds=[.2,.4,.6,.8];
@@ -168,5 +214,5 @@
     }
     return frame;
   }
-  return Object.freeze({scenes:Object.freeze(scenes),initialKnots:Object.freeze(initial),jointX,approximation,blend,frame});
+  return Object.freeze({scenes:Object.freeze(scenes),initialKnots:Object.freeze(initial),jointX,approximation,blend,frame,stops,reducedProgress});
 });

@@ -1,10 +1,11 @@
 # Shallow neural networks
 
 A scroll-driven introduction to shallow networks and learned representations.
-The narrative contains twenty-four scenes in five parts: shallow ReLU networks
+The narrative contains thirty scenes in six parts: shallow ReLU networks
 as sums of hinges, width as the number of available joints, constructive sine
 approximation, sigmoid classification in Beck, King, and Zeng (2000), and a
-fitted binary example with two hidden features. Scrolling backward reverses the story.
+fitted binary example with two hidden features, and a noisy width experiment
+leading into double descent. Scrolling backward reverses the story.
 The function and network diagrams share one full-width pinned visual stage,
 with a scene-specific heading, an equation, and a concise caption. There is no separate explanation
 column. The opening identifies the bias input, then explains the diagram-omission
@@ -188,3 +189,84 @@ Reduced motion is checked in a phone browser and by automated tests. These check
 accessibility-compliance claim. No build step or external dependency is
 required. After merging, GitHub Pages serves this directory at
 `https://alexanderthclark.github.io/pols4728/neural-networks/`.
+
+## Widening, noisy observations, and generalization
+
+The extension after the two-coordinate comparison enlarges the original-input
+plot, introduces a new noisy sample, and compares newly fitted networks with
+2, 4, 8, 16, 32, 64, 128, and 256 hidden ReLU neurons. These are separate fits
+of the same noisy training observations. A wider hidden representation is not
+projected back into the earlier two-dimensional representation plot. The
+animation changes which fitted model is displayed; it does not depict an
+optimizer training continuously as neurons appear.
+
+This is a new binary experiment inspired by the notes' 2- and 256-neuron
+classification figures, not a recovery of their original three-class data or
+weights. The data-generating process is
+`x2 = -sin(x1)^2 + 0.9*y + epsilon`, with independent normal noise of standard
+deviation 0.18. The training sample retains 41 equally spaced `x1` values in
+`[0, pi]` per class. Independent test observations draw `x1` uniformly over the
+same interval and use fresh noise. Test outcomes are not training targets.
+
+Both the hidden layer and sigmoid head are trained jointly with mean binary
+cross-entropy, without a penalty, for 12,000 full-batch Adam updates. The
+learning rate starts at 0.01 and drops to 0.001 for approximately the final
+quarter. Inputs are centered at `(pi/2, -0.05)` and scaled by `(pi/2, 1)` during
+training; exported parameters operate on the original coordinates. At each
+width, four starts use standard-normal hidden weights, hidden biases with
+standard deviation 0.5, output weights with standard deviation
+`1/sqrt(width)`, and a zero output bias. Selection uses only the lowest final
+training cross-entropy. Internal generation identifiers are 6200 for the
+illustrative training sample, 4100 for initialization, and 64000 for the
+fresh test sample. They document this artifact's reproduction, not student
+software or assignment requirements.
+
+The setup was selected in exploratory work before evaluating the frozen
+illustrative models on 40,000 fresh test observations. At both endpoint widths,
+all 82 training classifications are correct. Test mistakes fall from 378
+(0.945%) with two neurons to 281 (0.7025%) with 256 neurons. The wider model
+corrects 150 mistakes and introduces 53 new ones. This is evidence about this
+fitted example; neither test error nor boundary shape improves monotonically
+at every intermediate width. Finite ReLU boundaries remain piecewise linear:
+“rounder” describes their appearance, not differentiability.
+
+A separate confirmation kept the training protocol fixed and used three fresh
+training samples, identified by 6400, 6401, and 6402, against the same independent
+40,000-observation test sample. Their endpoint test errors, in percent, were
+15.0075 to 1.1225, 1.6325 to 1.3025, and 0.8275 to 0.8000. The first two-neuron
+fit misclassified 8 of 82 training observations, so its large improvement also
+reflects an optimization failure in the narrow network. The second improvement
+is modest, and the third is within test-sampling uncertainty. Wider models
+increased test cross-entropy in the latter two draws despite slightly improved
+classification. These results do not establish a universal benefit from width
+or improved probability calibration. An exploratory squared-error alternative
+produced rounder boundaries but failed its independent generalization check
+and is not used in the lesson.
+
+The closing double-descent curve is explicitly a separate conceptual schematic,
+not an empirical curve estimated from this example. The example already
+classifies its training points perfectly with two neurons and therefore does
+not trace the full interpolation transition. The connection is that a larger
+model can generalize better even after training classification is perfect.
+[Belkin et al. (2019)](https://doi.org/10.1073/pnas.1903070116) supplies the broader
+double-descent argument; its experiments are not claimed as this artifact's
+training protocol. Wider networks permit additional fitted solutions, while
+the training procedure and data determine which solution is obtained.
+
+`width-data.js` stores the frozen original-coordinate parameters, exact
+piecewise-linear zero-logit contours, training sample, displayed test subset,
+full-sample errors, and confirmation results. The 160 visible test observations
+are every 250th observation in the full test sample; this selection ignores
+predictions and errors. The displayed test-error counter always refers to all
+40,000 test observations. Contours are extracted from the fitted activation
+regions without geometric smoothing. Their vertices and interior segment
+points are independently checked against the network scores.
+
+Run `node --test tests/neural-width-model.test.cjs` for the independent model
+and displayed-error checks. `scripts/generate-neural-width.py --check`
+regenerates the deterministic data and recomputes the full test metrics from
+the frozen illustrative fits and all 24 confirmation fits saved separately in
+`scripts/neural-width-confirmation.json`. Its `--refit` option repeats the documented
+training procedure; adding `--refit-confirmation` also repeats the confirmation
+draws. The saved parameters are authoritative because numerical fits can vary
+with the processor and library versions.

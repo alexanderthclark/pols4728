@@ -262,7 +262,7 @@ function mount({ mobile = false, reduced = false } = {}) {
       assert.equal(document.getElementById('figure-grid').hidden, false, `${label}: plotted scenes retain their figure area`);
       assert.equal(document.getElementById('model-comparison').hidden, true, `${label}: plotted scenes hide the formula comparison`);
       assert.equal(document.getElementById('stage-equation').hidden, false, `${label}: plotted scenes retain their current formula`);
-      for (const id of ['function-plot', 'network-plot']) {
+      for (const id of (this.frame().kind === 'width-experiment' ? ['network-plot'] : ['function-plot', 'network-plot'])) {
         const node = document.getElementById(id), markup = node.innerHTML;
         assert(markup.includes('<path') || markup.includes('<circle'), `${label}: ${id} draws geometry`);
         assert(!/NaN|undefined|Infinity/.test(markup), `${label}: ${id} contains finite geometry`);
@@ -282,8 +282,8 @@ function mount({ mobile = false, reduced = false } = {}) {
 }
 
 test('the HTML is scroll driven, has one labelled input inspector, and its local assets resolve', () => {
-  assert.equal(sceneNames.length, 24);
-  assert.equal(new Set(sceneNames).size, 24);
+  assert.equal(sceneNames.length, 30);
+  assert.equal(new Set(sceneNames).size, 30);
   assert(!/<select\b|<form\b/i.test(html), 'No form controls substitute for scrolling');
   const inputs = [...html.matchAll(/<input\b[^>]*>/gi)].map(match => attrs(match[0]));
   assert.equal(inputs.length, 1, 'The input inspector is the only input');
@@ -318,13 +318,13 @@ test('the HTML is scroll driven, has one labelled input inspector, and its local
   }
 });
 
-test('scroll alone traverses all 24 scenes and reverses the sine construction', () => {
+test('scroll alone traverses all 30 scenes and reverses the sine construction', () => {
   const app = mount();
   assert.equal(app.frame().scene, 'affine');
   assert(app.element('previous').disabled);
   const seen = [];
   for (const scene of sceneNames) {
-    const frame = app.scroll(scene, scene === 'sine-wide' ? .99 : .5);
+    const frame = app.scroll(scene, scene === 'sine-wide' || scene === 'generalize-descent' ? .99 : .5);
     seen.push(frame.scene);
     assert.equal(frame.scene, scene);
     assert.notEqual(frame.inspectInput, true, 'Automatic scrolling needs no slider interaction');
@@ -332,7 +332,7 @@ test('scroll alone traverses all 24 scenes and reverses the sine construction', 
     assert.equal(app.element('story').dataset.scene, scene);
     assert.equal(app.steps.filter(step => step.classes.has('is-active')).length, 1);
     assert.equal(app.steps.find(step => step.classes.has('is-active')).attrs['aria-current'], 'step');
-    assert.equal(app.element('stage-count').textContent, String(seen.length).padStart(2, '0') + ' / 24');
+    assert.equal(app.element('stage-count').textContent, String(seen.length).padStart(2, '0') + ' / 30');
     if (scene === 'sine-coarse') {
       assert.equal(frame.width, 6);
       assert(!app.element('function-plot').innerHTML.includes('A closer look'));
@@ -357,10 +357,10 @@ test('scroll alone traverses all 24 scenes and reverses the sine construction', 
 test('mobile scroll keeps updating and renders the compact views', () => {
   const app = mount({ mobile: true });
   for (const scene of sceneNames) {
-    const frame = app.scroll(scene, scene === 'sine-wide' ? .99 : .5);
+    const frame = app.scroll(scene, scene === 'sine-wide' || scene === 'generalize-descent' ? .99 : .5);
     assert.equal(frame.scene, scene);
     assert.equal(app.element('function-plot').attrs.viewBox, '0 0 620 350');
-    assert.equal(app.element('network-plot').attrs.viewBox, '0 0 620 220');
+    assert.equal(app.element('network-plot').attrs.viewBox, frame.kind === 'width-experiment' ? '0 0 620 540' : '0 0 620 220');
     if (scene === 'sine-wide') assert.equal(frame.width, 26);
     app.checkSvg('compact ' + scene);
   }
@@ -395,6 +395,7 @@ test('reduced motion uses finite completed scenes and discrete widening', () => 
       assert.equal(frame.progress, .45, 'Reduced motion keeps the middle comparison beat available');
       assert.equal(frame.comparisonPhase, 'logistic');
     }
+    else if (scene.startsWith('generalize-')) assert.equal(frame.progress, app.window.NNStoryState.reducedProgress(scene, .53));
     else if (!['width-many', 'sine-wide'].includes(scene)) assert.equal(frame.progress, 1);
     else assert(Math.abs(frame.progress * 10 - Math.round(frame.progress * 10)) < 1e-9);
     if (scene === 'sine-joint') {
@@ -799,7 +800,7 @@ test('the single stage retains the scene caption and accessible scene status wit
       assert.equal(status.dataset.scene, scene);
       assert.equal(status.textContent, app.steps.find(step => step.dataset.scene === scene).heading);
       assert.equal(app.element('stage-name').textContent, status.textContent, 'The visible title identifies the current step');
-      assert.equal(app.element('return-link').hidden, scene !== 'class-compare', 'The return link appears only in the final scene');
+      assert.equal(app.element('return-link').hidden, true, 'The return link waits for the final explanatory beat');
     }
     app.scroll('sine-zoom', .5);
     const before = caption.textContent;
@@ -976,7 +977,7 @@ test('the equation comparison unfolds into logistic and neural plots, then rever
         'The logistic equation recedes when the network takes focus');
       assert.equal(Number(app.element('model-comparison').style['--neural-focus']), 1 - open * (1 - mix),
         'The network equation comes forward with its flexible plots');
-      assert.equal(app.element('stage-count').textContent, '18 / 24', 'All comparison beats remain on slide 18');
+      assert.equal(app.element('stage-count').textContent, '18 / 30', 'All comparison beats remain on slide 18');
       assert.equal(app.element('input-inspector').hidden, true, 'Scrolling controls the entire comparison');
       app.checkSvg(`${phase} ${mobile ? 'mobile' : 'desktop'} ${reduced ? 'reduced' : 'animated'}`);
       snapshots.set(phase, {
@@ -1105,9 +1106,9 @@ test('the final stage caption and return link remain available at and beyond the
       const link = app.element('return-link');
       assert.equal(link.attrs.href, '#page-title', 'The final link returns to the page heading');
       assert.equal(app.element('page-title').attrs.id, 'page-title', 'The return destination exists');
-      for (const progress of [.12, .5, .96, 1, 1.2]) {
-        const frame = app.scroll('class-compare', progress);
-        assert.equal(frame.scene, 'class-compare');
+      for (const progress of [.96, 1, 1.2]) {
+        const frame = app.scroll('generalize-descent', progress);
+        assert.equal(frame.scene, 'generalize-descent');
         assert.equal(caption.textContent, frame.caption, `The final caption stays current at progress ${progress}`);
         assert(caption.textContent.length > 20);
         assert(!caption.hidden, `The final caption stays visible at progress ${progress}`);
@@ -1122,7 +1123,7 @@ test('the final stage caption and return link remain available at and beyond the
       const earlier = app.scroll('class-head', .5);
       assert.equal(caption.textContent, earlier.caption, 'Reverse scrolling restores the earlier caption');
       assert.equal(link.hidden, true, 'The final return link hides when leaving the conclusion');
-      const final = app.scroll('class-compare', 1);
+      const final = app.scroll('generalize-descent', 1);
       assert.equal(caption.textContent, final.caption, 'Returning to the end restores the final caption');
       assert.equal(link.hidden, false, 'Returning to the end restores the final link');
     }
@@ -1235,7 +1236,7 @@ test('the fitted network slide typesets its actual parameters before the observa
     const source = app.element('stage-equation').attrs['data-tex'];
     const values = [...source.replace(/\s/g, '').matchAll(/[+-]?\d+\.\d{3}/g)].map(match => Number(match[0]));
     assert.deepEqual(values, Array.from(expected), 'Visible formulas expose the fitted hidden and output parameters');
-    assert.equal(app.element('stage-count').textContent, '20 / 24');
+    assert.equal(app.element('stage-count').textContent, '20 / 30');
     app.click('previous');
     assert.equal(app.frame().scene, 'sigmoid-two', 'Removed scenes no longer intervene before the fitted example');
     app.click('next');
@@ -1346,6 +1347,105 @@ test('reduced motion preserves the representation reveal as a separate scene fro
     assert.equal(app.frame().scene, 'class-move');
     assert.equal(representationBoundaries(plot.innerHTML).length, 0);
     assert.deepEqual(observationGeometry(plot.innerHTML), transformed, 'Returning leaves the fully transformed points but hides the line');
+  }
+});
+
+test('the original-coordinate panel expands with scrolling and restores on reversal', () => {
+  for (const mobile of [false, true]) {
+    const app=mount({mobile});
+    app.scroll('class-compare',.8);
+    const original=app.element('network-plot').innerHTML;
+    app.scroll('generalize-zoom',.1);
+    assert.equal(app.element('network-plot').innerHTML,original,'The zoom starts with the same fitted plot');
+    assert.equal(Number(app.element('stage-shell').style['--input-zoom']),0);
+    app.scroll('generalize-zoom',.5);
+    const mid=Number(app.element('stage-shell').style['--input-zoom']);
+    assert(mid>0&&mid<1,'Scroll progress drives an intermediate expansion');
+    assert(app.element('stage-shell').classes.has('is-input-zoom'));
+    app.scroll('generalize-zoom',.95);
+    assert.equal(Number(app.element('stage-shell').style['--input-zoom']),1);
+    app.scroll('generalize-zoom',.5);
+    assert.equal(Number(app.element('stage-shell').style['--input-zoom']),mid);
+    app.scroll('class-compare',.8);
+    assert(!app.element('stage-shell').classes.has('is-input-zoom'));
+    assert.equal(app.element('network-plot').innerHTML,original);
+  }
+});
+
+test('noise moves the same observations before revealing the new fitted boundary', () => {
+  const points=markup=>[...markup.matchAll(/<(?:rect|circle)\b[^>]*data-width-point-id="[^>]+>/g)].map(m=>attrs(m[0]));
+  for(const mobile of [false,true]){
+    const app=mount({mobile}),data=app.window.NNWidthData;
+    app.scroll('generalize-noise',.12);
+    const clean=points(app.element('network-plot').innerHTML);
+    app.scroll('generalize-noise',.45);
+    const moving=points(app.element('network-plot').innerHTML);
+    assert.equal(moving.length,82);
+    assert(!app.element('network-plot').innerHTML.includes('data-fitted-boundary'));
+    assert(moving.some((point,i)=>point['data-display-x2']!==clean[i]['data-display-x2']));
+    app.scroll('generalize-noise',.95);
+    const finished=app.element('network-plot').innerHTML;
+    points(finished).forEach((point,i)=>{
+      assert.equal(Number(point['data-display-x2']),data.inputs[i][1]);
+      assert.equal(point['data-label'],clean[i]['data-label']);
+      assert.equal(point['data-width-point-id'],clean[i]['data-width-point-id']);
+    });
+    assert(finished.includes('data-width-boundary="2"'));
+    app.scroll('generalize-noise',.45);
+    assert(!app.element('network-plot').innerHTML.includes('data-fitted-boundary'));
+    app.scroll('generalize-noise',.95);
+    assert.equal(app.element('network-plot').innerHTML,finished);
+  }
+});
+
+test('widening retains point identity and actual model layers at every keyboard and reduced-motion stop', () => {
+  for(const mobile of [false,true])for(const reduced of [false,true]){
+    const app=mount({mobile,reduced}),S=app.window.NNStoryState;
+    const stops=S.stops('generalize-width'),widths=app.window.NNWidthData.models.map(m=>m.width);
+    app.scroll('generalize-width',stops[0]);
+    let pointAttrs;
+    widths.forEach((width,i)=>{
+      const frame=app.frame(),svg=app.element('network-plot'),markup=svg.innerHTML;
+      assert.equal(frame.width,width,'Every width is available without a pointer');
+      assert(markup.includes('data-width-network="'+width+'"'));
+      assert(markup.includes('data-width-boundary="'+width+'"'));
+      const ids=[...markup.matchAll(/<(?:rect|circle)\b[^>]*data-width-point-id="[^>]+>/g)].map(m=>attrs(m[0]));
+      if(pointAttrs)assert.deepEqual(ids,pointAttrs,'Training observations stay fixed through refits');
+      pointAttrs=ids;
+      if(i<widths.length-1)app.key('ArrowRight');
+    });
+    for(let i=widths.length-2;i>=0;i--){app.key('ArrowLeft');assert.equal(app.frame().width,widths[i]);}
+    app.scroll('generalize-width',.15);
+    if(!reduced){assert(app.frame().modelMix>0&&app.frame().modelMix<1);assert(app.element('network-plot').innerHTML.includes('data-width-boundary="2"'));}
+    const middle=app.element('network-plot').innerHTML;
+    app.scroll('generalize-width',.96);app.scroll('generalize-width',.15);
+    assert.equal(app.element('network-plot').innerHTML,middle,'Reversing restores the same fitted layers');
+  }
+});
+
+test('test observations and measured errors remain distinct from the conceptual double-descent diagram', () => {
+  for(const reduced of [false,true]){
+    const app=mount({reduced});
+    app.scroll('generalize-test',.3);
+    const first=app.element('network-plot').innerHTML;
+    assert.equal((first.match(/data-test-point-id=/g)||[]).length,160);
+    assert(app.element('stage-caption').textContent.includes('378 mistakes out of 40,000'));
+    app.key('ArrowRight');
+    assert.equal(app.frame().width,256);
+    assert(app.element('stage-caption').textContent.includes('281 mistakes out of 40,000'));
+    app.scroll('generalize-errors',.97);
+    const plot=app.element('network-plot');
+    assert.equal(plot.attrs['data-measured-error'],'true');
+    assert.equal((plot.innerHTML.match(/data-error-kind="testError"/g)||[]).length,8);
+    app.scroll('generalize-descent',.95);
+    assert.equal(plot.attrs['data-double-descent-schematic'],'true');
+    assert.equal(plot.attrs['data-measured-error'],undefined);
+    assert(plot.innerHTML.includes('Schematic'));
+    assert.equal(plot.attrs['data-schematic-progress'],'1');
+    assert.equal(app.element('return-link').hidden,false);
+    app.scroll('generalize-errors',.97);
+    assert.equal(plot.attrs['data-double-descent-schematic'],undefined);
+    assert.equal(plot.attrs['data-measured-error'],'true');
   }
 });
 

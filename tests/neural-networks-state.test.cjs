@@ -35,19 +35,19 @@ function sampledError(model, intervals = 10000) {
   return error;
 }
 
-test('the scroll story preserves the original 16 scenes and adds eight classification scenes', () => {
-  assert.equal(S.scenes.length, 24);
-  assert.equal(new Set(S.scenes).size, 24);
+test('the scroll story preserves the original 16 scenes and adds classification and generalization scenes', () => {
+  assert.equal(S.scenes.length, 30);
+  assert.equal(new Set(S.scenes).size, 30);
   assert.equal(S.scenes[0], 'affine');
   assert.deepEqual(S.scenes.slice(0, 16), ['affine', 'relu', 'hinge', 'hill-rise', 'hill-fall', 'hill-flat', 'shallow', 'width-one', 'width-two', 'width-three', 'width-many', 'sine-coarse', 'sine-zoom', 'sine-joint', 'sine-wide', 'universal']);
-  assert.deepEqual(S.scenes.slice(16), ['conflict', 'sigmoid-one', 'sigmoid-two', 'class-input', 'class-trace', 'class-move', 'class-head', 'class-compare']);
+  assert.deepEqual(S.scenes.slice(16, 24), ['conflict', 'sigmoid-one', 'sigmoid-two', 'class-input', 'class-trace', 'class-move', 'class-head', 'class-compare']);
   assert.throws(() => S.frame('missing-scene', 0.5), RangeError);
 
   for (const scene of S.scenes) {
     for (const progress of [-1, 0, 0.125, 0.5, 0.875, 1, 2, NaN]) {
       const frame = S.frame(scene, progress);
       assert.equal(frame.scene, scene);
-      assert.ok(['affine', 'relu', 'shallow', 'sine', 'sigmoid', 'classification'].includes(frame.kind));
+      assert.ok(['affine', 'relu', 'shallow', 'sine', 'sigmoid', 'classification', 'width-experiment'].includes(frame.kind));
       assert.equal(typeof frame.x, 'number');
       assert.ok(!Object.hasOwn(frame, 'depth'));
       assert.ok(frame.progress >= 0 && frame.progress <= 1);

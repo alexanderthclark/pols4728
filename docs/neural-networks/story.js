@@ -10,7 +10,7 @@
   byId('scroll-steps').setAttribute('aria-hidden','true');
   byId('scroll-steps').setAttribute('inert','');
   let currentIndex=0,renderSignature='',pending=0,inspectionX=null,lastFrame=null;
-  const chapter=scene=>scene.startsWith('class-')?'05 · Learned representations':scene==='conflict'||scene.startsWith('sigmoid-')?'04 · Sigmoid classification':scene.startsWith('width-')?'02 · Width and joints':scene.startsWith('sine-')||scene==='universal'?'03 · Approximation':'01 · Shallow networks';
+  const chapter=scene=>scene.startsWith('generalize-')?'06 · Width and generalization':scene.startsWith('class-')?'05 · Learned representations':scene==='conflict'||scene.startsWith('sigmoid-')?'04 · Sigmoid classification':scene.startsWith('width-')?'02 · Width and joints':scene.startsWith('sine-')||scene==='universal'?'03 · Approximation':'01 · Shallow networks';
   function update(){
     pending=0;
     const mobile=window.matchMedia('(max-width: 760px)').matches;
@@ -24,13 +24,14 @@
     let progress=Math.max(0,Math.min(1,(focus-rect.top)/Math.max(rect.height,1)));
     // Quantization prevents needless SVG work on fractional-pixel scroll events.
     progress=Math.round(progress*100)/100;
-    if(reduced)progress=scene==='sigmoid-one'?(progress<.2?.12:progress<.6?.45:.9):scene==='affine'?(progress<.65?0:1):scene==='width-many'||scene==='sine-wide'?Math.round(progress*10)/10:1;
+    if(reduced)progress=State.reducedProgress(scene,progress);
     const signature=scene+':'+progress+':'+(mobile?'compact':'desktop')+':'+(inspectionX===null?'story':inspectionX);
     if(signature!==renderSignature){
       renderSignature=signature;
       const frame=State.frame(scene,progress);
       frame.compact=mobile;
       frame.reducedMotion=reduced;
+      if(reduced&&scene==='generalize-noise')frame.noiseMix=progress<.25?0:1;
       const domain=frame.kind==='sine'?[0,2*Math.PI]:[-2,2];
       if(inspectionX!==null&&!frame.hideInspector){
         frame.x=Math.max(domain[0],Math.min(domain[1],inspectionX));
@@ -44,6 +45,9 @@
       byId('stage-shell').classList.toggle('is-extension',!!frame.hideInspector);
       byId('stage-shell').classList.toggle('is-equation-only',!!frame.equationOnly);
       byId('stage-shell').classList.toggle('is-model-comparison',!!frame.equationComparison);
+      byId('stage-shell').classList.toggle('is-input-zoom',scene==='generalize-zoom');
+      byId('stage-shell').classList.toggle('is-width-experiment',frame.kind==='width-experiment');
+      byId('stage-shell').style.setProperty('--input-zoom',frame.inputZoom||0);
       byId('stage-shell').setAttribute('aria-label',frame.equationComparison?'Logistic regression and neural-network models':frame.equationOnly?'Historical neural-network model':'Function and neural network diagrams');
       byId('figure-grid').hidden=!!frame.equationOnly;
       byId('model-comparison').hidden=!frame.equationComparison;
@@ -58,10 +62,18 @@
       else{byId('comparison-probability-plot').innerHTML='';byId('comparison-boundary-plot').innerHTML='';}
       lastFrame=frame;
       if(frame.equationOnly){byId('function-plot').innerHTML='';byId('network-plot').innerHTML='';}
+      else if(scene==='generalize-zoom')window.NNExtensionViews.render(byId('function-plot'),byId('network-plot'),{...frame,scene:'class-compare'});
+      else if(frame.kind==='width-experiment'){
+        byId('function-plot').innerHTML='';
+        if(scene==='generalize-errors')window.NNWidthViews.renderError(byId('network-plot'),frame);
+        else if(scene==='generalize-descent')window.NNWidthViews.renderSchematic(byId('network-plot'),frame);
+        else window.NNWidthViews.render(byId('network-plot'),frame);
+      }
       else if(frame.hideInspector)window.NNExtensionViews.render(byId('function-plot'),byId('network-plot'),frame);
       else Views.render(byId('function-plot'),byId('network-plot'),frame);
       byId('function-label').textContent=frame.kind==='sigmoid'?'Predicted probability':frame.kind==='classification'?(frame.morph===1?'Learned representation':frame.morph>0?'Changing coordinates':'Original coordinates'):'Function';
       byId('network-label').textContent=frame.kind==='sigmoid'?'Weighted hidden features':frame.kind==='classification'&&(scene==='class-move'||scene==='class-head'||scene==='class-compare')?'Original coordinates':'Network';
+      if(frame.widthExperiment)byId('network-label').textContent=scene==='generalize-errors'?'Measured errors on new observations':scene==='generalize-descent'?'Double descent · schematic':'Original coordinates';
       const sceneTitle=steps[index].querySelector('h2,h3')?.textContent||scene;
       byId('stage-part').textContent=chapter(scene);
       byId('stage-name').textContent=sceneTitle;
@@ -84,9 +96,10 @@
       counter.hidden=!activationModel;
       counter.textContent=activationModel?frame.activeCount+' of '+frame.hiddenCount+' neurons active · x = '+frame.x.toFixed(2):'';
       if(byId('previous'))byId('previous').disabled=index===0;
-      if(byId('next'))byId('next').disabled=index===steps.length-1;
-      byId('return-link').hidden=index!==steps.length-1;
-      byId('stage-instruction').hidden=index===steps.length-1;
+      const finalStop=State.stops(scene).at(-1),finished=index===steps.length-1&&progress>=finalStop-.04;
+      if(byId('next'))byId('next').disabled=finished;
+      byId('return-link').hidden=!finished;
+      byId('stage-instruction').hidden=finished;
       if(byId('story-status')&&byId('story-status').dataset.scene!==scene){byId('story-status').dataset.scene=scene;byId('story-status').textContent=sceneTitle;}
       steps.forEach((s,i)=>{s.classList.toggle('is-active',i===index);if(i===index)s.setAttribute('aria-current','step');else s.removeAttribute('aria-current');});
       const story=byId('story');if(story)story.dataset.scene=scene;
@@ -97,14 +110,15 @@
   function queue(){if(!pending)pending=window.requestAnimationFrame(update);}
   function go(delta){
     let targetIndex=Math.max(0,Math.min(steps.length-1,currentIndex+delta)),stop=.12;
-    // Give the comparison's three scroll beats the same keyboard route.
-    if(steps[currentIndex].dataset.scene==='sigmoid-one'){
+    // Keyboard navigation visits every meaningful stop inside long scenes.
+    const currentStops=State.stops(steps[currentIndex].dataset.scene);
+    if(currentStops.length>1){
       const p=lastFrame?.progress||0;
-      if(delta>0&&p<.75){targetIndex=currentIndex;stop=p<.3?.45:.9;}
-      if(delta<0&&p>.3){targetIndex=currentIndex;stop=p>.75?.45:.12;}
+      const internal=delta>0?currentStops.find(s=>s>p+.04):[...currentStops].reverse().find(s=>s<p-.04);
+      if(internal!==undefined){targetIndex=currentIndex;stop=internal;}
     }
     const target=steps[targetIndex];
-    if(targetIndex!==currentIndex&&delta<0&&target.dataset.scene==='sigmoid-one')stop=.9;
+    if(targetIndex!==currentIndex)stop=delta<0?State.stops(target.dataset.scene).at(-1):State.stops(target.dataset.scene)[0];
     const rect=target.getBoundingClientRect();
     const offset=byId('story-stage').getBoundingClientRect().top;
     // Land inside the scene so boundary rounding cannot select its predecessor.

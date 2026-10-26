@@ -5,7 +5,7 @@ of ReLU neurons, and one linear output. An affine function introduces the setup.
 The instructor-authorized extension follows it with sigmoid classification and
 a binary, two-input, two-ReLU-hidden-neuron learned representation.
 
-Preserve the five-part sequence:
+Preserve the six-part sequence:
 
 1. Functions produced by a shallow ReLU network with a univariate input.
 2. Hidden-layer width and the number of joints. A width of m permits at most
@@ -29,6 +29,13 @@ Preserve the five-part sequence:
    the same observations into their actual two hidden activations before
    revealing the fitted head's straight boundary. Skip the separate second-peak
    and representation-introduction scenes.
+6. Zoom the original-coordinate panel, add a fixed noisy sample, and widen
+   jointly fitted ReLU/sigmoid networks from 2 through 256 neurons. Preserve
+   point identities and class encodings. Use the frozen actual fitted contours,
+   training-only initialization selection, and independent-test metrics.
+   Distinguish measured classification results from the separately labeled
+   double-descent schematic. All eight illustrative fits already classify every
+   training label correctly; they do not establish a full double-descent curve.
 
 The binary example is a documented new fit inspired by the notes' adjacent
 curved classes, not the unavailable original three-class fit. Use its frozen
@@ -37,7 +44,7 @@ classifier, arbitrary point destinations, or a projection of a wider hidden
 layer. Distinguish perfect training classification from generalization and
 from exact probability estimates. The sigmoid constructions are not learned.
 
-Scrolling drives the mathematical changes in all five parts. Preserve the
+Scrolling drives the mathematical changes in all six parts. Preserve the
 course design guide, blacksmith title illustration, and the readable mobile
 and reduced-motion versions.
 

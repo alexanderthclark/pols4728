@@ -235,6 +235,27 @@ h1 { font-size: clamp(2.9rem, 4.8vw, 4.8rem); line-height: 1.07; letter-spacing:
 .story.is-enhanced .step[data-scene="hinge"] { min-height: 180svh; }
 .story.is-enhanced .step[data-scene="sigmoid-one"] { min-height: 420svh; }
 .story.is-enhanced .step[data-scene="class-move"] { min-height: 200svh; }
+.story.is-enhanced .step[data-scene="generalize-zoom"] { min-height: 150svh; }
+.story.is-enhanced .step[data-scene="generalize-noise"] { min-height: 220svh; }
+.story.is-enhanced .step[data-scene="generalize-width"] { min-height: 640svh; }
+.story.is-enhanced .step[data-scene="generalize-test"] { min-height: 260svh; }
+.story.is-enhanced .step[data-scene="generalize-errors"] { min-height: 420svh; }
+.story.is-enhanced .step[data-scene="generalize-descent"] { min-height: 280svh; }
+
+/* Expand the existing input-coordinate panel from its actual grid position. */
+.is-input-zoom .figure-grid { position: relative; display: block; }
+.is-input-zoom .function-figure { position: absolute; left: 0; top: 0; width: calc((100% - .8rem) * 5 / 9); height: 100%; opacity: calc(1 - var(--input-zoom)); }
+.is-input-zoom .network-figure { position: absolute; top: 0; height: 100%; left: calc((55.5556% + .4444rem) * (1 - var(--input-zoom))); width: calc(100% - (55.5556% + .4444rem) * (1 - var(--input-zoom))); }
+.is-width-experiment .figure-grid { display: block; position: relative; max-height: 560px; }
+.is-width-experiment .function-figure { display: none; }
+.is-width-experiment .network-figure { width: 100%; height: 100%; }
+.is-width-experiment .stage-equation { justify-content: center; }
+@media (max-width: 760px) {
+  .is-input-zoom .function-figure { width: 100%; height: calc((100% - .3rem) * 350 / 570); }
+  .is-input-zoom .network-figure { left: 0; width: 100%; top: calc((61.4035% + .1842rem) * (1 - var(--input-zoom))); height: calc(100% - (61.4035% + .1842rem) * (1 - var(--input-zoom))); }
+  .story.is-enhanced .stage-shell.is-width-experiment .figure-grid { max-height: none; }
+  .story.is-enhanced .stage-shell.is-width-experiment .stage-equation { min-height: 2.5rem; font-size: .65rem; }
+}
 
 @media (max-width: 760px) {
   .story.is-enhanced { --story-top: 0px; --story-height: 100svh; }
