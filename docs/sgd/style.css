@@ -420,3 +420,53 @@ body[data-chapter="full"] .stage .visuals{max-height:none}
  .title-scene--sgd{grid-template-columns:1fr;align-content:center;gap:clamp(.9rem,3svh,2rem);padding:clamp(1.2rem,4svh,2rem) 6vw}
  .title-scene--sgd img{max-width:520px;max-height:min(350px,40svh)}
 }
+
+/* The closing gallery flows naturally so every start stays readable on phones. */
+.initializations{max-width:1440px;margin:0 auto;padding:2rem 4vw 1.5rem;scroll-margin-top:0}
+.initializations h2{font-size:clamp(1.7rem,3vw,2.8rem);margin:.35rem 0 .4rem}
+.initializations-context,.initializations-note{font:13px/1.5 Arial,sans-serif;color:var(--muted)}
+.initializations-controls{display:flex;align-items:center;justify-content:space-between;gap:.5rem 1.5rem;flex-wrap:wrap;margin:.8rem 0}
+.initializations-keys{display:flex;align-items:center;gap:.65rem 1.2rem;flex-wrap:wrap;font:12px/1.4 Arial,sans-serif;color:var(--muted)}
+.initialization-key{display:inline-flex;align-items:center;gap:.4rem}
+.initialization-target-legend{color:#777}
+.initialization-target-key{display:inline-block;width:28px;height:0;border-top:2px dashed #777}
+.initialization-stroke-key{display:inline-flex;gap:3px;width:28px}
+.initialization-stroke-key i{width:12px;border-top:2px solid var(--rust)}
+.initialization-stroke-key i+i{border-color:var(--blue)}
+.initialization-dotted-key i{border-top-style:dotted;opacity:.65}
+.initialization-toggle{display:inline-flex;align-items:center;gap:.55rem;min-height:44px;font:14px/1.4 Arial,sans-serif;cursor:pointer}
+.initialization-toggle input{width:17px;height:17px;margin:0;accent-color:var(--blue);cursor:pointer}
+.initialization-toggle input:focus-visible{outline:3px solid var(--rust);outline-offset:4px}
+.initialization-start-legend{visibility:hidden}
+.initializations .initialization-view--expanded{display:none}
+.initializations:has(#show-initialization:checked) .initialization-view--final{display:none}
+.initializations:has(#show-initialization:checked) .initialization-view--expanded{display:block}
+.initializations:has(#show-initialization:checked) .initialization-start-legend{visibility:visible}
+.initializations-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(1.4rem,4vw,4rem)}
+.initialization-width{min-width:0}
+.initialization-width h3{font-size:1.3rem;margin:0 0 .9rem;padding:.5rem 0;border-top:1px solid #aaa;text-align:center}
+.initialization-plots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.2rem 1.5rem}
+.initialization-fit{min-width:0;break-inside:avoid}
+.initialization-fit figcaption{display:flex;justify-content:space-between;gap:.3rem;font:12px/1.4 Arial,sans-serif;color:var(--muted);margin-bottom:.3rem}
+.initialization-fit figcaption .katex{font-size:1em;color:var(--ink)}
+.initialization-fit svg{width:100%;height:auto;aspect-ratio:300/165;overflow:visible}
+.initialization-fit svg text{font:12px Arial,sans-serif;fill:var(--muted)}
+.initializations-note{margin-top:1.8rem}
+@media screen and (max-width:700px){
+ .initializations{padding:1.5rem 5vw}
+ .initializations-controls{flex-direction:column;align-items:flex-start;gap:.25rem}
+ .initializations-keys{gap:.65rem;font-size:11px}
+ .initializations-grid{gap:1rem}
+ .initialization-plots{grid-template-columns:1fr;gap:1.2rem}
+ .initialization-width h3{font-size:1.2rem;margin-bottom:.75rem}
+ .initialization-fit figcaption{font-size:11px;flex-wrap:wrap}
+ .initialization-fit svg text{font-size:18px}
+ .initialization-fit .svg-math-label .katex{font-size:1.4em}
+ .initializations-note,.initializations-context{font-size:12px}
+}
+@media print{
+ .initializations{padding:1rem 0;break-before:page}
+ .initializations-keys,.initialization-fit{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .initialization-plots{gap:1rem}
+ .initialization-width h3{break-after:avoid}
+}

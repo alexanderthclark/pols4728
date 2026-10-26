@@ -1297,7 +1297,7 @@ test('both static reading routes contain the same substantive captions and defin
     const steps = html.slice(html.indexOf('<div id="steps">'), html.indexOf('<section class="methods"'));
     const reading = html.slice(html.indexOf('<details id="reading">'), html.indexOf('</details>'));
     assert.equal((steps.match(/class="step"/g) || []).length, lesson.length);
-    assert.equal((reading.match(/<section>/g) || []).length, lesson.length);
+    assert.equal((reading.match(/<section>/g) || []).length, lesson.length + (file === 'index.html' ? 1 : 0), 'The full lesson also explains its closing initialization grid');
     for (const scene of lesson) {
       const narration = scene.reading ?? scene.caption;
       const note = scene.readingNote ?? scene.note;
