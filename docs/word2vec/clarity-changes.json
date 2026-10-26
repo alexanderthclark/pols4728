@@ -120,6 +120,12 @@
       "before": "text('center word',cx,119,13,MUTED)+text('context word',ox,119,13,MUTED)",
       "after": "text('input',cx,119,13,MUTED)+text('output',ox,119,13,MUTED)",
       "reason": "Use unambiguous center/context terminology as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "A window of one word on either side supplies the context here.¹",
+      "after": "Here we use one word on each side. Larger windows include more surrounding words.¹",
+      "reason": "Clarify that the one-word window is an example and larger context windows are possible, as requested."
     }
   ]
 }
