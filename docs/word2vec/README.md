@@ -132,24 +132,23 @@ route. The render checks verify that normalization preserves the cosine and ends
 with equal arrow lengths. The archive-preservation check verifies that the removed
 HTML is unchanged and its scripts are no longer loaded by the active page.
 
-## Modern text embeddings
+## Embeddings in practice
 
-One final scene connects the static Word2vec lookup to modern text embeddings.
-Its scroll-driven diagram shows schematic tokens passing through a trained
-transformer, acquiring context, and combining into one vector for the supplied
-text. The narration describes a common recipe: start from a pretrained model
-and train with related text pairs. The afterword cites Sentence-BERT and E5;
-this is not a claim about the proprietary internals of OpenAI’s models.
+The single final scene presents Word2vec as a classical model for understanding
+representation learning. In an application, a more advanced pretrained model
+is often a useful starting point. The diagram separates that practical choice
+from the unit being represented: richer word-level representations remain an
+option, while another task may call for one embedding per passage or document.
 
-OpenAI’s API is an example of reusing a trained embedding model. Its official
-vector embeddings guide was checked on October 27, 2026. This page makes no
-API requests and displays no fabricated API outputs. Symbolic coordinates use
-the same bundled KaTeX renderer as the rest of the lesson. The scene is also
-included in the continuous-reading transcript.
+The two branches cite BERT-style contextual word/token representations and
+text-embedding models, with OpenAI’s API as an example of obtaining text vectors.
+The afterword explains the token/word distinction and cites BERT, Sentence-BERT,
+and the official OpenAI guide (checked October 27, 2026). The page makes no API
+requests and displays no invented model outputs. Symbolic vector labels use
+the lesson’s bundled KaTeX renderer. The scene is included in the reading version.
 
 The closing scene was checked in browser viewports of 1160 × 660, 390 × 667,
-and 320 × 568. Review covered actual forward/backward scrolling, keyboard
-PageUp/PageDown between the Word2vec conclusion and the new scene, the reduced-
-motion query route, and mathematical delimiter rendering. The render harness
-checks all 144 scene/phase/layout states and verifies that distinct contextual
-outputs converge on a single text-vector position.
+and 320 × 568. Review covered forward/backward scrolling, keyboard navigation,
+and the reduced-motion query route. All five Word2vec validation scripts pass;
+the main render harness checks 144 scene/phase/layout states and 149 distinct
+KaTeX formulas, including the two independently extending output branches.

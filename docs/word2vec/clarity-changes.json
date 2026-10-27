@@ -277,6 +277,30 @@
       "before": "<script type=\"module\" src=\"app.js\"></script>",
       "after": "<script type=\"module\" src=\"app.js?v=modern-embeddings\"></script>",
       "reason": "Refresh the lesson module when adding the final modern-embeddings scene."
+    },
+    {
+      "file": "index.html",
+      "before": "      <p class=\"reference\">Modern text embeddings: Reimers and Gurevych (2019), <a href=\"https://aclanthology.org/D19-1410/\">Sentence-BERT</a>, and Wang et al. (2022), <a href=\"https://arxiv.org/abs/2212.03533\">Text Embeddings by Weakly-Supervised Contrastive Pre-training</a>, illustrate transformer encoders and training with related text pairs. The closing diagram shows a common approach, not OpenAI’s specific architecture or training recipe.</p>",
+      "after": "      <p class=\"reference\">Beyond Word2vec: Devlin et al. (2019), <a href=\"https://aclanthology.org/N19-1423/\">BERT</a>, illustrates richer, contextual representations that can support word-level tasks. Its internal representations are for tokens, which may be parts of words. Reimers and Gurevych (2019), <a href=\"https://aclanthology.org/D19-1410/\">Sentence-BERT</a>, illustrates models trained to represent whole texts. A more advanced model need not change the unit you embed: choose words, passages, or documents according to the task.</p>",
+      "reason": "Reframe the ending around Word2vec as classical intuition and more capable pretrained models, treating word-level versus whole-text representations as a separate task choice."
+    },
+    {
+      "file": "index.html",
+      "before": "<script type=\"module\" src=\"app.js?v=modern-embeddings\"></script>",
+      "after": "<script type=\"module\" src=\"app.js?v=practical-embeddings\"></script>",
+      "reason": "Refresh the reworked practical-embeddings ending."
+    },
+    {
+      "file": "app.js",
+      "before": "import { modernScene, renderModern } from './modern.js';",
+      "after": "import { modernScene, renderModern } from './modern.js?v=practical-embeddings';",
+      "reason": "Refresh the revised final-scene module when returning to the preview or published lesson."
+    },
+    {
+      "file": "app.js",
+      "before": "i===17?'Modern text embeddings'",
+      "after": "i===17?'Embeddings in practice'",
+      "reason": "Label the practical-embeddings ending without implying all advanced models produce whole-text vectors."
     }
   ],
   "archivedExploration": {

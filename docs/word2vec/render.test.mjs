@@ -151,27 +151,25 @@ for (const narrow of [false, true]) {
     'The analogy scene must translate its difference vector.');
   assert.notEqual(render(15, 0, narrow), render(15, 1, narrow),
     'The cosine pause must rescale its arrows with scrolling.');
-  const modernRectPositions = (phase, kind) => {
+  const practicalBranch = (phase, kind) => {
     const markup = render(17, phase, narrow);
-    const pattern = new RegExp(`<g data-modern-${kind}="[0-9]"[^>]*>(?:<g[^>]*>)?(<rect[^>]*>)`, 'g');
-    return [...markup.matchAll(pattern)].map(match => {
-      const a = attrs(match[1]);
-      return [Number(a.x) + Number(a.width) / 2, Number(a.y) + Number(a.height) / 2];
-    });
+    const branch = markup.split(`<g data-modern-branch="${kind}"`)[1];
+    assert.ok(branch, `Missing practical-embedding branch: ${kind}`);
+    const match = branch.match(/<line\b[^>]*>/);
+    assert.ok(match, `Missing actual arrow for ${kind}`);
+    const a = attrs(match[0]);
+    return [Number(a.x1), Number(a.y1), Number(a.x2), Number(a.y2)];
   };
-  const inputPositions = modernRectPositions(0, 'token');
-  const contextPositions = modernRectPositions(.6, 'token');
-  assert.equal(inputPositions.length, 3);
-  assert.notDeepEqual(inputPositions, contextPositions,
-    'The token rectangles must move through the contextual encoder.');
-  const beforeCombination = modernRectPositions(.6, 'aggregate');
-  const afterCombination = modernRectPositions(1, 'aggregate');
-  assert.equal(beforeCombination.length, 3);
-  assert.equal(afterCombination.length, 3);
-  assert.equal(new Set(beforeCombination.map(String)).size, 3,
-    'The contextual vectors must start at separate positions.');
-  assert.equal(new Set(afterCombination.map(String)).size, 1,
-    'The contextual vectors must converge on one whole-text output.');
+  for (const kind of ['word', 'text']) {
+    const start = practicalBranch(0, kind), end = practicalBranch(1, kind);
+    assert.notDeepEqual(start.slice(2), end.slice(2),
+      `The ${kind} branch must advance with scroll position.`);
+    assert.ok(Math.hypot(end[2]-end[0], end[3]-end[1]) >
+      Math.hypot(start[2]-start[0], start[3]-start[1]),
+      `The ${kind} branch must extend toward its output.`);
+  }
+  assert.notDeepEqual(practicalBranch(1, 'word').slice(2), practicalBranch(1, 'text').slice(2),
+    'Word-level and whole-text outputs must remain distinct choices.');
   assert.notEqual(render(2, 0, narrow), render(2, 1, narrow),
     'The network overview must show the forward calculation with scrolling.');
 }
