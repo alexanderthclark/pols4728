@@ -223,6 +223,18 @@
       "before": "Word2vec also has an alternative architecture, continuous bag of words (CBOW).",
       "after": "Word2vec also has an alternative architecture, continuous bag of words (CBOW), which predicts the center word from the surrounding context words. It is not shown here.",
       "reason": "Clarify the alternative CBOW prediction direction and that it is not shown in this lesson, as requested."
+    },
+    {
+      "file": "index.html",
+      "before": "<title>Word2vec — Learning a geometry from context</title>",
+      "after": "<title>Word2vec — Learning word embeddings</title>",
+      "reason": "Use the requested Learning word embeddings subtitle and remove the opening question; keep the browser title consistent."
+    },
+    {
+      "file": "index.html",
+      "before": "<p class=\"subtitle\">How predicting nearby words<br class=\"wide-only\"> creates a geometry.</p>\n        <p class=\"intro\">A word begins as a name in a vocabulary. How does it become a vector with useful relationships to other words?</p>",
+      "after": "<p class=\"subtitle\">Learning word embeddings</p>",
+      "reason": "Use the requested Learning word embeddings subtitle and remove the opening question; keep the browser title consistent."
     }
   ],
   "archivedExploration": {
