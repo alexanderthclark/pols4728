@@ -217,6 +217,12 @@
       "before": "      <details id=\"reading\">",
       "after": "      <p class=\"reference\">Network architecture and derivation: Xin Rong, <a href=\"https://arxiv.org/html/1411.2738v4\">word2vec Parameter Learning Explained</a>, especially the skip-gram model and its linear hidden layer.</p>\n      <details id=\"reading\">",
       "reason": "Retain the architecture source with the active lesson after archiving the later exploration."
+    },
+    {
+      "file": "index.html",
+      "before": "Word2vec also has an alternative architecture, continuous bag of words (CBOW).",
+      "after": "Word2vec also has an alternative architecture, continuous bag of words (CBOW), which predicts the center word from the surrounding context words. It is not shown here.",
+      "reason": "Clarify the alternative CBOW prediction direction and that it is not shown in this lesson, as requested."
     }
   ],
   "archivedExploration": {

@@ -46,7 +46,7 @@
       <p>The input matrix stores a vector for every word. The output matrix makes those vectors useful for predicting context during training. Training both together can produce structure that we can reuse after the prediction task is finished.</p>
       <div class="closing-math" data-math="\underbrace{W_{\mathrm{in}}}_{\text{input vectors}}\quad\longrightarrow\quad\text{representations for other tasks}"></div>
       <div class="notes">
-        <p id="cbow"><sup>1</sup> Word2vec also has an alternative architecture, continuous bag of words (CBOW).</p>
+        <p id="cbow"><sup>1</sup> Word2vec also has an alternative architecture, continuous bag of words (CBOW), which predicts the center word from the surrounding context words. It is not shown here.</p>
         <p><sup>2</sup> This lesson uses full softmax and omits bias terms. The six-word, two-coordinate model has illustrative starting weights and demonstrates the calculations; it is not a useful semantic model. The final geometric sketches are separate illustrations, not results fitted to these sentences.</p>
       </div>
       <h3>Sources &amp; further reading</h3>
