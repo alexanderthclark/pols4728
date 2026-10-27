@@ -403,6 +403,36 @@
       "before": "app.js?v=linear-scores",
       "after": "app.js?v=onehot-clean",
       "reason": "Refresh the one-hot slide after removing the requested text."
+    },
+    {
+      "file": "app.js",
+      "before": "  {chapter:'02 · The input matrix',title:'The input matrix stores one vector per word.',eq:String.raw`W_{\\mathrm{in}}\\in\\mathbb{R}^{k\\times|V|},\\qquad k=2`,caption:'Each word labels a column. Each column contains two trainable coordinates.',detail:'Six words, two coordinates: 2 rows and 6 columns. These are illustrative starting weights.',alt:'W in is a two by six matrix with vocabulary words labeling columns. Support is the second column.'},",
+      "after": "  {chapter:'02 · The input matrix',title:'The input matrix stores one vector per word.',eq:String.raw`W_{\\mathrm{in}}\\in\\mathbb{R}^{k\\times|V|},\\qquad k=2`,captionMath:String.raw`W_{\\mathrm{in}}`,caption:'is learned from data, and each column is the embedding for a single word in the vocabulary.',detail:'',alt:'W in is a two by six matrix with vocabulary words labeling columns. Support is the second column.'},",
+      "reason": "Replace the input-matrix narration with the instructor’s requested wording."
+    },
+    {
+      "file": "app.js",
+      "before": "function m(tex,x,y,w=200,h=42,size=22,color=INK){",
+      "after": "function captionHTML(sc){return (sc.captionMath?latex(sc.captionMath)+' ':'')+esc(sc.caption)}\nfunction m(tex,x,y,w=200,h=42,size=22,color=INK){",
+      "reason": "Typeset the matrix symbol in the caption with the bundled math renderer."
+    },
+    {
+      "file": "app.js",
+      "before": "document.querySelector('#caption').textContent=sc.caption;",
+      "after": "document.querySelector('#caption').innerHTML=captionHTML(sc);",
+      "reason": "Render the requested mathematical matrix name inline with the caption."
+    },
+    {
+      "file": "app.js",
+      "before": "`<p>${sc.caption}</p><p>${sc.detail.replace",
+      "after": "`<p>${captionHTML(sc)}</p><p>${sc.detail.replace",
+      "reason": "Keep the same mathematical caption in the continuous-reading version."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=onehot-clean",
+      "after": "app.js?v=embedding-caption",
+      "reason": "Refresh the revised input-matrix caption."
     }
   ],
   "archivedExploration": {
