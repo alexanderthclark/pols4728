@@ -25,7 +25,8 @@ This version teaches skip-gram with full softmax and omits bias terms. CBOW is
 mentioned as an alternative architecture in the endnote. The six-word vocabulary
 is voters, support, reform, senate, backs, and proposal. With embedding dimension
 two, the input matrix has 2 rows and 6 columns; the output matrix has 6 rows and
-2 columns. The matrices are independent learned parameters.
+2 columns. The matrices are independent learned parameters. The network overview
+labels the one-hot input dimension as $|V|\times 1$ in both layouts.
 
 The numerical example uses illustrative starting weights. Its first pair is
 support → reform. One gradient step changes the selected input column and every
@@ -150,4 +151,4 @@ sources. The page makes no API requests.
 Browser review checked the desktop layout and a 320 × 568 phone viewport,
 forward/backward scrolling, keyboard navigation, reduced motion, and the reading
 version. All five Word2vec validation scripts pass; the main render harness covers
-144 scene/phase/layout states and 146 distinct KaTeX formulas.
+144 scene/phase/layout states and 147 distinct KaTeX formulas.

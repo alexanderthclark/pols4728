@@ -6,7 +6,7 @@ export const networkScene = {
   eq: String.raw`d_c=\operatorname{onehot}(x),\qquad h_c=W_{\mathrm{in}}d_c`,
   caption: 'Skip-gram is a shallow neural network with one hidden layer using a linear activation function and a nonlinear softmax output.',
   detail: '',
-  alt: 'A neural network with six one-hot input units, two linear hidden units, and six score units followed by nonlinear softmax. W in has 2 rows and 6 columns; W out has 6 rows and 2 columns. The support input selects hidden coordinates 0.6 and 0.4. Both coordinates contribute to every score, and softmax converts all scores into probabilities.'
+  alt: 'A neural network whose one-hot input is a column vector with vocabulary-size rows and one column, shown as |V| by 1. It has six input units, two linear hidden units, and six score units followed by nonlinear softmax. W in has 2 rows and 6 columns; W out has 6 rows and 2 columns. The support input selects hidden coordinates 0.6 and 0.4. Both coordinates contribute to every score, and softmax converts all scores into probabilities.'
 };
 
 export function renderNetwork(t, n, helpers) {
@@ -60,7 +60,7 @@ export function renderNetwork(t, n, helpers) {
   if (n) {
     // Stacked layers preserve readable neuron size on a narrow screen.
     s += m('d_c', 47, 57, 85, 32, 22, BLUE);
-    s += text('one-hot', 47, 83, 12, MUTED);
+    s += m(String.raw`|V|\times 1`, 47, 83, 90, 26, 15, BLUE);
     s += text('support', inputs[1][0], 94, 12, BLUE);
     s += m(String.raw`W_{\mathrm{in}}`, 49, 120, 94, 32, 22, BLUE);
     s += m(String.raw`2\times 6`, 49, 146, 90, 28, 17, BLUE);
@@ -89,7 +89,7 @@ export function renderNetwork(t, n, helpers) {
     s += text('six probabilities, in vocabulary order', 250, 448, 11, MUTED);
   } else {
     s += m('d_c', 110, 49, 100, 36, 26, BLUE);
-    s += text('one-hot input', 110, 79, 14, MUTED);
+    s += m(String.raw`|V|\times 1`, 110, 79, 100, 32, 18, BLUE);
     s += m(String.raw`W_{\mathrm{in}}`, 248, 49, 180, 36, 27, BLUE);
     s += m(String.raw`k\times |V|=2\times 6`, 248, 79, 210, 32, 18, BLUE);
     s += m('h_c', 380, 49, 100, 36, 27, BLUE);

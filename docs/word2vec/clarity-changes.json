@@ -367,6 +367,18 @@
       "before": "modern.css?v=modern-list",
       "after": "modern.css?v=improvements",
       "reason": "Refresh the revised Improvements on Word2Vec closing slide."
+    },
+    {
+      "file": "app.js",
+      "before": "'./network.js'",
+      "after": "'./network.js?v=input-dimension'",
+      "reason": "Refresh the requested one-hot input dimension label on the network slide."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=improvements",
+      "after": "app.js?v=input-dimension",
+      "reason": "Refresh the requested one-hot input dimension label on the network slide."
     }
   ],
   "archivedExploration": {
