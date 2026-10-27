@@ -116,7 +116,7 @@ function checkGeometry(markup, narrow, label) {
 
 let renderedStates = 0;
 for (const [i, scene] of scenes.entries()) {
-  assert.doesNotThrow(() => latex(scene.eq), `Scene ${i + 1} equation`);
+  if (scene.eq) assert.doesNotThrow(() => latex(scene.eq), `Scene ${i + 1} equation`);
   for (const narrow of [false, true]) {
     for (const t of [0, 0.25, 0.5, 1]) {
       const label = `scene ${i + 1}, phase ${t}, ${narrow ? 'narrow' : 'wide'}`;
@@ -151,25 +151,6 @@ for (const narrow of [false, true]) {
     'The analogy scene must translate its difference vector.');
   assert.notEqual(render(15, 0, narrow), render(15, 1, narrow),
     'The cosine pause must rescale its arrows with scrolling.');
-  const practicalBranch = (phase, kind) => {
-    const markup = render(17, phase, narrow);
-    const branch = markup.split(`<g data-modern-branch="${kind}"`)[1];
-    assert.ok(branch, `Missing practical-embedding branch: ${kind}`);
-    const match = branch.match(/<line\b[^>]*>/);
-    assert.ok(match, `Missing actual arrow for ${kind}`);
-    const a = attrs(match[0]);
-    return [Number(a.x1), Number(a.y1), Number(a.x2), Number(a.y2)];
-  };
-  for (const kind of ['word', 'text']) {
-    const start = practicalBranch(0, kind), end = practicalBranch(1, kind);
-    assert.notDeepEqual(start.slice(2), end.slice(2),
-      `The ${kind} branch must advance with scroll position.`);
-    assert.ok(Math.hypot(end[2]-end[0], end[3]-end[1]) >
-      Math.hypot(start[2]-start[0], start[3]-start[1]),
-      `The ${kind} branch must extend toward its output.`);
-  }
-  assert.notDeepEqual(practicalBranch(1, 'word').slice(2), practicalBranch(1, 'text').slice(2),
-    'Word-level and whole-text outputs must remain distinct choices.');
   assert.notEqual(render(2, 0, narrow), render(2, 1, narrow),
     'The network overview must show the forward calculation with scrolling.');
 }

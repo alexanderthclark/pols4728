@@ -134,21 +134,18 @@ HTML is unchanged and its scripts are no longer loaded by the active page.
 
 ## Embeddings in practice
 
-The single final scene presents Word2vec as a classical model for understanding
-representation learning. In an application, a more advanced pretrained model
-is often a useful starting point. The diagram separates that practical choice
-from the unit being represented: richer word-level representations remain an
-option, while another task may call for one embedding per passage or document.
+At the instructor’s request, the final slide is a plain list headed “Modern
+alternatives.” Its title is “In practice, you will probably use a more advanced
+pretrained model.” The two items are BERT / BERT-style models and text embedding
+models such as OpenAI’s. The previous diagram, equation, and duplicate narration
+are omitted from this slide. The slide remains part of the pinned scroll sequence.
+Its heading and list are native HTML, also included in the reading version.
 
-The two branches cite BERT-style contextual word/token representations and
-text-embedding models, with OpenAI’s API as an example of obtaining text vectors.
-The afterword explains the token/word distinction and cites BERT, Sentence-BERT,
-and the official OpenAI guide (checked October 27, 2026). The page makes no API
-requests and displays no invented model outputs. Symbolic vector labels use
-the lesson’s bundled KaTeX renderer. The scene is included in the reading version.
+The afterword retains the explanation of contextual word/token representations
+and whole-text vectors, with BERT, Sentence-BERT, and OpenAI’s official guide as
+sources. The page makes no API requests.
 
-The closing scene was checked in browser viewports of 1160 × 660, 390 × 667,
-and 320 × 568. Review covered forward/backward scrolling, keyboard navigation,
-and the reduced-motion query route. All five Word2vec validation scripts pass;
-the main render harness checks 144 scene/phase/layout states and 149 distinct
-KaTeX formulas, including the two independently extending output branches.
+Browser review checked the desktop layout and a 320 × 568 phone viewport,
+forward/backward scrolling, keyboard navigation, reduced motion, and the reading
+version. All five Word2vec validation scripts pass; the main render harness covers
+144 scene/phase/layout states and 146 distinct KaTeX formulas.

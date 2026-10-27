@@ -301,6 +301,54 @@
       "before": "i===17?'Modern text embeddings'",
       "after": "i===17?'Embeddings in practice'",
       "reason": "Label the practical-embeddings ending without implying all advanced models produce whole-text vectors."
+    },
+    {
+      "file": "app.js",
+      "before": "'./modern.js?v=practical-embeddings'",
+      "after": "'./modern.js?v=modern-list'",
+      "reason": "Refresh the simplified closing-slide module."
+    },
+    {
+      "file": "app.js",
+      "before": "if(i===17)return renderModern(t,n,{m,text,line,rect,group,ease,clamp,fmt,mix,BLUE,RUST,INK,MUTED,RULE});",
+      "after": "if(i===17)return renderModern();",
+      "reason": "Render the requested final list as native text rather than a diagram."
+    },
+    {
+      "file": "app.js",
+      "before": "if(active!==i){const sc=scenes[i];",
+      "after": "if(active!==i){document.querySelector('.stage').classList.toggle('is-list',i===17);document.querySelector('#modern-alternatives').hidden=i!==17;const sc=scenes[i];",
+      "reason": "Show the list only on slide 18 and restore the diagrams when scrolling back."
+    },
+    {
+      "file": "app.js",
+      "before": "svg.setAttribute('viewBox',`0 0 ${stem(n)}`);svg.innerHTML=markers+renderScene(i,t,n);",
+      "after": "if(i!==17){svg.setAttribute('viewBox',`0 0 ${stem(n)}`);svg.innerHTML=markers+renderScene(i,t,n);}",
+      "reason": "Keep the final native HTML list out of the SVG renderer."
+    },
+    {
+      "file": "app.js",
+      "before": "document.querySelector('#transcript').innerHTML=scenes.map(sc=>`<section><h3>${sc.title}</h3><p>${sc.caption}</p><p>${sc.detail.replace('¹','')}</p><p>${latex(sc.eq)}</p></section>`).join('');",
+      "after": "document.querySelector('#modern-alternatives').innerHTML=renderModern();\n document.querySelector('#transcript').innerHTML=scenes.map(sc=>`<section><h3>${sc.title}</h3>${sc===modernScene?renderModern(4):`<p>${sc.caption}</p><p>${sc.detail.replace('¹','')}</p><p>${latex(sc.eq)}</p>`}</section>`).join('');",
+      "reason": "Include the same two-item list in the reading version."
+    },
+    {
+      "file": "index.html",
+      "before": "<link rel=\"stylesheet\" href=\"style.css\">",
+      "after": "<link rel=\"stylesheet\" href=\"style.css\">\n  <link rel=\"stylesheet\" href=\"modern.css?v=modern-list\">",
+      "reason": "Add styling scoped to the requested plain-list ending."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=practical-embeddings",
+      "after": "app.js?v=modern-list",
+      "reason": "Refresh the simplified closing slide in the browser."
+    },
+    {
+      "file": "index.html",
+      "before": "        <div class=\"narration\">",
+      "after": "        <div id=\"modern-alternatives\" hidden></div>\n        <div class=\"narration\">",
+      "reason": "Use a semantic heading and list for the requested slide 18."
     }
   ],
   "archivedExploration": {
