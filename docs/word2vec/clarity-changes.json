@@ -349,6 +349,24 @@
       "before": "        <div class=\"narration\">",
       "after": "        <div id=\"modern-alternatives\" hidden></div>\n        <div class=\"narration\">",
       "reason": "Use a semantic heading and list for the requested slide 18."
+    },
+    {
+      "file": "app.js",
+      "before": "./modern.js?v=modern-list",
+      "after": "./modern.js?v=improvements",
+      "reason": "Refresh the revised Improvements on Word2Vec closing slide."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=modern-list",
+      "after": "app.js?v=improvements",
+      "reason": "Refresh the revised Improvements on Word2Vec closing slide."
+    },
+    {
+      "file": "index.html",
+      "before": "modern.css?v=modern-list",
+      "after": "modern.css?v=improvements",
+      "reason": "Refresh the revised Improvements on Word2Vec closing slide."
     }
   ],
   "archivedExploration": {

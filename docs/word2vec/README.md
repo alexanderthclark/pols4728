@@ -134,12 +134,14 @@ HTML is unchanged and its scripts are no longer loaded by the active page.
 
 ## Embeddings in practice
 
-At the instructor’s request, the final slide is a plain list headed “Modern
-alternatives.” Its title is “In practice, you will probably use a more advanced
-pretrained model.” The two items are BERT / BERT-style models and text embedding
-models such as OpenAI’s. The previous diagram, equation, and duplicate narration
-are omitted from this slide. The slide remains part of the pinned scroll sequence.
-Its heading and list are native HTML, also included in the reading version.
+The final slide, “Improvements on Word2Vec,” introduces two useful advances.
+BERT / BERT-style models use more flexible architectures, word order, and
+surrounding context to represent words in their sentences. Text embedding models,
+with OpenAI’s as an example, represent a whole passage or document with one
+vector. These are useful alternatives, not mutually exclusive model categories.
+
+The slide is a concise, native HTML list with one explanation per item. It
+remains part of the pinned scroll sequence and appears in the reading version.
 
 The afterword retains the explanation of contextual word/token representations
 and whole-text vectors, with BERT, Sentence-BERT, and OpenAI’s official guide as

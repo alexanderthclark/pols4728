@@ -1,7 +1,7 @@
 import { vocabulary as vocab, initial, forward, step, interpolateModel } from './model.js';
 import { networkScene, renderNetwork } from './network.js';
 import { analogyVectors, cosineScene, renderCosine } from './cosine.js';
-import { modernScene, renderModern } from './modern.js?v=modern-list';
+import { modernScene, renderModern } from './modern.js?v=improvements';
 
 const BLUE='#234e70', RUST='#a54f32', INK='#242424', MUTED='#606060', RULE='#d9d9d5';
 const story=document.querySelector('#story'), svg=document.querySelector('#diagram');
