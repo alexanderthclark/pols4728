@@ -235,6 +235,48 @@
       "before": "<p class=\"subtitle\">How predicting nearby words<br class=\"wide-only\"> creates a geometry.</p>\n        <p class=\"intro\">A word begins as a name in a vocabulary. How does it become a vector with useful relationships to other words?</p>",
       "after": "<p class=\"subtitle\">Learning word embeddings</p>",
       "reason": "Use the requested Learning word embeddings subtitle and remove the opening question; keep the browser title consistent."
+    },
+    {
+      "file": "app.js",
+      "before": "import { analogyVectors, cosineScene, renderCosine } from './cosine.js';",
+      "after": "import { analogyVectors, cosineScene, renderCosine } from './cosine.js';\nimport { modernScene, renderModern } from './modern.js';",
+      "reason": "Load the requested single closing scene on modern text embeddings."
+    },
+    {
+      "file": "app.js",
+      "before": "scenes.splice(15,0,cosineScene);",
+      "after": "scenes.splice(15,0,cosineScene);\nscenes.push(modernScene);",
+      "reason": "Append exactly one modern-embeddings scene after the Word2vec conclusion."
+    },
+    {
+      "file": "app.js",
+      "before": "function renderScene(i,t,n){",
+      "after": "function renderScene(i,t,n){\n if(i===17)return renderModern(t,n,{m,text,line,rect,group,ease,clamp,fmt,mix,BLUE,RUST,INK,MUTED,RULE});",
+      "reason": "Route the new final scene without changing the earlier diagrams."
+    },
+    {
+      "file": "app.js",
+      "before": "svg.setAttribute('aria-label',sc.alt);active=i;",
+      "after": "svg.setAttribute('aria-label',sc.alt);document.querySelector('#scope').innerHTML=i===17?'Modern text embeddings':'Skip-gram word2vec<sup><a href=\"#cbow\" aria-label=\"Footnote 1: alternative architecture\">1</a></sup>';active=i;",
+      "reason": "Label the modern-embeddings scene separately from the skip-gram walkthrough."
+    },
+    {
+      "file": "index.html",
+      "before": "<span id=\"counter\">1 / 17</span>",
+      "after": "<span id=\"counter\">1 / 18</span>",
+      "reason": "Count the one requested modern-embeddings closing scene."
+    },
+    {
+      "file": "index.html",
+      "before": "      <details id=\"reading\">",
+      "after": "      <p class=\"reference\">Modern text embeddings: Reimers and Gurevych (2019), <a href=\"https://aclanthology.org/D19-1410/\">Sentence-BERT</a>, and Wang et al. (2022), <a href=\"https://arxiv.org/abs/2212.03533\">Text Embeddings by Weakly-Supervised Contrastive Pre-training</a>, illustrate transformer encoders and training with related text pairs. The closing diagram shows a common approach, not OpenAI’s specific architecture or training recipe.</p>\n      <p class=\"reference\">For an API example, see OpenAI’s <a href=\"https://developers.openai.com/api/docs/guides/embeddings\">vector embeddings guide</a> (checked October 27, 2026). A request supplies text and an embedding model; the response includes one vector for each supplied text. This runs the trained model rather than training a new model for each request.</p>\n      <details id=\"reading\">",
+      "reason": "Cite the modern-embeddings mechanism and verified OpenAI API example, distinguishing a common approach from proprietary implementation details."
+    },
+    {
+      "file": "index.html",
+      "before": "<script type=\"module\" src=\"app.js\"></script>",
+      "after": "<script type=\"module\" src=\"app.js?v=modern-embeddings\"></script>",
+      "reason": "Refresh the lesson module when adding the final modern-embeddings scene."
     }
   ],
   "archivedExploration": {

@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import vm from 'node:vm';
 import { networkScene, renderNetwork } from './network.js';
 import { analogyVectors, cosineScene, renderCosine } from './cosine.js';
+import { modernScene, renderModern } from './modern.js';
 import {
   vocabulary as vocab, initial, forward, step, interpolateModel,
 } from './model.js';
@@ -32,10 +33,10 @@ const renderSource = source.split('\nconst markers=')[0]
   .replace(/^import[^\n]*\n/gm, '')
   .replace(/^const story=document[^\n]*\n/m, '')
   .replace(/^const reduced=matchMedia[^\n]*\n/m, '');
-const context = vm.createContext({ katex, vocab, initial, forward, step, interpolateModel, networkScene, renderNetwork, analogyVectors, cosineScene, renderCosine });
+const context = vm.createContext({ katex, vocab, initial, forward, step, interpolateModel, networkScene, renderNetwork, analogyVectors, cosineScene, renderCosine, modernScene, renderModern });
 vm.runInContext(`${renderSource}\nglobalThis.harness={scenes,render:renderScene,latex,first,corpus,final};`, context);
 const { scenes, render, latex, first, corpus, final } = context.harness;
-assert.equal(scenes.length, 17);
+assert.equal(scenes.length, 18);
 
 const attrs = tag => Object.fromEntries(
   [...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map(([, key, value]) => [key, value]),
@@ -150,6 +151,27 @@ for (const narrow of [false, true]) {
     'The analogy scene must translate its difference vector.');
   assert.notEqual(render(15, 0, narrow), render(15, 1, narrow),
     'The cosine pause must rescale its arrows with scrolling.');
+  const modernRectPositions = (phase, kind) => {
+    const markup = render(17, phase, narrow);
+    const pattern = new RegExp(`<g data-modern-${kind}="[0-9]"[^>]*>(?:<g[^>]*>)?(<rect[^>]*>)`, 'g');
+    return [...markup.matchAll(pattern)].map(match => {
+      const a = attrs(match[1]);
+      return [Number(a.x) + Number(a.width) / 2, Number(a.y) + Number(a.height) / 2];
+    });
+  };
+  const inputPositions = modernRectPositions(0, 'token');
+  const contextPositions = modernRectPositions(.6, 'token');
+  assert.equal(inputPositions.length, 3);
+  assert.notDeepEqual(inputPositions, contextPositions,
+    'The token rectangles must move through the contextual encoder.');
+  const beforeCombination = modernRectPositions(.6, 'aggregate');
+  const afterCombination = modernRectPositions(1, 'aggregate');
+  assert.equal(beforeCombination.length, 3);
+  assert.equal(afterCombination.length, 3);
+  assert.equal(new Set(beforeCombination.map(String)).size, 3,
+    'The contextual vectors must start at separate positions.');
+  assert.equal(new Set(afterCombination.map(String)).size, 1,
+    'The contextual vectors must converge on one whole-text output.');
   assert.notEqual(render(2, 0, narrow), render(2, 1, narrow),
     'The network overview must show the forward calculation with scrolling.');
 }

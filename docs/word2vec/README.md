@@ -1,6 +1,6 @@
 # Word2vec: learning a geometry from context
 
-A self-contained, 17-scene scrollytelling lesson for the machine-learning course.
+A self-contained, 18-scene scrollytelling lesson for the machine-learning course.
 The opening scene shows two round, torso-less explorers entering a vector cave,
 with a lantern and the labels man, king, woman, and queen. The title and labels
 remain real text. The lesson uses the course palette and bundled KaTeX for
@@ -53,7 +53,7 @@ node render.test.mjs
 
 The model checks cover matrix dimensions, forward values, numerical gradient
 verification, unchanged unselected input columns, immutable updates, probability
-normalization, stable softmax, and loss descent. The render harness runs all 17
+normalization, stable softmax, and loss descent. The render harness runs all 18
 scenes at four scroll phases in wide and narrow layouts with the bundled KaTeX
 runtime. It checks missing math escapes, finite and in-bounds diagram coordinates,
 meaningful geometry changes, and numerical integration with the model.
@@ -131,3 +131,25 @@ including forward/backward scrolling, keyboard navigation, and the reduced-motio
 route. The render checks verify that normalization preserves the cosine and ends
 with equal arrow lengths. The archive-preservation check verifies that the removed
 HTML is unchanged and its scripts are no longer loaded by the active page.
+
+## Modern text embeddings
+
+One final scene connects the static Word2vec lookup to modern text embeddings.
+Its scroll-driven diagram shows schematic tokens passing through a trained
+transformer, acquiring context, and combining into one vector for the supplied
+text. The narration describes a common recipe: start from a pretrained model
+and train with related text pairs. The afterword cites Sentence-BERT and E5;
+this is not a claim about the proprietary internals of OpenAI’s models.
+
+OpenAI’s API is an example of reusing a trained embedding model. Its official
+vector embeddings guide was checked on October 27, 2026. This page makes no
+API requests and displays no fabricated API outputs. Symbolic coordinates use
+the same bundled KaTeX renderer as the rest of the lesson. The scene is also
+included in the continuous-reading transcript.
+
+The closing scene was checked in browser viewports of 1160 × 660, 390 × 667,
+and 320 × 568. Review covered actual forward/backward scrolling, keyboard
+PageUp/PageDown between the Word2vec conclusion and the new scene, the reduced-
+motion query route, and mathematical delimiter rendering. The render harness
+checks all 144 scene/phase/layout states and verifies that distinct contextual
+outputs converge on a single text-vector position.

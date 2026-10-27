@@ -1,6 +1,7 @@
 import { vocabulary as vocab, initial, forward, step, interpolateModel } from './model.js';
 import { networkScene, renderNetwork } from './network.js';
 import { analogyVectors, cosineScene, renderCosine } from './cosine.js';
+import { modernScene, renderModern } from './modern.js';
 
 const BLUE='#234e70', RUST='#a54f32', INK='#242424', MUTED='#606060', RULE='#d9d9d5';
 const story=document.querySelector('#story'), svg=document.querySelector('#diagram');
@@ -26,6 +27,7 @@ const scenes=[
 // Requested clarity addition: orient readers before the matrix walkthrough.
 scenes.splice(2,0,networkScene);
 scenes.splice(15,0,cosineScene);
+scenes.push(modernScene);
 
 const f0=forward(initial), first=step(initial);
 // Exact gradient updates on every adjacent directed pair in four toy sentences.
@@ -203,6 +205,7 @@ function render(i,t,n){
 }
 
 function renderScene(i,t,n){
+ if(i===17)return renderModern(t,n,{m,text,line,rect,group,ease,clamp,fmt,mix,BLUE,RUST,INK,MUTED,RULE});
  if(i===2)return renderNetwork(t,n,{m,text,line,rect,group,ease,clamp,fmt,vocab,initial,forward,BLUE,RUST,INK,MUTED,RULE});
  if(i===15)return renderCosine(t,n,{m,text,line,ease,mix,fmt,BLUE,RUST,MUTED});
  return render(i>15?i-2:i>2?i-1:i,t,n);
@@ -216,7 +219,7 @@ function update(){
  let t=clamp((local-.12)/.64);if(reduced)t=t<.5?0:1;
  const n=innerWidth<=700,key=`${i}:${Math.round(t*300)}:${n}`;
  if(key===lastKey)return;lastKey=key;
- if(active!==i){const sc=scenes[i];document.querySelector('#chapter').textContent=sc.chapter;document.querySelector('#counter').textContent=`${i+1} / ${scenes.length}`;document.querySelector('#scene-title').textContent=sc.title;document.querySelector('#equation').innerHTML=latex(sc.eq);document.querySelector('#caption').textContent=sc.caption;document.querySelector('#detail').textContent=sc.detail;svg.setAttribute('aria-label',sc.alt);active=i;}
+ if(active!==i){const sc=scenes[i];document.querySelector('#chapter').textContent=sc.chapter;document.querySelector('#counter').textContent=`${i+1} / ${scenes.length}`;document.querySelector('#scene-title').textContent=sc.title;document.querySelector('#equation').innerHTML=latex(sc.eq);document.querySelector('#caption').textContent=sc.caption;document.querySelector('#detail').textContent=sc.detail;svg.setAttribute('aria-label',sc.alt);document.querySelector('#scope').innerHTML=i===17?'Modern text embeddings':'Skip-gram word2vec<sup><a href="#cbow" aria-label="Footnote 1: alternative architecture">1</a></sup>';active=i;}
  svg.setAttribute('viewBox',`0 0 ${stem(n)}`);svg.innerHTML=markers+renderScene(i,t,n);
  document.querySelector('#progress').style.width=`${progress*100}%`;
  story.dataset.scene=String(i);story.dataset.phase=t.toFixed(4);story.dataset.motion=reduced?'reduced':'full';

@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="vendor/katex/katex.min.css">
   <link rel="stylesheet" href="style.css">
   <script defer src="vendor/katex/katex.min.js"></script>
-  <script type="module" src="app.js"></script>
+  <script type="module" src="app.js?v=modern-embeddings"></script>
 </head>
 <body>
   <a class="skip" href="#reading">Skip to the reading version</a>
@@ -30,7 +30,7 @@
     <section id="story" class="story" aria-label="Scroll through the word2vec explanation">
       <div class="stage">
         <div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
-        <div class="stage-top"><span id="chapter">01 · The prediction task</span><span id="counter">1 / 17</span></div>
+        <div class="stage-top"><span id="chapter">01 · The prediction task</span><span id="counter">1 / 18</span></div>
         <h2 id="scene-title">Learn from the words around a word.</h2>
         <div id="equation" class="equation"></div>
         <div class="visual"><svg id="diagram" role="img" aria-label="The current step in the skip-gram model"></svg></div>
@@ -52,6 +52,8 @@
       <p class="reference">Visual and conceptual inspiration: Chris Olah (2014), <a href="https://colah.github.io/posts/2014-07-NLP-RNNs-Representations/">Deep Learning, NLP, and Representations</a>. The central idea is that useful representations can emerge from learning a prediction task.</p>
       <p class="reference">Tomas Mikolov, Kai Chen, Greg Corrado, and Jeffrey Dean (2013), <a href="https://arxiv.org/abs/1301.3781">Efficient Estimation of Word Representations in Vector Space</a>.</p>
       <p class="reference">Network architecture and derivation: Xin Rong, <a href="https://arxiv.org/html/1411.2738v4">word2vec Parameter Learning Explained</a>, especially the skip-gram model and its linear hidden layer.</p>
+      <p class="reference">Modern text embeddings: Reimers and Gurevych (2019), <a href="https://aclanthology.org/D19-1410/">Sentence-BERT</a>, and Wang et al. (2022), <a href="https://arxiv.org/abs/2212.03533">Text Embeddings by Weakly-Supervised Contrastive Pre-training</a>, illustrate transformer encoders and training with related text pairs. The closing diagram shows a common approach, not OpenAI’s specific architecture or training recipe.</p>
+      <p class="reference">For an API example, see OpenAI’s <a href="https://developers.openai.com/api/docs/guides/embeddings">vector embeddings guide</a> (checked October 27, 2026). A request supplies text and an embedding model; the response includes one vector for each supplied text. This runs the trained model rather than training a new model for each request.</p>
       <details id="reading"><summary>Read the complete explanation</summary><div id="transcript"></div></details>
       <a class="return" href="#title">Back to the beginning ↑</a>
     </section>
