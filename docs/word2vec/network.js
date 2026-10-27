@@ -3,10 +3,10 @@
 export const networkScene = {
   chapter: '01 · The prediction task',
   title: 'A small neural network learns the embedding.',
-  eq: String.raw`d_c=\operatorname{onehot}(x),\qquad h_c=W_{\mathrm{in}}d_c`,
+  eq: String.raw`z_c=W_{\mathrm{out}}h_c=W_{\mathrm{out}}W_{\mathrm{in}}d_c`,
   caption: 'Skip-gram is a shallow neural network with one hidden layer using a linear activation function and a nonlinear softmax output.',
-  detail: '',
-  alt: 'A neural network whose one-hot input is a column vector with vocabulary-size rows and one column, shown as |V| by 1. It has six input units, two linear hidden units, and six score units followed by nonlinear softmax. W in has 2 rows and 6 columns; W out has 6 rows and 2 columns. The support input selects hidden coordinates 0.6 and 0.4. Both coordinates contribute to every score, and softmax converts all scores into probabilities.'
+  detail: 'The one-hot input maps linearly to the scores; this formulation has no bias terms.',
+  alt: 'A neural network whose one-hot input is a column vector with vocabulary-size rows and one column, shown as |V| by 1. It has six input units, two linear hidden units, and six score units followed by nonlinear softmax. W in has 2 rows and 6 columns; W out has 6 rows and 2 columns. The support input selects hidden coordinates 0.6 and 0.4. Both coordinates contribute to every score. With no bias terms, the two matrices compose a linear map from the input to the scores. Softmax then converts all scores into probabilities nonlinearly.'
 };
 
 export function renderNetwork(t, n, helpers) {

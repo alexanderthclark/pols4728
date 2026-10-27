@@ -1,5 +1,5 @@
 import { vocabulary as vocab, initial, forward, step, interpolateModel } from './model.js';
-import { networkScene, renderNetwork } from './network.js?v=input-dimension';
+import { networkScene, renderNetwork } from './network.js?v=linear-scores';
 import { analogyVectors, cosineScene, renderCosine } from './cosine.js';
 import { modernScene, renderModern } from './modern.js?v=improvements';
 

@@ -26,7 +26,9 @@ mentioned as an alternative architecture in the endnote. The six-word vocabulary
 is voters, support, reform, senate, backs, and proposal. With embedding dimension
 two, the input matrix has 2 rows and 6 columns; the output matrix has 6 rows and
 2 columns. The matrices are independent learned parameters. The network overview
-labels the one-hot input dimension as $|V|\times 1$ in both layouts.
+labels the one-hot input dimension as $|V|\times 1$ in both layouts and shows
+the combined score map $z_c=W_{\mathrm{out}}W_{\mathrm{in}}d_c$. This map is
+linear in the input for fixed weights; softmax remains the nonlinear step.
 
 The numerical example uses illustrative starting weights. Its first pair is
 support → reform. One gradient step changes the selected input column and every

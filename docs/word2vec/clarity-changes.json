@@ -379,6 +379,18 @@
       "before": "app.js?v=improvements",
       "after": "app.js?v=input-dimension",
       "reason": "Refresh the requested one-hot input dimension label on the network slide."
+    },
+    {
+      "file": "app.js",
+      "before": "./network.js?v=input-dimension",
+      "after": "./network.js?v=linear-scores",
+      "reason": "Refresh the network overview with the combined linear score equation."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=input-dimension",
+      "after": "app.js?v=linear-scores",
+      "reason": "Refresh the network overview with the combined linear score equation."
     }
   ],
   "archivedExploration": {
