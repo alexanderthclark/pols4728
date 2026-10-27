@@ -433,6 +433,18 @@
       "before": "app.js?v=onehot-clean",
       "after": "app.js?v=embedding-caption",
       "reason": "Refresh the revised input-matrix caption."
+    },
+    {
+      "file": "app.js",
+      "before": "  {chapter:'03 · The output matrix',title:'A second matrix has a different job.',eq:String.raw`\\begin{gathered}W_{\\mathrm{out}}\\in\\mathbb{R}^{|V|\\times k}\\\\u_o^{\\mathsf T}=\\text{row }o\\text{ of }W_{\\mathrm{out}}\\end{gathered}`,caption:'Each row of the output matrix holds a vector for a candidate context word.',detail:'Both matrices contain every word. They are separate learned parameters, not transposes of one another.',alt:'W in has one column per word. W out has one row per word, denoted u o transpose. The highlighted reform row is labelled u reform transpose. The two matrices have separate numeric values.'},",
+      "after": "  {chapter:'03 · The output matrix',title:'A second matrix has a different job.',eq:String.raw`\\begin{gathered}W_{\\mathrm{out}}\\in\\mathbb{R}^{|V|\\times k}\\\\u_o^{\\mathsf T}=\\text{row }o\\text{ of }W_{\\mathrm{out}}\\end{gathered}`,captionMath:String.raw`W_{\\mathrm{out}}`,caption:'is learned from data, and each row is the output embedding for a single word in the vocabulary.',detail:'Both matrices contain every word. They are separate learned parameters, not transposes of one another.',alt:'W in has one column per word. W out has one row per word, denoted u o transpose. The highlighted reform row is labelled u reform transpose. The two matrices have separate numeric values.'},",
+      "reason": "Use the instructor’s requested wording for the learned output matrix and its row embeddings."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=embedding-caption",
+      "after": "app.js?v=output-caption",
+      "reason": "Refresh the revised output-matrix caption."
     }
   ],
   "archivedExploration": {
