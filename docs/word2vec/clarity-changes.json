@@ -391,6 +391,18 @@
       "before": "app.js?v=input-dimension",
       "after": "app.js?v=linear-scores",
       "reason": "Refresh the network overview with the combined linear score equation."
+    },
+    {
+      "file": "app.js",
+      "before": "  {chapter:'02 · The input matrix',title:'A one-hot vector identifies the word.',eq:String.raw`d_c\\in\\{0,1\\}^{|V|},\\qquad |V|=6`,caption:'Only the position for “support” is 1. Every other position is 0.',detail:'This vector records identity. It does not yet express similarity.',alt:'The six-word vocabulary is aligned with a one-hot column; only the second entry, support, is one.'},",
+      "after": "  {chapter:'02 · The input matrix',title:'A one-hot vector identifies the word.',eq:String.raw`d_c\\in\\{0,1\\}^{|V|},\\qquad |V|=6`,caption:'',detail:'',alt:'The six-word vocabulary is aligned with a one-hot column; only the second entry, support, is one.'},",
+      "reason": "Remove both narration sentences below the one-hot vector as requested in the browser comment."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=linear-scores",
+      "after": "app.js?v=onehot-clean",
+      "reason": "Refresh the one-hot slide after removing the requested text."
     }
   ],
   "archivedExploration": {
