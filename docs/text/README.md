@@ -33,8 +33,14 @@ node scripts/build-text-transcript.mjs
 node scripts/build-text-transcript.mjs --check
 ```
 
-The reading version remains available without JavaScript. Mathematics uses the
-course's existing self-hosted KaTeX runtime in `docs/word2vec/vendor/katex`.
+The complete reading version starts expanded directly after the title, with
+working chapter anchors. Only after the animated lesson initializes does
+`bootstrap.mjs` move that same reading version to the end and collapse its chapters.
+If a module request or initialization fails, the expanded lesson remains in
+reading order. The animated module imports share one version suffix to avoid
+mixing cached dependencies after an update.
+
+Mathematics uses the course's existing self-hosted KaTeX runtime in `docs/word2vec/vendor/katex`.
 `math.mjs` shares rendering between the diagrams and static reading version.
 No package installation or site build is required; serve `docs/` and open `/text/`.
 
@@ -58,13 +64,15 @@ and the supporting reading. Font licenses accompany the local font files.
 ## Verification
 
 ```sh
-node --test tests/text-representations.test.mjs tests/speech-motion.test.mjs tests/text-rendering.test.mjs
+node --test tests/text-representations.test.mjs tests/speech-motion.test.mjs tests/text-rendering.test.mjs tests/text-loading.test.mjs
 node scripts/build-text-transcript.mjs --check
 ```
 
-The 16 tests check numerical values, token accounting, deterministic reversible
+The 21 tests check numerical values, token accounting, deterministic reversible
 motion, 102 diagram states, LaTeX validity, shared vocabulary counts, and all 28
-explorer selections. They do not replace browser review.
+explorer selections. Loading checks cover the default reading route, failed
+module requests, partial initialization, anchor transfer, and cleanup after a
+late initialization failure. They do not replace browser review.
 
 Browser review covered all 17 retained scenes at 1280×820, 768×1024, 390×844, 375×667,
 and 320×568. Layout checks found no horizontal overflow or text/navigation

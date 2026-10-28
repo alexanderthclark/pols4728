@@ -1,6 +1,6 @@
-import {speechCartoon} from './speech-cartoon.mjs';
-import {latex, escapeText as esc} from './math.mjs';
-import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine} from './model.mjs';
+import {speechCartoon} from './speech-cartoon.mjs?v=20261028-counts-2';
+import {latex, escapeText as esc} from './math.mjs?v=20261028-counts-2';
+import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine} from './model.mjs?v=20261028-counts-2';
 
 const clamp=x=>Math.max(0,Math.min(1,x));
 const mix=(a,b,t)=>a+(b-a)*t;
