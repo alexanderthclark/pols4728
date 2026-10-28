@@ -145,9 +145,8 @@ vector. These are useful alternatives, not mutually exclusive model categories.
 The slide is a concise, native HTML list with one explanation per item. It
 remains part of the pinned scroll sequence.
 
-The afterword retains the explanation of contextual word/token representations
-and whole-text vectors, with BERT, Sentence-BERT, and OpenAI’s official guide as
-sources. The page makes no API requests.
+The notes are followed by a concise Word2vec works-cited list: Chris Olah,
+Mikolov et al., and Xin Rong. The page makes no API requests.
 
 Browser review checked the desktop layout and a 320 × 568 phone viewport,
 forward/backward scrolling, keyboard navigation, and reduced motion.
