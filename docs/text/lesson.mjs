@@ -156,9 +156,33 @@ export const chapters = [
       {
         "title": "Similarity still depends on shared words.",
         "text": "Cosine similarity compares vector direction, adjusting for vector length. But “senate” and “parliament” remain separate coordinates. Reweighting counts does not learn that words used in similar contexts may be related.",
-        "note": "For predictive evaluation, learn the vocabulary and IDF weights on training documents, then apply them to held-out texts.",
+        "note": "Embeddings can group semantically related texts. TF–IDF can then help describe those groups.",
         "visual": "cosine",
-        "readingText": "Cosine similarity compares vector direction, dividing the dot product by both vector lengths. But “senate” and “parliament” remain separate coordinates. TF–IDF alone does not learn that words used in similar contexts may be related."
+        "readingText": "Cosine similarity compares vector direction, dividing the dot product by both vector lengths. But “senate” and “parliament” remain separate coordinates. TF–IDF alone does not learn that words used in similar contexts may be related.",
+        "readingNote": "For predictive evaluation, learn the vocabulary and IDF weights on training documents, then apply them to held-out texts. Embeddings can group semantically related texts; TF–IDF can then help describe those groups."
+      },
+      {
+        "title": "BERTopic: pool words within a topic.",
+        "text": "BERTopic first groups document embeddings into clusters. It then pools the words within each cluster. A bag of words now represents a whole topic, ready to reveal its characteristic terms.",
+        "note": "Constructed illustration: the two groups are given here, rather than estimated from these four short texts.",
+        "visual": "topic-pooling",
+        "links": [{"label": "BERTopic", "url": "https://maartengr.github.io/BERTopic/algorithm/algorithm.html"}],
+        "readingNote": "The standard workflow reduces the embedding dimensions before clustering. Its subsequent bag-of-words representation describes the resulting groups. The illustration supplies two groups of short texts to isolate that second task."
+      },
+      {
+        "title": "Give each topic characteristic words.",
+        "text": "Class-based TF–IDF normalizes counts by the cluster’s length, then downweights terms frequent across the pooled corpus. BERTopic uses the highest-weighted words to describe each topic.",
+        "note": "This is c-TF–IDF: its normalization and inverse-frequency formula differ from our document-level example.",
+        "visual": "topic-words",
+        "links": [{"label": "Class-based TF–IDF", "url": "https://maartengr.github.io/BERTopic/getting_started/ctfidf/ctfidf.html"}],
+        "readingText": "Class-based TF–IDF normalizes each cluster’s word counts by its total token count. The default inverse-frequency factor is the logarithm of one plus the average cluster token count divided by a term’s total count across all clusters. Here, that denominator counts occurrences, not documents. BERTopic ranks words by the product to describe each topic."
+      },
+      {
+        "title": "Airbnb: turn keywords into a score.",
+        "text": "Zhu and colleagues (2024) cluster listing-text embeddings, then extract TF–IDF keywords from high-retention groups. After suppressing words common across listings, they use the retained keyword weights to score listings.",
+        "note": "KDD 2024 workshop paper. The score predicts rebooking; it does not establish causal effects.",
+        "visual": "quality-score",
+        "links": [{"label": "Zhu and colleagues (2024)", "url": "https://airbnb.tech/wp-content/uploads/sites/19/2024/12/Understanding-Product-Quality-with-Unstructured-Data.pdf#page=4"}]
       }
     ]
   }

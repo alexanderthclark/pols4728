@@ -1,5 +1,5 @@
-import {inspectTerm,termEquations} from './visuals.mjs?v=20261028-reading-fallback-5';
-import {vocabulary} from './model.mjs?v=20261028-reading-fallback-5';
+import {inspectTerm,termEquations} from './visuals.mjs?v=20261028-applications-6';
+import {vocabulary} from './model.mjs?v=20261028-applications-6';
 
 /** Keep the table stable while a cell's document and term drive the calculation. */
 export function initializeExplorer(root){

@@ -4,7 +4,7 @@ Bag of Words and TF–IDF
 
 A standalone scrollytelling lesson for POLS 4728: an opening question about
 recognizable writing habits, followed by bag of words and TF–IDF.
-Its 18 scenes comprise 3 on AI writing, 10 on bag of words, and 5 on TF–IDF.
+Its 21 scenes comprise 3 on AI writing, 10 on bag of words, and 8 on TF–IDF.
 The linked chapters are `#ai-writing`, `#bag-of-words`, and `#tf-idf`. A short
 closing comparison links to the separate word2vec lesson; `#word2vec` remains
 a valid anchor to that paragraph.
@@ -26,6 +26,12 @@ worked document matrix remains unchanged: it retains common words and does not
 lemmatize. The Federalist example explains why common words can reveal writing
 habits, then the transition to TF–IDF asks which terms distinguish document topics.
 The John/Revelation scene has been removed; its citation remains in further reading.
+
+Three application scenes show how word weights describe groups formed with
+embeddings. BERTopic pools texts within each cluster and ranks their words with
+c-TF–IDF; two constructed political topics illustrate the calculation. The
+Airbnb KDD 2024 workshop paper then shows keywords becoming a listing score.
+Its weighting procedure is distinct from BERTopic’s class-based formula.
 
 The core TF–IDF walkthrough follows “the” and then “budget” in D1. Its text and
 highlighted cells always agree. After the lesson, hovering over any count highlights its term and document and
@@ -78,14 +84,16 @@ and the supporting reading. Font licenses accompany the local font files.
 ## Verification
 
 ```sh
-node --test tests/text-representations.test.mjs tests/speech-motion.test.mjs tests/text-rendering.test.mjs tests/text-loading.test.mjs tests/text-explorer.test.mjs
+node --test tests/text-representations.test.mjs tests/speech-motion.test.mjs tests/text-rendering.test.mjs tests/text-loading.test.mjs tests/text-explorer.test.mjs tests/text-applications.test.mjs
 node scripts/build-text-transcript.mjs --check
 ```
 
-The 27 tests check numerical values, token accounting, deterministic reversible
-motion, 108 diagram states, LaTeX validity, shared vocabulary counts, and all 28
+The 29 tests check numerical values, token accounting, deterministic reversible
+motion, 126 diagram states, LaTeX validity, shared vocabulary counts, and all 28
 explorer selections. Explorer checks also cover persistent hover selection,
 stable table nodes, focus preservation, keyboard movement, and listener cleanup.
+Application checks verify the pooled counts, c-TF–IDF weights, and reversible
+progression, including completed states with reduced motion.
 Loading checks cover the default reading route, failed
 module requests, partial initialization, anchor transfer, and cleanup after a
 late initialization failure. They do not replace browser review.
@@ -100,6 +108,11 @@ table-cell selection, the reading version, and title composition. The table
 interaction was also checked with pointer entry, clicking, arrow keys, and Tab,
 with responsive layouts at 390×844 and 320×568. This is
 not a claim of a complete assistive-technology audit.
+
+The three application scenes passed 15 layout checks across the same five sizes,
+including SVG label bounds and separation from navigation. Desktop and narrow
+phone checks confirmed forward/backward scroll progression and completed
+reduced-motion diagrams.
 
 ## Standalone speech cartoon
 

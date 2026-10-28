@@ -1,8 +1,8 @@
-import {chapters} from './lesson.mjs?v=20261028-reading-fallback-5';
-import {updateAiExample} from './ai-example.mjs?v=20261028-reading-fallback-5';
-import {bagVisual,tfVisual} from './visuals.mjs?v=20261028-reading-fallback-5';
-import {prose} from './math.mjs?v=20261028-reading-fallback-5';
-import {initializeExplorer} from './explorer.mjs?v=20261028-reading-fallback-5';
+import {chapters} from './lesson.mjs?v=20261028-applications-6';
+import {updateAiExample} from './ai-example.mjs?v=20261028-applications-6';
+import {bagVisual,tfVisual} from './visuals.mjs?v=20261028-applications-6';
+import {prose} from './math.mjs?v=20261028-applications-6';
+import {initializeExplorer} from './explorer.mjs?v=20261028-applications-6';
 
 export function initializeStory() {
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));

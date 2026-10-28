@@ -1,6 +1,7 @@
-import {speechCartoon} from './speech-cartoon.mjs?v=20261028-reading-fallback-5';
-import {latex, escapeText as esc} from './math.mjs?v=20261028-reading-fallback-5';
-import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine} from './model.mjs?v=20261028-reading-fallback-5';
+import {speechCartoon} from './speech-cartoon.mjs?v=20261028-applications-6';
+import {latex, escapeText as esc} from './math.mjs?v=20261028-applications-6';
+import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine} from './model.mjs?v=20261028-applications-6';
+import {applicationVisual} from './applications.mjs?v=20261028-applications-6';
 
 const clamp=x=>Math.max(0,Math.min(1,x));
 const mix=(a,b,t)=>a+(b-a)*t;
@@ -94,6 +95,7 @@ export function bagVisual(stage,p,motion=true){
 }
 
 export function tfVisual(stage,p,motion=true){
+  if(stage>=5)return applicationVisual(stage,p,motion);
   const term=stage===0?'the':'budget',s=termStats(term,0);
   if(stage<2)return matrix(counts,{focus:term,doc:0,presence:stage===1})+`<div class="metric-line">${latex(String.raw`\operatorname{tf}(\mathrm{${term}},D_1)=${s.tf}`)}${stage===1?latex(String.raw`\operatorname{df}(\mathrm{${term}})=${s.df}`):''}</div>`+note(stage===0?'“The” appears in every document.':'Each outlined cell contributes one document, regardless of its count.');
   if(stage===2)return `<h4 class="visual-title">Document rarity becomes a weight</h4><div class="idf-comparison">${['the','budget','passed'].map(t=>{const s=termStats(t,0);return `<div><span>${t}</span>${latex(String.raw`\ln\!\left(\frac{4}{${s.df}}\right)=${fmt(s.idf,3)}`)}</div>`;}).join('')}</div>`+equation(String.raw`\operatorname{idf}(t)=\ln\!\left(\frac{N}{\operatorname{df}(t)}\right)`);
