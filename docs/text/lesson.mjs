@@ -86,7 +86,8 @@ export const chapters = [
       },
       {
         "title": "The bag loses word order.",
-        "text": "“Senators support voters” and “Voters support senators” produce identical counts. Their meanings differ because the roles reverse. Counting can still be useful, but this representation cannot distinguish these sentences.",
+        "text": "",
+        "readingText": "“Senators support voters” and “Voters support senators” produce identical counts. Their meanings differ because the roles reverse. Counting can still be useful, but this representation cannot distinguish these sentences.",
         "note": "Bigrams can retain some local order, at the cost of a larger vocabulary.",
         "visual": "order"
       },
