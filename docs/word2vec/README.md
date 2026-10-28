@@ -117,7 +117,7 @@ word y (output), retaining the word notation x = w_c and y = w_o. Scrolling dupl
 selects the support–reform example. The following network equation explicitly
 identifies d_c as the one-hot encoding of x. The loss explanation uses the same
 context-word terminology. Other walkthrough scenes remain unchanged, and the
-homepage remains unlisted.
+homepage links to the lesson.
 
 ## Cosine pause at the analogy
 
