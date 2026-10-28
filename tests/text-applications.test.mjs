@@ -27,7 +27,7 @@ test('the constructed topics preserve their tokens and use class-based rather th
 });
 
 test('application diagrams change with scrolling, reverse exactly, and hold completed reduced-motion states',()=>{
-  for(const stage of [5,6,7]){
+  for(const stage of [6,7,8]){
     const positions=Array.from({length:21},(_,i)=>stage-.5+i/40);
     const forward=positions.map(p=>applicationVisual(stage,p,true));
     const backward=[...positions].reverse().map(p=>applicationVisual(stage,p,true)).reverse();

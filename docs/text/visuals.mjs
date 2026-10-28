@@ -1,7 +1,7 @@
-import {speechCartoon} from './speech-cartoon.mjs?v=20261028-applications-6';
-import {latex, escapeText as esc} from './math.mjs?v=20261028-applications-6';
-import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine} from './model.mjs?v=20261028-applications-6';
-import {applicationVisual} from './applications.mjs?v=20261028-applications-6';
+import {speechCartoon} from './speech-cartoon.mjs?v=20261028-term-document-7';
+import {latex, escapeText as esc} from './math.mjs?v=20261028-term-document-7';
+import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine} from './model.mjs?v=20261028-term-document-7';
+import {applicationVisual} from './applications.mjs?v=20261028-term-document-7';
 
 const clamp=x=>Math.max(0,Math.min(1,x));
 const mix=(a,b,t)=>a+(b-a)*t;
@@ -94,12 +94,23 @@ export function bagVisual(stage,p,motion=true){
   return `<div class="purpose"><div><span class="purpose-label">Who wrote it?</span><p>Common words<br>Writing habits</p></div><div><span class="purpose-label">What is it about?</span><p>Distinctive terms<br>TF–IDF weights</p></div></div>${note('Keep the count matrix · change what receives weight')}`;
 }
 
+/** A term's IDF is shared across the corpus; its score belongs to a term–document pair. */
+export function wordDocumentVisual(){
+  const rows=documents.map((_,doc)=>{
+    const s=termStats('budget',doc);
+    const calculation=String.raw`${s.tf}\ln(${s.N}/${s.df})${s.tf?'\\approx':'='}${fmt(s.weight,3)}`;
+    return `<tr data-doc="${doc}"><th scope="row">D${doc+1}</th><td>${s.tf}</td><td data-weight="${s.weight}">${latex(calculation)}</td></tr>`;
+  }).join('');
+  return `<div class="pair-example">${equation(String.raw`\operatorname{TFIDF}(t,d)=\operatorname{tf}(t,d)\ln\!\left(\frac{N}{\operatorname{df}(t)}\right)`)}<table class="pair-table"><caption>“budget” across the same four documents</caption><thead><tr><th scope="col">Document</th><th scope="col">Count</th><th scope="col">TF–IDF score</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
 export function tfVisual(stage,p,motion=true){
-  if(stage>=5)return applicationVisual(stage,p,motion);
+  if(stage>=6)return applicationVisual(stage,p,motion);
   const term=stage===0?'the':'budget',s=termStats(term,0);
   if(stage<2)return matrix(counts,{focus:term,doc:0,presence:stage===1})+`<div class="metric-line">${latex(String.raw`\operatorname{tf}(\mathrm{${term}},D_1)=${s.tf}`)}${stage===1?latex(String.raw`\operatorname{df}(\mathrm{${term}})=${s.df}`):''}</div>`+note(stage===0?'“The” appears in every document.':'Each outlined cell contributes one document, regardless of its count.');
   if(stage===2)return `<h4 class="visual-title">Document rarity becomes a weight</h4><div class="idf-comparison">${['the','budget','passed'].map(t=>{const s=termStats(t,0);return `<div><span>${t}</span>${latex(String.raw`\ln\!\left(\frac{4}{${s.df}}\right)=${fmt(s.idf,3)}`)}</div>`;}).join('')}</div>`+equation(String.raw`\operatorname{idf}(t)=\ln\!\left(\frac{N}{\operatorname{df}(t)}\right)`);
-  if(stage===3){const q=motion?clamp((p-2.5)*2):1,vals=counts.map((r,i)=>r.map((v,j)=>mix(v,tfidf[i][j],q))),scale=mix(1,s.idf,q);return matrix(vals,{focus:term,doc:0,decimals:2,weighted:true,caption:q<1?'From counts to TF–IDF weights':'TF–IDF weights'})+equation(String.raw`2\times ${fmt(scale,3)}=${fmt(2*scale,3)}`)+note(q<1?'Scroll to reweight each vocabulary column.':'D1 · budget: count × inverse document frequency');}
+  if(stage===3)return wordDocumentVisual();
+  if(stage===4){const q=motion?clamp((p-3.5)*2):1,vals=counts.map((r,i)=>r.map((v,j)=>mix(v,tfidf[i][j],q))),scale=mix(1,s.idf,q);return matrix(vals,{focus:term,doc:0,decimals:2,weighted:true,caption:q<1?'From counts to TF–IDF weights':'TF–IDF weights'})+equation(String.raw`2\times ${fmt(scale,3)}=${fmt(2*scale,3)}`)+note(q<1?'Scroll to reweight each vocabulary column.':'D1 · budget: count × inverse document frequency');}
   return `<h4 class="visual-title">TF–IDF cosine similarity</h4><div class="bars">${[1,2,3].map(i=>{const v=cosine(tfidf[0],tfidf[i]);return `<div class="bar-row"><span>D1 with D${i+1}</span><div class="bar-track"><div class="bar-fill" style="width:${v*100}%"></div></div><span class="bar-value">${fmt(v,3)}</span></div>`;}).join('')}</div>`+equation(String.raw`\cos\theta=\frac{x^{\mathsf T}y}{\lVert x\rVert\,\lVert y\rVert}`)+note('0: no weighted overlap · 1: the same direction');
 }
 

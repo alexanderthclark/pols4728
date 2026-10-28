@@ -4,7 +4,7 @@ Bag of Words and TF–IDF
 
 A standalone scrollytelling lesson for POLS 4728: an opening question about
 recognizable writing habits, followed by bag of words and TF–IDF.
-Its 21 scenes comprise 3 on AI writing, 10 on bag of words, and 8 on TF–IDF.
+Its 22 scenes comprise 3 on AI writing, 10 on bag of words, and 9 on TF–IDF.
 The linked chapters are `#ai-writing`, `#bag-of-words`, and `#tf-idf`. A short
 closing comparison links to the separate word2vec lesson; `#word2vec` remains
 a valid anchor to that paragraph.
@@ -33,8 +33,11 @@ c-TF–IDF; two constructed political topics illustrate the calculation. The
 Airbnb KDD 2024 workshop paper then shows keywords becoming a listing score.
 Its weighting procedure is distinct from BERTopic’s class-based formula.
 
-The core TF–IDF walkthrough follows “the” and then “budget” in D1. Its text and
-highlighted cells always agree. After the lesson, hovering over any count highlights its term and document and
+The core TF–IDF walkthrough follows “the” and then “budget” in D1. An explicit
+word–document formula compares “budget” across D1–D4: one shared IDF yields
+scores of 1.386, 0.693, 0, and 0. BERTopic’s later word–cluster example labels
+“budget in cluster A” and distinguishes occurrence counts from document frequency.
+Its text and highlighted cells always agree. After the lesson, hovering over any count highlights its term and document and
 updates the calculation below. Tapping a cell also selects it. Keyboard users
 enter the table with Tab, move between counts with arrow keys, and leave with
 Tab; Home/End select the first/last term in a row. All 28 combinations use the
@@ -88,8 +91,8 @@ node --test tests/text-representations.test.mjs tests/speech-motion.test.mjs tes
 node scripts/build-text-transcript.mjs --check
 ```
 
-The 29 tests check numerical values, token accounting, deterministic reversible
-motion, 126 diagram states, LaTeX validity, shared vocabulary counts, and all 28
+The 30 tests check numerical values, token accounting, deterministic reversible
+motion, 132 diagram states, LaTeX validity, shared vocabulary counts, and all 28
 explorer selections. Explorer checks also cover persistent hover selection,
 stable table nodes, focus preservation, keyboard movement, and listener cleanup.
 Application checks verify the pooled counts, c-TF–IDF weights, and reversible
@@ -113,6 +116,11 @@ The three application scenes passed 15 layout checks across the same five sizes,
 including SVG label bounds and separation from navigation. Desktop and narrow
 phone checks confirmed forward/backward scroll progression and completed
 reduced-motion diagrams.
+
+The word–document comparison and the adjusted application scenes were checked
+at the same five viewport sizes. The 320×568 layout keeps the formula, all four
+budget scores, caption, and navigation visible. Forward/backward scrolling
+retains pinned visuals; reduced motion shows the completed cluster weights.
 
 ## Standalone speech cartoon
 

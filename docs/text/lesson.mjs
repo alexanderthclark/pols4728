@@ -147,6 +147,14 @@ export const chapters = [
         "readingText": "We use \\(\\operatorname{idf}(t)=\\ln\\!\\left(N/\\operatorname{df}(t)\\right)\\), where \\(N\\) is the number of documents. A term in every document gets \\(\\ln(1)=0\\). “Budget” gets \\(\\ln(2)\\approx0.693\\); “passed,” found in just one document, gets \\(\\ln(4)\\approx1.386\\)."
       },
       {
+        "title": "A score for each word–document pair.",
+        "text": "For a fixed corpus, a word’s IDF is shared across documents. Its TF–IDF score changes with its count in each document.",
+        "note": "Here \\(\\operatorname{tf}(t,d)\\) is the raw count of word \\(t\\) in document \\(d\\); \\(N\\) is the number of documents.",
+        "visual": "word-document",
+        "readingText": "TF–IDF assigns a weight to a word–document pair, relative to a fixed corpus: \\(\\operatorname{TFIDF}(t,d)=\\operatorname{tf}(t,d)\\ln\\!\\left(N/\\operatorname{df}(t)\\right)\\). Here \\(\\operatorname{tf}(t,d)\\) is the raw count of word \\(t\\) in document \\(d\\), \\(N\\) is the number of documents, and \\(\\operatorname{df}(t)\\) counts documents containing that word. The IDF factor is shared across documents, while the count can differ. “Budget” appears in two of four documents, so its IDF is \\(\\ln(4/2)\\). Its score in D1 is \\(2\\ln(4/2)\\approx1.386\\); in D2, \\(1\\ln(4/2)\\approx0.693\\); in D3 and D4, the count and score are both zero.",
+        "readingNote": "These are raw-count, unsmoothed weights. Other TF–IDF conventions rescale counts, smooth IDF, or normalize document vectors."
+      },
+      {
         "title": "Multiply within-document count by rarity.",
         "text": "Multiply each count by its term’s inverse-frequency weight. In D1, “budget” receives \\(2\\times0.693\\approx1.386\\), while “the” receives zero. The coordinates still name vocabulary terms; only their weights change.",
         "note": "This weighting targets distinctiveness in this corpus. Rare terms are not automatically meaningful, and typos can be rare too.",
@@ -163,19 +171,19 @@ export const chapters = [
       },
       {
         "title": "BERTopic: pool words within a topic.",
-        "text": "BERTopic first groups document embeddings into clusters. It then pools the words within each cluster. A bag of words now represents a whole topic, ready to reveal its characteristic terms.",
+        "text": "BERTopic first groups document embeddings into clusters. It then pools each cluster’s documents into one bag of words. We now weight a word within a whole cluster, rather than within an individual document.",
         "note": "Constructed illustration: the two groups are given here, rather than estimated from these four short texts.",
         "visual": "topic-pooling",
         "links": [{"label": "BERTopic", "url": "https://maartengr.github.io/BERTopic/algorithm/algorithm.html"}],
         "readingNote": "The standard workflow reduces the embedding dimensions before clustering. Its subsequent bag-of-words representation describes the resulting groups. The illustration supplies two groups of short texts to isolate that second task."
       },
       {
-        "title": "Give each topic characteristic words.",
-        "text": "Class-based TF–IDF normalizes counts by the cluster’s length, then downweights terms frequent across the pooled corpus. BERTopic uses the highest-weighted words to describe each topic.",
-        "note": "This is c-TF–IDF: its normalization and inverse-frequency formula differ from our document-level example.",
+        "title": "A weight for each word–cluster pair.",
+        "text": "BERTopic’s class-based TF–IDF divides a word’s count by cluster length. Its inverse-frequency factor uses total word occurrences across clusters. The highest-weighted words describe each topic.",
+        "note": "Here “budget” in cluster A has weight 0.462. Both clusters have six tokens, so their average length is also six.",
         "visual": "topic-words",
-        "links": [{"label": "Class-based TF–IDF", "url": "https://maartengr.github.io/BERTopic/getting_started/ctfidf/ctfidf.html"}],
-        "readingText": "Class-based TF–IDF normalizes each cluster’s word counts by its total token count. The default inverse-frequency factor is the logarithm of one plus the average cluster token count divided by a term’s total count across all clusters. Here, that denominator counts occurrences, not documents. BERTopic ranks words by the product to describe each topic."
+        "links": [{"label": "class-based TF–IDF", "url": "https://maartengr.github.io/BERTopic/getting_started/ctfidf/ctfidf.html"}],
+        "readingText": "BERTopic’s class-based TF–IDF assigns a weight to a word–cluster pair. Its default formula is \\(\\operatorname{cTFIDF}(t,c)=\\frac{f(t,c)}{L_c}\\ln\\!\\left(1+\\frac{A}{f(t,\\mathrm{all})}\\right)\\). Here \\(f(t,c)\\) counts the word’s occurrences in the pooled cluster, \\(L_c\\) is that cluster’s total token count, \\(A\\) is the average pooled cluster length (truncated to an integer in the implementation), and \\(f(t,\\mathrm{all})\\) counts the word’s occurrences across all clusters. This denominator counts occurrences, not documents or clusters containing the word. In this constructed example, “budget” occurs twice among cluster A’s six tokens, and twice across both clusters. With average cluster length six, its weight is \\(\\frac{2}{6}\\ln(1+6/2)\\approx0.462\\). This describes “budget” in cluster A; it is not a score for any one original document. BERTopic uses the highest-weighted words to describe each topic."
       },
       {
         "title": "Airbnb: turn keywords into a score.",

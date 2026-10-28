@@ -254,3 +254,20 @@ noscript{display:block;padding:30px}
   .analogy-graph text{font-size:40px}
   .analogy-graph>text:last-child{font-size:24px}
 }
+
+/* The score is indexed by both a word and a document. */
+.pair-table{width:100%;border-collapse:collapse;font-size:21px;text-align:center}
+.pair-table caption{font-size:18px;color:var(--blue);padding:14px 0 18px}
+.pair-table th,.pair-table td{padding:12px 5px;border-bottom:1px solid var(--hairline);font-weight:400}
+.pair-table thead{font:13px system-ui,sans-serif;color:var(--muted)}
+.pair-table .katex{font-size:1em}
+.pair-table td:last-child{color:var(--blue)}
+@media(max-width:700px){
+  .pair-example .math{font-size:20px;margin:0 0 6px}
+  .pair-table{font-size:18px}.pair-table caption{font-size:15px;padding:6px 0 10px}
+  .pair-table th,.pair-table td{padding:8px 3px}.pair-table thead{font-size:12px}
+}
+@media(max-width:700px) and (max-height:700px){
+  .pair-example .math{font-size:17px}.pair-table{font-size:16px}
+  .pair-table th,.pair-table td{padding:5px 3px}.pair-table caption{font-size:14px;padding:4px 0 7px}
+}
