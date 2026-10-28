@@ -1,4 +1,4 @@
-# From words to vectors
+# Bag of Words
 
 A standalone scrollytelling lesson for POLS 4728: an opening question about
 recognizable writing habits, followed by bag of words, TF–IDF, and word2vec.
