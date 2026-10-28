@@ -55,10 +55,10 @@ export const chapters = [
       {
         "title": "Tokenize the text.",
         "text": "Tokenization splits text into units to count. Here our tokens are alphabetic words; we also lowercase them and drop punctuation. D1 yields eight tokens, with repetitions kept.",
-        "note": "These are separate choices: another analysis might retain punctuation or distinguish “The” from “the.”",
+        "note": "Tokens need not be whole words: we can use characters, subword pieces, or phrases such as “New York.”",
         "visual": "tokens",
         "readingText": "Tokenization splits a text into units called tokens. For these English examples, each uninterrupted sequence of letters is a token. We also lowercase the text and remove punctuation, so “The” and “the” count as the same term. D1 contains eight tokens, including three occurrences of “the” and two of “budget.” Each occurrence is a token; the shared vocabulary will contain each distinct term once.",
-        "readingNote": "Token boundaries, lowercasing, and punctuation handling are separate decisions. Retaining punctuation would be necessary to count the em dashes in our opening example. The research question determines which distinctions should survive."
+        "readingNote": "Tokens need not be whole words. Character tokens retain individual letters and symbols; subword tokens split words into smaller pieces; a multiword expression such as “New York” can be kept as one unit. Token boundaries, lowercasing, and punctuation handling are separate decisions. Retaining punctuation would be necessary to count the em dashes in our opening example. The research question determines which distinctions should survive."
       },
       {
         "title": "Group inflections with lemmatization.",
