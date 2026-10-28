@@ -445,6 +445,18 @@
       "before": "app.js?v=embedding-caption",
       "after": "app.js?v=output-caption",
       "reason": "Refresh the revised output-matrix caption."
+    },
+    {
+      "file": "app.js",
+      "before": "  s+=group(m(String.raw`(x,y)=(\\text{support},\\text{reform})`,mid,366,n?390:650,45,n?21:27,RUST)+text('Follow this example',mid,404,14,RUST),selected);",
+      "after": "  s+=group(m(String.raw`(x,y)=(\\text{support},\\text{reform})`,mid,366,n?390:650,45,n?21:27,RUST),selected);",
+      "reason": "Remove “Follow this example” from the training-pair scene as requested in the browser comment."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=output-caption",
+      "after": "app.js?v=training-pair-clean",
+      "reason": "Refresh the training-pair scene after removing the requested text."
     }
   ],
   "archivedExploration": {

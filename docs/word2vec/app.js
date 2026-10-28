@@ -100,7 +100,7 @@ function render(i,t,n){
    if(j===0||p>0)s+=chip('support',cx,inputY,{color:BLUE,w:2*half});
    s+=chip(j?'reform':'voters',ox,y,{color:j?RUST:INK,w:2*half,fill:j?'#faeee8':'white'});
   }
-  s+=group(m(String.raw`(x,y)=(\text{support},\text{reform})`,mid,366,n?390:650,45,n?21:27,RUST)+text('Follow this example',mid,404,14,RUST),selected);
+  s+=group(m(String.raw`(x,y)=(\text{support},\text{reform})`,mid,366,n?390:650,45,n?21:27,RUST),selected);
  }
  if(i===2){
   const x=n?185:500, y=n?100:65,ch=n?42:43;
