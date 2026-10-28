@@ -53,17 +53,35 @@ export const chapters = [
         "readingText": "Suppose we want to compare what political texts discuss. These four constructed documents are small enough to inspect word by word. A computer needs a representation that lets the same operation compare every pair."
       },
       {
-        "title": "Choose what counts as a word.",
-        "text": "Here we lowercase the text and split it into alphabetic tokens, removing punctuation. “The” and “the” become the same term. These choices define what differences our analysis can see.",
-        "note": "We keep common words and do not stem words. Other research questions may call for different choices.",
-        "visual": "tokens"
+        "title": "Tokenize the text.",
+        "text": "Tokenization splits text into units to count. Here our tokens are alphabetic words; we also lowercase them and drop punctuation. D1 yields eight tokens, with repetitions kept.",
+        "note": "These are separate choices: another analysis might retain punctuation or distinguish “The” from “the.”",
+        "visual": "tokens",
+        "readingText": "Tokenization splits a text into units called tokens. For these English examples, each uninterrupted sequence of letters is a token. We also lowercase the text and remove punctuation, so “The” and “the” count as the same term. D1 contains eight tokens, including three occurrences of “the” and two of “budget.” Each occurrence is a token; the shared vocabulary will contain each distinct term once.",
+        "readingNote": "Token boundaries, lowercasing, and punctuation handling are separate decisions. Retaining punctuation would be necessary to count the em dashes in our opening example. The research question determines which distinctions should survive."
+      },
+      {
+        "title": "Group inflections with lemmatization.",
+        "text": "Lemmatization maps inflected words to dictionary forms: “debated” and “debating” become “debate”; “senators” becomes “senator.” It pools evidence across forms, but also removes distinctions such as tense and number.",
+        "note": "This step is optional. Our worked matrix keeps the original word forms.",
+        "visual": "lemma",
+        "readingText": "Lemmatization maps an inflected word to its dictionary form, or lemma. For example, “debated” and “debating” can be counted under “debate,” and “senators” under “senator.” Pooling these forms can make a representation less sparse, but it also removes distinctions in how the text was written. Choosing a lemma can depend on part of speech and context. Stemming is a different approach that typically uses rules to strip word endings; its output need not be a dictionary word.",
+        "readingNote": "A lemma groups inflections, not all related words: “senate” and “parliament” remain different terms. We do not lemmatize or stem our four example documents."
+      },
+      {
+        "title": "Decide whether to remove stop words.",
+        "text": "Stop words are terms deliberately excluded from an analysis, often frequent words such as “the,” “and,” and “of.” Removing “the” here leaves five tokens. But common words can carry information about writing style.",
+        "note": "There is no universal stop-word list. We retain these words in our worked matrix.",
+        "visual": "stopwords",
+        "readingText": "A stop-word list specifies terms to exclude from a representation. Such lists often contain frequent grammatical words such as “the,” “and,” and “of,” which may contribute little to a topical comparison. In D1, removing the three occurrences of “the” would leave five tokens. This is a choice about the information we want to retain, not a required cleaning step. Common words can help distinguish writing habits, and removing a negation such as “not” can erase a consequential difference in meaning.",
+        "readingNote": "There is no universal list that suits every language, corpus, or research question. Our worked matrix retains all the tokenized words, including “the”; the Federalist example will show why common words can be useful."
       },
       {
         "title": "Give every document the same coordinates.",
         "text": "Each row is a document; each column is a vocabulary term. D1 has two instances of “budget” and three of “the.” The same coordinates let us compare all four documents.",
-        "note": "Most cells in a realistic document–term matrix are zero. Scroll back to retrace how the tokens became counts.",
+        "note": "We retain stop words and do not lemmatize. Most cells in a realistic document–term matrix are zero.",
         "visual": "matrix",
-        "readingText": "Each column is a vocabulary term; each row is a document. A cell counts how often that term occurs. D1 has two instances of “budget” and three of “the.” Most cells in a realistic document–term matrix are zero.",
+        "readingText": "For our worked example, we lowercase the texts and retain alphabetic tokens, without removing stop words or applying lemmatization. Each column is a vocabulary term; each row is a document. A cell counts how often that term occurs. D1 has two instances of “budget” and three of “the.” Most cells in a realistic document–term matrix are zero.",
         "readingNote": "Scroll back: the words return to their original positions. The count representation has one coordinate for every vocabulary term."
       },
       {
@@ -91,17 +109,12 @@ export const chapters = [
         "readingNote": "The chart shows approximate reported rates of “upon” in their comparison writings, including material outside the Federalist Papers. One word did not settle the case."
       },
       {
-        "title": "Compare Revelation with the Gospel of John.",
-        "text": "Erwin and Oakes (2012) analyzed 500-word Greek samples using 75 common words from the Johannine corpus. Their correspondence analysis found distinct profiles for Revelation and the Gospel of John.",
-        "note": "Distinct word profiles do not by themselves isolate authorship; genre also changes word use.",
-        "visual": "bible"
-      },
-      {
-        "title": "Choose features for the question.",
-        "text": "For authorship, common function words can carry stylistic information. For topical comparison, we may instead emphasize terms that distinguish documents. Return to our four political texts to see how that changes their representation.",
-        "note": "Compare rates or account for length when texts differ in size. A model cannot remove genre and topic differences simply by counting words.",
+        "title": "From writing style to subject matter.",
+        "text": "The Federalist example keeps common words because they reveal style. To compare topics, we may instead give more weight to terms that distinguish documents. TF–IDF does this using their prevalence across our corpus.",
+        "note": "We keep the same vocabulary; TF–IDF changes weights rather than applying a fixed stop-word list.",
         "visual": "purpose",
-        "readingText": "For authorship, frequent function words can carry stylistic information. Removing them automatically could discard the signal. For topical comparison, we may instead want to emphasize terms that distinguish documents."
+        "readingText": "Authorship and topical comparison ask different questions of the same counts. In the Federalist example, common function words carry stylistic information, so removing them automatically could discard the signal. To compare what documents discuss, we may instead emphasize terms that distinguish them from other texts in the corpus. TF–IDF combines repetition within a document with prevalence across documents to assign each term a weight. We will keep the same vocabulary and change the weights, rather than remove terms using a fixed stop-word list.",
+        "readingNote": "Compare rates or account for length when texts differ in size. Counting words cannot by itself separate authorship from genre and topic. Feature selection and weighting should follow the research question."
       }
     ]
   },
@@ -112,7 +125,7 @@ export const chapters = [
     "stages": [
       {
         "title": "A frequent word need not be distinctive.",
-        "text": "D1 contains “the” three times. Yet all four documents contain it. To compare topics, a term’s repetition within a document and its prevalence across documents answer different questions.",
+        "text": "Return to D1: “the” occurs three times, but it also appears in every other document. “Budget” occurs in only two. For topical comparison, repetition within a document and prevalence across documents tell us different things.",
         "note": "We keep the same four documents and vocabulary. First follow “the,” then “budget,” in D1.",
         "visual": "tf",
         "readingNote": "The corpus stays fixed throughout this chapter. We first inspect “the” in D1, then follow “budget” through document frequency, inverse document frequency, and TF–IDF weighting."

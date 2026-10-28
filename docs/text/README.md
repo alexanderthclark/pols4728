@@ -4,6 +4,7 @@ Bag of Words and TF–IDF
 
 A standalone scrollytelling lesson for POLS 4728: an opening question about
 recognizable writing habits, followed by bag of words and TF–IDF.
+Its 18 scenes comprise 3 on AI writing, 10 on bag of words, and 5 on TF–IDF.
 The linked chapters are `#ai-writing`, `#bag-of-words`, and `#tf-idf`. A short
 closing comparison links to the separate word2vec lesson; `#word2vec` remains
 a valid anchor to that paragraph.
@@ -16,6 +17,15 @@ words into a bag, moves tokens into a count matrix, and reweights its columns.
 Reverse scrolling retraces these changes. Reduced motion uses completed states.
 The title and all text remain selectable; character artwork is registered in
 `design/assets.json`.
+
+The preprocessing sequence distinguishes tokenization from lowercasing and
+punctuation handling, then illustrates optional lemmatization and stop-word
+removal. D1 separates into eight tokens; the lemmatization examples group
+inflected forms; an illustrative removal of “the” leaves five tokens. The
+worked document matrix remains unchanged: it retains common words and does not
+lemmatize. The Federalist example explains why common words can reveal writing
+habits, then the transition to TF–IDF asks which terms distinguish document topics.
+The John/Revelation scene has been removed; its citation remains in further reading.
 
 The core TF–IDF walkthrough follows “the” and then “budget” in D1. Its text and
 highlighted cells always agree. Optional term/document controls appear after
@@ -47,14 +57,14 @@ No package installation or site build is required; serve `docs/` and open `/text
 ## Numerical conventions and sources
 
 - Four synthetic documents; lowercase alphabetic tokens, with punctuation
-  removed. Common words and repeated tokens are retained; no stemming.
+  removed. Common words and repeated tokens are retained; no stemming or
+  lemmatization. The optional preprocessing illustrations do not alter these counts.
 - Raw-count TF × ln(N/df), without smoothing or vector normalization. Cosine
   similarity adjusts vector length at comparison time.
 - Mosteller–Wallace's approximate “upon” rates are per 1,000 words in their
   comparison writings. The chart is not an authorship classifier by itself.
-- Erwin–Oakes's Greek common-word comparison uses 500-word samples and 75 common
-  words. Distinct profiles do not isolate authorship from genre. The diagram
-  shows their study design, not a replication.
+- Erwin–Oakes's Greek common-word comparison remains a further-reading citation,
+  with no scene or recreated results in the lesson.
 - The brief opening ChatGPT excerpt is attributed to Sam Kriss's essay. Its
   highlighted features motivate hypotheses; they do not validate an AI detector.
 
@@ -68,15 +78,17 @@ node --test tests/text-representations.test.mjs tests/speech-motion.test.mjs tes
 node scripts/build-text-transcript.mjs --check
 ```
 
-The 21 tests check numerical values, token accounting, deterministic reversible
-motion, 102 diagram states, LaTeX validity, shared vocabulary counts, and all 28
+The 22 tests check numerical values, token accounting, deterministic reversible
+motion, 108 diagram states, LaTeX validity, shared vocabulary counts, and all 28
 explorer selections. Loading checks cover the default reading route, failed
 module requests, partial initialization, anchor transfer, and cleanup after a
 late initialization failure. They do not replace browser review.
 
-Browser review covered all 17 retained scenes at 1280×820, 768×1024, 390×844, 375×667,
-and 320×568. Layout checks found no horizontal overflow or text/navigation
-collisions. Manual checks covered actual forward/backward scrolling, pinned
+Browser review covered the retained scenes at 1280×820, 768×1024, 390×844, 375×667,
+and 320×568. The new preprocessing sequence and revised transition from the
+Federalist example to TF–IDF were checked at the same five sizes. Layout checks
+found no horizontal overflow or text/navigation collisions. Manual checks
+covered actual forward/backward scrolling, pinned
 intermediate states, keyboard navigation, completed reduced-motion states,
 term/document selection, the reading version, and title composition. This is
 not a claim of a complete assistive-technology audit.

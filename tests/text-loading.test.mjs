@@ -16,7 +16,7 @@ test('without JavaScript the complete lesson precedes its conclusion and chapter
     assert.ok(transcript.includes(`<details open id="${chapter.id}" data-chapter-id="${chapter.id}">`));
     for (const stage of chapter.stages) assert.ok(transcript.includes(`<h3>${stage.title}</h3>`));
   }
-  assert.equal((transcript.match(/<h3>/g) ?? []).length, 17);
+  assert.equal((transcript.match(/<h3>/g) ?? []).length, chapters.reduce((total,chapter)=>total+chapter.stages.length,0));
   assert.match(source, /id="explore" hidden/);
 });
 

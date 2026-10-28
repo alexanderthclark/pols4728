@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const require = createRequire(import.meta.url);
 globalThis.katex = require('../docs/word2vec/vendor/katex/katex.min.js');
-const {bagVisual, tfVisual, countAssembly, inspectTerm} = await import('../docs/text/visuals.mjs');
+const {bagVisual, tfVisual, countAssembly, inspectTerm, tokenizationVisual, lemmatizationVisual, stopWordsVisual} = await import('../docs/text/visuals.mjs');
 const {aiExample} = await import('../docs/text/ai-example.mjs');
 const {prose} = await import('../docs/text/math.mjs');
 const {chapters} = await import('../docs/text/lesson.mjs');
@@ -92,7 +92,28 @@ test('count assembly preserves tokens, reverses exactly, and finishes at the ful
     assert.equal(labels[start], `D${row + 1}`);
     assert.deepEqual(labels.slice(start + 1, start + 1 + vocabulary.length).map(Number), expected);
   }
-  assert.equal(bagVisual(4, 3.8, false), countAssembly(2));
+  assert.equal(bagVisual(6, 5.8, false), countAssembly(2));
+});
+
+test('preprocessing examples preserve occurrences and distinguish optional choices from the worked matrix', () => {
+  const tokenWords=markup=>[...markup.matchAll(/<text\b[^>]*data-token="\d+"[^>]*>([^<]+)<\/text>/g)].map(m=>m[1]);
+  assert.deepEqual(tokenWords(tokenizationVisual(0)),documents[0].text.split(' '));
+  assert.deepEqual(tokenWords(tokenizationVisual(1)),tokenize(documents[0].text));
+  assert.deepEqual([...lemmatizationVisual(1).matchAll(/data-lemma="([^"]+)"/g)].map(m=>m[1]),['debate','debate','senator']);
+  const final=stopWordsVisual(1);
+  const retained=[...final.matchAll(/<g data-token="\d+" data-kept="true" opacity="1"><text\b[^>]*>([^<]+)<\/text>/g)].map(m=>m[1]);
+  assert.deepEqual(retained,['parliament','debated','budget','budget','passed']);
+  assert.equal((final.match(/data-kept="false" opacity="0"/g)??[]).length,3);
+  // These illustrations must not silently change the following numerical example.
+  assert.equal(counts[0][vocabulary.indexOf('the')],3);
+  assert.ok(vocabulary.includes('debated'));
+  assert.ok(!vocabulary.includes('debate'));
+  for(const render of [tokenizationVisual,lemmatizationVisual,stopWordsVisual]){
+    const positions=[0,.25,.5,.75,1],forward=positions.map(render);
+    assert.deepEqual([...positions].reverse().map(render).reverse(),forward);
+    assert.notEqual(forward[0],forward.at(-1));
+    forward.forEach(markup=>checkMarkup(markup,'preprocessing'));
+  }
 });
 
 test('TF–IDF reweighting retains exact starting counts and the model’s rounded endpoint values', () => {
