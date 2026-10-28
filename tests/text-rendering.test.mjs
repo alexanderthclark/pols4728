@@ -4,11 +4,11 @@ import test from 'node:test';
 
 const require = createRequire(import.meta.url);
 globalThis.katex = require('../docs/word2vec/vendor/katex/katex.min.js');
-const {bagVisual, tfVisual, countAssembly, inspectTerm, tokenizationVisual, lemmatizationVisual, stopWordsVisual} = await import('../docs/text/visuals.mjs');
+const {bagVisual, tfVisual, countAssembly, inspectTerm, tokenizationVisual, lemmatizationVisual, stopWordsVisual, wordDocumentVisual} = await import('../docs/text/visuals.mjs');
 const {aiExample} = await import('../docs/text/ai-example.mjs');
 const {prose} = await import('../docs/text/math.mjs');
 const {chapters} = await import('../docs/text/lesson.mjs');
-const {documents, vocabulary, counts, tfidf, tokenize} = await import('../docs/text/model.mjs');
+const {documents, vocabulary, counts, tfidf, tokenize, termStats} = await import('../docs/text/model.mjs');
 
 const rounded = (value, places = 3) => Number(value.toFixed(places));
 const attributes = tag => [...tag.matchAll(/([\w:-]+)="([^"]*)"/g)].map(([, name, value]) => [name, value]);
@@ -57,7 +57,7 @@ test('every diagram and explanation renders valid mathematics and finite geometr
 });
 
 test('the TF–IDF narrative fixes the featured terms and document to match its explanation', () => {
-  for (const [stage, term] of [[0, 'the'], [1, 'budget'], [3, 'budget']]) {
+  for (const [stage, term] of [[0, 'the'], [1, 'budget'], [4, 'budget']]) {
     const markup = tfVisual(stage, stage, true);
     const rows = tableRows(markup);
     assert.deepEqual(rows.map(row => row.active), [true, false, false, false]);
@@ -70,7 +70,28 @@ test('the TF–IDF narrative fixes the featured terms and document to match its 
   assert.deepEqual(presence.map(row => row.cells[vocabulary.indexOf('budget')].classes.includes('present')), [true, true, false, false]);
   assert.ok(texExpressions(tfVisual(0, 0)).some(tex => tex.includes(String.raw`\operatorname{tf}(\mathrm{the},D_1)=3`)));
   assert.ok(texExpressions(tfVisual(1, 1)).some(tex => tex.includes(String.raw`\operatorname{df}(\mathrm{budget})=2`)));
-  assert.doesNotMatch(tfVisual(4, 4), /<select\b|<input\b/);
+  assert.doesNotMatch(tfVisual(5, 5), /<select\b|<input\b/);
+});
+
+test('the word–document example gives each budget count its own score with one shared IDF', () => {
+  const markup = wordDocumentVisual();
+  checkMarkup(markup, 'word–document TF–IDF example');
+  const formula = texExpressions(markup)[0];
+  assert.ok(formula.includes(String.raw`\operatorname{TFIDF}(t,d)`));
+  assert.ok(formula.includes(String.raw`\operatorname{tf}(t,d)`));
+  assert.ok(formula.includes(String.raw`\frac{N}{\operatorname{df}(t)}`));
+  const rows = [...markup.matchAll(/<tr data-doc="(\d+)">([\s\S]*?)<\/tr>/g)];
+  assert.equal(rows.length, documents.length);
+  for (const [index, [, doc, row]] of rows.entries()) {
+    const stats = termStats('budget', index);
+    assert.equal(Number(doc), index);
+    assert.match(row, new RegExp(`<th scope="row">D${index + 1}</th><td>${stats.tf}</td>`));
+    assert.equal(Number(row.match(/data-weight="([^"]+)"/)[1]), stats.weight);
+    const calculation = texExpressions(row)[0];
+    assert.ok(calculation.startsWith(String.raw`${stats.tf}\ln(${stats.N}/${stats.df})`));
+    assert.equal(Number(calculation.match(/([\d.]+)$/)[1]), rounded(stats.weight));
+  }
+  assert.equal(tfVisual(3, 3), markup);
 });
 
 test('count assembly preserves tokens, reverses exactly, and finishes at the full count matrix', () => {
@@ -118,10 +139,10 @@ test('preprocessing examples preserve occurrences and distinguish optional choic
 
 test('TF–IDF reweighting retains exact starting counts and the model’s rounded endpoint values', () => {
   const values = markup => tableRows(markup).map(row => row.cells.map(cell => cell.value));
-  assert.deepEqual(values(tfVisual(3, 2.5)), counts);
-  assert.deepEqual(values(tfVisual(3, 3)), tfidf.map(row => row.map(value => rounded(value, 2))));
-  assert.deepEqual(values(tfVisual(3, 2.6, false)), values(tfVisual(3, 3)));
-  const mid = values(tfVisual(3, 2.75));
+  assert.deepEqual(values(tfVisual(4, 3.5)), counts);
+  assert.deepEqual(values(tfVisual(4, 4)), tfidf.map(row => row.map(value => rounded(value, 2))));
+  assert.deepEqual(values(tfVisual(4, 3.6, false)), values(tfVisual(4, 4)));
+  const mid = values(tfVisual(4, 3.75));
   assert.deepEqual(mid, counts.map((row, i) => row.map((value, j) => rounded((value + tfidf[i][j]) / 2, 2))));
 });
 

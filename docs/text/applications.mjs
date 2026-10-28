@@ -1,4 +1,4 @@
-import {escapeText as esc,mathLabel} from './math.mjs?v=20261028-applications-6';
+import {escapeText as esc,mathLabel} from './math.mjs?v=20261028-term-document-7';
 
 const clamp=value=>Math.max(0,Math.min(1,value));
 const mix=(from,to,amount)=>from+(to-from)*amount;
@@ -67,14 +67,14 @@ function ranking(progress){
         `<g opacity="${valueOpacity}"><text x="${left+320}" y="${y+8}" font-size="28" text-anchor="end" fill="${ink}">${weight.toFixed(3)}</text></g></g>`;
     }).join('');
   }).join('');
-  const heading=progress===0?'Within-cluster word shares':progress<1?'Reweighting and ranking terms':'c-TF–IDF weights';
-  const worked=String.raw`\frac{2}{6}\ln\!\left(1+\frac{6}{2}\right)=0.462`;
+  const heading=progress===0?'Within-cluster word shares':progress<1?'Reweighting and ranking terms':'Word–cluster weights (c-TF–IDF)';
+  const worked=String.raw`\frac{2}{6}\ln\!\left(1+\frac{6}{2}\right)\approx0.462`;
   return `<h4 class="visual-title">${heading}</h4>`+
     svg(bars+`<path d="M15 218H665" stroke="${hairline}" fill="none"/>`+
-      `<text x="15" y="276" font-size="28" fill="${blue}">budget, health</text>`+
-      `<g opacity="${valueOpacity}">${mathLabel(205,235,455,70,worked,32)}</g>`,
+      `<text x="15" y="276" font-size="27" fill="${blue}">budget in cluster A</text>`+
+      `<g opacity="${valueOpacity}">${mathLabel(295,235,375,70,worked,32)}</g>`,
     'Class-based TF-IDF ranks budget and health at 0.462, tax and clinic at 0.324, and shared policy at 0.305. Spending ties tax, and care ties clinic.','ranking')+
-    note('Each cluster has six tokens. Spending ties tax; care ties clinic.');
+    note('Inside the log: divide by total word occurrences, not document frequency.');
 }
 
 function workflow(progress){
@@ -109,8 +109,8 @@ function workflow(progress){
 
 export function applicationVisual(stage,p,motion=true){
   const progress=motion?clamp((p-stage+.5)*2):1;
-  if(stage===5)return pooling(progress);
-  if(stage===6)return ranking(progress);
-  if(stage===7)return workflow(progress);
+  if(stage===6)return pooling(progress);
+  if(stage===7)return ranking(progress);
+  if(stage===8)return workflow(progress);
   throw new RangeError(`Unknown text application stage: ${stage}`);
 }
