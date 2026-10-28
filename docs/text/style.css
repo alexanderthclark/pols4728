@@ -116,10 +116,13 @@ button:hover{border-color:var(--blue);color:var(--blue)}
 .transcript h3{font-weight:400;font-size:28px;line-height:1.2;margin:34px 0 14px}
 .transcript p{max-width:760px}
 .transcript .small{font-size:16px}
-.term-controls{display:flex;align-items:center;justify-content:center;gap:12px;font:15px system-ui,sans-serif;margin:26px 0}
-.term-controls select{padding:6px;background:white;border:1px solid var(--rule);max-width:140px}
 #term-explorer{max-width:650px;margin:35px auto}
+.matrix.explorer-matrix td{padding:0}
+.explorer-matrix .matrix-cell{display:block;width:100%;min-height:48px;padding:12px 3px;border:0;border-radius:0;background:transparent;color:inherit;font:inherit;cursor:pointer}
+.explorer-matrix .matrix-cell[aria-pressed="true"]{box-shadow:inset 0 0 0 2px var(--blue);color:var(--blue)}
+.explorer-matrix .matrix-cell:focus-visible{outline:2px solid var(--blue);outline-offset:-5px}
 .explore-equations{margin-top:25px}
+.explorer-selection{text-align:center;color:var(--blue);font:15px/1.4 system-ui,sans-serif;margin:0 0 18px}
 footer{padding:40px 20px;text-align:center;border-top:1px solid var(--hairline);font-size:16px}
 noscript{display:block;padding:30px}
 /* The words stay real text over the registered, proportionally scaled artwork. */
@@ -190,7 +193,7 @@ noscript{display:block;padding:30px}
   .ai-attribution{font-size:11px;margin:10px 0}.ai-feature-counts{font-size:11px;padding-top:9px;min-height:28px;gap:7px}.feature-number{margin-left:5px}
   .analogy-scene{height:33svh}.analogy-equations{font-size:16px}.analogy-note{font-size:11px;margin-top:7px}
   .ending,.reading,.transcript,.exploration{padding:50px 22px}.reading,.transcript,.exploration{padding-top:20px}.ending h2,.reading h2,.transcript h2,.exploration h2{font-size:32px}
-  .comparison{font-size:16px;min-width:0}.term-controls{font-size:13px;gap:9px}.explore-equations .math{font-size:18px}
+  .comparison{font-size:16px;min-width:0}.explore-equations .math{font-size:18px}
 }
 @media(max-height:700px) and (max-width:979px){
   .scene-body{gap:10px;padding:10px 0}.scene-copy h3{font-size:25px;margin-bottom:8px}.scene-copy p{font-size:16px;line-height:1.3;margin-bottom:8px}.scene-copy .small{font-size:12px;line-height:1.3}

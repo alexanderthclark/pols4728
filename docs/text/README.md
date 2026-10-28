@@ -28,8 +28,11 @@ habits, then the transition to TF–IDF asks which terms distinguish document to
 The John/Revelation scene has been removed; its citation remains in further reading.
 
 The core TF–IDF walkthrough follows “the” and then “budget” in D1. Its text and
-highlighted cells always agree. Optional term/document controls appear after
-the lesson, where all 28 combinations update the same count matrix and formula.
+highlighted cells always agree. After the lesson, hovering over any count highlights its term and document and
+updates the calculation below. Tapping a cell also selects it. Keyboard users
+enter the table with Tab, move between counts with arrow keys, and leave with
+Tab; Home/End select the first/last term in a row. All 28 combinations use the
+same count matrix, which remains in place while only the calculation changes.
 Previous/next buttons and left/right arrow keys provide keyboard navigation.
 The prose and diagrams fit desktop, tablet, and narrow phone layouts.
 
@@ -74,13 +77,15 @@ and the supporting reading. Font licenses accompany the local font files.
 ## Verification
 
 ```sh
-node --test tests/text-representations.test.mjs tests/speech-motion.test.mjs tests/text-rendering.test.mjs tests/text-loading.test.mjs
+node --test tests/text-representations.test.mjs tests/speech-motion.test.mjs tests/text-rendering.test.mjs tests/text-loading.test.mjs tests/text-explorer.test.mjs
 node scripts/build-text-transcript.mjs --check
 ```
 
-The 22 tests check numerical values, token accounting, deterministic reversible
+The 27 tests check numerical values, token accounting, deterministic reversible
 motion, 108 diagram states, LaTeX validity, shared vocabulary counts, and all 28
-explorer selections. Loading checks cover the default reading route, failed
+explorer selections. Explorer checks also cover persistent hover selection,
+stable table nodes, focus preservation, keyboard movement, and listener cleanup.
+Loading checks cover the default reading route, failed
 module requests, partial initialization, anchor transfer, and cleanup after a
 late initialization failure. They do not replace browser review.
 
@@ -90,7 +95,9 @@ Federalist example to TF–IDF were checked at the same five sizes. Layout check
 found no horizontal overflow or text/navigation collisions. Manual checks
 covered actual forward/backward scrolling, pinned
 intermediate states, keyboard navigation, completed reduced-motion states,
-term/document selection, the reading version, and title composition. This is
+table-cell selection, the reading version, and title composition. The table
+interaction was also checked with pointer entry, clicking, arrow keys, and Tab,
+with responsive layouts at 390×844 and 320×568. This is
 not a claim of a complete assistive-technology audit.
 
 ## Standalone speech cartoon

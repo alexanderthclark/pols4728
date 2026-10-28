@@ -1,8 +1,8 @@
-import {chapters} from './lesson.mjs?v=20261028-preprocessing-3';
-import {updateAiExample} from './ai-example.mjs?v=20261028-preprocessing-3';
-import {bagVisual,tfVisual,inspectTerm} from './visuals.mjs?v=20261028-preprocessing-3';
-import {prose} from './math.mjs?v=20261028-preprocessing-3';
-import {documents,vocabulary} from './model.mjs?v=20261028-preprocessing-3';
+import {chapters} from './lesson.mjs?v=20261028-cell-explorer-4';
+import {updateAiExample} from './ai-example.mjs?v=20261028-cell-explorer-4';
+import {bagVisual,tfVisual} from './visuals.mjs?v=20261028-cell-explorer-4';
+import {prose} from './math.mjs?v=20261028-cell-explorer-4';
+import {initializeExplorer} from './explorer.mjs?v=20261028-cell-explorer-4';
 
 export function initializeStory() {
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -78,21 +78,20 @@ function keydown(e){
   }
 }
 const explorer=document.querySelector('#term-explorer');
-explorer.innerHTML=`<div class="term-controls"><label for="term">Term</label><select id="term">${vocabulary.map(t=>`<option ${t==='budget'?'selected':''}>${t}</option>`).join('')}</select><label for="document">Text</label><select id="document">${documents.map((_,i)=>`<option value="${i}">D${i+1}</option>`).join('')}</select></div><div class="explorer-result" aria-live="polite">${inspectTerm()}</div>`;
-const onExploreChange=()=>html(explorer.querySelector('.explorer-result'),inspectTerm(explorer.querySelector('#term').value,Number(explorer.querySelector('#document').value)));
+let disposeExplorer=()=>{};
 const onMotionChange=e=>motion(!e.matches);
 function dispose(){
   disposed=true;
   root.removeEventListener('click',onClick);
-  explorer.removeEventListener('change',onExploreChange);
+  disposeExplorer();
   document.removeEventListener('keydown',keydown);
   removeEventListener('scroll',schedule);removeEventListener('resize',layout);
   media.removeEventListener('change',onMotionChange);
 }
 try {
+  disposeExplorer=initializeExplorer(explorer);
   layout();
   root.addEventListener('click',onClick);
-  explorer.addEventListener('change',onExploreChange);
   document.addEventListener('keydown',keydown);
   addEventListener('scroll',schedule,{passive:true});addEventListener('resize',layout);
   media.addEventListener('change',onMotionChange);

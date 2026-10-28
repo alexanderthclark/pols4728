@@ -15,7 +15,7 @@ const attributes = tag => [...tag.matchAll(/([\w:-]+)="([^"]*)"/g)].map(([, name
 const texExpressions = markup => [...markup.matchAll(/<annotation encoding="application\/x-tex">([\s\S]*?)<\/annotation>/g)].map(match => match[1]);
 const tableRows = markup => [...markup.match(/<tbody>([\s\S]*?)<\/tbody>/)[1].matchAll(/<tr\b([^>]*)>([\s\S]*?)<\/tr>/g)].map(([, attrs, body]) => ({
   active: /class="active"/.test(attrs),
-  cells: [...body.matchAll(/<td class="([^"]*)">([^<]*)<\/td>/g)].map(([, classes, value]) => ({classes, value: Number(value)})),
+  cells: [...body.matchAll(/<td class="([^"]*)">([\s\S]*?)<\/td>/g)].map(([, classes, value]) => ({classes, value: Number(value.replace(/<[^>]+>/g, ''))})),
 }));
 
 function checkMarkup(markup, label) {

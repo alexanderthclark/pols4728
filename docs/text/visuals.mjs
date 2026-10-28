@@ -1,6 +1,6 @@
-import {speechCartoon} from './speech-cartoon.mjs?v=20261028-preprocessing-3';
-import {latex, escapeText as esc} from './math.mjs?v=20261028-preprocessing-3';
-import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine} from './model.mjs?v=20261028-preprocessing-3';
+import {speechCartoon} from './speech-cartoon.mjs?v=20261028-cell-explorer-4';
+import {latex, escapeText as esc} from './math.mjs?v=20261028-cell-explorer-4';
+import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine} from './model.mjs?v=20261028-cell-explorer-4';
 
 const clamp=x=>Math.max(0,Math.min(1,x));
 const mix=(a,b,t)=>a+(b-a)*t;
@@ -53,9 +53,12 @@ export function stopWordsVisual(q){
   }).join('')+txt(20,275,q<1?'8 tokens → 5 retained · 3 removed':`${kept.length} retained tokens · 3 instances of “the” removed`,'font-size="25"'),'Removing the stop word the discards three tokens and leaves parliament, debated, budget, budget, and passed.')+note('A possible choice only · our worked matrix retains “the”');
 }
 
-export function matrix(values,{focus=null,doc=null,decimals=0,weighted=false,caption=null,presence=false}={}){
+export function matrix(values,{focus=null,doc=null,decimals=0,weighted=false,caption=null,presence=false,interactive=false}={}){
   const col=vocabulary.indexOf(focus);
-  return `<table class="matrix"><caption class="visual-title">${caption??(weighted?'TF–IDF weights':'Document–term counts')}</caption><thead><tr><th scope="col">Text</th>${vocabulary.map(t=>`<th scope="col" class="${t===focus?'term-focus':''}">${t}</th>`).join('')}</tr></thead><tbody>${values.map((row,r)=>`<tr ${r===doc?'class="active"':''}><th scope="row">D${r+1}</th>${row.map((v,c)=>`<td class="${c===col?'focus ':''}${presence&&c===col&&v>0?'present ':''}${v===0?'zero':''}">${decimals?fmt(v,decimals):v}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  return `<table class="matrix${interactive?' explorer-matrix':''}"><caption class="visual-title">${caption??(weighted?'TF–IDF weights':'Document–term counts')}</caption><thead><tr><th scope="col">Text</th>${vocabulary.map(t=>`<th scope="col" class="${t===focus?'term-focus':''}">${t}</th>`).join('')}</tr></thead><tbody>${values.map((row,r)=>`<tr ${r===doc?'class="active"':''}><th scope="row">D${r+1}</th>${row.map((v,c)=>{
+    const value=decimals?fmt(v,decimals):v,selected=r===doc&&c===col;
+    return `<td class="${c===col?'focus ':''}${presence&&c===col&&v>0?'present ':''}${v===0?'zero':''}">${interactive?`<button type="button" class="matrix-cell" data-doc="${r}" data-col="${c}" data-term="${vocabulary[c]}" tabindex="${selected?0:-1}" aria-pressed="${selected}" aria-label="D${r+1}, ${vocabulary[c]}, count ${v}">${value}</button>`:value}</td>`;
+  }).join('')}</tr>`).join('')}</tbody></table>`;
 }
 
 /** Words travel to the coordinates they will occupy in the shared count matrix. */
@@ -98,7 +101,11 @@ export function tfVisual(stage,p,motion=true){
   return `<h4 class="visual-title">TF–IDF cosine similarity</h4><div class="bars">${[1,2,3].map(i=>{const v=cosine(tfidf[0],tfidf[i]);return `<div class="bar-row"><span>D1 with D${i+1}</span><div class="bar-track"><div class="bar-fill" style="width:${v*100}%"></div></div><span class="bar-value">${fmt(v,3)}</span></div>`;}).join('')}</div>`+equation(String.raw`\cos\theta=\frac{x^{\mathsf T}y}{\lVert x\rVert\,\lVert y\rVert}`)+note('0: no weighted overlap · 1: the same direction');
 }
 
-export function inspectTerm(term='budget',doc=0){
+export function termEquations(term='budget',doc=0){
   const s=termStats(term,doc);
-  return matrix(counts,{focus:term,doc})+`<div class="explore-equations">${equation(String.raw`\operatorname{tf}=${s.tf},\qquad\operatorname{df}=${s.df},\qquad N=${s.N}`)}${equation(String.raw`\text{TF–IDF}=${s.tf}\ln\!\left(\frac{${s.N}}{${s.df}}\right)=${fmt(s.weight,3)}`)}</div>`;
+  return `<p class="explorer-selection">${esc(term)} in D${doc+1}</p>${equation(String.raw`\operatorname{tf}=${s.tf},\qquad\operatorname{df}=${s.df},\qquad N=${s.N}`)}${equation(String.raw`\text{TF–IDF}=${s.tf}\ln\!\left(\frac{${s.N}}{${s.df}}\right)=${fmt(s.weight,3)}`)}`;
+}
+
+export function inspectTerm(term='budget',doc=0){
+  return matrix(counts,{focus:term,doc,interactive:true})+`<div class="explorer-result explore-equations" aria-live="polite" aria-atomic="true">${termEquations(term,doc)}</div>`;
 }
