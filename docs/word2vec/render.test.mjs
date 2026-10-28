@@ -3,6 +3,8 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import vm from 'node:vm';
 import { networkScene, renderNetwork } from './network.js';
+import { analogyVectors, cosineScene, renderCosine } from './cosine.js';
+import { modernScene, renderModern } from './modern.js';
 import {
   vocabulary as vocab, initial, forward, step, interpolateModel,
 } from './model.js';
@@ -31,10 +33,10 @@ const renderSource = source.split('\nconst markers=')[0]
   .replace(/^import[^\n]*\n/gm, '')
   .replace(/^const story=document[^\n]*\n/m, '')
   .replace(/^const reduced=matchMedia[^\n]*\n/m, '');
-const context = vm.createContext({ katex, vocab, initial, forward, step, interpolateModel, networkScene, renderNetwork });
+const context = vm.createContext({ katex, vocab, initial, forward, step, interpolateModel, networkScene, renderNetwork, analogyVectors, cosineScene, renderCosine, modernScene, renderModern });
 vm.runInContext(`${renderSource}\nglobalThis.harness={scenes,render:renderScene,latex,first,corpus,final};`, context);
 const { scenes, render, latex, first, corpus, final } = context.harness;
-assert.equal(scenes.length, 16);
+assert.equal(scenes.length, 18);
 
 const attrs = tag => Object.fromEntries(
   [...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map(([, key, value]) => [key, value]),
@@ -114,7 +116,7 @@ function checkGeometry(markup, narrow, label) {
 
 let renderedStates = 0;
 for (const [i, scene] of scenes.entries()) {
-  assert.doesNotThrow(() => latex(scene.eq), `Scene ${i + 1} equation`);
+  if (scene.eq) assert.doesNotThrow(() => latex(scene.eq), `Scene ${i + 1} equation`);
   for (const narrow of [false, true]) {
     for (const t of [0, 0.25, 0.5, 1]) {
       const label = `scene ${i + 1}, phase ${t}, ${narrow ? 'narrow' : 'wide'}`;
@@ -147,8 +149,27 @@ for (const narrow of [false, true]) {
     'The similarity scene must show its angle change.');
   assert.notEqual(render(14, 0, narrow), render(14, 1, narrow),
     'The analogy scene must translate its difference vector.');
+  assert.notEqual(render(15, 0, narrow), render(15, 1, narrow),
+    'The cosine pause must rescale its arrows with scrolling.');
   assert.notEqual(render(2, 0, narrow), render(2, 1, narrow),
     'The network overview must show the forward calculation with scrolling.');
+}
+// Rescaling the displayed query/candidate must preserve cosine similarity.
+for (const narrow of [false, true]) {
+  const arrowVectors = phase => [...render(15, phase, narrow).matchAll(/<line\b[^>]*>/g)]
+    .slice(0, 2).map(([tag]) => {
+      const a = attrs(tag);
+      return [Number(a.x2)-Number(a.x1), Number(a.y2)-Number(a.y1)];
+    });
+  const cosine = ([a, b]) => (a[0]*b[0]+a[1]*b[1]) / Math.hypot(...a) / Math.hypot(...b);
+  const start = arrowVectors(0), end = arrowVectors(1);
+  assert.ok(Math.abs(cosine(start)-cosine(end)) < 1e-12);
+  assert.ok(Math.abs(Math.hypot(...end[0])-Math.hypot(...end[1])) < 1e-12);
+  const score = cosine(start);
+  assert.ok(score > 0 && score < 1, 'The illustrative analogy should be close, not exact.');
+  const math = annotations(render(15, 1, narrow));
+  assert.ok(math.some(tex => tex.endsWith(`=${score.toFixed(3)}`)));
+  assert.ok(math.some(tex => tex.endsWith(`=${(1-score).toFixed(3)}`)));
 }
 assert.ok(corpus.length > 2);
 assert.ok(final.Win.flat().some((value, index) => value !== initial.Win.flat()[index]));

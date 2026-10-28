@@ -1,29 +1,33 @@
 import { vocabulary as vocab, initial, forward, step, interpolateModel } from './model.js';
-import { networkScene, renderNetwork } from './network.js';
+import { networkScene, renderNetwork } from './network.js?v=linear-scores';
+import { analogyVectors, cosineScene, renderCosine } from './cosine.js';
+import { modernScene, renderModern } from './modern.js?v=improvements';
 
 const BLUE='#234e70', RUST='#a54f32', INK='#242424', MUTED='#606060', RULE='#d9d9d5';
 const story=document.querySelector('#story'), svg=document.querySelector('#diagram');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches||new URLSearchParams(location.search).get('motion')==='reduce';
 const scenes=[
-  {chapter:'01 · The prediction task',title:'Learn from the words around a word.',eq:String.raw`\text{center word}\;\longrightarrow\;\text{context words}`,caption:'Skip-gram word2vec predicts nearby words from a center word.',detail:'A window of one word on either side supplies the context here.¹',alt:'The sentence voters support reform; support is the center and the other two words are its context.'},
-  {chapter:'01 · The prediction task',title:'One sentence gives us training pairs.',eq:String.raw`(w_c,w_o)=(\text{support},\text{reform})`,caption:'With “support” in the center, each nearby word becomes a separate target.',detail:'We will follow the pair (support, reform) through the model.',alt:'Support forms two training pairs, one with voters and one with reform. The reform pair is selected.'},
-  {chapter:'02 · The input matrix',title:'A one-hot vector identifies the word.',eq:String.raw`d_c\in\{0,1\}^{|V|},\qquad |V|=6`,caption:'Only the position for “support” is 1. Every other position is 0.',detail:'This vector records identity. It does not yet express similarity.',alt:'The six-word vocabulary is aligned with a one-hot column; only the second entry, support, is one.'},
-  {chapter:'02 · The input matrix',title:'The input matrix stores one vector per word.',eq:String.raw`W_{\mathrm{in}}\in\mathbb{R}^{k\times|V|},\qquad k=2`,caption:'Each word labels a column. Each column contains two trainable coordinates.',detail:'Six words, two coordinates: 2 rows and 6 columns. These are illustrative starting weights.',alt:'W in is a two by six matrix with vocabulary words labeling columns. Support is the second column.'},
+  {chapter:'01 · The prediction task',title:'Learn from the words around a word.',eq:String.raw`\text{center word}\;\longrightarrow\;\text{context words}`,caption:'Skip-gram word2vec predicts nearby words from a center word.',detail:'Here we use one word on each side. Larger windows include more surrounding words.¹',alt:'The sentence voters support reform; support is the center and the other two words are its context.'},
+  {chapter:'01 · The prediction task',title:'One input word gives two training examples.',eq:String.raw`x=w_c,\qquad y=w_o`,caption:'Each nearby word gives a separate training example.',detail:'Both examples have the same input. We will follow the pair with context word “reform.”',alt:'Two separate training examples in columns labelled center word x (input) and context word y (output): support to voters, and support to reform. The second row is highlighted for the walkthrough.'},
+  {chapter:'02 · The input matrix',title:'A one-hot vector identifies the word.',eq:String.raw`d_c\in\{0,1\}^{|V|},\qquad |V|=6`,caption:'',detail:'',alt:'The six-word vocabulary is aligned with a one-hot column; only the second entry, support, is one.'},
+  {chapter:'02 · The input matrix',title:'The input matrix stores one vector per word.',eq:String.raw`W_{\mathrm{in}}\in\mathbb{R}^{k\times|V|},\qquad k=2`,captionMath:String.raw`W_{\mathrm{in}}`,caption:'is learned from data, and each column is the embedding for a single word in the vocabulary.',detail:'',alt:'W in is a two by six matrix with vocabulary words labeling columns. Support is the second column.'},
   {chapter:'02 · The input matrix',title:'Multiplication becomes a lookup.',eq:String.raw`h_c=W_{\mathrm{in}}d_c`,caption:'The 1 selects the “support” column. That column is the input embedding.',detail:'The hidden layer uses the identity (linear) activation: it passes these coordinates through unchanged.',alt:'The support column, 0.6 and 0.4, moves out of W in as the vector h c.'},
-  {chapter:'03 · The output matrix',title:'A second matrix has a different job.',eq:String.raw`W_{\mathrm{out}}\in\mathbb{R}^{|V|\times k}`,caption:'Each row of the output matrix holds a vector for a candidate context word.',detail:'Both matrices contain every word. They are separate learned parameters, not transposes of one another.',alt:'W in has one column per word. W out has one row per word. The two matrices have separate numeric values.'},
-  {chapter:'03 · The output matrix',title:'One row produces one score.',eq:String.raw`z_{co}=u_o^{\mathsf T}h_c`,caption:'The “reform” output vector takes a dot product with the “support” input vector.',detail:'A score measures compatibility for prediction. It is not yet a probability.',alt:'The reform row 0.4 and 0.6 multiplies the support embedding 0.6 and 0.4; the products sum to 0.48.'},
+  {chapter:'03 · The output matrix',title:'A second matrix has a different job.',eq:String.raw`\begin{gathered}W_{\mathrm{out}}\in\mathbb{R}^{|V|\times k}\\u_o^{\mathsf T}=\text{row }o\text{ of }W_{\mathrm{out}}\end{gathered}`,captionMath:String.raw`W_{\mathrm{out}}`,caption:'is learned from data, and each row is the output embedding for a single word in the vocabulary.',detail:'Both matrices contain every word. They are separate learned parameters, not transposes of one another.',alt:'W in has one column per word. W out has one row per word, denoted u o transpose. The highlighted reform row is labelled u reform transpose. The two matrices have separate numeric values.'},
+  {chapter:'03 · The output matrix',title:'One row produces one score.',eq:String.raw`z_{co}=u_o^{\mathsf T}h_c`,caption:'The “reform” row of the output matrix takes a dot product with the “support” input vector.',detail:'A score measures compatibility for prediction. It is not yet a probability.',alt:'The vector u reform transpose is the reform row of W out, with entries 0.4 and 0.6. It multiplies the support embedding 0.6 and 0.4; the products sum to 0.48.'},
   {chapter:'03 · The output matrix',title:'Score every word. Then normalize.',eq:String.raw`p(w_o\mid w_c)=\frac{\exp(z_{co})}{\sum_j\exp(z_{cj})}`,caption:'Softmax exponentiates each score and divides by the sum of all six exponentiated scores.',detail:'The resulting probabilities add up to 1. Every vocabulary word is an output candidate.',alt:'All six dot products become scores and then a probability distribution; reform has probability 0.225.'},
-  {chapter:'04 · Learning both matrices',title:'The sentence supplies the answer.',eq:String.raw`\ell=-\log p(w_o\mid w_c)`,caption:'The observed target is “reform.” Its probability determines this pair’s loss.',detail:'The target comes from the text. Training adjusts the matrices to make observed contexts more probable.',alt:'Reform is the observed target. Its probability is 0.225 and the negative log probability is about 1.492.'},
+  {chapter:'04 · Learning both matrices',title:'The sentence supplies the answer.',eq:String.raw`\ell=-\log p(w_o\mid w_c)`,caption:'The observed context word is “reform.” Its probability determines this pair’s loss.',detail:'The context word comes from the text. Training adjusts the matrices to make observed contexts more probable.',alt:'Reform is the observed context word. Its probability is 0.225 and the negative log probability is about 1.492.'},
   {chapter:'04 · Learning both matrices',title:'One error changes both matrices.',eq:String.raw`W\leftarrow W-\eta\,\nabla_W\ell,\quad\eta=0.3`,caption:'One gradient step changes the selected input column and every output row.',detail:'Under full softmax, all candidate words participate. Other input columns stay fixed on this pair.',alt:'The support column and every output row change by gradient descent. Reform probability rises from 0.225 to 0.269.'},
   {chapter:'04 · Learning both matrices',title:'Repeat across words and contexts.',eq:String.raw`\min_{W_{\mathrm{in}},W_{\mathrm{out}}}\;\sum_{(c,o)}-\log p(w_o\mid w_c)`,caption:'Each new pair selects its own input column. Both matrices accumulate what the corpus teaches.',detail:'This short sequence demonstrates updates on a tiny corpus. Useful embeddings require much more text.',alt:'Different center-context pairs select different input columns while all output rows keep learning.'},
   {chapter:'05 · Reading the representation',title:'The same word has two learned vectors.',eq:String.raw`\text{input embedding}\;\neq\;\text{output embedding}`,caption:'“Support” has a column in the input matrix and a separate row in the output matrix.',detail:'Here we keep the whole input matrix as the embedding table: one fixed vector per word, reused across its occurrences.',alt:'Support is highlighted in both matrices. Its input and output vectors are separately learned. The input matrix supplies the embeddings retained after training.'},
   {chapter:'05 · Reading the representation',title:'Similar contexts can yield similar vectors.',eq:String.raw`\operatorname{cos}(h_a,h_b)=\frac{h_a^{\mathsf T}h_b}{\|h_a\|\,\|h_b\|}`,caption:'To examine similarity, compare two input embeddings. A small angle gives a large cosine.',detail:'Illustrative geometry: not output from our tiny model. Similar usage can reflect meaning or grammatical role; it need not mean synonymy.',alt:'Two input vectors, voters and citizens, approach similar directions. A small angle between them corresponds to high cosine similarity.'},
-  {chapter:'05 · Reading the representation',title:'Relationships can have directions, too.',eq:String.raw`h_{\text{king}}-h_{\text{man}}+h_{\text{woman}}\approx h_{\text{queen}}`,caption:'An analogy compares differences between vectors, rather than just their closeness.',detail:'Illustrative projection. Such patterns can emerge in trained embeddings; they are not guaranteed identities.',alt:'An illustrative parallelogram connects man, woman, king, queen. Translating the man-to-king difference from woman reaches near queen.'},
+  {chapter:'05 · Reading the representation',title:'Relationships can have directions, too.',eq:String.raw`h_{\text{king}}-h_{\text{man}}+h_{\text{woman}}\approx h_{\text{queen}}`,caption:'Subtract “man” from “king,” then add “woman.” This gives a query vector to compare with candidate words.',detail:'Illustrative projection. Such patterns can emerge in trained embeddings; they are not guaranteed identities.',alt:'Translating the man-to-king difference from woman produces the query vector, ending near but not exactly at queen. The next scene compares their directions.'},
   {chapter:'05 · Reading the representation',title:'The geometry is learned through prediction.',eq:String.raw`d_c\;\xrightarrow{\;W_{\mathrm{in}}\;}\;h_c\;\xrightarrow{\;W_{\mathrm{out}}\;}\;z_c\;\longrightarrow\;p`,caption:'We supplied words and their contexts. Training supplied the coordinates.',detail:'The two matrices make the learning task work; the input vectors become a representation we can reuse.',alt:'The complete path from a one-hot word through W in to an embedding, then through W out to scores and probabilities.'}
 ];
 
 // Requested clarity addition: orient readers before the matrix walkthrough.
 scenes.splice(2,0,networkScene);
+scenes.splice(15,0,cosineScene);
+scenes.push(modernScene);
 
 const f0=forward(initial), first=step(initial);
 // Exact gradient updates on every adjacent directed pair in four toy sentences.
@@ -38,6 +42,7 @@ const fmt=(v,n=2)=>(Math.abs(v)<.0001?0:v).toFixed(n);
 const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');
 const mathCache=new Map();
 function latex(tex){if(!mathCache.has(tex))mathCache.set(tex,katex.renderToString(tex,{throwOnError:true,output:'htmlAndMathml'}));return mathCache.get(tex)}
+function captionHTML(sc){return (sc.captionMath?latex(sc.captionMath)+' ':'')+esc(sc.caption)}
 function m(tex,x,y,w=200,h=42,size=22,color=INK){return `<foreignObject x="${x-w/2}" y="${y-h/2}" width="${w}" height="${h}" style="overflow:visible;color:${color};font-size:${size}px"><div xmlns="http://www.w3.org/1999/xhtml" class="mathbox">${latex(tex)}</div></foreignObject>`}
 function text(s,x,y,size=16,color=INK,anchor='middle',extra=''){return `<text x="${x}" y="${y}" fill="${color}" font-size="${size}" text-anchor="${anchor}" ${extra}>${esc(s)}</text>`}
 function line(x1,y1,x2,y2,color=RULE,width=1.5,arrow=false,dash=''){return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" ${arrow?'marker-end="url(#arrow-'+(color===BLUE?'blue':color===RUST?'rust':'ink')+')"':''} ${dash?`stroke-dasharray="${dash}"`:''}/>`}
@@ -82,11 +87,20 @@ function render(i,t,n){
   s+=text('a context window of one word on each side',mid,n?365:360,13,MUTED);
  }
  if(i===1){
-  const p=ease(t);s+=text('voters support reform',mid,50,19,MUTED);
-  const cx=n?110:340,ox=n?294:665,cy=n?215:200;
-  s+=chip('support',cx,cy,{color:BLUE,w:n?130:190});
-  for(let j=0;j<2;j++){let y=cy+(j?1:-1)*mix(0,70,p);s+=line(cx+(n?70:100),cy,ox-(n?72:102),y,j===1?RUST:RULE,2,true);s+=chip(j?'reform':'voters',ox,y,{color:j?RUST:MUTED,w:n?130:190,fill:j?'#faeee8':'white'})}
-  s+=group(text('Follow this pair',ox,cy+120,14,RUST),p);
+  const p=ease(t*1.7),selected=ease((t-.62)/.38);
+  const cx=n?104:340,ox=n?294:665,cy=225,half=n?65:95;
+  s+=text('voters support reform',mid,45,19,MUTED);
+  s+=m(String.raw`\text{center word }x`,cx,92,200,38,n?22:25,BLUE);
+  s+=m(String.raw`\text{context word }y`,ox,92,200,38,n?22:25,RUST);
+  s+=text('input',cx,119,13,MUTED)+text('output',ox,119,13,MUTED);
+  s+=group(rect(n?23:225,250,n?354:555,70,RUST,'#fff8f4',3,1.5),selected);
+  for(let j=0;j<2;j++){
+   const y=j?285:170,inputY=mix(cy,y,p);
+   s+=line(cx+half+8,inputY,ox-half-10,y,j?RUST:MUTED,1.5,true);
+   if(j===0||p>0)s+=chip('support',cx,inputY,{color:BLUE,w:2*half});
+   s+=chip(j?'reform':'voters',ox,y,{color:j?RUST:INK,w:2*half,fill:j?'#faeee8':'white'});
+  }
+  s+=group(m(String.raw`(x,y)=(\text{support},\text{reform})`,mid,366,n?390:650,45,n?21:27,RUST),selected);
  }
  if(i===2){
   const x=n?185:500, y=n?100:65,ch=n?42:43;
@@ -114,9 +128,12 @@ function render(i,t,n){
   s+=both(initial,n);if(!n){s+=line(535,208,590,208,BLUE,1.7,true);s+=vector(f0.h,640,208,{size:23});}
   if(n)s+=m(String.raw`h_c=\begin{bmatrix}0.60\\0.40\end{bmatrix}`,93,303,175,100,21,BLUE);
   s+=group(n?rect(210,242,118,176,RUST,'none',0,2):rect(739,111,142,240,RUST,'none',0,2),ease(t));
+  s+=line(n?331:884,n?316:212,n?339:902,n?316:212,RUST,1.5);
+  s+=m(String.raw`u_{\text{reform}}^{\mathsf T}`,n?367:945,n?316:212,n?66:105,38,n?17:23,RUST);
  }
  if(i===6){
   const p=ease(t),a=n?95:280,b=n?292:720,y=n?100:125;
+  s+=m(String.raw`\text{reform's row in }W_{\mathrm{out}}`,a,y-85,n?190:360,26,n?12:18,RUST);
   s+=vector([.4,.6],a,y,{color:RUST,label:String.raw`u_{\text{reform}}^{\mathsf T}`,horizontal:true,size:n?23:30});
   s+=vector(f0.h,b,y,{size:n?23:30,label:String.raw`h_{\text{support}}`});
   s+=m(String.raw`\cdot`,mid,y,40,40,24);
@@ -169,10 +186,11 @@ function render(i,t,n){
  }
  if(i===13){
   const p=ease(t),ox=n?35:180,oy=n?365:350,scale=n?140:155;
-  const pt=([x,y])=>[ox+x*scale,oy-y*scale],man=pt([.45,.3]),woman=pt([1.35,.5]),king=pt([.75,1.65]),queen=pt([1.65,1.85]);
+  const pt=([x,y])=>[ox+x*scale,oy-y*scale],man=pt(analogyVectors.man),woman=pt(analogyVectors.woman),king=pt(analogyVectors.king),queen=pt(analogyVectors.queen);
+  const query=[woman[0]+king[0]-man[0],woman[1]+king[1]-man[1]];
   for(const [name,a] of [['man',man],['woman',woman],['king',king],['queen',queen]]){s+=line(ox,oy,a[0],a[1],BLUE,1.5,true);s+=m(`h_{\\text{${name}}}`,a[0],a[1]+(name==='man'||name==='woman'?30:-23),160,42,n?20:26,BLUE)}
   s+=line(man[0],man[1],king[0],king[1],INK,2.5,true,'5 4');
-  const a=[mix(man[0],woman[0],p),mix(man[1],woman[1],p)],b=[mix(king[0],queen[0],p),mix(king[1],queen[1],p)];
+  const a=[mix(man[0],woman[0],p),mix(man[1],woman[1],p)],b=[mix(king[0],query[0],p),mix(king[1],query[1],p)];
   s+=line(a[0],a[1],b[0],b[1],INK,3,true);
   if(!n)s+=m(String.raw`h_{\text{king}}-h_{\text{man}}`,790,155,340,50,25)+text('a difference between vectors',790,200,15,MUTED);
   s+=text('illustrative projection · relationships are approximate',mid,n?429:408,n?10:13,MUTED);
@@ -188,8 +206,10 @@ function render(i,t,n){
 }
 
 function renderScene(i,t,n){
+ if(i===17)return renderModern();
  if(i===2)return renderNetwork(t,n,{m,text,line,rect,group,ease,clamp,fmt,vocab,initial,forward,BLUE,RUST,INK,MUTED,RULE});
- return render(i>2?i-1:i,t,n);
+ if(i===15)return renderCosine(t,n,{m,text,line,ease,mix,fmt,BLUE,RUST,MUTED});
+ return render(i>15?i-2:i>2?i-1:i,t,n);
 }
 
 const markers=`<defs>${[['blue',BLUE],['rust',RUST],['ink',MUTED]].map(([name,col])=>`<marker id="arrow-${name}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="${col}" stroke-width="1.5"/></marker>`).join('')}</defs>`;
@@ -200,8 +220,8 @@ function update(){
  let t=clamp((local-.12)/.64);if(reduced)t=t<.5?0:1;
  const n=innerWidth<=700,key=`${i}:${Math.round(t*300)}:${n}`;
  if(key===lastKey)return;lastKey=key;
- if(active!==i){const sc=scenes[i];document.querySelector('#chapter').textContent=sc.chapter;document.querySelector('#counter').textContent=`${i+1} / ${scenes.length}`;document.querySelector('#scene-title').textContent=sc.title;document.querySelector('#equation').innerHTML=latex(sc.eq);document.querySelector('#caption').textContent=sc.caption;document.querySelector('#detail').textContent=sc.detail;svg.setAttribute('aria-label',sc.alt);active=i;}
- svg.setAttribute('viewBox',`0 0 ${stem(n)}`);svg.innerHTML=markers+renderScene(i,t,n);
+ if(active!==i){document.querySelector('.stage').classList.toggle('is-list',i===17);document.querySelector('#modern-alternatives').hidden=i!==17;const sc=scenes[i];document.querySelector('#chapter').textContent=sc.chapter;document.querySelector('#counter').textContent=`${i+1} / ${scenes.length}`;document.querySelector('#scene-title').textContent=sc.title;document.querySelector('#equation').innerHTML=latex(sc.eq);document.querySelector('#caption').innerHTML=captionHTML(sc);document.querySelector('#detail').textContent=sc.detail;svg.setAttribute('aria-label',sc.alt);document.querySelector('#scope').innerHTML=i===17?'Embeddings in practice':'Skip-gram word2vec<sup><a href="#cbow" aria-label="Footnote 1: alternative architecture">1</a></sup>';active=i;}
+ if(i!==17){svg.setAttribute('viewBox',`0 0 ${stem(n)}`);svg.innerHTML=markers+renderScene(i,t,n);}
  document.querySelector('#progress').style.width=`${progress*100}%`;
  story.dataset.scene=String(i);story.dataset.phase=t.toFixed(4);story.dataset.motion=reduced?'reduced':'full';
 }
@@ -210,7 +230,7 @@ function init(){
  // Preserve the original scroll distance per scene when adding the network overview.
  story.style.height=`${100+1300*scenes.length/15}svh`;
  document.querySelectorAll('[data-math]').forEach(el=>el.innerHTML=latex(el.dataset.math));
- document.querySelector('#transcript').innerHTML=scenes.map(sc=>`<section><h3>${sc.title}</h3><p>${sc.caption}</p><p>${sc.detail.replace('¹','')}</p><p>${latex(sc.eq)}</p></section>`).join('');
+ document.querySelector('#modern-alternatives').innerHTML=renderModern();
  addEventListener('scroll',schedule,{passive:true});addEventListener('resize',()=>{lastKey='';schedule()});update();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();

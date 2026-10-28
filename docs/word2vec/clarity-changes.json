@@ -1,5 +1,5 @@
 {
-  "purpose": "User-requested neural-network clarity review, October 26, 2026. Only these explicit original-source changes are permitted by the preservation check.",
+  "purpose": "User-requested neural-network, training-pair, and cosine-comparison clarity revisions. Only these explicit original-source changes are permitted by the preservation check.",
   "replacements": [
     {
       "file": "app.js",
@@ -47,13 +47,458 @@
       "file": "index.html",
       "before": "<h3>Sources &amp; further reading</h3>\n<p class=\"reference\">Query semantics:",
       "after": "<h3>Sources &amp; further reading</h3>\n<p class=\"reference\">Network architecture and derivation: Xin Rong, <a href=\"https://arxiv.org/html/1411.2738v4\">word2vec Parameter Learning Explained</a>, especially the skip-gram model and its linear hidden layer.</p>\n<p class=\"reference\">Query semantics:",
-      "reason": "Cite the neural-network diagram and activation explanation at the end."
+      "reason": "Cite the neural-network diagram and activation explanation at the end.",
+      "archived": true
     },
     {
       "file": "app.js",
       "before": "function init(){\n",
       "after": "function init(){\n // Preserve the original scroll distance per scene when adding the network overview.\n story.style.height=`${100+1300*scenes.length/15}svh`;\n",
       "reason": "Preserve the original scroll distance per scene after inserting the overview."
+    },
+    {
+      "file": "app.js",
+      "before": "  {chapter:'01 · The prediction task',title:'One sentence gives us training pairs.',eq:String.raw`(w_c,w_o)=(\\text{support},\\text{reform})`,caption:'With “support” in the center, each nearby word becomes a separate target.',detail:'We will follow the pair (support, reform) through the model.',alt:'Support forms two training pairs, one with voters and one with reform. The reform pair is selected.'},",
+      "after": "  {chapter:'01 · The prediction task',title:'One input word gives two training examples.',eq:String.raw`x=w_c,\\qquad y=w_o`,caption:'Each nearby word gives a separate input–target example.',detail:'Both examples have the same input. We will follow the pair with target “reform.”',alt:'Two separate training examples in columns labelled input x and target y: support to voters, and support to reform. The second row is highlighted for the walkthrough.'},",
+      "reason": "Show both training examples with the familiar input x and target y roles."
+    },
+    {
+      "file": "app.js",
+      "before": " if(i===1){\n  const p=ease(t);s+=text('voters support reform',mid,50,19,MUTED);\n  const cx=n?110:340,ox=n?294:665,cy=n?215:200;\n  s+=chip('support',cx,cy,{color:BLUE,w:n?130:190});\n  for(let j=0;j<2;j++){let y=cy+(j?1:-1)*mix(0,70,p);s+=line(cx+(n?70:100),cy,ox-(n?72:102),y,j===1?RUST:RULE,2,true);s+=chip(j?'reform':'voters',ox,y,{color:j?RUST:MUTED,w:n?130:190,fill:j?'#faeee8':'white'})}\n  s+=group(text('Follow this pair',ox,cy+120,14,RUST),p);\n }\n",
+      "after": " if(i===1){\n  const p=ease(t*1.7),selected=ease((t-.62)/.38);\n  const cx=n?104:340,ox=n?294:665,cy=225,half=n?65:95;\n  s+=text('voters support reform',mid,45,19,MUTED);\n  s+=m(String.raw`\\text{input }x`,cx,92,200,38,n?22:25,BLUE);\n  s+=m(String.raw`\\text{target }y`,ox,92,200,38,n?22:25,RUST);\n  s+=text('center word',cx,119,13,MUTED)+text('context word',ox,119,13,MUTED);\n  s+=group(rect(n?23:225,250,n?354:555,70,RUST,'#fff8f4',3,1.5),selected);\n  for(let j=0;j<2;j++){\n   const y=j?285:170,inputY=mix(cy,y,p);\n   s+=line(cx+half+8,inputY,ox-half-10,y,j?RUST:MUTED,1.5,true);\n   if(j===0||p>0)s+=chip('support',cx,inputY,{color:BLUE,w:2*half});\n   s+=chip(j?'reform':'voters',ox,y,{color:j?RUST:INK,w:2*half,fill:j?'#faeee8':'white'});\n  }\n  s+=group(m(String.raw`(x,y)=(\\text{support},\\text{reform})`,mid,366,n?390:650,45,n?21:27,RUST)+text('Follow this example',mid,404,14,RUST),selected);\n }\n",
+      "reason": "Duplicate the common input into two explicit rows, then highlight the selected example with scrolling."
+    },
+    {
+      "file": "app.js",
+      "before": "Each nearby word gives a separate input–target example.",
+      "after": "Each nearby word gives a separate training example.",
+      "reason": "Use unambiguous center/context terminology as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "Both examples have the same input. We will follow the pair with target “reform.”",
+      "after": "Both examples have the same input. We will follow the pair with context word “reform.”",
+      "reason": "Use unambiguous center/context terminology as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "Two separate training examples in columns labelled input x and target y: support to voters, and support to reform. The second row is highlighted for the walkthrough.",
+      "after": "Two separate training examples in columns labelled center word x (input) and context word y (output): support to voters, and support to reform. The second row is highlighted for the walkthrough.",
+      "reason": "Use unambiguous center/context terminology as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "The observed target is “reform.” Its probability determines this pair’s loss.",
+      "after": "The observed context word is “reform.” Its probability determines this pair’s loss.",
+      "reason": "Use unambiguous center/context terminology as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "The target comes from the text. Training adjusts the matrices to make observed contexts more probable.",
+      "after": "The context word comes from the text. Training adjusts the matrices to make observed contexts more probable.",
+      "reason": "Use unambiguous center/context terminology as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "Reform is the observed target. Its probability is 0.225 and the negative log probability is about 1.492.",
+      "after": "Reform is the observed context word. Its probability is 0.225 and the negative log probability is about 1.492.",
+      "reason": "Use unambiguous center/context terminology as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "\\text{input }x",
+      "after": "\\text{center word }x",
+      "reason": "Use unambiguous center/context terminology as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "\\text{target }y",
+      "after": "\\text{context word }y",
+      "reason": "Use unambiguous center/context terminology as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "text('center word',cx,119,13,MUTED)+text('context word',ox,119,13,MUTED)",
+      "after": "text('input',cx,119,13,MUTED)+text('output',ox,119,13,MUTED)",
+      "reason": "Use unambiguous center/context terminology as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "A window of one word on either side supplies the context here.¹",
+      "after": "Here we use one word on each side. Larger windows include more surrounding words.¹",
+      "reason": "Clarify that the one-word window is an example and larger context windows are possible, as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "eq:String.raw`W_{\\mathrm{out}}\\in\\mathbb{R}^{|V|\\times k}`",
+      "after": "eq:String.raw`\\begin{gathered}W_{\\mathrm{out}}\\in\\mathbb{R}^{|V|\\times k}\\\\u_o^{\\mathsf T}=\\text{row }o\\text{ of }W_{\\mathrm{out}}\\end{gathered}`",
+      "reason": "Define the output embedding as a row of W_out before its dot product, as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "W in has one column per word. W out has one row per word. The two matrices have separate numeric values.",
+      "after": "W in has one column per word. W out has one row per word, denoted u o transpose. The highlighted reform row is labelled u reform transpose. The two matrices have separate numeric values.",
+      "reason": "Define the output embedding as a row of W_out before its dot product, as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "The “reform” output vector takes a dot product with the “support” input vector.",
+      "after": "The “reform” row of the output matrix takes a dot product with the “support” input vector.",
+      "reason": "Define the output embedding as a row of W_out before its dot product, as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "The reform row 0.4 and 0.6 multiplies the support embedding 0.6 and 0.4; the products sum to 0.48.",
+      "after": "The vector u reform transpose is the reform row of W out, with entries 0.4 and 0.6. It multiplies the support embedding 0.6 and 0.4; the products sum to 0.48.",
+      "reason": "Define the output embedding as a row of W_out before its dot product, as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "  s+=group(n?rect(210,242,118,176,RUST,'none',0,2):rect(739,111,142,240,RUST,'none',0,2),ease(t));",
+      "after": "  s+=group(n?rect(210,242,118,176,RUST,'none',0,2):rect(739,111,142,240,RUST,'none',0,2),ease(t));\n  s+=line(n?331:884,n?316:212,n?339:902,n?316:212,RUST,1.5);\n  s+=m(String.raw`u_{\\text{reform}}^{\\mathsf T}`,n?367:945,n?316:212,n?66:105,38,n?17:23,RUST);",
+      "reason": "Define the output embedding as a row of W_out before its dot product, as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "  s+=vector([.4,.6],a,y,{color:RUST,label:String.raw`u_{\\text{reform}}^{\\mathsf T}`,horizontal:true,size:n?23:30});",
+      "after": "  s+=m(String.raw`\\text{reform's row in }W_{\\mathrm{out}}`,a,y-85,n?190:360,26,n?12:18,RUST);\n  s+=vector([.4,.6],a,y,{color:RUST,label:String.raw`u_{\\text{reform}}^{\\mathsf T}`,horizontal:true,size:n?23:30});",
+      "reason": "Define the output embedding as a row of W_out before its dot product, as requested."
+    },
+    {
+      "file": "app.js",
+      "before": "import { networkScene, renderNetwork } from './network.js';",
+      "after": "import { networkScene, renderNetwork } from './network.js';\nimport { analogyVectors, cosineScene, renderCosine } from './cosine.js';",
+      "reason": "Load the requested cosine-distance pause and shared illustrative analogy coordinates."
+    },
+    {
+      "file": "app.js",
+      "before": "scenes.splice(2,0,networkScene);",
+      "after": "scenes.splice(2,0,networkScene);\nscenes.splice(15,0,cosineScene);",
+      "reason": "Pause immediately after the king/queen analogy to explain cosine similarity and distance."
+    },
+    {
+      "file": "app.js",
+      "before": "caption:'An analogy compares differences between vectors, rather than just their closeness.'",
+      "after": "caption:'Subtract “man” from “king,” then add “woman.” This gives a query vector to compare with candidate words.'",
+      "reason": "Connect analogy arithmetic to a cosine nearest-neighbor query."
+    },
+    {
+      "file": "app.js",
+      "before": "alt:'An illustrative parallelogram connects man, woman, king, queen. Translating the man-to-king difference from woman reaches near queen.'",
+      "after": "alt:'Translating the man-to-king difference from woman produces the query vector, ending near but not exactly at queen. The next scene compares their directions.'",
+      "reason": "Describe the approximate analogy and the following direction comparison."
+    },
+    {
+      "file": "app.js",
+      "before": "man=pt([.45,.3]),woman=pt([1.35,.5]),king=pt([.75,1.65]),queen=pt([1.65,1.85]);",
+      "after": "man=pt(analogyVectors.man),woman=pt(analogyVectors.woman),king=pt(analogyVectors.king),queen=pt(analogyVectors.queen);\n  const query=[woman[0]+king[0]-man[0],woman[1]+king[1]-man[1]];",
+      "reason": "Use consistent illustrative vectors and distinguish the query from the nearby queen vector."
+    },
+    {
+      "file": "app.js",
+      "before": "b=[mix(king[0],queen[0],p),mix(king[1],queen[1],p)];",
+      "after": "b=[mix(king[0],query[0],p),mix(king[1],query[1],p)];",
+      "reason": "Translate the actual man-to-king difference without forcing an exact identity with queen."
+    },
+    {
+      "file": "app.js",
+      "before": " return render(i>2?i-1:i,t,n);",
+      "after": " if(i===15)return renderCosine(t,n,{m,text,line,ease,mix,fmt,BLUE,RUST,MUTED});\n return render(i>15?i-2:i>2?i-1:i,t,n);",
+      "reason": "Route the new cosine pause while preserving the other scene renderers."
+    },
+    {
+      "file": "index.html",
+      "before": "<span id=\"counter\">1 / 16</span>",
+      "after": "<span id=\"counter\">1 / 17</span>",
+      "reason": "Keep the initial scene count consistent with the added cosine pause."
+    },
+    {
+      "file": "index.html",
+      "before": "      <details id=\"reading\">",
+      "after": "      <p class=\"reference\">Network architecture and derivation: Xin Rong, <a href=\"https://arxiv.org/html/1411.2738v4\">word2vec Parameter Learning Explained</a>, especially the skip-gram model and its linear hidden layer.</p>\n      <details id=\"reading\">",
+      "reason": "Retain the architecture source with the active lesson after archiving the later exploration."
+    },
+    {
+      "file": "index.html",
+      "before": "Word2vec also has an alternative architecture, continuous bag of words (CBOW).",
+      "after": "Word2vec also has an alternative architecture, continuous bag of words (CBOW), which predicts the center word from the surrounding context words. It is not shown here.",
+      "reason": "Clarify the alternative CBOW prediction direction and that it is not shown in this lesson, as requested."
+    },
+    {
+      "file": "index.html",
+      "before": "<title>Word2vec — Learning a geometry from context</title>",
+      "after": "<title>Word2vec — Learning word embeddings</title>",
+      "reason": "Use the requested Learning word embeddings subtitle and remove the opening question; keep the browser title consistent."
+    },
+    {
+      "file": "index.html",
+      "before": "<p class=\"subtitle\">How predicting nearby words<br class=\"wide-only\"> creates a geometry.</p>\n        <p class=\"intro\">A word begins as a name in a vocabulary. How does it become a vector with useful relationships to other words?</p>",
+      "after": "<p class=\"subtitle\">Learning word embeddings</p>",
+      "reason": "Use the requested Learning word embeddings subtitle and remove the opening question; keep the browser title consistent."
+    },
+    {
+      "file": "app.js",
+      "before": "import { analogyVectors, cosineScene, renderCosine } from './cosine.js';",
+      "after": "import { analogyVectors, cosineScene, renderCosine } from './cosine.js';\nimport { modernScene, renderModern } from './modern.js';",
+      "reason": "Load the requested single closing scene on modern text embeddings."
+    },
+    {
+      "file": "app.js",
+      "before": "scenes.splice(15,0,cosineScene);",
+      "after": "scenes.splice(15,0,cosineScene);\nscenes.push(modernScene);",
+      "reason": "Append exactly one modern-embeddings scene after the Word2vec conclusion."
+    },
+    {
+      "file": "app.js",
+      "before": "function renderScene(i,t,n){",
+      "after": "function renderScene(i,t,n){\n if(i===17)return renderModern(t,n,{m,text,line,rect,group,ease,clamp,fmt,mix,BLUE,RUST,INK,MUTED,RULE});",
+      "reason": "Route the new final scene without changing the earlier diagrams."
+    },
+    {
+      "file": "app.js",
+      "before": "svg.setAttribute('aria-label',sc.alt);active=i;",
+      "after": "svg.setAttribute('aria-label',sc.alt);document.querySelector('#scope').innerHTML=i===17?'Modern text embeddings':'Skip-gram word2vec<sup><a href=\"#cbow\" aria-label=\"Footnote 1: alternative architecture\">1</a></sup>';active=i;",
+      "reason": "Label the modern-embeddings scene separately from the skip-gram walkthrough."
+    },
+    {
+      "file": "index.html",
+      "before": "<span id=\"counter\">1 / 17</span>",
+      "after": "<span id=\"counter\">1 / 18</span>",
+      "reason": "Count the one requested modern-embeddings closing scene."
+    },
+    {
+      "file": "index.html",
+      "before": "      <details id=\"reading\">",
+      "after": "      <p class=\"reference\">Modern text embeddings: Reimers and Gurevych (2019), <a href=\"https://aclanthology.org/D19-1410/\">Sentence-BERT</a>, and Wang et al. (2022), <a href=\"https://arxiv.org/abs/2212.03533\">Text Embeddings by Weakly-Supervised Contrastive Pre-training</a>, illustrate transformer encoders and training with related text pairs. The closing diagram shows a common approach, not OpenAI’s specific architecture or training recipe.</p>\n      <p class=\"reference\">For an API example, see OpenAI’s <a href=\"https://developers.openai.com/api/docs/guides/embeddings\">vector embeddings guide</a> (checked October 27, 2026). A request supplies text and an embedding model; the response includes one vector for each supplied text. This runs the trained model rather than training a new model for each request.</p>\n      <details id=\"reading\">",
+      "reason": "Cite the modern-embeddings mechanism and verified OpenAI API example, distinguishing a common approach from proprietary implementation details."
+    },
+    {
+      "file": "index.html",
+      "before": "<script type=\"module\" src=\"app.js\"></script>",
+      "after": "<script type=\"module\" src=\"app.js?v=modern-embeddings\"></script>",
+      "reason": "Refresh the lesson module when adding the final modern-embeddings scene."
+    },
+    {
+      "file": "index.html",
+      "before": "      <p class=\"reference\">Modern text embeddings: Reimers and Gurevych (2019), <a href=\"https://aclanthology.org/D19-1410/\">Sentence-BERT</a>, and Wang et al. (2022), <a href=\"https://arxiv.org/abs/2212.03533\">Text Embeddings by Weakly-Supervised Contrastive Pre-training</a>, illustrate transformer encoders and training with related text pairs. The closing diagram shows a common approach, not OpenAI’s specific architecture or training recipe.</p>",
+      "after": "      <p class=\"reference\">Beyond Word2vec: Devlin et al. (2019), <a href=\"https://aclanthology.org/N19-1423/\">BERT</a>, illustrates richer, contextual representations that can support word-level tasks. Its internal representations are for tokens, which may be parts of words. Reimers and Gurevych (2019), <a href=\"https://aclanthology.org/D19-1410/\">Sentence-BERT</a>, illustrates models trained to represent whole texts. A more advanced model need not change the unit you embed: choose words, passages, or documents according to the task.</p>",
+      "reason": "Reframe the ending around Word2vec as classical intuition and more capable pretrained models, treating word-level versus whole-text representations as a separate task choice."
+    },
+    {
+      "file": "index.html",
+      "before": "<script type=\"module\" src=\"app.js?v=modern-embeddings\"></script>",
+      "after": "<script type=\"module\" src=\"app.js?v=practical-embeddings\"></script>",
+      "reason": "Refresh the reworked practical-embeddings ending."
+    },
+    {
+      "file": "app.js",
+      "before": "import { modernScene, renderModern } from './modern.js';",
+      "after": "import { modernScene, renderModern } from './modern.js?v=practical-embeddings';",
+      "reason": "Refresh the revised final-scene module when returning to the preview or published lesson."
+    },
+    {
+      "file": "app.js",
+      "before": "i===17?'Modern text embeddings'",
+      "after": "i===17?'Embeddings in practice'",
+      "reason": "Label the practical-embeddings ending without implying all advanced models produce whole-text vectors."
+    },
+    {
+      "file": "app.js",
+      "before": "'./modern.js?v=practical-embeddings'",
+      "after": "'./modern.js?v=modern-list'",
+      "reason": "Refresh the simplified closing-slide module."
+    },
+    {
+      "file": "app.js",
+      "before": "if(i===17)return renderModern(t,n,{m,text,line,rect,group,ease,clamp,fmt,mix,BLUE,RUST,INK,MUTED,RULE});",
+      "after": "if(i===17)return renderModern();",
+      "reason": "Render the requested final list as native text rather than a diagram."
+    },
+    {
+      "file": "app.js",
+      "before": "if(active!==i){const sc=scenes[i];",
+      "after": "if(active!==i){document.querySelector('.stage').classList.toggle('is-list',i===17);document.querySelector('#modern-alternatives').hidden=i!==17;const sc=scenes[i];",
+      "reason": "Show the list only on slide 18 and restore the diagrams when scrolling back."
+    },
+    {
+      "file": "app.js",
+      "before": "svg.setAttribute('viewBox',`0 0 ${stem(n)}`);svg.innerHTML=markers+renderScene(i,t,n);",
+      "after": "if(i!==17){svg.setAttribute('viewBox',`0 0 ${stem(n)}`);svg.innerHTML=markers+renderScene(i,t,n);}",
+      "reason": "Keep the final native HTML list out of the SVG renderer."
+    },
+    {
+      "file": "app.js",
+      "before": "document.querySelector('#transcript').innerHTML=scenes.map(sc=>`<section><h3>${sc.title}</h3><p>${sc.caption}</p><p>${sc.detail.replace('¹','')}</p><p>${latex(sc.eq)}</p></section>`).join('');",
+      "after": "document.querySelector('#modern-alternatives').innerHTML=renderModern();\n document.querySelector('#transcript').innerHTML=scenes.map(sc=>`<section><h3>${sc.title}</h3>${sc===modernScene?renderModern(4):`<p>${sc.caption}</p><p>${sc.detail.replace('¹','')}</p><p>${latex(sc.eq)}</p>`}</section>`).join('');",
+      "reason": "Include the same two-item list in the reading version."
+    },
+    {
+      "file": "index.html",
+      "before": "<link rel=\"stylesheet\" href=\"style.css\">",
+      "after": "<link rel=\"stylesheet\" href=\"style.css\">\n  <link rel=\"stylesheet\" href=\"modern.css?v=modern-list\">",
+      "reason": "Add styling scoped to the requested plain-list ending."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=practical-embeddings",
+      "after": "app.js?v=modern-list",
+      "reason": "Refresh the simplified closing slide in the browser."
+    },
+    {
+      "file": "index.html",
+      "before": "        <div class=\"narration\">",
+      "after": "        <div id=\"modern-alternatives\" hidden></div>\n        <div class=\"narration\">",
+      "reason": "Use a semantic heading and list for the requested slide 18."
+    },
+    {
+      "file": "app.js",
+      "before": "./modern.js?v=modern-list",
+      "after": "./modern.js?v=improvements",
+      "reason": "Refresh the revised Improvements on Word2Vec closing slide."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=modern-list",
+      "after": "app.js?v=improvements",
+      "reason": "Refresh the revised Improvements on Word2Vec closing slide."
+    },
+    {
+      "file": "index.html",
+      "before": "modern.css?v=modern-list",
+      "after": "modern.css?v=improvements",
+      "reason": "Refresh the revised Improvements on Word2Vec closing slide."
+    },
+    {
+      "file": "app.js",
+      "before": "'./network.js'",
+      "after": "'./network.js?v=input-dimension'",
+      "reason": "Refresh the requested one-hot input dimension label on the network slide."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=improvements",
+      "after": "app.js?v=input-dimension",
+      "reason": "Refresh the requested one-hot input dimension label on the network slide."
+    },
+    {
+      "file": "app.js",
+      "before": "./network.js?v=input-dimension",
+      "after": "./network.js?v=linear-scores",
+      "reason": "Refresh the network overview with the combined linear score equation."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=input-dimension",
+      "after": "app.js?v=linear-scores",
+      "reason": "Refresh the network overview with the combined linear score equation."
+    },
+    {
+      "file": "app.js",
+      "before": "  {chapter:'02 · The input matrix',title:'A one-hot vector identifies the word.',eq:String.raw`d_c\\in\\{0,1\\}^{|V|},\\qquad |V|=6`,caption:'Only the position for “support” is 1. Every other position is 0.',detail:'This vector records identity. It does not yet express similarity.',alt:'The six-word vocabulary is aligned with a one-hot column; only the second entry, support, is one.'},",
+      "after": "  {chapter:'02 · The input matrix',title:'A one-hot vector identifies the word.',eq:String.raw`d_c\\in\\{0,1\\}^{|V|},\\qquad |V|=6`,caption:'',detail:'',alt:'The six-word vocabulary is aligned with a one-hot column; only the second entry, support, is one.'},",
+      "reason": "Remove both narration sentences below the one-hot vector as requested in the browser comment."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=linear-scores",
+      "after": "app.js?v=onehot-clean",
+      "reason": "Refresh the one-hot slide after removing the requested text."
+    },
+    {
+      "file": "app.js",
+      "before": "  {chapter:'02 · The input matrix',title:'The input matrix stores one vector per word.',eq:String.raw`W_{\\mathrm{in}}\\in\\mathbb{R}^{k\\times|V|},\\qquad k=2`,caption:'Each word labels a column. Each column contains two trainable coordinates.',detail:'Six words, two coordinates: 2 rows and 6 columns. These are illustrative starting weights.',alt:'W in is a two by six matrix with vocabulary words labeling columns. Support is the second column.'},",
+      "after": "  {chapter:'02 · The input matrix',title:'The input matrix stores one vector per word.',eq:String.raw`W_{\\mathrm{in}}\\in\\mathbb{R}^{k\\times|V|},\\qquad k=2`,captionMath:String.raw`W_{\\mathrm{in}}`,caption:'is learned from data, and each column is the embedding for a single word in the vocabulary.',detail:'',alt:'W in is a two by six matrix with vocabulary words labeling columns. Support is the second column.'},",
+      "reason": "Replace the input-matrix narration with the instructor’s requested wording."
+    },
+    {
+      "file": "app.js",
+      "before": "function m(tex,x,y,w=200,h=42,size=22,color=INK){",
+      "after": "function captionHTML(sc){return (sc.captionMath?latex(sc.captionMath)+' ':'')+esc(sc.caption)}\nfunction m(tex,x,y,w=200,h=42,size=22,color=INK){",
+      "reason": "Typeset the matrix symbol in the caption with the bundled math renderer."
+    },
+    {
+      "file": "app.js",
+      "before": "document.querySelector('#caption').textContent=sc.caption;",
+      "after": "document.querySelector('#caption').innerHTML=captionHTML(sc);",
+      "reason": "Render the requested mathematical matrix name inline with the caption."
+    },
+    {
+      "file": "app.js",
+      "before": "`<p>${sc.caption}</p><p>${sc.detail.replace",
+      "after": "`<p>${captionHTML(sc)}</p><p>${sc.detail.replace",
+      "reason": "Keep the same mathematical caption in the continuous-reading version."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=onehot-clean",
+      "after": "app.js?v=embedding-caption",
+      "reason": "Refresh the revised input-matrix caption."
+    },
+    {
+      "file": "app.js",
+      "before": "  {chapter:'03 · The output matrix',title:'A second matrix has a different job.',eq:String.raw`\\begin{gathered}W_{\\mathrm{out}}\\in\\mathbb{R}^{|V|\\times k}\\\\u_o^{\\mathsf T}=\\text{row }o\\text{ of }W_{\\mathrm{out}}\\end{gathered}`,caption:'Each row of the output matrix holds a vector for a candidate context word.',detail:'Both matrices contain every word. They are separate learned parameters, not transposes of one another.',alt:'W in has one column per word. W out has one row per word, denoted u o transpose. The highlighted reform row is labelled u reform transpose. The two matrices have separate numeric values.'},",
+      "after": "  {chapter:'03 · The output matrix',title:'A second matrix has a different job.',eq:String.raw`\\begin{gathered}W_{\\mathrm{out}}\\in\\mathbb{R}^{|V|\\times k}\\\\u_o^{\\mathsf T}=\\text{row }o\\text{ of }W_{\\mathrm{out}}\\end{gathered}`,captionMath:String.raw`W_{\\mathrm{out}}`,caption:'is learned from data, and each row is the output embedding for a single word in the vocabulary.',detail:'Both matrices contain every word. They are separate learned parameters, not transposes of one another.',alt:'W in has one column per word. W out has one row per word, denoted u o transpose. The highlighted reform row is labelled u reform transpose. The two matrices have separate numeric values.'},",
+      "reason": "Use the instructor’s requested wording for the learned output matrix and its row embeddings."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=embedding-caption",
+      "after": "app.js?v=output-caption",
+      "reason": "Refresh the revised output-matrix caption."
+    },
+    {
+      "file": "app.js",
+      "before": "  s+=group(m(String.raw`(x,y)=(\\text{support},\\text{reform})`,mid,366,n?390:650,45,n?21:27,RUST)+text('Follow this example',mid,404,14,RUST),selected);",
+      "after": "  s+=group(m(String.raw`(x,y)=(\\text{support},\\text{reform})`,mid,366,n?390:650,45,n?21:27,RUST),selected);",
+      "reason": "Remove “Follow this example” from the training-pair scene as requested in the browser comment."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=output-caption",
+      "after": "app.js?v=training-pair-clean",
+      "reason": "Refresh the training-pair scene after removing the requested text."
+    },
+    {
+      "file": "index.html",
+      "before": "    <section class=\"afterword\" id=\"references\">\n      <p class=\"eyebrow\">What the model leaves us with</p>\n      <h2>A representation learned through prediction.</h2>\n      <p>The input matrix stores a vector for every word. The output matrix makes those vectors useful for predicting context during training. Training both together can produce structure that we can reuse after the prediction task is finished.</p>\n      <div class=\"closing-math\" data-math=\"\\underbrace{W_{\\mathrm{in}}}_{\\text{input vectors}}\\quad\\longrightarrow\\quad\\text{representations for other tasks}\"></div>\n      <div class=\"notes\">",
+      "after": "    <section class=\"afterword\" id=\"references\">\n      <div class=\"notes\">",
+      "reason": "Remove the redundant afterword summary, its introductory label, and equation as requested in the browser comment; retain the notes and sources."
+    },
+    {
+      "file": "index.html",
+      "before": "<body>\n  <a class=\"skip\" href=\"#reading\">Skip to the reading version</a>\n",
+      "after": "<body>\n",
+      "reason": "Remove the skip link to the reading section that the instructor requested removing."
+    },
+    {
+      "file": "index.html",
+      "before": "      <details id=\"reading\"><summary>Read the complete explanation</summary><div id=\"transcript\"></div></details>\n      <a class=\"return\"",
+      "after": "      <a class=\"return\"",
+      "reason": "Remove the complete-reading section as requested in the browser comment."
+    },
+    {
+      "file": "app.js",
+      "before": " document.querySelector('#transcript').innerHTML=scenes.map(sc=>`<section><h3>${sc.title}</h3>${sc===modernScene?renderModern(4):`<p>${captionHTML(sc)}</p><p>${sc.detail.replace('¹','')}</p><p>${latex(sc.eq)}</p>`}</section>`).join('');\n addEventListener('scroll',schedule,{passive:true});",
+      "after": " addEventListener('scroll',schedule,{passive:true});",
+      "reason": "Remove transcript initialization together with its section so the scroll lesson still starts correctly."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=training-pair-clean",
+      "after": "app.js?v=reading-removed",
+      "reason": "Refresh the lesson after removing the reading section and its initializer."
+    },
+    {
+      "file": "index.html",
+      "before": "      <h3>Sources &amp; further reading</h3>\n      <p class=\"reference\">Visual and conceptual inspiration: Chris Olah (2014), <a href=\"https://colah.github.io/posts/2014-07-NLP-RNNs-Representations/\">Deep Learning, NLP, and Representations</a>. The central idea is that useful representations can emerge from learning a prediction task.</p>\n      <p class=\"reference\">Tomas Mikolov, Kai Chen, Greg Corrado, and Jeffrey Dean (2013), <a href=\"https://arxiv.org/abs/1301.3781\">Efficient Estimation of Word Representations in Vector Space</a>.</p>\n      <p class=\"reference\">Network architecture and derivation: Xin Rong, <a href=\"https://arxiv.org/html/1411.2738v4\">word2vec Parameter Learning Explained</a>, especially the skip-gram model and its linear hidden layer.</p>\n      <p class=\"reference\">Beyond Word2vec: Devlin et al. (2019), <a href=\"https://aclanthology.org/N19-1423/\">BERT</a>, illustrates richer, contextual representations that can support word-level tasks. Its internal representations are for tokens, which may be parts of words. Reimers and Gurevych (2019), <a href=\"https://aclanthology.org/D19-1410/\">Sentence-BERT</a>, illustrates models trained to represent whole texts. A more advanced model need not change the unit you embed: choose words, passages, or documents according to the task.</p>\n      <p class=\"reference\">For an API example, see OpenAI’s <a href=\"https://developers.openai.com/api/docs/guides/embeddings\">vector embeddings guide</a> (checked October 27, 2026). A request supplies text and an embedding model; the response includes one vector for each supplied text. This runs the trained model rather than training a new model for each request.</p>\n",
+      "after": "      <h3>Works cited</h3>\n      <p class=\"reference\">Chris Olah (2014), <a href=\"https://colah.github.io/posts/2014-07-NLP-RNNs-Representations/\">Deep Learning, NLP, and Representations</a>.</p>\n      <p class=\"reference\">Tomas Mikolov, Kai Chen, Greg Corrado, and Jeffrey Dean (2013), <a href=\"https://arxiv.org/abs/1301.3781\">Efficient Estimation of Word Representations in Vector Space</a>.</p>\n      <p class=\"reference\">Xin Rong, <a href=\"https://arxiv.org/html/1411.2738v4\">word2vec Parameter Learning Explained</a>.</p>\n",
+      "reason": "Use a concise Word2vec works-cited list without explanatory narration or the BERT, Sentence-BERT, and OpenAI guide citations, as requested in the browser comment."
     }
-  ]
+  ],
+  "archivedExploration": {
+    "path": "../../archive/word2vec-exploration/section.html",
+    "sourceCommit": "ca23823142ffe26c9076f4a6565e2053a1ff1a28",
+    "sha256": "410fa8fbabacfa3ed517bdbacf8b604cb0bbed56ca1e2413ec656bde89e77f9e",
+    "reason": "User requested removal of the Now use the word vectors section from the active lesson, with the complete material retained for future reuse."
+  }
 }

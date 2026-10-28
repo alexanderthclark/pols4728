@@ -17,7 +17,7 @@ assert.equal(baseline.schemaVersion, 1);
 const hash = value => createHash('sha256').update(value).digest('hex');
 const approved = JSON.parse(readFileSync(join(testDirectory, 'clarity-changes.json'), 'utf8'));
 function beforeRequestedClarifications(file, value) {
-  const replacements = approved.replacements.filter(change => change.file === file).toReversed();
+  const replacements = approved.replacements.filter(change => change.file === file && !change.archived).toReversed();
   let source = value.toString('utf8');
   for (const { before, after, reason } of replacements) {
     assert.equal(source.split(after).length - 1, 1, `Missing or repeated approved change: ${reason}`);
@@ -67,9 +67,13 @@ for (const [name, current] of Object.entries(sections)) {
 assert.ok(sections.hero.end <= sections.story.start && sections.story.end <= sections.afterword.start,
   'The original title, story, and afterword must remain in their original order.');
 
-const exploration = section(tag => attributes(tag).id === 'exploration-story', 'appended exploration');
-assert.ok(exploration.start >= sections.afterword.end,
-  'The new exploration must begin after the complete original afterword.');
+const archived = approved.archivedExploration;
+assert.ok(archived, 'Record the intentionally archived exploration.');
+const archive = readFileSync(resolve(siteRoot, archived.path), 'utf8');
+assert.equal(hash(archive), archived.sha256, 'Preserve the complete archived exploration fragment.');
+assert.ok(archive.includes('Now use the word vectors.') && archive.includes('id="exploration-references"'));
+assert.doesNotMatch(html, /id="exploration(?:-story|-references|-reading)?"/,
+  'The archived exploration must not appear in the active lesson.');
 
 const openingTags = [...html.matchAll(/<([A-Za-z][\w:-]*)\b[^>]*>/g)].map(match => match[0]);
 assert.equal(openingTags.filter(tag => classList(tag).includes('hero')).length, 1,
@@ -87,8 +91,9 @@ const moduleSources = openingTags
   .filter(({ type }) => type === 'module')
   .map(({ src = '' }) => src.replace(/^\.\//, ''));
 assert.ok(moduleSources.includes('app.js'), 'The original app.js must still load.');
-assert.ok(moduleSources.includes('exploration.js'), 'The appended exploration.js must load.');
+assert.ok(!moduleSources.includes('exploration.js'), 'Do not load the archived exploration.');
+assert.doesNotMatch(html, /href="exploration.css"/);
 assert.equal(moduleSources.filter(src => src === 'app.js').length, 1);
-assert.equal(moduleSources.filter(src => src === 'exploration.js').length, 1);
+assert.equal(moduleSources.filter(src => src === 'exploration.js').length, 0);
 
-console.log('Original-preservation checks passed: only the explicitly recorded neural-network clarification changes differ from the original. Original diagrams, calculations, styling, artwork, hero and afterword are preserved, and the exploration still follows them.');
+console.log('Original-preservation checks passed: only the explicitly recorded clarity changes differ from the original. Unrelated original diagrams, calculations, styling, artwork, hero and afterword are preserved, and the complete exploration is retained outside the published lesson.');

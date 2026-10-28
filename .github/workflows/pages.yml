@@ -83,6 +83,7 @@ jobs:
           node --check docs/word2vec/model.js
           node --check docs/word2vec/app.js
           node --check docs/word2vec/network.js
+          node --check docs/word2vec/modern.js
           node --check docs/word2vec/exploration.js
       - name: Check interactive lesson calculations
         run: |

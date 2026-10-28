@@ -3,10 +3,10 @@
 export const networkScene = {
   chapter: '01 · The prediction task',
   title: 'A small neural network learns the embedding.',
-  eq: String.raw`h_c=W_{\mathrm{in}}d_c,\qquad p=\operatorname{softmax}(W_{\mathrm{out}}h_c)`,
-  caption: 'Skip-gram is a shallow neural network with one linear hidden layer and a nonlinear softmax output.',
-  detail: 'This full-softmax example has six input units, two hidden units, and six output probabilities. Each hidden unit is one embedding coordinate.',
-  alt: 'A neural network with six one-hot input units, two linear hidden units, and six score units followed by nonlinear softmax. W in has 2 rows and 6 columns; W out has 6 rows and 2 columns. The support input selects hidden coordinates 0.6 and 0.4. Both coordinates contribute to every score, and softmax converts all scores into probabilities.'
+  eq: String.raw`z_c=W_{\mathrm{out}}h_c=W_{\mathrm{out}}W_{\mathrm{in}}d_c`,
+  caption: 'Skip-gram is a shallow neural network with one hidden layer using a linear activation function and a nonlinear softmax output.',
+  detail: 'The one-hot input maps linearly to the scores; this formulation has no bias terms.',
+  alt: 'A neural network whose one-hot input is a column vector with vocabulary-size rows and one column, shown as |V| by 1. It has six input units, two linear hidden units, and six score units followed by nonlinear softmax. W in has 2 rows and 6 columns; W out has 6 rows and 2 columns. The support input selects hidden coordinates 0.6 and 0.4. Both coordinates contribute to every score. With no bias terms, the two matrices compose a linear map from the input to the scores. Softmax then converts all scores into probabilities nonlinearly.'
 };
 
 export function renderNetwork(t, n, helpers) {
@@ -60,7 +60,7 @@ export function renderNetwork(t, n, helpers) {
   if (n) {
     // Stacked layers preserve readable neuron size on a narrow screen.
     s += m('d_c', 47, 57, 85, 32, 22, BLUE);
-    s += text('one-hot', 47, 83, 12, MUTED);
+    s += m(String.raw`|V|\times 1`, 47, 83, 90, 26, 15, BLUE);
     s += text('support', inputs[1][0], 94, 12, BLUE);
     s += m(String.raw`W_{\mathrm{in}}`, 49, 120, 94, 32, 22, BLUE);
     s += m(String.raw`2\times 6`, 49, 146, 90, 28, 17, BLUE);
@@ -89,7 +89,7 @@ export function renderNetwork(t, n, helpers) {
     s += text('six probabilities, in vocabulary order', 250, 448, 11, MUTED);
   } else {
     s += m('d_c', 110, 49, 100, 36, 26, BLUE);
-    s += text('one-hot input', 110, 79, 14, MUTED);
+    s += m(String.raw`|V|\times 1`, 110, 79, 100, 32, 18, BLUE);
     s += m(String.raw`W_{\mathrm{in}}`, 248, 49, 180, 36, 27, BLUE);
     s += m(String.raw`k\times |V|=2\times 6`, 248, 79, 210, 32, 18, BLUE);
     s += m('h_c', 380, 49, 100, 36, 27, BLUE);
