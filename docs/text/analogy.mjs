@@ -1,3 +1,5 @@
+import {latex} from './math.mjs';
+
 const clamp = value => Math.max(0, Math.min(1, value));
 
 const examples = {
@@ -5,7 +7,7 @@ const examples = {
   capitals: {words:['France','Paris','Germany','Berlin'], relation:'Capital city'}
 };
 
-const vector = word => `<i>v</i>(${word})`;
+const vector = word => String.raw`v_{\mathrm{${word}}}`;
 
 /** Constructed coordinates make a familiar vector relationship visible. */
 export function wordAnalogy(progress, {reducedMotion=false, stage=0, example='royalty'}={}) {
@@ -44,8 +46,8 @@ export function wordAnalogy(progress, {reducedMotion=false, stage=0, example='ro
       <text x="340" y="370" text-anchor="middle" fill="#007f73" font-size="21" opacity="${copyOpacity.toFixed(3)}" aria-hidden="true">Translate the same step</text>
     </svg>
     <div class="analogy-equations">
-      <p class="analogy-relation">${vector(b)} − ${vector(a)} ≈ ${vector(d)} − ${vector(c)}</p>
-      <p class="analogy-arithmetic" style="opacity:${arithmetic.toFixed(3)}" aria-hidden="${arithmetic<.9}">${vector(b)} − ${vector(a)} + ${vector(c)} ≈ ${vector(d)}</p>
+      <p class="analogy-relation">${latex(String.raw`${vector(b)} - ${vector(a)} \approx ${vector(d)} - ${vector(c)}`)}</p>
+      <p class="analogy-arithmetic" style="opacity:${arithmetic.toFixed(3)}" aria-hidden="${arithmetic<.9}">${latex(String.raw`${vector(b)} - ${vector(a)} + ${vector(c)} \approx ${vector(d)}`)}</p>
     </div>
     <p class="visual-note analogy-note">Schematic geometry · illustrative coordinates</p>
   </div>`;
