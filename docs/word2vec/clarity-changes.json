@@ -457,6 +457,12 @@
       "before": "app.js?v=output-caption",
       "after": "app.js?v=training-pair-clean",
       "reason": "Refresh the training-pair scene after removing the requested text."
+    },
+    {
+      "file": "index.html",
+      "before": "    <section class=\"afterword\" id=\"references\">\n      <p class=\"eyebrow\">What the model leaves us with</p>\n      <h2>A representation learned through prediction.</h2>\n      <p>The input matrix stores a vector for every word. The output matrix makes those vectors useful for predicting context during training. Training both together can produce structure that we can reuse after the prediction task is finished.</p>\n      <div class=\"closing-math\" data-math=\"\\underbrace{W_{\\mathrm{in}}}_{\\text{input vectors}}\\quad\\longrightarrow\\quad\\text{representations for other tasks}\"></div>\n      <div class=\"notes\">",
+      "after": "    <section class=\"afterword\" id=\"references\">\n      <div class=\"notes\">",
+      "reason": "Remove the redundant afterword summary, its introductory label, and equation as requested in the browser comment; retain the notes and sources."
     }
   ],
   "archivedExploration": {
