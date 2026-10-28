@@ -120,6 +120,13 @@
       "description": "Two round torsoless explorers enter a sparse monochrome cave of giant outlined vector arrows. One raises a lantern; the other in an explorer hat climbs over a low arrow.",
       "sha256": "01ca0a521167f4057265fff3ef4aea2cb8c48ae0c42c46f83a25ed118edc8d5b",
       "usage": "Opening title scene. Preserve full composition, white background and proportions. Title and word labels remain real HTML text. Generated with the built-in image tool from the established course character reference."
+    },
+    {
+      "path": "docs/text/assets/speech-bag.png",
+      "role": "text-bag-of-words-illustration",
+      "description": "A Lincoln-like round, torso-less figure with stovepipe hat and chin beard gives a speech to a cheerful round, torso-less figure holding an open cloth sack. Sparse monochrome outlines on a transparent field.",
+      "sha256": "5d5bc2f9866108ef6743be0804ea5c91772a41e5349b88acc03c403a30cded4d",
+      "usage": "Text explainer opening and bag-of-words cartoon. speech-cartoon.mjs overlays a speaking mouth and real word labels, with reversible scroll-driven motion and an optional standalone player. Preserve proportions, transparency, and full composition. Generated artwork contains no baked-in words."
     }
   ]
 }
