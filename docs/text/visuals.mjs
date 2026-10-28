@@ -1,12 +1,10 @@
 import {speechCartoon} from './speech-cartoon.mjs';
-import {wordAnalogy} from './analogy.mjs';
-import {latex, mathLabel, escapeText as esc} from './math.mjs';
-import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine,cbowExample,cbowStep} from './model.mjs';
+import {latex, escapeText as esc} from './math.mjs';
+import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine} from './model.mjs';
 
 const clamp=x=>Math.max(0,Math.min(1,x));
 const mix=(a,b,t)=>a+(b-a)*t;
 const fmt=(n,d=2)=>Math.abs(n)<1e-9?'0':n.toFixed(d);
-const vec=a=>String.raw`\begin{bmatrix}${a.map(n=>fmt(n)).join('&')}\end{bmatrix}`;
 const svg=(body,label)=>`<svg viewBox="0 0 680 390" role="img" aria-label="${esc(label)}">${body}</svg>`;
 const txt=(x,y,t,extra='')=>`<text x="${x}" y="${y}" ${extra.includes('font-size=')?'':'font-size="26"'} ${extra}>${esc(t)}</text>`;
 const line=(x1,y1,x2,y2,color='#767676',extra='')=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="2" ${extra}/>`;
@@ -54,20 +52,6 @@ export function tfVisual(stage,p,motion=true){
   if(stage===2)return `<h4 class="visual-title">Document rarity becomes a weight</h4><div class="idf-comparison">${['the','budget','passed'].map(t=>{const s=termStats(t,0);return `<div><span>${t}</span>${latex(String.raw`\ln\!\left(\frac{4}{${s.df}}\right)=${fmt(s.idf,3)}`)}</div>`;}).join('')}</div>`+equation(String.raw`\operatorname{idf}(t)=\ln\!\left(\frac{N}{\operatorname{df}(t)}\right)`);
   if(stage===3){const q=motion?clamp((p-2.5)*2):1,vals=counts.map((r,i)=>r.map((v,j)=>mix(v,tfidf[i][j],q))),scale=mix(1,s.idf,q);return matrix(vals,{focus:term,doc:0,decimals:2,weighted:true,caption:q<1?'From counts to TF–IDF weights':'TF–IDF weights'})+equation(String.raw`2\times ${fmt(scale,3)}=${fmt(2*scale,3)}`)+note(q<1?'Scroll to reweight each vocabulary column.':'D1 · budget: count × inverse document frequency');}
   return `<h4 class="visual-title">TF–IDF cosine similarity</h4><div class="bars">${[1,2,3].map(i=>{const v=cosine(tfidf[0],tfidf[i]);return `<div class="bar-row"><span>D1 with D${i+1}</span><div class="bar-track"><div class="bar-fill" style="width:${v*100}%"></div></div><span class="bar-value">${fmt(v,3)}</span></div>`;}).join('')}</div>`+equation(String.raw`\cos\theta=\frac{x^{\mathsf T}y}{\lVert x\rVert\,\lVert y\rVert}`)+note('0: no weighted overlap · 1: the same direction');
-}
-
-const sentence=()=>`<div class="token-line">${cbowExample.sentenceTokens.map((w,i)=>`<span class="token ${i===1?'target':i===0||i===2?'context':''}">${w}</span>`).join('')}</div>`;
-export function wordVisual(stage,p,motion=true){
-  if(stage>=6)return wordAnalogy(stage===8?clamp((p-7.5)*2):p-6,{reducedMotion:!motion,stage:stage===8?1:stage-6,example:stage===8?'capitals':'royalty'});
-  if(stage===0)return svg(line(120,280,570,280)+line(120,280,120,40)+`<path d="M120 280H380" stroke="#234e70" stroke-width="5"/><path d="M120 280V40" stroke="#a54f32" stroke-width="5"/>`+txt(380,324,'senate','text-anchor="middle"')+txt(145,55,'parliament')+mathLabel(190,150,460,70,String.raw`\begin{bmatrix}1&0\end{bmatrix}\begin{bmatrix}0\\1\end{bmatrix}=0`,30),'Separate vocabulary axes give senate and parliament zero dot product.')+note('Separate coordinates do not encode related usage.');
-  if(stage===1)return sentence()+equation(String.raw`P(\mathrm{senate}\mid\mathrm{the},\mathrm{debated})`)+note('Solid outline: context · dashed outline: target');
-  if(stage===2){const q=motion?clamp((p-1.5)*2):1;return svg(txt(150,38,'the','text-anchor="middle"')+txt(530,38,'debated','text-anchor="middle"')+
-    mathLabel(40,65,220,60,vec(cbowExample.inputVectors.the))+mathLabel(420,65,220,60,vec(cbowExample.inputVectors.debated))+
-    line(150,140,mix(150,340,q),mix(140,220,q),'#234e70')+line(530,140,mix(530,340,q),mix(140,220,q),'#234e70')+
-    mathLabel(150,235,380,65,String.raw`h=${vec(cbowExample.averageVector)}`,30)+mathLabel(40,310,600,80,String.raw`h=\dfrac{v_{\mathrm{the}}+v_{\mathrm{debated}}}{2}`,26),'The input vectors for the and debated are averaged to the context vector h.');}
-  if(stage===3)return `<h4 class="visual-title">Candidate center words</h4><div class="bars probability-bars">${cbowExample.words.map(w=>`<div class="bar-row ${w==='senate'?'target':''}"><span>${w}${w==='senate'?' ←':''}</span><div class="bar-track"><div class="bar-fill" style="width:${cbowExample.probabilities[w]*100}%"></div></div><span class="bar-value">${fmt(cbowExample.probabilities[w]*100,1)}%</span></div>`).join('')}</div>`+equation(String.raw`P(w\mid C)=\frac{\exp(u_w^{\mathsf T}h)}{\sum_j\exp(u_j^{\mathsf T}h)}`)+note('Target: senate · probability 21.0% · loss 1.559');
-  if(stage===4){const q=motion?clamp((p-3.5)*2):1,after=cbowStep(.5*q).after;return `<h4 class="visual-title">One simultaneous gradient step</h4>`+equation(String.raw`\theta_{\mathrm{new}}=\theta-0.5\,\nabla L(\theta)`)+`<div class="bars"><div class="bar-row"><span>Before</span><div class="bar-track"><div class="bar-fill" style="width:${cbowExample.probabilities.senate*100}%"></div></div><span class="bar-value">21.0%</span></div><div class="bar-row target"><span>Updated</span><div class="bar-track"><div class="bar-fill" style="width:${after.probabilities.senate*100}%"></div></div><span class="bar-value">${fmt(after.probabilities.senate*100,1)}%</span></div></div><div class="metric-line">${latex(String.raw`L=${fmt(after.loss,3)}`)}</div>`+note('Probability of the observed target, senate')+`<div class="context-update">${latex(String.raw`h=${vec(after.averageVector)}`)}</div>`;}
-  return `<div class="flow"><div class="flow-box">the <span class="context-target">senate</span> debated</div><div class="flow-box">the <span class="context-target">parliament</span> debated</div><p class="shared-context">Shared context<br>Related training signals</p></div>`+note('A mechanism for learning from usage.');
 }
 
 export function inspectTerm(term='budget',doc=0){

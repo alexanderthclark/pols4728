@@ -189,7 +189,7 @@ noscript{display:block;padding:30px}
   .ai-attribution{font-size:11px;margin:10px 0}.ai-feature-counts{font-size:11px;padding-top:9px;min-height:28px;gap:7px}.feature-number{margin-left:5px}
   .analogy-scene{height:33svh}.analogy-equations{font-size:16px}.analogy-note{font-size:11px;margin-top:7px}
   .ending,.reading,.transcript,.exploration{padding:50px 22px}.reading,.transcript,.exploration{padding-top:20px}.ending h2,.reading h2,.transcript h2,.exploration h2{font-size:32px}
-  .comparison{font-size:16px;min-width:490px}.term-controls{font-size:13px;gap:9px}.explore-equations .math{font-size:18px}
+  .comparison{font-size:16px;min-width:0}.term-controls{font-size:13px;gap:9px}.explore-equations .math{font-size:18px}
 }
 @media(max-height:700px) and (max-width:979px){
   .scene-body{gap:10px;padding:10px 0}.scene-copy h3{font-size:25px;margin-bottom:8px}.scene-copy p{font-size:16px;line-height:1.3;margin-bottom:8px}.scene-copy .small{font-size:12px;line-height:1.3}

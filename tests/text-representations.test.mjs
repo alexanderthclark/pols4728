@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { documents, tokenize, vocabulary, counts, termStats, tfidf, cosine, cbowExample, cbowStep } from '../docs/text/model.mjs';
+import { documents, tokenize, vocabulary, counts, termStats, tfidf, cosine } from '../docs/text/model.mjs';
 
 function close(actual, expected, tolerance = 1e-12) {
   assert.ok(Math.abs(actual - expected) < tolerance, `${actual} ≈ ${expected}`);
@@ -59,73 +59,4 @@ test('cosine compares direction and explicitly handles zero vectors', () => {
   assert.throws(() => cosine([1], [1, 2]), RangeError);
   // Parliament/health and Senate/health share only the health coordinate.
   close(cosine(tfidf[2], tfidf[3]), 0.5);
-});
-
-test('CBOW context is the actual symmetric window around senate', () => {
-  const { sentenceTokens, targetIndex, windowRadius, targetWord, contextWords } = cbowExample;
-  assert.equal(sentenceTokens.join(' '), 'the senate debated the budget');
-  assert.equal(sentenceTokens[targetIndex], targetWord);
-  const actualWindow = sentenceTokens.slice(targetIndex - windowRadius, targetIndex + windowRadius + 1)
-    .filter((_, offset) => offset !== windowRadius);
-  assert.deepEqual(contextWords, actualWindow);
-  assert.deepEqual(cbowExample.averageVector, [0.5, 0.5]);
-  assert.equal(cbowExample.dimensions, 2);
-});
-
-test('CBOW scores, normalized probabilities and log loss match independent arithmetic', () => {
-  const expectedScores = { the: -0.3, senate: 0.3, parliament: 0.2, debated: 0, budget: 0.1, health: 0 };
-  const denominator = Math.exp(-0.3) + Math.exp(0.3) + Math.exp(0.2) + 1 + Math.exp(0.1) + 1;
-  for (const word of cbowExample.words) {
-    close(cbowExample.scores[word], expectedScores[word]);
-    close(cbowExample.probabilities[word], Math.exp(expectedScores[word]) / denominator);
-  }
-  close(Object.values(cbowExample.probabilities).reduce((sum, value) => sum + value, 0), 1);
-  close(cbowExample.loss, Math.log(denominator) - 0.3);
-});
-
-test('a simultaneous gradient update changes the context inputs and all outputs', () => {
-  const original = JSON.stringify(cbowExample);
-  const { before, after, gradients } = cbowStep(0.5);
-  assert.ok(after.probabilities.senate > before.probabilities.senate);
-  assert.ok(after.loss < before.loss);
-  close(after.loss, -Math.log(after.probabilities.senate));
-  close(gradients.outputVectors.senate[0], (before.probabilities.senate - 1) / 2);
-  close(gradients.outputVectors.budget[1], before.probabilities.budget / 2);
-  close(after.outputVectors.senate[0], 0.2 - 0.5 * (before.probabilities.senate - 1) / 2);
-  for (const word of cbowExample.words) {
-    if (cbowExample.contextWords.includes(word)) {
-      assert.notDeepEqual(after.inputVectors[word], before.inputVectors[word]);
-    } else {
-      assert.deepEqual(after.inputVectors[word], before.inputVectors[word]);
-    }
-    assert.notDeepEqual(after.outputVectors[word], before.outputVectors[word]);
-  }
-  assert.deepEqual(cbowStep(0).after, cbowStep(0).before);
-  assert.equal(JSON.stringify(cbowExample), original);
-  assert.deepEqual(cbowStep(), cbowStep());
-  assert.throws(() => cbowStep(-1), RangeError);
-  assert.throws(() => cbowStep(Infinity), RangeError);
-});
-
-test('all CBOW parameter gradients agree with independent finite differences', () => {
-  // Recompute the objective here, independently of the module's evaluation helper.
-  const { before, gradients } = cbowStep(0);
-  function objective(inputs, outputs) {
-    const h = [0, 1].map(k => (inputs.the[k] + inputs.debated[k]) / 2);
-    const scores = cbowExample.words.map(word => outputs[word][0] * h[0] + outputs[word][1] * h[1]);
-    return Math.log(scores.reduce((sum, score) => sum + Math.exp(score), 0)) - scores[1];
-  }
-  const epsilon = 1e-6;
-  for (const tableName of ['inputVectors', 'outputVectors']) {
-    for (const word of cbowExample.words) {
-      for (const coordinate of [0, 1]) {
-        const plus = structuredClone(before);
-        const minus = structuredClone(before);
-        plus[tableName][word][coordinate] += epsilon;
-        minus[tableName][word][coordinate] -= epsilon;
-        const numerical = (objective(plus.inputVectors, plus.outputVectors) - objective(minus.inputVectors, minus.outputVectors)) / (2 * epsilon);
-        close(gradients[tableName][word][coordinate], numerical, 3e-10);
-      }
-    }
-  }
 });

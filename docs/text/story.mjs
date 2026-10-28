@@ -1,6 +1,6 @@
 import {chapters} from './lesson.mjs';
 import {updateAiExample} from './ai-example.mjs';
-import {bagVisual,tfVisual,wordVisual,inspectTerm} from './visuals.mjs';
+import {bagVisual,tfVisual,inspectTerm} from './visuals.mjs';
 import {prose} from './math.mjs';
 import {documents,vocabulary} from './model.mjs';
 
@@ -41,7 +41,7 @@ function render(){
     v.copy.style.transform=`translateY(${Math.sign(stage-raw)*fade*10}px)`;
     if(v.chapter.id==='ai-writing')updateAiExample(v.visual,stage,p,{reducedMotion:!state.motion});
     else{
-      const draw=v.chapter.id==='bag-of-words'?bagVisual:v.chapter.id==='tf-idf'?tfVisual:wordVisual;
+      const draw=v.chapter.id==='bag-of-words'?bagVisual:tfVisual;
       html(v.visual,draw(stage,p,state.motion));
     }
     v.bar.style.width=`${raw/(v.chapter.stages.length-1)*100}%`;

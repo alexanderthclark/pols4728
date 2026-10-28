@@ -4,11 +4,11 @@ import test from 'node:test';
 
 const require = createRequire(import.meta.url);
 globalThis.katex = require('../docs/word2vec/vendor/katex/katex.min.js');
-const {bagVisual, tfVisual, wordVisual, countAssembly, inspectTerm} = await import('../docs/text/visuals.mjs');
+const {bagVisual, tfVisual, countAssembly, inspectTerm} = await import('../docs/text/visuals.mjs');
 const {aiExample} = await import('../docs/text/ai-example.mjs');
 const {prose} = await import('../docs/text/math.mjs');
 const {chapters} = await import('../docs/text/lesson.mjs');
-const {documents, vocabulary, counts, tfidf, tokenize, cbowExample, cbowStep} = await import('../docs/text/model.mjs');
+const {documents, vocabulary, counts, tfidf, tokenize} = await import('../docs/text/model.mjs');
 
 const rounded = (value, places = 3) => Number(value.toFixed(places));
 const attributes = tag => [...tag.matchAll(/([\w:-]+)="([^"]*)"/g)].map(([, name, value]) => [name, value]);
@@ -35,7 +35,7 @@ function checkMarkup(markup, label) {
 }
 
 test('every diagram and explanation renders valid mathematics and finite geometry', () => {
-  const renderers = {'bag-of-words': bagVisual, 'tf-idf': tfVisual, word2vec: wordVisual};
+  const renderers = {'bag-of-words': bagVisual, 'tf-idf': tfVisual};
   for (const chapter of chapters) {
     for (const [stage, scene] of chapter.stages.entries()) {
       for (const motion of [true, false]) {
@@ -120,16 +120,5 @@ test('every explorer term and document displays the matching counts and TF–IDF
       assert.equal(Number(weight), rounded(tf * Math.log(documents.length / df)));
       checkMarkup(markup, `${term} in D${doc + 1}`);
     }
-  }
-});
-
-test('the rendered word2vec update recomputes probabilities and loss along the parameter step', () => {
-  for (const [progress, step] of [[3.5, 0], [3.75, 0.25], [4, 0.5]]) {
-    const markup = wordVisual(4, progress);
-    const expected = cbowStep(step).after;
-    const widths = [...markup.matchAll(/class="bar-fill" style="width:([\d.]+)%"/g)].map(match => Number(match[1]));
-    assert.equal(widths[0], cbowExample.probabilities.senate * 100);
-    assert.equal(widths[1], expected.probabilities.senate * 100);
-    assert.ok(texExpressions(markup).includes(`L=${expected.loss.toFixed(3)}`));
   }
 });

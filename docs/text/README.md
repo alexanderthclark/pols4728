@@ -1,15 +1,16 @@
 # Bag of Words
 
 A standalone scrollytelling lesson for POLS 4728: an opening question about
-recognizable writing habits, followed by bag of words, TF–IDF, and word2vec.
-The linked chapters are `#ai-writing`, `#bag-of-words`, `#tf-idf`, and `#word2vec`.
+recognizable writing habits, followed by bag of words and TF–IDF.
+The linked chapters are `#ai-writing`, `#bag-of-words`, and `#tf-idf`. A short
+closing comparison links to the separate word2vec lesson; `#word2vec` remains
+a valid anchor to that paragraph.
 
 ## Narrative and presentation
 
 The same four constructed political documents connect tokenization, the
 shared vocabulary, count vectors, and TF–IDF. Scrolling sends individual speech
-words into a bag, moves tokens into a count matrix, reweights its columns,
-averages CBOW context vectors, and applies one calculated gradient step.
+words into a bag, moves tokens into a count matrix, and reweights its columns.
 Reverse scrolling retraces these changes. Reduced motion uses completed states.
 The title and all text remain selectable; character artwork is registered in
 `design/assets.json`.
@@ -41,13 +42,6 @@ No package installation or site build is required; serve `docs/` and open `/text
   removed. Common words and repeated tokens are retained; no stemming.
 - Raw-count TF × ln(N/df), without smoothing or vector normalization. Cosine
   similarity adjusts vector length at comparison time.
-- A six-word, two-coordinate CBOW example with distinct input and output tables,
-  a symmetric radius-one context, and full softmax. Parameters are illustrative,
-  not corpus-trained. Both tables update simultaneously; intermediate displayed
-  probabilities are recomputed from the fractional parameter step.
-- Analogy diagrams use constructed coordinates. The same displacement translates
-  between man/king and woman/queen, then between country/capital pairs. These
-  pictures illustrate the geometry, not an empirical fit.
 - Mosteller–Wallace's approximate “upon” rates are per 1,000 words in their
   comparison writings. The chart is not an authorship classifier by itself.
 - Erwin–Oakes's Greek common-word comparison uses 500-word samples and 75 common
@@ -62,16 +56,15 @@ and the supporting reading. Font licenses accompany the local font files.
 ## Verification
 
 ```sh
-node --test tests/text-representations.test.mjs tests/speech-motion.test.mjs tests/text-analogy.test.mjs tests/text-rendering.test.mjs
+node --test tests/text-representations.test.mjs tests/speech-motion.test.mjs tests/text-rendering.test.mjs
 node scripts/build-text-transcript.mjs --check
 ```
 
-The 24 tests check numerical values, every CBOW gradient against finite
-differences, token accounting, deterministic reversible motion, 156 diagram
-states, LaTeX validity, shared vocabulary counts, all 28 explorer selections,
-and analogy translation. They do not replace browser review.
+The 16 tests check numerical values, token accounting, deterministic reversible
+motion, 102 diagram states, LaTeX validity, shared vocabulary counts, and all 28
+explorer selections. They do not replace browser review.
 
-Browser review covered all 26 scenes at 1280×820, 768×1024, 390×844, 375×667,
+Browser review covered all 17 retained scenes at 1280×820, 768×1024, 390×844, 375×667,
 and 320×568. Layout checks found no horizontal overflow or text/navigation
 collisions. Manual checks covered actual forward/backward scrolling, pinned
 intermediate states, keyboard navigation, completed reduced-motion states,
