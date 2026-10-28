@@ -30,7 +30,7 @@ export function renderCosine(t, n, helpers) {
     n ? 200 : 500, 35, n ? 390 : 800, 44, n ? 20 : 27);
   s += line(ox, oy, a[0], a[1], RUST, 3, true, '6 4');
   s += line(ox, oy, b[0], b[1], BLUE, 2.7, true);
-  s += m('q', a[0] - 19, a[1] - 19, 50, 34, n ? 23 : 28, RUST);
+  s += m('q', a[0] - (n ? 19 : 44), a[1] + (n ? -19 : 18), 50, 34, n ? 23 : 28, RUST);
   s += m(String.raw`h_{\text{queen}}`, b[0] + (n ? 32 : 52), b[1] + 20,
     n ? 100 : 160, 42, n ? 20 : 26, BLUE);
   s += text('0', ox - 12, oy + 17, 13, MUTED);
