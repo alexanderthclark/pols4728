@@ -62,7 +62,7 @@ export const chapters = [
       },
       {
         "title": "Group inflections with lemmatization.",
-        "text": "Lemmatization maps inflected words to dictionary forms: “debated” and “debating” become “debate”; “senators” becomes “senator.” It pools evidence across forms, but also removes distinctions such as tense and number.",
+        "text": "",
         "note": "This step is optional. Our worked matrix keeps the original word forms.",
         "visual": "lemma",
         "readingText": "Lemmatization maps an inflected word to its dictionary form, or lemma. For example, “debated” and “debating” can be counted under “debate,” and “senators” under “senator.” Pooling these forms can make a representation less sparse, but it also removes distinctions in how the text was written. Choosing a lemma can depend on part of speech and context. Stemming is a different approach that typically uses rules to strip word endings; its output need not be a dictionary word.",
