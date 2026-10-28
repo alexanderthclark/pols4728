@@ -231,7 +231,6 @@ function init(){
  story.style.height=`${100+1300*scenes.length/15}svh`;
  document.querySelectorAll('[data-math]').forEach(el=>el.innerHTML=latex(el.dataset.math));
  document.querySelector('#modern-alternatives').innerHTML=renderModern();
- document.querySelector('#transcript').innerHTML=scenes.map(sc=>`<section><h3>${sc.title}</h3>${sc===modernScene?renderModern(4):`<p>${captionHTML(sc)}</p><p>${sc.detail.replace('¹','')}</p><p>${latex(sc.eq)}</p>`}</section>`).join('');
  addEventListener('scroll',schedule,{passive:true});addEventListener('resize',()=>{lastKey='';schedule()});update();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();

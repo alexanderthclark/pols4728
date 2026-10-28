@@ -463,6 +463,30 @@
       "before": "    <section class=\"afterword\" id=\"references\">\n      <p class=\"eyebrow\">What the model leaves us with</p>\n      <h2>A representation learned through prediction.</h2>\n      <p>The input matrix stores a vector for every word. The output matrix makes those vectors useful for predicting context during training. Training both together can produce structure that we can reuse after the prediction task is finished.</p>\n      <div class=\"closing-math\" data-math=\"\\underbrace{W_{\\mathrm{in}}}_{\\text{input vectors}}\\quad\\longrightarrow\\quad\\text{representations for other tasks}\"></div>\n      <div class=\"notes\">",
       "after": "    <section class=\"afterword\" id=\"references\">\n      <div class=\"notes\">",
       "reason": "Remove the redundant afterword summary, its introductory label, and equation as requested in the browser comment; retain the notes and sources."
+    },
+    {
+      "file": "index.html",
+      "before": "<body>\n  <a class=\"skip\" href=\"#reading\">Skip to the reading version</a>\n",
+      "after": "<body>\n",
+      "reason": "Remove the skip link to the reading section that the instructor requested removing."
+    },
+    {
+      "file": "index.html",
+      "before": "      <details id=\"reading\"><summary>Read the complete explanation</summary><div id=\"transcript\"></div></details>\n      <a class=\"return\"",
+      "after": "      <a class=\"return\"",
+      "reason": "Remove the complete-reading section as requested in the browser comment."
+    },
+    {
+      "file": "app.js",
+      "before": " document.querySelector('#transcript').innerHTML=scenes.map(sc=>`<section><h3>${sc.title}</h3>${sc===modernScene?renderModern(4):`<p>${captionHTML(sc)}</p><p>${sc.detail.replace('¹','')}</p><p>${latex(sc.eq)}</p>`}</section>`).join('');\n addEventListener('scroll',schedule,{passive:true});",
+      "after": " addEventListener('scroll',schedule,{passive:true});",
+      "reason": "Remove transcript initialization together with its section so the scroll lesson still starts correctly."
+    },
+    {
+      "file": "index.html",
+      "before": "app.js?v=training-pair-clean",
+      "after": "app.js?v=reading-removed",
+      "reason": "Refresh the lesson after removing the reading section and its initializer."
     }
   ],
   "archivedExploration": {

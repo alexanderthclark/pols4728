@@ -10,8 +10,8 @@ mathematical notation.
 
 Serve `docs/word2vec/` with any local static web server and open its `index.html` over
 HTTP. No build step or external runtime request is needed. Scroll forward to
-develop the explanation and backward to revisit earlier states. The page also
-provides a complete reading version and links to its sources.
+develop the explanation and backward to revisit earlier states. Notes and links
+to the sources follow the scroll sequence.
 
 The scroll sequence covers the context-prediction task, training pairs, one-hot
 identity, input-matrix columns, embedding lookup, output-matrix rows, dot-product
@@ -94,7 +94,7 @@ The added code lives in `exploration.js`, with CSS scoped to the added
 section in `exploration.css`. It does not override the original title or
 story styles. `original-preservation.test.mjs` checks the original file hashes,
 exact original title/story/afterword markup and unique IDs against
-`preservation.json`, allowing only the explicit requested clarifications recorded
+`preservation.json`, allowing only the explicit requested changes recorded
 in `clarity-changes.json`. The original baseline is never replaced. The check also verifies the archived
 fragment hash and that the active page no longer loads the exploration. Run it with the model and render checks above, plus
 `node exploration-math.test.mjs` and `node exploration-render.test.mjs`.
@@ -126,8 +126,7 @@ A separate scroll step then compares their directions and rescales both arrows
 to unit length while preserving their angle. Cosine similarity is the normalized
 dot product; cosine distance is one minus that similarity. The comparison uses
 the full embeddings in practice, not coordinates from a 2D projection.
-`cosine.js` shares the illustrative coordinates across the two scenes. The
-reading version includes the same explanation.
+`cosine.js` shares the illustrative coordinates across the two scenes.
 
 The cosine revision was reviewed at desktop width and in a 390 × 844 viewport,
 including forward/backward scrolling, keyboard navigation, and the reduced-motion
@@ -144,13 +143,13 @@ with OpenAI’s as an example, represent a whole passage or document with one
 vector. These are useful alternatives, not mutually exclusive model categories.
 
 The slide is a concise, native HTML list with one explanation per item. It
-remains part of the pinned scroll sequence and appears in the reading version.
+remains part of the pinned scroll sequence.
 
 The afterword retains the explanation of contextual word/token representations
 and whole-text vectors, with BERT, Sentence-BERT, and OpenAI’s official guide as
 sources. The page makes no API requests.
 
 Browser review checked the desktop layout and a 320 × 568 phone viewport,
-forward/backward scrolling, keyboard navigation, reduced motion, and the reading
-version. All five Word2vec validation scripts pass; the main render harness covers
-144 scene/phase/layout states and 147 distinct KaTeX formulas.
+forward/backward scrolling, keyboard navigation, and reduced motion.
+All five Word2vec validation scripts pass; the main render harness covers
+144 scene/phase/layout states and 146 distinct KaTeX formulas.
