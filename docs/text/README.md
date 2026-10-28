@@ -1,4 +1,6 @@
-# Bag of Words
+# Text as Data
+
+Bag of Words and TF–IDF
 
 A standalone scrollytelling lesson for POLS 4728: an opening question about
 recognizable writing habits, followed by bag of words and TF–IDF.
