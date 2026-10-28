@@ -10,6 +10,7 @@ filename below to view, copy, or download its source.
 | [errors_objects.py](errors_objects.py) | The same calculation using a class | Python standard library |
 | [cv_selection_bias.py](cv_selection_bias.py) | Selection bias from choosing the lower cross-validation error | NumPy |
 | [atus_selection_leakage.py](atus_selection_leakage.py) | Predictor selection using the full ATUS sample | NumPy, pandas, external ATUS data |
+| [sage_duplicate_features.py](sage_duplicate_features.py) | SAGE and refitted ablation with duplicate features | NumPy, pandas, sage-importance |
 
 ## Run the examples
 
@@ -62,3 +63,33 @@ The example deliberately selects a predictor using the entire sample. It
 illustrates data leakage, not a recommended model-selection procedure. If you
 keep the data in another directory, run Python from that directory and provide
 the path to the script; the data filename is resolved from the working directory.
+
+## SAGE and duplicate features
+
+`sage_duplicate_features.py` reproduces the interpretability notes' example:
+`X1 = X2 = Y`, with equally likely values `-1` and `+1`. These two rows describe
+the entire toy population, rather than an empirical train/test split. Least
+squares returns the minimum-norm model `0.5 * X1 + 0.5 * X2`.
+
+The optional Python implementation uses the [`sage-importance` package](https://github.com/iancovert/sage)
+(imported as `sage`). From this directory, it can be run with:
+
+```sh
+python -m pip install -r requirements.txt
+python sage_duplicate_features.py
+```
+
+The exact conditional SAGE benchmark is `[0.5, 0.5]`, and refitted drop-column
+ablation is zero up to floating-point rounding for each feature: either duplicate
+suffices after refitting.
+The package's `MarginalImputer` produces estimates near `[0.5, 0.5]` as well,
+but it uses a different removal rule. Marginal imputation breaks the dependence
+between the duplicates, giving singleton-coalition loss `0.25`; the exact
+conditional rule gives loss zero. Their final SAGE values agree in this example
+because the fitted model is symmetric, not because the two rules are equivalent.
+
+The printed standard errors describe Monte Carlo approximation error only,
+not uncertainty from estimating the data distribution or fitting a model.
+Estimates vary slightly across runs. The script uses a finite permutation
+budget because automatic convergence detection is unsuitable when the two
+true importances are equal.

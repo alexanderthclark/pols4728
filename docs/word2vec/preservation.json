@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "description": "Original 15-scene Word2vec lesson captured before appending the word-vector exploration. Preserve these bytes; append new content only after the original afterword.",
+  "algorithm": "SHA-256",
+  "files": {
+    "app.js": "0e09eeb25345c0f646fea9b9feca531fcf61c740cf5e43d1d3818e2dfd8e6b87",
+    "style.css": "05d043768dbd9951b3a5eedb5e29981b14b7ab48a331a235e38f153638aedb40",
+    "model.js": "9b37848d07f6fc559d2ea2df33802304cec398f4aa616ac3af385b2d508f17fc",
+    "assets/vector-cave.png": "01ca0a521167f4057265fff3ef4aea2cb8c48ae0c42c46f83a25ed118edc8d5b"
+  },
+  "sections": {
+    "hero": {
+      "sha256": "8c68e6233c52794f9cf7555e7c4333a6826f1c4c71b7a3fdffa9a5e270543e60",
+      "content": "<section class=\"hero\" aria-labelledby=\"title\">\n      <div class=\"hero-copy\">\n        <p class=\"eyebrow\">Learning representations</p>\n        <h1 id=\"title\">Word2vec</h1>\n        <p class=\"subtitle\">How predicting nearby words<br class=\"wide-only\"> creates a geometry.</p>\n        <p class=\"intro\">A word begins as a name in a vocabulary. How does it become a vector with useful relationships to other words?</p>\n        <a class=\"begin\" href=\"#story\">Follow the words <span aria-hidden=\"true\">↓</span></a>\n      </div>\n      <figure class=\"hero-art\">\n        <img src=\"assets/vector-cave.png\" width=\"1536\" height=\"1024\" alt=\"Two round, torsoless explorers enter a cavern of enormous arrows. One holds up a lantern; the other climbs over a vector, looking apprehensive.\">\n        <span class=\"word-label king\">king</span><span class=\"word-label man\">man</span><span class=\"word-label queen\">queen</span><span class=\"word-label woman\">woman</span>\n      </figure>\n    </section>"
+    },
+    "story": {
+      "sha256": "824908f9a7a7eba93e9904c1af18fddee67430376006746b57f1d3db9d066fcf",
+      "content": "<section id=\"story\" class=\"story\" aria-label=\"Scroll through the word2vec explanation\">\n      <div class=\"stage\">\n        <div class=\"progress-track\" aria-hidden=\"true\"><div id=\"progress\"></div></div>\n        <div class=\"stage-top\"><span id=\"chapter\">01 · The prediction task</span><span id=\"counter\">1 / 15</span></div>\n        <h2 id=\"scene-title\">Learn from the words around a word.</h2>\n        <div id=\"equation\" class=\"equation\"></div>\n        <div class=\"visual\"><svg id=\"diagram\" role=\"img\" aria-label=\"The current step in the skip-gram model\"></svg></div>\n        <div class=\"narration\"><p id=\"caption\"></p><p id=\"detail\"></p></div>\n        <div class=\"stage-bottom\"><span id=\"scope\">Skip-gram word2vec<sup><a href=\"#cbow\" aria-label=\"Footnote 1: alternative architecture\">1</a></sup></span><span>Scroll to unfold · scroll back to revisit</span></div>\n      </div>\n    </section>"
+    },
+    "afterword": {
+      "sha256": "a497d31f33d36f8dba7880d42317a0a62b92f337ba7726de39f05ee14e042bcf",
+      "content": "<section class=\"afterword\" id=\"references\">\n      <p class=\"eyebrow\">What the model leaves us with</p>\n      <h2>A representation learned through prediction.</h2>\n      <p>The input matrix stores a vector for every word. The output matrix makes those vectors useful for predicting context during training. Training both together can produce structure that we can reuse after the prediction task is finished.</p>\n      <div class=\"closing-math\" data-math=\"\\underbrace{W_{\\mathrm{in}}}_{\\text{input vectors}}\\quad\\longrightarrow\\quad\\text{representations for other tasks}\"></div>\n      <div class=\"notes\">\n        <p id=\"cbow\"><sup>1</sup> Word2vec also has an alternative architecture, continuous bag of words (CBOW).</p>\n        <p><sup>2</sup> This lesson uses full softmax and omits bias terms. The six-word, two-coordinate model has illustrative starting weights and demonstrates the calculations; it is not a useful semantic model. The final geometric sketches are separate illustrations, not results fitted to these sentences.</p>\n      </div>\n      <h3>Sources &amp; further reading</h3>\n      <p class=\"reference\">Visual and conceptual inspiration: Chris Olah (2014), <a href=\"https://colah.github.io/posts/2014-07-NLP-RNNs-Representations/\">Deep Learning, NLP, and Representations</a>. The central idea is that useful representations can emerge from learning a prediction task.</p>\n      <p class=\"reference\">Tomas Mikolov, Kai Chen, Greg Corrado, and Jeffrey Dean (2013), <a href=\"https://arxiv.org/abs/1301.3781\">Efficient Estimation of Word Representations in Vector Space</a>.</p>\n      <details id=\"reading\"><summary>Read the complete explanation</summary><div id=\"transcript\"></div></details>\n      <a class=\"return\" href=\"#title\">Back to the beginning ↑</a>\n    </section>"
+    }
+  }
+}

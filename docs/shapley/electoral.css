@@ -1,0 +1,74 @@
+/* Electoral colors encode emphasis and selection, without party associations. */
+body.is-electoral-section{--blue:#242424;--blue-soft:#e9e9e9;--blue-faint:#f5f5f5;--blue-border:#bdbdbd;--blue-glow:#24242460}
+.stage-shell.is-electoral-scene .voters,
+.stage-shell.is-electoral-scene .voting-rule,
+.stage-shell.is-electoral-scene .graph-container,
+.stage-shell.is-electoral-scene .graph-caption{display:none}
+.stage-shell.is-electoral-scene .stage-bottom{text-align:center}
+.electoral-view{width:100%;max-width:640px;align-self:center;color:var(--ink);--electoral-emphasis:var(--ink)}
+.electoral-scene{width:100%}
+.electoral-heading{margin:0 0 8px;font-family:var(--serif);font-size:clamp(19px,2.1vw,27px);font-weight:400;line-height:1.25;letter-spacing:-.015em}
+.electoral-model{margin:0 0 10px;color:var(--muted);font-size:13px;line-height:1.5}
+.electoral-tally,.electoral-scatter{display:block;width:100%;height:auto;overflow:visible;font-family:var(--font)}
+.electoral-tally-label{font-size:14px;fill:var(--ink)}
+.electoral-tally-votes{font-size:14px;fill:var(--muted)}
+.electoral-ca-text{fill:var(--electoral-emphasis)}
+.electoral-coalition-bar{fill:var(--blue-soft);stroke:var(--blue);stroke-width:1.25}
+.electoral-ca-bar{fill:var(--electoral-emphasis);stroke:var(--electoral-emphasis);stroke-width:1.25}
+.electoral-quota-line{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:4 3}
+.electoral-quota-label{font-size:12px;fill:var(--ink)}
+.electoral-tick{stroke:var(--rule);stroke-width:1}
+.electoral-tick-label{font-size:12px;fill:var(--muted)}
+.electoral-change{display:flex;align-items:center;justify-content:center;gap:22px;margin:12px 0 14px;font-size:15px;line-height:1.4}
+.electoral-change>span{white-space:nowrap}
+.electoral-payoff{font-family:var(--serif);font-size:28px;line-height:1;margin-left:4px}
+.electoral-winning{color:var(--electoral-emphasis)}
+.electoral-axis{stroke:var(--rule);stroke-width:1;fill:none}
+.electoral-proportional-line{stroke:var(--rule);stroke-width:1.25;stroke-dasharray:5 4}
+.electoral-axis-caption{font-size:13px;fill:var(--ink)}
+.electoral-reference-caption{font-size:12px;fill:var(--muted)}
+.electoral-state-point{fill:var(--blue);stroke:#fff;stroke-width:.6}
+.electoral-selected-point{fill:none;stroke:var(--electoral-emphasis);stroke-width:2}
+.electoral-point-label{font-size:13px;fill:var(--blue);paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round}
+.electoral-label-leader{stroke:var(--blue);stroke-width:1;fill:none}
+.electoral-state-control{display:flex;align-items:center;gap:14px;margin-top:20px}
+.electoral-state-control label{color:var(--muted);font-size:13px;line-height:1.35}
+.electoral-state-control select{flex:1;min-width:0;min-height:44px;padding:9px 12px;border:1px solid var(--rule);border-radius:3px;background:#fff;color:var(--ink);font-size:14px}
+.electoral-readout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:17px 0 0;padding-top:12px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.electoral-readout>div{min-width:0}
+.electoral-readout dt{margin:0 0 5px;color:var(--muted);font-size:12px;line-height:1.3}
+.electoral-readout dd{margin:0;font-size:20px;line-height:1.2;color:var(--blue)}
+.electoral-readout>div:last-child dd{color:var(--electoral-emphasis)}
+.electoral-selection-note{margin:12px 0 0;font-size:12px;line-height:1.5;color:var(--muted)}
+.electoral-selection-note>span{display:block}
+.electoral-step .step-content{min-width:0;width:100%}
+.electoral-method{margin:24px 0;font-size:14px;line-height:1.6}
+.electoral-method summary{cursor:pointer;min-height:44px;display:list-item;align-content:center;color:var(--blue)}
+.step .electoral-method p{font-size:14px;margin:12px 0}
+@media(max-width:370px){.electoral-step .value-definition math{font-size:18px}}
+@media(max-width:760px){
+  .stage-shell.is-electoral-scene{height:56svh;min-height:370px;padding-top:12px;padding-bottom:9px}
+  .is-electoral-scene .stage-top{gap:8px}
+  .is-electoral-scene .stage-count{font-size:10px;text-align:right}
+  .is-electoral-scene .stage-bottom{font-size:10px;line-height:1.4;min-height:26px}
+  .electoral-heading{font-size:19px;margin-bottom:5px}
+  .electoral-model{font-size:12px;margin-bottom:4px}
+  .electoral-tally-label,.electoral-tally-votes{font-size:13px}
+  .electoral-change{gap:14px;margin:7px 0 8px;font-size:13px}
+  .electoral-payoff{font-size:23px}
+  .electoral-axis-caption{font-size:12px}
+  .electoral-point-label{font-size:12px}
+  .electoral-state-control{gap:10px;margin-top:10px}
+  .electoral-state-control label{max-width:72px;font-size:12px}
+  .electoral-state-control select{font-size:13px;padding:8px}
+  .electoral-readout{gap:8px;margin-top:10px;padding-top:8px}
+  .electoral-readout dt{font-size:11px;margin-bottom:3px}
+  .electoral-readout dd{font-size:17px}
+  .electoral-selection-note{font-size:11px;line-height:1.4;margin-top:7px}
+}
+@media(min-width:761px) and (max-height:700px){
+  .electoral-scatter{max-height:245px}
+  .electoral-state-control{margin-top:10px}
+  .electoral-readout{margin-top:10px;padding-top:8px}
+  .electoral-selection-note{margin-top:8px}
+}

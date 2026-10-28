@@ -87,6 +87,41 @@
       "usage": "Opening title of the Imbalanced Data explainer. Preserve the full pole and wire, original proportions, transparency, and clear space; keep the title as real HTML text."
     },
     {
+      "path": "docs/shapley/assets/electoral-ballot-characters.png",
+      "role": "shapley-electoral-transition-illustration",
+      "description": "Two equally sized round, torso-less figures at a single ballot box. A figure holding a surfboard pushes a large handful of ballots into the slot; a figure wearing a cowboy hat holds exactly three ballots. Sparse black outlines on a white field, without state labels or outlines.",
+      "sha256": "9825b0c557d6060f9298e1b4c0d27bda6bcea27fcf01a0ec02c1d8b855ba3800",
+      "usage": "User-approved transition into the Electoral College application in the Shapley story. The surfboard and cowboy hat suggest California and Wyoming. Preserve the full composition, proportions, monochrome palette, and clear space; keep the Application: US Electoral College title as real HTML text."
+    },
+    {
+      "path": "design/assets/torso-less-character-lineup.png",
+      "role": "character-style-specimen",
+      "description": "Head-on and right-facing profile views of the same round, torso-less figure in the established SHAP character family. Arms and legs attach directly to the face-and-body circle, with no neck or separate torso. Sparse monochrome outlines and faint alignment rules on a transparent field.",
+      "sha256": "96476d63e7cc8bd0d76ee35778ecd4d63344a08ccada62f0837cb303ed8c77cd",
+      "usage": "Human character anatomy reference for course explainers and illustrated title scenes. Preserve equal scale, complete limbs, round proportions, white interiors, and transparency. Keep view labels and explanatory text outside the image."
+    },
+    {
+      "path": "docs/neural-networks/assets/blacksmith-sine.webp",
+      "role": "neural-networks-title-illustration",
+      "description": "A round, torso-less blacksmith holds a hammer and tongs over a continuous heated rod resting partly on an anvil. Angular bends transition into a sine wave. Sparse black contours with a rust-orange heat accent on the rod, on a transparent field.",
+      "sha256": "6a267bb6fb303878f9a9e71f661bfe20472fc06cc6ea6fe9021ea4a113c1c2f6",
+      "usage": "Opening title of the ReLU neural-network scrollytelling lesson. Preserve transparency, full composition, proportions, and clear space. The heated rod is a user-requested color exception to the default monochrome character art. Keep all titles and mathematical explanations as real HTML text."
+    },
+    {
+      "path": "docs/sgd/assets/hovercraft-descent.png",
+      "role": "sgd-title-illustration",
+      "description": "Two round, torso-less figures steer separate small racing hovercraft down a hilly landscape with a coarse triangular mesh. Sparse black contours, white interiors, and pale gray facets on a transparent field.",
+      "sha256": "458d723cba4750e80b74789da80492956f2af509d600d9aba7605ee394a805b3",
+      "usage": "Opening title of the stochastic gradient descent explainer. Preserve transparency, the complete terrain and both hovercraft, original proportions, and clear space. Keep the Training neural networks title and Stochastic Gradient Descent subtitle as real HTML text."
+    },
+    {
+      "path": "docs/word2vec/assets/vector-cave.png",
+      "role": "word2vec-title-illustration",
+      "description": "Two round torsoless explorers enter a sparse monochrome cave of giant outlined vector arrows. One raises a lantern; the other in an explorer hat climbs over a low arrow.",
+      "sha256": "01ca0a521167f4057265fff3ef4aea2cb8c48ae0c42c46f83a25ed118edc8d5b",
+      "usage": "Opening title scene. Preserve full composition, white background and proportions. Title and word labels remain real HTML text. Generated with the built-in image tool from the established course character reference."
+    },
+    {
       "path": "docs/text/assets/speech-bag.png",
       "role": "text-bag-of-words-illustration",
       "description": "A Lincoln-like round, torso-less figure with stovepipe hat and chin beard gives a speech to a cheerful round, torso-less figure holding an open cloth sack. Sparse monochrome outlines on a transparent field.",

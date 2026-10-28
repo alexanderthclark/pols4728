@@ -1,5 +1,5 @@
 import { coalition, mean, marginal } from './calculation.mjs';
-import { valueMarkup } from './formula.js';
+import { backgroundAverageMarkup, valueMarkup } from './formula.js';
 
 const labels = ['bread', 'peace'];
 const notation = {labels, names:['bread', 'peace']};
@@ -52,34 +52,64 @@ function modelEquation(data) {
 
 function renderCorrelations(data) {
   const correlations = [
-    ['Between the two features', '<mi>ρ</mi><mo>=</mo><msub><mi>r</mi><mrow><mtext>bread</mtext><mo>,</mo><mtext>peace</mtext></mrow></msub>', data.refit.featureCorrelation],
-    ['Bread and observed vote', '<msub><mi>r</mi><mrow><mtext>bread</mtext><mo>,</mo><mi>y</mi></mrow></msub>', data.refit.breadVoteCorrelation],
-    ['Peace and observed vote', '<msub><mi>r</mi><mrow><mtext>peace</mtext><mo>,</mo><mi>y</mi></mrow></msub>', data.refit.peaceVoteCorrelation],
+    ['Between the two features', '<mi>ρ</mi><mo>=</mo><msub><mi>r</mi><mrow><mtext class="bread-predictor">bread</mtext><mo>,</mo><mtext class="bread-predictor">peace</mtext></mrow></msub>', data.refit.featureCorrelation],
+    ['Bread and observed vote', '<msub><mi>r</mi><mrow><mtext class="bread-predictor">bread</mtext><mo>,</mo><mi class="bread-outcome">y</mi></mrow></msub>', data.refit.breadVoteCorrelation],
+    ['Peace and observed vote', '<msub><mi>r</mi><mrow><mtext class="bread-predictor">peace</mtext><mo>,</mo><mi class="bread-outcome">y</mi></mrow></msub>', data.refit.peaceVoteCorrelation],
   ];
-  return `<h3>Start with three correlations</h3><p class="bread-context">Bread, peace, and observed vote share y are centered and standardized: mean 0, SD 1.</p><div class="bread-correlations">${correlations.map(([label,symbol,value]) => `<section><p>${label}</p>${math(`${symbol}<mo>=</mo>${numeral(value)}`,`${label}: correlation ${format(value)}`)}</section>`).join('')}</div><p class="input-note">These are stipulated correlations for a stylized Bread and Peace example.</p>`;
+  return `<h3>Start with three correlations (stylized Hibbs model)</h3><p class="bread-context"><span class="bread-predictor">Bread, peace</span>, and <span class="bread-outcome">observed vote share ${math('<mi class="bread-outcome">y</mi>', 'y')}</span> are centered and standardized: mean 0, SD 1.</p><div class="bread-correlations">${correlations.map(([label,symbol,value]) => `<section><p>${label}</p>${math(`${symbol}<mo>=</mo>${numeral(value)}`,`${label}: correlation ${format(value)}`)}</section>`).join('')}</div><p class="input-note">These are stipulated correlations for a stylized Bread and Peace example.</p>`;
 }
 
-function renderFits(data) {
-  return `<h3>The three OLS fits</h3><div class="bread-fits">${[
-    ['Bread-only OLS','bread',data.refit.breadOnlyCoefficient],
-    ['Peace-only OLS','peace',data.refit.peaceOnlyCoefficient],
-  ].map(([label,feature,coefficient]) => `<section><h4>${label}</h4>${math(`<msub>${yHat}<mtext>${feature}</mtext></msub><mo>=</mo>${numeral(coefficient)}<mo>×</mo><mtext>${feature}</mtext>`,`${label}: y hat equals ${format(coefficient)} times ${feature}`)}</section>`).join('')}<section class="bread-full-fit"><h4>Bivariate OLS · the model we explain</h4>${modelEquation(data)}</section></div><p class="input-note">All intercepts are zero. The univariate slopes equal the feature–vote correlations; the bivariate slopes adjust for the feature correlation.</p>`;
+function coalitionPredictionEquation(mask, observation) {
+  const inputs = point(observation,mask);
+  const result = coalition(observation,mask).value;
+  return `<div class="bread-coalition-equation" role="math" aria-label="v sub x of ${mask === 3 ? 'bread and peace' : 'bread'} equals y hat of ${inputs.map(format).join(', ')} equals ${format(result)}"><span aria-hidden="true">${valueMarkup(mask,notation)}</span><span aria-hidden="true">${math(`<mo>=</mo>${prediction(inputs)}`, 'model prediction')}</span><span aria-hidden="true">${math(`<mo>=</mo>${numeral(result)}`,format(result))}</span></div>`;
+}
+
+function renderFullPrediction(data, observation) {
+  return `<h3>Both features are fixed</h3><div class="bread-full-model">${modelEquation(data)}</div>${focalInputs(observation)}${coalitionPredictionEquation(3,observation)}<p class="refit-instruction">Use this election’s bread and peace values in the fitted two-feature model.</p><p class="bread-prediction-unit">Predictions: SD of vote share.</p>`;
 }
 
 function focalInputs(observation) {
-  return `<p class="bread-context">This election: bread = ${format(observation.values[0])}, peace = ${format(observation.values[1])}. Inputs to ŷ are written in that order.</p>`;
+  return `<p class="bread-context">This election: ${math(`<mtext>bread</mtext><mo>=</mo>${numeral(observation.values[0])}`, `bread equals ${format(observation.values[0])}`)}, ${math(`<mtext>peace</mtext><mo>=</mo>${numeral(observation.values[1])}`, `peace equals ${format(observation.values[1])}`)}. Inputs to ${math(yHat, 'y hat')} are written in that order.</p>`;
 }
 
 export function breadPeaceMeanPredictionMarkup(observation) {
   const bread = numeral(observation.values[0]);
   const predictionWithPeace = `${yHat}${parentheses(`${bread}<mo>,</mo><mtext>peace</mtext>`)}`;
   const breadValue = `<msub><mi>v</mi><mi>x</mi></msub>${parentheses('<mo stretchy="false">{</mo><mtext>bread</mtext><mo stretchy="false">}</mo>')}`;
-  return `<span class="bread-mean-bridge"><span class="bread-mean-equation" role="math" aria-label="v sub x of bread is the average of y hat of ${format(observation.values[0])}, peace over background peace values, which equals y hat of ${format(observation.values[0])}, zero"><math aria-hidden="true"><mrow>${breadValue}<mo>=</mo><munder><mtext>average</mtext><mtext>background peace</mtext></munder>${predictionWithPeace}</mrow></math><math aria-hidden="true"><mrow><mo>=</mo>${prediction(point(observation,1))}</mrow></math></span></span>`;
+  return `<span class="bread-mean-bridge"><span class="bread-mean-equation" role="math" aria-label="v sub x of bread is the average of y hat of ${format(observation.values[0])}, peace over background peace values, which by linearity and background mean peace zero equals y hat of ${format(observation.values[0])}, zero"><math aria-hidden="true"><mrow>${breadValue}<mo>=</mo></mrow></math><math aria-hidden="true"><mrow><munder><mtext>average</mtext><mtext>background peace</mtext></munder>${predictionWithPeace}</mrow></math><math aria-hidden="true"><mrow><mover accent="false"><mo>=</mo><mtext class="linearity-annotation">by linearity</mtext></mover>${prediction(point(observation,1))}</mrow></math></span></span>`;
 }
 
-function renderRefit(data, observation) {
-  const fixed = coalition(observation,1).value;
-  return `<h3>Which prediction does SHAP use?</h3>${focalInputs(observation)}<p class="bread-focal-prediction">${math(`${prediction(observation.values)}<mo>=</mo>${numeral(observation.prediction)}`,`The bivariate prediction for this election is ${format(observation.prediction)}`)}</p><div class="refit-comparison"><section class="refit-unused"><h4>Bread-only OLS</h4><p>Use the univariate coefficient, 0.75.</p><p class="refit-equation">0.75 × (${format(observation.values[0])})</p><div class="refit-result">${format(observation.reducedPrediction)}<small>Reduced model · not used for SHAP</small></div></section><section><h4>Bivariate OLS; peace averaged</h4><p>Keep both coefficients; average background peace.</p><p class="refit-equation">${math(prediction(point(observation,1)), 'The original bivariate model with this election’s bread held fixed and peace at its background mean.')}</p><div class="refit-result">${format(fixed)}<small>${valueMarkup(1,notation)}<br>The value in our SHAP game</small></div></section></div>`;
+function renderRefit(data, observation, complete = false) {
+  const bread = observation.values[0];
+  const reduced = data.refit.breadOnlyCoefficient;
+  const reducedY = `<msub>${yHat}<mtext>bread</mtext></msub>`;
+  return `<h3>What if only bread is fixed?</h3><p class="bread-fixed-input">${valueMarkup(1,notation)} = ? &nbsp; Bread in this election: ${math(numeral(bread),format(bread))}.</p><div class="refit-transform${complete ? ' refit-complete' : ''}"><section class="refit-candidate${complete ? ' is-hidden' : ''}" aria-hidden="${complete}"><h4>A bread-only refit changes the model</h4><div class="refit-equation">${math(`${reducedY}<mo>=</mo>${numeral(reduced)}<mo>×</mo><mtext>bread</mtext>`, `The bread-only model has slope ${format(reduced)}`)}</div><div class="refit-result">${math(`${reducedY}${parentheses(numeral(bread))}<mo>=</mo>${numeral(observation.reducedPrediction)}`, `The refitted model predicts ${format(observation.reducedPrediction)}`)}</div><p class="refit-warning">Not used for SHAP. We do not refit the model.</p></section><section class="refit-correct${complete ? '' : ' is-hidden'}" aria-hidden="${!complete}"><h4>Keep the model; average over peace</h4>${modelEquation(data)}<p class="refit-instruction">Hold bread fixed; use all eight background peace values, without conditioning on bread.</p>${breadPeaceMeanPredictionMarkup(observation)}<p class="refit-note">Mean peace is 0. This shortcut need not hold for nonlinear models.</p>${coalitionPredictionEquation(1,observation)}<p class="bread-prediction-unit">Predictions: SD of vote share.</p></section></div>`;
+}
+
+const clamp = value => Math.max(0, Math.min(1,value));
+
+export function updateBreadPeaceProgress(container, scene, progress, reducedMotion = false) {
+  const transform = container.querySelector('.refit-transform');
+  if (!transform) return;
+  const p = scene === 'ols-bread-value' ? 1 : reducedMotion ? (progress < .5 ? 0 : 1) : clamp(progress);
+  const gray = clamp((p-.12)/.22);
+  const shrink = clamp((p-.3)/.3);
+  const outgoing = 1-clamp((p-.4)/.2);
+  const incoming = clamp((p-.66)/.22);
+  const channel = Math.round(36+60*gray);
+  transform.style.setProperty('--refit-color',`rgb(${channel}, ${channel}, ${channel})`);
+  transform.style.setProperty('--refit-scale',String(1-.28*shrink));
+  transform.style.setProperty('--refit-opacity',String(outgoing));
+  transform.style.setProperty('--correct-opacity',String(incoming));
+  transform.dataset.progress = String(p);
+  transform.dataset.phase = p < .3 ? 'refit' : p < .66 ? 'dismiss' : 'average';
+  const candidate = transform.querySelector('.refit-candidate');
+  const correct = transform.querySelector('.refit-correct');
+  candidate.classList.toggle('is-hidden',outgoing === 0);
+  correct.classList.toggle('is-hidden',incoming === 0);
+  candidate.setAttribute('aria-hidden',String(p >= .66));
+  correct.setAttribute('aria-hidden',String(p < .66));
 }
 
 function renderDifference(observation, feature, beforeMask) {
@@ -89,13 +119,15 @@ function renderDifference(observation, feature, beforeMask) {
   const contribution = after-before;
   const beforePoint = point(observation,beforeMask), afterPoint = point(observation,afterMask);
   const label = feature === 0 ? 'Bread' : 'Peace';
-  const group = beforeMask ? `{${labels[1-feature]}}` : '∅';
+  const group = beforeMask
+    ? math(`<mo stretchy="false">{</mo><mtext>${labels[1-feature]}</mtext><mo stretchy="false">}</mo>`, `the set containing ${labels[1-feature]}`)
+    : math('<mo>∅</mo>', 'the empty set');
   return `<section class="bread-order-step"><h4>${label} joins ${group}</h4><div class="bread-difference" role="math" aria-label="${label} marginal: y hat of ${afterPoint.join(', ')} minus y hat of ${beforePoint.join(', ')} equals ${format(after)} minus ${format(before)} equals ${signed(contribution)}"><math aria-hidden="true"><mrow>${prediction(afterPoint)}<mo>−</mo>${prediction(beforePoint)}</mrow></math><math aria-hidden="true" class="${contribution < 0 ? 'negative' : ''}"><mrow><mo>=</mo>${numeral(after)}<mo>−</mo>${before < 0 ? parentheses(numeral(before)) : numeral(before)}<mo>=</mo>${signedNumeral(contribution)}</mrow></math></div></section>`;
 }
 
 function renderOrder(data, observation, order) {
   const first = order[0], second = order[1];
-  return `<h3>${first === 0 ? 'Bread → Peace' : 'Peace → Bread'}</h3>${focalInputs(observation)}<p class="bread-model-label">Use the same bivariate equation for every prediction:</p>${modelEquation(data)}<p class="bread-baseline">${math(`${valueMarkupTextEmpty()}<mo>=</mo>${prediction([0,0])}<mo>=</mo><mn>0</mn>`,'The empty coalition value is y hat of zero, zero, which is zero')}</p><div class="bread-order">${renderDifference(observation,first,0)}${renderDifference(observation,second,1 << first)}</div>`;
+  return `<h3>${first === 0 ? 'Bread → Peace' : 'Peace → Bread'}</h3>${focalInputs(observation)}<p class="bread-model-label">Same linear model; unrevealed inputs use their background mean, 0:</p>${modelEquation(data)}<p class="bread-baseline">${math(`${valueMarkupTextEmpty()}<mo>=</mo>${prediction([0,0])}<mo>=</mo><mn>0</mn>`,'The empty coalition value is y hat of zero, zero, which is zero')}</p><div class="bread-order">${renderDifference(observation,first,0)}${renderDifference(observation,second,1 << first)}</div>`;
 }
 
 function valueMarkupTextEmpty() {
@@ -107,24 +139,47 @@ function averageEquation(observation,feature) {
   const second = marginal(observation,feature,1 << (1-feature));
   const result = observation.shapValues[feature];
   const half = '<mfrac><mn>1</mn><mn>2</mn></mfrac>';
-  return `<section class="bread-order-step"><h4>${feature === 0 ? 'Bread' : 'Peace'}</h4><div class="bread-average-equation" role="math" aria-label="The SHAP value for ${labels[feature]} equals one half times ${signed(first)} plus one half times ${signed(second)} equals ${signed(result)}"><math aria-hidden="true"><mrow><msub><mi>ϕ</mi><mtext>${labels[feature]}</mtext></msub>${parentheses('<mi>x</mi>')}<mo>=</mo>${half}<mo>×</mo>${parentheses(signedNumeral(first))}</mrow></math><math aria-hidden="true"><mrow><mo>+</mo>${half}<mo>×</mo>${parentheses(signedNumeral(second))}<mo>=</mo>${signedNumeral(result)}</mrow></math></div></section>`;
+  return `<section class="bread-order-step"><h4>${feature === 0 ? 'Bread' : 'Peace'}</h4><div class="bread-average-equation" role="math" aria-label="The SHAP value for ${labels[feature]} equals one half times ${signed(first)} plus one half times ${signed(second)} equals ${signed(result)}"><math aria-hidden="true"><mrow><msub><mi>ϕ</mi><mtext>${labels[feature]}</mtext></msub>${parentheses('<msub><mi>v</mi><mi>x</mi></msub>')}<mo>=</mo>${half}<mo>×</mo>${parentheses(signedNumeral(first))}</mrow></math><math aria-hidden="true"><mrow><mo>+</mo>${half}<mo>×</mo>${parentheses(signedNumeral(second))}<mo>=</mo>${signedNumeral(result)}</mrow></math></div></section>`;
 }
 
 export function breadPeaceDecompositionMarkup() {
-  const credit = feature => `<msub><mi>ϕ</mi><mtext>${feature}</mtext></msub>${parentheses('<mi>x</mi>')}`;
-  return `<span class="bread-decomposition-identity">${math(`${yHat}${parentheses('<mi>x</mi>')}<mo>=</mo>${prediction([0,0])}<mo>+</mo>${credit('bread')}<mo>+</mo>${credit('peace')}`, 'y hat of x equals y hat of zero, zero plus the SHAP contribution for bread plus the SHAP contribution for peace')}</span>`;
+  const credit = feature => `<msub><mi>ϕ</mi><mtext>${feature}</mtext></msub>${parentheses('<msub><mi>v</mi><mi>x</mi></msub>')}`;
+  return `<span class="bread-decomposition-identity" role="math" aria-label="y hat of x equals y hat of zero, zero plus the SHAP contribution for bread plus the SHAP contribution for peace"><math aria-hidden="true"><mrow>${yHat}${parentheses('<mi>x</mi>')}<mo>=</mo>${prediction([0,0])}</mrow></math><math aria-hidden="true"><mrow><mo>+</mo>${credit('bread')}</mrow></math><math aria-hidden="true"><mrow><mo>+</mo>${credit('peace')}</mrow></math></span>`;
 }
 
 function renderShap(data, observation) {
-  return `<h3>Average the two orders</h3>${focalInputs(observation)}<div class="bread-order-averages">${averageEquation(observation,0)}${averageEquation(observation,1)}</div><div class="bread-decomposition" role="group" aria-label="Baseline plus both SHAP contributions equals the predicted standardized vote"><span>Baseline<strong>0</strong></span><span>Bread<strong class="${observation.shapValues[0] < 0 ? 'negative' : ''}">${signed(observation.shapValues[0])}</strong></span><span>Peace<strong class="${observation.shapValues[1] < 0 ? 'negative' : ''}">${signed(observation.shapValues[1])}</strong></span><span>Prediction<strong>${format(observation.prediction)}</strong></span></div>`;
+  return `<h3>Average the two orders</h3>${focalInputs(observation)}<div class="bread-order-averages">${averageEquation(observation,0)}${averageEquation(observation,1)}</div><div class="bread-decomposition" role="group" aria-label="Baseline plus both SHAP contributions equals the predicted standardized vote"><span>Baseline<strong>0</strong></span><span>Bread<strong class="${observation.shapValues[0] < 0 ? 'negative' : ''}">${signed(observation.shapValues[0])}</strong></span><span>Peace<strong class="${observation.shapValues[1] < 0 ? 'negative' : ''}">${signed(observation.shapValues[1])}</strong></span><span>Prediction<strong>${format(observation.prediction)}</strong></span></div><p class="input-note">Two orders, each with weight 1/2. Predictions are in SD of vote share.</p>${breadPeaceDecompositionMarkup()}`;
+}
+
+function renderRecap(data, observation) {
+  const valueBody = `<msub><mi>v</mi><mi>x</mi></msub>${parentheses('<mi>S</mi>')}`;
+  const valueOfS = math(valueBody,'v sub x of S');
+  const included = '<msub><mi>x</mi><mi>S</mi></msub>';
+  const excludedIndex = '<mrow><mo>−</mo><mi>S</mi></mrow>';
+  const meanExcluded = `<msub><mover accent="true"><mi>x</mi><mo>¯</mo></mover>${excludedIndex}</msub>`;
+  const meanPrediction = `${yHat}${parentheses(`${included}<mo>,</mo>${meanExcluded}`)}`;
+  const equation = (body,label) => `<div class="recap-general-equation" role="math" aria-label="${label}"><math aria-hidden="true"><mrow>${valueBody}<mo>=</mo></mrow></math><math aria-hidden="true"><mrow>${body}</mrow></math></div>`;
+  const means = labels.map((_,index) => mean(data.background.map(row => row.values[index])));
+  const rows = [0,1,2,3].map(mask => {
+    const inputs = observation.values.map((value,index) => mask & (1 << index) ? value : means[index]);
+    const members = labels.filter((_,index) => mask & (1 << index));
+    const group = members.length ? `<mo stretchy="false">{</mo>${members.map(label => `<mtext>${label}</mtext>`).join('<mo>,</mo>')}<mo stretchy="false">}</mo>` : '<mo>∅</mo>';
+    const inputCells = inputs.map((value,index) => {
+      const included = Boolean(mask & (1 << index));
+      return `<td class="${included ? 'recap-fixed' : 'recap-mean'}"><span class="recap-input-name">${index === 0 ? 'Bread' : 'Peace'}</span>${math(numeral(value),`${labels[index]} equals ${format(value)}`)}<small>${included ? 'from this election' : 'background mean'}</small></td>`;
+    }).join('');
+    return `<tr><th scope="row">${math(group,`S contains ${members.length ? members.join(' and ') : 'no features'}`)}</th>${inputCells}<td class="recap-prediction">${math(`${prediction(inputs)}<mo>=</mo>${numeral(coalition(observation,mask).value)}`,`y hat of ${inputs.map(format).join(', ')} equals ${format(coalition(observation,mask).value)}`)}</td></tr>`;
+  }).join('');
+  return `<h3>What does ${valueOfS} mean?</h3><div class="recap-definitions"><div class="recap-general-definition"><p class="recap-rule">Interventional SHAP: average predictions</p>${backgroundAverageMarkup()}<p class="recap-qualification">Keep included inputs at this observation’s values; use every original background row for the other inputs, without conditioning.</p></div><div class="recap-generalization"><p class="recap-rule">Linear model: use mean excluded inputs</p>${equation(meanPrediction,'For a linear model, v sub x of S equals y hat evaluated at the observation’s included inputs and the overall background means of the excluded inputs.')}<p class="recap-legend">${math(meanExcluded,'x bar sub minus S')}: overall background means. This shortcut can fail for nonlinear models.</p></div></div><table class="coalition-recap-table"><caption>Bread and peace both have background mean 0.</caption><thead><tr><th scope="col">${math('<mi>S</mi>','S')}</th><th scope="col">Bread</th><th scope="col">Peace</th><th scope="col">${valueOfS}</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 export function renderBreadPeace(scene, data, observation) {
   if (scene === 'ols-model') return renderCorrelations(data);
-  if (scene === 'ols-fits') return renderFits(data);
-  if (scene === 'ols-refit') return renderRefit(data,observation);
+  if (scene === 'ols-fits') return renderFullPrediction(data,observation);
+  if (scene === 'ols-refit' || scene === 'ols-bread-value') return renderRefit(data,observation,scene === 'ols-bread-value');
   if (scene === 'ols-income-first') return renderOrder(data,observation,[0,1]);
   if (scene === 'ols-fatalities-first') return renderOrder(data,observation,[1,0]);
   if (scene === 'ols-shap') return renderShap(data,observation);
+  if (scene === 'ols-recap') return renderRecap(data,observation);
   throw new RangeError(`Unknown OLS scene: ${scene}`);
 }

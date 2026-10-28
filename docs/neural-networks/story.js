@@ -1,0 +1,141 @@
+(function(){
+  'use strict';
+  const State=window.NNStoryState,Views=window.NNViews;
+  const steps=Array.from(document.querySelectorAll('.step[data-scene]'));
+  const byId=id=>document.getElementById(id);
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  byId('story').classList.add('is-enhanced');
+  // Keep the print/no-JavaScript reading route while its sections supply
+  // scroll distances for the single visual stage and its concise caption.
+  byId('scroll-steps').setAttribute('aria-hidden','true');
+  byId('scroll-steps').setAttribute('inert','');
+  let currentIndex=0,renderSignature='',pending=0,inspectionX=null,lastFrame=null;
+  const chapter=scene=>scene.startsWith('generalize-')?'06 · Width and generalization':scene.startsWith('class-')?'05 · Learned representations':scene==='conflict'||scene.startsWith('sigmoid-')?'04 · Sigmoid classification':scene.startsWith('width-')?'02 · Width and joints':scene.startsWith('sine-')||scene==='universal'?'03 · Approximation':'01 · Shallow networks';
+  function update(){
+    pending=0;
+    const mobile=window.matchMedia('(max-width: 760px)').matches;
+    const stage=byId('story-stage');
+    // Align each scene's progress with the top of the whole pinned panel.
+    const focus=stage.getBoundingClientRect().top;
+    let index=0;
+    for(let i=0;i<steps.length;i++){if(steps[i].getBoundingClientRect().top<=focus)index=i;}
+    currentIndex=index;
+    const rect=steps[index].getBoundingClientRect(),scene=steps[index].dataset.scene;
+    let progress=Math.max(0,Math.min(1,(focus-rect.top)/Math.max(rect.height,1)));
+    // Quantization prevents needless SVG work on fractional-pixel scroll events.
+    progress=Math.round(progress*100)/100;
+    if(reduced)progress=State.reducedProgress(scene,progress);
+    const signature=scene+':'+progress+':'+(mobile?'compact':'desktop')+':'+(inspectionX===null?'story':inspectionX);
+    if(signature!==renderSignature){
+      renderSignature=signature;
+      const frame=State.frame(scene,progress);
+      frame.compact=mobile;
+      frame.reducedMotion=reduced;
+      if(reduced&&scene==='generalize-noise')frame.noiseMix=progress<.25?0:1;
+      const domain=frame.kind==='sine'?[0,2*Math.PI]:[-2,2];
+      if(inspectionX!==null&&!frame.hideInspector){
+        frame.x=Math.max(domain[0],Math.min(domain[1],inspectionX));
+        frame.inspectInput=true;
+      }
+      const input=byId('input-x');
+      input.min=String(domain[0]);input.max=String(domain[1]);input.value=String(frame.x);
+      input.setAttribute('aria-valuetext','x = '+frame.x.toFixed(2));
+      byId('input-x-value').textContent=frame.x.toFixed(2);
+      byId('input-inspector').hidden=!!frame.hideInspector;
+      byId('stage-shell').classList.toggle('is-extension',!!frame.hideInspector);
+      byId('stage-shell').classList.toggle('is-equation-only',!!frame.equationOnly);
+      byId('stage-shell').classList.toggle('is-model-comparison',!!frame.equationComparison);
+      byId('stage-shell').classList.toggle('is-input-zoom',scene==='generalize-zoom');
+      byId('stage-shell').classList.toggle('is-width-experiment',frame.kind==='width-experiment');
+      byId('stage-shell').style.setProperty('--input-zoom',frame.inputZoom||0);
+      byId('stage-shell').setAttribute('aria-label',frame.equationComparison?'Logistic regression and neural-network models':frame.equationOnly?'Historical neural-network model':'Function and neural network diagrams');
+      byId('figure-grid').hidden=!!frame.equationOnly;
+      byId('model-comparison').hidden=!frame.equationComparison;
+      byId('stage-equation').hidden=!!frame.equationComparison;
+      const comparison=byId('model-comparison');
+      comparison.dataset.phase=frame.comparisonPhase||'';
+      comparison.style.setProperty('--comparison-open',frame.comparisonOpen||0);
+      comparison.style.setProperty('--logistic-focus',1-(frame.comparisonOpen||0)*(frame.comparisonMix||0));
+      comparison.style.setProperty('--neural-focus',1-(frame.comparisonOpen||0)*(1-(frame.comparisonMix||0)));
+      byId('comparison-plots').hidden=!frame.comparisonPlots;
+      if(frame.comparisonPlots)window.NNComparisonViews.render(byId('comparison-probability-plot'),byId('comparison-boundary-plot'),frame);
+      else{byId('comparison-probability-plot').innerHTML='';byId('comparison-boundary-plot').innerHTML='';}
+      lastFrame=frame;
+      if(frame.equationOnly){byId('function-plot').innerHTML='';byId('network-plot').innerHTML='';}
+      else if(scene==='generalize-zoom')window.NNExtensionViews.render(byId('function-plot'),byId('network-plot'),{...frame,scene:'class-compare'});
+      else if(frame.kind==='width-experiment'){
+        byId('function-plot').innerHTML='';
+        if(scene==='generalize-errors')window.NNWidthViews.renderError(byId('network-plot'),frame);
+        else if(scene==='generalize-descent')window.NNWidthViews.renderSchematic(byId('network-plot'),frame);
+        else window.NNWidthViews.render(byId('network-plot'),frame);
+      }
+      else if(frame.hideInspector)window.NNExtensionViews.render(byId('function-plot'),byId('network-plot'),frame);
+      else Views.render(byId('function-plot'),byId('network-plot'),frame);
+      byId('function-label').textContent=frame.kind==='sigmoid'?'Predicted probability':frame.kind==='classification'?(frame.morph===1?'Learned representation':frame.morph>0?'Changing coordinates':'Original coordinates'):'Function';
+      byId('network-label').textContent=frame.kind==='sigmoid'?'Weighted hidden features':frame.kind==='classification'&&(scene==='class-move'||scene==='class-head'||scene==='class-compare')?'Original coordinates':'Network';
+      if(frame.widthExperiment)byId('network-label').textContent=scene==='generalize-errors'?'Measured errors on new observations':scene==='generalize-descent'?'Double descent · schematic':'Original coordinates';
+      const sceneTitle=steps[index].querySelector('h2,h3')?.textContent||scene;
+      byId('stage-part').textContent=chapter(scene);
+      byId('stage-name').textContent=sceneTitle;
+      byId('stage-count').textContent=String(index+1).padStart(2,'0')+' / '+steps.length;
+      byId('stage-intro').textContent=frame.intro||'';
+      byId('stage-intro').hidden=!frame.intro;
+      byId('stage-caption').textContent=frame.caption;
+      byId('stage-caption').hidden=!frame.caption;
+      const source=byId('stage-source');source.hidden=!frame.source;
+      if(frame.source){source.href=frame.source;source.textContent=frame.sourceLabel;}
+      window.NNFormula.render(byId('stage-equation'),frame);
+      if(frame.equationComparison){
+        window.NNFormula.render(byId('logistic-equation'),{equation:frame.logisticEquation,equationCompact:frame.logisticEquationCompact,compact:mobile});
+        window.NNFormula.render(byId('neural-equation'),{equation:frame.neuralEquation,equationCompact:frame.neuralEquationCompact,compact:mobile});
+      }
+      const activationModel=frame.model||(frame.kind==='relu'?window.NNMath.createShallow(0,[{t:0,a:1}]):null);
+      const counter=byId('active-neurons');
+      frame.hiddenCount=activationModel?activationModel.width:0;
+      frame.activeCount=activationModel?window.NNMath.contributions(activationModel,frame.x).filter(unit=>unit.activation>1e-8).length:0;
+      counter.hidden=!activationModel;
+      counter.textContent=activationModel?frame.activeCount+' of '+frame.hiddenCount+' neurons active · x = '+frame.x.toFixed(2):'';
+      if(byId('previous'))byId('previous').disabled=index===0;
+      const finalStop=State.stops(scene).at(-1),finished=index===steps.length-1&&progress>=finalStop-.04;
+      if(byId('next'))byId('next').disabled=finished;
+      byId('return-link').hidden=!finished;
+      byId('stage-instruction').hidden=finished;
+      if(byId('story-status')&&byId('story-status').dataset.scene!==scene){byId('story-status').dataset.scene=scene;byId('story-status').textContent=sceneTitle;}
+      steps.forEach((s,i)=>{s.classList.toggle('is-active',i===index);if(i===index)s.setAttribute('aria-current','step');else s.removeAttribute('aria-current');});
+      const story=byId('story');if(story)story.dataset.scene=scene;
+    }
+    const scrolled=window.scrollY||0,total=document.documentElement.scrollHeight-window.innerHeight;
+    if(byId('progress'))byId('progress').style.width=Math.max(0,Math.min(100,total?scrolled/total*100:0))+'%';
+  }
+  function queue(){if(!pending)pending=window.requestAnimationFrame(update);}
+  function go(delta){
+    let targetIndex=Math.max(0,Math.min(steps.length-1,currentIndex+delta)),stop=.12;
+    // Keyboard navigation visits every meaningful stop inside long scenes.
+    const currentStops=State.stops(steps[currentIndex].dataset.scene);
+    if(currentStops.length>1){
+      const p=lastFrame?.progress||0;
+      const internal=delta>0?currentStops.find(s=>s>p+.04):[...currentStops].reverse().find(s=>s<p-.04);
+      if(internal!==undefined){targetIndex=currentIndex;stop=internal;}
+    }
+    const target=steps[targetIndex];
+    if(targetIndex!==currentIndex)stop=delta<0?State.stops(target.dataset.scene).at(-1):State.stops(target.dataset.scene)[0];
+    const rect=target.getBoundingClientRect();
+    const offset=byId('story-stage').getBoundingClientRect().top;
+    // Land inside the scene so boundary rounding cannot select its predecessor.
+    window.scrollTo({top:(window.scrollY||0)+rect.top-offset+rect.height*stop,behavior:reduced?'auto':'smooth'});
+  }
+  if(byId('previous'))byId('previous').addEventListener('click',()=>go(-1));
+  if(byId('next'))byId('next').addEventListener('click',()=>go(1));
+  byId('input-x').addEventListener('input',e=>{
+    const value=Number(e.target.value);
+    if(Number.isFinite(value)){inspectionX=value;queue();}
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.altKey||e.ctrlKey||e.metaKey||/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName||''))return;
+    if(e.key==='ArrowRight'){e.preventDefault();go(1);}else if(e.key==='ArrowLeft'){e.preventDefault();go(-1);}
+  });
+  window.addEventListener('scroll',queue,{passive:true});window.addEventListener('resize',queue);
+  document.fonts?.ready.then(queue);
+  update();
+  window.NNScrollStory=Object.freeze({getFrame:()=>lastFrame,refresh:update});
+})();

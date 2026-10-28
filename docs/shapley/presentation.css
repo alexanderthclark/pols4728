@@ -1,0 +1,239 @@
+/* A shared visual stage, with one short caption for each scroll position. */
+body.is-presentation{--presentation-header:68px}
+.is-presentation .story{display:grid;grid-template-columns:minmax(0,1fr);position:relative;max-width:none;padding:0;gap:0}
+.is-presentation .stage-shell{grid-area:1/1;position:sticky;top:var(--presentation-header);z-index:2;align-self:start;width:100%;height:calc(100svh - var(--presentation-header));min-height:0;padding:18px clamp(24px,5vw,84px) 12px;background:var(--paper);border:0;gap:10px}
+.is-presentation .narrative{grid-area:1/1;padding:0;pointer-events:none;min-width:0}
+.is-presentation .step{display:block;min-height:calc(100svh - var(--presentation-header));padding:0;scroll-margin-top:var(--presentation-header)}
+/* Keep the final morph pinned through one more viewport of natural scrolling. */
+.is-presentation .step:last-child{min-height:calc(200svh - var(--presentation-header))}
+.is-presentation .step[data-step="5"]{min-height:180svh}
+.is-presentation .step[data-step="7"]{min-height:calc(100svh - var(--presentation-header));scroll-margin-top:var(--presentation-header)}
+.is-presentation .stage-top{flex:0 0 auto;width:100%;max-width:1200px;margin:0 auto;align-items:center}
+.is-presentation .stage-viz{flex:1 1 0;min-height:0;gap:10px;width:100%;max-width:1200px;margin:0 auto;justify-content:center}
+.is-presentation .stage-bottom,.is-presentation #scene-caption .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;min-height:0}
+.is-presentation #scene-caption{flex:0 0 auto;width:100%;max-width:920px;margin:0 auto;text-align:center;pointer-events:auto}
+.is-presentation #scene-caption .step-content{max-width:none;width:100%;padding:0}
+.is-presentation #scene-caption .step-number,.is-presentation #scene-caption .step-content>.eyebrow,.is-presentation #scene-caption .scroll-prompt{display:none}
+.is-presentation #scene-caption h2{margin:0;font-family:var(--serif);font-size:clamp(26px,2.7vw,36px);font-weight:400;letter-spacing:-.025em;line-height:1.13;text-wrap:balance}
+.is-presentation #scene-caption p.scene-summary{max-width:66ch;margin:8px auto 0;font-size:16px;line-height:1.45;text-wrap:pretty}
+.is-presentation #scene-caption .scene-detail-trigger{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin:3px auto 0;padding:7px 12px;border:0;background:transparent;color:var(--blue);font-size:13px;text-decoration:underline;text-underline-offset:4px}
+.is-presentation #scene-caption .scene-detail-trigger:hover{background:var(--blue-faint)}
+.is-presentation #scene-caption:focus,.is-presentation #scene-caption h2:focus{outline:none}
+
+/* Height, rather than the old side-column width, governs quantitative geometry. */
+.is-presentation .graph-container{flex:0 1 auto;width:min(100%,calc((100svh - 300px)*1.333));max-width:800px;min-height:0;align-self:center;margin:0}
+.is-presentation .graph-canvas{aspect-ratio:680/510;width:100%;height:auto;max-height:none}
+.is-presentation .stage-shell[data-scene="1"] .graph-container{transform:none}
+.is-presentation .stage-shell[data-scene="1"] .graph-container .graph-canvas{margin-bottom:0}
+.is-presentation .stage-shell[data-scene="6"] .graph-container,.is-presentation .stage-shell[data-scene="7"] .graph-container{width:min(100%,calc((100svh - 390px)*1.333));max-width:720px}
+.is-presentation .graph-caption{margin:0;min-height:38px;gap:3px;font-size:12px;line-height:1.35}
+.is-presentation .graph-caption:empty{display:none}
+.is-presentation .stage-shell.is-pair-level-scene .graph-caption:empty{display:flex}
+.is-presentation .path-order{font-size:20px}
+.is-presentation .calculation{flex:0 0 auto;margin:0 auto;padding-top:10px;width:min(100%,620px)}
+.is-presentation .calculation-heading{margin-bottom:8px}
+.is-presentation .calculation-total{padding-top:8px}
+.is-presentation .calculation-total strong{font-size:30px}
+.is-presentation .voters{gap:clamp(35px,7vw,100px)}
+.is-presentation .voter-letter{width:104px;height:104px;font-size:48px}
+.is-presentation .voter-vote{color:var(--muted);font-weight:400}
+.is-presentation .voting-rule{width:min(100%,460px);align-self:center;margin-top:clamp(36px,7svh,72px);gap:18px}
+.voting-rule-line{display:grid;grid-template-columns:minmax(0,1fr) auto 76px;gap:24px;align-items:baseline;width:100%;font-size:26px;line-height:1.3}
+.voting-threshold{text-align:right;white-space:nowrap}
+
+/* Formula scenes retain the coalition picture above the selectable equation. */
+.is-presentation .stage-shell.is-formula-scene .graph-container{flex:1 1 0;min-height:110px;max-height:290px;max-width:none;width:100%;display:flex;justify-content:center;align-items:center}
+.is-presentation .stage-shell.is-formula-scene .graph-canvas{width:auto;height:100%;max-width:100%;max-height:290px;aspect-ratio:680/510}
+.is-presentation .formula-view{flex:0 0 auto;max-width:760px;margin:0 auto;padding-top:10px}
+.is-presentation .formula-equation{margin-bottom:8px}
+.is-presentation .formula-equation math{font-size:29px}
+.is-presentation .formula-definitions{margin-bottom:7px}
+.is-presentation .formula-context{margin-bottom:7px;font-size:13px}
+.is-presentation .formula-choices{margin-bottom:7px}
+.is-presentation .formula-choices button{min-height:44px}
+.is-presentation .formula-weight-link{min-height:44px;margin-top:5px}
+/* The summation has no extra controls; use its open space for the diagram. */
+@media(min-width:761px) and (min-height:701px){
+  .is-presentation .stage-shell[data-scene="9"] .graph-container{max-height:none}
+  .is-presentation .stage-shell[data-scene="9"] .graph-canvas{width:min(100%,calc(min(var(--graph-height,400px),620px)*1.333333));height:auto;max-height:none}
+  .is-presentation .stage-shell[data-scene="9"] .coalition-node{max-width:124px;min-height:44px}
+  .is-presentation .stage-shell[data-scene="9"] .coalition-set{font-size:16px}
+  .is-presentation .stage-shell[data-scene="9"] .coalition-value b{font-size:12px}
+}
+.is-presentation .scene-equation{flex:0 0 auto;width:100%;max-width:760px;margin:0 auto;text-align:center}
+.is-presentation .scene-equation .value-definition{margin:0;padding:0;border:0}
+.is-presentation .scene-equation math{margin:0;font-size:29px;max-width:100%}
+.is-presentation .scene-equation p{display:none}
+.is-presentation .stage-shell.is-value-function-scene .graph-container{flex:1 1 0;min-height:120px;max-height:400px;width:100%;max-width:none;display:flex;align-items:center;justify-content:center}
+.is-presentation .stage-shell.is-value-function-scene .graph-canvas{height:100%;width:auto;max-height:400px;max-width:100%;aspect-ratio:680/510}
+
+/* Optional comparison controls sit beneath the scene's explanation. */
+.is-presentation #scene-caption .player-selector{justify-content:center;margin:8px 0 0;gap:8px}
+.is-presentation #scene-caption .order-comparison{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px 12px;margin:8px 0 0}
+.is-presentation #scene-caption .order-comparison>span{font-size:12px;margin:0}
+.is-presentation #scene-caption .order-comparison>div{display:flex;gap:8px;margin:0}
+.is-presentation #scene-caption .order-comparison button{min-height:44px;padding:7px 12px;font-size:14px}
+.is-presentation #scene-caption .order-comparison .small-note{display:none}
+.is-presentation #scene-caption .orders-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;max-width:530px;margin:8px auto 0}
+.is-presentation #scene-caption .orders-list-heading{display:none}
+.is-presentation #scene-caption .orders-list button{justify-content:center;min-height:44px;padding:6px 8px;border:1px solid var(--line);border-radius:3px;font-size:14px;white-space:nowrap}
+.is-presentation #scene-caption .orders-list button span:last-child{display:none}
+.is-presentation #scene-caption .weights-summary{display:none}
+.is-presentation #scene-caption .weight-explainer-trigger{min-height:44px;margin:4px auto 0;padding:6px 12px;font-size:12px}
+
+/* The electoral plots get the full available canvas, retaining readable controls. */
+.is-presentation .electoral-view{flex:0 1 auto;width:100%;max-width:920px;min-height:0;margin:auto}
+.is-presentation .electoral-scene{max-width:920px;margin:0 auto}
+.is-presentation .electoral-coalition-scene{max-width:900px}
+.is-presentation .electoral-heading{font-size:26px;margin-bottom:6px}
+.is-presentation .electoral-model{font-size:13px;margin-bottom:5px}
+.is-presentation .electoral-state-control{max-width:620px;margin:12px auto 0}
+.is-presentation .electoral-readout{max-width:620px;margin:10px auto 0;padding-top:10px}
+.is-presentation .electoral-readout dd{font-size:22px}
+.is-presentation .electoral-selection-note{max-width:620px;margin:9px auto 0;font-size:12px}
+.is-presentation .electoral-scatter{max-height:340px}
+
+body.scene-detail-open{overflow:hidden}
+.is-presentation #scene-detail-dialog{width:min(760px,calc(100vw - 36px));max-height:85svh;padding:22px 26px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);overflow:auto;overscroll-behavior:contain}
+.is-presentation #scene-detail-dialog::backdrop{background:var(--backdrop)}
+.is-presentation .scene-detail-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px}
+.is-presentation .scene-detail-top h2{margin:5px 0 0;font-family:var(--serif);font-size:29px;font-weight:400;line-height:1.15;letter-spacing:-.025em}
+.is-presentation #scene-detail-close{display:block;flex:0 0 auto;margin:0 0 0 auto;min-height:44px;padding:7px 14px;border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink);font-size:14px}
+.is-presentation #scene-detail-body{font-size:16px;line-height:1.65}
+.is-presentation #scene-detail-body h2{margin:0 0 18px;font-family:var(--serif);font-size:31px;font-weight:400;line-height:1.18;letter-spacing:-.025em}
+.is-presentation #scene-detail-body p{margin:0 0 16px;max-width:none}
+.is-presentation #scene-detail-body .small-note{font-size:13px;color:var(--muted)}
+.is-presentation #scene-detail-body .value-definition{margin:16px 0;padding:14px 10px}
+.is-presentation #scene-detail-body .value-definition math{font-size:25px;max-width:100%}
+.is-presentation #scene-detail-body .electoral-method{margin:18px 0}
+
+@media(max-width:760px){
+  body.is-presentation{--presentation-header:54px}
+  .is-presentation .stage-shell,.is-presentation .stage-shell.is-formula-scene,.is-presentation .stage-shell.is-value-function-scene,.is-presentation .stage-shell.is-electoral-scene,.is-presentation .stage-shell[data-scene="6"],.is-presentation .stage-shell[data-scene="7"]{height:calc(100svh - var(--presentation-header));min-height:0;padding:10px 20px 8px;gap:7px}
+  .is-presentation .stage-top{gap:10px;min-height:18px}
+  .is-presentation .stage-top .eyebrow{font-size:9px;letter-spacing:.08em}
+  .is-presentation .stage-count{font-size:9px;line-height:1.3;text-align:right;max-width:140px}
+  .is-presentation .stage-viz{gap:7px}
+  .is-presentation #scene-caption h2{font-size:25px;line-height:1.12;letter-spacing:-.02em}
+  .is-presentation #scene-caption p.scene-summary{margin-top:6px;font-size:14px;line-height:1.4;max-width:48ch}
+  .is-presentation #scene-caption .scene-detail-trigger{font-size:12px;margin-top:0;padding:4px 10px}
+  .is-presentation .graph-container{width:min(100%,calc((100svh - 285px)*1.333));max-width:560px}
+  .is-presentation .stage-shell[data-scene="6"] .graph-container,.is-presentation .stage-shell[data-scene="7"] .graph-container{width:min(100%,calc((100svh - 370px)*1.333));max-width:560px}
+  .is-presentation .graph-caption{font-size:11px;min-height:30px;gap:2px}
+  .is-presentation .path-order{font-size:18px}
+  .is-presentation .coalition-node{min-height:43px}
+  .is-presentation .coalition-set{font-size:14px}
+  .is-presentation .calculation{padding-top:7px}
+  .is-presentation .calculation-heading{font-size:9px;margin-bottom:4px}
+  .is-presentation .calculation-total{padding-top:5px;font-size:12px}
+  .is-presentation .calculation-total strong{font-size:27px}
+  .is-presentation .voters{gap:clamp(24px,7vw,62px)}
+  .is-presentation .voter-letter{width:76px;height:76px;font-size:39px}
+  .is-presentation .voter{gap:10px}
+  .is-presentation .voting-rule{max-width:350px;margin-top:38px;gap:15px}
+  .voting-rule-line{grid-template-columns:minmax(0,1fr) auto 52px;gap:14px;font-size:21px}
+  .is-presentation .stage-shell.is-formula-scene .graph-container{min-height:85px;max-height:210px;width:100%;max-width:none}
+  .is-presentation .stage-shell.is-formula-scene .graph-canvas{max-height:210px}
+  .is-presentation .formula-view{padding-top:7px}
+  .is-presentation .formula-equation{gap:2px 5px;margin-bottom:5px}
+  .is-presentation .formula-equation math{font-size:22px}
+  .is-presentation .formula-definitions{font-size:10px;gap:2px 7px;margin-bottom:4px}
+  .is-presentation .formula-choices{gap:4px;margin-bottom:4px}
+  .is-presentation .formula-choices-label{font-size:13px}
+  .is-presentation .formula-choices button{font-size:13px;padding:5px 6px}
+  .is-presentation .formula-context{font-size:11px;line-height:1.35;margin-bottom:5px}
+  .is-presentation .formula-weight-link{font-size:11px;min-height:44px;padding:5px 8px;margin-top:4px}
+  .is-presentation .formula-order-strip{font-size:13px}
+  .is-presentation .formula-order-strip>span{min-height:23px}
+  .is-presentation .formula-order-chip{font-size:11px;padding:3px 1px}
+  .is-presentation .formula-numeric-sum{font-size:14px;gap:2px}
+  .is-presentation .formula-numeric-term{padding:3px}
+  .is-presentation .formula-numeric-term>span{font-size:11px}
+  .is-presentation .formula-numeric-total{font-size:20px}
+  .is-presentation .scene-equation math{font-size:24px}
+  .is-presentation .stage-shell.is-value-function-scene .graph-container{min-height:100px;max-height:300px;width:100%;max-width:none}
+  .is-presentation .stage-shell.is-value-function-scene .graph-canvas{max-height:300px}
+  .is-presentation #scene-caption .orders-list{gap:5px;margin-top:6px}
+  .is-presentation #scene-caption .orders-list button{font-size:12px;padding:5px 2px}
+  .is-presentation #scene-caption .order-comparison{gap:4px 8px;margin-top:6px}
+  .is-presentation #scene-caption .order-comparison>span{font-size:11px}
+  .is-presentation #scene-caption .order-comparison button{font-size:12px;padding:5px 9px}
+  .is-presentation #scene-caption .weight-explainer-trigger{font-size:11px;margin-top:3px;padding:5px 10px}
+  .is-presentation .electoral-heading{font-size:21px}
+  .is-presentation .electoral-model{font-size:11px;margin-bottom:3px}
+  .is-presentation .electoral-tally{max-height:180px}
+  .is-presentation .electoral-change{font-size:13px;gap:13px;margin:7px 0 8px}
+  .is-presentation .electoral-scatter{max-height:270px}
+  .is-presentation .electoral-state-control{gap:9px;margin-top:8px}
+  .is-presentation .electoral-state-control label{font-size:11px;max-width:72px}
+  .is-presentation .electoral-state-control select{font-size:12px;padding:6px 8px}
+  .is-presentation .electoral-readout{gap:7px;margin-top:8px;padding-top:7px}
+  .is-presentation .electoral-readout dt{font-size:10px;margin-bottom:3px}
+  .is-presentation .electoral-readout dd{font-size:18px}
+  .is-presentation .electoral-selection-note{margin-top:6px;font-size:10px;line-height:1.35}
+  .is-presentation #scene-detail-dialog{width:calc(100vw - 24px);padding:15px 18px;max-height:85svh}
+  .is-presentation #scene-detail-body{font-size:15px;line-height:1.6}
+  .is-presentation #scene-detail-body h2{font-size:27px;margin-bottom:14px}
+  .is-presentation #scene-detail-body .value-definition{padding:12px 0}
+  .is-presentation #scene-detail-body .value-definition math{font-size:22px}
+}
+@media(max-width:370px){
+  .voting-rule-line{grid-template-columns:minmax(0,1fr) auto 44px;gap:12px;font-size:19px}
+  .is-presentation .stage-shell,.is-presentation .stage-shell.is-formula-scene,.is-presentation .stage-shell.is-value-function-scene,.is-presentation .stage-shell.is-electoral-scene,.is-presentation .stage-shell[data-scene="6"],.is-presentation .stage-shell[data-scene="7"]{padding-left:14px;padding-right:14px}
+  .is-presentation #scene-caption h2{font-size:23px}
+  .is-presentation #scene-caption p.scene-summary{font-size:13px}
+  .is-presentation .formula-equation{flex-direction:column;gap:1px}
+  .is-presentation .formula-equation math{font-size:20px}
+  .is-presentation .formula-definitions{font-size:9px}
+  .is-presentation .formula-choices{gap:3px}
+  .is-presentation .formula-choices-label{font-size:12px}
+  .is-presentation .formula-choices button{font-size:12px;padding:4px 5px}
+  .is-presentation .scene-equation math{font-size:21px}
+  .is-presentation .voter-letter{width:68px;height:68px;font-size:35px}
+  .is-presentation .electoral-readout dd{font-size:16px}
+  .is-presentation #scene-detail-body .value-definition math{font-size:19px}
+}
+@media(max-height:700px) and (min-width:761px){
+  .is-presentation .stage-shell{padding-top:10px;padding-bottom:7px;gap:6px}
+  .is-presentation #scene-caption h2{font-size:27px}
+  .is-presentation #scene-caption p.scene-summary{font-size:14px;margin-top:5px}
+  .is-presentation .graph-container{width:min(100%,calc((100svh - 275px)*1.333))}
+  .is-presentation .stage-shell[data-scene="6"] .graph-container,.is-presentation .stage-shell[data-scene="7"] .graph-container{width:min(100%,calc((100svh - 350px)*1.333))}
+  .is-presentation .stage-shell.is-formula-scene .graph-container,.is-presentation .stage-shell.is-formula-scene .graph-canvas{max-height:170px}
+  .is-presentation .formula-equation math{font-size:24px}
+  .is-presentation .formula-definitions{font-size:10px}
+  .is-presentation .formula-context{font-size:11px}
+  .is-presentation .formula-view{padding-top:6px}
+  .is-presentation .formula-equation,.is-presentation .formula-choices,.is-presentation .formula-definitions{margin-bottom:4px}
+  .is-presentation .stage-shell.is-value-function-scene .graph-container,.is-presentation .stage-shell.is-value-function-scene .graph-canvas{max-height:260px}
+  .is-presentation .electoral-scatter{max-height:230px}
+  .is-presentation .electoral-state-control{margin-top:7px}
+  .is-presentation .electoral-readout{margin-top:7px;padding-top:7px}
+  .is-presentation .electoral-selection-note{margin-top:5px}
+}
+@media(prefers-reduced-motion:no-preference){
+  .is-presentation #scene-caption .step-content>:not(.is-caption-unchanged){animation:scene-caption-enter .24s ease-out}
+  @keyframes scene-caption-enter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+}
+
+/* Fit the diagram to the space left by this scene's caption and controls. */
+.is-presentation .graph-container,
+.is-presentation .stage-shell[data-scene="6"] .graph-container,
+.is-presentation .stage-shell[data-scene="7"] .graph-container{width:min(100%,calc(var(--graph-height,400px)*1.333333));flex:0 0 auto}
+.is-presentation #scene-caption .step-content>.small-note{display:none}
+.is-presentation .stage-shell[data-scene="9"] .formula-context,
+.is-presentation .stage-shell[data-scene="14"] .formula-context{display:none}
+@media(max-width:760px) and (max-height:650px){
+  .is-presentation .stage-shell.is-formula-scene .graph-container{display:none}
+  .is-presentation .stage-shell[data-scene="6"] #scene-caption .weight-explainer-trigger{display:none}
+  .is-presentation .coalition-node{min-height:32px;gap:2px;padding:3px 2px}
+  .is-presentation .coalition-set{font-size:12px}
+  .is-presentation .coalition-value{font-size:8px}
+}
+.is-presentation .electoral-scatter{max-height:none}
+.is-presentation #scene-caption .explore-inspection{max-width:64ch;margin:7px auto 0;font-size:13px;line-height:1.4;color:var(--muted)}
+
+/* The Electoral College begins with an illustration and a real-text title. */
+.electoral-intro{width:100%;margin:0 auto}
+.is-presentation .electoral-intro{display:flex;flex:1 1 0;align-items:center;justify-content:center;min-width:0;min-height:0;height:100%;max-width:1100px}
+.is-presentation .stage-shell.is-electoral-intro-scene #scene-caption h2{font-size:clamp(30px,4vw,48px)}
