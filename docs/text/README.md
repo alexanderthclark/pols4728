@@ -46,12 +46,13 @@ node scripts/build-text-transcript.mjs
 node scripts/build-text-transcript.mjs --check
 ```
 
-The complete reading version starts expanded directly after the title, with
-working chapter anchors. Only after the animated lesson initializes does
-`bootstrap.mjs` move that same reading version to the end and collapse its chapters.
-If a module request or initialization fails, the expanded lesson remains in
-reading order. The animated module imports share one version suffix to avoid
-mixing cached dependencies after an update.
+The static reading version is a fallback for loading failures and printing.
+It starts expanded directly after the title, with working chapter anchors.
+Once the animated lesson initializes, `bootstrap.mjs` hides it; the normal page
+ends with sources and further reading. If loading or initialization fails, the
+expanded text remains in reading order. Print styles reveal that same text.
+The animated module imports share one version suffix to avoid mixing cached
+dependencies after an update.
 
 Mathematics uses the course's existing self-hosted KaTeX runtime in `docs/word2vec/vendor/katex`.
 `math.mjs` shares rendering between the diagrams and static reading version.

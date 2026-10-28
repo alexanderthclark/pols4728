@@ -218,6 +218,7 @@ noscript{display:block;padding:30px}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.scene-copy{transform:none!important;opacity:1!important}}
 @media print{
   .topbar,.track,.title-slide .small,.begin,.exploration,.transcript>p{display:none}
+  .transcript[hidden]{display:block}
   .title-slide{min-height:0;padding:30px}.title-slide h1{font-size:50px}.title-cartoon{max-height:160px}
   .transcript details{display:block}.transcript details>div{display:block}.ending,.reading,.transcript{padding:20px}
   .reading li{font-size:13px}footer{display:none}

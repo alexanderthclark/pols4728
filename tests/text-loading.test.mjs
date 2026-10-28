@@ -12,6 +12,9 @@ test('without JavaScript the complete lesson precedes its conclusion and chapter
   assert.ok(transcriptStart > source.indexOf('<div id="chapters"></div>'));
   assert.ok(transcriptStart < conclusionStart);
   const transcript = source.slice(transcriptStart, conclusionStart);
+  assert.doesNotMatch(transcript.match(/^<section[^>]*>/)[0], /\bhidden\b/);
+  const title = source.match(/<section class="title-slide"[\s\S]*?<\/section>/)[0];
+  assert.doesNotMatch(title, /href="#transcript"|Read the complete explanation/);
   for (const chapter of chapters) {
     assert.ok(transcript.includes(`<details open id="${chapter.id}" data-chapter-id="${chapter.id}">`));
     for (const stage of chapter.stages) assert.ok(transcript.includes(`<h3>${stage.title}</h3>`));
@@ -23,7 +26,7 @@ test('without JavaScript the complete lesson precedes its conclusion and chapter
 // Small DOM doubles track the observable loading contract, including node order.
 function pageFixture() {
   const readingChapters = chapters.map(chapter => ({id:chapter.id, dataset:{chapterId:chapter.id}, open:true}));
-  const transcript = {querySelectorAll:() => readingChapters};
+  const transcript = {hidden:false, querySelectorAll:() => readingChapters};
   const root = {tracks:[], querySelectorAll(){return this.tracks;}, replaceChildren(){this.tracks=[];}};
   const explorer = {hidden:true};
   const conclusion = {before(node){move(node, main.children.indexOf(conclusion));}};
@@ -44,6 +47,7 @@ test('a failed module request preserves the full, expanded reading route', async
   assert.equal(ready,false);
   assert.equal(errors.length,1);
   assert.equal(f.root.tracks.length,0);
+  assert.equal(f.transcript.hidden,false);
   assert.ok(f.main.children.indexOf(f.transcript)<f.main.children.indexOf(f.conclusion));
   assert.deepEqual(f.readingChapters.map(c=>[c.id,c.open]),chapters.map(c=>[c.id,true]));
   assert.equal(f.explorer.hidden,true);
@@ -54,29 +58,45 @@ test('an initialization error removes partial scenes without removing the readin
   const ready=await startLesson({page:f.page,loadStory:async()=>({initializeStory(){f.initializeStory();throw new Error('Diagram failed');}}),reportError:()=>{}});
   assert.equal(ready,false);
   assert.equal(f.root.tracks.length,0);
+  assert.equal(f.transcript.hidden,false);
   assert.deepEqual(f.readingChapters.map(c=>[c.id,c.open]),chapters.map(c=>[c.id,true]));
   assert.equal(f.main.children.filter(node=>node===f.transcript).length,1);
 });
 
-test('successful initialization transfers anchors and moves one collapsed reading version to the end', async () => {
+test('successful initialization transfers anchors and hides the expanded fallback in place', async () => {
   const f=pageFixture();
+  const originalOrder=[...f.main.children];
   const ready=await startLesson({page:f.page,loadStory:async()=>({initializeStory:f.initializeStory}),reportError:assert.fail});
   assert.equal(ready,true);
   assert.deepEqual(f.root.tracks.map(c=>c.id),chapters.map(c=>c.id));
-  assert.deepEqual(f.readingChapters.map(c=>[c.id,c.open]),chapters.map(c=>[`reading-${c.id}`,false]));
-  assert.equal(f.main.children.at(-1),f.transcript);
+  assert.deepEqual(f.readingChapters.map(c=>[c.id,c.open]),chapters.map(c=>[`reading-${c.id}`,true]));
+  assert.equal(f.transcript.hidden,true);
+  assert.deepEqual(f.main.children,originalOrder);
   assert.equal(f.main.children.filter(node=>node===f.transcript).length,1);
   assert.equal(f.explorer.hidden,false);
 });
 
 test('a failure after initialization disposes listeners and restores original anchors', async () => {
   const f=pageFixture();
-  let disposed=false;
-  f.main.append=()=>{throw new Error('Finalization failed');};
+  let disposed=false, hidden=true, failOnce=true, fallbackWasHidden=false;
+  Object.defineProperty(f.explorer,'hidden',{
+    get:()=>hidden,
+    set(value){
+      if(!value&&failOnce){
+        failOnce=false;
+        fallbackWasHidden=f.transcript.hidden;
+        throw new Error('Finalization failed');
+      }
+      hidden=value;
+    },
+  });
   const ready=await startLesson({page:f.page,loadStory:async()=>({initializeStory(){f.initializeStory();return()=>{disposed=true;};}}),reportError:()=>{}});
   assert.equal(ready,false);
+  assert.equal(fallbackWasHidden,true,'The failure must happen after the fallback has been hidden.');
   assert.equal(disposed,true);
   assert.equal(f.root.tracks.length,0);
+  assert.equal(f.transcript.hidden,false);
+  assert.equal(f.explorer.hidden,true);
   assert.deepEqual(f.readingChapters.map(c=>[c.id,c.open]),chapters.map(c=>[c.id,true]));
   assert.ok(f.main.children.indexOf(f.transcript)<f.main.children.indexOf(f.conclusion));
 });

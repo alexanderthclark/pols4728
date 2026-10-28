@@ -1,4 +1,4 @@
-import {speechFrame} from './speech-motion.mjs?v=20261028-cell-explorer-4';
+import {speechFrame} from './speech-motion.mjs?v=20261028-reading-fallback-5';
 
 const escapeText = value => String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');
 
