@@ -30,7 +30,11 @@ broader notation harmonization with the course notes remains for a later pass.
 ## One-head task
 
 `socks-model.mjs` stores each token as [socks indicator, shoes indicator, position].
-Position is +1 in the first slot and -1 in the second. Fixed projections read
+The lesson introduces X=E+P: token embeddings and position vectors have the same
+width. Learned positional embeddings do not require a reserved coordinate. We
+choose fixed position vectors supported on the third coordinate for this example;
+token embeddings have zero in that coordinate. Position is +1 in the first slot
+and -1 in the second. Fixed projections read
 q=shoes, k=log(3)*socks, and v=position. Thus shoes allocates 75% to socks and
 25% to itself; socks allocates 50% to each. With Y=AV and readout
 2*mean(Y)-0.5, the predictions are 0 for socks→shoes and -1 for shoes→socks.
