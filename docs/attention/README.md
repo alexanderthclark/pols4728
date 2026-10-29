@@ -31,7 +31,9 @@ broader notation harmonization with the course notes remains for a later pass.
 
 `socks-model.mjs` stores each token as [socks indicator, shoes indicator, position].
 The lesson introduces X=E+P: token embeddings and position vectors have the same
-width. Learned positional embeddings do not require a reserved coordinate. We
+width. The diagram displays both complete 2×3 operands (including zeros), a
+literal plus sign, and the 2×3 sum, with matching entries highlighted as the
+scroll works through identity and position coordinates. Learned positional embeddings do not require a reserved coordinate. We
 choose fixed position vectors supported on the third coordinate for this example;
 token embeddings have zero in that coordinate. Position is +1 in the first slot
 and -1 in the second. Fixed projections read

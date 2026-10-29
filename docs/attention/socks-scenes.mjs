@@ -67,14 +67,33 @@ export function createSocksScenes({m,text,line,rect,circle,C,ease,lerp,clamp,num
     return out;
   }
   function positionalRows(t) {
-    const a=ease(t);
-    let out=m('X=E+P',375,90,320,60,35,C.blue);
-    out+=text('identity',325,143,23,C.muted)+text('position',453,143,23,rust);
-    out+=cellMatrix(forward.X,{x:258,y:178,cw:78,ch:91,rowTokens:forward.tokens,highlight:2});
-    out+=rect(414,176,78,186,'none',rust,5,`stroke-width="${1+2*a}"`);
-    out+=icon('socks',90,220,83)+icon('shoes',90,314,83);
-    out+=m('x_1=[1\\;0\\;{+1}]',320,428,560,60,31,blue);
-    out+=m('x_2=[0\\;1\\;{-1}]',320,489,560,60,31,rust);
+    // Show actual same-shape addition, including every zero. The highlighted
+    // entries are computations, not separate column blocks being concatenated.
+    const E=forward.X.map(row=>[row[0],row[1],0]);
+    const P=forward.X.map(row=>[0,0,row[2]]);
+    const phase=t<.32?0:t<.65?1:2;
+    const examples=[{i:0,j:0,label:'socks · first coordinate'},
+      {i:0,j:2,label:'socks · third coordinate'},
+      {i:1,j:2,label:'shoes · third coordinate'}];
+    const {i,j,label}=examples[phase];
+    const starts=[34,244,454],cw=50,ch=67,top=170;
+    let out=text('Rows: socks, then shoes',320,36,23,C.muted);
+    const matrices=[{name:'E',label:'token embeddings',data:E,color:blue},
+      {name:'P',label:'position vectors',data:P,color:rust},
+      {name:'X',label:'their sum',data:forward.X,color:C.teal}];
+    matrices.forEach(({name,label,data,color},n)=>{
+      const x=starts[n];
+      out+=m(name,x+75,84,150,58,35,color);
+      out+=text(label,x+75,125,22,C.muted);
+      out+=cellMatrix(data,{x,y:top,cw,ch});
+      // A matching cell in every matrix makes entrywise addition visible.
+      out+=rect(x+j*cw+1,top+i*ch+1,cw-2,ch-2,'none',color,4,'stroke-width="3"');
+    });
+    out+=m('+',214,237,42,70,34,C.ink)+m('=',424,237,42,70,34,C.ink);
+    out+=text('Two rows and three columns in every matrix.',320,356,23,C.muted);
+    out+=text(label,320,413,24,C.muted);
+    const ev=E[i][j],pv=P[i][j],xv=forward.X[i][j];
+    out+=m(`${ev}+${pv<0?'('+pv+')':pv}=${xv}`,320,473,590,76,42,C.ink);
     return out;
   }
   function queriesKeys(t) {
@@ -194,7 +213,7 @@ export function createSocksScenes({m,text,line,rect,circle,C,ease,lerp,clamp,num
   return [
     {part:'01 · Why order matters',label:'Begin with a small task',title:'Socks before shoes.',caption:'Give “socks, shoes” a score of zero and the reversed order a score of minus one. The items are identical; their order changes the target.',equation:'[\\text{socks},\\text{shoes}]\\;\\longmapsto\\;0',detail:'This is a deliberately small construction. We will choose every weight and compute every output; nothing here is a claim about a pretrained model.',visual:'Scroll to exchange the two items while their positions stay fixed.',draw:task},
     {part:'01 · Why order matters',label:'Averaging loses the distinction',title:'Identity alone is not enough.',caption:'Represent socks and shoes with two identity coordinates. Averaging those vectors gives the same result in either order.',equation:'\\tfrac12\\bigl([1\\;0]+[0\\;1]\\bigr)=[\\tfrac12\\;\\tfrac12]',detail:'A model that sees only this average cannot give the two sequences different predictions.',visual:'The row vectors move with the tokens, but their mean stays fixed.',draw:identities},
-    {part:'01 · Why order matters',label:'Choose one construction',title:'Let’s take one simple route.',caption:'Position vectors can be learned and added to token embeddings of the same width. Here, we’ll choose fixed vectors and reserve the third coordinate for position: plus one first, minus one second.',equation:'X=E+P',detail:'Here, token embeddings <span data-math="E"></span> are zero in the third coordinate; position vectors <span data-math="P"></span> are zero in the first two.',visual:'We’ll use this choice for the rest of the socks-and-shoes example.',draw:positionalRows},
+    {part:'01 · Why order matters',label:'Choose one construction',title:'Let’s take one simple route.',caption:'Position vectors can be learned and added to token embeddings of the same width. Here, we choose fixed vectors that use the third coordinate.',equation:'X=E+P',detail:'Add matching entries. <span data-math="E"></span>, <span data-math="P"></span>, and <span data-math="X"></span> all have two rows and three columns. From here on, <span data-math="X"></span> includes position.',visual:'We’ll use this choice for the rest of the socks-and-shoes example.',draw:positionalRows,discretePhases:true},
     {part:'02 · Construct one attention head',label:'Choose two feature maps',title:'Let shoes look for socks.',caption:'Choose a query map that responds to shoes and a key map that responds to socks. These are two different linear views of the same input rows.',equation:'Q=XW_Q,\\qquad K=XW_K',detail:'These maps are chosen by hand to make the mechanism visible. In a trained model, their entries would be learned from the objective.',visual:'The query and key dimensions are both one in this example.',draw:queriesKeys},
     {part:'02 · Construct one attention head',label:'The shoes query compares both sources',title:'Compare the query with each key.',caption:'The shoes query is one. Its score against socks is log three; its score against shoes is zero.',equation:'s_{ij}=q_i k_j',detail:'The query/key dimension is one, so division by its square root changes nothing. No causal mask is used here.',visual:'The query belongs to the destination; each key belongs to a possible source.',draw:matching},
     {part:'02 · Construct one attention head',label:'Turn scores into weights',title:'Three parts socks, one part shoes.',caption:'Exponentiating the two scores gives three and one. Dividing by their total gives the shoes row weights of three quarters and one quarter.',equation:'\\operatorname{softmax}([\\log3\\;0])=[\\tfrac34\\;\\tfrac14]',detail:'The weights sum to one. They describe how much the shoes destination reads from each source.',visual:'The scroll shows exact scores, exponentials, and normalized weights in turn.',draw:softmax,discretePhases:true},
