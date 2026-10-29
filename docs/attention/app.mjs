@@ -1,3 +1,4 @@
+import {createSocksScenes} from './socks-scenes.mjs';
 import {tokens,X,WQ,WK,WV,dk,handWeights,uniformWeights,matmul,attention} from './model.mjs';
 
 const C={ink:'#242424',blue:'#234e70',rust:'#a54f32',teal:'#007f73',purple:'#7b4f9d',muted:'#606060',rule:'#dededb'};
@@ -191,7 +192,7 @@ function finalDiagram(t){
  return out;
 }
 
-const scenes=[
+const generalScenes=[
  {part:'01 · Mixing tokens',label:'A representation for each position',title:'One token. One row.',caption:'Start with four tokens and three features per token. Stack their representations into a matrix.',equation:'X\\in\\mathbb R^{T\\times d}',detail:'The numbers are illustrative features. Here, T = 4 and d = 3; the features are not labeled semantic properties.',visual:'Each row stays attached to its token position.',draw:tokenRows},
  {part:'01 · Mixing tokens',label:'Begin with the simplest mixture',title:'Read a little from everyone.',caption:'To build a new row for “thanked,” first give every source the same weight. The result is their average.',equation:'(AX)_3=\\tfrac14\\sum_{j=1}^{4}x_j',detail:'For now, values equal the input rows and there is no causal mask. All four positions can contribute.',visual:'The four paths carry equal weight.',draw:t=>mix(uniformWeights,t)},
  {part:'01 · Mixing tokens',label:'Change the weights',title:'A different mixture changes the result.',caption:'Let “thanked” read more from “senator.” The source rows stay fixed; only their contributions change.',equation:'(AX)_3=\\sum_{j=1}^{4}a_{3j}x_j',detail:'These first weights are chosen by hand. Soon, queries and keys will generate them from the input.',visual:'A thicker path means a larger contribution, not a different source vector.',draw:t=>mix(uniformWeights.map((v,i)=>lerp(v,handWeights[i],ease(t))),t)},
@@ -214,12 +215,19 @@ const scenes=[
 function renderMathNodes(root=document){root.querySelectorAll('[data-math]').forEach(el=>el.innerHTML=tex(el.dataset.math))}
 renderMathNodes();
 // Keep mathematical labels in prose typeset from LaTeX too.
-scenes[3].detail='In <span data-math="a_{ij}"></span>, <span data-math="i"></span> is the destination and <span data-math="j"></span> is the source. Every attention row sums to one.';
-scenes[6].detail='Here <span data-math="d_k=2"></span>. The scale controls how dot-product magnitudes grow with dimension. Scores can be negative and need not sum to one.';
-scenes[8].detail='Attention is generally asymmetric. Different query and key maps, and separate normalization for each destination, allow <span data-math="a_{ij}"></span> and <span data-math="a_{ji}"></span> to differ.';
-scenes[10].detail='With values equal to <span data-math="X"></span>, this was <span data-math="AX"></span>. With a learned value map, it becomes <span data-math="AXW_V"></span>. Queries and keys still control the weights.';
-scenes[13].detail='<span data-math="M_{ij}=0"></span> when <span data-math="j\\le i"></span>, and <span data-math="-\\infty"></span> otherwise. The diagonal remains available: a position may read itself.';
-scenes[0].detail='The numbers are illustrative features. Here, <span data-math="T=4"></span> and <span data-math="d=3"></span>; the features are not labeled semantic properties.';
+generalScenes[3].detail='In <span data-math="a_{ij}"></span>, <span data-math="i"></span> is the destination and <span data-math="j"></span> is the source. Every attention row sums to one.';
+generalScenes[6].detail='Here <span data-math="d_k=2"></span>. The scale controls how dot-product magnitudes grow with dimension. Scores can be negative and need not sum to one.';
+generalScenes[8].detail='Attention is generally asymmetric. Different query and key maps, and separate normalization for each destination, allow <span data-math="a_{ij}"></span> and <span data-math="a_{ji}"></span> to differ.';
+generalScenes[10].detail='With values equal to <span data-math="X"></span>, this was <span data-math="AX"></span>. With a learned value map, it becomes <span data-math="AXW_V"></span>. Queries and keys still control the weights.';
+generalScenes[13].detail='<span data-math="M_{ij}=0"></span> when <span data-math="j\\le i"></span>, and <span data-math="-\\infty"></span> otherwise. The diagonal remains available: a position may read itself.';
+generalScenes[0].detail='The numbers are illustrative features. Here, <span data-math="T=4"></span> and <span data-math="d=3"></span>; the features are not labeled semantic properties.';
+// A complete one-head task comes before the general matrix calculation.
+const socksScenes=createSocksScenes({m,text,line,rect,circle,C,ease,lerp,clamp,num});
+generalScenes[0].title='Now follow four tokens.';
+generalScenes[0].caption='The two-token model used one-dimensional queries, keys, and values. Now unpack the same operations with larger vectors, then add a causal mask.';
+generalScenes[7].discretePhases=true;
+generalScenes.forEach(scene=>{scene.part=scene.part.replace(/^\d{2}/, n=>String(Number(n)+3).padStart(2,'0'));});
+const scenes=[...socksScenes,...generalScenes];
 // The complete text remains available independently of visual scene changes.
 document.querySelector('#transcript').innerHTML=scenes.map((s,i)=>`<section><h3>${i+1}. ${s.title}</h3><p>${s.caption}</p><div class="transcript-eq">${tex(s.equation)}</div><p>${s.detail}</p></section>`).join('');
 renderMathNodes(document.querySelector('#transcript'));
@@ -232,8 +240,8 @@ function render(){
  const total=clamp(-r.top/range)*scenes.length;
  const index=Math.min(scenes.length-1,Math.floor(total));
  const local=clamp(total-index);
- const t=reducedMotion()&&index!==7?1:clamp(local/.66);
  const s=scenes[index];
+ const t=reducedMotion()&&!s.discretePhases?1:clamp(local/.66);
  if(last!==index){
   document.querySelector('#chapter').textContent=s.part;
   document.querySelector('#counter').textContent=`${index+1} / ${scenes.length}`;
