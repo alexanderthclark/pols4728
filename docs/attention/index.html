@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Attention — How tokens share information · POLS 4728</title>
+<meta name="description" content="A visual journey through attention: tokens as rows, weighted mixtures, queries and keys, values, and causal masking.">
+<link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="style.css">
+<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs"></script>
+</head>
+<body>
+<a class="skip" href="#reading">Skip to the reading version</a>
+<header><a href="https://alexanderthclark.github.io/pols4728/">POLS 4728</a><span>Machine learning for political science</span><a href="#references">Notation &amp; sources</a></header>
+<main>
+<section class="hero" aria-labelledby="title">
+<div class="hero-copy"><p class="eyebrow">A visual lesson</p><h1 id="title">Attention</h1><p class="subtitle">How tokens share<br>information.</p><p class="intro">A token has its own representation.<br>Attention lets it read from the others.</p><a class="begin" href="#story">Follow the information <span aria-hidden="true">↓</span></a></div>
+<figure class="hero-art"><img src="assets/attention-mixing.svg" width="760" height="420" alt="Two round characters combine four incoming strands of information at a mixing board."><figcaption><span>Many sources.</span><span>One weighted mixture.</span></figcaption></figure>
+<div class="hero-foot"><span>Tokens as rows. Attention from the left.</span><span data-math="X\;\longmapsto\;AX"></span></div>
+</section>
+<section id="story" class="story" aria-label="Scroll through the attention lesson">
+<div class="stage">
+<div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
+<div class="stage-top"><a href="#title">Attention</a><span id="chapter">01 · Mixing tokens</span><span id="counter">1 / 17</span></div>
+<div class="scene-layout">
+<div class="narration" id="narration"><p class="eyebrow" id="scene-label"></p><h2 id="scene-title"></h2><p id="caption"></p><div id="equation" class="equation"></div><p id="detail" class="detail"></p></div>
+<figure class="visual"><svg id="diagram" viewBox="0 0 640 540" role="img" aria-label="Attention calculation"></svg><figcaption id="visual-caption"></figcaption></figure>
+</div>
+<div class="stage-bottom"><span>Illustrative numbers · exact calculations</span><span>Scroll to unfold. Scroll back to revisit.</span></div>
+</div>
+</section>
+<section class="afterword" id="references">
+<p class="eyebrow">Keep the two operations in view</p><h2>Choose where to read.<br>Choose what to carry.</h2>
+<p>Queries and keys determine a distribution over source positions. Values determine the information those positions contribute. The output at each destination is a weighted sum of the source values.</p>
+<div class="closing-math" data-math="A(X)=\operatorname{softmax}_{\mathrm{row}}\!\left(\frac{(XW_Q)(XW_K)^\top}{\sqrt{d_k}}+M\right)"></div>
+<div class="closing-math" data-math="Y=A(X)XW_V"></div>
+<h3>Notation for this lesson</h3>
+<p>Tokens are rows of <span data-math="X\in\mathbb R^{T\times d}"></span>. Query and key maps have shape <span data-math="W_Q,W_K\in\mathbb R^{d\times d_k}"></span>; the value map has shape <span data-math="W_V\in\mathbb R^{d\times d_v}"></span>. Thus <span data-math="A\in\mathbb R^{T\times T}"></span> and <span data-math="Y\in\mathbb R^{T\times d_v}"></span>. The optional output map is <span data-math="W_O\in\mathbb R^{d_v\times d}"></span>. A subscripted token vector denotes a row throughout.</p>
+<p>We start with chosen weights and values equal to the input, so the operation is exactly <span data-math="AX"></span>. We then calculate attention weights from fixed illustrative query and key maps and introduce a value map. These numbers demonstrate the mechanism; they are not learned linguistic relationships. We omit bias terms. Input representations may already include position information; storing tokens in ordered rows does not itself encode position.</p>
+<h3>Sources and conventions</h3>
+<p>Nelson Elhage and colleagues (2021), <a href="https://transformer-circuits.pub/2021/framework/index.html">A Mathematical Framework for Transformer Circuits</a>, especially “Attention Heads as Information Movement,” the QK/OV decomposition, and the tensor-product appendix. The distinction between moving information across positions and transforming it within each position motivates this lesson.</p>
+<p>Simon J. D. Prince (2023), <a href="https://udlbook.github.io/udlbook/">Understanding Deep Learning</a>, chapter 12, §§12.2–12.3, equations 12.6–12.9. Prince stores tokens as columns. We transpose the convention: projection matrices multiply from the right, attention multiplies from the left, and softmax normalizes each row. The paper’s per-token maps likewise transpose when translated into this convention.</p>
+<details id="notation"><summary>The QK and OV products in our row convention</summary><p>Writing <span data-math="W_{QK}=W_QW_K^\top"></span> gives scores <span data-math="XW_{QK}X^\top/\sqrt{d_k}"></span>. Including the output map gives <span data-math="W_{OV}=W_VW_O"></span> and a head contribution <span data-math="AXW_{OV}"></span>. These product orders differ from the column-vector definitions in the Transformer Circuits paper; they express the same operations after transposition.</p><p>Several heads can perform different mixtures in parallel. With their output maps included, their contributions add: <span data-math="\sum_h A^{(h)}XW_V^{(h)}W_O^{(h)}"></span>. Each head follows the mechanism shown here.</p></details>
+<details id="toy-maps"><summary>The illustrative projection matrices</summary><p>The four input rows appear in the first scene. The query, key, and value maps used in all subsequent calculations are:</p><div class="closing-math" data-math="W_Q=\begin{bmatrix}0&1\\1&2\\0&0\end{bmatrix},\quad W_K=\begin{bmatrix}1&0\\0&1\\0&0\end{bmatrix}"></div><div class="closing-math" data-math="W_V=\begin{bmatrix}1&0\\0&1\\\tfrac12&-\tfrac12\end{bmatrix},\quad W_O=\begin{bmatrix}1&0&0\\0&1&0\end{bmatrix}"></div><p>For example, the row for “thanked” is <span data-math="x_3=[0\;1\;1]"></span>, giving <span data-math="q_3=[1\;2]"></span> and <span data-math="v_3=[\tfrac12\;\tfrac12]"></span>. These maps are chosen to make the arithmetic visible.</p></details>
+<details id="reading"><summary>Read the complete explanation</summary><div id="transcript"></div></details>
+<p class="return"><a href="#title">Back to the beginning ↑</a><a href="https://alexanderthclark.github.io/pols4728/">POLS 4728 ↗</a></p>
+</section>
+</main><footer>Attention · POLS 4728</footer>
+<noscript><p class="no-script">The animated calculation requires JavaScript. The notation and references above describe the complete attention operation.</p></noscript>
+</body></html>
