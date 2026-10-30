@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="420" viewBox="0 0 760 420" fill="none" role="img" aria-labelledby="attention-art-title attention-art-description">
+  <title id="attention-art-title">A little mixing desk</title>
+  <desc id="attention-art-description">Two round, torso-less figures adjust a small mixing desk. Four gently curving input lines pass through separate controls and come together as a single outgoing line.</desc>
+  <g stroke="#242424" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Four sources arrive separately. -->
+    <g id="incoming-lines" stroke-width="2.2">
+      <path d="M70 119 C117 100 158 115 184 158 S220 253 277 253"/>
+      <path d="M65 167 C108 149 150 165 174 195 S223 269 277 269"/>
+      <path d="M67 214 C117 196 152 221 178 242 S223 285 277 285"/>
+      <path d="M71 261 C115 248 145 266 177 282 S232 301 277 301"/>
+    </g>
+    <!-- The legs attach directly to the round face-and-body shapes. -->
+    <g id="left-figure">
+      <path d="M298 220 Q292 271 280 340 M331 221 Q339 272 348 341" stroke-width="5"/>
+      <path d="M276 185 Q244 207 247 235 Q248 248 290 260" stroke-width="5"/>
+      <path d="M350 189 Q378 215 360 254" stroke-width="5"/>
+      <path d="M274 339 C264 338 250 344 250 351 C253 359 280 358 290 353 L291 343 Z" fill="white" stroke-width="2.8"/>
+      <path d="M346 340 C356 337 374 343 375 351 C373 358 347 359 336 354 L337 344 Z" fill="white" stroke-width="2.8"/>
+      <path d="M272 183 C271 161 284 143 306 139 C329 135 351 150 355 172 C362 197 346 222 321 226 C295 230 274 210 272 183 Z" fill="white" stroke-width="3.2"/>
+      <path d="M302 157 Q309 153 316 157 M325 158 Q332 157 337 162" stroke-width="2.4"/>
+      <ellipse cx="309" cy="174" rx="9" ry="12" fill="white" stroke-width="2.3"/>
+      <ellipse cx="331" cy="176" rx="8.5" ry="11.5" fill="white" stroke-width="2.3"/>
+      <ellipse cx="313" cy="179" rx="4.5" ry="6" fill="#242424" stroke="none"/>
+      <ellipse cx="334" cy="181" rx="4.4" ry="6" fill="#242424" stroke="none"/>
+      <path d="M311 196 Q321 206 331 196" stroke-width="2.5"/>
+    </g>
+    <g id="right-figure">
+      <path d="M421 203 Q421 271 412 340 M455 201 Q478 267 492 338" stroke-width="5"/>
+      <path d="M402 170 Q380 192 392 231" stroke-width="5"/>
+      <path d="M478 170 Q517 182 506 214 Q497 237 460 248" stroke-width="5"/>
+      <path d="M407 337 C396 337 383 344 384 351 C389 357 415 358 423 352 L422 342 Z" fill="white" stroke-width="2.8"/>
+      <path d="M490 336 C502 335 519 341 518 349 C514 356 490 358 480 351 L480 342 Z" fill="white" stroke-width="2.8"/>
+      <path d="M398 164 C398 141 417 123 439 124 C462 124 481 144 480 168 C479 192 460 211 437 210 C414 209 396 189 398 164 Z" fill="white" stroke-width="3.2"/>
+      <path d="M413 146 Q421 140 429 145 M437 143 Q444 138 452 143" stroke-width="2.4"/>
+      <ellipse cx="422" cy="161" rx="8.5" ry="11.5" fill="white" stroke-width="2.3"/>
+      <ellipse cx="445" cy="159" rx="9" ry="12" fill="white" stroke-width="2.3"/>
+      <ellipse cx="419" cy="165" rx="4.5" ry="6" fill="#242424" stroke="none"/>
+      <ellipse cx="441" cy="164" rx="4.5" ry="6" fill="#242424" stroke="none"/>
+      <path d="M423 184 Q433 191 444 180" stroke-width="2.5"/>
+    </g>
+    <!-- A compact console keeps the combining operation visible. -->
+    <g id="mixing-desk">
+      <path d="M285 237 L477 237 Q486 237 486 246 L486 309 Q486 318 477 318 L285 318 Q276 318 276 309 L276 246 Q276 237 285 237 Z" fill="white" stroke-width="2.8"/>
+      <path d="M283 318 L287 326 L478 326 L486 318 M478 326 L478 319" stroke-width="1.5"/>
+      <g id="mixing-channels" stroke-width="1.8">
+        <path d="M276 253 H373 C410 253 423 277 464 277"/>
+        <path d="M276 269 H373 C411 269 427 277 464 277"/>
+        <path d="M276 285 H373 C411 285 427 277 464 277"/>
+        <path d="M276 301 H373 C410 301 423 277 464 277"/>
+      </g>
+      <g fill="white" stroke-width="2">
+        <rect x="322" y="247" width="12" height="12" rx="2"/>
+        <rect x="356" y="263" width="12" height="12" rx="2"/>
+        <rect x="339" y="279" width="12" height="12" rx="2"/>
+        <rect x="310" y="295" width="12" height="12" rx="2"/>
+      </g>
+      <path d="M328 251 V255 M362 267 V271 M345 283 V287 M316 299 V303" stroke-width="1.2"/>
+      <circle cx="465" cy="277" r="4" fill="#242424" stroke="none"/>
+      <path id="outgoing-line" d="M465 277 H504 C550 277 572 252 614 253 C647 254 666 267 696 257" stroke-width="3.4"/>
+    </g>
+    <!-- Small mitten hands, with clear contact at the controls. -->
+    <g id="hands" fill="white" stroke-width="2.3">
+      <path d="M281 252 Q278 247 282 244 Q286 241 290 247 L299 249 Q305 250 303 254 Q309 258 304 262 Q304 267 299 267 L286 263 Q281 260 281 252 Z"/>
+      <path d="M355 253 Q352 249 356 246 Q360 244 363 249 L365 256 Q371 257 370 261 Q375 265 370 268 L361 272 Q354 272 352 267 Q349 262 355 253 Z"/>
+      <path d="M385 227 Q385 221 389 220 Q394 219 397 226 L400 233 Q405 235 403 239 Q407 244 401 247 L392 247 Q385 246 384 241 Z"/>
+      <path d="M457 242 Q451 240 448 244 Q445 248 450 251 L455 254 Q457 261 462 258 Q467 263 470 258 L473 251 Q472 245 466 244 Z"/>
+    </g>
+    <g stroke-width="1.2" opacity=".28">
+      <path d="M238 363 Q310 360 375 363 M386 363 Q456 360 523 363"/>
+    </g>
+  </g>
+</svg>

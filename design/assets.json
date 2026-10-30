@@ -127,6 +127,20 @@
       "description": "A Lincoln-like round, torso-less figure with stovepipe hat and chin beard gives a speech to a cheerful round, torso-less figure holding an open cloth sack. Sparse monochrome outlines on a transparent field.",
       "sha256": "5d5bc2f9866108ef6743be0804ea5c91772a41e5349b88acc03c403a30cded4d",
       "usage": "Text explainer opening and bag-of-words cartoon. speech-cartoon.mjs overlays a speaking mouth and real word labels, with reversible scroll-driven motion and an optional standalone player. Preserve proportions, transparency, and full composition. Generated artwork contains no baked-in words."
+    },
+    {
+      "path": "docs/attention/assets/attention-mixing.svg",
+      "role": "attention-title-illustration",
+      "description": "Two round, torso-less figures adjust a small mixing desk. Four gently curving input lines pass through separate controls and merge into one outgoing line. Original monochrome SVG artwork with white interiors and a transparent field.",
+      "sha256": "3e3ac0a4a63d435e59a84d1a7a47fbc037b5ce5e3ec69e70ccd9538a4e68c64b",
+      "usage": "Opening title scene of the attention-layer scrollytelling lesson. Preserve the full composition, proportions, transparency, and clear space. Keep the title, token labels, and mathematical explanations as real HTML text. The mixing desk is a conceptual metaphor for weighting and combining information."
+    },
+    {
+      "path": "docs/attention/assets/attention-crowd-loudspeaker.png",
+      "role": "attention-title-illustration",
+      "description": "A monochrome crowd of round, torso-less figures holding smartphones looks up toward a horn loudspeaker on a pole. Four figures remain absorbed in their phones with half-closed eyes and slack, blank expressions.",
+      "sha256": "8285cebee655ecd1db4c4655b31a3240b1d4fb2ec6be425590e1e736331c1fdb",
+      "usage": "Opening illustration for the attention scrollytelling lesson. Preserve the full crowd, loudspeaker, white background, and natural proportions. Keep the title as real HTML text. The blank phone stares are metaphorical, with no literal zombie imagery."
     }
   ]
 }
