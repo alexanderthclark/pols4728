@@ -84,7 +84,7 @@
       "role": "imbalanced-data-title-illustration",
       "description": "A round, torso-less figure walks a high wire while holding a long balancing pole. Sparse monochrome outlines on a transparent field.",
       "sha256": "d8370e3af5d8ad2d84cb63304c551905a299b106c6172d3aaf00121a89824336",
-      "usage": "Opening title of the Imbalanced Data explainer. Preserve the full pole and wire, original proportions, transparency, and clear space; keep the title as real HTML text."
+      "usage": "Earlier Imbalanced Data title illustration, retained as a variant. The current title uses high-wire-refined.png. Preserve full composition, transparency, proportions, and clear space."
     },
     {
       "path": "docs/shapley/assets/electoral-ballot-characters.png",
@@ -99,6 +99,13 @@
       "description": "Head-on and right-facing profile views of the same round, torso-less figure in the established SHAP character family. Arms and legs attach directly to the face-and-body circle, with no neck or separate torso. Sparse monochrome outlines and faint alignment rules on a transparent field.",
       "sha256": "96476d63e7cc8bd0d76ee35778ecd4d63344a08ccada62f0837cb303ed8c77cd",
       "usage": "Human character anatomy reference for course explainers and illustrated title scenes. Preserve equal scale, complete limbs, round proportions, white interiors, and transparency. Keep view labels and explanatory text outside the image."
+    },
+    {
+      "path": "docs/imbalanced-data/assets/high-wire-refined.png",
+      "role": "imbalanced-data-title-illustration",
+      "description": "A round, torso-less figure walks a high wire, holding a bowed balancing pole with lowered arms and clear mitten grips below the round face. Sparse monochrome outlines on a transparent field.",
+      "sha256": "4b6e2e6a9316bce416a0ca34c2615a8199ebb33a70087f62a97a621d75ad7087",
+      "usage": "Opening title of the Imbalanced Data explainer. Preserve full composition, transparency, proportions, and clear space; title remains real HTML text."
     },
     {
       "path": "docs/neural-networks/assets/blacksmith-sine.webp",

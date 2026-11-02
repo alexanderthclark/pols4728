@@ -8,7 +8,7 @@
 
   var POPULATION_PRIOR = 0.01;
   var SIGNALS = Object.freeze({
-    A: Object.freeze({ name: "A", tpr: 0.5, fpr: 0.001 }),
+    A: Object.freeze({ name: "A", tpr: 0.5, fpr: 0 }),
     B: Object.freeze({ name: "B", tpr: 0.9, fpr: 0.1 })
   });
 
