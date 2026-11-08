@@ -1,6 +1,6 @@
-import {escapeText as esc, mathLabel} from './math.mjs?v=20261108-mechanism-1';
-import {pelotonExample, topicLabels, topicColors, theta, beta, conditionalTopics, interpolatedTopics, clamp, interpolate} from './lda-model.mjs?v=20261108-mechanism-1';
-export {pelotonExample} from './lda-model.mjs?v=20261108-mechanism-1';
+import {escapeText as esc, mathLabel} from './math.mjs?v=20261108-peloton-1';
+import {pelotonExample, topicLabels, topicColors, theta, beta, conditionalTopics, interpolatedTopics, clamp, interpolate} from './lda-model.mjs?v=20261108-peloton-1';
+export {pelotonExample} from './lda-model.mjs?v=20261108-peloton-1';
 
 const f = n => Number(n.toFixed(4));
 const text = (key,x,y,label,size=30,extra='') => `<text data-key="${key}" x="${f(x)}" y="${f(y)}" font-size="${size}" fill="#242424" ${extra}>${esc(label)}</text>`;

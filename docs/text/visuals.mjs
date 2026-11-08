@@ -1,10 +1,10 @@
-import {chapters} from './lesson.mjs?v=20261108-mechanism-1';
-import {speechCartoon} from './speech-cartoon.mjs?v=20261108-mechanism-1';
-import {latex, escapeText as esc} from './math.mjs?v=20261108-mechanism-1';
-import {documents,vocabulary,counts,termStats,displayTerms} from './model.mjs?v=20261108-mechanism-1';
-import {applicationVisual} from './applications.mjs?v=20261108-mechanism-1';
-import {shortSentencesVisual} from './short-sentences.mjs?v=20261108-mechanism-1';
-import {quoteFlowVisual} from './quote-flow.mjs?v=20261108-mechanism-1';
+import {chapters} from './lesson.mjs?v=20261108-peloton-1';
+import {speechCartoon} from './speech-cartoon.mjs?v=20261108-peloton-1';
+import {latex, escapeText as esc} from './math.mjs?v=20261108-peloton-1';
+import {documents,vocabulary,counts,termStats,displayTerms,explorerTerms} from './model.mjs?v=20261108-peloton-1';
+import {applicationVisual} from './applications.mjs?v=20261108-peloton-1';
+import {shortSentencesVisual} from './short-sentences.mjs?v=20261108-peloton-1';
+import {quoteFlowVisual} from './quote-flow.mjs?v=20261108-peloton-1';
 
 const clamp=x=>Math.max(0,Math.min(1,x));
 const fmt=(n,d=2)=>Math.abs(n)<1e-9?'0':n.toFixed(d);
@@ -14,10 +14,10 @@ const line=(x1,y1,x2,y2,color='#767676',extra='')=>`<line x1="${x1}" y1="${y1}" 
 const equation=tex=>`<div class="math">${latex(tex,true)}</div>`;
 const note=text=>`<p class="visual-note">${text}</p>`;
 export function matrix(values,{focus=null,doc=null,decimals=0,weighted=false,caption=null,presence=false,interactive=false}={}){
-  const terms=interactive?vocabulary:displayTerms,col=vocabulary.indexOf(focus);
-  return `<table class="matrix${interactive?' explorer-matrix':''}"><caption class="visual-title">${caption??(weighted?'TF–IDF weights':'Document–term counts')}${interactive?' · all 25 terms':' · selected columns'}</caption><thead><tr><th scope="col">Document</th>${terms.map(t=>`<th scope="col" class="${t===focus?'term-focus':''}">${t}</th>`).join('')}</tr></thead><tbody>${values.map((row,r)=>`<tr ${r===doc?'class="active"':''}><th scope="row">${documents[r].label}</th>${terms.map(term=>{
+  const terms=interactive?explorerTerms:displayTerms,col=vocabulary.indexOf(focus);
+  return `<table class="matrix${interactive?' explorer-matrix':''}"><caption class="visual-title">${caption??(weighted?'TF–IDF weights':'Document–term counts')}${interactive?` · ${explorerTerms.length} selected terms`:' · selected columns'}</caption><thead><tr><th scope="col">Document</th>${terms.map(t=>`<th scope="col" class="${t===focus?'term-focus':''}">${t}</th>`).join('')}</tr></thead><tbody>${values.map((row,r)=>`<tr ${r===doc?'class="active"':''}><th scope="row">${documents[r].label}</th>${terms.map(term=>{
     const c=vocabulary.indexOf(term),v=row[c],value=decimals?fmt(v,decimals):v,selected=r===doc&&c===col;
-    return `<td class="${c===col?'focus ':''}${presence&&c===col&&v>0?'present ':''}${v===0?'zero':''}">${interactive?`<button type="button" class="matrix-cell" data-doc="${r}" data-col="${c}" data-term="${term}" tabindex="${selected?0:-1}" aria-pressed="${selected}" aria-label="${documents[r].label}, ${term}, count ${v}">${value}</button>`:value}</td>`;
+    return `<td class="${c===col?'focus ':''}${presence&&c===col&&v>0?'present ':''}${v===0?'zero':''}">${interactive?`<button type="button" class="matrix-cell" data-doc="${r}" data-col="${terms.indexOf(term)}" data-term="${term}" tabindex="${selected?0:-1}" aria-pressed="${selected}" aria-label="${documents[r].label}, ${term}, count ${v}">${value}</button>`:value}</td>`;
   }).join('')}</tr>`).join('')}</tbody></table>`;
 }
 
@@ -26,7 +26,7 @@ export function bagVisual(stage,p,motion=true){
   if(scene==='speech'||scene==='speech-counts')return speechCartoon(motion?clamp(p):stage,{reducedMotion:!motion,id:'lesson-speech',countLayout:scene==='speech-counts'?'matrix':'list'});
   const q=motion?clamp((p-stage+.5)*2):1;
   if(scene.startsWith('short-'))return shortSentencesVisual(scene,q);
-  if(['corpus','tokens','lemma','stopwords','matrix'].includes(scene))return quoteFlowVisual(scene,q);
+  if(['corpus','tokens','stopwords','fullclass','matrix'].includes(scene))return quoteFlowVisual(scene,q);
   if(scene==='order')return `<div class="flow"><div class="flow-box">Senators support voters</div><span aria-hidden="true">↓</span><div class="count-vector">senators: 1 · support: 1 · voters: 1</div><span aria-hidden="true">↑</span><div class="flow-box">Voters support senators</div></div>`;
   throw new RangeError(`Unknown bag-of-words scene: ${scene}`);
 }
@@ -49,11 +49,11 @@ export function topicVisual(stage,p,motion=true){
   return applicationVisual(stage+6,p+6,motion);
 }
 
-export function termEquations(term='citizen',doc=0){
+export function termEquations(term='earth',doc=1){
   const s=termStats(term,doc);
   return `<p class="explorer-selection">${esc(term)} in ${documents[doc].label}</p>${equation(String.raw`c_{t,d}=${s.tf},\qquad\mathrm{df}_t=${s.df},\qquad N=${s.N}`)}${equation(String.raw`w_{t,d}=${s.tf}\ln\!\left(\frac{${s.N}}{${s.df}}\right)${s.weight?String.raw`\approx`:"="}${fmt(s.weight,3)}`)}`;
 }
 
-export function inspectTerm(term='citizen',doc=0){
+export function inspectTerm(term='earth',doc=1){
   return `<div class="explorer-scroll">${matrix(counts,{focus:term,doc,interactive:true})}</div><div class="explorer-result explore-equations" aria-live="polite" aria-atomic="true">${termEquations(term,doc)}</div>`;
 }

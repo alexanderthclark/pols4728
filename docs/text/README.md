@@ -10,66 +10,56 @@ and ten on the probability models behind LDA and STM.
 Bag of words and TF–IDF share one pinned workspace, while retaining separate
 chapter headings and anchors. The chapter anchors are `#ai-writing`, `#bag-of-words`, `#tf-idf`, `#authorship`,
 `#bertopic`, and `#topic-models`. The core story ends with a comparison of representations and
-the Schumpeter–Whitman explorer. Applications follow that conclusion and
+the cycling–yoga explorer. Applications follow that conclusion and
 exploration, before the sources. The closing comparison links to the separate
 word2vec lesson; `#word2vec` remains a valid anchor to that paragraph.
 
 ## Narrative and presentation
 
-The worked corpus contains the same two quotations used in the course slides:
-Joseph Schumpeter on citizens entering the political field, from *Capitalism,
-Socialism, and Democracy*, and Walt Whitman on democracy as a training school,
-from *Democratic Vistas*. The wording is preserved in full. Scrolling follows
-the quotations through tokenization, lemmatization, stop-word removal, a shared
-vocabulary, count vectors, and TF–IDF. Reverse scrolling retraces these changes;
-reduced motion uses completed states. The title and all text remain selectable,
-and character artwork is registered in `design/assets.json`.
+The main example compares two complete, 30-minute Peloton class transcripts:
+Ally Love’s Sundays with Love (confidence), November 15, 2020, and Chelsea
+Jackson Roberts’s Morning Yoga Flow, May 13, 2021. Brief, attributed excerpts
+introduce the language and demonstrate tokenization and filtering. A separate
+step explicitly applies the same processing to the whole classes before their
+full counts enter the shared matrix. The previews are not the counted documents.
 
-The opening Lincoln-like speaker and Gettysburg Address cartoon introduce the
-bag metaphor. “Keep repetition” displays one speech row with six word columns;
-its counts update as words arrive and finish at 1, 1, 3, 3, 1, 1.
-The senators/voters example shows what counts lose: word order. The following
-three-sentence comparison reverses the problem by showing how different words
-can express similar ideas. These short primers lead directly to Schumpeter and
-Whitman, the main teaching example. Both authors remain visible through
-preprocessing, the count matrix, and all six TF–IDF scenes. No application or
-separate feature-choice scene interrupts this walkthrough.
+The opening Gettysburg Address cartoon introduces counting and repetition.
+The senators/voters example shows the loss of word order. The next three
+sentences—“Plebiscites are unwise,” “Democracy is foolish,” and “Majority rule
+rules”—show that disjoint word vectors can miss the first two sentences’ similar
+stance. Their pairwise cosine similarities are all zero and cosine distances
+are all one. Those primers lead directly into the class comparison.
 
-The short-sentence comparison uses three statements: “Plebiscites are unwise.”
-“Democracy is foolish.” “Majority rule rules.” It moves from the sentences to their
-nine-column count matrix, which stays visible during cosine comparison. The first two
-share a negative stance toward democratic decision-making, but word overlap
-cannot capture it: every pair has cosine similarity 0 and cosine distance 1.
-This example lowercases and removes punctuation only; it retains stop words
-and keeps “are”/“is” and “rule”/“rules” distinct. The later TF–IDF comparison
-returns to the same cosine measure with weighted vectors.
+The class data use the saved, audited corpus matrix: punctuation, symbols,
+numbers, URLs and stage directions removed; hyphens split; words lowercased;
+recorded stop words and fillers excluded; alphabetic terms of at least three
+letters retained when present in at least three classes. No stemming or
+lemmatization is applied. The shared vocabulary has 2,948 terms, and the two
+classes contribute 1,490 and 2,154 retained occurrences. These are model tokens,
+not a claim about total spoken words. Full class counts and corpus document
+frequencies are exported from the existing model artifact, not approximated by
+retokenizing the quotations in the browser.
 
-Schumpeter's quotation splits
-into 21 alphabetic tokens, with lowercasing and punctuation removal. Whitman's
-has 24. Lemmatization maps forms such as “drops” to “drop,” “enters” to “enter,”
-and “men” to “man.” The selected stop-word removal excludes 10 Schumpeter tokens
-and 9 Whitman tokens, leaving these exact processed documents:
+Six columns stay fixed through counting and weighting: take, resistance,
+confidence, inhale, earth, and tabletop. Their cycling counts are
+`11, 42, 28, 2, 0, 0`; their yoga counts are `41, 0, 0, 105, 54, 30`.
+The explorer provides 24 selected terms. Both cosine calculations use every
+one of the 2,948 coordinates, including those outside the selected displays.
 
-- Schumpeter: `typical citizen drop down lower level mental performance enter political field`
-- Whitman: `political democracy exist practically work america threaten evil supply training school make grand young man`
+IDF uses all 127 nonempty transcripts, including the two featured classes.
+The collection contains 106 cycling classes and three yoga classes; rarity
+therefore describes this selected archive. Resistance appears in 110 classes
+and confidence in 25: their cycling counts of 42 and 28 become weights of
+6.04 and 45.51. In yoga, inhale appears 105 times but across 77 classes, while
+earth appears 54 times but across only four classes. Their weights are 52.54
+and 186.73. Take appears in every class and receives zero weight. The count
+cosine is 0.2318325744; the TF–IDF cosine is 0.0215149277. This decrease is a
+result for this pair, not a general property of TF–IDF.
 
-These 11 and 15 retained occurrences form a 25-term vocabulary. Every retained
-term occurs once within its document; “political” is the sole shared term. The
-main matrix is an explicitly labeled six-column excerpt: `political`, `citizen`,
-`mental`, `democracy`, `america`, and `young`. The complete explorer contains all
-25 columns and all 50 word–document combinations.
-
-The quotations become tokens, retained words become counts, and the same
-matrix carries the walkthrough into TF–IDF. Its vocabulary stays fixed while
-the annotations explain the calculation and its counts become weights.
-The walkthrough follows shared “political” and then
-Schumpeter-specific “citizen.” An explicit word–document formula compares
-“citizen” across the two authors: its IDF is shared, but its scores are 0.693 and
-0. “Political” receives zero in both documents. Their complete TF–IDF vectors
-therefore have cosine similarity zero; the lesson makes clear that this does
-not imply unrelated meanings. TF–IDF changes word importance; it does not
-learn similarities between different vocabulary terms. This limitation connects
-the ending to the separate lesson on embeddings.
+The two class identities and matrix coordinates remain visible throughout.
+Reverse scrolling retraces transformations; reduced motion shows completed
+states. The title and all text remain selectable. Existing character artwork
+is registered in `design/assets.json`.
 
 At the end, “Application: Authorship” returns to the Federalist Papers and shows
 why common words can reveal writing habits. Its fuller explanation preserves
@@ -77,7 +67,7 @@ the qualification that feature choice depends on the research question.
 “Application: BERTopic” then uses a separate synthetic corpus to show how
 word weights describe groups formed with embeddings. BERTopic pools texts within
 each cluster and ranks their words with c-TF–IDF. The illustration supplies two
-clusters of short political texts independently of the quotation corpus. Its
+clusters of short political texts independently of the class transcripts. Its
 word–cluster calculation labels “budget in cluster A” and distinguishes total
 occurrence counts from document frequency.
 
@@ -147,7 +137,7 @@ Captions connect each step to the preceding result without adding transition
 scenes. The visual transformations carry the numerical details, while the fuller
 reading version retains definitions, explanations, and qualifications.
 
-`lesson.mjs` is the source for both concise scene captions and the fuller reading
+`lesson.mjs`, `peloton-lesson.mjs`, and `topic-model-lesson.mjs` are the sources for both concise scene captions and the fuller reading
 version. A stage's `readingText` or `readingNote` preserves detail beyond the
 on-screen caption; otherwise its normal text is used. Regenerate the static
 reading version after changing lesson text:
@@ -174,18 +164,21 @@ No package installation or site build is required; serve `docs/` and open `/text
 - In the three-sentence introduction, each count vector has three nonzero
   entries equal to 1, a norm of `sqrt(3)`, and zero dot product with either other
   vector. Cosine similarity is 0; cosine distance, defined as `1 - cosine`, is 1.
-- Each quotation is one document. The processed corpus uses lowercasing,
-  alphabetic tokenization, the stated lemma mappings, and the selected stop-word
-  removal. Its 26 retained occurrences occupy 25 vocabulary coordinates.
-- The slide convention is `w_(t,d) = c_(t,d) ln(N/df_t)`, where `c_(t,d)` is a raw
-  count, `df_t` counts documents containing the term, and `N = 2`. The logarithm
-  is natural. Weights are shown without smoothing or vector normalization.
-  Cosine similarity adjusts vector length at comparison time.
-- “Political” has document frequency 2 and IDF 0. Every other retained term has
-  document frequency 1 and IDF `ln(2)`, approximately 0.693. A distinctive term
-  has that weight in the quotation containing it and zero in the other.
-- The six displayed columns are an excerpt. Calculations and the explorer use
-  the complete 25-term vocabulary.
+- Each complete class transcript is one document. The selected previews are
+  used only to explain preprocessing. The separate LDA illustration continues
+  to use Chelsea’s Seated Baby Cradle class, not the Morning Yoga Flow.
+- The convention is `w_(t,d) = c_(t,d) ln(N/df_t)`, with raw counts, natural
+  logarithms, no smoothing and `N = 127`. Cosine adjusts for vector length
+  at comparison time. No class-balanced reweighting is applied.
+- The matrix shows six columns, and the explorer shows 24. Both comparisons
+  use the complete 2,948-term vectors.
+- `peloton-data.mjs` contains aggregate counts, document frequencies, brief
+  excerpts, exact source identifiers, excerpt times, and source hashes.
+  It contains no complete transcripts. Regenerate from the privately held
+  analysis with `Rscript scripts/export-peloton-text-data.R --source PATH`; the script
+  verifies the selected vectors by reconstructing the original preprocessing
+  and comparing it with the saved matrix. It is a maintenance tool, not a
+  software requirement for students.
 - Mosteller–Wallace's approximate “upon” rates are per 1,000 words in their
   comparison writings. The chart is not an authorship classifier by itself.
 - Erwin–Oakes's Greek common-word comparison remains a further-reading citation,
@@ -246,3 +239,12 @@ The probability tests cover normalization, the 0.072 word marginal, the 5/6
 conditional Reflection probability, exact scene boundaries, and baseline softmax.
 Density shades are rescaled within each plot; their locations, not intensity
 across plots, show where the distribution concentrates.
+
+The Peloton replacement was checked at 1280×820 and 1280×650 on desktop,
+and 320×568 and 390×844 on phones. All eleven class stages fit without
+horizontal overflow or collisions between the visual, caption, and controls.
+Forward and backward scrolling restored the class and weighting stages;
+keyboard navigation and all six reduced-motion TF–IDF endpoints passed.
+Explorer arrow keys retained focus and displayed the selected term's calculation.
+The source excerpts use the bundled font's glyph advances to prevent word
+collisions. The browser reported no console warnings or errors.

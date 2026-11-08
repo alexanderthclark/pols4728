@@ -1,5 +1,5 @@
-import {inspectTerm,termEquations} from './visuals.mjs?v=20261108-mechanism-1';
-import {vocabulary} from './model.mjs?v=20261108-mechanism-1';
+import {inspectTerm,termEquations} from './visuals.mjs?v=20261108-peloton-1';
+import {explorerTerms as vocabulary} from './model.mjs?v=20261108-peloton-1';
 
 /** Keep the table stable while a cell's document and term drive the calculation. */
 export function initializeExplorer(root){

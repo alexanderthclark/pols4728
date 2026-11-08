@@ -1,5 +1,5 @@
-import {escapeText as esc,mathLabel} from './math.mjs?v=20261108-mechanism-1';
-import {simplexVertices,exampleMixture,topicNames,topicColors,simplexPoint,simplexMesh,dirichletLogDensity,concentrationAt} from './dirichlet-model.mjs?v=20261108-mechanism-1';
+import {escapeText as esc,mathLabel} from './math.mjs?v=20261108-peloton-1';
+import {simplexVertices,exampleMixture,topicNames,topicColors,simplexPoint,simplexMesh,dirichletLogDensity,concentrationAt} from './dirichlet-model.mjs?v=20261108-peloton-1';
 
 const clamp=x=>Math.max(0,Math.min(1,x));
 const f=x=>Number(x.toFixed(4));

@@ -5,7 +5,9 @@ import test from 'node:test';
 const require = createRequire(import.meta.url);
 globalThis.katex = require('../docs/word2vec/vendor/katex/katex.min.js');
 const {initializeExplorer} = await import('../docs/text/explorer.mjs');
-const {counts, vocabulary, documents} = await import('../docs/text/model.mjs');
+const {counts:fullCounts, vocabulary:fullVocabulary, explorerTerms:vocabulary, documents, termStats} = await import('../docs/text/model.mjs');
+
+const counts=fullCounts.map(row=>vocabulary.map(term=>row[fullVocabulary.indexOf(term)]));
 
 const attributes = source => Object.fromEntries([...source.matchAll(/([\w:-]+)="([^"]*)"/g)].map(([, name, value]) => [name, value]));
 const texExpressions = markup => [...markup.matchAll(/<annotation encoding="application\/x-tex">([\s\S]*?)<\/annotation>/g)].map(match => match[1]);
@@ -107,10 +109,9 @@ function assertSelection(page, doc, column) {
   assert.deepEqual(page.state.headings.slice(1).map(heading => heading.classList.contains('term-focus')), vocabulary.map((_, index) => index === column));
   for (const button of page.state.buttons) assert.equal(button.closest('td').classList.contains('focus'), Number(button.dataset.col) === column);
   assert.match(page.state.result.innerHTML, new RegExp(`${vocabulary[column]} in ${documents[doc].label}`));
-  const tf = counts[doc][column], df = counts.filter(row => row[column] > 0).length;
+  const {tf,df,N,weight}=termStats(vocabulary[column],doc);
   const expressions = texExpressions(page.state.result.innerHTML);
-  assert.equal(expressions[0], String.raw`c_{t,d}=${tf},\qquad\mathrm{df}_t=${df},\qquad N=${counts.length}`);
-  const weight = tf * Math.log(counts.length / df);
+  assert.equal(expressions[0], String.raw`c_{t,d}=${tf},\qquad\mathrm{df}_t=${df},\qquad N=${N}`);
   const [, relation, value] = expressions[1].match(/(=|\\approx)([\d.]+)$/);
   assert.equal(relation, weight ? String.raw`\approx` : '=');
   assert.equal(Number(value), Number(weight.toFixed(3)));
@@ -122,7 +123,7 @@ test('the explorer starts with one accessible button per count and one tab stop'
   assert.equal(page.state.writes, 1);
   assert.doesNotMatch(page.state.markup, /<select\b/);
   assert.match(page.state.markup, /class="explorer-result[^\"]*" aria-live="polite" aria-atomic="true"/);
-  assert.equal(page.state.buttons.length, 50);
+  assert.equal(page.state.buttons.length, documents.length*vocabulary.length);
   for (const [doc, row] of counts.entries()) {
     for (const [column, value] of row.entries()) {
       const button = page.cell(doc, column);
@@ -132,10 +133,10 @@ test('the explorer starts with one accessible button per count and one tab stop'
       assert.equal(button.getAttribute('aria-label'), `${documents[doc].label}, ${vocabulary[column]}, count ${value}`);
     }
   }
-  assertSelection(page, 0, vocabulary.indexOf('citizen'));
+  assertSelection(page, 1, vocabulary.indexOf('earth'));
 });
 
-test('hovering all 50 cells updates the calculation without replacing or focusing the table', () => {
+test('hovering all selected cells updates the calculation without replacing or focusing the table', () => {
   const page = fixture();
   initializeExplorer(page.root);
   const buttons = [...page.state.buttons], rows = [...page.state.rows];
@@ -151,10 +152,10 @@ test('hovering all 50 cells updates the calculation without replacing or focusin
   assert.equal(page.state.focusCalls.length, 0);
   assert.equal(page.state.scroller.scrollLeft, 0, 'Hover must not scroll the table.');
   const updates = page.state.resultWrites;
-  page.emit('pointerover', page.cell(1, 24));
-  page.emit('pointerleave', page.cell(1, 24));
+  page.emit('pointerover', page.cell(1, vocabulary.length-1));
+  page.emit('pointerleave', page.cell(1, vocabulary.length-1));
   assert.equal(page.state.resultWrites, updates);
-  assertSelection(page, 1, 24);
+  assertSelection(page, 1, vocabulary.length-1);
 });
 
 test('tap and keyboard focus select cells, including events from nested contents', () => {
@@ -185,26 +186,26 @@ test('keyboard navigation follows the focused cell, clamps at edges, and support
     assert.ok(bounds.right <= 400, 'The focused cell must be inside the visible table.');
   };
   page.cell(1, 2).focus();
-  page.emit('pointerover', page.cell(1, 24));
+  page.emit('pointerover', page.cell(1, vocabulary.length-1));
   move('ArrowRight', 1, 3);
   move('ArrowDown', 1, 3);
   move('ArrowLeft', 1, 2);
   move('ArrowUp', 0, 2);
   move('Home', 0, 0);
   move('ArrowLeft', 0, 0);
-  move('End', 0, 24);
-  assert.equal(page.state.scroller.scrollLeft, 1050, 'End reveals the rightmost vocabulary term.');
-  move('ArrowRight', 0, 24);
+  move('End', 0, vocabulary.length-1);
+  assert.equal(page.state.scroller.scrollLeft, vocabulary.length*50-200, 'End reveals the rightmost vocabulary term.');
+  move('ArrowRight', 0, vocabulary.length-1);
   move('Home', 0, 0, {ctrlKey: true});
   assert.equal(page.state.scroller.scrollLeft, 0, 'Home reveals the leftmost term without page scrolling.');
   move('ArrowUp', 0, 0);
-  move('End', 1, 24, {ctrlKey: true});
-  move('ArrowDown', 1, 24);
+  move('End', 1, vocabulary.length-1, {ctrlKey: true});
+  move('ArrowDown', 1, vocabulary.length-1);
   for (const options of [{key: 'Tab'}, {key: 'Escape'}, {key: 'ArrowLeft', altKey: true}, {key: 'ArrowLeft', metaKey: true}]) {
     const before = page.state.focusCalls.length;
     assert.equal(page.emit('keydown', page.state.activeElement, options).defaultPrevented, false);
     assert.equal(page.state.focusCalls.length, before);
-    assertSelection(page, 1, 24);
+    assertSelection(page, 1, vocabulary.length-1);
   }
 });
 
