@@ -1,10 +1,10 @@
-import {chapters} from './lesson.mjs?v=20261108-topics-3';
-import {speechCartoon} from './speech-cartoon.mjs?v=20261108-topics-3';
-import {latex, escapeText as esc} from './math.mjs?v=20261108-topics-3';
-import {documents,vocabulary,counts,termStats,displayTerms} from './model.mjs?v=20261108-topics-3';
-import {applicationVisual} from './applications.mjs?v=20261108-topics-3';
-import {shortSentencesVisual} from './short-sentences.mjs?v=20261108-topics-3';
-import {quoteFlowVisual} from './quote-flow.mjs?v=20261108-topics-3';
+import {chapters} from './lesson.mjs?v=20261108-mechanism-1';
+import {speechCartoon} from './speech-cartoon.mjs?v=20261108-mechanism-1';
+import {latex, escapeText as esc} from './math.mjs?v=20261108-mechanism-1';
+import {documents,vocabulary,counts,termStats,displayTerms} from './model.mjs?v=20261108-mechanism-1';
+import {applicationVisual} from './applications.mjs?v=20261108-mechanism-1';
+import {shortSentencesVisual} from './short-sentences.mjs?v=20261108-mechanism-1';
+import {quoteFlowVisual} from './quote-flow.mjs?v=20261108-mechanism-1';
 
 const clamp=x=>Math.max(0,Math.min(1,x));
 const fmt=(n,d=2)=>Math.abs(n)<1e-9?'0':n.toFixed(d);

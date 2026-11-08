@@ -4,9 +4,9 @@ Bag of Words and TF–IDF
 
 A standalone scrollytelling lesson for POLS 4728: an opening question about
 recognizable writing habits, followed by bag of words and TF–IDF.
-Its 26 scenes comprise 3 on AI writing, 11 on bag of words, 6 on TF–IDF,
-and 6 application scenes at the end: one on authorship, two on BERTopic,
-and three on LDA and STM.
+Its 33 scenes comprise 3 on AI writing, 11 on bag of words, 6 on TF–IDF,
+and 13 application scenes at the end: one on authorship, two on BERTopic,
+and ten on the probability models behind LDA and STM.
 Bag of words and TF–IDF share one pinned workspace, while retaining separate
 chapter headings and anchors. The chapter anchors are `#ai-writing`, `#bag-of-words`, `#tf-idf`, `#authorship`,
 `#bertopic`, and `#topic-models`. The core story ends with a comparison of representations and
@@ -81,34 +81,60 @@ clusters of short political texts independently of the quotation corpus. Its
 word–cluster calculation labels “budget in cluster A” and distinguishes total
 occurrence counts from document frequency.
 
-The final three scenes introduce LDA and STM with a single Peloton class:
-Chelsea Jackson Roberts’s 10-minute Beginner Focused Flow on Seated Baby Cradle,
-May 13, 2021. The complete requested quotation begins “So I love Seated Baby
-Cradle” and ends “every part of me as being precious.” Its wording is preserved
-without an ellipsis, and the same full quotation stays visible in all three
-stages. The reading version retains the separate Morning Yoga Flow passages
+The closing ten-scene sequence explains LDA and STM as probability models.
+It begins with categorical probability vectors on a three-category simplex,
+then distinguishes the simplex from a Dirichlet distribution over it. A density
+mesh shows how symmetric Dirichlet parameters change concentration while
+holding the mean at equal shares. A Dirichlet draw is a probability vector;
+a categorical draw is one category.
+
+The same three illustrative topics—Movement, Breath, and Reflection—carry
+into LDA. The model draws shared topic–word distributions, then a separate
+mixture for each document, then a topic and a word for each token. The diagram
+makes the document mixture, topic-specific word probabilities, and latent
+token assignment distinct objects. A worked “precious” example sums over
+possible generating topics and then reverses the calculation to illustrate
+probabilistic topic assignment. This conditional calculation assumes known
+parameters; the explanation distinguishes it from inference of all unknown
+quantities across the corpus.
+
+STM then replaces the Dirichlet document-mixture model with latent Gaussian
+log-ratios whose mean depends on metadata. A baseline log-ratio is fixed at
+zero, and softmax maps the result back to the simplex. A final scene holds
+the document mixture fixed while an optional content covariate changes the
+word probabilities within a topic. The existing Peloton fit uses prevalence
+covariates only. These examples explain model structure and are not fitted
+or causal claims about instructors or class types.
+
+The document example preserves the full requested Baby Cradle quotation from
+Chelsea Jackson Roberts’s 10-minute Beginner Focused Flow, May 13, 2021.
+It begins “So I love Seated Baby Cradle” and ends “every part of me as being
+precious.” The reading version retains the separate Morning Yoga Flow passages
 about Earth energy and gratitude, explicitly identifying them as another class.
-The persistent diagram transforms the featured excerpt into an illustrative
-70% movement / 30% reflection topic mixture, then adds instructor and class-type
-metadata to explain STM topic prevalence. These topics, word examples, and
-proportions are explicitly illustrative, not the course’s fitted model results.
-The same document and topic identities remain visible across all three stages.
-
-The full reading explains that topics are distributions over a shared vocabulary,
-that LDA uses raw counts and a Dirichlet document-mixture model, and that STM
-uses a logistic-normal model with metadata incorporated during estimation.
-Optional content covariates are distinguished from prevalence covariates.
-The existing Peloton application uses instructor group and class type for
-prevalence only; no content covariate is fitted. Its class types are reviewed
-transcript-derived activity labels, not official Peloton categories.
-The arrows illustrate model structure without presenting causal effects.
-
-Featured-quote provenance: the course transcript collection’s source document is
+Featured-quote provenance is source document
 `05132021-chelsea_jackson_roberts-1200pm-drastic-1-ab56a7181664411383533b3348f0a2fa_200k`,
 02:56.030–03:10.070. The separate Morning Yoga Flow excerpts come from
 `05132021-chelsea_jackson_roberts-1030am-drastic-1-83e450847b574eea8e18a85204031751_200k`.
-Only the short requested excerpts are reproduced here; the underlying
-corpus and fitted-model files are not required to run this lesson.
+The class label Yoga is transcript-derived, not official Peloton metadata.
+Only the requested excerpts are reproduced; the underlying corpus and fitted
+models are not required to run the lesson.
+
+Numerical conventions in the topic-model illustration:
+
+- The three topic shares are `(0.5, 0.2, 0.3)`; topic names are explanatory labels,
+  whereas fitted topics would be named only after inspecting their words and texts.
+- Displayed columns are `cradle`, `inhale`, `precious`, and all remaining words.
+  The shared probability rows are `(0.55, 0.10, 0.02, 0.33)`,
+  `(0.05, 0.60, 0.01, 0.34)`, and `(0.05, 0.05, 0.20, 0.70)`.
+- The document probability of “precious” is `0.5×0.02 + 0.2×0.01 + 0.3×0.20 = 0.072`.
+  Its conditional topic probabilities are `(0.010, 0.002, 0.060) / 0.072`;
+  Reflection therefore receives approximately `0.833` in this conditional example.
+- The fully Bayesian LDA formulation shown uses a Dirichlet prior for each
+  topic’s word distribution as well as for document topic mixtures. The word
+  prior is denoted lambda to distinguish it from STM’s latent eta vector.
+- STM content animation changes only the Reflection word probabilities from
+  `(0.05, 0.05, 0.20, 0.70)` to `(0.05, 0.05, 0.35, 0.55)`; document shares stay fixed.
+  The change is illustrative and does not estimate a covariate effect.
 
 After the lesson, hovering over any count highlights its term and document and
 updates the calculation below. Tapping a cell also selects it. Keyboard users
@@ -173,7 +199,7 @@ and the supporting reading. Font licenses accompany the local font files.
 ## Verification
 
 ```sh
-node --test tests/text-representations.test.mjs tests/speech-motion.test.mjs tests/text-rendering.test.mjs tests/text-loading.test.mjs tests/text-explorer.test.mjs tests/text-applications.test.mjs tests/short-sentences.test.mjs tests/quote-flow.test.mjs tests/text-continuity.test.mjs tests/topic-models.test.mjs
+node --test tests/text-representations.test.mjs tests/speech-motion.test.mjs tests/text-rendering.test.mjs tests/text-loading.test.mjs tests/text-explorer.test.mjs tests/text-applications.test.mjs tests/short-sentences.test.mjs tests/quote-flow.test.mjs tests/text-continuity.test.mjs tests/topic-models.test.mjs tests/dirichlet.test.mjs tests/lda-mechanism.test.mjs
 node scripts/build-text-transcript.mjs --check
 ```
 
@@ -211,8 +237,12 @@ Forward and backward scrolling restored intermediate counts and weights.
 Chapter anchors, keyboard controls, reduced motion, application placement,
 and the route to sources were checked in the browser without console errors.
 
-The LDA/STM addition passes all 45 targeted lesson checks. Browser review covered
-1280×820 and 1280×650 desktops, plus 320×568 and 390×844 phones. Actual scrolling
-built the mixture and metadata connections; backward scrolling restored the
-excerpt and empty mixture. Keyboard navigation, reduced-motion completion,
-layout separation, and the final route to sources passed without console errors.
+The expanded LDA/STM explanation passes all 54 targeted lesson checks. Browser
+review covered a 1280×820 desktop and 320×568 and 390×843 phones. All ten stages
+fit without horizontal overflow or captions crossing the controls. Actual
+scrolling reached the sparse and uniform Dirichlet states and reversed to the
+original state. Keyboard controls and all ten reduced-motion endpoints passed.
+The probability tests cover normalization, the 0.072 word marginal, the 5/6
+conditional Reflection probability, exact scene boundaries, and baseline softmax.
+Density shades are rescaled within each plot; their locations, not intensity
+across plots, show where the distribution concentrates.
