@@ -28,6 +28,7 @@ button:hover{border-color:var(--blue);color:var(--blue)}
 .small{font-size:15px;color:var(--muted)}
 .title-slide .small{margin:14px 0 0}
 .track{position:relative;border-top:1px solid var(--hairline)}
+.chapter-anchor{position:absolute;left:0;display:block;width:1px;height:0;pointer-events:none}
 .scene{height:var(--scene);position:sticky;top:var(--header);max-width:1400px;margin:auto;display:flex;flex-direction:column;padding:24px max(4vw,22px) 16px;background:white}
 .scene-heading{display:flex;justify-content:space-between;gap:24px;align-items:baseline;border-bottom:1px solid var(--hairline);padding-bottom:15px}
 .scene-heading h2{display:flex;align-items:baseline;gap:14px;font-size:24px;font-weight:400;margin:0}

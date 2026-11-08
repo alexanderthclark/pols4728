@@ -104,3 +104,25 @@ test('count assembly reverses exactly and reduced motion shows the complete earl
     }
   }
 });
+
+test('sentences and their matrix persist through exact stage boundaries and both comparisons', () => {
+  assert.equal(shortSentencesVisual('short-sentences', 1), shortSentencesVisual('short-counts', 0));
+  assert.equal(shortSentencesVisual('short-counts', 1), shortSentencesVisual('short-cosine', 0));
+  const keys = markup => [...markup.matchAll(/data-key="([^"]+)"/g)].map(([, key]) => key);
+  const reference = keys(shortSentencesVisual('short-sentences', 1));
+  assert.equal(new Set(reference).size, reference.length, 'Every persistent node needs a unique key.');
+  for (const scene of ['short-sentences', 'short-counts', 'short-cosine']) {
+    for (const progress of [0, .25, .5, .75, 1]) {
+      const markup = shortSentencesVisual(scene, progress);
+      assert.deepEqual(keys(markup), reference, 'Stage changes must retain the same keyed sentence, matrix, and formula nodes.');
+      for (const {text} of shortDocuments) assert.ok(markup.includes(text), 'The exact sentence remains available beside its vector.');
+      assert.equal(cells(markup).length, 27);
+      assert.deepEqual(cells(markup).map(cell => cell.displayed), shortCounts.flat());
+    }
+  }
+  const highlighted = progress => [...shortSentencesVisual('short-cosine', progress).matchAll(/<tr[^>]*data-sentence="(\d)" class="compared"/g)].map(([, row]) => Number(row));
+  assert.deepEqual(highlighted(.25), [1, 2]);
+  assert.deepEqual(highlighted(.75), [1, 3]);
+  const positions = [0, .1, .25, .5, .75, 1];
+  assert.deepEqual(positions.map(p => shortSentencesVisual('short-cosine', p)), [...positions].reverse().map(p => shortSentencesVisual('short-cosine', p)).reverse());
+});
