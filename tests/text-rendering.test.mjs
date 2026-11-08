@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const require = createRequire(import.meta.url);
 globalThis.katex = require('../docs/word2vec/vendor/katex/katex.min.js');
-const {bagVisual, tfVisual, countAssembly, inspectTerm, tokenizationVisual, lemmatizationVisual, stopWordsVisual, wordDocumentVisual} = await import('../docs/text/visuals.mjs');
+const {bagVisual, tfVisual, topicVisual, countAssembly, inspectTerm, tokenizationVisual, lemmatizationVisual, stopWordsVisual, wordDocumentVisual} = await import('../docs/text/visuals.mjs');
 const {aiExample} = await import('../docs/text/ai-example.mjs');
 const {prose} = await import('../docs/text/math.mjs');
 const {chapters} = await import('../docs/text/lesson.mjs');
@@ -35,7 +35,7 @@ function checkMarkup(markup, label) {
 }
 
 test('every diagram and explanation renders valid mathematics and finite geometry', () => {
-  const renderers = {'bag-of-words': bagVisual, 'tf-idf': tfVisual};
+  const renderers = {'bag-of-words': bagVisual, 'tf-idf': tfVisual, bertopic: topicVisual};
   for (const chapter of chapters) {
     for (const [stage, scene] of chapter.stages.entries()) {
       for (const motion of [true, false]) {
@@ -54,6 +54,43 @@ test('every diagram and explanation renders valid mathematics and finite geometr
       }
     }
   }
+});
+
+
+test('the primers precede one uninterrupted quotation walkthrough with matching diagrams', () => {
+  const bagIndex = chapters.findIndex(chapter => chapter.id === 'bag-of-words');
+  const bag = chapters[bagIndex];
+  const visuals = bag.stages.map(scene => scene.visual);
+  const quoteIndex = visuals.indexOf('corpus');
+  for (const primer of ['speech', 'speech-counts', 'order', 'federalist', 'purpose']) {
+    assert.ok(visuals.indexOf(primer) >= 0 && visuals.indexOf(primer) < quoteIndex, `${primer} must precede the main corpus`);
+  }
+  assert.deepEqual(visuals.slice(quoteIndex), ['corpus', 'tokens', 'lemma', 'stopwords', 'matrix']);
+  assert.equal(chapters[bagIndex + 1].id, 'tf-idf');
+  assert.deepEqual(chapters[bagIndex + 1].stages.map(scene => scene.visual), ['tf', 'df', 'idf', 'word-document', 'weighted', 'cosine']);
+  assert.equal(chapters[bagIndex + 2].id, 'bertopic');
+  assert.deepEqual(chapters[bagIndex + 2].stages.map(scene => scene.visual), ['topic-pooling', 'topic-words']);
+
+  // Check rendered evidence, not only the scene metadata, after positions change.
+  const render = visual => {
+    const stage = visuals.indexOf(visual);
+    return bagVisual(stage, stage, false);
+  };
+  const corpus = render('corpus');
+  for (const {text, label} of documents) {
+    assert.ok(corpus.includes(text));
+    assert.ok(corpus.includes(label));
+  }
+  assert.match(render('order'), /Senators support voters/);
+  assert.match(render('order'), /Voters support senators/);
+  assert.match(render('federalist'), /Hamilton/);
+  assert.match(render('federalist'), /Madison/);
+  assert.equal((render('tokens').match(/data-token=/g) ?? []).length, 21);
+  assert.equal((render('lemma').match(/data-lemma=/g) ?? []).length, 3);
+  assert.equal((render('stopwords').match(/data-kept="false" opacity="0"/g) ?? []).length, 10);
+  assert.match(render('matrix'), /data-matrix-reveal="1"/);
+  assert.match(topicVisual(0, 0, false), /application-pooling/);
+  assert.match(topicVisual(1, 1, false), /application-ranking/);
 });
 
 test('the TF–IDF narrative fixes the featured terms and document to match its explanation', () => {
@@ -121,7 +158,8 @@ test('count assembly preserves the selected tokens, reverses exactly, and finish
     assert.equal(labels[start], documents[row].label);
     assert.deepEqual(labels.slice(start + 1, start + 1 + displayTerms.length).map(Number), displayTerms.map(term => expected[vocabulary.indexOf(term)]));
   }
-  assert.equal(bagVisual(6, 5.8, false), countAssembly(2));
+  const stage = chapters.find(chapter => chapter.id === 'bag-of-words').stages.findIndex(scene => scene.visual === 'matrix');
+  assert.equal(bagVisual(stage, stage - .2, false), countAssembly(2));
 });
 
 test('preprocessing preserves occurrences and applies the slide choices to the worked matrix', () => {

@@ -1,7 +1,7 @@
 /** Keep the complete reading version in place unless the animated lesson is ready. */
 export async function startLesson({
   page = document,
-  loadStory = () => import('./story.mjs?v=20261108-slide-quotes-1'),
+  loadStory = () => import('./story.mjs?v=20261108-flow-2'),
   reportError = error => console.error('The animated lesson could not load; the complete reading version remains available.', error),
 } = {}) {
   const root = page.querySelector('#chapters');

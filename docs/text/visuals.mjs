@@ -1,7 +1,8 @@
-import {speechCartoon} from './speech-cartoon.mjs?v=20261108-slide-quotes-1';
-import {latex, escapeText as esc} from './math.mjs?v=20261108-slide-quotes-1';
-import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine,displayTerms,stopWords,lemmaForms} from './model.mjs?v=20261108-slide-quotes-1';
-import {applicationVisual} from './applications.mjs?v=20261108-slide-quotes-1';
+import {chapters} from './lesson.mjs?v=20261108-flow-2';
+import {speechCartoon} from './speech-cartoon.mjs?v=20261108-flow-2';
+import {latex, escapeText as esc} from './math.mjs?v=20261108-flow-2';
+import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine,displayTerms,stopWords,lemmaForms} from './model.mjs?v=20261108-flow-2';
+import {applicationVisual} from './applications.mjs?v=20261108-flow-2';
 
 const clamp=x=>Math.max(0,Math.min(1,x));
 const mix=(a,b,t)=>a+(b-a)*t;
@@ -36,7 +37,7 @@ export function lemmatizationVisual(q){
     return txt(30,y,form,'font-size="36"')+line(265,y-10,end,y-10,'#234e70')+
       `<path d="M${end-10} ${y-17}L${end} ${y-10}L${end-10} ${y-3}" fill="none" stroke="#234e70" stroke-width="2" opacity="${q}"/>`+
       txt(440,y,lemma,`font-size="36" fill="#234e70" opacity="${q}" data-lemma="${lemma}"`);
-  }).join(''),'Lemmatization maps drops to drop, enters to enter, and making to make.')+note('The worked matrix uses these base forms');
+  }).join(''),'Lemmatization maps drops to drop, enters to enter, and making to make.');
 }
 
 export function stopWordsVisual(q){
@@ -72,25 +73,25 @@ export function countAssembly(p){
     const t=clamp((q-i*.06)/.62),column=displayTerms.indexOf(word),x=mix(30+i*210,175+column*80,t),y=mix(70,202,t);
     return txt(x,y,word,`font-size="31" fill="#234e70" opacity="${1-clamp((q-.5)/.3)}" data-token="${i}"`);
   }).join('');
-  return svg(`<g opacity="${arrival}" data-matrix-reveal="${arrival}">${table}</g>${flying}`,'Schumpeter tokens enter selected vocabulary columns. Two document rows use six displayed columns from the full 25-term vocabulary.')+
-    note(q<.5?'Selected Schumpeter tokens → shared columns':'6 of 25 vocabulary terms shown · all terms in the explorer below');
+  return svg(`<g opacity="${arrival}" data-matrix-reveal="${arrival}">${table}</g>${flying}`,'Schumpeter tokens enter selected vocabulary columns. Two document rows use six displayed columns from the full 25-term vocabulary.');
 }
 
 export function bagVisual(stage,p,motion=true){
-  if(stage<2)return speechCartoon(motion?clamp(p):stage,{reducedMotion:!motion,id:'lesson-speech'});
+  const scene=chapters.find(chapter=>chapter.id==='bag-of-words').stages[stage].visual;
+  if(scene==='speech'||scene==='speech-counts')return speechCartoon(motion?clamp(p):stage,{reducedMotion:!motion,id:'lesson-speech'});
   const q=motion?clamp((p-stage+.5)*2):1;
-  if(stage===2)return `<div class="corpus">${documents.map((d,i)=>`<figure class="doc"><blockquote>“${d.text}”</blockquote><figcaption>${d.label} <span>· ${d.source}</span></figcaption></figure>`).join('')}</div>`;
-  if(stage===3)return tokenizationVisual(q);
-  if(stage===4)return lemmatizationVisual(q);
-  if(stage===5)return stopWordsVisual(q);
-  if(stage===6)return countAssembly(1+q);
-  if(stage===7)return `<div class="flow"><div class="flow-box">Senators support voters</div><span aria-hidden="true">↓</span><div class="count-vector">senators: 1 · support: 1 · voters: 1</div><span aria-hidden="true">↑</span><div class="flow-box">Voters support senators</div></div>${note('Different roles. Identical count vectors.')}`;
-  if(stage===8){const t=q;return `<h4 class="visual-title">“Upon” per 1,000 words</h4>`+svg(
+  if(scene==='corpus')return `<div class="corpus">${documents.map((d,i)=>`<figure class="doc"><blockquote>“${d.text}”</blockquote><figcaption>${d.label} <span>· ${d.source}</span></figcaption></figure>`).join('')}</div>`;
+  if(scene==='tokens')return tokenizationVisual(q);
+  if(scene==='lemma')return lemmatizationVisual(q);
+  if(scene==='stopwords')return stopWordsVisual(q);
+  if(scene==='matrix')return countAssembly(1+q);
+  if(scene==='order')return `<div class="flow"><div class="flow-box">Senators support voters</div><span aria-hidden="true">↓</span><div class="count-vector">senators: 1 · support: 1 · voters: 1</div><span aria-hidden="true">↑</span><div class="flow-box">Voters support senators</div></div>`;
+  if(scene==='federalist'){const t=q;return `<h4 class="visual-title">“Upon” per 1,000 words</h4>`+svg(
     txt(25,92,'Hamilton')+txt(25,218,'Madison')+
     line(210,275,630,275)+[0,1,2,3].map(v=>line(210+v*140,270,210+v*140,281)+txt(210+v*140,319,String(v),'text-anchor="middle"')).join('')+
     `<rect x="210" y="60" height="44" width="${420*t}" fill="#234e70"/><rect x="210" y="186" height="44" width="${140/6*t}" fill="#a54f32"/>`+
     txt(630,43,'≈ 3.0',`text-anchor="end" opacity="${t}"`)+txt(260,216,'≈ 0.17',`opacity="${t}"`), 'Approximate reported rates of upon: Hamilton 3 per thousand, Madison 0.17 per thousand')+note('Mosteller &amp; Wallace (1963) · comparison writings');}
-  return `<div class="purpose"><div><span class="purpose-label">Who wrote it?</span><p>Common words<br>Writing habits</p></div><div><span class="purpose-label">What is it about?</span><p>Distinctive terms<br>TF–IDF weights</p></div></div>${note('Keep the count matrix · change what receives weight')}`;
+  return `<div class="purpose"><div><span class="purpose-label">Who wrote it?</span><p>Common words<br>Writing habits</p></div><div><span class="purpose-label">What is it about?</span><p>Distinctive terms<br>TF–IDF weights</p></div></div>`;
 }
 
 /** A term's IDF is shared; its score belongs to a term–document pair. */
@@ -104,14 +105,18 @@ export function wordDocumentVisual(){
 }
 
 export function tfVisual(stage,p,motion=true){
-  if(stage>=6)return applicationVisual(stage,p,motion);
+
   const term=stage===0?'political':'citizen',s=termStats(term,0);
-  if(stage<2)return matrix(counts,{focus:term,doc:0,presence:stage===1})+`<div class="metric-line">${latex(String.raw`c_{\mathrm{${term}},\mathrm{Schumpeter}}=${s.tf}`)}${stage===1?latex(String.raw`\mathrm{df}_{\mathrm{${term}}}=${s.df}`):''}</div>`+note(stage===0?'“Political” occurs once in each document.':'One document contains “citizen,” so its document frequency is 1.');
-  if(stage===2)return `<h4 class="visual-title">Document rarity becomes a weight</h4><div class="idf-comparison">${['political','citizen','america'].map(t=>{const s=termStats(t,0);return `<div><span>${t}</span>${latex(String.raw`\ln\!\left(\frac{${s.N}}{${s.df}}\right)${s.idf?String.raw`\approx`:"="}${fmt(s.idf,3)}`)}</div>`;}).join('')}</div>`+equation(String.raw`\mathrm{idf}_t=\ln\!\left(\frac{N}{\mathrm{df}_t}\right)`);
+  if(stage<2)return matrix(counts,{focus:term,doc:0,presence:stage===1})+`<div class="metric-line">${latex(String.raw`c_{\mathrm{${term}},\mathrm{Schumpeter}}=${s.tf}`)}${stage===1?latex(String.raw`\mathrm{df}_{\mathrm{${term}}}=${s.df}`):''}</div>`;
+  if(stage===2)return `<div class="idf-comparison">${['political','citizen','america'].map(t=>{const s=termStats(t,0);return `<div><span>${t}</span>${latex(String.raw`\ln\!\left(\frac{${s.N}}{${s.df}}\right)${s.idf?String.raw`\approx`:"="}${fmt(s.idf,3)}`)}</div>`;}).join('')}</div>`+equation(String.raw`\mathrm{idf}_t=\ln\!\left(\frac{N}{\mathrm{df}_t}\right)`);
   if(stage===3)return wordDocumentVisual();
   if(stage===4){const q=motion?clamp((p-3.5)*2):1,vals=counts.map((r,i)=>r.map((v,j)=>mix(v,tfidf[i][j],q))),scale=mix(1,s.idf,q);return matrix(vals,{focus:term,doc:0,decimals:2,weighted:true,caption:q<1?'From counts to TF–IDF weights':'TF–IDF weights'})+equation(String.raw`1\times ${fmt(scale,3)}=${fmt(scale,3)}`)+note(q<1?'Scroll to reweight each vocabulary column.':'Schumpeter · citizen: count × inverse document frequency');}
   const similarity=cosine(tfidf[0],tfidf[1]);
-  return `<h4 class="visual-title">Schumpeter and Whitman</h4><div class="similarity-result">${latex(String.raw`\cos\theta=${fmt(similarity,3)}`)}</div>`+equation(String.raw`\cos\theta=\frac{x^{\mathsf T}y}{\lVert x\rVert\,\lVert y\rVert}`)+note('“Political” is their only shared term, and its weight is zero.');
+  return `<h4 class="visual-title">Schumpeter and Whitman</h4><div class="similarity-result">${latex(String.raw`\cos\theta=${fmt(similarity,3)}`)}</div>`+equation(String.raw`\cos\theta=\frac{x^{\mathsf T}y}{\lVert x\rVert\,\lVert y\rVert}`);
+}
+
+export function topicVisual(stage,p,motion=true){
+  return applicationVisual(stage+6,p+6,motion);
 }
 
 export function termEquations(term='citizen',doc=0){

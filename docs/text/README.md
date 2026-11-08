@@ -4,10 +4,11 @@ Bag of Words and TF–IDF
 
 A standalone scrollytelling lesson for POLS 4728: an opening question about
 recognizable writing habits, followed by bag of words and TF–IDF.
-Its 21 scenes comprise 3 on AI writing, 10 on bag of words, and 8 on TF–IDF.
-The linked chapters are `#ai-writing`, `#bag-of-words`, and `#tf-idf`. A short
-closing comparison links to the separate word2vec lesson; `#word2vec` remains
-a valid anchor to that paragraph.
+Its 21 scenes comprise 3 on AI writing, 10 on bag of words, 6 on TF–IDF,
+and 2 in a separate BERTopic application chapter. The chapter anchors are
+`#ai-writing`, `#bag-of-words`, `#tf-idf`, and `#bertopic`. A short closing
+comparison links to the separate word2vec lesson; `#word2vec` remains a valid
+anchor to that paragraph.
 
 ## Narrative and presentation
 
@@ -20,8 +21,14 @@ vocabulary, count vectors, and TF–IDF. Reverse scrolling retraces these change
 reduced motion uses completed states. The title and all text remain selectable,
 and character artwork is registered in `design/assets.json`.
 
-The opening Lincoln-like speaker and Gettysburg Address cartoon remain a
-separate introduction to the bag metaphor. Schumpeter's quotation then splits
+The opening Lincoln-like speaker and Gettysburg Address cartoon introduce the
+bag metaphor. The senators/voters word-order example and the Federalist
+authorship example follow before the worked corpus begins. A brief transition
+establishes how the research question guides feature choices. Schumpeter and
+Whitman then remain the example continuously through preprocessing, the count
+matrix, and all six TF–IDF scenes.
+
+Schumpeter's quotation splits
 into 21 alphabetic tokens, with lowercasing and punctuation removal. Whitman's
 has 24. Lemmatization maps forms such as “drops” to “drop,” “enters” to “enter,”
 and “men” to “man.” The selected stop-word removal excludes 10 Schumpeter tokens
@@ -36,17 +43,16 @@ main matrix is an explicitly labeled six-column excerpt: `political`, `citizen`,
 `mental`, `democracy`, `america`, and `young`. The complete explorer contains all
 25 columns and all 50 word–document combinations.
 
-The Federalist example explains why common words can reveal writing habits.
-The transition back to Schumpeter and Whitman then asks which retained words
-distinguish their quotations. TF–IDF keeps the processed vocabulary fixed while
-changing its weights. The walkthrough follows shared “political” and then
+The matrix leads directly into TF–IDF, which keeps the processed vocabulary
+fixed while changing its weights. The walkthrough follows shared “political” and then
 Schumpeter-specific “citizen.” An explicit word–document formula compares
 “citizen” across the two authors: its IDF is shared, but its scores are 0.693 and
 0. “Political” receives zero in both documents. Their complete TF–IDF vectors
 therefore have cosine similarity zero; the lesson makes clear that this does
 not imply unrelated meanings.
 
-Two closing application scenes use a separate synthetic corpus to show how
+After the complete quotation example, a distinct “Application: BERTopic”
+chapter uses a separate synthetic corpus to show how
 word weights describe groups formed with embeddings. BERTopic pools texts within
 each cluster and ranks their words with c-TF–IDF. The illustration supplies two
 clusters of short political texts independently of the quotation corpus. Its
@@ -59,6 +65,10 @@ enter the table with Tab, move between counts with arrow keys, and leave with
 Tab; Home/End select the first/last term in a row. The count matrix remains in
 place while the calculation changes. Previous/next buttons and left/right arrow
 keys provide keyboard navigation through the lesson.
+
+The second editing pass cuts the visible captions from 952 to 431 words
+(55%). Definitions remain on screen; the diagrams carry numerical details,
+and the fuller reading version retains explanations and qualifications.
 
 `lesson.mjs` is the source for both concise scene captions and the fuller reading
 version. A stage's `readingText` or `readingNote` preserves detail beyond the
@@ -122,7 +132,7 @@ completed states with reduced motion. Loading checks cover the default reading
 route, failed module requests, partial initialization, anchor transfer, and
 cleanup after a late initialization failure. They do not replace browser review.
 
-The quotation update passed all 30 targeted checks. Browser review covered
+The initial quotation update passed all 30 targeted checks. Its browser review covered
 1265×712 desktop and 390×844 / 320×568 phone viewports. Actual forward and
 backward scrolling preserved the pinned scenes, and the 320×568 walkthrough
 kept the revised quotation, preprocessing, matrix, and all eight TF–IDF scenes
@@ -131,7 +141,11 @@ weighting showed the completed matrix. The full explorer’s keyboard Home/End
 navigation revealed the selected column within its horizontal scroller while
 retaining page position. Static reading content and loading fallback behavior
 were checked by the transcript and loading tests. This is not a complete
-assistive-technology audit.
+assistive-technology audit. The second pass passed 31 checks, including scene-order and caption/diagram
+agreement. Fresh browser review at 1280×820 and 320×568 confirmed the reordered
+scenes, forward/backward scrolling, keyboard chapter transitions, reduced motion,
+and the separate BERTopic application. All reordered phone scenes fit without
+text/diagram overlap or page-level horizontal overflow.
 
 ## Standalone speech cartoon
 
