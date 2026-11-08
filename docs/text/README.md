@@ -82,10 +82,13 @@ word–cluster calculation labels “budget in cluster A” and distinguishes to
 occurrence counts from document frequency.
 
 The final three scenes introduce LDA and STM with a single Peloton class:
-Cody Rigsby’s 30-minute Intervals and Arms Ride, November 19, 2020. Its exact
-short excerpts are “Cadence 80 to 100.”, “Resistance 20 to 40.”, and “Grab those
-weights.” The persistent diagram transforms the excerpt into an illustrative
-70% cycling / 30% strength topic mixture, then adds instructor and class-type
+Chelsea Jackson Roberts’s 30-minute Intermediate Morning Yoga Flow, May 13,
+2021. It pairs “Inhale, sweep your arms up high.” with her invitation to
+“imagine bringing the energy from the Earth through your fingertips, through
+your body.” The initial ellipsis in the visual marks the shortened sentence;
+the full wording and an additional Earth-gratitude passage appear in the reading
+version. The invitation to imagine is preserved as guided imagery. The persistent diagram transforms the excerpt into an illustrative
+70% movement / 30% reflection topic mixture, then adds instructor and class-type
 metadata to explain STM topic prevalence. These topics, word examples, and
 proportions are explicitly illustrative, not the course’s fitted model results.
 The same document and topic identities remain visible across all three stages.
@@ -100,8 +103,8 @@ transcript-derived activity labels, not official Peloton categories.
 The arrows illustrate model structure without presenting causal effects.
 
 Excerpt provenance: the course transcript collection’s source document is
-`11192020-cody_rigsby-0730am-drastic-1-ad4baf9b1efe40f582c8ef1ce04ef26e`.
-Only the three short requested excerpts are reproduced here; the underlying
+`05132021-chelsea_jackson_roberts-1030am-drastic-1-83e450847b574eea8e18a85204031751_200k`.
+Only the short requested excerpts are reproduced here; the underlying
 corpus and fitted-model files are not required to run this lesson.
 
 After the lesson, hovering over any count highlights its term and document and

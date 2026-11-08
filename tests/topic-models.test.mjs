@@ -3,10 +3,12 @@ import test from 'node:test';
 import {pelotonExample, topicModelsVisual} from '../docs/text/topic-models.mjs';
 
 test('the Peloton illustration preserves excerpts and clearly distinguishes invented shares from fitted results',()=>{
-  assert.deepEqual(pelotonExample.excerpts,['Cadence 80 to 100.','Resistance 20 to 40.','Grab those weights.']);
+  assert.deepEqual(pelotonExample.excerpts,['Inhale, sweep your arms up high.','…imagine bringing the energy from the Earth through your fingertips, through your body.']);
   assert.equal(pelotonExample.topics.reduce((sum,topic)=>sum+topic.share,0),1);
   const markup=topicModelsVisual(1,1,false);
-  for(const excerpt of pelotonExample.excerpts)assert.ok(markup.includes(excerpt));
+  for(const excerpt of pelotonExample.excerptLines)assert.ok(markup.includes(excerpt));
+  assert.match(markup,/imagine bringing the energy from the Earth/);
+  assert.match(markup,/Chelsea Jackson Roberts/);
   assert.match(markup,/Illustrative topics and proportions/);
   assert.match(markup,/These are not fitted results/);
   const widths=[...markup.matchAll(/data-key="mixture-segment-\d"[^>]*width="([\d.]+)"/g)].map(match=>Number(match[1]));

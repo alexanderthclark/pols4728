@@ -1,15 +1,16 @@
-import {escapeText as esc} from './math.mjs?v=20261108-topics-1';
+import {escapeText as esc} from './math.mjs?v=20261108-topics-2';
 
 // The quotations are transcript excerpts. These two topics and their shares
 // are a teaching illustration, not an estimate from the Peloton corpus.
 export const pelotonExample = {
-  instructor: 'Cody Rigsby',
-  classTitle: 'Intervals and Arms',
-  date: 'Nov. 19, 2020',
-  excerpts: ['Cadence 80 to 100.', 'Resistance 20 to 40.', 'Grab those weights.'],
+  instructor: 'Chelsea Jackson Roberts',
+  classTitle: 'Morning Yoga Flow',
+  date: 'May 13, 2021',
+  excerpts: ['Inhale, sweep your arms up high.', '…imagine bringing the energy from the Earth through your fingertips, through your body.'],
+  excerptLines: ['“Inhale, sweep your arms up high.”', '“…imagine bringing the energy from the Earth', 'through your fingertips, through your body.”'],
   topics: [
-    {label: 'Cycling', share: .7, words: ['cadence', 'resistance', 'saddle'], color: '#234e70'},
-    {label: 'Strength', share: .3, words: ['weights', 'curl', 'press'], color: '#a54f32'},
+    {label: 'Movement', share: .7, words: ['inhale', 'arms', 'feet'], color: '#234e70'},
+    {label: 'Reflection', share: .3, words: ['energy', 'earth', 'intention'], color: '#a54f32'},
   ],
 };
 
@@ -29,27 +30,27 @@ export function topicModelsVisual(stage, p=stage, motion=true) {
   const lift = fixed(115*(1-mix));
   const barWidth = 624;
   const description = mix === 0
-    ? 'Excerpts from Cody Rigsby’s Intervals and Arms class combine cycling instructions and weights.'
+    ? 'Excerpts from Chelsea Jackson Roberts’s Morning Yoga Flow combine movement cues and spiritual reflection.'
     : metadata === 0
-      ? 'An illustrative class mixture is 70 percent Cycling and 30 percent Strength. The topics are distributions over words; selected words appear below. These are not fitted results.'
+      ? 'An illustrative class mixture is 70 percent Movement and 30 percent Reflection. The topics are distributions over words; selected words appear below. These are not fitted results.'
       : 'The same illustrative mixture and topic words remain visible. Instructor and class-type metadata enter a model of topic prevalence. No numerical metadata effect is estimated in this diagram.';
   return `<div class="topic-model-flow" data-key="topic-model-flow" data-visual-family="topic-models" data-mixture-progress="${fixed(mix)}" data-metadata-progress="${fixed(metadata)}">
     <svg class="topic-model-workspace" viewBox="0 0 680 610" role="img" aria-label="${esc(description)}">
       <g data-key="class-excerpt" transform="translate(0 ${lift})">
         ${text('class-author', 28, 32, pelotonExample.instructor, 31)}
         ${text('class-citation', 28, 64, `${pelotonExample.classTitle} · ${pelotonExample.date}`, 25, 'fill="#606060"')}
-        ${pelotonExample.excerpts.map((quote,i) => text(`excerpt-${i}`, 28, 113+i*39, `“${quote}”`, 34, `fill="${mix > 0 ? pelotonExample.topics[i<2?0:1].color : '#242424'}"`)).join('')}
+        ${pelotonExample.excerptLines.map((quote,i) => text(`excerpt-${i}`, 28, 113+i*39, quote, i===0?34:30, `fill="${mix > 0 ? pelotonExample.topics[i===0?0:1].color : '#242424'}"`)).join('')}
       </g>
       <g data-key="metadata" opacity="${fixed(metadataReveal)}" aria-hidden="${metadataReveal===0}">
         <g data-key="instructor-metadata" transform="translate(${fixed(-55*(1-metadata))} 0)">
           <line x1="28" y1="220" x2="307" y2="220" stroke="#767676" stroke-width="1.5"/>
           ${text('instructor-label', 28, 248, 'Instructor', 24, 'fill="#606060"')}
-          ${text('instructor-value', 28, 281, pelotonExample.instructor, 30)}
+          ${text('instructor-value', 28, 281, pelotonExample.instructor, 25)}
         </g>
         <g data-key="type-metadata" transform="translate(${fixed(55*(1-metadata))} 0)">
           <line x1="365" y1="220" x2="652" y2="220" stroke="#767676" stroke-width="1.5"/>
           ${text('class-type-label', 365, 248, 'Class type', 24, 'fill="#606060"')}
-          ${text('class-type-value', 365, 281, 'Cycling', 30)}
+          ${text('class-type-value', 365, 281, 'Yoga', 30)}
         </g>
         <path data-key="metadata-arrow" d="M168 291 V301 H340 V330 M510 291 V301 H340" fill="none" stroke="#767676" stroke-width="2" pathLength="1" stroke-dasharray="1" stroke-dashoffset="${fixed(1-arrow)}"/>
         <path data-key="metadata-arrowhead" d="M334 322 L340 330 L346 322" fill="none" stroke="#767676" stroke-width="2" opacity="${fixed(clamp((arrow-.9)*10))}"/>

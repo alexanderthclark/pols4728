@@ -1,10 +1,10 @@
-import {chapters} from './lesson.mjs?v=20261108-topics-1';
-import {updateAiExample} from './ai-example.mjs?v=20261108-topics-1';
-import {bagVisual,tfVisual,topicVisual,authorshipVisual} from './visuals.mjs?v=20261108-topics-1';
-import {updateVisual} from './visual-update.mjs?v=20261108-topics-1';
-import {prose} from './math.mjs?v=20261108-topics-1';
-import {initializeExplorer} from './explorer.mjs?v=20261108-topics-1';
-import {topicModelsVisual} from './topic-models.mjs?v=20261108-topics-1';
+import {chapters} from './lesson.mjs?v=20261108-topics-2';
+import {updateAiExample} from './ai-example.mjs?v=20261108-topics-2';
+import {bagVisual,tfVisual,topicVisual,authorshipVisual} from './visuals.mjs?v=20261108-topics-2';
+import {updateVisual} from './visual-update.mjs?v=20261108-topics-2';
+import {prose} from './math.mjs?v=20261108-topics-2';
+import {initializeExplorer} from './explorer.mjs?v=20261108-topics-2';
+import {topicModelsVisual} from './topic-models.mjs?v=20261108-topics-2';
 
 // Bag of words and TF–IDF share one pinned workspace and one visual node.
 export function storyGroups(source=chapters){

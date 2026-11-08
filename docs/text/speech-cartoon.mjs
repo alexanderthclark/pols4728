@@ -1,4 +1,4 @@
-import {speechFrame} from './speech-motion.mjs?v=20261108-topics-1';
+import {speechFrame} from './speech-motion.mjs?v=20261108-topics-2';
 
 const escapeText = value => String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');
 
