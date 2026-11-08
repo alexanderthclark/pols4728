@@ -1,5 +1,5 @@
-import {tokenize, cosine} from './model.mjs?v=20261108-mechanism-1';
-import {latex, escapeText as esc} from './math.mjs?v=20261108-mechanism-1';
+import {tokenize, cosine} from './model.mjs?v=20261108-peloton-1';
+import {latex, escapeText as esc} from './math.mjs?v=20261108-peloton-1';
 
 // This small corpus keeps word forms and stop words, unlike the later quotations.
 export const shortDocuments = [

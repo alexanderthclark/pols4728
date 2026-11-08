@@ -1,7 +1,7 @@
-import {dirichletVisual} from './dirichlet-visual.mjs?v=20261108-mechanism-1';
-import {ldaMechanismVisual} from './lda-mechanism.mjs?v=20261108-mechanism-1';
+import {dirichletVisual} from './dirichlet-visual.mjs?v=20261108-peloton-1';
+import {ldaMechanismVisual} from './lda-mechanism.mjs?v=20261108-peloton-1';
 
-export {pelotonExample} from './lda-mechanism.mjs?v=20261108-mechanism-1';
+export {pelotonExample} from './lda-mechanism.mjs?v=20261108-peloton-1';
 
 // The simplex leads into the same categorical-mixture mechanism used by LDA.
 export function topicModelsVisual(stage,p=stage,motion=true){

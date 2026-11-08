@@ -1,4 +1,4 @@
-import {escapeText as esc,mathLabel} from './math.mjs?v=20261108-mechanism-1';
+import {escapeText as esc,mathLabel} from './math.mjs?v=20261108-peloton-1';
 
 const clamp=value=>Math.max(0,Math.min(1,value));
 const mix=(from,to,amount)=>from+(to-from)*amount;
@@ -7,7 +7,7 @@ const text=(x,y,value,extra='')=>`<text x="${x}" y="${y}" font-size="32" fill="$
 const svg=(body,label,kind)=>`<svg class="application-visual application-${kind}" viewBox="0 0 680 330" role="img" aria-label="${esc(label)}">${body}</svg>`;
 const note=content=>`<p class="visual-note">${content}</p>`;
 
-/** Constructed teaching documents, independent of the Schumpeter and Whitman quotations. */
+/** Constructed teaching documents, independent of the Peloton transcript comparison. */
 export const topicDocuments=[
   ['budget tax policy','budget spending policy'],
   ['health clinic policy','health care policy'],
