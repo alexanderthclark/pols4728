@@ -37,9 +37,9 @@ export const chapters = [
     "subtitle": "Documents → vocabulary counts",
     "stages": [
       {
-        "title": "Catch the words.",
-        "text": "Imagine collecting each spoken word in a bag.",
-        "note": "A fragment from the Gettysburg Address.",
+        "title": "Count the word frequencies.",
+        "text": "",
+        "note": "",
         "visual": "speech",
         "readingText": "Imagine catching each word of a speech in a bag. Our Lincoln-like speaker says “government of the people, by the people, for the people.” Scroll to send each separate word from the speaker to the bag.",
         "readingNote": "The fragment is from the Gettysburg Address. Scroll slowly to follow individual words into the bag."

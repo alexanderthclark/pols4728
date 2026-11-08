@@ -1,8 +1,8 @@
-import {chapters} from './lesson.mjs?v=20261108-caption-3';
-import {speechCartoon} from './speech-cartoon.mjs?v=20261108-caption-3';
-import {latex, escapeText as esc} from './math.mjs?v=20261108-caption-3';
-import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine,displayTerms,stopWords,lemmaForms} from './model.mjs?v=20261108-caption-3';
-import {applicationVisual} from './applications.mjs?v=20261108-caption-3';
+import {chapters} from './lesson.mjs?v=20261108-frequency-4';
+import {speechCartoon} from './speech-cartoon.mjs?v=20261108-frequency-4';
+import {latex, escapeText as esc} from './math.mjs?v=20261108-frequency-4';
+import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine,displayTerms,stopWords,lemmaForms} from './model.mjs?v=20261108-frequency-4';
+import {applicationVisual} from './applications.mjs?v=20261108-frequency-4';
 
 const clamp=x=>Math.max(0,Math.min(1,x));
 const mix=(a,b,t)=>a+(b-a)*t;
