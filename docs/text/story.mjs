@@ -1,9 +1,10 @@
-import {chapters} from './lesson.mjs?v=20261108-flow-7';
-import {updateAiExample} from './ai-example.mjs?v=20261108-flow-7';
-import {bagVisual,tfVisual,topicVisual,authorshipVisual} from './visuals.mjs?v=20261108-flow-7';
-import {updateVisual} from './visual-update.mjs?v=20261108-flow-7';
-import {prose} from './math.mjs?v=20261108-flow-7';
-import {initializeExplorer} from './explorer.mjs?v=20261108-flow-7';
+import {chapters} from './lesson.mjs?v=20261108-topics-2';
+import {updateAiExample} from './ai-example.mjs?v=20261108-topics-2';
+import {bagVisual,tfVisual,topicVisual,authorshipVisual} from './visuals.mjs?v=20261108-topics-2';
+import {updateVisual} from './visual-update.mjs?v=20261108-topics-2';
+import {prose} from './math.mjs?v=20261108-topics-2';
+import {initializeExplorer} from './explorer.mjs?v=20261108-topics-2';
+import {topicModelsVisual} from './topic-models.mjs?v=20261108-topics-2';
 
 // Bag of words and TF–IDF share one pinned workspace and one visual node.
 export function storyGroups(source=chapters){
@@ -82,7 +83,7 @@ export function initializeStory() {
       v.copy.style.transform=`translateY(${Math.sign(stage-raw)*fade*10}px)`;
       if(chapter.id==='ai-writing')updateAiExample(v.visual,localStage,p,{reducedMotion:!state.motion});
       else{
-        const draw={'bag-of-words':bagVisual,'tf-idf':tfVisual,authorship:authorshipVisual,bertopic:topicVisual}[chapter.id];
+        const draw={'bag-of-words':bagVisual,'tf-idf':tfVisual,authorship:authorshipVisual,bertopic:topicVisual,'topic-models':topicModelsVisual}[chapter.id];
         const markup=draw(localStage,p,state.motion);
         if(markup!==v.lastVisual){updateVisual(v.visual,markup);v.lastVisual=markup;}
       }

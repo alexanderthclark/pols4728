@@ -5,6 +5,7 @@ import test from 'node:test';
 const require = createRequire(import.meta.url);
 globalThis.katex = require('../docs/word2vec/vendor/katex/katex.min.js');
 const {bagVisual, tfVisual, topicVisual, authorshipVisual, inspectTerm} = await import('../docs/text/visuals.mjs');
+const {topicModelsVisual} = await import('../docs/text/topic-models.mjs');
 const {quoteFlowVisual} = await import('../docs/text/quote-flow.mjs');
 const {aiExample} = await import('../docs/text/ai-example.mjs');
 const {prose} = await import('../docs/text/math.mjs');
@@ -36,7 +37,7 @@ function checkMarkup(markup, label) {
 }
 
 test('every diagram and explanation renders valid mathematics and finite geometry', () => {
-  const renderers = {'bag-of-words': bagVisual, 'tf-idf': tfVisual, authorship: authorshipVisual, bertopic: topicVisual};
+  const renderers = {'bag-of-words': bagVisual, 'tf-idf': tfVisual, authorship: authorshipVisual, bertopic: topicVisual, 'topic-models': topicModelsVisual};
   for (const chapter of chapters) {
     for (const [stage, scene] of chapter.stages.entries()) {
       for (const motion of [true, false]) {
@@ -67,7 +68,7 @@ test('the primers lead directly into one quotation walkthrough and applications 
   assert.deepEqual(visuals.slice(quoteIndex), ['corpus', 'tokens', 'lemma', 'stopwords', 'matrix']);
   assert.equal(chapters[bagIndex + 1].id, 'tf-idf');
   assert.deepEqual(chapters[bagIndex + 1].stages.map(scene => scene.visual), ['tf', 'df', 'idf', 'word-document', 'weighted', 'cosine']);
-  assert.deepEqual(chapters.filter(chapter => chapter.application).map(chapter => chapter.id), ['authorship', 'bertopic']);
+  assert.deepEqual(chapters.filter(chapter => chapter.application).map(chapter => chapter.id), ['authorship', 'bertopic', 'topic-models']);
   assert.ok(chapters.slice(0, bagIndex + 2).every(chapter => !chapter.application));
   assert.ok(chapters.slice(bagIndex + 2).every(chapter => chapter.application));
   assert.deepEqual(chapters.find(chapter => chapter.id === 'authorship').stages.map(scene => scene.visual), ['federalist']);

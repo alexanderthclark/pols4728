@@ -26,8 +26,8 @@ const cell=(key,value)=>new Node('td',{'data-key':key},[new Node('#text',{value}
 
 test('bag of words and TF–IDF share a single pinned sequence before the applications',()=>{
   const groups=storyGroups();
-  assert.deepEqual(groups.map(group=>group.chapters.map(chapter=>chapter.id)),[['ai-writing'],['bag-of-words','tf-idf'],['authorship'],['bertopic']]);
-  assert.deepEqual(groups.map(group=>group.application),[false,false,true,true]);
+  assert.deepEqual(groups.map(group=>group.chapters.map(chapter=>chapter.id)),[['ai-writing'],['bag-of-words','tf-idf'],['authorship'],['bertopic'],['topic-models']]);
+  assert.deepEqual(groups.map(group=>group.application),[false,false,true,true,true]);
   const main=groups[1],bag=chapters.find(chapter=>chapter.id==='bag-of-words');
   assert.equal(main.steps[bag.stages.length-1].scene.visual,'matrix');
   assert.equal(main.steps[bag.stages.length].scene.visual,'tf');

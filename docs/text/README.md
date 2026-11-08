@@ -4,11 +4,12 @@ Bag of Words and TF–IDF
 
 A standalone scrollytelling lesson for POLS 4728: an opening question about
 recognizable writing habits, followed by bag of words and TF–IDF.
-Its 23 scenes comprise 3 on AI writing, 11 on bag of words, 6 on TF–IDF,
-and 3 application scenes at the end: one on authorship and two on BERTopic.
+Its 26 scenes comprise 3 on AI writing, 11 on bag of words, 6 on TF–IDF,
+and 6 application scenes at the end: one on authorship, two on BERTopic,
+and three on LDA and STM.
 Bag of words and TF–IDF share one pinned workspace, while retaining separate
 chapter headings and anchors. The chapter anchors are `#ai-writing`, `#bag-of-words`, `#tf-idf`, `#authorship`,
-and `#bertopic`. The core story ends with a comparison of representations and
+`#bertopic`, and `#topic-models`. The core story ends with a comparison of representations and
 the Schumpeter–Whitman explorer. Applications follow that conclusion and
 exploration, before the sources. The closing comparison links to the separate
 word2vec lesson; `#word2vec` remains a valid anchor to that paragraph.
@@ -80,6 +81,32 @@ clusters of short political texts independently of the quotation corpus. Its
 word–cluster calculation labels “budget in cluster A” and distinguishes total
 occurrence counts from document frequency.
 
+The final three scenes introduce LDA and STM with a single Peloton class:
+Chelsea Jackson Roberts’s 30-minute Intermediate Morning Yoga Flow, May 13,
+2021. It pairs “Inhale, sweep your arms up high.” with her invitation to
+“imagine bringing the energy from the Earth through your fingertips, through
+your body.” The initial ellipsis in the visual marks the shortened sentence;
+the full wording and an additional Earth-gratitude passage appear in the reading
+version. The invitation to imagine is preserved as guided imagery. The persistent diagram transforms the excerpt into an illustrative
+70% movement / 30% reflection topic mixture, then adds instructor and class-type
+metadata to explain STM topic prevalence. These topics, word examples, and
+proportions are explicitly illustrative, not the course’s fitted model results.
+The same document and topic identities remain visible across all three stages.
+
+The full reading explains that topics are distributions over a shared vocabulary,
+that LDA uses raw counts and a Dirichlet document-mixture model, and that STM
+uses a logistic-normal model with metadata incorporated during estimation.
+Optional content covariates are distinguished from prevalence covariates.
+The existing Peloton application uses instructor group and class type for
+prevalence only; no content covariate is fitted. Its class types are reviewed
+transcript-derived activity labels, not official Peloton categories.
+The arrows illustrate model structure without presenting causal effects.
+
+Excerpt provenance: the course transcript collection’s source document is
+`05132021-chelsea_jackson_roberts-1030am-drastic-1-83e450847b574eea8e18a85204031751_200k`.
+Only the short requested excerpts are reproduced here; the underlying
+corpus and fitted-model files are not required to run this lesson.
+
 After the lesson, hovering over any count highlights its term and document and
 updates the calculation below. Tapping a cell also selects it. Keyboard users
 enter the table with Tab, move between counts with arrow keys, and leave with
@@ -143,7 +170,7 @@ and the supporting reading. Font licenses accompany the local font files.
 ## Verification
 
 ```sh
-node --test tests/text-representations.test.mjs tests/speech-motion.test.mjs tests/text-rendering.test.mjs tests/text-loading.test.mjs tests/text-explorer.test.mjs tests/text-applications.test.mjs tests/short-sentences.test.mjs tests/quote-flow.test.mjs tests/text-continuity.test.mjs
+node --test tests/text-representations.test.mjs tests/speech-motion.test.mjs tests/text-rendering.test.mjs tests/text-loading.test.mjs tests/text-explorer.test.mjs tests/text-applications.test.mjs tests/short-sentences.test.mjs tests/quote-flow.test.mjs tests/text-continuity.test.mjs tests/topic-models.test.mjs
 node scripts/build-text-transcript.mjs --check
 ```
 
@@ -180,3 +207,9 @@ all eleven quotation stages kept a fixed visual position on the small phone.
 Forward and backward scrolling restored intermediate counts and weights.
 Chapter anchors, keyboard controls, reduced motion, application placement,
 and the route to sources were checked in the browser without console errors.
+
+The LDA/STM addition passes all 45 targeted lesson checks. Browser review covered
+1280×820 and 1280×650 desktops, plus 320×568 and 390×844 phones. Actual scrolling
+built the mixture and metadata connections; backward scrolling restored the
+excerpt and empty mixture. Keyboard navigation, reduced-motion completion,
+layout separation, and the final route to sources passed without console errors.
