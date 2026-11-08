@@ -7,7 +7,7 @@ export const chapters = [
     "stages": [
       {
         "title": "Does this sound like AI?",
-        "text": "Sam Kriss asked ChatGPT for a science-fiction story. What features of this sentence could we measure?",
+        "text": "",
         "note": "",
         "visual": "ai-example",
         "readingText": "Sam Kriss asked ChatGPT to write a science-fiction story. His New York Times Magazine essay quotes this description of its hero, Kael. Read the excerpt, then scroll to reveal some features you might notice.",
