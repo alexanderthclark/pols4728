@@ -46,43 +46,44 @@ export const chapters = [
         "visual": "speech-counts"
       },
       {
-        "title": "Begin with four short documents.",
-        "text": "We can now build a bag for each document. These four constructed political texts are small enough to inspect directly. A shared vocabulary will let us compare their counts.",
-        "note": "D1–D4 are teaching examples, not a sample of parliamentary speech.",
+        "title": "Begin with Schumpeter and Whitman.",
+        "text": "Schumpeter describes a decline in citizens’ reasoning when they enter politics. Whitman describes democracy as a training school. We will turn these two quotations into comparable word counts.",
+        "note": "Each quotation is one document in our two-document corpus.",
         "visual": "corpus",
-        "readingText": "Suppose we want to compare what political texts discuss. These four constructed documents are small enough to inspect word by word. A computer needs a representation that lets the same operation compare every pair."
+        "readingText": "Our first document is Joseph Schumpeter’s sentence: “Thus the typical citizen drops down to a lower level of mental performance as soon as he enters the political field.” Our second is Walt Whitman’s: “Political Democracy, as it exists and practically works in America, with all its threatening evils, supplies a training school for making grand young men.” Their contrasting accounts of political life give us two documents to represent and compare.",
+        "readingNote": "The quotations are from Schumpeter’s Capitalism, Socialism, and Democracy and Whitman’s Democratic Vistas. Each quoted passage is one document; the corpus contains these two passages."
       },
       {
         "title": "Tokenize the text.",
-        "text": "Tokenization splits text into units to count. Here our tokens are alphabetic words; we also lowercase them and drop punctuation. D1 yields eight tokens, with repetitions kept.",
+        "text": "Tokenization splits text into units to count. Here our tokens are alphabetic words; we also lowercase them and drop punctuation. Schumpeter’s quotation yields 21 tokens, with repetitions kept.",
         "note": "Tokens need not be whole words: we can use characters, subword pieces, or phrases such as “New York.”",
         "visual": "tokens",
-        "readingText": "Tokenization splits a text into units called tokens. For these English examples, each uninterrupted sequence of letters is a token. We also lowercase the text and remove punctuation, so “The” and “the” count as the same term. D1 contains eight tokens, including three occurrences of “the” and two of “budget.” Each occurrence is a token; the shared vocabulary will contain each distinct term once.",
+        "readingText": "Tokenization splits a text into units called tokens. For these English examples, each uninterrupted sequence of letters is a token. We also lowercase the text and remove punctuation, so “Political” and “political” count as the same term. Schumpeter’s quotation contains 21 tokens: “the” and “as” each occur twice. Whitman’s contains 24 tokens. Each occurrence is a token; the shared vocabulary will contain each distinct term once.",
         "readingNote": "Tokens need not be whole words. Character tokens retain individual letters and symbols; subword tokens split words into smaller pieces; a multiword expression such as “New York” can be kept as one unit. Token boundaries, lowercasing, and punctuation handling are separate decisions. Retaining punctuation would be necessary to count the em dashes in our opening example. The research question determines which distinctions should survive."
       },
       {
         "title": "Group inflections with lemmatization.",
         "text": "",
-        "note": "This step is optional. Our worked matrix keeps the original word forms.",
+        "note": "We use these base forms in the document–feature matrix.",
         "visual": "lemma",
-        "readingText": "Lemmatization maps an inflected word to its dictionary form, or lemma. For example, “debated” and “debating” can be counted under “debate,” and “senators” under “senator.” Pooling these forms can make a representation less sparse, but it also removes distinctions in how the text was written. Choosing a lemma can depend on part of speech and context. Stemming is a different approach that typically uses rules to strip word endings; its output need not be a dictionary word.",
-        "readingNote": "A lemma groups inflections, not all related words: “senate” and “parliament” remain different terms. We do not lemmatize or stem our four example documents."
+        "readingText": "Lemmatization maps an inflected word to its dictionary form, or lemma. In these quotations, “drops” becomes “drop,” “enters” becomes “enter,” and “men” becomes “man.” We also use “exist,” “work,” “threaten,” “evil,” “supply,” and “make” for Whitman’s inflected forms. Pooling such forms can make a representation less sparse, but it also removes distinctions in how the text was written. Choosing a lemma can depend on part of speech and context. Stemming is a different approach that typically uses rules to strip word endings; its output need not be a dictionary word.",
+        "readingNote": "A lemma groups inflections, not all related words: “citizen” and “democracy” remain different terms. Lemmatization is optional; here we apply it before building the count matrix."
       },
       {
         "title": "Decide whether to remove stop words.",
-        "text": "Stop words are terms deliberately excluded from an analysis, often frequent words such as “the,” “and,” and “of.” Removing “the” here leaves five tokens. But common words can carry information about writing style.",
-        "note": "There is no universal stop-word list. We retain these words in our worked matrix.",
+        "text": "We exclude selected common words from these quotations. Schumpeter’s 21 tokens become 11; Whitman’s 24 become 15. This choice focuses the comparison on content words.",
+        "note": "There is no universal stop-word list. Common words can carry information about writing style.",
         "visual": "stopwords",
-        "readingText": "A stop-word list specifies terms to exclude from a representation. Such lists often contain frequent grammatical words such as “the,” “and,” and “of,” which may contribute little to a topical comparison. In D1, removing the three occurrences of “the” would leave five tokens. This is a choice about the information we want to retain, not a required cleaning step. Common words can help distinguish writing habits, and removing a negation such as “not” can erase a consequential difference in meaning.",
-        "readingNote": "There is no universal list that suits every language, corpus, or research question. Our worked matrix retains all the tokenized words, including “the”; the Federalist example will show why common words can be useful."
+        "readingText": "A stop-word list specifies terms to exclude from a representation. Such lists often contain frequent grammatical words such as “the,” “and,” and “of,” which may contribute little to a topical comparison. After lemmatization and the selected stop-word removal, Schumpeter’s quotation becomes “typical citizen drop down lower level mental performance enter political field”: 11 tokens, after removing 10 of the original 21. Whitman’s becomes “political democracy exist practically work america threaten evil supply training school make grand young man”: 15 tokens, after removing 9 of the original 24. These are the processed documents used throughout the count and TF–IDF examples.",
+        "readingNote": "This is a choice about the information we want to retain, not a required cleaning step. There is no universal list that suits every language, corpus, or research question. Common words can help distinguish writing habits, and removing a negation such as “not” can erase a consequential difference in meaning. The Federalist example will show why common words can be useful."
       },
       {
         "title": "Give every document the same coordinates.",
-        "text": "Each row is a document; each column is a vocabulary term. D1 has two instances of “budget” and three of “the.” The same coordinates let us compare all four documents.",
-        "note": "We retain stop words and do not lemmatize. Most cells in a realistic document–term matrix are zero.",
+        "text": "Each row is a quotation; each column is a vocabulary term. Both documents contain “political.” “Citizen” occurs only in Schumpeter; “democracy” only in Whitman. The same coordinates let us compare them.",
+        "note": "The diagram shows six of the 25 vocabulary terms. The explorer includes all 25.",
         "visual": "matrix",
-        "readingText": "For our worked example, we lowercase the texts and retain alphabetic tokens, without removing stop words or applying lemmatization. Each column is a vocabulary term; each row is a document. A cell counts how often that term occurs. D1 has two instances of “budget” and three of “the.” Most cells in a realistic document–term matrix are zero.",
-        "readingNote": "Scroll back: the words return to their original positions. The count representation has one coordinate for every vocabulary term."
+        "readingText": "The processed documents contain 26 token occurrences and a shared vocabulary of 25 terms. Each column is a vocabulary term; each row is a document. A cell counts how often that term occurs. Every retained term occurs once in its document. “Political” appears in both quotations; every other term appears in just one. The main diagram shows six selected columns: political, citizen, mental, democracy, america, and young. The full explorer includes all 25 columns.",
+        "readingNote": "Scroll back: the words return to their original positions. The count representation has one coordinate for every vocabulary term; the six-column diagram is an excerpt from that complete representation."
       },
       {
         "title": "The bag loses word order.",
@@ -111,10 +112,10 @@ export const chapters = [
       },
       {
         "title": "From writing style to subject matter.",
-        "text": "The Federalist example keeps common words because they reveal style. To compare topics, we may instead give more weight to terms that distinguish documents. TF–IDF does this using their prevalence across our corpus.",
-        "note": "We keep the same vocabulary; TF–IDF changes weights rather than applying a fixed stop-word list.",
+        "text": "The Federalist example keeps common words because they reveal style. Return now to Schumpeter and Whitman: which retained terms distinguish their quotations? TF–IDF uses their prevalence across our corpus.",
+        "note": "We keep the processed vocabulary fixed. TF–IDF changes its weights.",
         "visual": "purpose",
-        "readingText": "Authorship and topical comparison ask different questions of the same counts. In the Federalist example, common function words carry stylistic information, so removing them automatically could discard the signal. To compare what documents discuss, we may instead emphasize terms that distinguish them from other texts in the corpus. TF–IDF combines repetition within a document with prevalence across documents to assign each term a weight. We will keep the same vocabulary and change the weights, rather than remove terms using a fixed stop-word list.",
+        "readingText": "Authorship and topical comparison ask different questions of word counts. In the Federalist example, common function words carry stylistic information, so removing them automatically could discard the signal. Return now to the processed Schumpeter and Whitman quotations. We have already selected their vocabulary through preprocessing. TF–IDF adds another choice: it combines repetition within a document with prevalence across documents to assign each retained term a weight. The 25-term vocabulary stays fixed while those weights change.",
         "readingNote": "Compare rates or account for length when texts differ in size. Counting words cannot by itself separate authorship from genre and topic. Feature selection and weighting should follow the research question."
       }
     ]
@@ -125,72 +126,75 @@ export const chapters = [
     "subtitle": "Counts → distinctive term weights",
     "stages": [
       {
-        "title": "A frequent word need not be distinctive.",
-        "text": "Return to D1: “the” occurs three times, but it also appears in every other document. “Budget” occurs in only two. For topical comparison, repetition within a document and prevalence across documents tell us different things.",
-        "note": "We keep the same four documents and vocabulary. First follow “the,” then “budget,” in D1.",
+        "title": "A shared word need not distinguish documents.",
+        "text": "“Political” occurs once in each quotation. “Citizen” occurs once in Schumpeter and is absent from Whitman. Their counts within Schumpeter match, but their prevalence across the corpus differs.",
+        "note": "We keep the same two documents and processed vocabulary. First follow “political,” then “citizen.”",
         "visual": "tf",
-        "readingNote": "The corpus stays fixed throughout this chapter. We first inspect “the” in D1, then follow “budget” through document frequency, inverse document frequency, and TF–IDF weighting."
+        "readingNote": "The corpus stays fixed throughout the document-level TF–IDF walkthrough. We first inspect “political” in Schumpeter’s quotation, then follow “citizen” through document frequency, inverse document frequency, and TF–IDF weighting."
       },
       {
         "title": "Count documents, not occurrences.",
-        "text": "Document frequency, \\(\\operatorname{df}(t)\\), counts documents containing a term. “Budget” occurs twice in D1, but D1 contributes only one to its document frequency. It appears in two of our four documents.",
-        "note": "Term frequency, \\(\\operatorname{tf}(t,d)\\), is the raw count within a document. For “budget” in D1, it is 2.",
+        "text": "Document frequency, \\(\\mathrm{df}_t\\), counts documents containing a term. “Citizen” appears in one of our two documents. “Political” appears in both. Each document contributes at most one to this count.",
+        "note": "Term frequency is the raw count \\(c_{t,d}\\) within a document. For “citizen” in Schumpeter, it is 1.",
         "visual": "df",
-        "readingText": "Document frequency, \\(\\operatorname{df}(t)\\), counts how many documents contain a term at least once. “Budget” occurs twice in D1, but D1 contributes only one to its document frequency. It appears in two of the four documents.",
-        "readingNote": "Term frequency, \\(\\operatorname{tf}(t,d)\\), is the raw count within document \\(d\\) in this example."
+        "readingText": "Document frequency, \\(\\mathrm{df}_t\\), counts how many documents contain a term at least once. “Citizen” occurs in Schumpeter’s quotation and is absent from Whitman’s, so its document frequency is 1. “Political” appears in both, so its document frequency is 2. Repeating a word within a document would increase its term frequency but would not increase its document frequency.",
+        "readingNote": "Term frequency is the raw count \\(c_{t,d}\\) of term \\(t\\) within document \\(d\\) in this example."
       },
       {
         "title": "Rarity becomes an inverse-frequency weight.",
-        "text": "A term appearing in every document receives zero inverse-frequency weight. “Budget” appears in two of four documents, so its weight is \\(\\ln(2)\\approx0.693\\). “Passed” appears in one, giving \\(\\ln(4)\\approx1.386\\).",
+        "text": "“Political” appears in both documents and receives zero inverse-frequency weight. “Citizen” and “america” each appear in one, giving \\(\\ln(2/1)=\\ln(2)\\approx0.693\\).",
         "note": "This is one unsmoothed convention. Alternatives change the formula, term-frequency scaling, and normalization.",
         "visual": "idf",
-        "readingText": "We use \\(\\operatorname{idf}(t)=\\ln\\!\\left(N/\\operatorname{df}(t)\\right)\\), where \\(N\\) is the number of documents. A term in every document gets \\(\\ln(1)=0\\). “Budget” gets \\(\\ln(2)\\approx0.693\\); “passed,” found in just one document, gets \\(\\ln(4)\\approx1.386\\)."
+        "readingText": "We use \\(\\mathrm{idf}_t=\\ln\\!\\left(N/\\mathrm{df}_t\\right)\\), where \\(N=2\\) is the number of documents and \\(\\ln\\) denotes the natural logarithm. “Political” appears in both and gets \\(\\ln(2/2)=0\\). Every other retained term appears in only one quotation and gets \\(\\ln(2/1)=\\ln(2)\\approx0.693\\). A zero weight here means that the term does not distinguish these two documents; it does not mean that the word is unimportant to their arguments."
       },
       {
         "title": "A score for each word–document pair.",
         "text": "For a fixed corpus, a word’s IDF is shared across documents. Its TF–IDF score changes with its count in each document.",
-        "note": "Here \\(\\operatorname{tf}(t,d)\\) is the raw count of word \\(t\\) in document \\(d\\); \\(N\\) is the number of documents.",
+        "note": "Here \\(c_{t,d}\\) is the raw count of term \\(t\\) in document \\(d\\); \\(N\\) is the number of documents.",
         "visual": "word-document",
-        "readingText": "TF–IDF assigns a weight to a word–document pair, relative to a fixed corpus: \\(\\operatorname{TFIDF}(t,d)=\\operatorname{tf}(t,d)\\ln\\!\\left(N/\\operatorname{df}(t)\\right)\\). Here \\(\\operatorname{tf}(t,d)\\) is the raw count of word \\(t\\) in document \\(d\\), \\(N\\) is the number of documents, and \\(\\operatorname{df}(t)\\) counts documents containing that word. The IDF factor is shared across documents, while the count can differ. “Budget” appears in two of four documents, so its IDF is \\(\\ln(4/2)\\). Its score in D1 is \\(2\\ln(4/2)\\approx1.386\\); in D2, \\(1\\ln(4/2)\\approx0.693\\); in D3 and D4, the count and score are both zero.",
+        "readingText": "TF–IDF assigns a weight to a word–document pair, relative to a fixed corpus: \\(w_{t,d}=c_{t,d}\\ln\\!\\left(N/\\mathrm{df}_t\\right)\\). Here \\(c_{t,d}\\) is the raw count of word \\(t\\) in document \\(d\\), \\(N\\) is the number of documents, and \\(\\mathrm{df}_t\\) counts documents containing that word. The IDF factor is shared across documents, while the count can differ. “Citizen” appears in one of the two documents, so its IDF is \\(\\ln(2/1)\\). Its score in Schumpeter is \\(1\\ln(2/1)\\approx0.693\\); in Whitman, the count and score are both zero.",
         "readingNote": "These are raw-count, unsmoothed weights. Other TF–IDF conventions rescale counts, smooth IDF, or normalize document vectors."
       },
       {
         "title": "Multiply within-document count by rarity.",
-        "text": "Multiply each count by its term’s inverse-frequency weight. In D1, “budget” receives \\(2\\times0.693\\approx1.386\\), while “the” receives zero. The coordinates still name vocabulary terms; only their weights change.",
+        "text": "In Schumpeter, “citizen” receives \\(1\\times\\ln(2)\\approx0.693\\), while “political” receives zero. In Whitman, “america” receives the same positive weight. Only the weights change; the vocabulary stays fixed.",
         "note": "This weighting targets distinctiveness in this corpus. Rare terms are not automatically meaningful, and typos can be rare too.",
         "visual": "weighted",
-        "readingText": "The TF–IDF weight is \\(\\operatorname{tf}(t,d)\\times\\operatorname{idf}(t)\\). In D1, “budget” receives \\(2\\times0.693\\approx1.386\\). “The” receives \\(3\\times0=0\\). The coordinates still name vocabulary terms; only their weights have changed."
+        "readingText": "The TF–IDF weight is \\(w_{t,d}=c_{t,d}\\,\\mathrm{idf}_t\\). In Schumpeter’s quotation, “citizen” receives \\(1\\times\\ln(2)\\approx0.693\\). In Whitman’s quotation, “america” receives the same weight. “Political” receives \\(1\\times0=0\\) in both. Each remaining term receives \\(\\ln(2)\\) in the document containing it and zero in the other. These weights are shown before length normalization."
       },
       {
         "title": "Similarity still depends on shared words.",
-        "text": "Cosine similarity compares vector direction, adjusting for vector length. But “senate” and “parliament” remain separate coordinates. Reweighting counts does not learn that words used in similar contexts may be related.",
-        "note": "Embeddings can group semantically related texts. TF–IDF can then help describe those groups.",
+        "text": "The only shared term, “political,” now has zero weight. The two TF–IDF vectors have no nonzero coordinate in common, so their cosine similarity is zero—even though both quotations discuss political life.",
+        "note": "Zero cosine here does not imply unrelated meanings. TF–IDF compares weighted word overlap.",
         "visual": "cosine",
-        "readingText": "Cosine similarity compares vector direction, dividing the dot product by both vector lengths. But “senate” and “parliament” remain separate coordinates. TF–IDF alone does not learn that words used in similar contexts may be related.",
-        "readingNote": "For predictive evaluation, learn the vocabulary and IDF weights on training documents, then apply them to held-out texts. Embeddings can group semantically related texts; TF–IDF can then help describe those groups."
+        "readingText": "Cosine similarity compares vector direction, dividing the dot product by both vector lengths. In our complete 25-term representation, both document vectors are nonzero. Their only shared term, “political,” receives zero weight. Every other term appears in just one document, so the dot product and cosine similarity are zero. This does not imply that the quotations are semantically unrelated: both concern political life. The result exposes the limits of weighted word overlap in this small corpus.",
+        "readingNote": "TF–IDF does not learn semantic relationships among different words. Embeddings can group semantically related texts, and TF–IDF can then help describe those groups. For predictive evaluation, learn the vocabulary and IDF weights on training documents, then apply them to held-out texts."
       },
       {
         "title": "BERTopic: pool words within a topic.",
         "text": "BERTopic first groups document embeddings into clusters. It then pools each cluster’s documents into one bag of words. We now weight a word within a whole cluster, rather than within an individual document.",
-        "note": "Constructed illustration: the two groups are given here, rather than estimated from these four short texts.",
+        "note": "Separate constructed illustration: these two groups are given, rather than estimated from the four short texts.",
         "visual": "topic-pooling",
-        "links": [{"label": "BERTopic", "url": "https://maartengr.github.io/BERTopic/algorithm/algorithm.html"}],
-        "readingNote": "The standard workflow reduces the embedding dimensions before clustering. Its subsequent bag-of-words representation describes the resulting groups. The illustration supplies two groups of short texts to isolate that second task."
+        "links": [
+          {
+            "label": "BERTopic",
+            "url": "https://maartengr.github.io/BERTopic/algorithm/algorithm.html"
+          }
+        ],
+        "readingNote": "We now use a separate synthetic corpus with four short texts in two supplied groups. These texts are independent of the Schumpeter and Whitman quotations. The standard BERTopic workflow reduces embedding dimensions before clustering; its subsequent bag-of-words representation describes the resulting groups. The illustration supplies the groups to isolate that second task."
       },
       {
         "title": "A weight for each word–cluster pair.",
         "text": "BERTopic’s class-based TF–IDF divides a word’s count by cluster length. Its inverse-frequency factor uses total word occurrences across clusters. The highest-weighted words describe each topic.",
         "note": "Here “budget” in cluster A has weight 0.462. Both clusters have six tokens, so their average length is also six.",
         "visual": "topic-words",
-        "links": [{"label": "class-based TF–IDF", "url": "https://maartengr.github.io/BERTopic/getting_started/ctfidf/ctfidf.html"}],
+        "links": [
+          {
+            "label": "class-based TF–IDF",
+            "url": "https://maartengr.github.io/BERTopic/getting_started/ctfidf/ctfidf.html"
+          }
+        ],
         "readingText": "BERTopic’s class-based TF–IDF assigns a weight to a word–cluster pair. Its default formula is \\(\\operatorname{cTFIDF}(t,c)=\\frac{f(t,c)}{L_c}\\ln\\!\\left(1+\\frac{A}{f(t,\\mathrm{all})}\\right)\\). Here \\(f(t,c)\\) counts the word’s occurrences in the pooled cluster, \\(L_c\\) is that cluster’s total token count, \\(A\\) is the average pooled cluster length (truncated to an integer in the implementation), and \\(f(t,\\mathrm{all})\\) counts the word’s occurrences across all clusters. This denominator counts occurrences, not documents or clusters containing the word. In this constructed example, “budget” occurs twice among cluster A’s six tokens, and twice across both clusters. With average cluster length six, its weight is \\(\\frac{2}{6}\\ln(1+6/2)\\approx0.462\\). This describes “budget” in cluster A; it is not a score for any one original document. BERTopic uses the highest-weighted words to describe each topic."
-      },
-      {
-        "title": "Airbnb: turn keywords into a score.",
-        "text": "Zhu and colleagues (2024) cluster listing-text embeddings, then extract TF–IDF keywords from high-retention groups. After suppressing words common across listings, they use the retained keyword weights to score listings.",
-        "note": "KDD 2024 workshop paper. The score predicts rebooking; it does not establish causal effects.",
-        "visual": "quality-score",
-        "links": [{"label": "Zhu and colleagues (2024)", "url": "https://airbnb.tech/wp-content/uploads/sites/19/2024/12/Understanding-Product-Quality-with-Unstructured-Data.pdf#page=4"}]
       }
     ]
   }

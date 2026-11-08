@@ -1,5 +1,5 @@
-import {inspectTerm,termEquations} from './visuals.mjs?v=20261028-term-document-7';
-import {vocabulary} from './model.mjs?v=20261028-term-document-7';
+import {inspectTerm,termEquations} from './visuals.mjs?v=20261108-slide-quotes-1';
+import {vocabulary} from './model.mjs?v=20261108-slide-quotes-1';
 
 /** Keep the table stable while a cell's document and term drive the calculation. */
 export function initializeExplorer(root){
@@ -8,6 +8,7 @@ export function initializeExplorer(root){
   const rows=[...root.querySelectorAll('tbody tr')];
   const headings=[...root.querySelectorAll('thead th')].slice(1);
   const result=root.querySelector('.explorer-result');
+  const scroller=root.querySelector('.explorer-scroll');
   let selected=cells.find(cell=>cell.getAttribute('aria-pressed')==='true');
 
   function select(cell){
@@ -45,6 +46,13 @@ export function initializeExplorer(root){
     const next=cells[doc*vocabulary.length+col];
     select(next);
     next.focus({preventScroll:true});
+    // Reveal the focused column within the table, without moving the page.
+    if(scroller){
+      const cellBounds=next.getBoundingClientRect(),bounds=scroller.getBoundingClientRect();
+      const labelWidth=rows[doc].querySelector('th').getBoundingClientRect().width;
+      if(cellBounds.left<bounds.left+labelWidth)scroller.scrollLeft-=bounds.left+labelWidth-cellBounds.left;
+      else if(cellBounds.right>bounds.right)scroller.scrollLeft+=cellBounds.right-bounds.right;
+    }
   }
   const handlers={pointerover:onSelect,focusin:onSelect,click:onSelect,keydown:onKeydown};
   for(const [name,handler] of Object.entries(handlers))root.addEventListener(name,handler);

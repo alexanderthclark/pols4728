@@ -1,21 +1,28 @@
 /**
- * Small, synthetic examples for the POLS 4728 text representation lesson.
- * Matrices are document × vocabulary; each column always names the same word.
- * TF is a raw token count. IDF is ln(N / df), without smoothing or normalization.
+ * Schumpeter and Whitman quotations used in the course slides.
+ * Matrices use the slides' lowercase, stop-word-filtered, lemmatized tokens.
+ * TF is a raw count; IDF is ln(N / df), without smoothing or normalization.
  */
 export const documents = [
-  { id: 'parliament-budget', label: 'Parliament / budget', text: 'The parliament debated the budget. The budget passed.' },
-  { id: 'senate-budget', label: 'Senate / budget', text: 'The senate debated the budget.' },
-  { id: 'parliament-health', label: 'Parliament / health', text: 'The parliament debated health.' },
-  { id: 'senate-health', label: 'Senate / health', text: 'The senate debated health.' },
+  { id: 'schumpeter', label: 'Schumpeter', source: 'Capitalism, Socialism, and Democracy',
+    text: 'Thus the typical citizen drops down to a lower level of mental performance as soon as he enters the political field.',
+    tokens: 'typical citizen drop down lower level mental performance enter political field'.split(' ') },
+  { id: 'whitman', label: 'Whitman', source: 'Democratic Vistas',
+    text: 'Political Democracy, as it exists and practically works in America, with all its threatening evils, supplies a training school for making grand young men.',
+    tokens: 'political democracy exist practically work america threaten evil supply training school make grand young man'.split(' ') },
 ];
+
+// Explicit teaching choices reproduce the slide example; not a general lemmatizer.
+export const stopWords = new Set('thus the to a of as soon he it and in with all its for'.split(' '));
+export const lemmaForms = {drops:'drop',enters:'enter',exists:'exist',works:'work',threatening:'threaten',evils:'evil',supplies:'supply',making:'make',men:'man'};
+export const displayTerms = ['political','citizen','mental','democracy','america','young'];
 
 /** Deliberately simple English tokenizer: case-fold, then retain a–z runs. */
 export function tokenize(text) {
   return String(text).toLowerCase().match(/[a-z]+/g) ?? [];
 }
 
-const tokens = documents.map(({ text }) => tokenize(text));
+const tokens = documents.map(document => document.tokens);
 export const vocabulary = [...new Set(tokens.flat())].sort();
 export const counts = tokens.map(words =>
   vocabulary.map(term => words.filter(word => word === term).length));
