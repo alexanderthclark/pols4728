@@ -1,8 +1,9 @@
-import {chapters} from './lesson.mjs?v=20261108-frequency-4';
-import {speechCartoon} from './speech-cartoon.mjs?v=20261108-frequency-4';
-import {latex, escapeText as esc} from './math.mjs?v=20261108-frequency-4';
-import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine,displayTerms,stopWords,lemmaForms} from './model.mjs?v=20261108-frequency-4';
-import {applicationVisual} from './applications.mjs?v=20261108-frequency-4';
+import {chapters} from './lesson.mjs?v=20261108-cosine-5';
+import {speechCartoon} from './speech-cartoon.mjs?v=20261108-cosine-5';
+import {latex, escapeText as esc} from './math.mjs?v=20261108-cosine-5';
+import {documents,tokenize,vocabulary,counts,tfidf,termStats,cosine,displayTerms,stopWords,lemmaForms} from './model.mjs?v=20261108-cosine-5';
+import {applicationVisual} from './applications.mjs?v=20261108-cosine-5';
+import {shortSentencesVisual} from './short-sentences.mjs?v=20261108-cosine-5';
 
 const clamp=x=>Math.max(0,Math.min(1,x));
 const mix=(a,b,t)=>a+(b-a)*t;
@@ -80,6 +81,7 @@ export function bagVisual(stage,p,motion=true){
   const scene=chapters.find(chapter=>chapter.id==='bag-of-words').stages[stage].visual;
   if(scene==='speech'||scene==='speech-counts')return speechCartoon(motion?clamp(p):stage,{reducedMotion:!motion,id:'lesson-speech'});
   const q=motion?clamp((p-stage+.5)*2):1;
+  if(scene.startsWith('short-'))return shortSentencesVisual(scene,q);
   if(scene==='corpus')return `<div class="corpus">${documents.map((d,i)=>`<figure class="doc"><blockquote>“${d.text}”</blockquote><figcaption>${d.label} <span>· ${d.source}</span></figcaption></figure>`).join('')}</div>`;
   if(scene==='tokens')return tokenizationVisual(q);
   if(scene==='lemma')return lemmatizationVisual(q);

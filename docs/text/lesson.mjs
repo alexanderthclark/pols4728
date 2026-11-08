@@ -61,6 +61,30 @@ export const chapters = [
         "readingNote": "Bigrams can retain some local order, at the cost of a larger vocabulary."
       },
       {
+        "title": "Which sentences are similar?",
+        "text": "",
+        "note": "",
+        "visual": "short-sentences",
+        "readingText": "Compare three short sentences: 1. “Plebiscites are unwise.” 2. “Democracy is foolish.” 3. “Majority rule rules.” The first two criticize forms of democratic decision-making; the third praises majority rule. Can word counts capture that resemblance?",
+        "readingNote": "The first two express a similar negative stance, though they are not exact synonyms."
+      },
+      {
+        "title": "Represent each sentence with counts.",
+        "text": "Lowercase and remove punctuation.",
+        "note": "",
+        "visual": "short-counts",
+        "readingText": "Use the vocabulary plebiscites, are, unwise, democracy, is, foolish, majority, rule, rules, in that order. Each sentence contains three words, each occurring once. Their count vectors are \\(\\mathbf{x}_1=(1,1,1,0,0,0,0,0,0)\\), \\(\\mathbf{x}_2=(0,0,0,1,1,1,0,0,0)\\), and \\(\\mathbf{x}_3=(0,0,0,0,0,0,1,1,1)\\). No vocabulary coordinate is nonzero in more than one sentence.",
+        "readingNote": "For this example, we only lowercase and remove punctuation. We do not lemmatize or remove stop words: “are” and “is” remain separate terms, as do “rule” and “rules.”"
+      },
+      {
+        "title": "Compare with cosine similarity.",
+        "text": "No shared words: similarity 0, distance 1.",
+        "note": "Sentences 1–2 and 1–3 are equally far apart.",
+        "visual": "short-cosine",
+        "readingText": "Cosine similarity compares vector direction: \\(\\cos(\\mathbf{x}_i,\\mathbf{x}_j)=\\frac{\\mathbf{x}_i\\cdot\\mathbf{x}_j}{\\lVert\\mathbf{x}_i\\rVert\\lVert\\mathbf{x}_j\\rVert}\\). Each vector has length \\(\\sqrt{3}\\). No pair shares a nonzero coordinate, so every pairwise dot product is zero and every pairwise cosine similarity is zero. Define cosine distance as \\(d_{\\cos}(\\mathbf{x}_i,\\mathbf{x}_j)=1-\\cos(\\mathbf{x}_i,\\mathbf{x}_j)\\). Thus \\(d_{\\cos}(\\mathbf{x}_1,\\mathbf{x}_2)=d_{\\cos}(\\mathbf{x}_1,\\mathbf{x}_3)=1\\): bag of words places the first sentence equally far from the other two.",
+        "readingNote": "Word overlap misses the shared negative stance of sentences 1 and 2. Different wording can obscure similar meanings, just as identical counts can obscure different meanings in the senators/voters example."
+      },
+      {
         "title": "Small words reveal writing habits.",
         "text": "Mosteller and Wallace (1963) compared common-word frequencies to investigate the disputed Federalist essays.",
         "links": [
@@ -178,7 +202,7 @@ export const chapters = [
         "text": "The only shared term has zero weight, so cosine similarity is zero.",
         "note": "Both quotations still discuss political life. Zero overlap does not imply unrelated meanings.",
         "visual": "cosine",
-        "readingText": "Cosine similarity compares vector direction, dividing the dot product by both vector lengths. In our complete 25-term representation, both document vectors are nonzero. Their only shared term, “political,” receives zero weight. Every other term appears in just one document, so the dot product and cosine similarity are zero. This does not imply that the quotations are semantically unrelated: both concern political life. The result exposes the limits of weighted word overlap in this small corpus.",
+        "readingText": "Apply the same cosine comparison to the complete 25-term TF–IDF vectors. Both document vectors are nonzero, but their only shared term, “political,” receives zero weight. Every other term appears in just one document, so the dot product and cosine similarity are zero. As with the three short sentences, zero word overlap does not imply unrelated meanings: both quotations concern political life. TF–IDF changes the weights, but still compares vocabulary coordinates.",
         "readingNote": "TF–IDF does not learn semantic relationships among different words. Embeddings can group semantically related texts, and TF–IDF can then help describe those groups. For predictive evaluation, learn the vocabulary and IDF weights on training documents, then apply them to held-out texts."
       }
     ]

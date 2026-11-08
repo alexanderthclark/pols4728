@@ -300,3 +300,50 @@ noscript{display:block;padding:30px}
 @media(max-width:540px) and (max-height:700px){
  .corpus{font-size:14px}.corpus .doc{padding:6px 0}.doc figcaption{margin-top:4px;font-size:9px}
 }
+
+/* The short-sentence primer uses every vocabulary coordinate. */
+.short-sentences{margin:0;padding-left:1.4em;font-size:clamp(25px,2.8vw,36px);line-height:1.4}
+.short-sentences li{padding:15px 0 15px 12px;border-bottom:1px solid var(--hairline)}
+.short-sentences li::marker{font-size:.6em;color:var(--muted)}
+.short-matrix{width:100%;table-layout:fixed;border-collapse:collapse;text-align:center;font:20px/1.3 system-ui,sans-serif}
+.short-matrix caption{font:21px LM,Georgia,serif;margin-bottom:15px}
+.short-matrix th{font-weight:400}
+.short-matrix thead th{height:120px;vertical-align:bottom;padding:0 0 13px;border-bottom:1px solid var(--hairline)}
+.short-matrix thead th span{display:inline-block;writing-mode:vertical-rl;transform:rotate(180deg);font-size:15px}
+.short-matrix thead th:first-child{width:65px;font-size:12px}
+.short-matrix tbody th{font-size:14px;color:var(--muted)}
+.short-matrix tbody th,.short-matrix td{height:50px;border-bottom:1px solid var(--hairline)}
+.short-matrix td span{display:block;position:relative}
+.short-matrix .zero{color:var(--muted)}
+.short-matrix .occupied{background:#edf2f5;color:var(--blue)}
+.short-cosine>.math{font-size:26px;margin:0 0 32px}
+.short-comparison{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:18px 20px;border-top:1px solid var(--hairline)}
+.short-comparison>span{font-size:20px}
+.short-calculation{font-size:26px;color:var(--blue);padding:6px 0}
+.short-calculation .katex{font-size:1em}
+.short-distance{border-top:1px solid var(--hairline);padding-top:18px}
+.short-distance .math{font-size:23px;margin:10px 0}
+.short-distance .math:last-child{color:var(--blue)}
+@media(max-width:979px){
+ .short-sentences{font-size:27px}.short-sentences li{padding:10px 0 10px 8px}
+ .short-cosine>.math{font-size:23px;margin-bottom:16px}
+ .short-comparison{padding:10px 14px}.short-calculation{font-size:22px}
+ .short-distance{padding-top:10px}.short-distance .math{font-size:21px;margin:7px 0}
+}
+@media(max-width:540px){
+ .short-sentences{font-size:22px}.short-sentences li{padding:9px 0 9px 3px}
+ .short-matrix{font-size:16px}.short-matrix caption{font-size:17px;margin-bottom:8px}
+ .short-matrix thead th{height:88px;padding-bottom:8px}
+ .short-matrix thead th span{font-size:12px}.short-matrix thead th:first-child{width:42px;font-size:9px}
+ .short-matrix tbody th,.short-matrix td{height:32px}.short-matrix tbody th{font-size:12px}
+ .short-cosine>.math{font-size:18px;margin-bottom:12px}
+ .short-comparison{padding:6px 4px}.short-comparison>span{font-size:16px}.short-calculation{font-size:19px}
+ .short-distance{padding-top:6px}.short-distance .math{font-size:16px;margin:6px 0}
+}
+@media(max-width:540px) and (max-height:600px){
+ .short-matrix caption{display:none}.short-matrix thead th{height:76px}
+ .short-matrix tbody th,.short-matrix td{height:27px}
+ .short-cosine>.math{font-size:16px;margin-bottom:8px}
+ .short-calculation{font-size:17px}.short-comparison{padding:4px}
+ .short-distance .math{font-size:14px}
+}
