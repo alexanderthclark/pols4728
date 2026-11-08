@@ -1,8 +1,8 @@
-import {chapters} from './lesson.mjs?v=20261028-term-document-7';
-import {updateAiExample} from './ai-example.mjs?v=20261028-term-document-7';
-import {bagVisual,tfVisual} from './visuals.mjs?v=20261028-term-document-7';
-import {prose} from './math.mjs?v=20261028-term-document-7';
-import {initializeExplorer} from './explorer.mjs?v=20261028-term-document-7';
+import {chapters} from './lesson.mjs?v=20261108-slide-quotes-1';
+import {updateAiExample} from './ai-example.mjs?v=20261108-slide-quotes-1';
+import {bagVisual,tfVisual} from './visuals.mjs?v=20261108-slide-quotes-1';
+import {prose} from './math.mjs?v=20261108-slide-quotes-1';
+import {initializeExplorer} from './explorer.mjs?v=20261108-slide-quotes-1';
 
 export function initializeStory() {
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));

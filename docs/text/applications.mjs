@@ -1,4 +1,4 @@
-import {escapeText as esc,mathLabel} from './math.mjs?v=20261028-term-document-7';
+import {escapeText as esc,mathLabel} from './math.mjs?v=20261108-slide-quotes-1';
 
 const clamp=value=>Math.max(0,Math.min(1,value));
 const mix=(from,to,amount)=>from+(to-from)*amount;
@@ -77,40 +77,9 @@ function ranking(progress){
     note('Inside the log: divide by total word occurrences, not document frequency.');
 }
 
-function workflow(progress){
-  const nodes=[
-    {x:10,y:10,title:'Text embeddings',detail:'descriptions and reviews'},
-    {x:370,y:10,title:'k-means groups',detail:'similar listings'},
-    {x:370,y:125,title:'Top 3 clusters',detail:'highest rebooking rates'},
-    {x:10,y:125,title:'TF–IDF keywords',detail:'within those clusters'},
-    {x:10,y:240,title:'Suppress common',detail:'terms across all listings'},
-    {x:370,y:240,title:'Listing score',detail:'weighted keyword presence'},
-  ];
-  const routes=[[[310,47],[370,47]],[[520,85],[520,125]],[[370,162],[310,162]],[[160,200],[160,240]],[[310,277],[370,277]]];
-  const routesMarkup=routes.map(([start,end],index)=>{
-    const phase=clamp(progress*5-index),x=mix(start[0],end[0],phase),y=mix(start[1],end[1],phase);
-    const angle=Math.atan2(end[1]-start[1],end[0]-start[0]);
-    const arrow=[-.55,.55].map(delta=>[end[0]-10*Math.cos(angle+delta),end[1]-10*Math.sin(angle+delta)]);
-    return `<path d="M${start[0]} ${start[1]}L${end[0]} ${end[1]}" stroke="${hairline}" stroke-width="2" fill="none"/>`+
-      `<path d="M${start[0]} ${start[1]}L${x} ${y}" stroke="${blue}" stroke-width="3" fill="none" data-route="${index}" data-route-progress="${phase}"/>`+
-      `<path d="M${arrow[0][0]} ${arrow[0][1]}L${end[0]} ${end[1]}L${arrow[1][0]} ${arrow[1][1]}" stroke="${blue}" stroke-width="2" fill="none" opacity="${phase}"/>`+
-      `<circle cx="${x}" cy="${y}" r="4" fill="${blue}" opacity="${phase>0&&phase<1?1:0}"/>`;
-  }).join('');
-  const boxes=nodes.map((node,index)=>{
-    const reached=index===0?1:clamp(progress*5-index+1);
-    return `<g data-workflow-step="${index}" opacity="${.3+.7*reached}">`+
-      `<rect x="${node.x}" y="${node.y}" width="300" height="75" fill="white" stroke="${index===2?blue:hairline}" stroke-width="${index===2?2:1}"/>`+
-      text(node.x+150,node.y+29,node.title,'text-anchor="middle"')+
-      `<text x="${node.x+150}" y="${node.y+58}" font-size="25" text-anchor="middle" fill="${muted}">${esc(node.detail)}</text></g>`;
-  }).join('');
-  return svg(routesMarkup+boxes,'Airbnb workflow: embed descriptions and reviews, cluster listings with k-means, select the three clusters with highest rebooking, extract TF-IDF keywords, suppress terms common across listings, and construct a weighted listing score.','workflow')+
-    note('TF–IDF supplies readable features for the groups.');
-}
-
 export function applicationVisual(stage,p,motion=true){
   const progress=motion?clamp((p-stage+.5)*2):1;
   if(stage===6)return pooling(progress);
   if(stage===7)return ranking(progress);
-  if(stage===8)return workflow(progress);
   throw new RangeError(`Unknown text application stage: ${stage}`);
 }

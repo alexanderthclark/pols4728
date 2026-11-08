@@ -4,46 +4,61 @@ Bag of Words and TF–IDF
 
 A standalone scrollytelling lesson for POLS 4728: an opening question about
 recognizable writing habits, followed by bag of words and TF–IDF.
-Its 22 scenes comprise 3 on AI writing, 10 on bag of words, and 9 on TF–IDF.
+Its 21 scenes comprise 3 on AI writing, 10 on bag of words, and 8 on TF–IDF.
 The linked chapters are `#ai-writing`, `#bag-of-words`, and `#tf-idf`. A short
 closing comparison links to the separate word2vec lesson; `#word2vec` remains
 a valid anchor to that paragraph.
 
 ## Narrative and presentation
 
-The same four constructed political documents connect tokenization, the
-shared vocabulary, count vectors, and TF–IDF. Scrolling sends individual speech
-words into a bag, moves tokens into a count matrix, and reweights its columns.
-Reverse scrolling retraces these changes. Reduced motion uses completed states.
-The title and all text remain selectable; character artwork is registered in
-`design/assets.json`.
+The worked corpus contains the same two quotations used in the course slides:
+Joseph Schumpeter on citizens entering the political field, from *Capitalism,
+Socialism, and Democracy*, and Walt Whitman on democracy as a training school,
+from *Democratic Vistas*. The wording is preserved in full. Scrolling follows
+the quotations through tokenization, lemmatization, stop-word removal, a shared
+vocabulary, count vectors, and TF–IDF. Reverse scrolling retraces these changes;
+reduced motion uses completed states. The title and all text remain selectable,
+and character artwork is registered in `design/assets.json`.
 
-The preprocessing sequence distinguishes tokenization from lowercasing and
-punctuation handling, then illustrates optional lemmatization and stop-word
-removal. D1 separates into eight tokens; the lemmatization examples group
-inflected forms; an illustrative removal of “the” leaves five tokens. The
-worked document matrix remains unchanged: it retains common words and does not
-lemmatize. The Federalist example explains why common words can reveal writing
-habits, then the transition to TF–IDF asks which terms distinguish document topics.
-The John/Revelation scene has been removed; its citation remains in further reading.
+The opening Lincoln-like speaker and Gettysburg Address cartoon remain a
+separate introduction to the bag metaphor. Schumpeter's quotation then splits
+into 21 alphabetic tokens, with lowercasing and punctuation removal. Whitman's
+has 24. Lemmatization maps forms such as “drops” to “drop,” “enters” to “enter,”
+and “men” to “man.” The selected stop-word removal excludes 10 Schumpeter tokens
+and 9 Whitman tokens, leaving these exact processed documents:
 
-Three application scenes show how word weights describe groups formed with
-embeddings. BERTopic pools texts within each cluster and ranks their words with
-c-TF–IDF; two constructed political topics illustrate the calculation. The
-Airbnb KDD 2024 workshop paper then shows keywords becoming a listing score.
-Its weighting procedure is distinct from BERTopic’s class-based formula.
+- Schumpeter: `typical citizen drop down lower level mental performance enter political field`
+- Whitman: `political democracy exist practically work america threaten evil supply training school make grand young man`
 
-The core TF–IDF walkthrough follows “the” and then “budget” in D1. An explicit
-word–document formula compares “budget” across D1–D4: one shared IDF yields
-scores of 1.386, 0.693, 0, and 0. BERTopic’s later word–cluster example labels
-“budget in cluster A” and distinguishes occurrence counts from document frequency.
-Its text and highlighted cells always agree. After the lesson, hovering over any count highlights its term and document and
+These 11 and 15 retained occurrences form a 25-term vocabulary. Every retained
+term occurs once within its document; “political” is the sole shared term. The
+main matrix is an explicitly labeled six-column excerpt: `political`, `citizen`,
+`mental`, `democracy`, `america`, and `young`. The complete explorer contains all
+25 columns and all 50 word–document combinations.
+
+The Federalist example explains why common words can reveal writing habits.
+The transition back to Schumpeter and Whitman then asks which retained words
+distinguish their quotations. TF–IDF keeps the processed vocabulary fixed while
+changing its weights. The walkthrough follows shared “political” and then
+Schumpeter-specific “citizen.” An explicit word–document formula compares
+“citizen” across the two authors: its IDF is shared, but its scores are 0.693 and
+0. “Political” receives zero in both documents. Their complete TF–IDF vectors
+therefore have cosine similarity zero; the lesson makes clear that this does
+not imply unrelated meanings.
+
+Two closing application scenes use a separate synthetic corpus to show how
+word weights describe groups formed with embeddings. BERTopic pools texts within
+each cluster and ranks their words with c-TF–IDF. The illustration supplies two
+clusters of short political texts independently of the quotation corpus. Its
+word–cluster calculation labels “budget in cluster A” and distinguishes total
+occurrence counts from document frequency.
+
+After the lesson, hovering over any count highlights its term and document and
 updates the calculation below. Tapping a cell also selects it. Keyboard users
 enter the table with Tab, move between counts with arrow keys, and leave with
-Tab; Home/End select the first/last term in a row. All 28 combinations use the
-same count matrix, which remains in place while only the calculation changes.
-Previous/next buttons and left/right arrow keys provide keyboard navigation.
-The prose and diagrams fit desktop, tablet, and narrow phone layouts.
+Tab; Home/End select the first/last term in a row. The count matrix remains in
+place while the calculation changes. Previous/next buttons and left/right arrow
+keys provide keyboard navigation through the lesson.
 
 `lesson.mjs` is the source for both concise scene captions and the fuller reading
 version. A stage's `readingText` or `readingNote` preserves detail beyond the
@@ -69,11 +84,18 @@ No package installation or site build is required; serve `docs/` and open `/text
 
 ## Numerical conventions and sources
 
-- Four synthetic documents; lowercase alphabetic tokens, with punctuation
-  removed. Common words and repeated tokens are retained; no stemming or
-  lemmatization. The optional preprocessing illustrations do not alter these counts.
-- Raw-count TF × ln(N/df), without smoothing or vector normalization. Cosine
-  similarity adjusts vector length at comparison time.
+- Each quotation is one document. The processed corpus uses lowercasing,
+  alphabetic tokenization, the stated lemma mappings, and the selected stop-word
+  removal. Its 26 retained occurrences occupy 25 vocabulary coordinates.
+- The slide convention is `w_(t,d) = c_(t,d) ln(N/df_t)`, where `c_(t,d)` is a raw
+  count, `df_t` counts documents containing the term, and `N = 2`. The logarithm
+  is natural. Weights are shown without smoothing or vector normalization.
+  Cosine similarity adjusts vector length at comparison time.
+- “Political” has document frequency 2 and IDF 0. Every other retained term has
+  document frequency 1 and IDF `ln(2)`, approximately 0.693. A distinctive term
+  has that weight in the quotation containing it and zero in the other.
+- The six displayed columns are an excerpt. Calculations and the explorer use
+  the complete 25-term vocabulary.
 - Mosteller–Wallace's approximate “upon” rates are per 1,000 words in their
   comparison writings. The chart is not an authorship classifier by itself.
 - Erwin–Oakes's Greek common-word comparison remains a further-reading citation,
@@ -91,36 +113,25 @@ node --test tests/text-representations.test.mjs tests/speech-motion.test.mjs tes
 node scripts/build-text-transcript.mjs --check
 ```
 
-The 30 tests check numerical values, token accounting, deterministic reversible
-motion, 132 diagram states, LaTeX validity, shared vocabulary counts, and all 28
-explorer selections. Explorer checks also cover persistent hover selection,
-stable table nodes, focus preservation, keyboard movement, and listener cleanup.
-Application checks verify the pooled counts, c-TF–IDF weights, and reversible
-progression, including completed states with reduced motion.
-Loading checks cover the default reading route, failed
-module requests, partial initialization, anchor transfer, and cleanup after a
-late initialization failure. They do not replace browser review.
+These checks cover numerical values, token accounting, deterministic reversible
+motion, diagram states, LaTeX validity, shared vocabulary counts, and explorer
+selections. Explorer checks also cover persistent hover selection, stable table
+nodes, focus preservation, keyboard movement, and listener cleanup. Application
+checks cover pooled counts, c-TF–IDF weights, and reversible progression, including
+completed states with reduced motion. Loading checks cover the default reading
+route, failed module requests, partial initialization, anchor transfer, and
+cleanup after a late initialization failure. They do not replace browser review.
 
-Browser review covered the retained scenes at 1280×820, 768×1024, 390×844, 375×667,
-and 320×568. The new preprocessing sequence and revised transition from the
-Federalist example to TF–IDF were checked at the same five sizes. Layout checks
-found no horizontal overflow or text/navigation collisions. Manual checks
-covered actual forward/backward scrolling, pinned
-intermediate states, keyboard navigation, completed reduced-motion states,
-table-cell selection, the reading version, and title composition. The table
-interaction was also checked with pointer entry, clicking, arrow keys, and Tab,
-with responsive layouts at 390×844 and 320×568. This is
-not a claim of a complete assistive-technology audit.
-
-The three application scenes passed 15 layout checks across the same five sizes,
-including SVG label bounds and separation from navigation. Desktop and narrow
-phone checks confirmed forward/backward scroll progression and completed
-reduced-motion diagrams.
-
-The word–document comparison and the adjusted application scenes were checked
-at the same five viewport sizes. The 320×568 layout keeps the formula, all four
-budget scores, caption, and navigation visible. Forward/backward scrolling
-retains pinned visuals; reduced motion shows the completed cluster weights.
+The quotation update passed all 30 targeted checks. Browser review covered
+1265×712 desktop and 390×844 / 320×568 phone viewports. Actual forward and
+backward scrolling preserved the pinned scenes, and the 320×568 walkthrough
+kept the revised quotation, preprocessing, matrix, and all eight TF–IDF scenes
+clear of navigation without page-level horizontal overflow. Reduced-motion
+weighting showed the completed matrix. The full explorer’s keyboard Home/End
+navigation revealed the selected column within its horizontal scroller while
+retaining page position. Static reading content and loading fallback behavior
+were checked by the transcript and loading tests. This is not a complete
+assistive-technology audit.
 
 ## Standalone speech cartoon
 

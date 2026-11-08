@@ -5,7 +5,7 @@ import test from 'node:test';
 const require = createRequire(import.meta.url);
 globalThis.katex = require('../docs/word2vec/vendor/katex/katex.min.js');
 const {initializeExplorer} = await import('../docs/text/explorer.mjs');
-const {counts, vocabulary} = await import('../docs/text/model.mjs');
+const {counts, vocabulary, documents} = await import('../docs/text/model.mjs');
 
 const attributes = source => Object.fromEntries([...source.matchAll(/([\w:-]+)="([^"]*)"/g)].map(([, name, value]) => [name, value]));
 const texExpressions = markup => [...markup.matchAll(/<annotation encoding="application\/x-tex">([\s\S]*?)<\/annotation>/g)].map(match => match[1]);
@@ -15,6 +15,8 @@ const texExpressions = markup => [...markup.matchAll(/<annotation encoding="appl
 function fixture() {
   const listeners = new Map();
   const state = {writes: 0, resultWrites: 0, focusCalls: [], activeElement: null};
+  const labelWidth = 100, cellWidth = 50;
+  state.scroller = {scrollLeft: 0, getBoundingClientRect: () => ({left: 100, right: 400})};
   const node = (attrs = {}, parent = null) => {
     const classes = new Set((attrs.class ?? '').split(/\s+/).filter(Boolean));
     const element = {
@@ -46,8 +48,9 @@ function fixture() {
       throw new Error(`Unsupported fixture selector: ${selector}`);
     },
     querySelector(selector) {
-      assert.equal(selector, '.explorer-result');
-      return state.result;
+      if (selector === '.explorer-result') return state.result;
+      if (selector === '.explorer-scroll') return state.scroller;
+      throw new Error(`Unsupported fixture selector: ${selector}`);
     },
     set innerHTML(markup) {
       state.writes++;
@@ -56,12 +59,20 @@ function fixture() {
       state.headings = [...markup.match(/<thead>([\s\S]*?)<\/thead>/)[1].matchAll(/<th\b([^>]*)>/g)].map(([, attrs]) => node(attributes(attrs)));
       state.rows = [...markup.match(/<tbody>([\s\S]*?)<\/tbody>/)[1].matchAll(/<tr\b([^>]*)>([\s\S]*?)<\/tr>/g)].map(([, attrs, body]) => {
         const row = node(attributes(attrs));
+        row.querySelector = selector => {
+          assert.equal(selector, 'th');
+          return {getBoundingClientRect: () => ({width: labelWidth})};
+        };
         for (const [, cellAttrs, buttonAttrs, value] of body.matchAll(/<td\b([^>]*)><button\b([^>]*)>([^<]*)<\/button><\/td>/g)) {
           const cell = node(attributes(cellAttrs), row);
           cell.tag = 'td';
           const button = node(attributes(buttonAttrs), cell);
           button.dataset = Object.fromEntries(Object.entries(button.attrs).filter(([key]) => key.startsWith('data-')).map(([key, value]) => [key.slice(5), value]));
           button.value = Number(value);
+          button.getBoundingClientRect = () => {
+            const left = state.scroller.getBoundingClientRect().left + labelWidth + Number(button.dataset.col) * cellWidth - state.scroller.scrollLeft;
+            return {left, right: left + cellWidth};
+          };
           Object.defineProperty(button, 'tabIndex', {get: () => Number(button.attrs.tabindex), set: value => { button.attrs.tabindex = String(value); }});
           button.focus = options => {
             state.activeElement = button;
@@ -95,11 +106,14 @@ function assertSelection(page, doc, column) {
   assert.deepEqual(page.state.rows.map(row => row.classList.contains('active')), counts.map((_, index) => index === doc));
   assert.deepEqual(page.state.headings.slice(1).map(heading => heading.classList.contains('term-focus')), vocabulary.map((_, index) => index === column));
   for (const button of page.state.buttons) assert.equal(button.closest('td').classList.contains('focus'), Number(button.dataset.col) === column);
-  assert.match(page.state.result.innerHTML, new RegExp(`${vocabulary[column]} in D${doc + 1}`));
+  assert.match(page.state.result.innerHTML, new RegExp(`${vocabulary[column]} in ${documents[doc].label}`));
   const tf = counts[doc][column], df = counts.filter(row => row[column] > 0).length;
   const expressions = texExpressions(page.state.result.innerHTML);
-  assert.equal(expressions[0], String.raw`\operatorname{tf}=${tf},\qquad\operatorname{df}=${df},\qquad N=${counts.length}`);
-  assert.equal(Number(expressions[1].match(/=([\d.]+)$/)[1]), Number((tf * Math.log(counts.length / df)).toFixed(3)));
+  assert.equal(expressions[0], String.raw`c_{t,d}=${tf},\qquad\mathrm{df}_t=${df},\qquad N=${counts.length}`);
+  const weight = tf * Math.log(counts.length / df);
+  const [, relation, value] = expressions[1].match(/(=|\\approx)([\d.]+)$/);
+  assert.equal(relation, weight ? String.raw`\approx` : '=');
+  assert.equal(Number(value), Number(weight.toFixed(3)));
 }
 
 test('the explorer starts with one accessible button per count and one tab stop', () => {
@@ -108,20 +122,20 @@ test('the explorer starts with one accessible button per count and one tab stop'
   assert.equal(page.state.writes, 1);
   assert.doesNotMatch(page.state.markup, /<select\b/);
   assert.match(page.state.markup, /class="explorer-result[^\"]*" aria-live="polite" aria-atomic="true"/);
-  assert.equal(page.state.buttons.length, 28);
+  assert.equal(page.state.buttons.length, 50);
   for (const [doc, row] of counts.entries()) {
     for (const [column, value] of row.entries()) {
       const button = page.cell(doc, column);
       assert.equal(button.value, value);
       assert.equal(button.getAttribute('type'), 'button');
       assert.equal(button.dataset.term, vocabulary[column]);
-      assert.equal(button.getAttribute('aria-label'), `D${doc + 1}, ${vocabulary[column]}, count ${value}`);
+      assert.equal(button.getAttribute('aria-label'), `${documents[doc].label}, ${vocabulary[column]}, count ${value}`);
     }
   }
-  assertSelection(page, 0, 0);
+  assertSelection(page, 0, vocabulary.indexOf('citizen'));
 });
 
-test('hovering all 28 cells updates the calculation without replacing or focusing the table', () => {
+test('hovering all 50 cells updates the calculation without replacing or focusing the table', () => {
   const page = fixture();
   initializeExplorer(page.root);
   const buttons = [...page.state.buttons], rows = [...page.state.rows];
@@ -135,18 +149,19 @@ test('hovering all 28 cells updates the calculation without replacing or focusin
   assert.deepEqual(page.state.buttons, buttons);
   assert.deepEqual(page.state.rows, rows);
   assert.equal(page.state.focusCalls.length, 0);
+  assert.equal(page.state.scroller.scrollLeft, 0, 'Hover must not scroll the table.');
   const updates = page.state.resultWrites;
-  page.emit('pointerover', page.cell(3, 6));
-  page.emit('pointerleave', page.cell(3, 6));
+  page.emit('pointerover', page.cell(1, 24));
+  page.emit('pointerleave', page.cell(1, 24));
   assert.equal(page.state.resultWrites, updates);
-  assertSelection(page, 3, 6);
+  assertSelection(page, 1, 24);
 });
 
 test('tap and keyboard focus select cells, including events from nested contents', () => {
   const page = fixture();
   initializeExplorer(page.root);
-  page.emit('click', page.node({}, page.cell(2, 2)));
-  assertSelection(page, 2, 2);
+  page.emit('click', page.node({}, page.cell(1, 2)));
+  assertSelection(page, 1, 2);
   page.cell(1, 4).focus();
   assertSelection(page, 1, 4);
   page.emit('pointerover', page.cell(0, 6));
@@ -165,33 +180,38 @@ test('keyboard navigation follows the focused cell, clamps at edges, and support
     assertSelection(page, doc, column);
     assert.equal(page.state.activeElement, page.cell(doc, column));
     assert.deepEqual(page.state.focusCalls.at(-1).options, {preventScroll: true});
+    const bounds = page.state.activeElement.getBoundingClientRect();
+    assert.ok(bounds.left >= 200, 'The focused cell must clear the sticky author label.');
+    assert.ok(bounds.right <= 400, 'The focused cell must be inside the visible table.');
   };
   page.cell(1, 2).focus();
-  page.emit('pointerover', page.cell(3, 6));
+  page.emit('pointerover', page.cell(1, 24));
   move('ArrowRight', 1, 3);
-  move('ArrowDown', 2, 3);
-  move('ArrowLeft', 2, 2);
-  move('ArrowUp', 1, 2);
-  move('Home', 1, 0);
-  move('ArrowLeft', 1, 0);
-  move('End', 1, 6);
-  move('ArrowRight', 1, 6);
+  move('ArrowDown', 1, 3);
+  move('ArrowLeft', 1, 2);
+  move('ArrowUp', 0, 2);
+  move('Home', 0, 0);
+  move('ArrowLeft', 0, 0);
+  move('End', 0, 24);
+  assert.equal(page.state.scroller.scrollLeft, 1050, 'End reveals the rightmost vocabulary term.');
+  move('ArrowRight', 0, 24);
   move('Home', 0, 0, {ctrlKey: true});
+  assert.equal(page.state.scroller.scrollLeft, 0, 'Home reveals the leftmost term without page scrolling.');
   move('ArrowUp', 0, 0);
-  move('End', 3, 6, {ctrlKey: true});
-  move('ArrowDown', 3, 6);
+  move('End', 1, 24, {ctrlKey: true});
+  move('ArrowDown', 1, 24);
   for (const options of [{key: 'Tab'}, {key: 'Escape'}, {key: 'ArrowLeft', altKey: true}, {key: 'ArrowLeft', metaKey: true}]) {
     const before = page.state.focusCalls.length;
     assert.equal(page.emit('keydown', page.state.activeElement, options).defaultPrevented, false);
     assert.equal(page.state.focusCalls.length, before);
-    assertSelection(page, 3, 6);
+    assertSelection(page, 1, 24);
   }
 });
 
 test('disposing the explorer removes every handler and leaves the last selection intact', () => {
   const page = fixture();
   const dispose = initializeExplorer(page.root);
-  page.emit('pointerover', page.cell(2, 4));
+  page.emit('pointerover', page.cell(1, 4));
   const updates = page.state.resultWrites;
   dispose();
   dispose();
@@ -199,5 +219,5 @@ test('disposing the explorer removes every handler and leaves the last selection
   for (const type of ['pointerover', 'focusin', 'click', 'keydown']) page.emit(type, page.cell(0, 0), {key: 'ArrowRight'});
   assert.equal(page.state.resultWrites, updates);
   assert.equal(page.state.focusCalls.length, 0);
-  assertSelection(page, 2, 4);
+  assertSelection(page, 1, 4);
 });
