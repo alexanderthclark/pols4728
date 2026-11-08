@@ -251,11 +251,11 @@ export const chapters = [
     "stages": [
       {
         "title": "One class, several topics.",
-        "text": "Yoga instruction and spiritual reflection can appear in the same class.",
+        "text": "Yoga instruction and personal reflection can appear in the same class.",
         "note": "Each class transcript is one document.",
         "visual": "peloton-transcript",
-        "readingText": "The preceding BERTopic example grouped documents. A mixed-membership topic model instead lets each document contain several topics. Chelsea Jackson Roberts’s May 13, 2021 Morning Yoga Flow includes the movement cue “Inhale, sweep your arms up high.” Later, during breath work, she says: “So as you move through this breath work, I want you to imagine bringing the energy from the Earth through your fingertips, through your body.” The word “imagine” frames this as guided imagery. We treat the full class transcript as one document; these short excerpts show why assigning the whole class to just one topic could miss something.",
-        "readingNote": "In the same class, she also says: “And exhale, saluting the Earth, saying thank you for holding me, supporting me.” These excerpts come from the course’s Peloton transcript collection. The two topics and 70%/30% proportions in the diagram are illustrative, not fitted results."
+        "readingText": "The preceding BERTopic example grouped documents. A mixed-membership topic model instead lets each document contain several topics. In her May 13, 2021 Beginner Focused Flow on Seated Baby Cradle, Chelsea Jackson Roberts says: “So I love Seated Baby Cradle, because it's an opportunity for me to practice holding my body in a way that acknowledges every part of me as being precious.” The passage links a physical pose to personal reflection. We treat the full class transcript as one document, allowing these themes to coexist rather than assigning the class to just one topic.",
+        "readingNote": "A separate Morning Yoga Flow class earlier that day includes this guided imagery: “So as you move through this breath work, I want you to imagine bringing the energy from the Earth through your fingertips, through your body.” She also says: “And exhale, saluting the Earth, saying thank you for holding me, supporting me.” These passages belong to a different document from the featured Baby Cradle quote. The diagram’s two topics and 70%/30% proportions are illustrative, not fitted results."
       },
       {
         "title": "LDA estimates topic mixtures.",
