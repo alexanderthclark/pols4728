@@ -4,7 +4,7 @@ Bag of Words and TF–IDF
 
 A standalone scrollytelling lesson for POLS 4728: an opening question about
 recognizable writing habits, followed by bag of words and TF–IDF.
-Its 21 scenes comprise 3 on AI writing, 10 on bag of words, 6 on TF–IDF,
+Its 24 scenes comprise 3 on AI writing, 13 on bag of words, 6 on TF–IDF,
 and 2 in a separate BERTopic application chapter. The chapter anchors are
 `#ai-writing`, `#bag-of-words`, `#tf-idf`, and `#bertopic`. A short closing
 comparison links to the separate word2vec lesson; `#word2vec` remains a valid
@@ -22,11 +22,21 @@ reduced motion uses completed states. The title and all text remain selectable,
 and character artwork is registered in `design/assets.json`.
 
 The opening Lincoln-like speaker and Gettysburg Address cartoon introduce the
-bag metaphor. The senators/voters word-order example and the Federalist
-authorship example follow before the worked corpus begins. A brief transition
-establishes how the research question guides feature choices. Schumpeter and
+bag metaphor. The senators/voters word-order example, a three-sentence cosine
+comparison, and the Federalist authorship example follow before the worked
+corpus begins. A brief transition establishes how the research question guides
+feature choices. Schumpeter and
 Whitman then remain the example continuously through preprocessing, the count
 matrix, and all six TF–IDF scenes.
+
+The short-sentence comparison uses three statements: “Plebiscites are unwise.”
+“Democracy is foolish.” “Majority rule rules.” It moves from the sentences to their
+nine-column count matrix, then to cosine similarity and distance. The first two
+share a negative stance toward democratic decision-making, but word overlap
+cannot capture it: every pair has cosine similarity 0 and cosine distance 1.
+This example lowercases and removes punctuation only; it retains stop words
+and keeps “are”/“is” and “rule”/“rules” distinct. The later TF–IDF comparison
+returns to the same cosine measure with weighted vectors.
 
 Schumpeter's quotation splits
 into 21 alphabetic tokens, with lowercasing and punctuation removal. Whitman's
@@ -66,9 +76,10 @@ Tab; Home/End select the first/last term in a row. The count matrix remains in
 place while the calculation changes. Previous/next buttons and left/right arrow
 keys provide keyboard navigation through the lesson.
 
-The second editing pass cuts the visible captions from 952 to 431 words
-(55%). Definitions remain on screen; the diagrams carry numerical details,
-and the fuller reading version retains explanations and qualifications.
+The second editing pass cut the original visible captions from 952 to 431 words
+(55%). The three added cosine scenes use brief captions in the same style.
+Definitions remain on screen; the diagrams carry numerical details, and the
+fuller reading version retains explanations and qualifications.
 
 `lesson.mjs` is the source for both concise scene captions and the fuller reading
 version. A stage's `readingText` or `readingNote` preserves detail beyond the
@@ -94,6 +105,9 @@ No package installation or site build is required; serve `docs/` and open `/text
 
 ## Numerical conventions and sources
 
+- In the three-sentence introduction, each count vector has three nonzero
+  entries equal to 1, a norm of `sqrt(3)`, and zero dot product with either other
+  vector. Cosine similarity is 0; cosine distance, defined as `1 - cosine`, is 1.
 - Each quotation is one document. The processed corpus uses lowercasing,
   alphabetic tokenization, the stated lemma mappings, and the selected stop-word
   removal. Its 26 retained occurrences occupy 25 vocabulary coordinates.
@@ -119,7 +133,7 @@ and the supporting reading. Font licenses accompany the local font files.
 ## Verification
 
 ```sh
-node --test tests/text-representations.test.mjs tests/speech-motion.test.mjs tests/text-rendering.test.mjs tests/text-loading.test.mjs tests/text-explorer.test.mjs tests/text-applications.test.mjs
+node --test tests/text-representations.test.mjs tests/speech-motion.test.mjs tests/text-rendering.test.mjs tests/text-loading.test.mjs tests/text-explorer.test.mjs tests/text-applications.test.mjs tests/short-sentences.test.mjs
 node scripts/build-text-transcript.mjs --check
 ```
 
@@ -131,6 +145,12 @@ checks cover pooled counts, c-TF–IDF weights, and reversible progression, incl
 completed states with reduced motion. Loading checks cover the default reading
 route, failed module requests, partial initialization, anchor transfer, and
 cleanup after a late initialization failure. They do not replace browser review.
+
+The early cosine addition passes all 36 targeted checks. Browser review at
+1280×820 and 320×568 confirmed the three sentences, all nine matrix columns,
+and both cosine calculations fit without overlap or horizontal page scrolling.
+Actual forward and backward scrolling reverses the count assembly; keyboard
+navigation and reduced motion reach the complete results.
 
 The initial quotation update passed all 30 targeted checks. Its browser review covered
 1265×712 desktop and 390×844 / 320×568 phone viewports. Actual forward and

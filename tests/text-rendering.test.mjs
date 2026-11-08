@@ -62,9 +62,12 @@ test('the primers precede one uninterrupted quotation walkthrough with matching 
   const bag = chapters[bagIndex];
   const visuals = bag.stages.map(scene => scene.visual);
   const quoteIndex = visuals.indexOf('corpus');
-  for (const primer of ['speech', 'speech-counts', 'order', 'federalist', 'purpose']) {
+  for (const primer of ['speech', 'speech-counts', 'order', 'short-sentences', 'short-counts', 'short-cosine', 'federalist', 'purpose']) {
     assert.ok(visuals.indexOf(primer) >= 0 && visuals.indexOf(primer) < quoteIndex, `${primer} must precede the main corpus`);
   }
+  assert.deepEqual(visuals.slice(visuals.indexOf('order'), visuals.indexOf('federalist') + 1), [
+    'order', 'short-sentences', 'short-counts', 'short-cosine', 'federalist',
+  ]);
   assert.deepEqual(visuals.slice(quoteIndex), ['corpus', 'tokens', 'lemma', 'stopwords', 'matrix']);
   assert.equal(chapters[bagIndex + 1].id, 'tf-idf');
   assert.deepEqual(chapters[bagIndex + 1].stages.map(scene => scene.visual), ['tf', 'df', 'idf', 'word-document', 'weighted', 'cosine']);
