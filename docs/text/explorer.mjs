@@ -1,5 +1,5 @@
-import {inspectTerm,termEquations} from './visuals.mjs?v=20261108-caption-3';
-import {vocabulary} from './model.mjs?v=20261108-caption-3';
+import {inspectTerm,termEquations} from './visuals.mjs?v=20261108-frequency-4';
+import {vocabulary} from './model.mjs?v=20261108-frequency-4';
 
 /** Keep the table stable while a cell's document and term drive the calculation. */
 export function initializeExplorer(root){
