@@ -62,7 +62,7 @@ export const chapters = [
         "readingNote": "Bigrams can retain some local order, at the cost of a larger vocabulary."
       },
       {
-        "title": "Different words, similar ideas.",
+        "title": "Sentences 1 and 2 express similar ideas.",
         "text": "",
         "note": "",
         "visual": "short-sentences",
