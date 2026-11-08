@@ -1,4 +1,4 @@
-import {escapeText as esc,mathLabel} from './math.mjs?v=20261108-speech-matrix-6';
+import {escapeText as esc,mathLabel} from './math.mjs?v=20261108-flow-7';
 
 const clamp=value=>Math.max(0,Math.min(1,value));
 const mix=(from,to,amount)=>from+(to-from)*amount;

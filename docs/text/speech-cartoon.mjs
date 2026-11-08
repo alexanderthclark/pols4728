@@ -1,4 +1,4 @@
-import {speechFrame} from './speech-motion.mjs?v=20261108-speech-matrix-6';
+import {speechFrame} from './speech-motion.mjs?v=20261108-flow-7';
 
 const escapeText = value => String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');
 
@@ -19,7 +19,7 @@ export function speechCartoon(progress, {reducedMotion=false, id='speech', showC
   const tally = countLayout === 'matrix'
     ? `<table class="matrix speech-matrix"><caption class="caught-total">${frame.caughtTotal} / 10 words in the bag</caption><thead><tr><th scope="col">Document</th>${allCounts.map(([word])=>`<th scope="col">${escapeText(word)}</th>`).join('')}</tr></thead><tbody><tr><th scope="row">Speech</th>${allCounts.map(([,count])=>`<td class="${count?'focus':'zero'}">${count}</td>`).join('')}</tr></tbody></table>`
     : `<div class="speech-tally"><span class="caught-total">${frame.caughtTotal} / 10 words in the bag</span><div class="caught-counts" aria-label="Word counts in the bag">${counts.length?counts.map(([word,count])=>`<span>${word} <span class="word-count">${count}</span></span>`).join(''):'<span>Each repeated word counts again.</span>'}</div></div>`;
-  return `<div class="speech-cartoon" data-speech-progress="${progress.toFixed(4)}" data-caught="${frame.caughtTotal}">
+  return `<div class="speech-cartoon" data-visual-family="speech" data-speech-progress="${progress.toFixed(4)}" data-caught="${frame.caughtTotal}">
     <svg class="speech-art" viewBox="0 0 1000 480" role="img"
       aria-label="A Lincoln-like round, torso-less figure speaks as separate words float upward into a sack held by another figure. ${frame.caughtTotal} of 10 words have been caught.">
       <defs>

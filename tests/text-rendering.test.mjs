@@ -4,11 +4,12 @@ import test from 'node:test';
 
 const require = createRequire(import.meta.url);
 globalThis.katex = require('../docs/word2vec/vendor/katex/katex.min.js');
-const {bagVisual, tfVisual, topicVisual, countAssembly, inspectTerm, tokenizationVisual, lemmatizationVisual, stopWordsVisual, wordDocumentVisual} = await import('../docs/text/visuals.mjs');
+const {bagVisual, tfVisual, topicVisual, authorshipVisual, inspectTerm} = await import('../docs/text/visuals.mjs');
+const {quoteFlowVisual} = await import('../docs/text/quote-flow.mjs');
 const {aiExample} = await import('../docs/text/ai-example.mjs');
 const {prose} = await import('../docs/text/math.mjs');
 const {chapters} = await import('../docs/text/lesson.mjs');
-const {documents, vocabulary, counts, tfidf, tokenize, termStats, displayTerms} = await import('../docs/text/model.mjs');
+const {documents, vocabulary, counts, tfidf, termStats, displayTerms} = await import('../docs/text/model.mjs');
 
 const rounded = (value, places = 3) => Number(value.toFixed(places));
 const attributes = tag => [...tag.matchAll(/([\w:-]+)="([^"]*)"/g)].map(([, name, value]) => [name, value]);
@@ -35,7 +36,7 @@ function checkMarkup(markup, label) {
 }
 
 test('every diagram and explanation renders valid mathematics and finite geometry', () => {
-  const renderers = {'bag-of-words': bagVisual, 'tf-idf': tfVisual, bertopic: topicVisual};
+  const renderers = {'bag-of-words': bagVisual, 'tf-idf': tfVisual, authorship: authorshipVisual, bertopic: topicVisual};
   for (const chapter of chapters) {
     for (const [stage, scene] of chapter.stages.entries()) {
       for (const motion of [true, false]) {
@@ -57,24 +58,22 @@ test('every diagram and explanation renders valid mathematics and finite geometr
 });
 
 
-test('the primers precede one uninterrupted quotation walkthrough with matching diagrams', () => {
+test('the primers lead directly into one quotation walkthrough and applications follow the core', () => {
   const bagIndex = chapters.findIndex(chapter => chapter.id === 'bag-of-words');
   const bag = chapters[bagIndex];
   const visuals = bag.stages.map(scene => scene.visual);
   const quoteIndex = visuals.indexOf('corpus');
-  for (const primer of ['speech', 'speech-counts', 'order', 'short-sentences', 'short-counts', 'short-cosine', 'federalist', 'purpose']) {
-    assert.ok(visuals.indexOf(primer) >= 0 && visuals.indexOf(primer) < quoteIndex, `${primer} must precede the main corpus`);
-  }
-  assert.deepEqual(visuals.slice(visuals.indexOf('order'), visuals.indexOf('federalist') + 1), [
-    'order', 'short-sentences', 'short-counts', 'short-cosine', 'federalist',
-  ]);
+  assert.deepEqual(visuals.slice(0, quoteIndex), ['speech', 'speech-counts', 'order', 'short-sentences', 'short-counts', 'short-cosine']);
   assert.deepEqual(visuals.slice(quoteIndex), ['corpus', 'tokens', 'lemma', 'stopwords', 'matrix']);
   assert.equal(chapters[bagIndex + 1].id, 'tf-idf');
   assert.deepEqual(chapters[bagIndex + 1].stages.map(scene => scene.visual), ['tf', 'df', 'idf', 'word-document', 'weighted', 'cosine']);
-  assert.equal(chapters[bagIndex + 2].id, 'bertopic');
-  assert.deepEqual(chapters[bagIndex + 2].stages.map(scene => scene.visual), ['topic-pooling', 'topic-words']);
+  assert.deepEqual(chapters.filter(chapter => chapter.application).map(chapter => chapter.id), ['authorship', 'bertopic']);
+  assert.ok(chapters.slice(0, bagIndex + 2).every(chapter => !chapter.application));
+  assert.ok(chapters.slice(bagIndex + 2).every(chapter => chapter.application));
+  assert.deepEqual(chapters.find(chapter => chapter.id === 'authorship').stages.map(scene => scene.visual), ['federalist']);
+  assert.deepEqual(chapters.find(chapter => chapter.id === 'bertopic').stages.map(scene => scene.visual), ['topic-pooling', 'topic-words']);
 
-  // Check rendered evidence, not only the scene metadata, after positions change.
+  // Verify the rendered examples after moving their chapter and stage positions.
   const render = visual => {
     const stage = visuals.indexOf(visual);
     return bagVisual(stage, stage, false);
@@ -86,115 +85,84 @@ test('the primers precede one uninterrupted quotation walkthrough with matching 
   }
   assert.match(render('order'), /Senators support voters/);
   assert.match(render('order'), /Voters support senators/);
-  assert.match(render('federalist'), /Hamilton/);
-  assert.match(render('federalist'), /Madison/);
-  assert.equal((render('tokens').match(/data-token=/g) ?? []).length, 21);
-  assert.equal((render('lemma').match(/data-lemma=/g) ?? []).length, 3);
-  assert.equal((render('stopwords').match(/data-kept="false" opacity="0"/g) ?? []).length, 10);
-  assert.match(render('matrix'), /data-matrix-reveal="1"/);
+  assert.match(render('speech-counts'), /class="matrix speech-matrix"/);
+  assert.match(authorshipVisual(0, 0, false), /Hamilton/);
+  assert.match(authorshipVisual(0, 0, false), /Madison/);
   assert.match(topicVisual(0, 0, false), /application-pooling/);
   assert.match(topicVisual(1, 1, false), /application-ranking/);
 });
 
-test('the TF–IDF narrative fixes the featured terms and document to match its explanation', () => {
-  for (const [stage, term] of [[0, 'political'], [1, 'citizen'], [4, 'citizen']]) {
-    const markup = tfVisual(stage, stage, true);
-    const rows = tableRows(markup);
-    assert.deepEqual(rows.map(row => row.active), [true, false]);
-    for (const row of rows) {
-      assert.deepEqual(row.cells.map((cell, column) => cell.classes.includes('focus') ? displayTerms[column] : null).filter(Boolean), [term]);
+test('bag-of-words and TF–IDF route every quotation phase through the shared workspace', () => {
+  const bag = chapters.find(chapter => chapter.id === 'bag-of-words');
+  for (const phase of ['corpus', 'tokens', 'lemma', 'stopwords', 'matrix']) {
+    const stage = bag.stages.findIndex(scene => scene.visual === phase);
+    for (const q of [0, .5, 1]) {
+      assert.equal(bagVisual(stage, stage - .5 + q / 2, true), quoteFlowVisual(phase, q));
     }
+    assert.equal(bagVisual(stage, stage - .2, false), quoteFlowVisual(phase, 1));
+  }
+  const tf = chapters.find(chapter => chapter.id === 'tf-idf');
+  for (const [stage, scene] of tf.stages.entries()) {
+    for (const q of [0, .5, 1]) {
+      assert.equal(tfVisual(stage, stage - .5 + q / 2, true), quoteFlowVisual(scene.visual, q));
+    }
+    assert.equal(tfVisual(stage, stage - .2, false), quoteFlowVisual(scene.visual, 1));
+  }
+});
+
+const quoteCells = markup => [...markup.matchAll(/<g\b([^>]*data-key="cell-\d+-\d+"[^>]*)>([\s\S]*?)<\/g>/g)].map(([, attrs, body]) => {
+  const a = Object.fromEntries(attributes(attrs));
+  return {
+    row: Number(a['data-doc']), term: a['data-term'], value: Number(a['data-value']),
+    highlighted: /fill="#edf2f5"/.test(body), present: /stroke="#234e70"/.test(body),
+    displayed: Number(body.match(/<text\b[^>]*data-key="cell-value-[^"]+"[^>]*>([^<]+)<\/text>/)[1]),
+  };
+});
+
+test('the TF–IDF narrative keeps the featured columns, document frequencies, and pair scores consistent', () => {
+  for (const [stage, term] of [[0, 'political'], [1, 'citizen'], [4, 'citizen']]) {
+    const markup = tfVisual(stage, stage, true), cells = quoteCells(markup);
+    assert.equal(cells.length, documents.length * displayTerms.length);
+    assert.deepEqual([...new Set(cells.filter(cell => cell.highlighted).map(cell => cell.term))], [term]);
     assert.doesNotMatch(markup, /<select\b|<input\b/);
   }
-  const presence = tableRows(tfVisual(1, 1));
-  assert.deepEqual(presence.map(row => row.cells[displayTerms.indexOf('citizen')].classes.includes('present')), [true, false]);
-  assert.ok(texExpressions(tfVisual(0, 0)).some(tex => tex.includes(String.raw`c_{\mathrm{political},\mathrm{Schumpeter}}=1`)));
+  assert.deepEqual(quoteCells(tfVisual(1, 1)).filter(cell => cell.present).map(cell => [cell.row, cell.term]), [[0, 'citizen']]);
+  assert.ok(texExpressions(tfVisual(0, 0)).some(tex => tex.includes(String.raw`c_{\mathrm{political},S}=c_{\mathrm{political},W}=1`)));
   assert.ok(texExpressions(tfVisual(1, 1)).some(tex => tex.includes(String.raw`\mathrm{df}_{\mathrm{citizen}}=1`)));
-  const idfExpressions = texExpressions(tfVisual(2, 2)).slice(0, 3);
-  for (const [index, term] of ['political', 'citizen', 'america'].entries()) {
-    const {idf} = termStats(term, 0);
-    const [, relation, value] = idfExpressions[index].match(/(=|\\approx)([\d.]+)$/);
-    assert.equal(relation, idf ? String.raw`\approx` : '=');
-    assert.equal(Number(value), rounded(idf));
+  const idf = texExpressions(tfVisual(2, 2));
+  for (const term of ['political', 'citizen']) {
+    const {idf: weight} = termStats(term, 0);
+    const expression = idf.find(tex => tex.includes(String.raw`\mathrm{${term}}:`));
+    assert.ok(expression, `${term} must have an explicit IDF calculation.`);
+    const [, relation, value] = expression.match(/(=|\\approx)([\d.]+)$/);
+    assert.equal(relation, weight ? String.raw`\approx` : '=');
+    assert.equal(Number(value), rounded(weight));
   }
-  assert.doesNotMatch(tfVisual(5, 5), /<select\b|<input\b/);
+  const pair = texExpressions(tfVisual(3, 3));
+  assert.ok(pair.some(tex => tex.includes(String.raw`w_{t,d}=c_{t,d}\ln\!\left(\frac{N}{\mathrm{df}_t}\right)`)));
+  for (const [row, {label}] of documents.entries()) {
+    const stats = termStats('citizen', row);
+    const expression = pair.find(tex => tex.includes(String.raw`w_{\mathrm{citizen},\mathrm{${label}}}`));
+    assert.ok(expression?.includes(`=${stats.tf}\\ln2`));
+    const [, relation, value] = expression.match(/(=|\\approx)([\d.]+)$/);
+    assert.equal(relation, stats.weight ? String.raw`\approx` : '=');
+    assert.equal(Number(value), rounded(stats.weight));
+  }
+  assert.match(tfVisual(5, 5), /Cosine similarity of the full 25-term vectors is 0/);
 });
 
-test('the word–document example gives each citizen count its own score with one shared IDF', () => {
-  const markup = wordDocumentVisual();
-  checkMarkup(markup, 'word–document TF–IDF example');
-  const formula = texExpressions(markup)[0];
-  assert.ok(formula.includes(String.raw`w_{t,d}`));
-  assert.ok(formula.includes(String.raw`c_{t,d}`));
-  assert.ok(formula.includes(String.raw`\frac{N}{\mathrm{df}_t}`));
-  const rows = [...markup.matchAll(/<tr data-doc="(\d+)">([\s\S]*?)<\/tr>/g)];
-  assert.equal(rows.length, documents.length);
-  for (const [index, [, doc, row]] of rows.entries()) {
-    const stats = termStats('citizen', index);
-    assert.equal(Number(doc), index);
-    assert.match(row, new RegExp(`<th scope="row">${documents[index].label}</th><td>${stats.tf}</td>`));
-    assert.equal(Number(row.match(/data-weight="([^"]+)"/)[1]), stats.weight);
-    const calculation = texExpressions(row)[0];
-    assert.ok(calculation.startsWith(String.raw`${stats.tf}\ln(${stats.N}/${stats.df})`));
-    assert.equal(Number(calculation.match(/([\d.]+)$/)[1]), rounded(stats.weight));
-    if (stats.tf) assert.ok(calculation.includes(String.raw`\approx`), 'Rounded nonzero weights need the LaTeX approximation relation.');
+test('routed TF–IDF weighting keeps exact model values and correctly rounded cell labels', () => {
+  for (const progress of [3.5, 3.75, 4]) {
+    const q = (progress - 3.5) * 2;
+    const displayed = quoteCells(tfVisual(4, progress));
+    for (const cell of displayed) {
+      const column = vocabulary.indexOf(cell.term);
+      const expected = counts[cell.row][column] + (tfidf[cell.row][column] - counts[cell.row][column]) * q;
+      assert.equal(cell.value, expected);
+      assert.equal(cell.displayed, rounded(expected, 2));
+    }
   }
-  assert.equal(tfVisual(3, 3), markup);
-});
-
-test('count assembly preserves the selected tokens, reverses exactly, and finishes at a labelled matrix excerpt', () => {
-  const positions = Array.from({length: 41}, (_, index) => 1 + index / 40);
-  const forward = positions.map(countAssembly);
-  const reverse = [...positions].reverse().map(countAssembly).reverse();
-  assert.deepEqual(reverse, forward);
-  const tokenPositions = markup => [...markup.matchAll(/<text\b([^>]*data-token="\d+"[^>]*)>([^<]+)<\/text>/g)].map(([, tag, word]) => ({...Object.fromEntries(attributes(tag)), word}));
-  for (const markup of forward) assert.deepEqual(tokenPositions(markup).map(token => token.word), displayTerms.filter(term => documents[0].tokens.includes(term)));
-  assert.match(forward[0], /data-matrix-reveal="0"/);
-  assert.match(forward.at(-1), /data-matrix-reveal="1"/);
-  assert.notDeepEqual(tokenPositions(forward[0]).map(token => [token.x, token.y]), tokenPositions(forward[20]).map(token => [token.x, token.y]));
-  assert.ok(tokenPositions(forward.at(-1)).every(token => Number(token.opacity) === 0));
-  const matrixGroup = forward.at(-1).match(/<g opacity="1" data-matrix-reveal="1">([\s\S]*?)<\/g>/)[1];
-  const labels = [...matrixGroup.matchAll(/<text\b[^>]*>([^<]+)<\/text>/g)].map(match => match[1]);
-  assert.deepEqual(labels.slice(0, displayTerms.length), displayTerms);
-  for (const [row, expected] of counts.entries()) {
-    const start = displayTerms.length + row * (displayTerms.length + 1);
-    assert.equal(labels[start], documents[row].label);
-    assert.deepEqual(labels.slice(start + 1, start + 1 + displayTerms.length).map(Number), displayTerms.map(term => expected[vocabulary.indexOf(term)]));
-  }
-  const stage = chapters.find(chapter => chapter.id === 'bag-of-words').stages.findIndex(scene => scene.visual === 'matrix');
-  assert.equal(bagVisual(stage, stage - .2, false), countAssembly(2));
-});
-
-test('preprocessing preserves occurrences and applies the slide choices to the worked matrix', () => {
-  const tokenWords=markup=>[...markup.matchAll(/<text\b[^>]*data-token="\d+"[^>]*>([^<]+)<\/text>/g)].map(m=>m[1]);
-  assert.deepEqual(tokenWords(tokenizationVisual(0)),documents[0].text.split(' '));
-  assert.deepEqual(tokenWords(tokenizationVisual(1)),tokenize(documents[0].text));
-  assert.deepEqual([...lemmatizationVisual(1).matchAll(/data-lemma="([^"]+)"/g)].map(m=>m[1]),['drop','enter','make']);
-  const final=stopWordsVisual(1);
-  const retained=[...final.matchAll(/<g data-token="\d+" data-kept="true" opacity="1"><text\b[^>]*>([^<]+)<\/text>/g)].map(m=>m[1]);
-  assert.deepEqual(retained,documents[0].tokens);
-  assert.equal((final.match(/data-kept="false" opacity="0"/g)??[]).length,10);
-  // The retained, lemmatized words are exactly those used in the count matrix.
-  assert.equal(counts[0][vocabulary.indexOf('political')],1);
-  assert.ok(!vocabulary.includes('the'));
-  assert.ok(vocabulary.includes('drop'));
-  assert.ok(!vocabulary.includes('drops'));
-  for(const render of [tokenizationVisual,lemmatizationVisual,stopWordsVisual]){
-    const positions=[0,.25,.5,.75,1],forward=positions.map(render);
-    assert.deepEqual([...positions].reverse().map(render).reverse(),forward);
-    assert.notEqual(forward[0],forward.at(-1));
-    forward.forEach(markup=>checkMarkup(markup,'preprocessing'));
-  }
-});
-
-test('TF–IDF reweighting retains exact starting counts and the model’s rounded endpoint values', () => {
-  const values = markup => tableRows(markup).map(row => row.cells.map(cell => cell.value));
-  const excerpt = matrix => matrix.map(row => displayTerms.map(term => row[vocabulary.indexOf(term)]));
-  assert.deepEqual(values(tfVisual(4, 3.5)), excerpt(counts));
-  assert.deepEqual(values(tfVisual(4, 4)), excerpt(tfidf).map(row => row.map(value => rounded(value, 2))));
-  assert.deepEqual(values(tfVisual(4, 3.6, false)), values(tfVisual(4, 4)));
-  const mid = values(tfVisual(4, 3.75));
-  assert.deepEqual(mid, excerpt(counts.map((row, i) => row.map((value, j) => rounded((value + tfidf[i][j]) / 2, 2)))));
+  assert.deepEqual(quoteCells(tfVisual(4, 3.6, false)), quoteCells(tfVisual(4, 4)));
 });
 
 test('every explorer term and document displays the matching counts and TF–IDF calculation', () => {
