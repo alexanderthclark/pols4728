@@ -1,4 +1,4 @@
-import {chapters} from './lesson.mjs?v=20261108-mechanism-1';
+import {chapters} from './lesson.mjs?v=20261108-caption-1';
 import {updateAiExample} from './ai-example.mjs?v=20261108-mechanism-1';
 import {bagVisual,tfVisual,topicVisual,authorshipVisual} from './visuals.mjs?v=20261108-mechanism-1';
 import {updateVisual} from './visual-update.mjs?v=20261108-mechanism-1';
