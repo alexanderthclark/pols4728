@@ -22,7 +22,9 @@ reduced motion uses completed states. The title and all text remain selectable,
 and character artwork is registered in `design/assets.json`.
 
 The opening Lincoln-like speaker and Gettysburg Address cartoon introduce the
-bag metaphor. The senators/voters word-order example, a three-sentence cosine
+bag metaphor. “Keep repetition” displays one speech row with six word columns;
+its counts update as words arrive and finish at 1, 1, 3, 3, 1, 1.
+The senators/voters word-order example, a three-sentence cosine
 comparison, and the Federalist authorship example follow before the worked
 corpus begins. A brief transition establishes how the research question guides
 feature choices. Schumpeter and

@@ -1,5 +1,5 @@
-import {tokenize, cosine} from './model.mjs?v=20261108-cosine-5';
-import {latex, escapeText as esc} from './math.mjs?v=20261108-cosine-5';
+import {tokenize, cosine} from './model.mjs?v=20261108-speech-matrix-6';
+import {latex, escapeText as esc} from './math.mjs?v=20261108-speech-matrix-6';
 
 // This small corpus keeps word forms and stop words, unlike the later quotations.
 export const shortDocuments = [
