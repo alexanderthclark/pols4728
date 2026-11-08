@@ -1,41 +1,40 @@
 import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
 import test from 'node:test';
-import {pelotonExample, topicModelsVisual} from '../docs/text/topic-models.mjs';
+const require=createRequire(import.meta.url);
+globalThis.katex=require('../docs/word2vec/vendor/katex/katex.min.js');
+const {pelotonExample,topicModelsVisual}=await import('../docs/text/topic-models.mjs');
+const {dirichletVisual}=await import('../docs/text/dirichlet-visual.mjs');
+const {ldaMechanismVisual}=await import('../docs/text/lda-mechanism.mjs');
+const {chapters}=await import('../docs/text/lesson.mjs');
+const quote="So I love Seated Baby Cradle, because it's an opportunity for me to practice holding my body in a way that acknowledges every part of me as being precious.";
 
-test('the Peloton illustration preserves excerpts and clearly distinguishes invented shares from fitted results',()=>{
-  assert.deepEqual(pelotonExample.excerpts,["So I love Seated Baby Cradle, because it's an opportunity for me to practice holding my body in a way that acknowledges every part of me as being precious."]);
-  assert.equal(pelotonExample.excerptLines.join(" ").slice(1,-1),pelotonExample.excerpts[0]);
-  assert.equal(pelotonExample.topics.reduce((sum,topic)=>sum+topic.share,0),1);
-  const markup=topicModelsVisual(1,1,false);
-  for(const excerpt of pelotonExample.excerptLines)assert.ok(markup.includes(excerpt));
-  assert.match(markup,/part of me as being precious/);
-  assert.match(markup,/Focused Flow: Seated Baby Cradle/);
+test('the expanded explanation builds probability vectors before LDA generation, inference, and STM',()=>{
+  const chapter=chapters.at(-1);
+  assert.equal(chapter.id,'topic-models');assert.equal(chapter.application,true);
+  assert.deepEqual(chapter.stages.map(s=>s.visual),['simplex','dirichlet','concentration','topic-words','document-mixture','token-topic','token-word','inference','stm-prevalence','stm-content']);
+  assert.match(chapter.stages[0].readingText,/simplex/i);
+  assert.match(chapter.stages[1].readingText,/Dirichlet/);
+  assert.match(chapter.stages[8].readingText,/logistic.normal/i);
+});
+
+test('the actual model walkthrough preserves the full requested quote and correct class attribution',()=>{
+  assert.ok(pelotonExample.excerpts.includes(quote));
+  const markup=topicModelsVisual(4,4,false);
+  assert.ok(markup.includes(quote),'The complete quotation must remain accessible in the rendered model.');
   assert.match(markup,/Chelsea Jackson Roberts/);
-  assert.match(markup,/Illustrative topics and proportions/);
-  assert.match(markup,/These are not fitted results/);
-  const widths=[...markup.matchAll(/data-key="mixture-segment-\d"[^>]*width="([\d.]+)"/g)].map(match=>Number(match[1]));
-  assert.deepEqual(widths,[436.8,187.2]);
-  assert.equal(widths.reduce((sum,width)=>sum+width,0),624);
+  assert.match(markup,/Seated Baby Cradle/);
+  assert.ok(chapters.at(-1).stages[4].readingText.includes(quote));
+  assert.match(chapters.at(-1).stages[4].readingText,/Focused Flow/);
 });
 
-test('adjacent stages share exact visual endpoints and preserve every keyed object',()=>{
-  assert.equal(topicModelsVisual(0,0),topicModelsVisual(1,.5));
-  assert.equal(topicModelsVisual(1,1),topicModelsVisual(2,1.5));
-  const keys=markup=>[...markup.matchAll(/data-key="([^"]+)"/g)].map(match=>match[1]);
-  assert.deepEqual(keys(topicModelsVisual(0,0)),keys(topicModelsVisual(2,2)));
-  assert.equal(new Set(keys(topicModelsVisual(2,2))).size,keys(topicModelsVisual(2,2)).length);
-});
-
-test('scroll progress changes mixture geometry and draws metadata without inventing a numerical effect',()=>{
-  const start=topicModelsVisual(1,.55),middle=topicModelsVisual(1,.75),end=topicModelsVisual(1,1);
-  assert.notEqual(start,middle);assert.notEqual(middle,end);
-  assert.equal(middle,topicModelsVisual(1,.75));
-  const stm=topicModelsVisual(2,2);
-  assert.match(stm,/data-metadata-progress="1"/);
-  assert.match(stm,/stroke-dashoffset="0"/);
-  assert.match(stm,/data-share="0.7"/);assert.match(stm,/data-share="0.3"/);
-  assert.match(stm,/No numerical metadata effect is estimated/);
-  assert.equal(topicModelsVisual(2,1.6,false),stm);
-  assert.equal(topicModelsVisual(1,.6,false),end);
-  assert.throws(()=>topicModelsVisual(3,3),RangeError);
+test('the lesson routes progress and reduced motion into every mathematical scene',()=>{
+  for(let stage=0;stage<10;stage++){
+    for(const motion of [true,false])for(const delta of [-.4,0,.3]){
+      const p=stage+delta;
+      assert.equal(topicModelsVisual(stage,p,motion),stage<3?dirichletVisual(stage,p,motion):ldaMechanismVisual(stage-3,p-3,motion));
+    }
+  }
+  assert.throws(()=>topicModelsVisual(10,10),RangeError);
+  assert.throws(()=>topicModelsVisual(-1,-1),RangeError);
 });

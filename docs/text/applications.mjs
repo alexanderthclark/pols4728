@@ -1,4 +1,4 @@
-import {escapeText as esc,mathLabel} from './math.mjs?v=20261108-topics-3';
+import {escapeText as esc,mathLabel} from './math.mjs?v=20261108-mechanism-1';
 
 const clamp=value=>Math.max(0,Math.min(1,value));
 const mix=(from,to,amount)=>from+(to-from)*amount;
