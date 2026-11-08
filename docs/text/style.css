@@ -135,6 +135,9 @@ noscript{display:block;padding:30px}
 .caught-counts>span{white-space:nowrap}
 .word-count{display:inline-block;min-width:1.2em;margin-left:4px;color:var(--blue);font-variant-numeric:tabular-nums}
 .floating-words text{fill:var(--blue)}
+.speech-matrix{margin-top:10px}
+.speech-matrix caption.caught-total{display:table-caption;margin:0;padding:0 0 5px}
+.visual .speech-matrix thead th:first-child{width:70px}
 /* The opening sentence remains pinned while its features become visible. */
 .ai-example{width:100%;min-height:0}
 .ai-example-label{font:12px/1.4 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 22px}
@@ -346,4 +349,8 @@ noscript{display:block;padding:30px}
  .short-cosine>.math{font-size:16px;margin-bottom:8px}
  .short-calculation{font-size:17px}.short-comparison{padding:4px}
  .short-distance .math{font-size:14px}
+}
+@media(max-width:540px){
+ .visual .speech-matrix caption{display:table-caption}
+ .visual .speech-matrix thead th:first-child{width:54px}
 }

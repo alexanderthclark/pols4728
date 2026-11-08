@@ -1,9 +1,9 @@
-import {speechFrame} from './speech-motion.mjs?v=20261108-cosine-5';
+import {speechFrame} from './speech-motion.mjs?v=20261108-speech-matrix-6';
 
 const escapeText = value => String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');
 
 /** The image supplies the character art; words and changing counts stay real text. */
-export function speechCartoon(progress, {reducedMotion=false, id='speech', showCounts=true}={}) {
+export function speechCartoon(progress, {reducedMotion=false, id='speech', showCounts=true, countLayout='list'}={}) {
   const frame = speechFrame(progress, {reducedMotion});
   const prefix = id.replace(/[^a-z0-9-]/gi, '');
   const tilt = -frame.gesture * 0.9;
@@ -15,6 +15,10 @@ export function speechCartoon(progress, {reducedMotion=false, id='speech', showC
       opacity="${token.opacity.toFixed(3)}" text-anchor="middle" dominant-baseline="middle"
       fill="#234e70" font-size="42">${escapeText(token.word)}</text>`).join('');
   const counts = Object.entries(frame.caughtCounts).filter(([,count])=>count>0);
+  const allCounts = Object.entries(frame.caughtCounts);
+  const tally = countLayout === 'matrix'
+    ? `<table class="matrix speech-matrix"><caption class="caught-total">${frame.caughtTotal} / 10 words in the bag</caption><thead><tr><th scope="col">Document</th>${allCounts.map(([word])=>`<th scope="col">${escapeText(word)}</th>`).join('')}</tr></thead><tbody><tr><th scope="row">Speech</th>${allCounts.map(([,count])=>`<td class="${count?'focus':'zero'}">${count}</td>`).join('')}</tr></tbody></table>`
+    : `<div class="speech-tally"><span class="caught-total">${frame.caughtTotal} / 10 words in the bag</span><div class="caught-counts" aria-label="Word counts in the bag">${counts.length?counts.map(([word,count])=>`<span>${word} <span class="word-count">${count}</span></span>`).join(''):'<span>Each repeated word counts again.</span>'}</div></div>`;
   return `<div class="speech-cartoon" data-speech-progress="${progress.toFixed(4)}" data-caught="${frame.caughtTotal}">
     <svg class="speech-art" viewBox="0 0 1000 480" role="img"
       aria-label="A Lincoln-like round, torso-less figure speaks as separate words float upward into a sack held by another figure. ${frame.caughtTotal} of 10 words have been caught.">
@@ -33,6 +37,6 @@ export function speechCartoon(progress, {reducedMotion=false, id='speech', showC
       </g>
       <g class="floating-words" clip-path="url(#${prefix}-words)">${tokens}</g>
     </svg>
-    ${showCounts?`<div class="speech-tally"><span class="caught-total">${frame.caughtTotal} / 10 words in the bag</span><div class="caught-counts" aria-label="Word counts in the bag">${counts.length?counts.map(([word,count])=>`<span>${word} <span class="word-count">${count}</span></span>`).join(''):'<span>Each repeated word counts again.</span>'}</div></div>`:''}
+    ${showCounts?tally:''}
   </div>`;
 }

@@ -1,8 +1,8 @@
-import {chapters} from './lesson.mjs?v=20261108-cosine-5';
-import {updateAiExample} from './ai-example.mjs?v=20261108-cosine-5';
-import {bagVisual,tfVisual,topicVisual} from './visuals.mjs?v=20261108-cosine-5';
-import {prose} from './math.mjs?v=20261108-cosine-5';
-import {initializeExplorer} from './explorer.mjs?v=20261108-cosine-5';
+import {chapters} from './lesson.mjs?v=20261108-speech-matrix-6';
+import {updateAiExample} from './ai-example.mjs?v=20261108-speech-matrix-6';
+import {bagVisual,tfVisual,topicVisual} from './visuals.mjs?v=20261108-speech-matrix-6';
+import {prose} from './math.mjs?v=20261108-speech-matrix-6';
+import {initializeExplorer} from './explorer.mjs?v=20261108-speech-matrix-6';
 
 export function initializeStory() {
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
