@@ -82,12 +82,13 @@ word–cluster calculation labels “budget in cluster A” and distinguishes to
 occurrence counts from document frequency.
 
 The final three scenes introduce LDA and STM with a single Peloton class:
-Chelsea Jackson Roberts’s 30-minute Intermediate Morning Yoga Flow, May 13,
-2021. It pairs “Inhale, sweep your arms up high.” with her invitation to
-“imagine bringing the energy from the Earth through your fingertips, through
-your body.” The initial ellipsis in the visual marks the shortened sentence;
-the full wording and an additional Earth-gratitude passage appear in the reading
-version. The invitation to imagine is preserved as guided imagery. The persistent diagram transforms the excerpt into an illustrative
+Chelsea Jackson Roberts’s 10-minute Beginner Focused Flow on Seated Baby Cradle,
+May 13, 2021. The complete requested quotation begins “So I love Seated Baby
+Cradle” and ends “every part of me as being precious.” Its wording is preserved
+without an ellipsis, and the same full quotation stays visible in all three
+stages. The reading version retains the separate Morning Yoga Flow passages
+about Earth energy and gratitude, explicitly identifying them as another class.
+The persistent diagram transforms the featured excerpt into an illustrative
 70% movement / 30% reflection topic mixture, then adds instructor and class-type
 metadata to explain STM topic prevalence. These topics, word examples, and
 proportions are explicitly illustrative, not the course’s fitted model results.
@@ -102,7 +103,9 @@ prevalence only; no content covariate is fitted. Its class types are reviewed
 transcript-derived activity labels, not official Peloton categories.
 The arrows illustrate model structure without presenting causal effects.
 
-Excerpt provenance: the course transcript collection’s source document is
+Featured-quote provenance: the course transcript collection’s source document is
+`05132021-chelsea_jackson_roberts-1200pm-drastic-1-ab56a7181664411383533b3348f0a2fa_200k`,
+02:56.030–03:10.070. The separate Morning Yoga Flow excerpts come from
 `05132021-chelsea_jackson_roberts-1030am-drastic-1-83e450847b574eea8e18a85204031751_200k`.
 Only the short requested excerpts are reproduced here; the underlying
 corpus and fitted-model files are not required to run this lesson.

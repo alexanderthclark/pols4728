@@ -1,5 +1,5 @@
-import {documents, tokenize, lemmaForms, stopWords, displayTerms, vocabulary, counts, tfidf, cosine} from './model.mjs?v=20261108-topics-2';
-import {escapeText as esc, mathLabel} from './math.mjs?v=20261108-topics-2';
+import {documents, tokenize, lemmaForms, stopWords, displayTerms, vocabulary, counts, tfidf, cosine} from './model.mjs?v=20261108-topics-3';
+import {escapeText as esc, mathLabel} from './math.mjs?v=20261108-topics-3';
 
 const clamp = value => Math.max(0, Math.min(1, value));
 const mix = (a, b, q) => a + (b - a) * q;

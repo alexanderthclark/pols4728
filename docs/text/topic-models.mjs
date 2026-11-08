@@ -1,16 +1,16 @@
-import {escapeText as esc} from './math.mjs?v=20261108-topics-2';
+import {escapeText as esc} from './math.mjs?v=20261108-topics-3';
 
 // The quotations are transcript excerpts. These two topics and their shares
 // are a teaching illustration, not an estimate from the Peloton corpus.
 export const pelotonExample = {
   instructor: 'Chelsea Jackson Roberts',
-  classTitle: 'Morning Yoga Flow',
+  classTitle: 'Focused Flow: Seated Baby Cradle',
   date: 'May 13, 2021',
-  excerpts: ['Inhale, sweep your arms up high.', '…imagine bringing the energy from the Earth through your fingertips, through your body.'],
-  excerptLines: ['“Inhale, sweep your arms up high.”', '“…imagine bringing the energy from the Earth', 'through your fingertips, through your body.”'],
+  excerpts: ["So I love Seated Baby Cradle, because it's an opportunity for me to practice holding my body in a way that acknowledges every part of me as being precious."],
+  excerptLines: ["“So I love Seated Baby Cradle, because it's", "an opportunity for me to practice holding", "my body in a way that acknowledges every", "part of me as being precious.”"],
   topics: [
-    {label: 'Movement', share: .7, words: ['inhale', 'arms', 'feet'], color: '#234e70'},
-    {label: 'Reflection', share: .3, words: ['energy', 'earth', 'intention'], color: '#a54f32'},
+    {label: 'Movement', share: .7, words: ['seated', 'cradle', 'body'], color: '#234e70'},
+    {label: 'Reflection', share: .3, words: ['precious', 'love', 'acknowledges'], color: '#a54f32'},
   ],
 };
 
@@ -30,16 +30,16 @@ export function topicModelsVisual(stage, p=stage, motion=true) {
   const lift = fixed(115*(1-mix));
   const barWidth = 624;
   const description = mix === 0
-    ? 'Excerpts from Chelsea Jackson Roberts’s Morning Yoga Flow combine movement cues and spiritual reflection.'
+    ? 'Chelsea Jackson Roberts reflects on Seated Baby Cradle in a Focused Flow class, combining movement and personal reflection.'
     : metadata === 0
       ? 'An illustrative class mixture is 70 percent Movement and 30 percent Reflection. The topics are distributions over words; selected words appear below. These are not fitted results.'
       : 'The same illustrative mixture and topic words remain visible. Instructor and class-type metadata enter a model of topic prevalence. No numerical metadata effect is estimated in this diagram.';
   return `<div class="topic-model-flow" data-key="topic-model-flow" data-visual-family="topic-models" data-mixture-progress="${fixed(mix)}" data-metadata-progress="${fixed(metadata)}">
-    <svg class="topic-model-workspace" viewBox="0 0 680 610" role="img" aria-label="${esc(description)}">
+    <svg class="topic-model-workspace" viewBox="0 0 680 610" role="img" aria-label="${esc(`${pelotonExample.instructor}: “${pelotonExample.excerpts[0]}” ${description}`)}">
       <g data-key="class-excerpt" transform="translate(0 ${lift})">
         ${text('class-author', 28, 32, pelotonExample.instructor, 31)}
         ${text('class-citation', 28, 64, `${pelotonExample.classTitle} · ${pelotonExample.date}`, 25, 'fill="#606060"')}
-        ${pelotonExample.excerptLines.map((quote,i) => text(`excerpt-${i}`, 28, 113+i*39, quote, i===0?34:30, `fill="${mix > 0 ? pelotonExample.topics[i===0?0:1].color : '#242424'}"`)).join('')}
+        ${pelotonExample.excerptLines.map((quote,i) => text(`excerpt-${i}`, 28, 100+i*34, quote, 30, 'fill="#242424"')).join('')}
       </g>
       <g data-key="metadata" opacity="${fixed(metadataReveal)}" aria-hidden="${metadataReveal===0}">
         <g data-key="instructor-metadata" transform="translate(${fixed(-55*(1-metadata))} 0)">
