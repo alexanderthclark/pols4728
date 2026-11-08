@@ -242,5 +242,39 @@ export const chapters = [
       }
     ],
     "application": true
+  },
+  {
+    "id": "topic-models",
+    "title": "Application: LDA and STM",
+    "subtitle": "Peloton class transcripts",
+    "application": true,
+    "stages": [
+      {
+        "title": "One class, several topics.",
+        "text": "A Peloton class can mix cycling cues and strength instructions.",
+        "note": "Each class transcript is one document.",
+        "visual": "peloton-transcript",
+        "readingText": "The preceding BERTopic example grouped documents. A mixed-membership topic model instead lets each document contain several topics. Cody Rigsby’s November 19, 2020 Intervals and Arms ride includes “Cadence 80 to 100,” “Resistance 20 to 40,” and “Grab those weights.” We treat the full class transcript as one document; these short excerpts show why assigning the whole class to just one topic could miss something.",
+        "readingNote": "The excerpts come from the course’s Peloton transcript collection. The two topics and 70%/30% proportions in this diagram are illustrative, not fitted results."
+      },
+      {
+        "title": "LDA estimates topic mixtures.",
+        "text": "Each document mixes topics; each topic assigns probabilities to words.",
+        "note": "Latent Dirichlet allocation · word counts as input.",
+        "visual": "lda-mixture",
+        "links": [{"label":"Latent Dirichlet allocation","url":"https://www.jmlr.org/papers/v3/blei03a.html"}],
+        "readingText": "Latent Dirichlet allocation (LDA) estimates topics and document-level topic proportions from word counts across a corpus. Its generative story draws a topic mixture for each document from a Dirichlet distribution, then chooses a topic and a word for each token. Each topic is a probability distribution over the shared vocabulary; the same word can occur under several topics. In our two-topic illustration, a class has 70% cycling and 30% strength. These percentages describe topic proportions, not confidence in a single class label.",
+        "readingNote": "Choose the number of topics, then inspect their words and representative documents before naming them. The words shown are examples of high-probability terms in the illustration, not exhaustive vocabularies. LDA uses counts, not the TF–IDF weights from the main lesson."
+      },
+      {
+        "title": "STM adds class information.",
+        "text": "The structural topic model uses metadata to model topic proportions.",
+        "note": "Covariates can also model vocabulary within topics.",
+        "visual": "stm-metadata",
+        "links": [{"label":"structural topic model","url":"https://www.jstatsoft.org/article/view/v091i02"}],
+        "readingText": "The structural topic model (STM) incorporates document metadata while estimating topics. A prevalence model relates the expected topic mixture to covariates such as instructor and class type. It lets us ask how much classes discuss a topic and how that varies with class information. STM uses a logistic-normal model for topic proportions rather than LDA’s Dirichlet model. Optional content covariates let the word probabilities within a topic vary as well—for example, how instructors discuss the same topic.",
+        "readingNote": "The arrows show model structure, not a fitted effect or a causal claim. The displayed mixture remains illustrative. “Cycling” is a reviewed, transcript-derived activity label, not official Peloton metadata. The course’s existing Peloton STM uses instructor group and class type for prevalence, with no content covariate."
+      }
+    ]
   }
 ];
