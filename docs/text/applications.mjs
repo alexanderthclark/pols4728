@@ -1,4 +1,4 @@
-import {escapeText as esc,mathLabel} from './math.mjs?v=20261108-slide-quotes-1';
+import {escapeText as esc,mathLabel} from './math.mjs?v=20261108-flow-2';
 
 const clamp=value=>Math.max(0,Math.min(1,value));
 const mix=(from,to,amount)=>from+(to-from)*amount;
@@ -7,7 +7,7 @@ const text=(x,y,value,extra='')=>`<text x="${x}" y="${y}" font-size="32" fill="$
 const svg=(body,label,kind)=>`<svg class="application-visual application-${kind}" viewBox="0 0 680 330" role="img" aria-label="${esc(label)}">${body}</svg>`;
 const note=content=>`<p class="visual-note">${content}</p>`;
 
-/** Constructed teaching documents, independent of the earlier four-document corpus. */
+/** Constructed teaching documents, independent of the Schumpeter and Whitman quotations. */
 export const topicDocuments=[
   ['budget tax policy','budget spending policy'],
   ['health clinic policy','health care policy'],

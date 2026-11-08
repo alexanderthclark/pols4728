@@ -1,5 +1,5 @@
-import {inspectTerm,termEquations} from './visuals.mjs?v=20261108-slide-quotes-1';
-import {vocabulary} from './model.mjs?v=20261108-slide-quotes-1';
+import {inspectTerm,termEquations} from './visuals.mjs?v=20261108-flow-2';
+import {vocabulary} from './model.mjs?v=20261108-flow-2';
 
 /** Keep the table stable while a cell's document and term drive the calculation. */
 export function initializeExplorer(root){

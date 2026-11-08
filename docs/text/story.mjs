@@ -1,8 +1,8 @@
-import {chapters} from './lesson.mjs?v=20261108-slide-quotes-1';
-import {updateAiExample} from './ai-example.mjs?v=20261108-slide-quotes-1';
-import {bagVisual,tfVisual} from './visuals.mjs?v=20261108-slide-quotes-1';
-import {prose} from './math.mjs?v=20261108-slide-quotes-1';
-import {initializeExplorer} from './explorer.mjs?v=20261108-slide-quotes-1';
+import {chapters} from './lesson.mjs?v=20261108-flow-2';
+import {updateAiExample} from './ai-example.mjs?v=20261108-flow-2';
+import {bagVisual,tfVisual,topicVisual} from './visuals.mjs?v=20261108-flow-2';
+import {prose} from './math.mjs?v=20261108-flow-2';
+import {initializeExplorer} from './explorer.mjs?v=20261108-flow-2';
 
 export function initializeStory() {
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -43,7 +43,7 @@ function render(){
     v.copy.style.transform=`translateY(${Math.sign(stage-raw)*fade*10}px)`;
     if(v.chapter.id==='ai-writing')updateAiExample(v.visual,stage,p,{reducedMotion:!state.motion});
     else{
-      const draw=v.chapter.id==='bag-of-words'?bagVisual:tfVisual;
+      const draw={'bag-of-words':bagVisual,'tf-idf':tfVisual,bertopic:topicVisual}[v.chapter.id];
       html(v.visual,draw(stage,p,state.motion));
     }
     v.bar.style.width=`${raw/(v.chapter.stages.length-1)*100}%`;
