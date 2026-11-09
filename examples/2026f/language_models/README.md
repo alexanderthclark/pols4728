@@ -32,10 +32,22 @@ in the current working directory:
 - `peloton-burton-reference-labels.csv`: the eight-row template used by `06_evaluation.py`.
 
 The ZIP contains that folder structure. The working directory is the folder
-containing `data/`, even when the Python source is stored elsewhere. Transcript
-text and the worked example's quotations stay in this separate data bundle.
+containing `data/`, even when the Python source is stored elsewhere. The full
+corpus and the worked example's quotations stay in this separate data bundle.
 The worked annotation illustrates the schema; it is not a substitute for the
 independent development labels.
+
+## BERTopic comparison data
+
+[wellness_theme_passages.csv](../../../data/wellness_theme_passages.csv) contains
+the same 952 passages used in the Rand/Calvin classifier exercise, combining its
+training, validation, and test splits for topic exploration. The columns are
+`passage_id`, `text`, `label`, `source_file`, and `class_url`.
+
+Labels are assistant annotations: Ayn Rand (163), Calvin (77), and neither (712).
+The sample was selected partly using theme-related words; its counts do not
+estimate the prevalence of the themes in the full corpus. BERTopic fits the text
+without these labels, then compares the discovered topics with them.
 
 ## Hosted examples
 
