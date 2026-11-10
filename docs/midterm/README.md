@@ -1,4 +1,4 @@
-# Midterm, Unpacked
+# Midterm Short Answers
 
 Scrollytelling explanations of all seven short-answer questions from the Fall 2026 POLS 4728 midterm. The original questions are preserved in expandable panels, and added numerical illustrations are labeled.
 
