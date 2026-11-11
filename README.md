@@ -16,10 +16,10 @@ The [Fall 2026 Python examples](examples/2026f/README.md) accompany the code lis
 
 ## Interactive explanations
 
-The [causal machine learning collection](docs/causal-ml/README.md) begins with
-scroll-driven lessons on AIPW and partially linear DML, including complete
-reading versions. Its collection map also outlines the planned IV, causal-tree,
-meta-learner, and causal-forest lessons.
+The [causal machine learning collection](docs/causal-ml/README.md) contains
+scroll-driven lessons on AIPW, partially linear DML, DML for instrumental
+variables, and causal trees, including complete reading versions. Its collection
+map also outlines the planned meta-learner and causal-forest lessons.
 
 The [gradient boosting story](docs/boosting/README.md), linked second on the
 course homepage, connects interactive prediction-space geometry to fitted

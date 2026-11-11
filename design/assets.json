@@ -148,6 +148,20 @@
       "description": "Two original round figures remove covariate patterns from a scatterplot.",
       "sha256": "17c6892e0faf26bc7b8e55db50f75abbd797c16cd74c5d4adb1ce6e87dc898d7",
       "usage": "Opening title illustration. Native vector, round torso-less figures, no rasterized text or math."
+    },
+    {
+      "path": "docs/causal-ml/assets/iv-title.svg",
+      "role": "iv-title",
+      "description": "Two round torso-less figures operate linked levers and measure the resulting motion.",
+      "sha256": "34a2cab79157db0e217f25165d0ae7b9396ae232fe9ea48eef321056f06ef44f",
+      "usage": "Opening title illustration. Native vector using the registered course character anatomy, with new monochrome props. Keep the complete composition and real HTML title."
+    },
+    {
+      "path": "docs/causal-ml/assets/trees-title.svg",
+      "role": "trees-title",
+      "description": "Two round torso-less figures assemble a branching frame and measure its leaves.",
+      "sha256": "86a276a201ff0b36386c44e5206929f9804759ba57dbb3eabeca545ca156b4cc",
+      "usage": "Opening title illustration. Native vector using the registered course character anatomy, with new monochrome props. Keep the complete composition and real HTML title."
     }
   ]
 }
