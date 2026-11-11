@@ -134,6 +134,20 @@
       "description": "An exhausted round, torso-less runner slumps just beyond a marathon finish line, with a broken finish ribbon behind them. Sparse monochrome contours on a white field.",
       "sha256": "1e086f90cd06a9b382c35f1d4f14c3f11c1f44e67ef9e8335bb6db90073948c3",
       "usage": "Opening title of the Fall 2026 midterm solutions scrollytelling explainer. Preserve the complete composition, proportions, white background, and clear space; title and explanations remain real HTML text."
+    },
+    {
+      "path": "docs/causal-ml/assets/aipw-title.svg",
+      "role": "aipw-title",
+      "description": "Two original round figures level a measuring ruler using two stacks.",
+      "sha256": "5108647481d659e3036de6c23dab90e7352063344217739f34c4409538d0ef57",
+      "usage": "Opening title illustration. Native vector, round torso-less figures, no rasterized text or math."
+    },
+    {
+      "path": "docs/causal-ml/assets/plr-title.svg",
+      "role": "plr-title",
+      "description": "Two original round figures remove covariate patterns from a scatterplot.",
+      "sha256": "17c6892e0faf26bc7b8e55db50f75abbd797c16cd74c5d4adb1ce6e87dc898d7",
+      "usage": "Opening title illustration. Native vector, round torso-less figures, no rasterized text or math."
     }
   ]
 }
