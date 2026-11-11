@@ -1,3 +1,4 @@
+import {forestLessons} from './forest-lessons.mjs';
 import {metaLessons} from './meta-lessons.mjs';
 import {advancedLessons} from './advanced-lessons.mjs';
 const R=String.raw;
@@ -39,6 +40,7 @@ export const lessons={
  s('Interpret the target','A constant coefficient is a restriction.','If the treatment effect varies, a single residual slope need not be the population average treatment effect.',R`\theta_{\mathrm{PLR}}=\frac{\mathbb E[e(X)(1-e(X))\tau(X)]}{\mathbb E[e(X)(1-e(X))]}`,'target',R`For binary treatment under conditional exchangeability, the population residual slope weights the conditional treatment effect by $e(X)(1-e(X))$. This last scene switches to a binary-treatment example to make that distinction visible. Two equally common groups have effects 6 and 2, and propensities 0.5 and 0.1. Their ordinary ATE is 4, while the residual slope is approximately 4.94. Choosing a target precedes choosing an estimator.`, 'Separate binary-treatment illustration · ATE 4 · residual slope 4.94',{mobileEquation:R`\theta_{\mathrm{PLR}}=\frac{\mathbb E[e(X)(1-e(X))\tau(X)]}{\mathbb E[e(X)(1-e(X))]}`})
  ]},
  ...advancedLessons,
- ...metaLessons
+ ...metaLessons,
+ ...forestLessons
 };
-export const roadmap=[['01','Doubly robust estimation','Outcome predictions, inverse-probability corrections, and cross-fitted AIPW.','aipw'],['02','Partially linear DML','Residualization, orthogonality, and a scalar causal coefficient.','plr'],['03','DML for instrumental variables','Instrument-induced variation, partially linear IV, and a LATE extension.','iv'],['04','Causal trees','Treatment-effect splits, adaptive search, and honest estimation.','trees'],['05','Meta-learners: S, T, and X','Three ways to turn outcome learners into effect learners.','meta-learners'],['06','Meta-learners: DR and R','AIPW pseudo-outcomes and residualized effect learning.','dr-r'],['07','Causal forests','Honest trees, adaptive neighborhoods, and local causal estimation.',null]];
+export const roadmap=[['01','Doubly robust estimation','Outcome predictions, inverse-probability corrections, and cross-fitted AIPW.','aipw'],['02','Partially linear DML','Residualization, orthogonality, and a scalar causal coefficient.','plr'],['03','DML for instrumental variables','Instrument-induced variation, partially linear IV, and a LATE extension.','iv'],['04','Causal trees','Treatment-effect splits, adaptive search, and honest estimation.','trees'],['05','Meta-learners: S, T, and X','Three ways to turn outcome learners into effect learners.','meta-learners'],['06','Meta-learners: DR and R','AIPW pseudo-outcomes and residualized effect learning.','dr-r'],['07','Causal forests','Honest trees, adaptive neighborhoods, and local causal estimation.','forests']];

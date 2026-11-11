@@ -39,7 +39,7 @@ export const metaLessons={
   subtitle:'Correct the target.\nOr residualize the loss.',
   intro:'Use doubly robust pseudo-outcomes or an orthogonal residual loss to learn a conditional effect function.',
   art:'dr-r-title.svg',artAlt:'Two round figures align noisy observations with a fitted line using small vertical correction guides.',
-  next:null,nextLabel:null,
+  next:'forests',nextLabel:'Causal forests',
   route:'Move from an AIPW average to a DR effect regression. Then build the R-loss, examine overlap and orthogonality, and separate effect fitting from evaluation.',
   closingTitle:'Protect the estimating step.\nStill learn the effect function.',
   closing:'DR and R learners connect flexible nuisance predictions to a second learning problem. Their protections do not establish identification, remove limited overlap, guarantee a well-chosen effect model, or supply automatic confidence intervals for an entire CATE curve.',
