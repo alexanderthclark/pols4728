@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f5f3ec">
+  <meta name="description" content="Follow the residual stream through a transformer with two attention heads and one position-wise MLP. Encoders first, then decoders.">
+  <title>Transformers · The residual stream</title>
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="styles.css?v=7">
+  <script defer src="vendor/katex/katex.min.js"></script>
+  <script defer src="overview.js?v=9"></script>
+  <script defer src="app.js?v=6"></script>
+</head>
+<body>
+  <a class="skip" href="#overview">Skip to the architecture</a>
+  <header class="site-header">
+    <a href="#top" class="wordmark">POLS 4728 · MACHINE LEARNING AND AI</a>
+    <nav aria-label="Chapters"><a href="#encoder">01 <span>Encoder</span></a><a href="#decoder">02 <span>Decoder</span></a><a href="#conventions">Conventions</a></nav>
+    <div id="read-progress" aria-hidden="true"></div>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="title">
+      <div class="hero-copy">
+        <p class="eyebrow">TRANSFORMER ARCHITECTURE</p>
+        <h1 id="title">Transformers</h1>
+        <p class="hero-subtitle">Encoders, decoders, and the residual stream</p>
+        <p class="dek">One attention layer with two heads. One MLP. Follow the same sequence through both architectures.</p>
+        <a class="start" href="#overview">Scroll to begin <span aria-hidden="true">↓</span></a>
+      </div>
+      <figure class="hero-art">
+        <img src="assets/ss-attention-deck-dance.png" width="1536" height="1024" fetchpriority="high" alt="Two round figures on a log raft watch SS Attention, a larger sternwheel riverboat whose deck is crowded with dancing couples in top hats, coattails, and formal gowns.">
+      </figure>
+    </section>
+
+    <section class="architecture-overview" id="overview" aria-label="Complete encoder and decoder architectures">
+      <div class="overview-pair">
+        <figure class="overview-panel">
+          <h2 id="overview-encoder-label">Encoder</h2>
+          <svg id="overview-encoder" viewBox="0 0 420 720" role="img" aria-label="Encoder: embeddings and positions enter the residual stream. Two parallel attention heads can read every token. Their updates are added to the stream, followed by one shared MLP and a second residual addition. Mean pooling combines the token rows for a scalar prediction." xmlns="http://www.w3.org/2000/svg"></svg>
+        </figure>
+        <figure class="overview-panel">
+          <h2 id="overview-decoder-label">Decoder</h2>
+          <svg id="overview-decoder" viewBox="0 0 420 720" role="img" aria-label="Decoder: embeddings and positions enter the residual stream. Two parallel attention heads read only the current and earlier tokens. Their updates are added to the stream, followed by one shared MLP and a second residual addition. A vocabulary readout preserves one output distribution per token position." xmlns="http://www.w3.org/2000/svg"></svg>
+        </figure>
+      </div>
+    </section>
+
+    <div class="scope-band"><span>ONE BLOCK</span><p>Token positions are rows. Features are columns. Attention matrices are taken as given for each input.</p><span>SCROLL TO EXPLORE ↓</span></div>
+
+    <section class="story" aria-label="Transformer architecture walkthrough">
+      <div class="narrative">
+        <article class="step" id="encoder" data-step="0">
+          <p class="eyebrow">01 / ENCODER <span class="step-num">1 OF 8</span></p>
+          <h2>A row for every token</h2>
+          <p>Each token position gets a row of features. The one-hot matrix <span data-tex="S"></span> selects embeddings from <span data-tex="W_E"></span>; adding the positional matrix <span data-tex="P"></span> starts the <em>residual stream</em>.</p>
+          <div class="equation" data-tex="X_0=SW_E+P" data-display></div>
+          <p>The blue grid represents the entire matrix <span data-tex="X_0"></span>: one row per token and one column per feature. Our drawings use four tokens and six features; every update retains this <span data-tex="T\times d"></span> shape.</p>
+          <p class="qualification">Additive positions are our convention. Other models encode position differently.</p>
+        </article>
+
+        <article class="step" id="heads" data-step="1">
+          <p class="eyebrow">01 / ENCODER <span class="step-num">2 OF 8</span></p>
+          <h2>Two parallel attention heads</h2>
+          <p>The blue matrix <span data-tex="X_0"></span> follows the residual path unchanged. Both heads read that same matrix and produce updates <span data-tex="h_1"></span> and <span data-tex="h_2"></span>, shown in teal. At the plus sign, all three matrices are added.</p>
+          <div class="equation" data-tex="h_j=A^{(j)}X_0W^{(j)},\quad j=1,2" data-display></div>
+          <div class="equation compact" data-tex="X_1=X_0+h_1+h_2" data-display></div>
+          <p>The encoder’s attention matrices <span data-tex="A^{(j)}\in\mathbb R^{T\times T}"></span> may use positions in either direction. Take them as given for this input.</p>
+          <p class="qualification">We bundle each head’s feature projections as <span data-tex="W^{(j)}=W_V^{(j)}W_O^{(j)}"></span>, following Elhage et al.’s additive-head view.</p>
+        </article>
+
+        <article class="step" id="mlp" data-step="2">
+          <p class="eyebrow">01 / ENCODER <span class="step-num">3 OF 8</span></p>
+          <h2>One MLP, applied to every row</h2>
+          <p>The MLP reads <span data-tex="X_1"></span>, after attention. It is an ordinary MLP, applied separately to each token’s feature vector with the same weights at every position.</p>
+          <div class="equation" data-tex="X_2=X_1+\operatorname{MLP}(X_1)" data-display></div>
+          <p>The MLP combines features within each token row. It does not mix information between tokens.</p>
+          <p class="qualification">The MLP’s output is added back to the residual stream. Biases and normalization are omitted here.</p>
+        </article>
+
+        <article class="step" id="rows" data-step="3">
+          <p class="eyebrow">01 / ENCODER <span class="step-num">4 OF 8</span></p>
+          <h2>Tokens as MLP inputs</h2>
+          <p>For MLP inference, each token row plays the role of one observation. Writing all rows in a matrix simply batches these separate evaluations.</p>
+          <p>Scroll to trace the rows: one row in, one row out. Each output uses only its corresponding input row, and the same weights are reused at every position.</p>
+          <p class="qualification">Each input row can already contain information from other tokens, supplied by attention. The MLP does not combine rows or use a separate network per position.</p>
+        </article>
+
+        <article class="step" id="pool" data-step="4">
+          <p class="eyebrow">01 / ENCODER <span class="step-num">5 OF 8</span></p>
+          <h2>Read out the sequence</h2>
+          <p>The block ends with <span data-tex="X_2\in\mathbb R^{T\times d}"></span>. For this encoder, mean pooling now combines its rows into one sequence representation.</p>
+          <div class="equation" data-tex="r=\frac{1}{T}\sum_{i=1}^{T}X_{2,i,:}" data-display></div>
+          <div class="equation compact" data-tex="\hat y=rw+b" data-display></div>
+          <p>A linear head maps <span data-tex="r\in\mathbb R^{1\times d}"></span> to a scalar prediction. Pooling mixes rows as a separate readout, after the MLP.</p>
+          <p class="qualification">This readout is a choice. An encoder can instead use a designated token or make predictions at individual positions.</p>
+        </article>
+
+        <article class="step" id="decoder" data-step="5">
+          <p class="eyebrow">02 / DECODER <span class="step-num">6 OF 8</span></p>
+          <h2>A decoder’s restricted view</h2>
+          <p>Keep the block’s structure. Now each attention head may read only the receiving position itself and earlier positions.</p>
+          <div class="equation" data-tex="A^{(j)}_{ik}=0\quad\text{when }k>i" data-display></div>
+          <p>Rows of <span data-tex="A^{(j)}"></span> are receivers; columns are sources. As the receiving position advances, more of its prefix becomes available. Future positions stay blocked.</p>
+          <p class="qualification">We mean a decoder-only architecture. Its position-wise MLP cannot create a route to future tokens.</p>
+        </article>
+
+        <article class="step" id="unembed" data-step="6">
+          <p class="eyebrow">02 / DECODER <span class="step-num">7 OF 8</span></p>
+          <h2>Read into the vocabulary</h2>
+          <p>Replace pooling and the scalar head with an <em>unembedding</em>. The same output map acts on every final-stream row.</p>
+          <div class="equation" data-tex="L=X_2W_U,\qquad W_U\in\mathbb R^{d\times V}" data-display></div>
+          <div class="equation compact" data-tex="p_i=\operatorname{softmax}(L_{i,:})" data-display></div>
+          <p>The logits <span data-tex="L\in\mathbb R^{T\times V}"></span> retain one row per position. Softmax converts each row to a distribution across the vocabulary.</p>
+          <p class="qualification">Unembedding is not an inverse. We choose a separate <span data-tex="W_U"></span>; some models tie it to <span data-tex="W_E^{\mathsf T}"></span>.</p>
+        </article>
+
+        <article class="step" id="next-token" data-step="7">
+          <p class="eyebrow">02 / DECODER <span class="step-num">8 OF 8</span></p>
+          <h2>Predict after the final token</h2>
+          <p>Position <span data-tex="i"></span> predicts token <span data-tex="i+1"></span> from the prefix through <span data-tex="i"></span>. To continue the supplied sequence, use the last row.</p>
+          <div class="equation" data-tex="p_T=\Pr(t_{T+1}=\cdot\mid t_{1:T})" data-display></div>
+          <p>Every position kept its own row throughout the block. Attention moved information between positions; the shared MLP transformed features within each contextual row.</p>
+          <p class="qualification">Earlier output rows describe next-token distributions after shorter prefixes.</p>
+          <a class="text-link" href="#conventions">Conventions and matrix dimensions <span aria-hidden="true">↓</span></a>
+        </article>
+      </div>
+
+      <aside class="visual-column" aria-label="Scroll-driven architecture diagram">
+        <div class="stage" id="stage">
+          <div class="stage-header"><span id="stage-mode">ENCODER</span><span id="stage-count">01 / 08</span><span class="scroll-cue">SCROLL ↓</span></div>
+          <div class="stage-title"><h3 id="stage-title">The residual stream begins</h3><span class="shape" data-tex="T=4,\ d=6"></span></div>
+          <div id="diagram" class="diagram" aria-live="off"></div>
+          <div class="legend"><span><i class="stream-dot"></i>Residual stream</span><span><i class="attention-dot"></i>Attention</span><span><i class="mlp-dot"></i>MLP</span></div>
+          <div id="stage-detail" class="stage-detail"></div>
+          <p class="stage-footnote">Simplified architecture · normalization omitted · schematic values</p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="conventions" id="conventions" aria-labelledby="conventions-title">
+      <div class="conventions-heading"><p class="eyebrow">CONVENTIONS</p><h2 id="conventions-title">One set of conventions</h2><p>These choices make the diagram concrete. They are not universal model specifications.</p></div>
+      <div class="conventions-grid">
+        <div><h3>What we chose</h3><ul><li>Token positions are rows; feature maps multiply on the right.</li><li>One block: two parallel attention heads, followed by one MLP.</li><li>Additive position matrix <span data-tex="P"></span> and mean pooling for the encoder’s scalar readout.</li><li>A separate unembedding matrix for the decoder.</li></ul></div>
+        <div><h3>What the drawing suppresses</h3><p>Normalization, biases inside the block and decoder readout, dropout, and padding. Thus the equations describe a simplified block.</p><p>Standard transformer normalization acts on features within each token; adding it does not introduce token mixing. Its type and placement vary across architectures.</p><p>We show one unpadded sequence; an additional batch axis is omitted.</p></div>
+      </div>
+      <details class="dimensions"><summary>Matrix dimensions <span>＋</span></summary><div class="dimensions-body"><p><span data-tex="T"></span>: sequence length · <span data-tex="V"></span>: vocabulary size · <span data-tex="d"></span>: stream width · <span data-tex="m"></span>: MLP hidden width · <span data-tex="d_h"></span>: head width</p><table><thead><tr><th>Object</th><th>Shape</th><th>Role</th></tr></thead><tbody>
+      <tr><td data-tex="S,\ W_E,\ P"></td><td data-tex="T\times V,\ V\times d,\ T\times d"></td><td>Token selection, embeddings, positions</td></tr>
+      <tr><td data-tex="X_0,\ X_1,\ X_2"></td><td data-tex="T\times d"></td><td>The three residual-stream states</td></tr>
+      <tr><td data-tex="A^{(j)},\ W^{(j)}"></td><td data-tex="T\times T,\ d\times d"></td><td>Attention and the bundled head feature map</td></tr>
+      <tr><td data-tex="W_V^{(j)},\ W_O^{(j)}"></td><td data-tex="d\times d_h,\ d_h\times d"></td><td>The factors of the bundled feature map</td></tr>
+      <tr><td data-tex="\operatorname{MLP}(X_1)"></td><td data-tex="T\times d"></td><td>One MLP output row per token</td></tr>
+      <tr><td data-tex="r,\ w,\ \hat y"></td><td data-tex="1\times d,\ d\times1,\ 1\times1"></td><td>Encoder pooling and scalar prediction</td></tr>
+      <tr><td data-tex="W_U,\ L"></td><td data-tex="d\times V,\ T\times V"></td><td>Decoder unembedding and logits</td></tr>
+      </tbody></table><p>The drawings use <span data-tex="T=4,\ d=6,\ d_h=3,\ m=10"></span>. The schematic colored cells encode neither learned weights nor measured activations.</p></div></details>
+      <div class="sources"><h3>Architecture references</h3><p><a href="https://transformer-circuits.pub/2021/framework/index.html" target="_blank" rel="noopener">Elhage et al. (2021), <em>A Mathematical Framework for Transformer Circuits</em> ↗</a><span>The residual-stream and additive-head perspective, translated into row-vector notation. Its decoder-focused framework is adapted here to an encoder readout too.</span></p><p><a href="https://web.stanford.edu/~jurafsky/slp3/7.pdf" target="_blank" rel="noopener">Jurafsky &amp; Martin, <em>Speech and Language Processing</em>, ch. 7, fig. 7.1 ↗</a><span>The visual reference for the architecture overview; §§7.2–7.3 describe position-wise MLPs and token matrices. August 19, 2026 draft.</span></p><p><a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Vaswani et al. (2017), <em>Attention Is All You Need</em>, §3 ↗</a><span>Position-wise feedforward maps, positional encoding, and the causal attention mask.</span></p></div>
+    </section>
+  </main>
+  <footer><a href="#top">THE RESIDUAL STREAM ↑</a><span>One block. Encoders, then decoders.</span></footer>
+  <noscript><p class="noscript">The explanations and equations are available above. Enable JavaScript to render the mathematical notation and interactive diagram.</p></noscript>
+</body>
+</html>
