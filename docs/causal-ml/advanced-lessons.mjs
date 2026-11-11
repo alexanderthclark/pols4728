@@ -38,7 +38,7 @@ export const advancedLessons={
   subtitle:'Find differences in effects.\nEstimate them honestly.',
   intro:'Watch a covariate space become a tree, compare outcome and effect splits, and separate subgroup discovery from estimation.',
   art:'trees-title.svg',artAlt:'Two round figures assemble a branching frame, one arranging its branches and one measuring the leaves.',
-  next:null,nextLabel:null,
+  next:'meta-learners',nextLabel:'Meta-learners: S, T, and X',
   route:'Begin with a randomized information experiment. Compare split criteria, grow a small tree, and see why a separate estimation sample matters.',
   closingTitle:'Choose the groups.\nThen estimate their effects.',
   closing:'A causal tree represents treatment-effect heterogeneity with a partition. Its objective balances effect differences and precision. Honest estimation keeps the outcomes used to choose that partition separate from the outcomes used to estimate its leaf effects.',

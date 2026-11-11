@@ -162,6 +162,20 @@
       "description": "Two round torso-less figures assemble a branching frame and measure its leaves.",
       "sha256": "86a276a201ff0b36386c44e5206929f9804759ba57dbb3eabeca545ca156b4cc",
       "usage": "Opening title illustration. Native vector using the registered course character anatomy, with new monochrome props. Keep the complete composition and real HTML title."
+    },
+    {
+      "path": "docs/causal-ml/assets/meta-title.svg",
+      "role": "meta-title",
+      "description": "Two round torso-less figures compare curved outcome rulers with a vertical measuring tool.",
+      "sha256": "8a32d174a14cee2e2d65792cb101c9c0d41ae22e792e4cb30efc1fccd5603806",
+      "usage": "Opening title illustration. Native vector using the registered course character anatomy, with new monochrome props. Preserve the complete composition and real HTML title."
+    },
+    {
+      "path": "docs/causal-ml/assets/dr-r-title.svg",
+      "role": "dr-r-title",
+      "description": "Two round torso-less figures hold a scatterplot with vertical correction guides and a fitted line.",
+      "sha256": "28da18314b4863b28a9662acfedd123b8f78e511aa622fe76ef6f5c49a4837e9",
+      "usage": "Opening title illustration. Native vector using the registered course character anatomy, with new monochrome props. Preserve the complete composition and real HTML title."
     }
   ]
 }
