@@ -46,11 +46,9 @@ function page(styles,scripts){return `<!doctype html>
 writeFileSync(resolve(dir,'index.html'),page('<link rel="stylesheet" href="../transformers/vendor/katex/katex.min.css"><link rel="stylesheet" href="style.css">','<script src="../transformers/vendor/katex/katex.min.js"></script><script type="module" src="app.js"></script>'));
 
 let kcss=read('../transformers/vendor/katex/katex.min.css');
-kcss=kcss.replace(/src:([^;]+);/g,(whole,src)=>{
- const match=src.match(/url\(([^)]+\.woff2)\)/);
- if(!match)return whole;
- const bytes=readFileSync(resolve(dir,'../transformers/vendor/katex',match[1]));
- return `src:url(data:font/woff2;base64,${bytes.toString('base64')}) format('woff2');`;
+kcss=kcss.replace(/url\(([^)]+\.woff2)\)/g,(_,fontPath)=>{
+ const bytes=readFileSync(resolve(dir,'../transformers/vendor/katex',fontPath));
+ return `url(data:font/woff2;base64,${bytes.toString('base64')})`;
 });
 const css=read('style.css').replace(/url\('([^']+\.otf)'\)/g,(_,p)=>`url(data:font/otf;base64,${readFileSync(resolve(dir,p)).toString('base64')})`);
 const moduleFiles=['scenes.js','state.js','model.js','visuals.js','app.js'];

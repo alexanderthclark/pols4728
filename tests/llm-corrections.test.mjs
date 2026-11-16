@@ -10,6 +10,18 @@ const source=JSON.parse(readFileSync(new URL('../docs/llm-corrections/example-re
 const close=(a,b)=>assert.ok(Math.abs(a-b)<1e-10,`${a} differs from ${b}`);
 const katex=createRequire(import.meta.url)('../docs/transformers/vendor/katex/katex.min.js');
 
+test('standalone preview preserves complete font-face rules and stylesheet boundaries',()=>{
+  const read=path=>readFileSync(new URL(path,import.meta.url),'utf8');
+  const html=read('../docs/llm-corrections/preview.html');
+  const bundledCSS=html.match(/<style>([\s\S]*?)<\/style>/)[1];
+  const originalCSS=read('../docs/transformers/vendor/katex/katex.min.css')+'\n'+read('../docs/llm-corrections/style.css');
+  const fontFaces=css=>[...css.matchAll(/@font-face\{[^{}]*\}/g)].map(([rule])=>rule.replace(/url\([^)]*\)/g,'url(FONT)'));
+  assert.deepEqual(fontFaces(bundledCSS),fontFaces(originalCSS));
+  assert.equal((bundledCSS.match(/\{/g)||[]).length,(bundledCSS.match(/\}/g)||[]).length);
+  assert.match(bundledCSS,/:root\{--ink:/);
+  assert.doesNotMatch(bundledCSS,/url\((?!data:)/);
+});
+
 test('the same original audit reproduces all corrected moments and estimates',()=>{
   const result=estimateFromAudit(source.rows);
   [3,11.0625,82.25].forEach((m,i)=>close(result.moments[i].corrected,m));
