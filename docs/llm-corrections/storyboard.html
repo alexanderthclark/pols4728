@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="A working storyboard for correcting LLM measurements with a random expert audit, following Egami and coauthors.">
+  <title>Correcting LLM measurements · Storyboard</title>
+  <link rel="stylesheet" href="../transformers/vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="storyboard.css">
+  <script defer src="../transformers/vendor/katex/katex.min.js"></script>
+  <script type="module" src="storyboard.js"></script>
+</head>
+<body>
+  <a class="skip" href="#outline">Read the storyboard outline</a>
+  <header><a href="../">POLS 4728</a><span>Correcting LLM measurements</span><span>Working storyboard</span></header>
+  <main>
+    <section id="story" aria-label="Scroll-driven storyboard">
+      <div class="stage">
+        <div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
+        <div class="stage-top"><span id="chapter"></span><span id="counter"></span></div>
+        <div class="composition">
+          <div class="copy"><p id="eyebrow"></p><h1 id="title"></h1><p id="caption"></p></div>
+          <div class="visual">
+            <svg id="diagram" role="img" aria-label="Scroll-driven measurement correction"></svg>
+            <div id="procedure" hidden></div>
+            <div id="moments" hidden></div>
+          </div>
+        </div>
+        <div class="math"><div id="equation"></div><p id="note"></p></div>
+        <div class="stage-bottom"><span>Synthetic examples · fixed predictions · random audit</span><span>Scroll forward or back ↓</span></div>
+      </div>
+    </section>
+    <section class="outline" id="outline">
+      <p class="eyebrow">Storyboard for review</p><h2>The proposed sequence</h2>
+      <ol>
+        <li>Introduce the measurement problem and the random audit.</li>
+        <li>LLM-only analysis: predict, audit, assess, plug in.</li>
+        <li>Classical supervised learning: label, train, validate, plug in.</li>
+        <li>DSL: predict, randomly audit, optionally improve, correct.</li>
+        <li>Correct a population average using the audit’s average error.</li>
+        <li>Keep the average unchanged while changing the regression slope.</li>
+        <li>Reveal the 16 expert-coded posts available to the estimator.</li>
+        <li>Correct the three moments entering the regression coefficient.</li>
+        <li>Compare the resulting slopes against the full-information benchmark.</li>
+        <li>Estimate population standard errors and distinguish them from audit-only variation.</li>
+      </ol>
+      <p>The examples are constructed for teaching. The support-share example and the 40-post regression example are separate datasets. The full-information expert values are available only to show the benchmark; the correction uses the randomly audited observations. The final lesson will retain the notebook’s source data and results.</p>
+      <p>Source: Egami, Hinck, Stewart, and Wei, <a href="https://naokiegami.com/paper/dsl_ss.pdf">Using Large Language Model Annotations for the Social Sciences: A General Framework of Using Predicted Variables in Downstream Analyses</a>. The procedure lists are paraphrases. This introductory specialization keeps predictions fixed and audit probabilities known. The general doubly robust theory and learned prediction models are deferred.</p>
+    </section>
+  </main>
+  <noscript><p class="no-script">The animated storyboard requires JavaScript. The complete sequence is listed below it.</p></noscript>
+</body>
+</html>

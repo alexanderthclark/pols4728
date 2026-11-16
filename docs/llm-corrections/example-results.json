@@ -1,0 +1,396 @@
+{
+  "source": "dsl_biased_regressor.ipynb, current source read 2026-11-16",
+  "description": "Synthetic teaching example, not empirical paper results.",
+  "rows": [
+    {
+      "post": 1,
+      "x": 1,
+      "q": 0.5,
+      "y": 13,
+      "z": -1,
+      "audited": true
+    },
+    {
+      "post": 2,
+      "x": 1,
+      "q": 0.5,
+      "y": 15,
+      "z": -1,
+      "audited": false
+    },
+    {
+      "post": 3,
+      "x": 1,
+      "q": 0.5,
+      "y": 17,
+      "z": -1,
+      "audited": true
+    },
+    {
+      "post": 4,
+      "x": 1,
+      "q": 0.5,
+      "y": 19,
+      "z": -1,
+      "audited": false
+    },
+    {
+      "post": 5,
+      "x": 1,
+      "q": 1.5,
+      "y": 25,
+      "z": 1,
+      "audited": true
+    },
+    {
+      "post": 6,
+      "x": 1,
+      "q": 1.5,
+      "y": 27,
+      "z": 1,
+      "audited": false
+    },
+    {
+      "post": 7,
+      "x": 1,
+      "q": 1.5,
+      "y": 29,
+      "z": 1,
+      "audited": false
+    },
+    {
+      "post": 8,
+      "x": 1,
+      "q": 1.5,
+      "y": 31,
+      "z": 1,
+      "audited": true
+    },
+    {
+      "post": 9,
+      "x": 2,
+      "q": 1.5,
+      "y": 15,
+      "z": -1,
+      "audited": false
+    },
+    {
+      "post": 10,
+      "x": 2,
+      "q": 1.5,
+      "y": 17,
+      "z": -1,
+      "audited": false
+    },
+    {
+      "post": 11,
+      "x": 2,
+      "q": 1.5,
+      "y": 19,
+      "z": -1,
+      "audited": true
+    },
+    {
+      "post": 12,
+      "x": 2,
+      "q": 1.5,
+      "y": 21,
+      "z": -1,
+      "audited": true
+    },
+    {
+      "post": 13,
+      "x": 2,
+      "q": 2.5,
+      "y": 27,
+      "z": 1,
+      "audited": true
+    },
+    {
+      "post": 14,
+      "x": 2,
+      "q": 2.5,
+      "y": 29,
+      "z": 1,
+      "audited": false
+    },
+    {
+      "post": 15,
+      "x": 2,
+      "q": 2.5,
+      "y": 31,
+      "z": 1,
+      "audited": true
+    },
+    {
+      "post": 16,
+      "x": 2,
+      "q": 2.5,
+      "y": 33,
+      "z": 1,
+      "audited": false
+    },
+    {
+      "post": 17,
+      "x": 3,
+      "q": 2.5,
+      "y": 17,
+      "z": -1,
+      "audited": false
+    },
+    {
+      "post": 18,
+      "x": 3,
+      "q": 2.5,
+      "y": 19,
+      "z": -1,
+      "audited": true
+    },
+    {
+      "post": 19,
+      "x": 3,
+      "q": 2.5,
+      "y": 21,
+      "z": -1,
+      "audited": false
+    },
+    {
+      "post": 20,
+      "x": 3,
+      "q": 2.5,
+      "y": 23,
+      "z": -1,
+      "audited": false
+    },
+    {
+      "post": 21,
+      "x": 3,
+      "q": 3.5,
+      "y": 29,
+      "z": 1,
+      "audited": false
+    },
+    {
+      "post": 22,
+      "x": 3,
+      "q": 3.5,
+      "y": 31,
+      "z": 1,
+      "audited": true
+    },
+    {
+      "post": 23,
+      "x": 3,
+      "q": 3.5,
+      "y": 33,
+      "z": 1,
+      "audited": false
+    },
+    {
+      "post": 24,
+      "x": 3,
+      "q": 3.5,
+      "y": 35,
+      "z": 1,
+      "audited": false
+    },
+    {
+      "post": 25,
+      "x": 4,
+      "q": 3.5,
+      "y": 19,
+      "z": -1,
+      "audited": false
+    },
+    {
+      "post": 26,
+      "x": 4,
+      "q": 3.5,
+      "y": 21,
+      "z": -1,
+      "audited": false
+    },
+    {
+      "post": 27,
+      "x": 4,
+      "q": 3.5,
+      "y": 23,
+      "z": -1,
+      "audited": true
+    },
+    {
+      "post": 28,
+      "x": 4,
+      "q": 3.5,
+      "y": 25,
+      "z": -1,
+      "audited": false
+    },
+    {
+      "post": 29,
+      "x": 4,
+      "q": 4.5,
+      "y": 31,
+      "z": 1,
+      "audited": true
+    },
+    {
+      "post": 30,
+      "x": 4,
+      "q": 4.5,
+      "y": 33,
+      "z": 1,
+      "audited": true
+    },
+    {
+      "post": 31,
+      "x": 4,
+      "q": 4.5,
+      "y": 35,
+      "z": 1,
+      "audited": false
+    },
+    {
+      "post": 32,
+      "x": 4,
+      "q": 4.5,
+      "y": 37,
+      "z": 1,
+      "audited": false
+    },
+    {
+      "post": 33,
+      "x": 5,
+      "q": 4.5,
+      "y": 21,
+      "z": -1,
+      "audited": true
+    },
+    {
+      "post": 34,
+      "x": 5,
+      "q": 4.5,
+      "y": 23,
+      "z": -1,
+      "audited": false
+    },
+    {
+      "post": 35,
+      "x": 5,
+      "q": 4.5,
+      "y": 25,
+      "z": -1,
+      "audited": true
+    },
+    {
+      "post": 36,
+      "x": 5,
+      "q": 4.5,
+      "y": 27,
+      "z": -1,
+      "audited": false
+    },
+    {
+      "post": 37,
+      "x": 5,
+      "q": 5.5,
+      "y": 33,
+      "z": 1,
+      "audited": false
+    },
+    {
+      "post": 38,
+      "x": 5,
+      "q": 5.5,
+      "y": 35,
+      "z": 1,
+      "audited": false
+    },
+    {
+      "post": 39,
+      "x": 5,
+      "q": 5.5,
+      "y": 37,
+      "z": 1,
+      "audited": true
+    },
+    {
+      "post": 40,
+      "x": 5,
+      "q": 5.5,
+      "y": 39,
+      "z": 1,
+      "audited": false
+    }
+  ],
+  "moments": [
+    {
+      "moment": "X",
+      "automated": 3.0,
+      "correction": 0.0,
+      "corrected": 3.0,
+      "oracle": 3
+    },
+    {
+      "moment": "X2",
+      "automated": 11.25,
+      "correction": -0.1875,
+      "corrected": 11.0625,
+      "oracle": 11
+    },
+    {
+      "moment": "XY",
+      "automated": 85.0,
+      "correction": -2.75,
+      "corrected": 82.25,
+      "oracle": 82
+    }
+  ],
+  "fits": {
+    "oracle": {
+      "intercept": 20.0,
+      "slope": 2.0,
+      "mean_x": 3,
+      "variance_x": 2
+    },
+    "automated": {
+      "intercept": 16.666666666666664,
+      "slope": 3.111111111111111,
+      "mean_x": 3.0,
+      "variance_x": 2.25
+    },
+    "expert_only": {
+      "intercept": 20.4519056261343,
+      "slope": 1.705989110707804,
+      "mean_x": 2.8125,
+      "variance_x": 2.15234375
+    },
+    "dsl": {
+      "intercept": 19.81818181818182,
+      "slope": 2.0606060606060606,
+      "mean_x": 3.0,
+      "variance_x": 2.0625
+    }
+  },
+  "mean_y": 26,
+  "population_se": {
+    "dsl": 0.8023011581426187,
+    "expert_only": 1.157610075893276
+  },
+  "audit_only_se": {
+    "dsl": 0.18827753998421234
+  },
+  "archived_5000_audit_summary": {
+    "note": "Original notebook outputs, fixed corpus; not population regression SEs.",
+    "expert_only": {
+      "mean_slope": 1.993,
+      "sd": 0.979,
+      "rmse": 0.979
+    },
+    "dsl": {
+      "mean_slope": 2.031,
+      "sd": 0.191,
+      "rmse": 0.194
+    }
+  }
+}
