@@ -1,8 +1,40 @@
-# LLM corrections: storyboard for review
+# Correcting LLM measurements
 
-This is a working scrollytelling storyboard, not the finished lesson. Open
-`storyboard.html` through a local HTTP server rooted at `docs/`. It uses the
-course's existing fonts, KaTeX, palette, and reversible scroll convention.
+The 19-scene lesson is at `index.html`. `preview.html` contains the same lesson
+with its scripts, data, KaTeX, and fonts embedded, so it can be opened directly
+without a server or network connection. The original approved storyboard is
+preserved in `storyboard.html`.
+
+The course page uses the existing fonts, KaTeX, palette, and reversible scroll
+convention. The opening calibration diagram is an exact measurement metaphor;
+no new character artwork is introduced. Scroll controls every teaching point.
+Chapter links provide optional keyboard-accessible navigation. Reduced motion
+uses completed visual states at scroll thresholds. The reading version preserves
+the explanations and typeset equations even without JavaScript.
+
+## Build and verification
+
+From the repository root:
+
+```sh
+python3 docs/llm-corrections/verify_example.py
+node docs/llm-corrections/build.mjs
+node --test tests/llm-corrections.test.mjs
+```
+
+Edit `scenes.js`, `visuals.js`, `style.css`, and `app.js`, then rebuild both HTML
+entry points. `model.js` recomputes the feasible estimates from the expert audit
+at runtime. It never accesses unaudited expert scores. The benchmark reveal is
+explicitly separate. `state.js` maps native scrolling to reversible states.
+
+The six focused tests verify estimates, absence of unaudited-label access,
+complete-audit recovery, intermediate scatterplot fits, translation invariance,
+reversible scroll-state calculations, math rendering, and finite geometry at
+desktop and compact sizes. The full 439-test course suite passed. These are
+source and calculation checks, not a substitute for visual browser review.
+Actual desktop/mobile scrolling, keyboard behavior, and reduced-motion rendering
+remain unverified because this session cannot start a preview server and the
+browser does not permit local-file navigation.
 
 ## Scope
 
@@ -18,7 +50,7 @@ automated score. A representative corpus supports interpretation as a broader
 population average; the expert audit does not itself repair corpus selection.
 The regression target is the descriptive regression of Y on X with an intercept.
 
-## Sequence
+## Narrative
 
 1. Introduce the measurement problem.
 2. Walk through the paper's LLM-only four-step procedure.
@@ -77,6 +109,6 @@ sampling design and are not guaranteed.
 
 ## Review
 
-Review narrative ordering, the two distinct targets, and the moment-by-moment
-animation before expanding this into the final lesson. The course homepage
-and published main branch are unchanged.
+Review the built preview before merging. The course homepage and published main
+branch are unchanged. GitHub Pages serves `llm-corrections/` after the branch is
+merged; this change does not add a homepage link.
