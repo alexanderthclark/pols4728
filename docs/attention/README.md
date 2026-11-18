@@ -5,7 +5,16 @@ The course homepage links to the lesson. Local fonts and KaTeX require no CDN.
 
 ## Scope and convention
 
-Twenty scroll-driven scenes follow a single two-token example. The first thirteen
+The first eight scroll-driven scenes emphasize the output and its interpretation:
+one summary query mixes source value vectors, a linear classifier reads the
+resulting vector, and attention weights are compared with signed logit terms.
+The example holds attention fixed while changing a value, then removes a token
+and recomputes attention to distinguish a forward-pass term from an edit effect.
+An application guide covers text perturbations, attribution methods, and LiDDA.
+All core teaching points are reachable by scrolling, with no required controls.
+
+The original twenty scroll-driven scenes follow as a complete worked calculation.
+The first thirteen
 establish the target, show why identity pooling loses order, add explicit position,
 and motivate a chosen retrieval: shoes looks for socks and reads their position.
 Fixed query/key/value maps implement that rule; softmax, left multiplication,
@@ -28,6 +37,32 @@ Primary reference: Elhage et al. (2021), A Mathematical Framework for Transforme
 Circuits. Secondary: Prince, Understanding Deep Learning, chapter 12 §§12.2–12.3.
 The page explains the transpose convention and includes the exact toy maps. Grant Sanderson’s attention lesson is an additional visual reference. A
 broader notation harmonization with the course notes remains for a later pass.
+
+## Interpreting a classification
+
+`interpretation-model.mjs` defines a hand-constructed attention-pooling classifier,
+not a trained sentiment model or a reconstruction of LiDDA. One fixed summary
+query attends to three source tokens; this is one attention row, not a complete
+self-attention matrix. The query is 1, key dimension is 1, and keys are
+log(0.6), log(0.3), log(0.1), giving weights 0.6, 0.3, 0.1 exactly.
+Values for [film, was, awful] are [[0.1,4],[0,1],[-8,2]]. The summary vector
+is [-0.74,2.9]. A column readout beta=[1,0] and zero intercept give logit -0.74
+and positive-class probability sigmoid(-0.74), about 0.323.
+
+The signed logit terms are +0.06, 0, -0.8. Replacing awful with great changes
+only its first value coordinate to +8, keeping keys and weights fixed by explicit
+construction: logit 0.86, probability about 0.703. Deleting film removes its key
+and value and recomputes softmax on the remaining sources: weights 0.75, 0.25,
+logit -2. The deletion effect is not film's former +0.06 term. Values may already
+contain information from other tokens in a deeper transformer, and a nonlinear
+classifier does not share this toy's simple additive logit decomposition.
+
+Primary interpretation references: Kobayashi et al. (2020), Attention is Not
+Only a Weight; Jain and Wallace (2019); Wiegreffe and Pinter (2019); Abnar and
+Zuidema (2020); Sundararajan et al. (2017); and LiDDA v3 (27 May 2026).
+The LiDDA section distinguishes normalized attention credit, prediction
+sensitivity, and independently identified effects. It does not invent the
+paper's incompletely specified query-axis reduction.
 
 ## One-head task
 
@@ -67,7 +102,9 @@ The current site does not run that checkpoint or claim measurements from it.
 
 ## Implementation and checking
 
-`app.mjs` combines `socks-scenes.mjs` and `extension-scenes.mjs` and derives scene state directly from native scroll position. There are no
+`app.mjs` initializes two pinned stories: `interpretation-scenes.mjs` first,
+then the original `socks-scenes.mjs` and `extension-scenes.mjs`. It derives
+scene state directly from native scroll position. There are no
 autoplay timers or required clicks. Reversing the scroll restores earlier states.
 Mathematics uses self-hosted KaTeX with MathML output, including SVG labels.
 The reading version contains all scene explanations and equations.
@@ -84,7 +121,9 @@ node --check docs/attention/app.mjs
 node --check docs/attention/socks-model.mjs
 node --check docs/attention/socks-scenes.mjs
 node --check docs/attention/extension-scenes.mjs
-node --test tests/attention-layer.test.mjs tests/attention-socks.test.mjs
+node --check docs/attention/interpretation-model.mjs
+node --check docs/attention/interpretation-scenes.mjs
+node --test tests/attention-layer.test.mjs tests/attention-socks.test.mjs tests/attention-interpretation.test.mjs
 ```
 
 Six tests independently check the known numeric projections and mixtures,

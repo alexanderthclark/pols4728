@@ -1,8 +1,8 @@
 import {createSocksScenes} from './socks-scenes.mjs?v=attention-sequence-2';
 import {createExtensionScenes} from './extension-scenes.mjs?v=attention-sequence-2';
+import {createInterpretationScenes} from './interpretation-scenes.mjs?v=attention-interpretation-1';
 
 const C={ink:'#242424',blue:'#234e70',rust:'#a54f32',teal:'#007f73',purple:'#7b4f9d',muted:'#606060',rule:'#dededb'};
-const svg=document.querySelector('#diagram');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const reducedMotion=()=>reduced.matches||new URLSearchParams(location.search).get('motion')==='reduce';
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
@@ -23,15 +23,19 @@ const defs=`<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" r
 function renderMathNodes(root=document){root.querySelectorAll('[data-math]').forEach(el=>el.innerHTML=tex(el.dataset.math))}
 renderMathNodes();
 const drawing={m,text,line,rect,circle,C,ease,lerp,clamp,num};
-const scenes=[...createSocksScenes(drawing),...createExtensionScenes(drawing)];
+const coreScenes=createInterpretationScenes(drawing);
+const mechanicsScenes=[...createSocksScenes(drawing),...createExtensionScenes(drawing)];
 // The complete text remains available independently of visual scene changes.
-document.querySelector('#transcript').innerHTML=scenes.map((s,i)=>`<section><h3>${i+1}. ${s.title}</h3><p>${s.caption}</p><div class="transcript-eq">${tex(s.equation)}</div><p>${s.detail}</p></section>`).join('');
+const transcript=scenes=>scenes.map((s,i)=>`<section><h3>${i+1}. ${s.title}</h3><p>${s.caption}</p><div class="transcript-eq">${tex(s.equation)}</div><p>${s.detail}</p></section>`).join('');
+document.querySelector('#transcript').innerHTML='<h3>Understanding the output</h3>'+transcript(coreScenes)+'<h3>The complete Q/K/V calculation</h3>'+transcript(mechanicsScenes);
 renderMathNodes(document.querySelector('#transcript'));
-const story=document.querySelector('#story');
-story.style.height=`${(scenes.length+1)*100}svh`;
-let last=-1,scheduled=false;
-function render(){
- scheduled=false;
+function makeStory(id,prefix,scenes){
+ const story=document.querySelector('#'+id);
+ const field=name=>document.getElementById(prefix+name);
+ const svg=field('diagram');
+ story.style.height=`${(scenes.length+1)*100}svh`;
+ let last=-1;
+ return function renderStory(){
  const r=story.getBoundingClientRect(),range=r.height-innerHeight;
  const total=clamp(-r.top/range)*scenes.length;
  const index=Math.min(scenes.length-1,Math.floor(total));
@@ -39,24 +43,29 @@ function render(){
  const s=scenes[index];
  const t=reducedMotion()&&!s.discretePhases?1:clamp(local/.66);
  if(last!==index){
-  document.querySelector('#chapter').textContent=s.part;
-  document.querySelector('#counter').textContent=`${index+1} / ${scenes.length}`;
-  document.querySelector('#scene-label').textContent=s.label;
-  document.querySelector('#scene-title').textContent=s.title;
-  document.querySelector('#caption').textContent=s.caption;
-  document.querySelector('#equation').innerHTML=tex(s.equation);
-  document.querySelector('#detail').innerHTML=s.detail;
-  renderMathNodes(document.querySelector('#detail'));
-  document.querySelector('#visual-caption').textContent=s.visual;
+  field('chapter').textContent=s.part;
+  field('counter').textContent=`${index+1} / ${scenes.length}`;
+  field('scene-label').textContent=s.label;
+  field('scene-title').textContent=s.title;
+  field('caption').textContent=s.caption;
+  field('equation').innerHTML=tex(s.equation);
+  field('detail').innerHTML=s.detail;
+  renderMathNodes(field('detail'));
+  field('visual-caption').textContent=s.visual;
   svg.setAttribute('aria-label',`${s.title} ${s.caption} ${s.visual}`);
   last=index;
  }
- document.querySelector('#progress').style.width=`${clamp(total/scenes.length)*100}%`;
- svg.innerHTML=defs+s.draw(t);
+ field('progress').style.width=`${clamp(total/scenes.length)*100}%`;
+ // Each pinned stage owns its SVG paint definitions.
+ svg.innerHTML=(defs+s.draw(t)).replaceAll('id="arrow"',`id="${id}-arrow"`).replaceAll('url(#arrow)',`url(#${id}-arrow)`).replaceAll('id="blocked"',`id="${id}-blocked"`).replaceAll('url(#blocked)',`url(#${id}-blocked)`);
  story.dataset.scene=index;story.dataset.phase=t.toFixed(3);
  const a=reducedMotion()?1:Math.min(1,.72+local*4);
- document.querySelector('#narration').style.opacity=a;
+ field('narration').style.opacity=a;
+ };
 }
+const renderStories=[makeStory('story','',coreScenes),makeStory('mechanics-story','mechanics-',mechanicsScenes)];
+let scheduled=false;
+function render(){scheduled=false;renderStories.forEach(draw=>draw())}
 function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(render)}}
 addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);reduced.addEventListener('change',schedule);
 function revealReading(){if(location.hash==='#reading')document.querySelector('#reading').open=true;}
