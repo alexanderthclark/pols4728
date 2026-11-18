@@ -129,6 +129,22 @@
       "usage": "Text explainer opening and bag-of-words cartoon. speech-cartoon.mjs overlays a speaking mouth and real word labels, with reversible scroll-driven motion and an optional standalone player. Preserve proportions, transparency, and full composition. Generated artwork contains no baked-in words."
     },
     {
+      "path": "docs/midterm/assets/marathon-finish.png",
+      "role": "midterm-title-illustration",
+      "description": "An exhausted round, torso-less runner slumps just beyond a marathon finish line, with a broken finish ribbon behind them. Sparse monochrome contours on a white field.",
+      "sha256": "1e086f90cd06a9b382c35f1d4f14c3f11c1f44e67ef9e8335bb6db90073948c3",
+      "usage": "Opening title of the Fall 2026 midterm solutions scrollytelling explainer. Preserve the complete composition, proportions, white background, and clear space; title and explanations remain real HTML text."
+    },
+    {
+      "path": "docs/transformers/assets/ss-attention-deck-dance.png",
+      "role": "transformers-title-illustration",
+      "description": "Two amazed round figures on a log raft watch a larger sternwheel riverboat named SS Attention. The passenger deck is crowded with dancing couples in top hats, tailcoats and formal gowns. Black ink cartoon linework on white.",
+      "sha256": "45731537a19e34477809f28a4fe0ec4cfd13ecba2840d0d5bebbc353dfb19ed2",
+      "usage": "Current opening title scene. Preserve the complete raft, rear paddlewheel, boat name, dancing crowd and white background; keep title and equations as real HTML text.",
+      "reference": "Edited from ss-attention-sternwheel.png to add a formal dance on the passenger deck while preserving the raft and sternwheel scene.",
+      "created_with": "Built-in image generation tool."
+    },
+    {
       "path": "docs/attention/assets/attention-mixing.svg",
       "role": "attention-title-illustration",
       "description": "Two round, torso-less figures adjust a small mixing desk. Four gently curving input lines pass through separate controls and merge into one outgoing line. Original monochrome SVG artwork with white interiors and a transparent field.",

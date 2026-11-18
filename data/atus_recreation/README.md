@@ -1,9 +1,12 @@
-# ATUS recreation training data
+# ATUS recreation competition data
 
 Training data for the ATUS prediction competition: 136,146 respondents from
 2003–2025, with one row per `TUCASEID`. Predictors describe the morning and
 earlier respondent characteristics; the outcome records qualifying solo
 recreation later in the diary day.
+
+The test set contains 44,885 respondents from 2003–2024, with the same default
+predictors and no outcome labels. Training and test cases do not overlap.
 
 ## Files
 
@@ -12,10 +15,24 @@ recreation later in the diary day.
 | [atus_train.parquet](atus_train.parquet) | 136,146 | 462 | Identifier, label, and default predictors. |
 | [atus_train.csv.zip](atus_train.csv.zip) | 136,146 | 462 | ZIP archive containing `atus_train.csv`, with the same columns, values, and row order as the Parquet file. |
 | [atus_train_labels.csv](atus_train_labels.csv) | 136,146 | 2 | Identifier and label only, for assembling predictors from BLS files. Same cases and row order as the full files. |
+| [atus_test.parquet](atus_test.parquet) | 44,885 | 461 | Identifier and default predictors; no outcome label. |
+| [atus_test.csv.zip](atus_test.csv.zip) | 44,885 | 461 | ZIP archive containing `atus_test.csv`, with the same columns, values, and row order as the test Parquet file. |
 
 The CSV files have a header row and no row-index column. CSV does not store
 column types; the types below describe the Parquet file. Preserve `TUCASEID`
 as a 14-character string when reading any format or merging additional data.
+
+## Test data
+
+The test files use the full training-file schema below with `y` omitted. All
+predictor names, column order, and Parquet types match the training files.
+The test labels remain private for scoring.
+
+Apply your saved fitted model, merges, and preprocessing to these rows and
+return one probability per row in input order, without refitting. Fit and tune
+only on the supplied training cases and labels. The homework's noon cutoff
+and source restrictions apply to test cases too; do not use companion
+information or reconstruct test labels.
 
 ## Full training-file schema
 

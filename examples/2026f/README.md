@@ -11,6 +11,7 @@ filename below to view, copy, or download its source.
 | [cv_selection_bias.py](cv_selection_bias.py) | Selection bias from choosing the lower cross-validation error | NumPy |
 | [atus_selection_leakage.py](atus_selection_leakage.py) | Predictor selection using the full ATUS sample | NumPy, pandas, external ATUS data |
 | [sage_duplicate_features.py](sage_duplicate_features.py) | SAGE and refitted ablation with duplicate features | NumPy, pandas, sage-importance |
+| [Language-model examples](language_models/) | Subclassing, structured outputs, evaluation, embeddings, and RAG | Separate class data ZIP; dependencies vary by example |
 
 ## Run the examples
 

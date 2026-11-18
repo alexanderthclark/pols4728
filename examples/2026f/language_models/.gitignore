@@ -1,0 +1,12 @@
+# Class data is distributed separately, never through this repository.
+/data/
+*.zip
+
+# Generated records contain passage text and model outputs.
+/annotations-*.jsonl
+
+# Local credentials and Python artifacts.
+.env
+.env.*
+__pycache__/
+*.py[cod]

@@ -21,24 +21,39 @@ test('without JavaScript the complete lesson precedes its conclusion and chapter
   }
   assert.equal((transcript.match(/<h3>/g) ?? []).length, chapters.reduce((total,chapter)=>total+chapter.stages.length,0));
   assert.match(source, /id="explore" hidden/);
+  const explorerStart=source.indexOf('id="explore"');
+  const explorerEnd=source.indexOf('</section>',explorerStart);
+  const applicationsStart=source.indexOf('id="application-chapters"');
+  assert.ok(applicationsStart>explorerEnd,'Animated applications belong after the full explorer.');
+  assert.ok(applicationsStart<source.indexOf('id="reading"'),'Applications precede sources and further reading.');
 });
 
 // Small DOM doubles track the observable loading contract, including node order.
 function pageFixture() {
   const readingChapters = chapters.map(chapter => ({id:chapter.id, dataset:{chapterId:chapter.id}, open:true}));
   const transcript = {hidden:false, querySelectorAll:() => readingChapters};
-  const root = {tracks:[], querySelectorAll(){return this.tracks;}, replaceChildren(){this.tracks=[];}};
+  const sceneRoot = () => ({tracks:[], querySelectorAll(selector){
+    assert.equal(selector,'[data-chapter-id]');
+    return this.tracks.flatMap(track=>[track,...(track.anchors??[])]);
+  }, replaceChildren(){this.tracks=[];}});
+  const root = sceneRoot(), applications=sceneRoot();
   const explorer = {hidden:true};
   const conclusion = {before(node){move(node, main.children.indexOf(conclusion));}};
-  const main = {children:[root,transcript,conclusion,explorer], append(node){move(node,this.children.length);}};
+  const sources = {};
+  const main = {children:[root,transcript,conclusion,explorer,applications,sources], append(node){move(node,this.children.length);}};
   function move(node,index){
     const existing=main.children.indexOf(node);
     if(existing!==-1){main.children.splice(existing,1);if(existing<index)index--;}
     main.children.splice(index,0,node);
   }
-  const page = {querySelector:selector=>({'#chapters':root,'#transcript':transcript,'#explore':explorer,'#compare':conclusion,main}[selector])};
-  const initializeStory = () => {root.tracks=chapters.map(chapter=>({id:'',dataset:{chapterId:chapter.id}}));};
-  return {page,root,transcript,readingChapters,explorer,conclusion,main,initializeStory};
+  const page = {querySelector:selector=>({'#chapters':root,'#application-chapters':applications,'#transcript':transcript,'#explore':explorer,'#compare':conclusion,main}[selector])};
+  const initializeStory = () => {
+    const track=chapter=>({id:'',dataset:{chapterId:chapter.id},anchors:[]});
+    root.tracks=chapters.filter(chapter=>!chapter.application&&chapter.id!=='tf-idf').map(track);
+    root.tracks.find(node=>node.dataset.chapterId==='bag-of-words').anchors.push({id:'',className:'chapter-anchor',dataset:{chapterId:'tf-idf'}});
+    applications.tracks=chapters.filter(chapter=>chapter.application).map(track);
+  };
+  return {page,root,applications,transcript,readingChapters,explorer,conclusion,main,initializeStory};
 }
 
 test('a failed module request preserves the full, expanded reading route', async () => {
@@ -47,6 +62,7 @@ test('a failed module request preserves the full, expanded reading route', async
   assert.equal(ready,false);
   assert.equal(errors.length,1);
   assert.equal(f.root.tracks.length,0);
+  assert.equal(f.applications.tracks.length,0);
   assert.equal(f.transcript.hidden,false);
   assert.ok(f.main.children.indexOf(f.transcript)<f.main.children.indexOf(f.conclusion));
   assert.deepEqual(f.readingChapters.map(c=>[c.id,c.open]),chapters.map(c=>[c.id,true]));
@@ -58,18 +74,25 @@ test('an initialization error removes partial scenes without removing the readin
   const ready=await startLesson({page:f.page,loadStory:async()=>({initializeStory(){f.initializeStory();throw new Error('Diagram failed');}}),reportError:()=>{}});
   assert.equal(ready,false);
   assert.equal(f.root.tracks.length,0);
+  assert.equal(f.applications.tracks.length,0);
   assert.equal(f.transcript.hidden,false);
   assert.deepEqual(f.readingChapters.map(c=>[c.id,c.open]),chapters.map(c=>[c.id,true]));
   assert.equal(f.main.children.filter(node=>node===f.transcript).length,1);
 });
 
-test('successful initialization transfers anchors and hides the expanded fallback in place', async () => {
+test('successful initialization transfers track and nested chapter anchors across both roots', async () => {
   const f=pageFixture();
   const originalOrder=[...f.main.children];
   const ready=await startLesson({page:f.page,loadStory:async()=>({initializeStory:f.initializeStory}),reportError:assert.fail});
   assert.equal(ready,true);
-  assert.deepEqual(f.root.tracks.map(c=>c.id),chapters.map(c=>c.id));
+  assert.deepEqual(f.root.tracks.map(c=>c.id),['ai-writing','bag-of-words']);
+  assert.equal(f.root.tracks[1].anchors[0].id,'tf-idf');
+  const animatedAnchors=[...f.root.querySelectorAll('[data-chapter-id]'),...f.applications.querySelectorAll('[data-chapter-id]')];
+  assert.deepEqual(animatedAnchors.map(c=>c.id),chapters.map(c=>c.id));
+  assert.deepEqual(f.applications.tracks.map(c=>c.id),chapters.filter(c=>c.application).map(c=>c.id));
   assert.deepEqual(f.readingChapters.map(c=>[c.id,c.open]),chapters.map(c=>[`reading-${c.id}`,true]));
+  const allIds=[...animatedAnchors,...f.readingChapters].map(node=>node.id);
+  assert.equal(new Set(allIds).size,allIds.length,'Reading, track, and marker IDs stay unique.');
   assert.equal(f.transcript.hidden,true);
   assert.deepEqual(f.main.children,originalOrder);
   assert.equal(f.main.children.filter(node=>node===f.transcript).length,1);
@@ -95,6 +118,7 @@ test('a failure after initialization disposes listeners and restores original an
   assert.equal(fallbackWasHidden,true,'The failure must happen after the fallback has been hidden.');
   assert.equal(disposed,true);
   assert.equal(f.root.tracks.length,0);
+  assert.equal(f.applications.tracks.length,0);
   assert.equal(f.transcript.hidden,false);
   assert.equal(f.explorer.hidden,true);
   assert.deepEqual(f.readingChapters.map(c=>[c.id,c.open]),chapters.map(c=>[c.id,true]));
