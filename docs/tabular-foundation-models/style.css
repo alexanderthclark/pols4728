@@ -5,3 +5,5 @@
 @media(max-height:720px) and (max-width:760px){.scene-heading h2{font-size:27px}.scene-heading>p{font-size:17px}.equation{font-size:14px}.math-note{min-height:90px}.stage-top{font-size:12px}.stage-bottom{font-size:12px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 @media print{.masthead,.hero,.orientation,.story,.return,footer{display:none}.afterword,.reading-main{max-width:none;padding:1rem}.reading-section{break-inside:avoid}.reading-main h1{font-size:40px}.reading-section h2{font-size:25px}}
+.reading-mobile{display:none}.reading-figure{margin:1.6rem 0}.table-scroll{overflow-x:auto}.table-scroll .comparison{min-width:620px}.table-scroll .comparison th:first-child{width:46%}.table-scroll .comparison td{font-variant-numeric:tabular-nums}
+@media(max-width:760px){.reading-desktop{display:none}.reading-mobile{display:block}}
