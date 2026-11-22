@@ -6,6 +6,7 @@ import {scenes} from './scenes.mjs';
 import {renderVisual,renderMobile} from './visuals.mjs';
 import {renderBayesMobile} from './bayes.mjs';
 import {renderDgp} from './dgp.mjs';
+import {renderMechanism} from './mechanism.mjs';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-12,`${a} != ${b}`);
 
 test('published means and sample SDs are supported by all twelve seed results',()=>{
@@ -31,15 +32,15 @@ test('every plotted AUC uses the measured depth-two result',()=>{
   }
 });
 
-test('new chapter preserves all original scene routing and every scroll state renders',()=>{
-  assert.equal(scenes.length,26);
+test('worked episodes preserve retained scene routing and every scroll state renders',()=>{
+  assert.equal(scenes.length,28);
   assert.equal(scenes[0].kind,'dgp');
   const old=scenes.filter(s=>s.visualIndex!==undefined);
-  assert.deepEqual(old.map(s=>s.visualIndex),Array.from({length:18},(_,i)=>i));
+  assert.deepEqual(old.map(s=>s.visualIndex),[0,1,10,11,12,13,14,15,16,17]);
   assert.deepEqual(scenes.filter(s=>s.kind==='bear').map(s=>s.bearStage),[0,1,2,3,4,5,6]);
   for(const scene of scenes)for(const mobile of [false,true])for(const p of [0,.25,.5,.75,1]){
     const index=scene.visualIndex;
-    const svg=scene.kind==='dgp'?renderDgp(p,mobile):scene.kind==='bear'?(mobile?renderBearMobile(scene.bearStage,p):renderBear(scene.bearStage,p)):
+    const svg=scene.kind==='mechanism'?renderMechanism(scene.mechanismStage,p,mobile):scene.kind==='dgp'?renderDgp(p,mobile):scene.kind==='bear'?(mobile?renderBearMobile(scene.bearStage,p):renderBear(scene.bearStage,p)):
       mobile?(index>=10&&index<=14?renderBayesMobile(index-10,p):renderMobile(index,p)):renderVisual(index,p);
     assert.ok(svg.length>100);
     assert.doesNotMatch(svg,/NaN|undefined|Infinity/);
