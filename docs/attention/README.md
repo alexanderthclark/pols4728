@@ -5,11 +5,14 @@ The course homepage links to the lesson. Local fonts and KaTeX require no CDN.
 
 ## Scope and convention
 
-The first eight scroll-driven scenes emphasize the output and its interpretation:
-one summary query mixes source value vectors, a linear classifier reads the
-resulting vector, and attention weights are compared with signed logit terms.
-The example holds attention fixed while changing a value, then removes a token
-and recomputes attention to distinguish a forward-pass term from an edit effect.
+The first thirteen scroll-driven scenes start with the complete attention matrix,
+then read one entry and one destination row. Source value vectors are combined
+into one output row per token, Y=AV. Queries and keys explain where the matrix
+comes from. Mean pooling then supplies the sentence summary h, immediately
+before the linear classifier reads it. The effective source weights after
+pooling are compared with signed logit terms. The example holds attention fixed
+while changing a value, then removes a token and recomputes attention and pooling
+to distinguish a forward-pass term from an edit effect.
 An application guide covers text perturbations, attribution methods, and LiDDA.
 All core teaching points are reachable by scrolling, with no required controls.
 
@@ -40,22 +43,33 @@ broader notation harmonization with the course notes remains for a later pass.
 
 ## Interpreting a classification
 
-`interpretation-model.mjs` defines a hand-constructed attention-pooling classifier,
-not a trained sentiment model or a reconstruction of LiDDA. One fixed summary
-query attends to three source tokens; this is one attention row, not a complete
-self-attention matrix. The query is 1, key dimension is 1, and keys are
-log(0.6), log(0.3), log(0.1), giving weights 0.6, 0.3, 0.1 exactly.
-Values for [film, was, awful] are [[0.1,4],[0,1],[-8,2]]. The summary vector
-is [-0.74,2.9]. A column readout beta=[1,0] and zero intercept give logit -0.74
-and positive-class probability sigmoid(-0.74), about 0.323.
+`interpretation-model.mjs` defines a hand-constructed self-attention classifier,
+not a trained sentiment model or a reconstruction of LiDDA. The three tokens
+[film, was, awful] label both the destination rows and source columns of
+A=[[.80,.15,.05],[.60,.30,.10],[.40,.45,.15]]. Its rows sum to one; columns
+need not, and the matrix is not symmetric. Q=I3 and
+K=sqrt(3)*transpose(log(A)), with entrywise logarithms, give scaled scores
+QKᵀ/sqrt(3)=log(A). Row-wise softmax realizes the displayed matrix exactly.
+
+Values are V=[[0.1,4],[0,1],[-8,2]]. The three attention outputs are
+Y=AV=[[-.32,3.45],[-.74,2.90],[-1.16,2.35]]. Mean pooling gives the sentence
+summary h=mean(Y)=[-.74,2.90]. Equivalently, h=sum_j alpha_j*v_j, where
+alpha_j=mean_i(a_ij): the effective source weights are the column means
+[.60,.30,.10], computed across all destinations rather than selected from one row.
+A column readout beta=[1,0]ᵀ and zero intercept give logit -.74 and
+positive-class probability sigmoid(-.74), about .323.
 
 The signed logit terms are +0.06, 0, -0.8. Replacing awful with great changes
-only its first value coordinate to +8, keeping keys and weights fixed by explicit
-construction: logit 0.86, probability about 0.703. Deleting film removes its key
-and value and recomputes softmax on the remaining sources: weights 0.75, 0.25,
-logit -2. The deletion effect is not film's former +0.06 term. Values may already
-contain information from other tokens in a deeper transformer, and a nonlinear
-classifier does not share this toy's simple additive logit decomposition.
+only its first value coordinate to +8, keeping queries, keys, and the full
+attention matrix fixed by explicit construction: logit .86, probability about
+.703. Deleting film removes its destination row and source column; the retained
+query, key, and value vectors preserve their original coordinates, and the
+query/key dimension stays three. Recomputing softmax over the remaining sources
+gives [.75,.25] in both surviving attention rows. Both output rows are [-2,1.25],
+so mean pooling and the fixed readout give logit -2. The deletion effect is not
+film's former +.06 term. Values may already contain information from other tokens
+in a deeper transformer, and a nonlinear classifier does not share this toy's
+simple additive logit decomposition.
 
 Primary interpretation references: Kobayashi et al. (2020), Attention is Not
 Only a Weight; Jain and Wallace (2019); Wiegreffe and Pinter (2019); Abnar and
@@ -131,9 +145,15 @@ normalization, value/output shapes, stable softmax, correct causal masking, and
 invariance of earlier causal outputs to future input changes. Seven socks-model tests
 check independent two-order arithmetic, interventions, shared projections, the
 exact readout, causal masks, and the output projection/residual addition.
+Six interpretation tests cover all three attention and output rows, row
+normalization and asymmetry, mean pooling and effective source weights, signed
+logit terms, fixed Q/K under value substitution, full row-and-column deletion,
+and deterministic rendering of the thirteen scenes. These three suites contain
+nineteen tests in total.
 
 Manual review includes forward/backward native scrolling, narrow/mobile layout,
 PageUp/PageDown navigation, the reading link, all lesson scenes, math rendering, and
 the reduced-motion rendering path. Continuous intermediate states retain honest
 numeric labels; softmax uses discrete exact calculations rather than interpolating
 unnormalized values while calling them probabilities.
+
