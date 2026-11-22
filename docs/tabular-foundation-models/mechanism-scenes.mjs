@@ -1,5 +1,6 @@
 import {miniPfnResults as run} from './mini-pfn-results.mjs';
 const A=run.examples.A, B=run.examples.B;
+const update=run.first_update;
 const pct=x=>`${(100*x).toFixed(1)}%`, f=x=>x.toFixed(3);
 const training='Learning to use a table', inside='An actual prediction';
 export const mechanismScenes=[
@@ -16,27 +17,27 @@ export const mechanismScenes=[
     title:'Turn one table into a prediction exercise.',
     body:'Give the network four labeled encounters and the next encounter’s features. Keep its survival outcome outside the input.',
     equation:'\\underbrace{(D,x_*)}_{\\text{input}}\\longrightarrow q_\\theta(Y_*=1\\mid x_*,D)',
-    note:'Columns are 0/1 indicators: brown bear, lie down, survived. The hidden answer and generating rule stay outside the input.',
-    reading:'The displayed rows form one possible context under the generator, selected to make the contrast easy to follow. The query is Brown + Lie down. Each labeled row supplies raw numeric bear, strategy, and survival indicators; the query supplies only the two feature indicators. The neural network must turn that whole prediction exercise into one survival probability. In the actual training run, contexts and query outcomes are sampled afresh for each task; they are not always this particularly clear pattern.'
+    note:'Actual first task in the first training minibatch. The hidden query answer and generating rule stay outside the input.',
+    reading:'These are the recorded context and query from the first task in the first training minibatch, when the network still has its initial random weights. The query is Brown + Lie down. Each labeled row supplies raw numeric bear, strategy, and survival indicators; the query supplies only the two feature indicators. Repeated bear–strategy pairs can have different outcomes because survival is noisy. The neural network must turn the whole prediction exercise into one survival probability. The displayed query outcome is held outside the network input and used only to score its prediction.'
   },
   {
     chapter:training, kind:'mechanism', mechanismStage:2,
-    title:'The hidden answer supplies the training signal.',
-    body:`If the query outcome is survival, a prediction of ${pct(A.probability)} incurs log loss ${f(-Math.log(A.probability))}. Backpropagate the loss to update the shared network weights.`,
-    equation:`\\ell=-\\log(${A.probability.toFixed(4)})\\approx${f(-Math.log(A.probability))}`,
-    note:'One loss calculation using the trained teaching model. The answer enters the loss, never the context.',
-    reading:`This calculation uses our trained model’s actual prediction for the displayed context. Take a possible held-out draw Y*=1. Binary cross-entropy is −[Y* log(q) + (1 − Y*) log(1 − q)], so the loss here is ${(-Math.log(A.probability)).toFixed(6)}. If z is the output logit, its derivative is q − Y*, here ${f(A.probability-1)}. Backpropagation passes that signal through the decoder, attention projections, and encoders. Training averages the losses of 256 separate tasks before each Adam update. An individual contradictory outcome can push the other way; optimizing across noisy tasks rewards useful probabilities, not certainty. The diagram illustrates the update operation without inventing a numerical post-update prediction.`
+    title:'Average the losses. Update the weights.',
+    body:`The first sampled query survived. After one Adam step using ${update.batch_size} tasks, its prediction changes from ${pct(update.first_query_probability_before)} to ${pct(update.first_query_probability_after)}.`,
+    equation:`\\overline\\ell=\\frac1{256}\\sum_t\\ell_t:\\quad ${update.batch_log_loss_before.toFixed(4)}\\longrightarrow${update.batch_log_loss_after.toFixed(4)}`,
+    note:'Recorded before/after values for one update. The mean losses use the same 256 tasks; the displayed probability belongs to one task.',
+    reading:`Before the first update, the first query has predicted survival probability ${update.first_query_probability_before.toFixed(6)} and observed outcome Y*=1. Its individual log loss is −log(q) ≈ ${f(-Math.log(update.first_query_probability_before))}. Training averages the losses of all ${update.batch_size} tasks in this minibatch, giving ${update.batch_log_loss_before.toFixed(6)}. Backpropagation differentiates that mean through the decoder, attention projections, and encoders, and Adam updates their shared parameters. Re-evaluating the same minibatch after the update gives mean loss ${update.batch_log_loss_after.toFixed(6)}; the first query’s probability is then ${update.first_query_probability_after.toFixed(6)}. Both quantities are recorded measurements. A single task’s probability is not the minibatch objective, and improving the average need not improve every individual prediction. Scroll switches between the measured before/after states; it does not interpolate fictitious training steps.`
   },
   {
     chapter:training, kind:'mechanism', mechanismStage:3,
-    title:'The next table can reverse the evidence.',
-    body:'Keep the same bear types, strategies, and query. Reverse the context outcomes. Those labels now support the opposite survival rule.',
-    equation:'x_*\\text{ unchanged},\\qquad D_A\\ne D_B',
-    note:'One memorized bear rule cannot solve both tasks. The labeled rows reveal which pattern this table supports.',
-    reading:`The two displayed contexts are equally valid possible inputs. Each of the first table’s four outcomes favors A; each reversed outcome favors B. The query Brown + Lie down is identical. Our trained network predicts ${pct(A.probability)} from the first context and ${pct(B.probability)} from the second, using exactly the same saved weights for both forward passes. These are measured outputs of the teaching model, not probabilities copied from the simulator or outputs from TabPFN.`
+    title:'Each task brings another table.',
+    body:'Here is the second sampled task from that same minibatch. Its context and query differ. Each task contributes one loss to the shared update.',
+    equation:'(D_t,x_{*,t},Y_{*,t})\\sim\\text{task generator}',
+    note:'Two of the 256 tasks in one minibatch. A new world is drawn once per task; its identity is never an input.',
+    reading:'The second table is reproduced from the same seeded generator call as the first: training seed 4729, batch size 256, task index 1. Its query is Black + Lie down and its sampled query outcome is survival. Context labels are available to the model; the query answer remains outside the input. The two displayed tasks enter the same minibatch update, not separate weight updates. Every task in the minibatch has its own independently drawn world, shared by all rows within that task. Pretraining repeatedly draws fresh minibatches. The final trained checkpoint and its predictions appear only after this training sequence.'
   },
   {
-    chapter:training, kind:'mechanism', mechanismStage:4,
+    chapter:inside, kind:'mechanism', mechanismStage:4,
     title:'Using the context lowers prediction loss.',
     body:'Without context, equally common opposite rules average to 50% survival for every query. The labeled encounters contain information that this pooled prediction discards.',
     equation:'P(Y_*=1\\mid x_*)=\\tfrac12',
@@ -78,9 +79,20 @@ export const mechanismScenes=[
   {
     chapter:inside, kind:'mechanism', mechanismStage:9,
     title:'Decode that representation into a probability.',
-    body:`The decoder combines the query vector with the attention output. Its logit ${A.logit.toFixed(3)} becomes a survival probability of ${pct(A.probability)} through the sigmoid function.`,
-    equation:`\\sigma(${A.logit.toFixed(3)})\\approx ${A.probability.toFixed(3)}`,
-    note:'The entire input-to-probability calculation uses fixed learned weights. The next section derives its ideal Bayesian target.',
-    reading:'Concatenating the 32-dimensional query representation and the 32-dimensional attention output gives the decoder 64 inputs. A hidden ReLU layer followed by a scalar output produces the logit; sigmoid maps it into (0,1). During pretraining, query-label error could flow backward through this full computation. During inference, there is only the forward calculation. The network was trained to predict outcomes; it was not trained to reproduce explicit posterior weights. Under the task generator, the log-loss-optimal answer is nevertheless the posterior predictive probability.'
+    body:`Stack the 32-number query vector and the 32-number attention output into 64 inputs. The decoder’s logit ${A.logit.toFixed(3)} becomes ${pct(A.probability)} survival through sigmoid.`,
+    equation:'z=\\operatorname{MLP}_{\\theta}([h_*;c]),\\qquad q=\\sigma(z)',
+    note:'Concatenation, not addition: [query vector; pooled context] has 64 coordinates. The next section derives the ideal Bayesian target.',
+    reading:'The saved model concatenates the 32-dimensional query representation h* first and the 32-dimensional attention output c second. Thus [h*;c] is a 64-dimensional vector; the two vectors are not added coordinate by coordinate. A hidden ReLU layer followed by a scalar output produces the logit; sigmoid maps it into (0,1). During pretraining, query-label error could flow backward through this full computation. During inference, there is only the forward calculation. The network was trained to predict outcomes; it was not trained to reproduce explicit posterior weights. Under the task generator, the log-loss-optimal answer is nevertheless the posterior predictive probability.'
   }
 ];
+
+// Keep renderer stage IDs stable while placing the fixed-checkpoint evaluation
+// after pretraining and the explicit freeze transition.
+const chronologicalOrder=[0,1,3,2,5,6,4,7,8,9];
+mechanismScenes.sort((a,b)=>chronologicalOrder.indexOf(a.mechanismStage)-chronologicalOrder.indexOf(b.mechanismStage));
+for(const scene of mechanismScenes){
+  const phase=scene.chapter===training
+    ? 'Pretraining: shared weights change after minibatch updates.'
+    : 'Inference: weights stay fixed as the context changes.';
+  scene.note=`${phase} ${scene.note}`;
+}

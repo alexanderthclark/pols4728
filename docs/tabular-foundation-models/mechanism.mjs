@@ -13,6 +13,13 @@ const line=(x1,y1,x2,y2,c=C.blue,width=2)=>`<line x1="${x1}" y1="${y1}" x2="${x2
 const grow=(x1,y1,x2,y2,p,c=C.blue)=>line(x1,y1,x1+(x2-x1)*clamp(p),y1+(y2-y1)*clamp(p),c);
 const group=(s,opacity=1)=>`<g opacity="${opacity}">${s}</g>`;
 const A=miniPfnResults.examples.A, B=miniPfnResults.examples.B;
+const update=miniPfnResults.first_update;
+export const recordedTrainingTasks={
+  first:{context:update.context,query:update.query,query_outcome:update.query_outcome},
+  // Reproduced from sample_tasks(256, Generator().manual_seed(4729)), index 1.
+  // This is another task in the first minibatch, not another optimizer step.
+  second:{context:[[1,1,0],[1,0,0],[1,0,0],[1,0,0]],query:[0,1],query_outcome:1}
+};
 
 function table(example,x,y,w,h=36,query=true,small=false){
   const width=w/3,z=small?17:21,base=small?23:26;
@@ -57,41 +64,50 @@ function worlds(p,m){
 
 function task(p,m){
   const x=m?35:70,y=m?28:50,w=m?330:390,h=m?33:46;
-  let s=table(A,x,y,w,h,true,m);
+  let s=table(recordedTrainingTasks.first,x,y,w,h,true,m);
   const targetX=x+w*5/6,targetY=y+5*h+h/2;
   const endX=m?200:710,endY=m?308:190;
   s+=text(m?200:265,m?18:365,'Blue outline: model input',m?17:22,C.blue);
-  s+=group(rect(endX-(m?90:125),endY-28,m?180:250,58,C.rust,'#fff9f6')+text(endX,endY+8,`Withheld Y = ${A.illustrative_outcome}`,m?21:27,C.rust),clamp(p*2));
+  s+=group(rect(endX-(m?90:125),endY-28,m?180:250,58,C.rust,'#fff9f6')+text(endX,endY+8,`Withheld Y = ${update.query_outcome}`,m?21:27,C.rust),clamp(p*2));
   s+=grow(targetX,targetY,m?endX:endX-125,m?endY-32:endY,p,C.rust);
   if(!m)s+=text(710,292,'Used only to score the prediction',21,C.muted);
   return s;
 }
 
 function loss(p,m){
-  const loss=A.illustrative_log_loss;
+  // Prediction and loss are discrete recorded states, never interpolated values.
+  const after=p>=.6;
+  const probability=after?update.first_query_probability_after:update.first_query_probability_before;
+  const meanLoss=after?update.batch_log_loss_after:update.batch_log_loss_before;
+  const state=after?'After one Adam step':'Before the first update';
+  const data=`data-update-state="${after?'after':'before'}" data-query-probability="${probability}" data-batch-log-loss="${meanLoss}" data-batch-size="${update.batch_size}"`;
   if(m){
-    let s=rect(70,25,260,65,C.blue,'#f7fafc')+text(200,53,'Mini-PFN',23,C.blue)+text(200,77,'Context + query',17,C.muted);
-    s+=grow(200,101,200,126,p*2)+text(200,153,`q = ${num(A.probability)}`,28,C.teal);
-    s+=group(text(200,198,`Reveal withheld Y = ${A.illustrative_outcome}`,20,C.rust),clamp((p-.2)*2));
-    s+=group(text(200,242,`−log(${num(A.probability)}) = ${num(loss)}`,23,C.rust),clamp((p-.4)*2));
-    s+=group(`<path d="M315 242 H365 V55 H339" fill="none" stroke="${C.rust}" stroke-width="2"/>`+text(200,310,'Backpropagate loss to update θ',19,C.rust),clamp((p-.6)*2.5));
-    return s;
+    let s=text(200,22,state,21,C.blue)+rect(70,42,260,58,C.blue,'#f7fafc')+text(200,66,'Shared network weights',18,C.blue)+text(200,88,'Same Brown + Lie down query',16,C.muted);
+    s+=text(200,139,`One query: q = ${num(probability,4)}`,26,C.teal);
+    s+=text(200,176,`Observed outcome: Y = ${update.query_outcome}`,19,C.rust);
+    s+=text(200,221,`Mean loss over ${update.batch_size} tasks`,19,C.rust)+text(200,255,num(meanLoss,4),29,C.rust);
+    s+=group(`<path d="M308 250 H366 V70 H340" fill="none" stroke="${C.rust}" stroke-width="2"/>`,clamp(p*2));
+    s+=text(200,305,'256 losses → one Adam update',19,C.rust)+text(200,337,'Mean losses measured on the same batch.',16,C.muted);
+    return `<g ${data}>${s}</g>`;
   }
-  let s=rect(45,105,230,100,C.blue,'#f7fafc')+text(160,147,'Mini-PFN',30,C.blue)+text(160,182,'Context + query',22,C.muted);
-  s+=grow(290,155,410,155,p*2)+text(530,145,`q = ${num(A.probability)}`,34,C.teal);
-  s+=group(text(760,145,`Y = ${A.illustrative_outcome}`,32,C.rust)+text(760,182,'Withheld outcome',21,C.muted),clamp((p-.2)*2));
-  s+=group(text(625,275,`Loss = −log(${num(A.probability)}) = ${num(loss)}`,29,C.rust),clamp((p-.4)*2));
-  s+=group(`<path d="M620 303 V365 H160 V221" fill="none" stroke="${C.rust}" stroke-width="2.5"/>`+text(390,413,'Backpropagate the loss; update shared θ.',25,C.rust),clamp((p-.6)*2.5));
-  return s;
+  let s=text(450,35,state,29,C.blue)+rect(45,105,230,100,C.blue,'#f7fafc')+text(160,146,'Shared network',27,C.blue)+text(160,180,'Same context + query',20,C.muted);
+  s+=line(290,155,410,155)+text(530,126,'Brown + Lie down',22,C.blue)+text(530,176,`q = ${num(probability,4)}`,34,C.teal);
+  s+=text(775,145,`Y = ${update.query_outcome}`,32,C.rust)+text(775,182,'Observed outcome',20,C.muted);
+  s+=text(605,270,`Mean of ${update.batch_size} task losses = ${num(meanLoss,4)}`,28,C.rust);
+  s+=group(`<path d="M620 303 V365 H160 V221" fill="none" stroke="${C.rust}" stroke-width="2.5"/>`,clamp(p*2));
+  s+=text(450,415,'Average 256 losses; backpropagate; take one Adam step.',24,C.rust);
+  return `<g ${data}>${s}</g>`;
 }
 
 function reversed(p,m){
-  const name=p<.5?'A':'B',e=name==='A'?A:B;
-  let s=text(m?200:245,m?22:35,`Context ${name}`,m?21:28,C.blue);
+  const second=p>=.5,e=second?recordedTrainingTasks.second:recordedTrainingTasks.first;
+  const name=second?'Task 2':'Task 1';
+  const pair=second?'Black + Lie down':'Brown + Lie down';
+  let s=text(m?200:245,m?22:35,`${name} of 256`,m?21:28,C.blue);
   s+=table(e,m?35:50,m?40:65,m?330:390,m?32:43,true,m);
-  if(m){s+=text(200,284,`Same query; q = ${num(e.probability)}`,24,C.teal)+text(200,329,'The labels provide task evidence.',18,C.muted);}
-  else{s+=grow(460,200,580,200,p<.5?p*2:(p-.5)*2)+text(720,155,'Brown + Lie down',25,C.blue)+text(720,218,`q = ${num(e.probability)}`,40,C.teal)+text(720,279,'Same query features',22,C.muted)+text(450,415,'A rule for one world fails in the opposite world.',25,C.blue);}
-  return s;
+  if(m){s+=text(200,279,`Query: ${pair}`,21,C.blue)+text(200,308,`Withheld outcome: Y = ${e.query_outcome}`,19,C.rust)+text(200,339,'Both tasks enter the same batch update.',16,C.muted);}
+  else{s+=grow(460,200,580,200,p<.5?p*2:(p-.5)*2)+text(720,145,'New query features',23,C.muted)+text(720,196,pair,27,C.blue)+text(720,260,`Withheld outcome: Y = ${e.query_outcome}`,23,C.rust)+text(450,415,'Each table contributes one query loss to the minibatch.',25,C.blue);}
+  return `<g data-training-task="${second?2:1}">${s}</g>`;
 }
 
 function evaluation(p,m){
@@ -189,17 +205,23 @@ function attention(p,m){
 
 function decode(p,m){
   if(m){
-    let s=text(200,25,'Pooled context + query embedding',18,C.blue)+text(200,62,`${vec(A.pooled)} + query`,21,C.blue);
-    s+=grow(200,74,200,98,p*2)+rect(90,109,220,55,C.blue,'#f7fafc')+text(200,145,'Decoder MLP',25,C.blue);
-    s+=group(text(200,207,`Logit = ${num(A.logit)}`,25,C.ink),clamp(p*2));
-    s+=group(text(200,254,'Apply sigmoid',19,C.muted)+text(200,302,`P(survival) = ${num(A.probability)}`,27,C.teal),clamp((p-.35)/.65));
-    return s+text(200,340,'Actual trained output; an approximation.',16,C.muted);
+    let s=text(200,21,'Concatenate two 32-number vectors',18,C.blue);
+    s+=text(200,49,'Query representation (32)',17,C.muted)+text(200,76,vec(A.query_embedding),23,C.blue);
+    s+=text(200,108,'Pooled context (32)',17,C.muted)+text(200,135,vec(A.pooled),23,C.blue);
+    s+=text(200,167,'[query; context] · 64 inputs',18,C.blue)+grow(200,175,200,192,p*2);
+    s+=rect(90,200,220,47,C.blue,'#f7fafc')+text(200,231,'Decoder MLP',24,C.blue);
+    s+=group(text(200,280,`Logit = ${num(A.logit)}`,23,C.ink),clamp(p*2));
+    s+=group(text(200,324,`Sigmoid: q = ${num(A.probability)}`,26,C.teal),clamp((p-.35)/.65));
+    return s;
   }
-  let s=text(150,105,'Pooled context',25,C.blue)+text(150,157,vec(A.pooled),27,C.blue)+text(150,208,'+ query embedding',22,C.muted);
-  s+=grow(295,162,355,162,p*2)+rect(380,115,190,95,C.blue,'#f7fafc')+text(475,170,'Decoder MLP',27,C.blue);
-  s+=grow(590,162,645,162,p*2)+group(text(755,124,'Logit',24,C.muted)+text(755,180,num(A.logit),39,C.ink),clamp(p*2));
-  s+=group(grow(755,222,755,282,(p-.35)/.65,C.teal)+text(640,260,'Sigmoid',23,C.muted)+text(755,335,`q = ${num(A.probability)}`,40,C.teal),clamp((p-.35)/.65));
-  return s+text(450,424,'A numerical prediction from the trained network.',25,C.blue);
+  let s=text(160,80,'Query representation (32)',22,C.blue)+text(160,122,vec(A.query_embedding),27,C.blue);
+  s+=text(160,196,'Pooled context (32)',22,C.blue)+text(160,238,vec(A.pooled),27,C.blue);
+  s+=`<path d="M290 112 H320 V238 H290" fill="none" stroke="${C.blue}" stroke-width="2"/>`;
+  s+=text(390,130,'Concatenate',22,C.blue)+text(390,164,'64 inputs',22,C.blue)+grow(330,195,450,195,p*2);
+  s+=rect(470,145,190,100,C.blue,'#f7fafc')+text(565,203,'Decoder MLP',26,C.blue);
+  s+=grow(677,195,725,195,p*2)+group(text(800,142,'Logit',24,C.muted)+text(800,199,num(A.logit),37,C.ink),clamp(p*2));
+  s+=group(grow(800,222,800,282,(p-.35)/.65,C.teal)+text(680,267,'Sigmoid',23,C.muted)+text(780,335,`q = ${num(A.probability)}`,37,C.teal),clamp((p-.35)/.65));
+  return s+text(450,424,'[Query representation; pooled context] keeps all 64 coordinates.',23,C.blue);
 }
 
 const stages=[worlds,task,loss,reversed,evaluation,learning,frozen,embedding,attention,decode];
