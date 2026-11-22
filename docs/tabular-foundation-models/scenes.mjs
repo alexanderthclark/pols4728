@@ -22,6 +22,14 @@ export const scenes = [
 
 scenes.forEach((scene, index) => { scene.visualIndex = index; });
 scenes.splice(16, 0, ...bearScenes);
+scenes.unshift({
+  chapter:'The data-generating process', kind:'dgp',
+  title:'This is the true data-generating process.',
+  body:'Bear type and strategy determine the probability of survival. Each simulated outcome is a random draw using the probability at its leaf.',
+  equation:'Y\\mid B,L\\sim\\operatorname{Bernoulli}\\!\\left(p_{B,L}\\right)',
+  note:'Depth 2: split on bear type, then strategy. Bear type and strategy are independent, each with equally likely values.',
+  reading:'This tree specifies the true conditional outcome distribution in our simulation. A brown bear with a fight response has survival probability logistic(−1) ≈ 26.9%; a brown bear with a lie-down response has logistic(1) ≈ 73.1%. For black bears, those probabilities reverse: fight gives 73.1%, and lie down gives 26.9%. Bear type and strategy are independent balanced binary variables, so the four leaves are equally likely. Conditional on those features, survival is a Bernoulli draw with the displayed probability. This is a stipulated simulation rule, not a fitted tree. The learner will receive sampled encounters without being given this tree. Later we add independent continuous distractors, which do not change these probabilities.'
+});
 
 export const sources = [
  {title:'Bear simulation · Reproduce the experiment',url:'https://github.com/alexanderthclark/pols4728/tree/codex/tabular-foundation-models/examples/tabular-foundation-models',note:'Runnable Python, fixed configurations, per-seed AUC and Brier scores, and paired comparisons. The experiment runs XGBoost only.'},

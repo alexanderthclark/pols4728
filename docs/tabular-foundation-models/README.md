@@ -1,6 +1,6 @@
 # Tabular foundation models
 
-Buildless scroll-driven course lesson for POLS 4728, following Christoph Molnar's *Tabular Foundation Models*. White textbook layout, Latin Modern type, course palette, torso-less hero illustration. The bear-survival task is the running example throughout all 25 scenes: labeled context, global network weights, synthetic task pretraining, simplified row/column attention, exact Bayesian updating, and seven scenes diagnosing the interaction for XGBoost.
+Buildless scroll-driven course lesson for POLS 4728, following Christoph Molnar's *Tabular Foundation Models*. White textbook layout, Latin Modern type, course palette, torso-less hero illustration. The bear-survival task is the running example throughout all 26 scenes: the true depth-two data-generating tree, labeled context, global network weights, synthetic task pretraining, simplified row/column attention, exact Bayesian updating, and seven scenes diagnosing the interaction for XGBoost.
 
 Run `npm run build` to regenerate the no-JavaScript reading version, `npm test` for Bayesian arithmetic and reversible visual-state checks, and `npm run dev` for a local preview. Source files in this directory are served directly. All core teaching points are reached by native scrolling; chapter links offer shortcuts. `?motion=reduce` or system reduced-motion preference uses complete visual states at logical thresholds.
 
