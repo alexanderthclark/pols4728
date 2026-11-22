@@ -1,6 +1,6 @@
 import {createSocksScenes} from './socks-scenes.mjs?v=attention-sequence-2';
 import {createExtensionScenes} from './extension-scenes.mjs?v=attention-sequence-2';
-import {createInterpretationScenes} from './interpretation-scenes.mjs?v=attention-interpretation-1';
+import {createInterpretationScenes} from './interpretation-scenes.mjs?v=attention-matrix-2';
 
 const C={ink:'#242424',blue:'#234e70',rust:'#a54f32',teal:'#007f73',purple:'#7b4f9d',muted:'#606060',rule:'#dededb'};
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
@@ -27,7 +27,7 @@ const coreScenes=createInterpretationScenes(drawing);
 const mechanicsScenes=[...createSocksScenes(drawing),...createExtensionScenes(drawing)];
 // The complete text remains available independently of visual scene changes.
 const transcript=scenes=>scenes.map((s,i)=>`<section><h3>${i+1}. ${s.title}</h3><p>${s.caption}</p><div class="transcript-eq">${tex(s.equation)}</div><p>${s.detail}</p></section>`).join('');
-document.querySelector('#transcript').innerHTML='<h3>Understanding the output</h3>'+transcript(coreScenes)+'<h3>The complete Q/K/V calculation</h3>'+transcript(mechanicsScenes);
+document.querySelector('#transcript').innerHTML='<h3>The attention matrix and its outputs</h3>'+transcript(coreScenes)+'<h3>The complete Q/K/V calculation</h3>'+transcript(mechanicsScenes);
 renderMathNodes(document.querySelector('#transcript'));
 function makeStory(id,prefix,scenes){
  const story=document.querySelector('#'+id);
@@ -46,6 +46,7 @@ function makeStory(id,prefix,scenes){
   field('chapter').textContent=s.part;
   field('counter').textContent=`${index+1} / ${scenes.length}`;
   field('scene-label').textContent=s.label;
+  field('scene-label').hidden=!s.label;
   field('scene-title').textContent=s.title;
   field('caption').textContent=s.caption;
   field('equation').innerHTML=tex(s.equation);
@@ -72,3 +73,4 @@ function revealReading(){if(location.hash==='#reading')document.querySelector('#
 addEventListener('hashchange',revealReading);revealReading();
 // Hash jumps and native keyboard scrolling follow the same reversible sequence.
 render();
+
