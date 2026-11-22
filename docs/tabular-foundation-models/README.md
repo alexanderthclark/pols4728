@@ -1,12 +1,12 @@
 # Tabular foundation models
 
-Buildless scroll-driven course lesson for POLS 4728, following Christoph Molnar's *Tabular Foundation Models*. White textbook layout, Latin Modern type, course palette, torso-less hero illustration. The 25-scene story tracks labeled context, global network weights, synthetic task pretraining, simplified row/column attention, a computed Bayesian example, and seven scenes diagnosing the bear-encounter interaction.
+Buildless scroll-driven course lesson for POLS 4728, following Christoph Molnar's *Tabular Foundation Models*. White textbook layout, Latin Modern type, course palette, torso-less hero illustration. The bear-survival task is the running example throughout all 25 scenes: labeled context, global network weights, synthetic task pretraining, simplified row/column attention, exact Bayesian updating, and seven scenes diagnosing the interaction for XGBoost.
 
 Run `npm run build` to regenerate the no-JavaScript reading version, `npm test` for Bayesian arithmetic and reversible visual-state checks, and `npm run dev` for a local preview. Source files in this directory are served directly. All core teaching points are reached by native scrolling; chapter links offer shortcuts. `?motion=reduce` or system reduced-motion preference uses complete visual states at logical thresholds.
 
 ## Numerical example
 
-Two possible worlds, with equal prior mass. World A assigns P(voted | high interest)=.8 and P(voted | low interest)=.2; B reverses them. Labels are independent given the shared world and fixed features. Observe 0, 1, 2, then 4 high-interest respondents who voted. The page computes posterior weights and the predictive probability for another high-interest respondent. No TabPFN model is run. Animation interpolation is visual interpolation between exact results, not fractional-data Bayesian updating. Other probability bars are explicitly schematic.
+Two possible bear-survival worlds, with equal prior mass. World A assigns survival probability p = logistic(1) to matching pairs (black-and-fight or brown-and-lie-down), and 1 − p to mismatches; world B reverses them. These are the same population probabilities used in the later simulation. Outcomes are independent given the shared world and fixed features. A separate small context accumulates 0, 1, 2, then 4 brown-and-lie-down survivors. After n such observations, the posterior probability of A is logistic(n), and predictive survival for another matching encounter is (1 − p) + (2p − 1)·logistic(n). With four observations these are 98.2014% and 72.2747%, respectively. No TabPFN model is run. Animation interpolation is visual interpolation between exact results, not fractional-data Bayesian updating. Other probability bars are schematic.
 
 ## Sources and attribution
 
