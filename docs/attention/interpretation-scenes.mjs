@@ -41,65 +41,136 @@ export function createInterpretationScenes({m, line, rect, C}) {
       + line(320, y - 3, 320, y + 30, muted, 1.3)
       + label('0%', 95, y + 55, 20, muted) + label('50%', 320, y + 55, 20, muted) + label('100%', 545, y + 55, 20, muted);
   }
-  function outputVector(t) {
+  function matrixGrid({row = -1, column = -1} = {}) {
+    const x = 204, y = 136, width = 115, height = 82;
+    let out = label('Source token j', 376, 48, 27, blue)
+      + label('Destination i', 92, 101, 23, blue);
+    negative.tokens.forEach((token, j) => {
+      out += label(token, x + (j + .5) * width, 101, 26, column === j ? rust : ink);
+    });
+    negative.attentionMatrix.forEach((weights, i) => {
+      out += label(negative.tokens[i], 163, y + (i + .5) * height + 8, 28, row === i ? blue : ink, 'end');
+      weights.forEach((weight, j) => {
+        const selected = i === row && (column < 0 || j === column);
+        out += rect(x + j * width, y + i * height, width, height, '#fff', rule, 0)
+          + `<rect x="${x+j*width}" y="${y+i*height}" width="${width}" height="${height}" fill="${blue}" opacity="${.05+.27*weight}"/>`
+          + label(fixed(weight), x + (j + .5) * width, y + (i + .5) * height + 9, 31, ink);
+        if (selected) out += rect(x + j * width + 2, y + i * height + 2, width - 4, height - 4, 'none', column < 0 ? blue : rust, 0, 'stroke-width="3"');
+      });
+    });
+    return out;
+  }
+  function attentionMatrix(t) {
+    const row = Math.min(2, Math.floor(clamp(t) * 3));
+    return matrixGrid({row})
+      + math('A\\in\\mathbb R^{3\\times3}', 320, 441, 450, 64, 36, blue)
+      + label('One row of weights for each destination.', 320, 510, 25, muted);
+  }
+  function oneEntry(t) {
+    const progress = ease(t);
+    return matrixGrid({row: 0, column: 1})
+      + label('was', 170, 450, 30, rust)
+      + label('film', 483, 450, 30, blue)
+      + arrow(218, 441, 433, 441, blue)
+      + `<circle cx="${lerp(224,425,progress)}" cy="441" r="7" fill="${rust}"/>`
+      + label('source j = 2', 170, 491, 23, muted)
+      + label('destination i = 1', 483, 491, 23, muted);
+  }
+  function oneRow(t) {
+    let out = matrixGrid({row: 0});
+    let x = 106;
+    negative.attentionMatrix[0].forEach((weight, j) => {
+      const width = weight * 470;
+      const colors = [blue, teal, rust];
+      out += rect(x, 445, width * ease(t), 29, colors[j], '#fff', 0)
+        + label(percent(weight), x + width / 2, 426, 23, colors[j]);
+      x += width;
+    });
+    return out + math('0.80+0.15+0.05=1', 320, 513, 540, 54, 30, blue);
+  }
+  function sourceValues(t) {
+    let out = label('Source token', 105, 49, 26, muted)
+      + label('Value vector', 423, 49, 26, teal);
+    negative.values.forEach((value, j) => {
+      const y = 142 + j * 133;
+      out += label(negative.tokens[j], 105, y + 8, 30, j === 2 ? rust : ink)
+        + arrow(178, y, 278, y, rule)
+        + packet(`v_${j+1}=${texVector(value)}`, lerp(340, 435, ease(t)), y, 275, teal);
+    });
+    return out + label('Two features per token in this example.', 320, 514, 25, muted);
+  }
+  function allOutputs(t) {
+    const count = Math.min(3, 1 + Math.floor(clamp(t) * 3));
+    const texMatrix = rows => `\\begin{bmatrix}${rows.map(row => row.map(texNumber).join('&')).join('\\\\')}\\end{bmatrix}`;
+    let out = math('A', 168, 46, 230, 54, 32, blue)
+      + math('V', 478, 46, 200, 54, 32, teal)
+      + math(texMatrix(negative.attentionMatrix), 168, 146, 296, 162, 27, blue)
+      + math('\\times', 336, 147, 60, 60, 32, ink)
+      + math(texMatrix(negative.values), 478, 146, 250, 162, 27, teal)
+      + arrow(320, 246, 320, 285)
+      + math('Y', 320, 312, 110, 50, 34, blue);
+    negative.outputs.forEach((output, i) => {
+      const y = 363 + i * 70;
+      out += label(negative.tokens[i], 142, y + 8, 28, ink, 'end')
+        + panel(174, y - 27, 405, 56, i === count - 1 ? '#edf3f6' : '#fff', rule)
+        + math(i < count ? `y_${i+1}=${texVector(output)}` : `y_${i+1}`, 375, y, 390, 53, 29, blue);
+    });
+    return out;
+  }
+  function poolOutputs(t) {
     const total = clamp(t) * 3;
     const active = Math.min(2, Math.floor(total));
-    const progress = ease(total - Math.floor(total));
-    let out = label('A small review', 320, 47, 25, muted) + tokens(negative, 123);
-    [130, 320, 510].forEach(x => { out += arrow(x, 171, 320, 265); });
-    out += panel(93, 282, 454, 104, '#edf3f6')
-      + label('attention output', 320, 315, 23, blue)
-      + math(total < 3 ? 'h=\\sum_j\\alpha_jv_j' : `h=${texVector(negative.output)}`, 320, 356, 432, 62, 35, blue)
-      + label('One vector for the summary destination.', 320, 444, 25, ink)
-      + label('The classifier still has to read it.', 320, 493, 26, muted);
-    // Each weighted value travels from its source toward the receiving vector.
-    // The result is revealed only after all three inputs have arrived; numeric
-    // labels never interpolate into an invented intermediate model output.
+    let out = label('Attention output Y', 320, 40, 27, blue);
+    negative.outputs.forEach((output, i) => {
+      const y = 100 + i * 77;
+      out += label(negative.tokens[i], 135, y + 8, 27, ink, 'end')
+        + math(`y_${i+1}=${texVector(output)}`, 372, y, 430, 58, 29, blue);
+    });
+    out += arrow(320, 288, 320, 347)
+      + label('mean of the three rows', 449, 321, 23, muted)
+      + panel(62, 361, 516, 125, '#edf3f6')
+      + label('Sentence summary', 320, 398, 27, blue)
+      + math(total >= 3 ? `h=${texVector(negative.output)}` : 'h=\\frac{y_1+y_2+y_3}{3}', 320, 446, 488, 70, 33, blue)
+      + label('This is the vector the classifier will read.', 320, 529, 24, muted);
     if (total < 3) {
-      const startX = [130, 320, 510][active];
-      const x = lerp(startX, 320, progress);
-      const y = lerp(189, 267, progress);
-      const carried = negative.values[active].map(coordinate => coordinate * negative.weights[active]);
-      out += packet(texVector(carried), x, y, 160, active === 2 ? rust : teal);
+      out += packet(`\\tfrac13 y_${active+1}`, 212, lerp(100+active*77, 339, ease(total-active)), 120, teal);
     }
     return out;
   }
-  function roles() {
-    let out = panel(28, 32, 584, 247, '#edf3f6')
-      + label('Queries and keys: match the summary to sources', 320, 75, 24, blue)
-      + label('This query gives the following mixing weights.', 320, 114, 22, muted);
-    negative.tokens.forEach((token, j) => {
-      const x = [130, 320, 510][j];
-      out += label(percent(negative.weights[j]), x, 181, 39, blue)
-        + label(token, x, 231, 27, j === 2 ? rust : ink);
-    });
-    out += panel(28, 312, 584, 166, '#f5f6f5')
-      + label('Values: the information each source supplies', 320, 352, 25, teal);
-    negative.values.forEach((value, j) => {
-      out += math(texVector(value), [130, 320, 510][j], 408, 190, 62, 27, teal);
-    });
-    out += label('Matching and carrying are different jobs.', 320, 519, 24, muted);
-    return out;
+  function roles(t) {
+    let out = panel(42, 26, 556, 91, '#fff', rule)
+      + label('Input representations X', 320, 80, 30, ink)
+      + arrow(237, 121, 165, 180) + arrow(403, 121, 475, 180)
+      + panel(40, 191, 272, 89, '#edf3f6') + panel(365, 191, 235, 89, '#f5f6f5')
+      + math('Q=XW_Q,\\ K=XW_K', 176, 235, 259, 65, 24, blue)
+      + math('V=XW_V', 481, 235, 224, 65, 29, teal)
+      + arrow(176, 285, 176, 352)
+      + label('match and normalize', 173, 326, 23, muted)
+      + math('A', 176, 400, 120, 65, 42, blue)
+      + arrow(476, 285, 476, 408)
+      + arrow(211, 405, 416, 462)
+      + math('Y=AV', 467, 469, 245, 65, 36, teal);
+    return out + `<circle cx="176" cy="${lerp(288,358,ease(t))}" r="7" fill="${blue}"/>`;
   }
   function mixture(t) {
     const total = clamp(t) * 3;
     const completed = Math.min(3, Math.floor(total));
     const active = Math.min(completed, 2);
     const progress = ease(total - completed);
-    const weightedValues = negative.values.map((value, j) => value.map(coordinate => coordinate * negative.weights[j]));
+    const weightedValues = negative.values.map((value, j) => value.map(coordinate => coordinate * negative.attentionMatrix[0][j]));
     const partial = [0, 1].map(coordinate => weightedValues.slice(0, completed).reduce((sum, value) => sum + value[coordinate], 0));
     let out = '';
     negative.tokens.forEach((token, j) => {
       const x = [130, 320, 510][j];
       out += label(token, x, 46, 27, j === 2 ? rust : ink)
         + math(`v_${j+1}=${texVector(negative.values[j])}`, x, 109, 202, 62, 24, blue)
-        + math(`${texNumber(negative.weights[j])}\\times v_${j+1}`, x, 169, 190, 58, 26, blue)
+        + math(`${texNumber(negative.attentionMatrix[0][j])}\\times v_${j+1}`, x, 169, 190, 58, 26, blue)
         + math(texVector(weightedValues[j]), x, 229, 190, 60, 25, teal)
         + arrow(x, 264, 320, 377, j === active && completed < 3 ? teal : rule);
     });
     out += panel(81, 400, 478, 101, '#edf3f6')
       + label(completed === 3 ? 'The complete sum' : `${completed} of 3 weighted vectors added`, 320, 429, 23, blue)
-      + math(`${completed === 3 ? 'h' : 'h_{\\mathrm{partial}}'}=${texVector(partial)}`, 320, 472, 460, 62, 32, blue)
+      + math(`${completed === 3 ? 'y_1' : 'y_{1,\\mathrm{partial}}'}=${texVector(partial)}`, 320, 472, 460, 62, 32, blue)
       + label('Each arriving vector adds to both coordinates.', 320, 532, 22, muted);
     if (completed < 3) {
       out += packet(texVector(weightedValues[active]), lerp([130, 320, 510][active], 320, progress), lerp(276, 373, progress), 181, active === 2 ? rust : teal);
@@ -145,7 +216,7 @@ export function createInterpretationScenes({m, line, rect, C}) {
     return out;
   }
   function compareTerms() {
-    let out = label('Mixing weight', 235, 60, 25, blue)
+    let out = label('Mean source weight', 235, 60, 23, blue)
       + label('Signed logit term', 481, 60, 25, ink)
       + math('\\alpha', 235, 93, 170, 54, 25, blue) + math('\\alpha\\,(v\\beta)', 481, 93, 220, 54, 25, ink);
     negative.tokens.forEach((token, j) => {
@@ -172,7 +243,7 @@ export function createInterpretationScenes({m, line, rect, C}) {
     model.weights.forEach((weight, j) => {
       out += label(percent(weight), [130, 320, 510][j], 201, 35, blue);
     });
-    out += label('Exactly the same keys and attention weights.', 320, 250, 24, blue)
+    out += label('Same matrix A; same mean source weights.', 320, 250, 24, blue)
       + math(`v_{\\mathrm{${changed ? 'great' : 'awful'}}}=${texVector(model.values[2])}`, 320, 299, 550, 64, 29, changed ? teal : rust)
       + math(`h=${texVector(model.output)},\\quad z=${texNumber(model.logit)}`, 320, 355, 610, 64, 27, ink)
       + probabilityBar(model, 435);
@@ -180,7 +251,7 @@ export function createInterpretationScenes({m, line, rect, C}) {
   }
   function removeSource(t) {
     const changed = t >= .5;
-    let out = label('Deleting film makes the weights rebalance.', 320, 46, 25, muted)
+    let out = label('Delete film, renormalize, then pool again.', 320, 46, 25, muted)
       + label('Original', 246, 105, 26, blue)
       + label('After deletion', 493, 105, 26, changed ? rust : muted);
     negative.tokens.forEach((token, j) => {
@@ -214,45 +285,70 @@ export function createInterpretationScenes({m, line, rect, C}) {
       + label(second, 61, y + 117, 22, muted, 'start')).join('');
   }
   return [
-    {part: '01 · From attention to a prediction', label: 'Start with the output', title: 'Attention gives a vector.',
-      caption: 'For “film was awful,” attention combines information into a summary vector. A separate readout turns that vector into a sentiment prediction.',
-      equation: 'h=\\sum_j\\alpha_j v_j',
-      detail: 'All numbers are constructed for teaching. This toy uses one fixed summary query, attention pooling, and a linear readout. It has no later layers.',
-      visual: 'The two coordinates are model features, not probabilities or named human concepts.', draw: outputVector},
-    {part: '01 · From attention to a prediction', label: 'Three roles', title: 'Match sources. Carry information.',
-      caption: 'The query and keys determine the mixing weights. Each source also supplies a value vector: the information that receives that weight.',
-      equation: '\\alpha_j=\\operatorname{softmax}_j(qk_j)',
-      detail: 'Our query/key dimension is one. Choose q = 1 and keys log(.6), log(.3), log(.1). In a trained model, learned maps construct these quantities. <a href="https://arxiv.org/html/1706.03762v7#S3.SS2">Mechanism: Vaswani et al.</a>',
-      visual: 'One query gives a distribution over three source positions. Values are separate vectors.', draw: roles},
-    {part: '01 · From attention to a prediction', label: 'Combine the values', title: 'Multiply, then add.',
-      caption: 'Multiply each value vector by its attention weight, then add the vectors. Both coordinates participate in the mixture.',
-      equation: 'h=.60v_{\\mathrm{film}}+.30v_{\\mathrm{was}}+.10v_{\\mathrm{awful}}',
-      detail: 'The weights sum to one. A weight of .60 scales a vector; it does not mean “60% of the reason for the classification.”',
-      visual: 'The output is [−0.74, 2.90]. The next step specifies how the classifier reads those features.', draw: mixture},
-    {part: '01 · From attention to a prediction', label: 'Read the representation', title: 'The readout supplies the meaning.',
-      caption: 'This classifier reads the first coordinate and ignores the second. Its logit is −0.74; applying the sigmoid gives a 32.3% positive probability.',
+    {id: 'matrix', part: '01 · The attention matrix', label: '', title: 'Start with the attention matrix.',
+      caption: 'Rows are destination tokens. Columns are source tokens. Each destination has its own row of weights.',
+      equation: 'A=(a_{ij})',
+      detail: 'One self-attention head, one layer, one input. The numbers in this example are constructed.',
+      visual: 'The same tokens label both axes; the two axes have different roles.', draw: attentionMatrix},
+    {id: 'entry', part: '01 · The attention matrix', label: '', title: 'Read one entry.',
+      caption: 'This entry is the weight “film” gives “was.” Information travels from the source column to the destination row.',
+      equation: 'a_{12}=0.15',
+      detail: 'The first index identifies the destination; the second identifies the source.',
+      visual: 'Source: was. Destination: film.', draw: oneEntry},
+    {id: 'row', part: '01 · The attention matrix', label: '', title: 'Read one row.',
+      caption: '“Film” gives 80% of its weight to itself, 15% to “was,” and 5% to “awful.”',
+      equation: 'a_{ij}\\geq0,\\qquad\\sum_j a_{ij}=1',
+      detail: 'Each row sums to one. Columns need not sum to one, and the matrix need not be symmetric.',
+      visual: 'These are mixing weights, not probabilities that a word is important.', draw: oneRow},
+    {id: 'values', part: '02 · What the matrix does', label: '', title: 'Each source supplies a vector.',
+      caption: 'The weights multiply value vectors: one row of features for each source token.',
+      equation: 'V=\\begin{bmatrix}v_1\\\\v_2\\\\v_3\\end{bmatrix}',
+      detail: 'Our values have two coordinates. A weight scales both coordinates of its source vector.',
+      visual: 'Values carry information; attention weights determine how it is mixed.', draw: sourceValues},
+    {id: 'mixture', part: '02 · What the matrix does', label: '', title: 'One row makes one output.',
+      caption: 'Multiply each source value by the weight in the “film” row, then add. The result stays at the “film” position.',
+      equation: 'y_1=.80v_1+.15v_2+.05v_3',
+      detail: 'Each destination uses its own attention row to combine the same source values.',
+      visual: 'The output at film is [−0.32, 3.45]. It is a feature vector, not a class probability.', draw: mixture},
+    {id: 'outputs', part: '02 · What the matrix does', label: '', title: 'Every token gets an output.',
+      caption: 'Repeat with every row of A. Matrix multiplication collects the output vectors into Y.',
+      equation: '\\underbrace{A}_{3\\times3}\\underbrace{V}_{3\\times2}=\\underbrace{Y}_{3\\times2}',
+      detail: 'In a transformer, these rows feed into representation updates and subsequent processing.',
+      visual: 'A is the matrix of weights. Y is the matrix of attention outputs.', draw: allOutputs},
+    {id: 'roles', part: '02 · What the matrix does', label: '', title: 'Where do the weights come from?',
+      caption: 'Queries and keys determine A by matching destinations to sources. Values supply the information that A combines.',
+      equation: 'A=\\operatorname{softmax}_{\\mathrm{row}}(QK^\\top/\\sqrt{d_k})',
+      detail: 'Learned projections produce Q, K and V from the input. The full calculation follows later.',
+      visual: 'Matching produces the weights; multiplying by V produces the outputs.', draw: roles},
+    {id: 'pooling', part: '03 · From outputs to a prediction', label: '', title: 'Make a sentence summary.',
+      caption: 'For this classifier, average the three output vectors. Call this sentence summary h.',
+      equation: 'h=\\frac13(y_1+y_2+y_3)',
+      detail: 'Mean pooling is our chosen readout design; attention itself returns all three rows of Y.',
+      visual: 'Y supplies the token outputs. Their mean h goes to the classifier.', draw: poolOutputs},
+    {id: 'readout', part: '03 · From outputs to a prediction', label: '', title: 'The classifier reads h.',
+      caption: 'This classifier reads the first feature of h. Its score is −0.74; the sigmoid converts that score to a probability.',
       equation: 'z=h\\beta,\\quad\\beta=[1,0]^{\\mathsf T},\\quad p=\\sigma(z)',
-      detail: 'The intercept is zero. This exact linear readout is a teaching simplification; later layers, residual paths, and nonlinearities complicate a full transformer.',
-      visual: 'A vector, a logit, and a probability are three different objects.', draw: readout},
-    {part: '02 · What can we interpret?', label: 'A weight is only part of the calculation', title: 'Trace the signed terms.',
-      caption: '“Film” receives most attention. “Awful” supplies the largest negative term in the logit. Each term depends on the weight, the value, and the readout.',
-      equation: 'c_j=\\alpha_j(v_j\\beta),\\qquad z=\\sum_jc_j',
-      detail: 'These are exact forward-pass logit terms for this toy, not removal effects or additive probability contributions. <a href="https://aclanthology.org/2020.emnlp-main.574/">Why values matter: Kobayashi et al.</a>',
-      visual: 'Mixing weights are nonnegative. Logit terms can be positive, zero, or negative.', draw: compareTerms},
-    {part: '02 · What can we interpret?', label: 'Keep the attention map fixed', title: 'The same weights. A different prediction.',
-      caption: 'In this toy, “awful” and “great” share a key but carry different values. Replacing one with the other preserves attention and changes the prediction.',
-      equation: '\\alpha=[.60,.30,.10]\\quad\\text{in both reviews}',
-      detail: 'The probability changes from 32.3% to 70.3%. This is a constructed counterexample, not an empirical statement about a trained sentiment model.',
-      visual: 'Scroll between the two complete states; scrolling back restores the original review.', draw: sameWeights, discretePhases: true},
-    {part: '02 · What can we interpret?', label: 'Intervene and recompute', title: 'Deletion asks a different question.',
-      caption: 'Deleting “film” makes the surviving weights .75 and .25. The logit becomes −2.00, even though its original direct term was only +.06.',
+      detail: 'The intercept is zero. This toy uses one attention head, mean pooling and a linear readout, with no later layers.',
+      visual: 'Token outputs → sentence summary → class score → class probability.', draw: readout},
+    {id: 'terms', part: '04 · Interpreting attention', label: '', title: 'A large weight is not a large contribution.',
+      caption: 'Averaging the outputs also averages the attention rows. “Film” has the largest mean weight; “awful” contributes most to the negative score.',
+      equation: '\\alpha_j=\\tfrac13\\sum_i a_{ij},\\quad c_j=\\alpha_j(v_j\\beta)',
+      detail: 'The signed terms sum to the logit, not the probability. They are not deletion effects. <a href="https://aclanthology.org/2020.emnlp-main.574/">Kobayashi et al.</a>',
+      visual: 'α is computed by averaging across destinations, rather than selecting a destination row.', draw: compareTerms},
+    {id: 'substitution', part: '04 · Interpreting attention', label: '', title: 'Same attention. Different prediction.',
+      caption: 'Replace “awful” with “great.” Our construction keeps queries and keys fixed but changes the last value vector.',
+      equation: 'A_{\\mathrm{awful}}=A_{\\mathrm{great}}',
+      detail: 'The positive probability changes from 32.3% to 70.3%. A trained model may change queries and keys too.',
+      visual: 'The entire attention matrix is unchanged; the information it combines changes.', draw: sameWeights, discretePhases: true},
+    {id: 'deletion', part: '04 · Interpreting attention', label: '', title: 'Delete a token and recompute.',
+      caption: 'Removing “film” removes its row and column. Renormalize the remaining rows, combine values, and pool again.',
       equation: 'z_{\\mathrm{delete\\ film}}=-2.00',
-      detail: 'Here deletion changes the logit by −1.26. The query and remaining values stay fixed in this toy; a full model can change those too. A direct term is not the whole effect of an edit.',
-      visual: 'First inspect the original calculation; then recompute after removing the source.', draw: removeSource, discretePhases: true},
-    {part: '02 · What can we interpret?', label: 'Use the right evidence', title: 'Inspect, then test.',
-      caption: 'Use attention to inspect information flow. To explain a prediction, also test input edits or use an output-attribution method. State exactly which quantity you are explaining.',
+      detail: 'The logit changes by −1.26, not −.06. Remaining Q/K/V vectors stay fixed in this toy; a deeper model can change them too.',
+      visual: 'The table shows mean source weights before and after deletion.', draw: removeSource, discretePhases: true},
+    {id: 'uses', part: '04 · Interpreting attention', label: '', title: 'Inspect, then test.',
+      caption: 'Use attention to inspect information flow. Test input edits or output attributions to investigate a prediction.',
       equation: '\\text{mixing weight}\\;\\ne\\;\\text{prediction change}',
-      detail: 'Integrated Gradients explains a score difference relative to a baseline. Attention may be informative when validated; it is not automatically an explanation. <a href="https://proceedings.mlr.press/v70/sundararajan17a.html">Integrated Gradients</a> · <a href="https://aclanthology.org/D19-1002/">Attention and explanation</a> · <a href="https://arxiv.org/html/2505.09861v3">LiDDA v3, §§2.1/2.4</a>. The case below separates credit allocation from incremental impact.',
-      visual: 'A useful attention pattern is a starting point for a precise, testable claim.', draw: useAttention},
+      detail: '<a href="https://proceedings.mlr.press/v70/sundararajan17a.html">Integrated Gradients</a> · <a href="https://aclanthology.org/D19-1002/">Attention and explanation</a> · <a href="https://arxiv.org/html/2505.09861v3">LiDDA</a>',
+      visual: 'Identify the head, layer, destination and output you are explaining.', draw: useAttention},
   ];
 }
