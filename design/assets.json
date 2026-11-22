@@ -143,6 +143,13 @@
       "usage": "Current opening title scene. Preserve the complete raft, rear paddlewheel, boat name, dancing crowd and white background; keep title and equations as real HTML text.",
       "reference": "Edited from ss-attention-sternwheel.png to add a formal dance on the passenger deck while preserving the raft and sternwheel scene.",
       "created_with": "Built-in image generation tool."
+    },
+    {
+      "path": "docs/tabular-foundation-models/assets/learning-tables.png",
+      "role": "tabular-foundation-models-title-illustration",
+      "description": "Two round torso-less figures feed small tables into a hand-cranked machine and receive another table. Sparse black outlines on white.",
+      "sha256": "423ff4bec57e2a4220e35518fcd69cf3dbb836adc797063fab11f854e76abd47",
+      "usage": "Opening title scene. Preserve the full composition and proportions; title and mathematical explanations remain real text."
     }
   ]
 }

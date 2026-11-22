@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import {scenes,sources} from './scenes.mjs';
+const context={module:{exports:{}},exports:{}};
+vm.runInNewContext(fs.readFileSync(new URL('./vendor/katex/katex.min.js',import.meta.url),'utf8'),context);
+const katex=context.module.exports;
+const esc=s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+const content=scenes.map((s,i)=>`<section class="reading-section" id="scene-${i+1}"><p class="eyebrow">${s.chapter}</p><h2>${s.title}</h2><p>${s.body}</p><p>${s.reading}</p><div class="reading-equation">${katex.renderToString(s.equation,{displayMode:true,throwOnError:true,output:'htmlAndMathml'})}</div><p class="reading-note">${s.note}</p><a href="index.html#scene-${i+1}">View the animated scene</a></section>`).join('\n');
+const html=`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tabular Foundation Models · Reading version</title><link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="style.css"></head><body><header class="masthead"><a href="index.html">Interactive lesson</a><span>POLS 4728</span><a href="#sources">Sources</a></header><main class="reading-main"><p class="eyebrow">Complete reading version</p><h1>Tabular foundation models</h1><p>Following <a href="https://tabularfoundationmodels.com/">Christoph Molnar’s book</a>. This lesson focuses on PFN-style models, with an original two-world Bayesian example. No running TabPFN is used in the illustrations.</p>${content}<section class="reading-section" id="sources"><h2>Sources</h2><ol>${sources.map(s=>`<li><a href="${s.url}">${esc(s.title)}</a><p>${s.note}</p></li>`).join('')}</ol></section></main></body></html>`;
+fs.writeFileSync(new URL('./reading.html',import.meta.url),html);
+console.log(`Built static reading version with ${scenes.length} complete scenes; all equations rendered.`);
