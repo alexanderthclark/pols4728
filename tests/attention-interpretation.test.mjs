@@ -6,8 +6,27 @@ import {createInterpretationScenes} from '../docs/attention/interpretation-scene
 const close = (actual, expected, tolerance = 1e-12) => assert.ok(Math.abs(actual - expected) < tolerance,
   `expected ${actual} to equal ${expected} within ${tolerance}`);
 
-test('constructed keys realize the displayed weights and two-coordinate output', () => {
+test('constructed queries and keys realize all displayed attention rows', () => {
   const model = attentionInterpretation();
+  const expected = [[.80, .15, .05], [.60, .30, .10], [.40, .45, .15]];
+  assert.deepEqual(model.queries, [[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
+  expected.forEach((row, i) => {
+    row.forEach((weight, j) => {
+      close(model.attentionMatrix[i][j], weight);
+      close(model.scores[i][j], Math.log(weight));
+      assert.ok(model.attentionMatrix[i][j] > 0);
+    });
+    close(model.attentionMatrix[i].reduce((sum, weight) => sum + weight, 0), 1);
+  });
+  assert.notEqual(model.attentionMatrix[0][1], model.attentionMatrix[1][0]);
+  close(model.attentionMatrix.reduce((sum, row) => sum + row[0], 0), 1.8);
+});
+
+test('each token gets its own output and mean pooling yields the displayed summary', () => {
+  const model = attentionInterpretation();
+  const expectedOutputs = [[-.32, 3.45], [-.74, 2.90], [-1.16, 2.35]];
+  expectedOutputs.forEach((row, i) => row.forEach((value, coordinate) =>
+    close(model.outputs[i][coordinate], value)));
   [.6, .3, .1].forEach((weight, j) => close(model.weights[j], weight));
   close(model.weights.reduce((sum, weight) => sum + weight, 0), 1);
   close(model.output[0], -.74);
@@ -24,11 +43,17 @@ test('logit terms sum to the score but the largest weight is not its largest sig
   assert.equal(model.tokens[model.contributions.indexOf(Math.min(...model.contributions))], 'awful');
 });
 
-test('changing the last value preserves keys and weights while reversing the predicted class', () => {
+test('changing the last value preserves queries, keys and attention while reversing the predicted class', () => {
   const negative = attentionInterpretation();
   const positive = attentionInterpretation({tone: 'great'});
+  assert.deepEqual(positive.queries, negative.queries);
   assert.deepEqual(positive.keys, negative.keys);
+  assert.deepEqual(positive.scores, negative.scores);
+  assert.deepEqual(positive.attentionMatrix, negative.attentionMatrix);
   assert.deepEqual(positive.weights, negative.weights);
+  assert.deepEqual(positive.readout, negative.readout);
+  assert.deepEqual(negative.projections, [.1, 0, -8]);
+  assert.deepEqual(positive.projections, [.1, 0, 8]);
   close(positive.output[0], .86);
   close(positive.output[1], 2.9);
   close(positive.logit, .86);
@@ -36,26 +61,48 @@ test('changing the last value preserves keys and weights while reversing the pre
   assert.ok(negative.probability < .5 && positive.probability > .5);
 });
 
-test('deletion recomputes the mixture instead of just subtracting a direct term', () => {
+test('deletion removes the destination row and source column before renormalizing and pooling', () => {
   const result = deletionExperiment();
   assert.deepEqual(result.deleted.tokens, ['was', 'awful']);
+  assert.equal(result.deleted.attentionMatrix.length, 2);
+  result.deleted.attentionMatrix.forEach(row => {
+    assert.equal(row.length, 2);
+    [.75, .25].forEach((weight, j) => close(row[j], weight));
+  });
+  result.deleted.outputs.forEach(row => {
+    close(row[0], -2);
+    close(row[1], 1.25);
+  });
   [.75, .25].forEach((weight, j) => close(result.deleted.weights[j], weight));
+  close(result.deleted.output[0], -2);
+  close(result.deleted.output[1], 1.25);
   close(result.deleted.logit, -2);
   close(result.originalTerm, .06);
   close(result.logitChange, -1.26);
   assert.notEqual(result.logitChange, -result.originalTerm);
+  assert.deepEqual(result.deleted.queries, [[0, 1, 0], [0, 0, 1]]);
   assert.deepEqual(result.deleted.keys, result.original.keys.slice(1));
   assert.deepEqual(result.deleted.values, result.original.values.slice(1));
+  assert.deepEqual(result.deleted.scores, result.original.scores.slice(1).map(row => row.slice(1)));
 });
 
-test('all eight scenes render deterministically, including reversible discrete comparisons', () => {
+test('all thirteen scenes render deterministically, including reversible discrete comparisons', () => {
   const colors = {blue: '#234e70', rust: '#a54f32', teal: '#007f73', ink: '#242424', muted: '#606060', rule: '#dededb'};
   const drawing = {C: colors,
     m: (tex, ...args) => `<math data-tex="${tex}" data-args="${args.join(',')}"/>`,
     line: (...args) => `<line data-args="${args.join(',')}"/>`,
     rect: (...args) => `<rect data-args="${args.join(',')}"/>`};
   const scenes = createInterpretationScenes(drawing);
-  assert.equal(scenes.length, 8);
+  assert.equal(scenes.length, 13);
+  assert.deepEqual(scenes.map(scene => scene.id), [
+    'matrix', 'entry', 'row', 'values', 'mixture', 'outputs', 'roles',
+    'pooling', 'readout', 'terms', 'substitution', 'deletion', 'uses',
+  ]);
+  const sceneById = id => {
+    const scene = scenes.find(candidate => candidate.id === id);
+    assert.ok(scene, `missing scene ${id}`);
+    return scene;
+  };
   for (const scene of scenes) {
     const initial = scene.draw(.1);
     assert.match(initial, /interpretation-label/);
@@ -63,11 +110,14 @@ test('all eight scenes render deterministically, including reversible discrete c
     scene.draw(.9);
     assert.equal(scene.draw(.1), initial);
   }
-  assert.match(scenes[5].draw(.1), /32\.3\\%/);
-  assert.match(scenes[5].draw(.9), /70\.3\\%/);
-  assert.match(scenes[6].draw(.9), /−2\.00/);
-  for (const index of [0, 2, 3]) assert.notEqual(scenes[index].draw(.1), scenes[index].draw(.9));
-  assert.match(scenes[2].draw(.5), /h_\{\\mathrm\{partial\}\}/);
-  assert.match(scenes[2].draw(1), /h=\\left\[-0\.74,\\;2\.90\\right\]/);
-  assert.match(scenes[3].draw(1), /32\.3\\%/);
+  assert.match(sceneById('substitution').draw(.1), /32\.3\\%/);
+  assert.match(sceneById('substitution').draw(.9), /70\.3\\%/);
+  assert.match(sceneById('deletion').draw(.9), /−2\.00/);
+  for (const id of ['mixture', 'readout']) {
+    assert.notEqual(sceneById(id).draw(.1), sceneById(id).draw(.9));
+  }
+  assert.match(sceneById('mixture').draw(.5), /y_\{1,\\mathrm\{partial\}\}/);
+  assert.match(sceneById('mixture').draw(1), /y_1=\\left\[-0\.32,\\;3\.45\\right\]/);
+  assert.match(sceneById('readout').draw(1), /32\.3\\%/);
 });
+
