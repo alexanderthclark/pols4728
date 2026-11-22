@@ -5,18 +5,28 @@ The course homepage links to the lesson. Local fonts and KaTeX require no CDN.
 
 ## Scope and convention
 
-The first thirteen scroll-driven scenes start with the complete attention matrix,
-then read one entry and one destination row. Source value vectors are combined
-into one output row per token, Y=AV. Queries and keys explain where the matrix
-comes from. Mean pooling then supplies the sentence summary h, immediately
-before the linear classifier reads it. The effective source weights after
-pooling are compared with signed logit terms. The example holds attention fixed
-while changing a value, then removes a token and recomputes attention and pooling
-to distinguish a forward-pass term from an edit effect.
-An application guide covers text perturbations, attribution methods, and LiDDA.
-All core teaching points are reachable by scrolling, with no required controls.
+The eight-scene main story starts with a sentiment encoder and the residual stream, using
+these two reviews as the task:
 
-The original twenty scroll-driven scenes follow as a complete worked calculation.
+- “Good and Infinite Jest don't belong in the same sentence”
+- “Infinite Jest wasn't just good. It was spectacular.”
+
+Their negative and positive labels are intended readings, not measured model
+predictions. The opening traces token representations through residual attention
+and MLP updates into a final sentence readout. It then extracts the attention
+matrix from one head, reads a source/destination entry, combines a row of value
+vectors, and returns the projected output to the residual stream. The matrix is
+symbolic; highlighted entries do not assert learned weight magnitudes. For
+legibility the first sentence is shown as ten word-level units, with an explicit
+note that an actual tokenizer may split them further.
+
+The earlier thirteen-scene numerical classifier remains in an optional appendix.
+It starts from a complete three-by-three matrix, computes Y=AV, mean-pools the
+output rows into h, and applies a linear readout. This separate constructed
+example omits residual paths and MLPs; h is not the final residual state in the
+main architecture. Its interpretation comparisons and exact arithmetic remain.
+
+The original twenty scroll-driven scenes remain in a second, closed appendix.
 The first thirteen
 establish the target, show why identity pooling loses order, add explicit position,
 and motivate a chosen retrieval: shoes looks for socks and reads their position.
@@ -34,7 +44,7 @@ V = X WV; Y = A V. A's rows are destinations and columns are sources.
 For a representation update, deltaX = Y WO and X′ = X + deltaX. This update
 illustration does not replace the original task's Y-based readout. The later
 causal example changes the information available, and does not retain the
-original task's target-score claim. No general transformer architecture is taught.
+original task's target-score claim. The new opening locates attention in a simplified encoder block; the separate residual-stream lesson treats the architecture in more detail.
 
 Primary reference: Elhage et al. (2021), A Mathematical Framework for Transformer
 Circuits. Secondary: Prince, Understanding Deep Learning, chapter 12 §§12.2–12.3.
@@ -116,8 +126,11 @@ The current site does not run that checkpoint or claim measurements from it.
 
 ## Implementation and checking
 
-`app.mjs` initializes two pinned stories: `interpretation-scenes.mjs` first,
-then the original `socks-scenes.mjs` and `extension-scenes.mjs`. It derives
+`app.mjs` initializes three pinned stories: `sentence-scenes.mjs` is the default
+route; `interpretation-scenes.mjs` supplies the numerical appendix; and the
+original `socks-scenes.mjs` plus `extension-scenes.mjs` supply the earlier
+worked-example appendix. Hash navigation opens the appropriate appendix, and
+opening or closing an appendix updates the scroll layout. It derives
 scene state directly from native scroll position. There are no
 autoplay timers or required clicks. Reversing the scroll restores earlier states.
 Mathematics uses self-hosted KaTeX with MathML output, including SVG labels.
@@ -132,12 +145,13 @@ Run:
 
 ```sh
 node --check docs/attention/app.mjs
+node --check docs/attention/sentence-scenes.mjs
 node --check docs/attention/socks-model.mjs
 node --check docs/attention/socks-scenes.mjs
 node --check docs/attention/extension-scenes.mjs
 node --check docs/attention/interpretation-model.mjs
 node --check docs/attention/interpretation-scenes.mjs
-node --test tests/attention-layer.test.mjs tests/attention-socks.test.mjs tests/attention-interpretation.test.mjs
+node --test tests/attention-layer.test.mjs tests/attention-socks.test.mjs tests/attention-interpretation.test.mjs tests/attention-sentences.test.mjs
 ```
 
 Six tests independently check the known numeric projections and mixtures,
@@ -149,7 +163,9 @@ Six interpretation tests cover all three attention and output rows, row
 normalization and asymmetry, mean pooling and effective source weights, signed
 logit terms, fixed Q/K under value substitution, full row-and-column deletion,
 and deterministic rendering of the thirteen scenes. These three suites contain
-nineteen tests in total.
+nineteen tests in total. Three more tests check the exact sentences and complete
+word sequence, the residual/readout structure, and strict math plus reversible
+rendering for the eight new scenes: twenty-two tests overall.
 
 Manual review includes forward/backward native scrolling, narrow/mobile layout,
 PageUp/PageDown navigation, the reading link, all lesson scenes, math rendering, and
