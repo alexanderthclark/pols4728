@@ -5,6 +5,11 @@ The course homepage links to the lesson. Local fonts and KaTeX require no CDN.
 
 ## Scope and convention
 
+The bare lesson URL starts directly on the titled, pinned model diagram: the
+complete residual stream and a symbolic ten-by-ten attention-matrix inset are
+visible together before scrolling. The former full-screen illustration remains
+available in a closed optional section after the main story. This opening gives
+the user's requested architecture priority over the usual illustrated title scene.
 The eight-scene main story starts with a sentiment encoder and the residual stream, using
 these two reviews as the task:
 
@@ -13,7 +18,8 @@ these two reviews as the task:
 
 Their negative and positive labels are intended readings, not measured model
 predictions. The opening traces token representations through residual attention
-and MLP updates into a final sentence readout. It then extracts the attention
+and MLP updates into a final sentence readout. Its uniform, empty matrix cells
+identify the matrix's dimensions; they do not encode fitted weights. It then extracts the attention
 matrix from one head, reads a source/destination entry, combines a row of value
 vectors, and returns the projected output to the residual stream. The matrix is
 symbolic; highlighted entries do not assert learned weight magnitudes. For

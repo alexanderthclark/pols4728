@@ -37,11 +37,13 @@ export function createSentenceScenes({m, line, rect, C}) {
     let out=path(`M${sx} 492V360`,blue,3)+path(`M${sx} 336V225`,blue,3)+path(`M${sx} 201V110`,blue,3)
       +path(`M${sx} 449H190V432`,teal)+path(`M190 358V348H${sx-13}`,teal)
       +path(`M${sx} 315H190V295`,rust)+path(`M190 236V213H${sx-13}`,rust)
-      +box(73,358,235,74,teal,'#edf7f4',1.8)+box(73,236,235,59,rust,'#faf0eb',1.8)
+      +box(18,358,290,74,teal,'#edf7f4',1.8)+box(73,236,235,59,rust,'#faf0eb',1.8)
       +label('MLP',190,258,27,rust)+label('shared across tokens',190,283,19,muted)
       +join(sx,348,teal)+join(sx,213,rust)+label('Residual stream',432,386,25,blue,'start');
     out+=writeUpdate?math('YW_O',190,395,217,66,34,teal)+math('\\Delta X',334,324,125,47,25,teal)
-      :label('Attention',190,387,28,teal)+label('one head shown',190,415,20,teal);
+      :label('Attention',112,386,28,teal)+label('one head shown',112,414,20,teal)
+        +'<g class="attention-matrix-inset" aria-label="Symbolic ten by ten attention matrix A">'
+        +featureMatrix(212,370,10,10,teal,4,1)+math('A',284,396,45,49,30,teal)+'</g>';
     for(const y of [450,260,125])out+=box(sx-25,y-5,51,81,blue,'#fff')+featureMatrix(sx-19,y,10,5,blue,5,2);
     out+=math('X_0',491,479,100,53,30,blue)+math('X_1',491,294,100,53,30,blue)+math('X_2',491,158,100,53,30,blue)
       +label('Embeddings + positions',251,519,25,blue)+box(291,43,260,67,blue,'#fff')
@@ -62,7 +64,7 @@ export function createSentenceScenes({m, line, rect, C}) {
       +label('Intended reading: positive',62,394,22,teal,'start')+label('The surrounding phrase changes the reading.',320,489,25,muted);
   }
   function expandedHead(t=1) {
-    const p=ease(t),x=lerp(73,197,p),y=lerp(358,86,p),w=lerp(235,405,p),h=lerp(74,385,p);
+    const p=ease(t),x=lerp(18,197,p),y=lerp(358,86,p),w=lerp(290,405,p),h=lerp(74,385,p);
     let out=box(x,y,w,h,teal,'#fff',2)+label(p<.45?'Attention':'One attention head',x+w/2,y+35,28,teal);
     if(p>.35)out+=opacity((p-.35)/.65,math('A',286,157,100,51,32,teal)+featureMatrix(236,180,10,10,teal,8,2)
       +math('\\times',374,228,54,55,35)+math('V',491,157,100,51,32,blue)+featureMatrix(461,180,10,6,blue,8,2)
@@ -114,8 +116,8 @@ export function createSentenceScenes({m, line, rect, C}) {
     {id:'sentence-stream',part:'01 · From a sentence to a score',label:'',title:'Follow the residual stream.',
       caption:'Each token carries a row of features. Attention and an MLP add updates; a readout scores the final sentence.',
       equation:'r=\\frac1T\\sum_i(X_2)_i,\\qquad z=b+r\\beta',
-      detail:'One encoder block; one head shown. Normalization omitted. Readings are labels, not model outputs.',
-      visual:'Blue carries token representations. Attention and the MLP add updates to that stream.',quotes:SENTENCE_EXAMPLES,draw:architecture},
+      detail:'One encoder block; one head shown. Normalization omitted. A is symbolic, with no measured weights. Readings are labels, not model outputs.',
+      visual:'The attention matrix A sits on the branch that adds an update to the blue residual stream.',quotes:SENTENCE_EXAMPLES,draw:architecture},
     {id:'sentence-contrast',part:'01 · From a sentence to a score',label:'',title:'“Good” is not enough.',
       caption:'The first sentence rejects “good”; the second says “better than good.” Negation changes meaning through its surrounding phrase.',
       equation:'z=f(\\text{whole sentence})',detail:'The task is sentiment toward Infinite Jest. These qualitative readings are not outputs from a fitted model.',

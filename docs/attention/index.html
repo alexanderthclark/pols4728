@@ -4,22 +4,17 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Attention — How tokens share information · POLS 4728</title>
 <meta name="description" content="Compare two reviews of Infinite Jest, follow the residual stream to a sentiment score, and open one attention head to examine its matrix and token updates.">
-<link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="style.css">
-<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs?v=attention-sentences-1"></script>
+<link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="style.css?v=attention-stream-opening-2">
+<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs?v=attention-stream-opening-2"></script>
 </head>
 <body>
 <a class="skip" href="#reading">Skip to the reading version</a>
-<header><a href="https://alexanderthclark.github.io/pols4728/">POLS 4728</a><span>Machine learning for political science</span><a href="#using-attention">Using attention</a><a href="#references">Sources</a></header>
 <main>
-<section class="hero" aria-labelledby="title">
-<div class="hero-copy"><h1 id="title">Attention</h1><p class="subtitle">From a sentence to a sentiment score.</p><a class="begin" href="#story">Follow the model</a></div>
-<figure class="hero-art"><img src="assets/attention-crowd-loudspeaker.png" width="1536" height="1024" alt="A crowd of round figures holds phones beneath a loudspeaker. Most look up attentively; four keep staring down at their phones with slack, blank expressions."></figure>
-
-</section>
 <section id="story" class="story sentence-story" aria-label="From a sentiment model through the residual stream into attention">
 <div class="stage">
 <div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
-<div class="stage-top"><a href="#title">Attention</a><span id="chapter">From a sentence to a score</span><span id="counter"></span></div>
+<header class="lesson-header"><a href="https://alexanderthclark.github.io/pols4728/">POLS 4728</a><span>Machine learning for political science</span><a href="#using-attention">Using attention</a><a href="#references">Sources</a></header>
+<div class="stage-top lesson-heading"><h1 id="title">Attention</h1><span id="chapter">From a sentence to a score</span><span id="counter"></span></div>
 <div class="scene-layout">
 <div class="narration" id="narration"><p class="eyebrow" id="scene-label"></p><h2 id="scene-title"></h2><p id="caption"></p><div id="examples" class="sentence-examples" hidden></div><div id="equation" class="equation"></div><p id="detail" class="detail"></p></div>
 <figure class="visual"><svg id="diagram" viewBox="0 0 640 540" role="img" aria-label="Attention calculation"></svg><figcaption id="visual-caption"></figcaption></figure>
@@ -27,6 +22,12 @@
 <div class="stage-bottom"><span>Schematic encoder · normalization omitted</span></div>
 </div>
 </section>
+<details class="worked-appendix artwork-appendix"><summary>The attention illustration</summary>
+<section class="hero" aria-label="The attention illustration">
+<div class="hero-copy"><p class="subtitle">From a sentence to a sentiment score.</p><a class="begin" href="#story">Follow the model</a></div>
+<figure class="hero-art"><img src="assets/attention-crowd-loudspeaker.png" width="1536" height="1024" loading="lazy" alt="A crowd of round figures holds phones beneath a loudspeaker. Most look up attentively; four keep staring down at their phones with slack, blank expressions."></figure>
+</section>
+</details>
 <details class="worked-appendix" id="numerical"><summary>A numerical example: attention, pooling, and classification</summary><p class="appendix-intro">This separate three-token model isolates the arithmetic. It has no residual path or MLP; its classifier reads the mean of the attention outputs directly.</p><section id="numerical-story" class="story numerical-story" aria-label="Thirteen scenes from the attention matrix to a prediction">
 <div class="stage">
 <div class="progress-track" aria-hidden="true"><div id="numerical-progress"></div></div>
