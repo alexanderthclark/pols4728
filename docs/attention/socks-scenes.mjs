@@ -97,24 +97,6 @@ export function createSocksScenes({m,text,line,rect,circle,C,ease,lerp,clamp,num
     out+=m(`${ev}+${pv<0?'('+pv+')':pv}=${xv}`,320,473,590,76,42,C.ink);
     return out;
   }
-  function retrievalGoal(t) {
-    const match=ease(clamp(t*2)),carry=ease(clamp(t*2-1));
-    let out=text('Choose the source and the information.',320,43,24,C.muted);
-    out+=icon('socks',155,201,110)+text('socks',155,292,27,blue);
-    out+=icon('shoes',485,201,110)+text('shoes',485,292,27,rust);
-    out+=text('Look for socks',485,109,24,rust);
-    out+=`<path d="M415 199H225" fill="none" stroke="${C.muted}" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrow)"/>`;
-    out+=circle(lerp(415,225,match),199,6,rust);
-    out+=text('match identity',320,163,22,C.muted);
-    out+=m('+1',155,377,160,70,40,blue);
-    out+=text('position it can supply',155,440,22,C.muted);
-    out+=m('?',485,377,160,70,40,rust);
-    out+=text('weighted result',485,440,22,C.muted);
-    out+=`<path d="M225 377H415" fill="none" stroke="${blue}" stroke-width="3" opacity="${.15+.6*carry}" marker-end="url(#arrow)"/>`;
-    out+=circle(lerp(225,415,carry),377,6,blue,`opacity="${carry}"`);
-    out+=text('Next, set how much each source contributes.',320,510,23,C.muted);
-    return out;
-  }
   function queriesKeys(t) {
     let out=text('A deliberate, simple choice of maps',320,45,24,C.muted);
     out+=m('W_Q='+array([[0],[1],[0]]),172,159,280,174,29,blue);
@@ -265,7 +247,6 @@ export function createSocksScenes({m,text,line,rect,circle,C,ease,lerp,clamp,num
     {part:'01 · Why order matters',label:'Begin with a small task',title:'Socks before shoes.',caption:'Give “socks, shoes” a score of zero and the reversed order a score of minus one. The items are identical; their order changes the target.',equation:'[\\text{socks},\\text{shoes}]\\;\\longmapsto\\;0',detail:'This is a deliberately small construction. We will choose every weight and compute every output; nothing here is a claim about a pretrained model.',visual:'Scroll to exchange the two items while their positions stay fixed.',draw:task},
     {id:'socks-lookup-pooling',part:'01 · Why order matters',label:'Averaging loses the distinction',title:'Transform the lookup embeddings so order survives mean pooling.',caption:'Represent socks and shoes with two identity coordinates. Averaging those vectors gives the same result in either order.',equation:'\\tfrac12\\bigl([1\\;0]+[0\\;1]\\bigr)=[\\tfrac12\\;\\tfrac12]',detail:'A model that sees only this average cannot give the two sequences different predictions.',visual:'The row vectors move with the tokens, but their mean stays fixed.',draw:identities},
     {part:'01 · Why order matters',label:'',title:'Let’s take one simple route.',caption:'Position vectors can be learned and added to token embeddings of the same width. Here, we choose fixed vectors that use the third coordinate.',equation:'X=E+P',detail:'Add matching entries. <span data-math="E"></span>, <span data-math="P"></span>, and <span data-math="X"></span> all have two rows and three columns. From here on, <span data-math="X"></span> includes position.',visual:'We’ll use this choice for the rest of the socks-and-shoes example.',draw:positionalRows,discretePhases:true},
-    {part:'02 · Construct one attention head',label:'Give the head a purpose',title:'What should shoes retrieve?',caption:'For our chosen solution, let shoes look for socks and read information about their position. Matching identifies the source; the value supplies the information to combine.',equation:'\\text{source}\\;\\longrightarrow\\;\\text{position}',detail:'This is the retrieval rule we want to implement. The next steps choose matrices and calculate how much each source contributes.',visual:'Identify socks, then use the position they carry. The weighted result is still to be calculated.',draw:retrievalGoal},
     {part:'02 · Construct one attention head',label:'Choose two feature maps',title:'Let shoes look for socks.',caption:'The query marks shoes as the destination asking for information. The key marks socks as the source to favor. Separate maps let us express this directed match.',equation:'Q=XW_Q,\\qquad K=XW_K',detail:'These shared maps implement our chosen rule. The factor <span data-math="\\log 3"></span> will give socks three times the weight of shoes. Training would learn the maps instead.',visual:'The query and key dimensions are both one in this example.',draw:queriesKeys},
     {part:'02 · Construct one attention head',label:'The shoes query compares both sources',title:'Compare the query with each key.',caption:'The shoes query is one. Its score against socks is log three; its score against shoes is zero.',equation:'s_{ij}=q_i k_j',detail:'The query/key dimension is one, so division by its square root changes nothing. No causal mask is used here.',visual:'The query belongs to the destination; each key belongs to a possible source.',draw:matching},
     {part:'02 · Construct one attention head',label:'Turn scores into weights',title:'Three parts socks, one part shoes.',caption:'Exponentiating the two scores gives three and one. Dividing by their total gives the shoes row weights of three quarters and one quarter.',equation:'\\operatorname{softmax}([\\log3\\;0])=[\\tfrac34\\;\\tfrac14]',detail:'The weights sum to one. They describe how much the shoes destination reads from each source.',visual:'The scroll shows exact scores, exponentials, and normalized weights in turn.',draw:softmax,discretePhases:true},
