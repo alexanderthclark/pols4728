@@ -1,4 +1,4 @@
-import {createIntuitionScenes} from './intuition-scenes.mjs?v=attention-initial-state-15';
+import {createIntuitionScenes} from './intuition-scenes.mjs?v=attention-context-16';
 import {createTrainedScenes} from './trained-scenes.mjs?v=attention-trained-model-6';
 import {buildExplorer} from './trained-explorer.mjs?v=attention-trained-model-5';
 import {createSocksScenes} from './socks-scenes.mjs?v=attention-notation-8';
@@ -62,6 +62,7 @@ function makeStory(id,prefix,scenes){
   story.dataset.hasQuotes=String(Boolean(s.quotes?.length));
   field('equation').innerHTML=tex(s.equation);
   field('detail').innerHTML=s.detail;
+  field('detail').hidden=!s.detail;
   renderMathNodes(field('detail'));
   field('visual-caption').textContent=s.visual;
   svg.setAttribute('aria-label',`${s.title} ${s.caption} ${s.visual}`);

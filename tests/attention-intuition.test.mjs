@@ -28,7 +28,6 @@ test('lookup identity is distinguished from position and schematic contextual up
   const lookup=scenes.find(scene=>scene.id==='desert-lookup');
   const context=scenes.find(scene=>scene.id==='desert-context');
   assert.match(lookup.detail,/full input rows can differ because position/);
-  assert.match(context.detail,/not measured attention weights/);
   assert.match(context.equation,/x_i\^\{\(1\)\}=x_i\^\{\(0\)\}\+\\Delta x_i/);
 });
 

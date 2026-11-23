@@ -175,7 +175,7 @@ export function createIntuitionScenes({m, line, rect, C}) {
     {id:'desert-context',part:'Before attention · Meaning in context',label:'',title:'Let the context change the representation.',
       caption:'A useful representation of “desert” should depend on its neighbors. Attention provides a way for other tokens to contribute information at that position.',
       equation:'x_i^{(1)}=x_i^{(0)}+\\Delta x_i',
-      detail:'The arrows illustrate useful context clues, not measured attention weights or proof that a model has learned these senses. The update shown is schematic; normalization is omitted.',
+      detail:'',
       visual:'Context can contribute different updates even when the token lookup vector is shared.',draw:contextUpdates},
     {id:'learned-maps',part:'Before attention · Parameters and calculations',label:'',title:'Learn the maps. Compute the attention.',
       caption:'The W matrices are learned parameters and stay fixed during inference. The attention weights in A are computed from the current token vectors; they are not learned parameters.',
