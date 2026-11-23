@@ -86,12 +86,51 @@ export function createIntuitionScenes({m, line, rect, C}) {
       out+=path(route,color)+dot(...pointOnPath(route,p),color)
         +`<circle cx="${x}" cy="335" r="12" fill="#fff" stroke="${color}" stroke-width="2"/>`
         +line(x-6,335,x+6,335,color,2)+line(x,329,x,341,color,2)
-        +label('context update',x,375,20,color)
+        +label('context update',x-80,365,17,color)
         +box(x-75,395,150,64,color,'#fff')+math(`x_${sub}^{(1)}`,x,427,142,50,32,color)
         +label('contextual state',x,493,22,muted);
     });
     return out;
   }
+
+  function learnedMaps(t) {
+    const learned=name=>`\\underbrace{\\color{${rust}}${name}}_{\\text{learned}}`;
+    let out=label('Fixed learned maps; calculations depend on the input.',320,28,23,ink)
+      +math(`Q=X${learned('W_Q')}`,167,103,296,112,30,blue)
+      +math(`K=X${learned('W_K')}`,473,103,296,112,30,blue);
+    const matching=[[[167,161],[272,188]],[[473,161],[368,188]]];
+    matching.forEach(route=>{out+=path(route,blue);if(t<.5)out+=dot(...pointOnPath(route,ease(t*2)),blue);});
+    out+=math('A(X)=\\operatorname{softmax}_{\\mathrm{rows}}\\!\\left(\\frac{QK^\\top}{\\sqrt{d_k}}\\right)',320,233,620,110,29,teal)
+      +label('Computed attention coefficients',320,294,23,teal)
+      +line(25,316,615,316,rule,1.3)
+      +math(`V=X${learned('W_V')}`,164,378,300,106,30,blue)
+      +math('A(X)',476,358,220,60,32,teal)
+      +label('computed above',476,402,20,muted);
+    const writes=[[[164,432],[258,450]],[[476,432],[382,450]]];
+    writes.forEach(route=>{out+=path(route,teal);if(t>=.5)out+=dot(...pointOnPath(route,ease((t-.5)*2)),teal);});
+    return out+math(`\\Delta X=A(X)V${learned('W_O')}`,320,492,620,90,31,teal);
+  }
+  function repeatedUpdates(t) {
+    const mlp=clamp(t)>=.5,local=mlp?(clamp(t)-.5)*2:clamp(t)*2;
+    const color=mlp?rust:teal;
+    let out=label(mlp?'MLP: transform each token row separately':'Attention: mix across token positions',320,32,26,color)
+      +label('Incoming rows',128,72,22,muted)+label('Updated rows',512,72,22,muted);
+    const ys=[115,185,255];
+    for(let i=0;i<3;i++)for(let j=0;j<3;j++)if(!mlp||i===j){
+      out+=path([[211,ys[j]],[429,ys[i]]],i===j?color:'#b8c4cb',i===j?1.8:1.2);
+    }
+    const destination=mlp?1:0,source=mlp?1:2;
+    out+=dot(lerp(211,429,ease(local)),lerp(ys[source],ys[destination],ease(local)),color);
+    ys.forEach((y,i)=>{
+      out+=box(45,y-25,166,50,blue,'#f5f8fb')+math(mlp?`x_${i+1}'`:`x_${i+1}`,128,y,154,49,31,blue)
+        +box(429,y-25,166,50,color,'#fff')+math(mlp?`x_${i+1}^{\\mathrm{next}}`:`x_${i+1}'`,512,y,154,49,31,color);
+    });
+    return out+math("X'=X+\\Delta_{\\mathrm{attn}}X",320,348,610,68,33,mlp?muted:teal)
+      +label('Add the attention update',320,393,22,mlp?muted:teal)
+      +math("X_{\\mathrm{next}}=X'+\\operatorname{MLP}(X')",320,454,620,75,31,mlp?rust:muted)
+      +label('Add the row-wise MLP update',320,510,22,mlp?rust:muted);
+  }
+
   return [
     {id:'desert-senses',part:'Before attention · Meaning in context',label:'',title:'The same word, used differently.',
       caption:'“Moral desert” concerns what someone deserves. A “taco bell desert” describes scarcity. The surrounding words tell us which use is intended.',
@@ -108,5 +147,15 @@ export function createIntuitionScenes({m, line, rect, C}) {
       equation:'x_i^{(1)}=x_i^{(0)}+\\Delta x_i',
       detail:'The arrows illustrate useful context clues, not measured attention weights or proof that a model has learned these senses. The update shown is schematic; normalization is omitted.',
       visual:'Context can contribute different updates even when the token lookup vector is shared.',draw:contextUpdates},
+    {id:'learned-maps',part:'Before attention · Parameters and calculations',label:'',title:'Learn the maps. Compute the attention.',
+      caption:'The W matrices are learned parameters and stay fixed during inference. The attention weights in A are computed from the current token vectors; they are not learned parameters.',
+      equation:'\\Delta X=A(X)XW_VW_O',
+      detail:'Within a head, each map is shared across positions; different heads and layers generally have different maps. Q and K determine A. The value map <span data-math="W_V"></span> supplies the content to mix; it does not directly determine this head’s A for a given X. Here <span data-math="d_k"></span> is the query/key width; row-wise softmax makes each row of A sum to one.',
+      visual:'Every W is a learned parameter. Q, K, V, A and the update are computed for the current representations.',draw:learnedMaps},
+    {id:'repeated-updates',part:'Before attention · Updating token vectors',label:'',title:'Keep updating the token vectors.',
+      caption:'Each token starts with a lookup vector and position information. Attention mixes across positions; the MLP transforms each row separately. Both add updates to the running token representations.',
+      equation:"X'=X+\\Delta_{\\mathrm{attn}}X",
+      detail:'Blocks repeat. Useful features can be added, revised or canceled; each update need not improve the representation. The full model sums the attention heads’ projected updates. These equations omit normalization and biases.',
+      visual:'Attention can connect different token rows. The MLP applies the same function to each row without mixing positions.',draw:repeatedUpdates,discretePhases:true},
   ];
 }

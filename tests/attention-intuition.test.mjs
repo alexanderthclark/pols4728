@@ -24,7 +24,7 @@ test('the two complete desert sentences and distinct intended readings are prese
 
 test('lookup identity is distinguished from position and schematic contextual updates',()=>{
   const scenes=createIntuitionScenes(drawing);
-  assert.equal(scenes.length,3);
+  assert.equal(scenes.length,5);
   assert.match(scenes[1].detail,/full input rows can differ because position/);
   assert.match(scenes[2].detail,/not measured attention weights/);
   assert.match(scenes[2].equation,/x_i\^\{\(1\)\}=x_i\^\{\(0\)\}\+\\Delta x_i/);

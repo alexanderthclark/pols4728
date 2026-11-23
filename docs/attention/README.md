@@ -5,11 +5,18 @@ The course homepage links to the lesson. Local fonts and KaTeX require no CDN.
 
 ## Scope and convention
 
-The lesson opens with its full illustrated title page, then three intuition
-scenes contrast the two user-supplied desert sentences. They distinguish a
+The lesson opens with its full illustrated title page, then five intuition
+scenes precede Infinite Jest. The first three contrast the two user-supplied desert sentences. They distinguish a
 shared token lookup vector from positional information and context-dependent
 updates. These are conceptual diagrams, not measured sense disambiguation or
-attention weights. Scrolling then enters the residual-stream overview and
+attention weights. Two further scenes separate learned W_Q, W_K, W_V, W_O
+from computed Q, K, V, and A(X), then follow repeated attention and MLP
+updates to the running token vectors. Q/K determines this head’s attention
+pattern; V/O transforms the mixed content. Parameters are fixed during
+inference and generally differ across heads and layers; the attention weights
+are computed from the current input representations. Refinement need not
+mean monotonic improvement: an update can revise or cancel a feature.
+Scrolling then enters the residual-stream overview and
 continues through all worked examples. No teaching chapter is hidden behind
 a disclosure panel.
 The following eight-scene story starts with a sentiment encoder and the residual stream, using

@@ -53,7 +53,7 @@
 #story[data-scene="1"] .visual{max-width:760px;max-height:none;margin-inline:auto}
 
 /* Contextual meaning introduces the existing residual-stream sequence. */
-.intuition-story{height:400svh;border-top:0}
+.intuition-story{height:600svh;border-top:0}
 .intuition-story .lesson-chapter{margin-left:auto;text-align:right}
 .intuition-story .lesson-counter{white-space:nowrap}
 @media(max-width:760px){
