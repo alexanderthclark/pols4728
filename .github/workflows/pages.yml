@@ -5,12 +5,14 @@ on:
     paths:
       - 'docs/**'
       - 'tests/**'
+      - 'lesson-sources/lidda/**'
       - '.github/workflows/pages.yml'
   pull_request:
     branches: [main]
     paths:
       - 'docs/**'
       - 'tests/**'
+      - 'lesson-sources/lidda/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -33,6 +35,15 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
+      - name: Check and rebuild LiDDA lesson
+        working-directory: lesson-sources/lidda
+        run: |
+          npm ci
+          npm test
+          npm run typecheck
+          npm run publish:static
+      - name: Check committed LiDDA export
+        run: git diff --exit-code -- docs/lidda
       - name: Check JavaScript syntax
         run: |
           node --check docs/assets/coronation.js
