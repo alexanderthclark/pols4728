@@ -4,7 +4,7 @@ export const atusScenes = [
   {
     chapter, kind:'atus', atusStage:0,
     title:'Pretraining does not guarantee a win.',
-    body:'Can morning activities and background characteristics predict solo recreation after noon? On a shared test set, AutoGluon has higher average precision than all four prespecified foundation-model variants.',
+    body:'AutoGluon wins for Homework 6',
     equation:'\\text{test prevalence}=\\frac{526}{44\\,885}\\approx0.0117',
     note:'Unequal training access: AutoGluon fits 136,146 rows; each transformer receives a 6,468-row context. All scores are official-test AP.',
     reading:'The target is qualifying solo recreation beginning at or after noon, predicted from morning activities and earlier Current Population Survey background characteristics. The official test set contains 44,885 respondents and 526 positives. AutoGluon selects its ensemble using training out-of-fold predictions, then scores the official test set. Each transformer receives the same 6,468-row context: all 1,617 training positives plus 4,851 negatives. Constructing that context consults all 136,146 training labels. The chart displays all four prespecified transformer variants: TabICLv2 and TabDPT 1.3, each with the original 611 inputs or 100 training-selected inputs. TabDPT applies its native PCA reduction to the 611-input representation, retaining 128 components. These are comparisons of the fitted procedures under their stated training access, not an isolated causal effect of model architecture.',
