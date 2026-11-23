@@ -157,6 +157,13 @@
       "description": "A monochrome crowd of round, torso-less figures holding smartphones looks up toward a horn loudspeaker on a pole. Four figures remain absorbed in their phones with half-closed eyes and slack, blank expressions.",
       "sha256": "8285cebee655ecd1db4c4655b31a3240b1d4fb2ec6be425590e1e736331c1fdb",
       "usage": "Opening illustration for the attention scrollytelling lesson. Preserve the full crowd, loudspeaker, white background, and natural proportions. Keep the title as real HTML text. The blank phone stares are metaphorical, with no literal zombie imagery."
+    },
+    {
+      "path": "docs/tabular-foundation-models/assets/learning-tables.png",
+      "role": "tabular-foundation-models-title-illustration",
+      "description": "Two round torso-less figures feed small tables into a hand-cranked machine and receive another table. Sparse black outlines on white.",
+      "sha256": "423ff4bec57e2a4220e35518fcd69cf3dbb836adc797063fab11f854e76abd47",
+      "usage": "Opening title scene. Preserve the full composition and proportions; title and mathematical explanations remain real text."
     }
   ]
 }

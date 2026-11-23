@@ -1,0 +1,75 @@
+import {renderBayes} from './bayes.mjs';
+export const colors={ink:'#242424',blue:'#234E70',rust:'#A54F32',teal:'#007F73',muted:'#606060',rule:'#d5dadd'};
+const c=colors, clamp=x=>Math.max(0,Math.min(1,x)), mix=(a,b,t)=>a+(b-a)*t;
+const t=(x,y,s,size=22,color=c.ink,anchor='middle')=>`<text x="${x}" y="${y}" font-size="${size}" fill="${color}" text-anchor="${anchor}">${s}</text>`;
+const line=(x1,y1,x2,y2,col=c.rule,w=2,extra='')=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${w}" ${extra}/>`;
+const box=(x,y,w,h,col=c.blue,fill='white',rx=4)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${fill}" stroke="${col}" stroke-width="2"/>`;
+const circle=(x,y,r,col=c.blue,fill='white')=>`<circle cx="${x}" cy="${y}" r="${r}" stroke="${col}" stroke-width="2" fill="${fill}"/>`;
+const arrow=(x1,y1,x2,y2,col=c.blue)=>line(x1,y1,x2,y2,col,2.5,`marker-end="url(#arrow-${col===c.rust?'rust':'blue'})"`);
+const defs=`<defs><marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10" fill="none" stroke="${c.blue}" stroke-width="1.6"/></marker><marker id="arrow-rust" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10" fill="none" stroke="${c.rust}" stroke-width="1.6"/></marker></defs>`;
+const rows=[['Black','Fight','1'],['Black','Lie down','0'],['Brown','Fight','0'],['Brown','Lie down','1'],['Brown','Lie down','?']];
+const survivalHigh=1/(1+Math.exp(-1)), survivalLow=1-survivalHigh;
+function table(x,y,w=330,flip=0,query=true,highlight=-1,compact=false){
+ const h=compact?28:45, cols=[.25,.39,.36], starts=[0,.25,.64];
+ const baseline=compact?20:29, headerSize=compact?17:w>=320?20:17, valueSize=compact?18:w>=320?22:19;
+ let s=box(x,y,w,h*(query?6:5),c.rule);
+ ['Bear','Strategy','Survived'].forEach((v,j)=>s+=t(x+w*(starts[j]+cols[j]/2),y+baseline,v,headerSize,j===2?c.teal:c.ink));
+ for(let i=0;i<5;i++){
+  if(i===4&&!query)continue;
+  const yy=y+(i+1)*h;
+  if(i===4)s+=`<rect x="${x}" y="${yy}" width="${w}" height="${h}" fill="#eef4f8"/>`;
+  s+=line(x,yy,x+w,yy);
+  for(let j=0;j<3;j++){
+   const val=j===2&&i<4?(flip>.5?String(1-Number(rows[i][2])):rows[i][2]):rows[i][j];
+   if(highlight===j)s+=`<rect x="${x+w*starts[j]+4}" y="${yy+4}" width="${w*cols[j]-8}" height="${h-8}" fill="#dcece8"/>`;
+   s+=t(x+w*(starts[j]+cols[j]/2),yy+baseline,val,valueSize,j===2?c.teal:c.ink);
+  }
+ }
+ return s;
+}
+function smallTable(x,y,w=145,col=c.blue){let s=box(x,y,w,105,col);for(let i=1;i<4;i++)s+=line(x,y+i*26,x+w,y+i*26,c.rule,1);for(let j=1;j<3;j++)s+=line(x+j*w/3,y,x+j*w/3,y+105,c.rule,1);for(let i=0;i<3;i++)for(let j=0;j<3;j++)s+=circle(x+(j+.5)*w/3,y+(i+.5)*26+26,3,col,col);return s;}
+function network(x,y,w=210,h=180,active=0){let s=box(x,y,w,h,c.blue,'#f7fafc',12);for(let l=0;l<2;l++)for(let i=0;i<3;i++)for(let j=0;j<3;j++)s+=line(x+40+l*65,y+50+i*40,x+40+(l+1)*65,y+50+j*40,active?c.rust:'#b1c6d5',1.4);for(let l=0;l<3;l++)for(let i=0;i<3;i++)s+=circle(x+40+l*65,y+50+i*40,7,active?c.rust:c.blue,'white');s+=t(x+w/2,y+h-15,active?'θ updating':'θ fixed',22,active?c.rust:c.blue);return s;}
+function prob(x,y,p,label='P(survived)'){let s=t(x,y,label,21,c.teal);s+=box(x-65,y+22,130,120,c.rule);s+=`<rect x="${x-64}" y="${y+141-118*p}" width="128" height="${118*p}" fill="${c.teal}" opacity=".16"/>`;s+=line(x-60,y+141-118*p,x+60,y+141-118*p,c.teal,4);s+=t(x,y+174,'prediction',20,c.muted);return s;}
+function curve(x,y,w,h,type,col){let pts=[];for(let i=0;i<=40;i++){const u=i/40,v=type===0?.2+.6*u:type===1?.2+.6*(u>.5):.18+.6*Math.sin(u*Math.PI);pts.push(`${x+u*w},${y+h-v*h}`);}return line(x,y,x,y+h,c.rule)+line(x,y+h,x+w,y+h,c.rule)+`<polyline points="${pts.join(' ')}" fill="none" stroke="${col}" stroke-width="3"/>`;}
+export function renderVisual(index,p){
+ if(index>=10&&index<=14)return defs+renderBayes(index-10,p);
+ let s=defs;
+ if(index===0){s+=table(280,65);s+=t(450,33,'A simulated bear-encounter table',24);s+=line(634,110,660,110,c.muted)+line(660,110,660,287,c.muted)+line(634,287,660,287,c.muted)+t(678,205,'D',27,c.blue,'start');s+=arrow(190,310,mix(210,260,p),310)+t(150,318,'New row',22,c.blue);s+=t(450,400,'Features x',23,c.muted);}
+ if(index===1){s+=table(35,70,280,false,false);s+=t(175,40,'Labeled rows',22);s+=arrow(330,175,400,175);s+=network(425,92,210,180,p<.95);s+=t(530,65,'Fit this dataset',23,c.blue);s+=arrow(650,175,720,175);s+=t(790,150,'Fitted',25,c.blue)+t(790,183,'predictor',25,c.blue);const u=clamp(p*1.8);s+=`<g transform="translate(${mix(80,600,u)},340)">${box(0,0,230,50,c.blue,'#eef4f8')}${t(115,32,'Brown · lie down · ?',19,c.blue)}</g>`;s+=arrow(700,330,775,221);s+=t(450,430,'First learn weights from D; then use the fitted predictor.',22,c.muted);}
+ if(index===2||index===3){let f=index===3?p:0;s+=table(35,68,285,f);s+=t(177,38,'Labeled context + query',22,c.blue);s+=arrow(340,190,405,190);s+=network(430,105);s+=t(535,70,'Pretrained network',23,c.blue);s+=arrow(655,190,710,190);s+=prob(790,110,index===3?(p>.5?survivalLow:survivalHigh):mix(.5,survivalHigh,p));s+=t(450,415,index===3?'Different context → different computation':'The known labels travel with the query.',24,c.blue);if(index===3)s+=t(177,370,p>.5?'Context B':'Context A',23,c.rust);}
+ if(index===4){[0,1,2].forEach((j)=>{let x=mix(55+j*175,90+j*100,p*.45);s+=smallTable(x,90+j*70,140,[c.blue,c.rust,c.teal][j]);});s+=t(250,43,'Many tasks, many relationships',24);s+=arrow(460,225,565,225);s+=network(605,140,210,180,1);s+=t(710,105,'One shared network',24,c.blue);s+=t(450,420,'Each task has its own context and withheld answers.',23,c.muted);}
+ if(index===5){s+=table(20,55,275);s+=arrow(310,180,375,180);s+=network(400,90,210,180,p>.6);s+=arrow(625,180,685,180);s+=t(785,130,'Prediction',23,c.blue)+t(785,175,'q(y = 1) = 0.6',23,c.blue);if(p>.3)s+=t(785,235,'True y = 1',23,c.rust)+t(785,274,'loss = −log(0.6)',21,c.rust);let end=mix(730,508,clamp((p-.4)/.6));s+=`<path d="M785 300 V345 H${end} V290" fill="none" stroke="${c.rust}" stroke-width="3" marker-end="url(#arrow-rust)"/>`;s+=t(590,395,'Backpropagate the prediction loss',23,c.rust);s+=t(157,370,'Input: label still hidden',20,c.teal);}
+ if(index===6){[0,1,2].forEach(j=>{let x=65+j*280;s+=curve(x,100,210,150,j,[c.blue,c.rust,c.teal][j]);s+=t(x+105,70,['Smooth','Threshold','Nonlinear'][j],23);for(let k=0;k<7;k++){let xx=k/6,v=j===0?.2+.6*xx:j===1?.2+.6*(xx>.5):.18+.6*Math.sin(xx*Math.PI);let noise=Math.sin(k*9+j*3)*20*p;s+=circle(x+xx*210,100+150-v*150+noise,4,[c.blue,c.rust,c.teal][j],'white');}s+=smallTable(x+45,320,120,[c.blue,c.rust,c.teal][j]);s+=arrow(x+105,270,x+105,305);});s+=t(450,30,'Draw a relationship, then sample a dataset.',24,c.blue);}
+ if(index===7){s+=table(30,67,285,0,true,2);s+=arrow(335,200,405,200);for(let i=0;i<5;i++){let x=mix(470,470+i*14,p),y=80+i*65;s+=t(440,y+22,i===4?'?':rows[i][2],22,c.teal);for(let j=0;j<7;j++)s+=box(x+j*38,y,30,30,c.blue,`rgba(35,78,112,${.08+((i*3+j)%5)*.07})`);}s+=t(622,40,'One vector per target cell',23,c.blue);s+=t(450,430,'Shown: target embeddings. Feature cells are embedded too.',22,c.muted);}
+ if(index===8){let x0=200,y0=70,w=160,h=62;for(let i=0;i<5;i++)for(let j=0;j<3;j++){let x=x0+j*w,y=y0+i*h;s+=box(x,y,w-12,h-10,c.rule,i===4?'#eef4f8':'white');s+=t(x+(w-12)/2,y+32,i===4&&j===2?'?':['x₁','x₂','y'][j],23,j===2?c.teal:c.blue);}s+=t(274,40,'Bear type',22)+t(434,40,'Strategy',22)+t(594,40,'Survived',22);let qx=594,qy=364;for(let j=0;j<2;j++)s+=line(mix(qx,274+j*160,p),qy,qx,qy,c.rust,3);for(let i=0;i<4;i++)s+=`<path d="M${qx} ${qy} Q${770+15*i} ${qy} ${mix(qx,594,p)} ${mix(qy,120+i*62,p)}" fill="none" stroke="${c.blue}" stroke-width="2" opacity=".5"/>`;s+=t(101,338,'Query row',21,c.blue);s+=t(450,433,'Within-row features + known examples across rows',23,c.blue);}
+ if(index===9){let colors=[c.blue,c.rust,c.teal];for(let j=0;j<8;j++)s+=box(80+j*30,160,23,62,colors[j%3],`rgba(35,78,112,${.1+j*.025})`);s+=t(196,120,'Query representation',23);s+=arrow(340,190,390,190);s+=box(415,120,175,140,c.blue,'#f7fafc',10)+t(502,175,'Prediction',25,c.blue)+t(502,210,'head',25,c.blue);s+=arrow(605,190,655,190);s+=prob(760,100,mix(.5,survivalHigh,p));s+=t(450,375,'A distribution over the unknown outcome',26,c.blue);s+=t(450,415,'Schematic output; no fitted-model probabilities shown.',21,c.muted);}
+ if(index===15){s+=t(230,55,'PRETRAINING',20,c.rust)+t(675,55,'NEW TABLE',20,c.blue);s+=line(450,70,450,390,c.rule);s+=smallTable(60,110,130,c.rust)+smallTable(210,140,130,c.teal);s+=arrow(200,265,200,310);s+=t(230,355,'Learn θ across many tasks',26,c.rust);s+=table(520,90,280);s+=t(675,405,'Use D with θ held fixed',25,c.blue);s+=`<path d="M340 340 Q450 430 ${mix(470,515,p)} 310" fill="none" stroke="${c.blue}" stroke-width="3" marker-end="url(#arrow-blue)"/>`;}
+ if(index===16){s+=t(200,53,'.fit(X_train, y_train)',27,c.blue);s+=smallTable(125,95,150);s+=arrow(200,220,200,275);s+=box(70,290,260,73,c.blue,'#f7fafc',8)+t(200,335,'Prepared context',25,c.blue);s+=t(660,53,'.predict(X_test)',27,c.blue);s+=box(555,95,210,64,c.teal,'white',5)+t(660,135,'Query features',24,c.teal);s+=arrow(660,175,660,215);s+=network(555,235,210,180);s+=arrow(345,325,mix(360,540,p),325);s+=t(450,434,'Loading, preprocessing and caching depend on the implementation.',21,c.muted);}
+ if(index===17){for(let i=0;i<4;i++){let yy=90+i*65;s+=box(45,yy,270,49,i===3?c.rust:c.blue,i===3?'#fbf1ed':'#eef4f8');s+=t(180,yy+32,i===3?'Held-out fold':'Context rows',23,i===3?c.rust:c.blue);}s+=arrow(335,180,405,180);s+=network(425,105);s+=arrow(655,190,710,190);s+=t(790,172,'Predict',25,c.blue)+t(790,210,'then score',25,c.rust);s+=`<path d="M315 310 H${mix(330,790,p)} V250" fill="none" stroke="${c.rust}" stroke-width="2.5" stroke-dasharray="7 5"/>`;s+=t(450,425,'Held-out labels enter the score only.',25,c.rust);}
+ return s;
+}
+
+export function renderMobile(index,p){
+ let s=defs;
+ const label=(y,txt,col=c.blue,size=18)=>t(200,y,txt,size,col);
+ const miniNetwork=(x,y,active=0)=>`<g transform="translate(${x},${y}) scale(.6)">${network(0,0,210,180,active)}</g>`;
+ if(index===0){s+=table(20,20,360)+label(325,'Known encounters; one unknown outcome',c.blue,18);}
+ else if(index===1){s+=label(24,'Labeled rows train the weights');s+=smallTable(20,70,125)+arrow(155,120,mix(170,220,p),120)+miniNetwork(245,65,1);s+=box(20,225,155,45,c.blue,'#eef4f8')+t(97,254,'New row x*',18,c.blue)+arrow(190,247,250,247)+t(310,242,'Fitted',20,c.blue)+t(310,270,'predictor',20,c.blue);s+=label(320,'Training first; prediction second.',c.muted,17);}
+ else if(index===2||index===3){
+  s+=label(20,index===3?(p>.5?'Context B; keep θ fixed':'Context A; keep θ fixed'):'Context and query enter together');
+  s+=table(20,36,360,index===3?p:0,true,-1,true);
+  s+=miniNetwork(25,229)+arrow(163,280,185,280);
+  const v=index===3?(p>.5?survivalLow:survivalHigh):mix(.5,survivalHigh,p);
+  s+=t(289,247,'Schematic prediction',17,c.teal)+box(194,265,190,31,c.rule)+`<rect x="195" y="266" width="${188*v}" height="29" fill="${c.teal}" opacity=".25"/>`+t(289,324,'Survival probability',17,c.teal);
+ }
+ else if(index===4){s+=label(23,'Many different prediction tasks');for(let j=0;j<3;j++)s+=`<g transform="translate(${20+j*125},60) scale(.7)">${smallTable(0,0,145,[c.blue,c.rust,c.teal][j])}</g>`;s+=arrow(200,145,200,mix(160,190,p));s+=miniNetwork(137,202,1);s+=label(327,'One network learns across tasks',c.rust,18);}
+ else if(index===5){s+=label(24,'A simulated task, one hidden label');s+=smallTable(20,65,125)+arrow(157,110,220,110)+miniNetwork(245,60,p>.6);s+=label(218,p>.35?'Reveal y = 1; loss = −log(0.6)':'Predict q(y = 1) = 0.6',p>.35?c.rust:c.blue,19);s+=`<path d="M300 245 V280 H${mix(280,100,p)} V185" stroke="${c.rust}" stroke-width="2" fill="none" marker-end="url(#arrow-rust)"/>`;s+=label(322,'Use the loss to update θ',c.rust,20);}
+ else if(index===6){s+=label(25,'Sample a world, then a table');for(let j=0;j<3;j++){let x=25+j*130;s+=curve(x,72,90,110,j,[c.blue,c.rust,c.teal][j]);s+=arrow(x+45,200,x+45,mix(212,230,p));s+=`<g transform="translate(${x},248) scale(.6)">${smallTable(0,0,150,[c.blue,c.rust,c.teal][j])}</g>`;}s+=label(340,'Different dependencies and noise',c.muted,18);}
+ else if(index===7){s+=label(24,'Each cell becomes a vector');for(let i=0;i<4;i++){let y=55+i*61;s+=box(30,y,58,38,c.teal)+t(59,y+26,i===3?'?':i%2?'0':'1',20,c.teal);s+=arrow(106,y+19,mix(120,160,p),y+19);for(let j=0;j<6;j++)s+=box(180+j*31,y,24,38,c.blue,`rgba(35,78,112,${.08+((i+j)%4)*.08})`);}s+=label(325,'Shown: the target-column cells',c.muted,18);}
+ else if(index===8){s+=label(22,'Features across; examples down');for(let i=0;i<4;i++)for(let j=0;j<3;j++){let x=55+j*98,y=55+i*55;s+=box(x,y,80,43,c.rule,i===3?'#eef4f8':'white')+t(x+40,y+28,i===3&&j===2?'?':['x₁','x₂','y'][j],20,j===2?c.teal:c.blue);}for(let i=0;i<3;i++)s+=`<path d="M291 256 Q390 256 291 ${mix(256,93+i*55,p)}" fill="none" stroke="${c.blue}" stroke-width="2"/>`;s+=line(mix(291,95,p),256,291,256,c.rust,3)+label(320,'Attention builds the query representation',c.blue,17);}
+ else if(index===9){s+=label(27,'Decode the query representation');for(let j=0;j<8;j++)s+=box(50+j*38,62,28,45,c.blue,`rgba(35,78,112,${.1+j*.025})`);s+=arrow(200,122,200,158)+box(100,175,200,55,c.blue,'#f7fafc')+label(210,'Prediction head');s+=box(55,270,290,27,c.rule)+`<rect x="56" y="271" width="${288*mix(.5,survivalHigh,p)}" height="25" fill="${c.teal}" opacity=".25"/>`+label(328,'A distribution over outcomes',c.teal,19);}
+ else if(index===15){s+=label(28,'Pretraining: learn θ',c.rust,22);s+=smallTable(30,65,125,c.rust)+arrow(170,112,230,112)+miniNetwork(250,60,1);s+=line(30,185,370,185)+label(220,'New task: change D',c.blue,22)+label(260,'Same θ, different prediction',c.blue,21);s+=line(55,297,mix(60,345,p),297,c.teal,5)+label(330,'A learned approximation to Bayesian prediction',c.muted,16);}
+ else if(index===16){s+=label(33,'.fit(X_train, y_train)',c.blue,22)+box(55,60,290,60,c.blue,'#f7fafc')+label(98,'Prepare context and caches');s+=arrow(200,132,200,mix(150,175,p))+label(218,'.predict(X_test)',c.blue,22)+box(55,243,290,60,c.teal)+label(280,'Use context with fixed θ',c.teal,21);}
+ else if(index===17){for(let i=0;i<4;i++){let y=35+i*52;s+=box(25,y,175,38,i===3?c.rust:c.blue,i===3?'#fbf1ed':'#eef4f8')+t(112,y+25,i===3?'Held-out fold':'Context rows',18,i===3?c.rust:c.blue);}s+=arrow(212,105,240,105)+miniNetwork(255,55);s+=label(267,'Test labels enter the score only',c.rust,20)+line(50,294,mix(60,350,p),294,c.rust,3)+label(330,'Rebuild context for each CV fold',c.muted,18);}
+ return s;
+}
