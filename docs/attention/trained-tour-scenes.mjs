@@ -35,7 +35,7 @@ export function createGuidedTrainedScenes(drawing, data, investigation) {
       label(percent(p,digits),x+width,y,38,color,'end')+label('P(positive)',x,y,23,C.muted,'start')+
       rect(x,y+17,width,11,'#e8ecec')+rect(x,y+17,width*p,11,color)+'</g>';
   };
-  const comparison = (before,after,y=359,afterLabel='Two messages removed',digits=2) =>
+  const comparison = (before,after,y=359,afterLabel='Two contributions removed',digits=2) =>
     label('Original',74,y,23,C.blue,'start')+score(before,74,y+37,492,C.blue,digits)+
     label(afterLabel,74,y+105,23,C.rust,'start')+score(after,74,y+142,492,C.rust,digits);
   const flowPath = (sourceX,destinationX,y1,y2,color,opacity=1) =>
@@ -111,8 +111,8 @@ export function createGuidedTrainedScenes(drawing, data, investigation) {
     }else{
       out+=line(210,top+64,430,bottom-51,'#bbc4c9',2,'stroke-dasharray="5 7"');
       out+=line(430,top+64,210,bottom-51,'#bbc4c9',2,'stroke-dasharray="5 7"');
-      out+=rect(226,(top+bottom)/2-18,188,39,'#fff');
-      out+=label('Two messages off',320,(top+bottom)/2+9,23,C.rust);
+      out+=rect(185,(top+bottom)/2-18,270,39,'#fff');
+      out+=label('Two contributions off',320,(top+bottom)/2+9,23,C.rust);
     }
     out+=label('Update t',160,bottom+59,24,C.blue)+label('Update just',480,bottom+59,24,C.teal);
     return out;
@@ -137,7 +137,7 @@ export function createGuidedTrainedScenes(drawing, data, investigation) {
     const example=t>=.45?phrase.full:phrase.short,arrive=phase(t,.17,.45,reducedMotion);
     let out=words(behavior.short.text,320,72,32,30);
     out+=group(arrive,label('It was spectacular.',320,184,34,C.teal));
-    out+=label('The same two messages stay off.',320,258,25,C.rust);
+    out+=label('The same two contributions stay off.',320,258,25,C.rust);
     return out+comparison(example.before,example.after,329);
   }
 
@@ -212,14 +212,14 @@ export function createGuidedTrainedScenes(drawing, data, investigation) {
       visual:'The full measured matrix unfolds into two source-to-destination message routes. The t is one piece of wasn’t.',
       reading:`<p>The destination t reads just with weight ${formatWeight(phrase.edges.find(edge=>edge.destination_token==='t').weight)}; just reads t with weight ${formatWeight(phrase.edges.find(edge=>edge.destination_token==='just').weight)}. Both rows read incoming layer-1 states simultaneously. They are not a within-layer feedback loop. Each arrow carries a weighted value vector, not a raw word.</p>`,
       footer:'Layer 2 · head 9 · arrows carry value messages',draw:routing},
-    {...common,id:'trained-message-removal',title:'Keep the words. Remove two messages.',caption:'The short review’s prediction reverses.',
-      visual:`The same sentence changes from ${percent(phrase.short.before.positive_probability)} to ${percent(phrase.short.after.positive_probability)} positive after the two selected messages are removed.`,
-      reading:`<p>Set the two selected layer-2/head-9 coefficients to zero without renormalizing the remaining weights. Every other message, the residual paths, the shared output bias, and feed-forward networks remain; later computation reruns. The original margin ${phrase.short.before.margin.toFixed(3)} becomes ${phrase.short.after.margin.toFixed(3)}. The same intervention reverses all ${validation.phrase.short_flips} tested short title variants. These were exploratory, construction-specific checks, not a universal role for the head.</p>`,
-      footer:`Same intervention reverses ${validation.phrase.short_flips}/${validation.phrase.cases.length} tested short reviews`,draw:removal},
+    {...common,id:'trained-message-removal',title:'Two attention contributions matter here.',caption:`Removing both just → t and t → just in layer 2, head 9 lowers P(positive) from ${percent(phrase.short.before.positive_probability,1)} to ${percent(phrase.short.after.positive_probability,1)}. The words stay.`,
+      visual:`The same sentence changes from ${percent(phrase.short.before.positive_probability)} to ${percent(phrase.short.after.positive_probability)} positive after the two selected attention contributions are removed.`,
+      reading:`<p>These two contributions jointly have a large effect on the short review’s prediction. Each is one weighted value-vector contribution to a token’s update: just → t and t → just, where t is one piece of wasn’t. The experiment does not establish that each contribution is individually necessary.</p><p>Set the two selected layer-2/head-9 coefficients to zero without renormalizing the remaining weights. Every other message, the residual paths, the shared output bias, and feed-forward networks remain; later computation reruns. The original margin ${phrase.short.before.margin.toFixed(3)} becomes ${phrase.short.after.margin.toFixed(3)}. The same intervention reverses all ${validation.phrase.short_flips} tested short title variants. These were exploratory, construction-specific checks, not a universal role for the head.</p>`,
+      footer:'t is part of wasn’t · same words · layer 2, head 9',draw:removal},
     {...common,id:'trained-context-restored',title:'More context changes what is necessary.',caption:'With spectacular restored, the prediction survives the same intervention.',
-      visual:'Restore the final sentence while the same two messages stay removed. The full review remains strongly positive.',
+      visual:'Restore the final sentence while the same two contributions stay removed. The full review remains strongly positive.',
       reading:`<p>The full review changes from ${percent(phrase.full.before.positive_probability,4)} to ${percent(phrase.full.after.positive_probability,4)} positive under exactly the same two-edge intervention. Adding text recomputes contextual states and attention; the intervention definition stays fixed. This result does not identify a particular alternative pathway.</p>`,
-      footer:'Same two messages removed · full review rerun',draw:restored},
+      footer:'Same two contributions removed · full review rerun',draw:restored},
     {...common,id:'trained-brightness-test',title:'A bright square needs a test.',caption:'The coefficient, the message, and the prediction are different quantities.',
       visual:'Compare the apostrophe and t in the same final-layer head. Their message magnitudes are similar despite very different attention weights.',
       reading:`<p>For the negative review, layer 6/head 10 gives the apostrophe weight ${formatWeight(brightness.messages[0].weight)} and t weight ${formatWeight(brightness.messages[1].weight)}. Their projected value norms are ${brightness.messages[0].projected_value_norm.toFixed(3)} and ${brightness.messages[1].projected_value_norm.toFixed(3)}. Multiplication gives message norms ${brightness.messages[0].message_norm.toFixed(3)} and ${brightness.messages[1].message_norm.toFixed(3)}. These norms measure vector magnitude, not signed sentiment contributions. Removing only the apostrophe message changes P(positive) from ${percent(brightness.baseline.positive_probability,4)} to ${percent(brightness.messages[0].after.positive_probability,4)}.</p>`,
