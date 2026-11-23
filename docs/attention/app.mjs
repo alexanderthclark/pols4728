@@ -3,7 +3,6 @@ import {createTrainedScenes} from './trained-scenes.mjs?v=attention-trained-mode
 import {buildExplorer} from './trained-explorer.mjs?v=attention-trained-model-5';
 import {createSocksScenes} from './socks-scenes.mjs?v=socks-width-25';
 import {createExtensionScenes} from './extension-scenes.mjs?v=attention-notation-8';
-import {createInterpretationScenes} from './interpretation-scenes.mjs?v=attention-notation-8';
 import {createSentenceScenes} from './sentence-scenes.mjs?v=attention-sequence-20';
 
 const C={ink:'#242424',blue:'#234e70',rust:'#a54f32',teal:'#007f73',purple:'#7b4f9d',muted:'#606060',rule:'#dededb'};
@@ -29,11 +28,10 @@ renderMathNodes();
 const drawing={m,text,line,rect,circle,C,ease,lerp,clamp,num};
 const intuitionScenes=createIntuitionScenes(drawing);
 const coreScenes=createSentenceScenes(drawing);
-const numericalScenes=createInterpretationScenes(drawing);
 const mechanicsScenes=[...createSocksScenes(drawing),...createExtensionScenes(drawing)];
 // The complete text remains available independently of visual scene changes.
 const transcript=scenes=>scenes.map((s,i)=>`<section>${s.title?`<h3>${i+1}. ${s.title}</h3>`:""}${s.caption?`<p>${s.caption}</p>`:""}${(s.quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('')}<div class="transcript-eq">${tex(s.equation)}</div><p>${s.detail}</p></section>`).join('');
-document.querySelector('#transcript').innerHTML='<h3>One token, different contexts</h3>'+transcript(intuitionScenes)+'<h3>Sentiment, the residual stream, and attention</h3>'+transcript(coreScenes)+'<h3>A numerical attention classifier</h3>'+transcript(numericalScenes)+'<h3>The earlier Q/K/V calculation</h3>'+transcript(mechanicsScenes);
+document.querySelector('#transcript').innerHTML='<h3>One token, different contexts</h3>'+transcript(intuitionScenes)+'<h3>Sentiment, the residual stream, and attention</h3>'+transcript(coreScenes)+'<h3>The earlier Q/K/V calculation</h3>'+transcript(mechanicsScenes);
 renderMathNodes(document.querySelector('#transcript'));
 const quoteMarkup=quotes=>(quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('');
 function makeStory(id,prefix,scenes){
@@ -79,7 +77,7 @@ function makeStory(id,prefix,scenes){
  field('narration').style.opacity=a;
  };
 }
-const renderStories=[makeStory('intuition','intuition-',intuitionScenes),makeStory('story','',coreScenes),makeStory('numerical-story','numerical-',numericalScenes),makeStory('mechanics-story','mechanics-',mechanicsScenes)];
+const renderStories=[makeStory('intuition','intuition-',intuitionScenes),makeStory('story','',coreScenes),makeStory('mechanics-story','mechanics-',mechanicsScenes)];
 let scheduled=false;
 function render(){scheduled=false;renderStories.forEach(draw=>draw())}
 function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(render)}}
