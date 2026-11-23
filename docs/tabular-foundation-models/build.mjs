@@ -23,7 +23,9 @@ const figure=scene=>{
   if(!['mechanism','bayes','dgp','bear','nature'].includes(scene.kind))return '';
   const snapshots=scene.kind==='mechanism'&&scene.mechanismStage===2
     ? [{progress:0,label:'Before the first Adam update'},{progress:1,label:'After the first Adam update'}]
-    : [{progress:1,label:''}];
+    : scene.kind==='nature'&&scene.natureStage===1
+      ? [{progress:.43,label:'First combine features within each encounter'},{progress:1,label:'Then compare representations across encounters'}]
+      : [{progress:1,label:''}];
   return snapshots.map(({progress,label})=>`<figure class="reading-figure"><svg class="reading-desktop" viewBox="0 0 900 460" role="img" aria-label="${esc(label||scene.body)}">${renderFigure(scene,progress,false)}</svg><svg class="reading-mobile" viewBox="0 0 400 350" role="img" aria-label="${esc(label||scene.body)}">${renderFigure(scene,progress,true)}</svg>${label?`<figcaption>${esc(label)}</figcaption>`:''}</figure>`).join('');
 };
 const references=scene=>(scene.references||[]).map(source=>`<p class="reading-note"><a href="${esc(source.url)}">${esc(source.title)}</a></p>`).join('');
