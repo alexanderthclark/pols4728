@@ -22,22 +22,22 @@
    opening stage for the architecture instead of duplicating those quotes. */
 @media(max-width:760px){.sentence-story[data-has-quotes="true"] .sentence-examples{display:none}.sentence-story[data-has-quotes="true"] .visual{max-height:58svh;min-height:clamp(180px,35svh,300px)}}
 
-/* Begin on the model itself. The original artwork remains in an optional section. */
+/* The illustrated title leads into the complete, scroll-driven lesson. */
 #story{border-top:0;scroll-margin-top:0}
 .lesson-header{width:100%;max-width:none;margin:0 0 14px;padding:0 0 12px;flex-shrink:0;font-size:12px;gap:14px}
 .lesson-heading{align-items:baseline;flex-shrink:0;gap:20px;margin-bottom:6px;font-size:12px}
-.lesson-heading h1{font:400 clamp(42px,4.7vw,64px)/1.05 var(--serif);letter-spacing:-.045em;margin:0;color:var(--ink);text-transform:none}
+.lesson-heading .lesson-name{text-decoration:none;font:400 clamp(42px,4.7vw,64px)/1.05 var(--serif);letter-spacing:-.045em;margin:0;color:var(--ink);text-transform:none}
 .lesson-heading #chapter{margin-left:auto;text-align:right}
 .lesson-heading #counter{white-space:nowrap}
-.artwork-appendix .hero{min-height:0;padding:3rem 6%;max-width:1100px}
-@media(max-height:760px){.sentence-story[data-has-quotes="true"] .sentence-examples{display:none}.lesson-heading h1{font-size:42px}}
+
+@media(max-height:760px){.sentence-story[data-has-quotes="true"] .sentence-examples{display:none}.lesson-heading .lesson-name{font-size:42px}}
 @media(max-width:760px){
  .lesson-header{font-size:12px;margin-bottom:12px;padding-bottom:10px;gap:10px}
  .lesson-heading{display:grid;grid-template-columns:1fr auto;gap:6px 12px;margin-bottom:4px;font-size:11px}
- .lesson-heading h1{font-size:38px;grid-column:1;grid-row:1}
+ .lesson-heading .lesson-name{font-size:38px;grid-column:1;grid-row:1}
  .lesson-heading #chapter{grid-column:1;grid-row:2;margin:0;text-align:left}
  .lesson-heading #counter{grid-column:2;grid-row:1;align-self:center}
  .sentence-story[data-has-quotes="true"] .visual{min-height:0;max-height:none}
- .artwork-appendix .hero{padding:2rem 6%}
+
 }
-@media print{#story{display:block;height:auto!important}.sentence-story>.stage{position:static;height:auto;padding:2rem}.sentence-story>.stage>:not(.lesson-heading),.lesson-heading>:not(h1),.artwork-appendix{display:none}.lesson-heading h1{display:block}}
+@media print{.lesson-heading{display:none}}

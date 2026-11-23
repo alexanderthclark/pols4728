@@ -5,11 +5,9 @@ The course homepage links to the lesson. Local fonts and KaTeX require no CDN.
 
 ## Scope and convention
 
-The bare lesson URL starts directly on the titled, pinned model diagram: the
-complete residual stream and a symbolic ten-by-ten attention-matrix inset are
-visible together before scrolling. The former full-screen illustration remains
-available in a closed optional section after the main story. This opening gives
-the user's requested architecture priority over the usual illustrated title scene.
+The lesson opens with its full illustrated title page. Scrolling then enters the
+residual-stream overview and continues through all worked examples. No teaching
+chapter is hidden behind a disclosure panel.
 The eight-scene main story starts with a sentiment encoder and the residual stream, using
 these two reviews as the task:
 
@@ -26,13 +24,13 @@ symbolic; highlighted entries do not assert learned weight magnitudes. For
 legibility the first sentence is shown as ten word-level units, with an explicit
 note that an actual tokenizer may split them further.
 
-The earlier thirteen-scene numerical classifier remains in an optional appendix.
+The thirteen-scene numerical classifier follows in the main scroll sequence.
 It starts from a complete three-by-three matrix, computes Y=AV, mean-pools the
 output rows into h, and applies a linear readout. This separate constructed
 example omits residual paths and MLPs; h is not the final residual state in the
 main architecture. Its interpretation comparisons and exact arithmetic remain.
 
-The original twenty scroll-driven scenes remain in a second, closed appendix.
+The original twenty socks-and-shoes scenes are also part of the main scroll sequence.
 The first thirteen
 establish the target, show why identity pooling loses order, add explicit position,
 and motivate a chosen retrieval: shoes looks for socks and reads their position.
@@ -133,10 +131,9 @@ The current site does not run that checkpoint or claim measurements from it.
 ## Implementation and checking
 
 `app.mjs` initializes three pinned stories: `sentence-scenes.mjs` is the default
-route; `interpretation-scenes.mjs` supplies the numerical appendix; and the
-original `socks-scenes.mjs` plus `extension-scenes.mjs` supply the earlier
-worked-example appendix. Hash navigation opens the appropriate appendix, and
-opening or closing an appendix updates the scroll layout. It derives
+route; `interpretation-scenes.mjs` supplies the numerical chapter; and the
+original `socks-scenes.mjs` plus `extension-scenes.mjs` supply the full
+worked-example chapter. Hash links offer shortcuts; scrolling reaches every scene. It derives
 scene state directly from native scroll position. There are no
 autoplay timers or required clicks. Reversing the scroll restores earlier states.
 Mathematics uses self-hosted KaTeX with MathML output, including SVG labels.
