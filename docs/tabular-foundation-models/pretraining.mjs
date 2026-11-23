@@ -113,7 +113,7 @@ function transfer(p,mobile){
   }else{
     s+=arrow(423,212,478,212)+packet([424,212],[475,212],p);
     s+=text(613,102,'Pretrained TabICLv2',26,C.blue)+network(490,128,245,170,1,false,false);
-    s+=arrow(743,212,793,212,C.teal)+packet([745,212],[790,212],p,C.teal);
+    s+=arrow(743,212,770,212,C.teal)+packet([745,212],[767,212],p,C.teal);
     s+=text(842,164,'Query',23,C.teal)+text(842,194,'survival',23,C.teal)+text(842,224,'probability',23,C.teal,'middle','data-schematic-prediction="true"');
     s+=line(100,354,800,354,C.rule,1)+text(450,391,`Separate held-out benchmark: mean test AUC ${result.mean_auc.toFixed(3)}`,25,C.blue,'middle',`data-benchmark-auc="${result.mean_auc}"`);
     s+=text(450,426,'8,000 training rows · 2,000 test rows · 12 simulation seeds',21,C.muted);

@@ -1,5 +1,5 @@
 import {renderOverview} from './overview.mjs?v=20261123-context-ten-noise';
-import {renderPretraining} from './pretraining.mjs?v=20261123-scm-pretraining';
+import {renderPretraining} from './pretraining.mjs?v=20261123-scm-pretraining-2';
 import {renderBearComparison} from './bear-comparison.mjs?v=20261123-context-ten-noise';
 import {renderAtus} from './atus.mjs';
 import {renderBear,renderBearMobile} from './bear.mjs?v=20261123-context-ten-noise';
