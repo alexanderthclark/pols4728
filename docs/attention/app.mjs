@@ -1,4 +1,4 @@
-import {createTrainedScenes} from './trained-scenes.mjs?v=attention-trained-model-5';
+import {createTrainedScenes} from './trained-scenes.mjs?v=attention-trained-model-6';
 import {buildExplorer} from './trained-explorer.mjs?v=attention-trained-model-5';
 import {createSocksScenes} from './socks-scenes.mjs?v=attention-sequence-2';
 import {createExtensionScenes} from './extension-scenes.mjs?v=attention-sequence-2';

@@ -29,7 +29,9 @@ function wrapWords(text,max=41) {
 export function createTrainedScenes({m,text,line,rect,C},data) {
   const measured=normalizeTrainedData(data),{examples,layers,heads}=measured;
   const layer=layers-1,head=0;
-  const label=(s,x,y,size=23,color=C.ink,anchor='middle',extra='')=>text(s,x,y,size,color,anchor,extra);
+  // Preserve measured-matrix label sizing on mobile; the older diagrams use a
+  // blanket mobile text rule that is too large for fifteen token positions.
+  const label=(s,x,y,size=23,color=C.ink,anchor='middle',extra='')=>text(s,x,y,size,color,anchor,extra).replace('style="',`style="font-size:${size}px;`);
   function predictions(t) {
     let out=label(`${layers} encoder blocks · ${heads} heads in each`,320,30,25,C.blue);
     const gap=12,blockWidth=Math.min(66,(500-gap*(layers-1))/layers),total=layers*blockWidth+(layers-1)*gap,start=(640-total)/2;
