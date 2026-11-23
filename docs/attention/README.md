@@ -70,6 +70,15 @@ representation width, add that update to the original representation, then switc
 to left-to-right prediction to motivate causal masking and renormalization. The
 former seventeen-scene four-token restart has been removed.
 
+The socks chapter ends with a bridge to the annotated encoder classifier in the
+course repository, pinned to 5a29ace12e91b1aca3d26eea54b4cbceba92fb22. It connects
+the hand-chosen two-token solution to learning A-before-B among distractors.
+For each swapped pair, even the initial token-plus-position mean is identical;
+the encoder must transform the representations so order survives mean pooling.
+The notebook trains embeddings, two four-head encoder blocks, and a linear
+classifier together. The link requires access to the course repository; the
+notebook itself is not copied to this public site.
+
 X is T × d; Q = X WQ; K = X WK; A = row-softmax(Q Kᵀ / sqrt(dk) + M);
 V = X WV; U = A V. A's rows are destinations and columns are sources. U contains mixed feature
 rows, not outcome labels; actual targets and predictions retain y notation.

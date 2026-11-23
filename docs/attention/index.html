@@ -99,6 +99,14 @@
 <div class="stage-bottom"><span>Illustrative numbers · exact calculations</span></div></div>
 </section>
 </section>
+<section class="afterword" id="encoder-notebook" aria-labelledby="encoder-notebook-title">
+<p class="eyebrow">From a constructed solution to a learned one</p>
+<h2 id="encoder-notebook-title">Now learn the ordering rule.</h2>
+<p>The notebook replaces socks and shoes with A and B among ten distractor tokens. The target is 1 when A comes before B, and 0 otherwise. Each example is paired with a copy in which A and B swap places.</p>
+<p>The challenge is the same: make order survive mean pooling. Even after adding position vectors, those paired sequences have the same average initial representation. The encoder must transform the token vectors so their final averages can differ.</p>
+<p>Here we chose the projections and scoring rule. The notebook trains the token and position embeddings, encoder, and classifier together. Its two encoder blocks use four attention heads each, followed by mean pooling and a learned linear classifier.</p>
+<p><a href="https://github.com/alexanderthclark/pols4728-2026f/blob/5a29ace12e91b1aca3d26eea54b4cbceba92fb22/notes/notebooks/annotated_encoder_classifier.ipynb">Open the annotated PyTorch encoder notebook →</a></p>
+</section>
 <section class="afterword" id="references">
 <p class="eyebrow">Keep the two operations in view</p><h2>Choose where to read.<br>Choose what to carry.</h2>
 <p>Queries and keys determine a distribution over source positions. Values determine the information those positions contribute. The output at each destination is a weighted sum of the source values.</p>
