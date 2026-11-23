@@ -2,7 +2,7 @@ import {createIntuitionScenes} from './intuition-scenes.mjs?v=desert-upward-32';
 import {createShapScenes} from './shap-scenes.mjs?v=shap-waterfalls-34';
 import {createGuidedTrainedScenes} from './trained-tour-scenes.mjs?v=attention-contributions-35';
 import {buildExplorer} from './trained-explorer.mjs?v=attention-interventions-1';
-import {createSocksScenes} from './socks-scenes.mjs?v=shap-order-33';
+import {createSocksScenes} from './socks-scenes.mjs?v=socks-takeaway-36';
 import {createExtensionScenes} from './extension-scenes.mjs?v=attention-notation-8';
 import {createSentenceScenes} from './sentence-scenes.mjs?v=attention-sequence-20';
 
