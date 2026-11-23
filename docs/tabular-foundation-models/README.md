@@ -1,6 +1,6 @@
 # Tabular foundation models
 
-Buildless scroll-driven course lesson for POLS 4728, following Christoph Molnar's *Tabular Foundation Models*. White textbook layout, Latin Modern type, course palette, torso-less hero illustration. The bear-survival task is the running example throughout the lesson: the true depth-two data-generating tree, labeled context, a worked training episode, shared network weights, actual row encodings and cross-attention calculations, exact Bayesian updating, and seven scenes diagnosing the interaction for XGBoost.
+Buildless scroll-driven course lesson for POLS 4728, following Christoph Molnar's *Tabular Foundation Models* and Hollmann et al.'s Nature 2025 paper. White textbook layout, Latin Modern type, course palette, torso-less hero illustration. The bear-survival task is the running example throughout the lesson: the true depth-two data-generating tree, labeled context, a worked training episode, shared network weights, actual row encodings and cross-attention calculations, exact Bayesian updating, and seven scenes diagnosing the interaction for XGBoost.
 
 Run `npm run build` to regenerate the no-JavaScript reading version, `npm test` for Bayesian arithmetic and reversible visual-state checks, and `npm run dev` for a local preview. Source files in this directory are served directly. All core teaching points are reached by native scrolling; chapter links offer shortcuts. `?motion=reduce` or system reduced-motion preference uses complete visual states at logical thresholds.
 
@@ -14,7 +14,15 @@ No TabPFN model is run. Animation interpolation is visual interpolation between 
 
 ## Sources and attribution
 
-Molnar's book (https://tabularfoundationmodels.com/) is the main reference, particularly chapters 2–5, with application and limitation context from chapters 7 and 12. The text is original exposition, and the two-world example and visual diagrams are original. The book is CC BY-NC 4.0. The PFN paper and TabPFN Nature paper are linked in the lesson. Version-specific limits and benchmark claims are deliberately omitted. Source references checked 2026-11-22.
+Molnar's book (https://tabularfoundationmodels.com/) is the main reference, particularly chapters 2–5, with application and limitation context from chapters 7 and 12. The text is original exposition, and the two-world example and visual diagrams are original. The book is CC BY-NC 4.0. The PFN paper and TabPFN Nature paper are linked in the lesson. The Nature paper’s generator, architecture, and sample-efficiency result appear in three scroll scenes; all version-specific results are labeled as evidence from the 2025 paper. Its main benchmark scope is distinguished from current software limits. Source references checked 2026-11-22.
+
+## Nature 2025 integration
+
+`nature-scenes.mjs` and `nature.mjs` connect the miniature PFN to the full paper. An original dependency-graph schematic retains the bear example while illustrating disconnected distractors. The architecture scene distinguishes within-row feature attention and across-row sample attention; it shows individual cells for clarity and notes that the paper groups two features per token by default. It is a permitted-information-flow illustration, not an internal trace. Query labels remain withheld and query rows read context rows only.
+
+The Fig. 5a sample-efficiency scene uses fixed quantitative bar geometry: default CatBoost with 100% of training rows versus TabPFN with approximately 50%, at matching aggregate predictive performance. This is not an AUC chart or a per-dataset guarantee. The paper’s distractor experiment uses shuffled copies of original features, unlike our independently generated uniform columns. The bear hypothesis diagram supplies all columns without labeling relevant ones in advance. It explicitly distinguishes joint signal from marginal association.
+
+The reading guide records benchmark scope (29 classification/28 regression datasets, at most 10,000 rows/500 features/10 classes), evaluation and hardware qualifications, regression distributions, and the default four/eight inference variants. Optional product features are identified as disabled by default. The paper is CC BY 4.0; the diagrams and prose are original adaptations with attribution.
 
 ## Design choices
 

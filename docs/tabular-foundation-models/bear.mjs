@@ -154,21 +154,26 @@ function auc(p,mobile) {
 }
 
 function hypothesis(p,mobile) {
-  const W=mobile?400:900;
-  let s=text(W/2,mobile?24:34,'A hypothesis about TabPFN',mobile?20:27,C.blue);
+  const W=mobile?400:900, left=mobile?11:40, top=mobile?64:119, w=mobile?63:72, h=mobile?32:48;
+  const headings=['B','L','Z₁','Z₂','Z₃','Y'];
+  const rows=[[0,0,'.13','.89','.24',1],[0,1,'.82','.35','.91',0],[1,0,'.26','.77','.42',0],[1,1,'.63','.19','.68',1]];
+  let s=text(W/2,mobile?25:36,'All columns enter the context',mobile?20:27,C.blue);
+  headings.forEach((name,j)=>s+=text(left+(j+.5)*w,top-16,name,mobile?19:25,j===5?C.teal:C.ink));
+  rows.forEach((row,i)=>row.forEach((value,j)=>{
+    const x=left+j*w,y=top+i*h;
+    s+=rect(x,y,w,h,C.rule,'white',0)+text(x+w/2,y+h/2+7,value,mobile?18:24,j===5?C.teal:C.ink);
+  }));
   if(mobile) {
-    const y=65;
-    s+=rect(30,y,150,72,C.blue)+text(105,y+29,'Bear + strategy',18,C.blue)+text(105,y+55,'Joint pattern',17,C.ink);
-    s+=rect(220,y,150,72,C.rule)+text(295,y+29,'Noise columns',18,C.muted)+text(295,y+55,'Irrelevant',17,C.muted);
-    s+=growLine(105,y+80,175,205,p,C.blue,3)+growLine(295,y+80,225,205,p,C.rule,1.5);
-    s+=rect(85,205,230,66,C.blue,'#f7fafc')+text(200,233,'Pretrained inference',21,C.blue)+text(200,257,'uses the whole context',17,C.muted);
-    s+=text(200,320,'No measured attention or TabPFN scores.',16,C.muted);
+    s+=growLine(200,200,200,226,p,C.blue,3);
+    s+=rect(24,233,352,64,C.blue,'#f7fafc')+text(200,259,'Pretrained TabPFN',21,C.blue);
+    s+=group(text(200,284,'Can it find the useful combination?',17,C.ink),clamp((p-.3)/.7));
+    s+=text(200,330,'Proposed test; no TabPFN result here.',17,C.muted);
   } else {
-    s+=rect(45,105,230,95,C.blue)+text(160,143,'Bear + strategy',25,C.blue)+text(160,177,'Joint pattern',22);
-    s+=rect(45,255,230,95,C.rule)+text(160,293,'Noise columns',25,C.muted)+text(160,327,'Irrelevant',22,C.muted);
-    s+=growLine(290,152,440,210,p,C.blue,4)+growLine(290,303,440,247,p,C.rule,1.5);
-    s+=rect(460,130,350,190,C.blue,'#f7fafc',8)+text(635,185,'Pretrained inference',28,C.blue)+text(635,232,'Context + learned task prior',22)+text(635,278,'Can use joint patterns',24,C.blue);
-    s+=text(450,421,'A plausible explanation, not an identified internal mechanism.',23,C.muted);
+    s+=growLine(490,212,554,212,p,C.blue,3);
+    s+=rect(575,132,280,164,C.blue,'#f7fafc',5)+text(715,180,'Pretrained TabPFN',27,C.blue);
+    s+=group(text(715,228,'Can it find the useful',22)+text(715,259,'combination?',22),clamp((p-.3)/.7));
+    s+=text(450,377,'B: bear type · L: response · Y: survival',22,C.muted);
+    s+=text(450,422,'Proposed test. No feature-relevance labels are supplied.',23,C.muted);
   }
   return s;
 }
