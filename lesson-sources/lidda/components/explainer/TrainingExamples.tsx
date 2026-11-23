@@ -33,7 +33,6 @@ export function TrainingExamples() {
     </table>
     <div className="training-notes" id="training-data-notes">
       <p><code>PAD</code> fills an unused slot. It is not an ad exposure and must be masked. Each repeated platform is a separate touch.</p>
-      <p><span className="training-outcome-key">1 = converted · 0 = did not convert</span>Both labels use the complete seven-day outcome window. Five slots and seven days are choices for this illustration.</p>
     </div>
   </section>;
 }
