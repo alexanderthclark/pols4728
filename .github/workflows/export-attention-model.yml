@@ -1,0 +1,43 @@
+name: Export measured attention
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/attention-trained-model]
+    paths:
+      - .github/workflows/export-attention-model.yml
+      - scripts/export_attention_model.py
+      - scripts/requirements-attention-model.txt
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: scripts/requirements-attention-model.txt
+      - name: Install pinned CPU dependencies
+        run: python -m pip install -r scripts/requirements-attention-model.txt
+      - name: Run pinned sentiment model
+        env:
+          HF_HUB_DISABLE_XET: '1'
+        run: python scripts/export_attention_model.py --output docs/attention/data/infinite-jest-attention.json
+      - name: Record public inference output
+        run: |
+          python - <<'PY'
+          import base64, gzip
+          from pathlib import Path
+          data = Path('docs/attention/data/infinite-jest-attention.json').read_bytes()
+          encoded = base64.b64encode(gzip.compress(data, mtime=0)).decode('ascii')
+          for start in range(0, len(encoded), 8000):
+              print('ATTENTION_DATA:' + encoded[start:start + 8000])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: infinite-jest-attention
+          path: docs/attention/data/infinite-jest-attention.json
+          retention-days: 30

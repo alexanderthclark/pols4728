@@ -4,15 +4,15 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Attention — How tokens share information · POLS 4728</title>
 <meta name="description" content="Compare two reviews of Infinite Jest, follow the residual stream to a sentiment score, and open one attention head to examine its matrix and token updates.">
-<link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="style.css?v=attention-full-lesson-4">
-<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs?v=attention-full-lesson-4"></script>
+<link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="style.css?v=attention-trained-model-5">
+<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs?v=attention-trained-model-5"></script>
 </head>
 <body>
 <a class="skip" href="#reading">Skip to the reading version</a>
 <header><a href="https://alexanderthclark.github.io/pols4728/">POLS 4728</a><span>Machine learning for political science</span><a href="#using-attention">Using attention</a><a href="#references">Sources</a></header>
 <main>
 <section class="hero" aria-labelledby="title">
-<div class="hero-copy"><p class="eyebrow">A visual lesson</p><h1 id="title">Attention</h1><p class="subtitle">How tokens share<br>information.</p><p class="intro">Follow the residual stream into attention.<br>Then work through every number with socks and shoes.</p><a class="begin" href="#story">Follow the information <span aria-hidden="true">↓</span></a><p class="route-link"><a href="#mechanics">Socks and shoes</a> · <a href="#numerical">A numerical classifier</a></p></div>
+<div class="hero-copy"><p class="eyebrow">A visual lesson</p><h1 id="title">Attention</h1><p class="subtitle">How tokens share<br>information.</p><p class="intro">Follow the residual stream into attention.<br>Then work through every number with socks and shoes.</p><a class="begin" href="#story">Follow the information <span aria-hidden="true">↓</span></a><p class="route-link"><a href="#trained-model">Real model results</a> · <a href="#mechanics">Socks and shoes</a> · <a href="#numerical">A numerical classifier</a></p></div>
 <figure class="hero-art"><img src="assets/attention-crowd-loudspeaker.png" width="1536" height="1024" alt="A crowd of round figures holds phones beneath a loudspeaker. Most look up attentively; four keep staring down at their phones with slack, blank expressions."></figure>
 <div class="hero-foot"><span>Tokens as rows. Attention from the left.</span><span data-math="X\;\longmapsto\;AX"></span></div>
 </section>
@@ -30,6 +30,16 @@
 </div>
 </section>
 
+<section id="trained-model" class="worked-chapter">
+<div class="chapter-intro"><p class="eyebrow">Run the sentences through a trained model</p><h2>Actual predictions. Actual attention.</h2><p>DistilBERT, fine-tuned on SST-2, scores both Infinite Jest sentences. This model has six transformer blocks and reads the final [CLS] representation through a classification head. The preceding one-block, mean-pooling diagram is a schematic; it is not this model’s exact architecture.</p></div>
+<p id="trained-error" class="appendix-intro" hidden>The saved model results could not be loaded. Reload this page to try again; the complete worked examples continue below.</p>
+<section id="trained-story" class="story trained-story" aria-label="Measured predictions and attention for both Infinite Jest sentences">
+<div class="stage"><div class="progress-track" aria-hidden="true"><div id="trained-progress"></div></div>
+<div class="stage-top"><a href="#title">Attention</a><span id="trained-chapter">A pretrained sentiment model</span><span id="trained-counter">1 / 3</span></div>
+<div class="scene-layout"><div class="narration" id="trained-narration"><p class="eyebrow" id="trained-scene-label"></p><h2 id="trained-scene-title"></h2><p id="trained-caption"></p><div id="trained-equation" class="equation"></div><p id="trained-detail" class="detail"></p></div><figure class="visual"><svg id="trained-diagram" viewBox="0 0 640 540" role="img" aria-label="Measured model attention"></svg><figcaption id="trained-visual-caption"></figcaption></figure></div>
+<div class="stage-bottom"><span>Measured weights · all special tokens retained</span><span>Layer 6 · head 1</span></div></div></section>
+<section class="afterword trained-explorer-section" aria-labelledby="trained-explorer-heading"><h2 id="trained-explorer-heading">Inspect another head.</h2><p>Compare any of the 72 attention heads, then select a destination row to read its exact weights. Each row mixes source representations. These weights are not signed contributions to the sentiment score.</p><div id="trained-explorer"></div><p class="trained-provenance">Model: <a href="https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english/tree/714eb0fa89d2f80546fda750413ed43d93601a13">DistilBERT SST-2, pinned checkpoint</a>. <a href="data/infinite-jest-attention.json">Download every saved attention matrix and prediction</a>. <a href="https://github.com/alexanderthclark/pols4728/blob/main/scripts/export_attention_model.py">Reproduce the model run</a>.</p></section>
+</section>
 <section class="worked-chapter" id="numerical"><div class="chapter-intro"><p class="eyebrow">A worked classifier</p><h2>Attention, pooling, and classification</h2><p>This separate three-token model isolates the arithmetic. It has no residual path or MLP; its classifier reads the mean of the attention outputs directly.</p></div><section id="numerical-story" class="story numerical-story" aria-label="Thirteen scenes from the attention matrix to a prediction">
 <div class="stage">
 <div class="progress-track" aria-hidden="true"><div id="numerical-progress"></div></div>
@@ -44,7 +54,7 @@
 <section class="afterword interpretation-guide" id="using-attention">
 <p class="eyebrow">Using attention in research</p><h2>What can we learn from the output?</h2>
 <p>An attention heatmap describes a particular computation: for one head, in one layer, each destination forms a weighted mixture of source value vectors. A large weight tells us that the source receives a large mixing coefficient. Its effect on a particular classification also depends on the value vector and everything that follows.</p>
-<p>The opening uses two sentences to motivate the task; it does not report model measurements. The residual path preserves each token’s representation while attention and the position-wise MLP add updates. A sentiment readout uses the final token representations. The numerical example removes those extra paths to make one exact decomposition possible.</p>
+<p>The opening schematic uses two sentences to motivate the task. The following DistilBERT chapter reports measured predictions and attention weights for those exact sentences. The residual path preserves each token’s representation while attention and the position-wise MLP add updates. A sentiment readout uses the final token representations. The numerical example removes those extra paths to make one exact decomposition possible.</p>
 <p>That makes attention useful for investigating the relationships a model has learned. For example, <a href="https://aclanthology.org/W19-4828/">Clark et al. (2019)</a> found BERT heads associated with syntactic relations and coreference. Such patterns can suggest what to inspect or test next. A pattern across token positions and an explanation of a particular sentiment score answer different questions.</p>
 <p>The three-token numerical example produces one output vector per token: the rows of <span data-math="Y=AV"></span>. Mean pooling turns those three rows into a sentence summary, <span data-math="h=\frac13\sum_i y_i=\sum_j\alpha_jv_j"></span>, where <span data-math="\alpha_j=\frac13\sum_i a_{ij}"></span>. These effective source weights are the column means of <span data-math="A"></span>, computed across all destinations.</p>
 <p>A linear classifier reads the summary as <span data-math="z=b+h\beta"></span>. With token vectors stored as rows, <span data-math="\beta"></span> is a column. The positive-class probability is <span data-math="\sigma(z)"></span>.</p>
@@ -58,7 +68,7 @@
 <tr><td>What caused an outcome outside the model?</td><td>An experiment or an identified causal design</td><td>A different question that attention weights alone do not answer.</td></tr>
 </tbody></table></div>
 <h3>A useful sentiment exercise</h3>
-<p>Begin with a fixed target, such as the positive-class logit, and show the original prediction. Compare “the film was awful” with “the film was great”; then compare “the film was good” with “the film was not good.” Rerun the classifier on each complete sentence. These are proposed checks for a trained model; the numbers in this lesson come only from our constructed three-token example.</p>
+<p>Begin with a fixed target, such as the positive-class logit, and show the original prediction. Compare “the film was awful” with “the film was great”; then compare “the film was good” with “the film was not good.” Rerun the classifier on each complete sentence. These further edits are proposed checks for a trained model. The DistilBERT chapter reports measured results for the Infinite Jest sentences; the three-token example uses hand-constructed parameters.</p>
 <p>Put the chosen attention row beside the score changes and ask whether its highlighted positions help explain them. Inspect negation as a phrase: in a deep transformer, the representation at “good” may already contain information from “not.” Removing a token also changes the context, positions, and potentially every attention row. It does not isolate a unique contribution inherent to that word.</p>
 <p>Integrated gradients can provide a signed attribution to a chosen output relative to a specified baseline; SHAP requires a specified treatment of missing features. Both address questions that a raw attention heatmap leaves open, and both need their own interpretation. For an introductory exercise, a small set of meaningful text edits makes the contrast easier to inspect. See <a href="https://proceedings.mlr.press/v70/sundararajan17a.html">Sundararajan et al. (2017)</a> and <a href="https://proceedings.neurips.cc/paper_files/paper/2017/hash/8a20a8621978632d76c43dfd28b67767-Abstract.html">Lundberg and Lee (2017)</a>.</p>
 <h3 id="lidda">From words to marketing touchpoints</h3>

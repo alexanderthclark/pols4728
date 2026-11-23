@@ -55,6 +55,42 @@ Circuits. Secondary: Prince, Understanding Deep Learning, chapter 12 §§12.2–
 The page explains the transpose convention and includes the exact toy maps. Grant Sanderson’s attention lesson is an additional visual reference. A
 broader notation harmonization with the course notes remains for a later pass.
 
+## Measured Infinite Jest results
+
+After the eight schematic scenes, three additional scroll scenes show predictions
+and attention exported from `distilbert/distilbert-base-uncased-finetuned-sst-2-english`,
+pinned to revision `714eb0fa89d2f80546fda750413ed43d93601a13`. This SST-2
+checkpoint has six blocks and twelve heads per block. Its classifier reads the
+final `[CLS]` state through a linear pre-classifier, ReLU, and a final linear map;
+it does not use the schematic overview's mean pooling. The model scores overall
+sentiment, not sentiment toward an independently specified target.
+
+The export includes both unchanged sentences, actual WordPiece tokens and special
+tokens, token IDs and offsets, logits, softmax probabilities, and all 72 full
+attention matrices for each sentence. No special-token columns are discarded or
+renormalized. The initial comparison fixes layer 6/head 1 by position, rather
+than selecting a head for an appealing pattern. A following explorer lets the
+reader inspect every layer, head, sentence, and destination with an exact row
+table. Colors use one linear 0–1 scale. Intended readings remain distinct from
+model predictions; attention coefficients are not signed sentiment attributions.
+
+`data/infinite-jest-attention.json` stores the computed results, checkpoint
+revision, package versions, precision, evaluation settings, and row-sum checks.
+`trained-scenes.mjs` and `trained-explorer.mjs` only display these results.
+The page downloads the small results file, not the model weights.
+
+Reproduce with Python 3.11:
+
+```sh
+python -m pip install -r scripts/requirements-attention-model.txt
+python scripts/export_attention_model.py --output docs/attention/data/infinite-jest-attention.json
+```
+
+The `Export measured attention` GitHub Actions workflow runs the same export and
+saves an artifact. It has read-only repository permissions and does not commit
+generated results. Inference uses CPU float32, evaluation mode, eager attention,
+and the pinned checkpoint's safetensors weights, without custom model code.
+
 ## Interpreting a classification
 
 `interpretation-model.mjs` defines a hand-constructed self-attention classifier,
@@ -130,7 +166,7 @@ The current site does not run that checkpoint or claim measurements from it.
 
 ## Implementation and checking
 
-`app.mjs` initializes three pinned stories: `sentence-scenes.mjs` is the default
+`app.mjs` initializes the three original pinned stories plus the measured-model chapter: `sentence-scenes.mjs` is the default
 route; `interpretation-scenes.mjs` supplies the numerical chapter; and the
 original `socks-scenes.mjs` plus `extension-scenes.mjs` supply the full
 worked-example chapter. Hash links offer shortcuts; scrolling reaches every scene. It derives

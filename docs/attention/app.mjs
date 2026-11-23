@@ -1,3 +1,5 @@
+import {createTrainedScenes} from './trained-scenes.mjs?v=attention-trained-model-5';
+import {buildExplorer} from './trained-explorer.mjs?v=attention-trained-model-5';
 import {createSocksScenes} from './socks-scenes.mjs?v=attention-sequence-2';
 import {createExtensionScenes} from './extension-scenes.mjs?v=attention-sequence-2';
 import {createInterpretationScenes} from './interpretation-scenes.mjs?v=attention-matrix-2';
@@ -88,3 +90,21 @@ addEventListener('hashchange',revealReading);revealReading();
 // Hash jumps and native keyboard scrolling follow the same reversible sequence.
 render();
 
+
+// Precomputed outputs keep this lesson usable without a model download.
+fetch(new URL('./data/infinite-jest-attention.json',import.meta.url))
+ .then(response=>{if(!response.ok)throw new Error('Model results unavailable');return response.json();})
+ .then(data=>{
+  const scenes=createTrainedScenes(drawing,data);
+  renderStories.splice(1,0,makeStory('trained-story','trained-',scenes));
+  buildExplorer(document.querySelector('#trained-explorer'),data);
+  const reading=document.createElement('div');
+  reading.innerHTML='<h3>Measured results from DistilBERT</h3>'+transcript(scenes);
+  document.querySelector('#transcript').append(reading);
+  render();
+ })
+ .catch(error=>{
+  document.querySelector('#trained-error').hidden=false;
+  document.querySelector('#trained-story').hidden=true;
+  console.error(error);schedule();
+ });
