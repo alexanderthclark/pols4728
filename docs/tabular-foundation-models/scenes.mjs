@@ -1,4 +1,4 @@
-import {bearComparisonScenes} from './bear-comparison-scenes.mjs';
+import {bearComparisonScenes} from './bear-comparison-scenes.mjs?v=20261123-noise-only';
 import {atusScenes} from './atus-scenes.mjs';
 import {bearScenes} from './bear-scenes.mjs';
 import {mechanismScenes} from './mechanism-scenes.mjs';

@@ -1,10 +1,10 @@
-import {renderBearComparison} from './bear-comparison.mjs';
+import {renderBearComparison} from './bear-comparison.mjs?v=20261123-noise-only';
 import {renderAtus} from './atus.mjs';
 import {renderBear,renderBearMobile} from './bear.mjs';
 import {renderDgp} from './dgp.mjs';
 import {renderMechanism} from './mechanism.mjs';
 import {renderNature,renderNatureMobile} from './nature.mjs';
-import {scenes,sources} from './scenes.mjs';
+import {scenes,sources} from './scenes.mjs?v=20261123-noise-only';
 import {renderVisual,renderMobile} from './visuals.mjs';
 import * as bayes from './bayes.mjs';
 const $=id=>document.getElementById(id), story=$('story'),diagram=$('diagram');
