@@ -1,0 +1,8 @@
+# CPU wheel only; the checkpoint is separately pinned in export_attention_model.py.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.5.1+cpu
+transformers==4.47.0
+tokenizers==0.21.0
+huggingface-hub==0.27.1
+safetensors==0.4.5
+numpy==1.26.4
