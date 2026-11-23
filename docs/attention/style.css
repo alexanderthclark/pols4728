@@ -119,3 +119,8 @@
  #trained-story[data-scene] .scene-layout{gap:2px}
 }
 
+
+/* Let the paired desert sentences fill their own scene. */
+#intuition[data-scene-id="desert-senses"] #intuition-narration{display:none}
+#intuition[data-scene-id="desert-senses"] .scene-layout{grid-template-columns:minmax(0,1fr)}
+#intuition[data-scene-id="desert-senses"] .visual{max-width:760px;max-height:none;margin-inline:auto}
