@@ -86,3 +86,8 @@
  .trained-explorer-presets{font-size:13px}
 }
 
+/* The lookup-pooling animation states its takeaway above the diagram. */
+#mechanics-story[data-scene-id="socks-lookup-pooling"] #mechanics-narration{display:none}
+#mechanics-story[data-scene-id="socks-lookup-pooling"] .scene-layout{grid-template-columns:minmax(0,1fr)}
+#mechanics-story[data-scene-id="socks-lookup-pooling"] .visual{max-width:840px;max-height:none;margin-inline:auto}
+

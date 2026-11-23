@@ -1,4 +1,4 @@
-import { socksAttention } from './socks-model.mjs?v=attention-notation-8';
+import { socksAttention, socksPattern } from './socks-model.mjs?v=socks-takeaway-21';
 
 // Introductory construction: chosen weights, exact arithmetic, and no causal mask.
 // The supplied drawing helpers keep math in the lesson's shared LaTeX renderer.
@@ -57,7 +57,8 @@ export function createSocksScenes({m,text,line,rect,circle,C,ease,lerp,clamp,num
   }
   function identities(t) {
     const p=ease(t),sy=lerp(150,300,p),hy=lerp(300,150,p);
-    let out=text('Represent identity alone',320,52,25,C.muted);
+    let out=text('Transform the lookup embeddings',320,35,27,C.ink);
+    out+=text('so order survives mean pooling.',320,73,27,C.ink);
     out+=icon('socks',98,sy,80)+m('[1\\;0]',220,sy,190,55,32,blue);
     out+=icon('shoes',98,hy,80)+m('[0\\;1]',220,hy,190,55,32,rust);
     out+=`<path d="M310 150Q375 150 412 225 M310 300Q375 300 412 225" fill="none" stroke="${C.rule}" stroke-width="2"/>`;
@@ -228,9 +229,41 @@ export function createSocksScenes({m,text,line,rect,circle,C,ease,lerp,clamp,num
     out+=text('Both orders now get the same score.',320,509,25,C.muted);
     return out;
   }
+  function patternComparison(t,balanced=false) {
+    const cases=balanced
+      ? [{a:1,b:0,name:'Identity: keep each row'},
+         {a:0,b:1,name:'Swap: exchange the rows'},
+         {a:.5,b:.5,name:'Uniform: average both sources'},
+         {a:.8,b:.2,name:'Selective, but balanced overall'}]
+      : [{a:.5,b:.75,name:'Our worked example'},
+         {a:.75,b:.75,name:'Identical rows can work too'},
+         {a:.25,b:.25,name:'Favoring shoes can also work'}];
+    const choice=cases[Math.min(cases.length-1,Math.floor(t*cases.length))];
+    const model=socksPattern(choice.a,choice.b);
+    const backward=socksPattern(choice.a,choice.b,{reverse:true});
+    let out=text(choice.name,320,36,26,C.ink);
+    out+=text('Socks-first attention',320,76,22,C.muted);
+    out+=text('socks',289,116,24,blue)+text('shoes',423,116,24,rust);
+    out+=cellMatrix(model.A,{x:222,y:135,cw:134,ch:65,rowTokens:['socks','shoes'],heat:true});
+    out+=text('column totals',167,304,21,C.muted,'end');
+    out+=m(num(model.columnSums[0]),289,297,110,48,30,blue);
+    out+=m(num(model.columnSums[1]),423,297,110,48,30,rust);
+    out+=line(222,276,490,276,C.rule,1);
+    out+=text('socks first',172,355,23,blue)+text('shoes first',468,355,23,rust);
+    out+=m(`\\bar u=${num(model.pooled)}`,172,394,270,56,32,blue);
+    out+=m(`\\bar u=${num(backward.pooled)}`,468,394,270,56,32,rust);
+    if(balanced){
+      out+=text('The pooled vectors are identical.',320,458,25,C.ink);
+      out+=text('No readout can separate them.',320,501,25,C.ink);
+    } else {
+      out+=m(`\\hat y=${num(model.coefficient)}\\bar u-\\tfrac12`,320,458,600,64,33,C.teal);
+      out+=m('\\hat y=0',172,518,260,52,30,blue)+m('\\hat y=-1',468,518,260,52,30,rust);
+    }
+    return out;
+  }
   return [
     {part:'01 · Why order matters',label:'Begin with a small task',title:'Socks before shoes.',caption:'Give “socks, shoes” a score of zero and the reversed order a score of minus one. The items are identical; their order changes the target.',equation:'[\\text{socks},\\text{shoes}]\\;\\longmapsto\\;0',detail:'This is a deliberately small construction. We will choose every weight and compute every output; nothing here is a claim about a pretrained model.',visual:'Scroll to exchange the two items while their positions stay fixed.',draw:task},
-    {part:'01 · Why order matters',label:'Averaging loses the distinction',title:'Identity alone is not enough.',caption:'Represent socks and shoes with two identity coordinates. Averaging those vectors gives the same result in either order.',equation:'\\tfrac12\\bigl([1\\;0]+[0\\;1]\\bigr)=[\\tfrac12\\;\\tfrac12]',detail:'A model that sees only this average cannot give the two sequences different predictions.',visual:'The row vectors move with the tokens, but their mean stays fixed.',draw:identities},
+    {id:'socks-lookup-pooling',part:'01 · Why order matters',label:'Averaging loses the distinction',title:'Transform the lookup embeddings so order survives mean pooling.',caption:'Represent socks and shoes with two identity coordinates. Averaging those vectors gives the same result in either order.',equation:'\\tfrac12\\bigl([1\\;0]+[0\\;1]\\bigr)=[\\tfrac12\\;\\tfrac12]',detail:'A model that sees only this average cannot give the two sequences different predictions.',visual:'The row vectors move with the tokens, but their mean stays fixed.',draw:identities},
     {part:'01 · Why order matters',label:'Choose one construction',title:'Let’s take one simple route.',caption:'Position vectors can be learned and added to token embeddings of the same width. Here, we choose fixed vectors that use the third coordinate.',equation:'X=E+P',detail:'Add matching entries. <span data-math="E"></span>, <span data-math="P"></span>, and <span data-math="X"></span> all have two rows and three columns. From here on, <span data-math="X"></span> includes position.',visual:'We’ll use this choice for the rest of the socks-and-shoes example.',draw:positionalRows,discretePhases:true},
     {part:'02 · Construct one attention head',label:'Give the head a purpose',title:'What should shoes retrieve?',caption:'For our chosen solution, let shoes look for socks and read information about their position. Matching identifies the source; the value supplies the information to combine.',equation:'\\text{source}\\;\\longrightarrow\\;\\text{position}',detail:'This is the retrieval rule we want to implement. The next steps choose matrices and calculate how much each source contributes.',visual:'Identify socks, then use the position they carry. The weighted result is still to be calculated.',draw:retrievalGoal},
     {part:'02 · Construct one attention head',label:'Choose two feature maps',title:'Let shoes look for socks.',caption:'The query marks shoes as the destination asking for information. The key marks socks as the source to favor. Separate maps let us express this directed match.',equation:'Q=XW_Q,\\qquad K=XW_K',detail:'These shared maps implement our chosen rule. The factor <span data-math="\\log 3"></span> will give socks three times the weight of shoes. Training would learn the maps instead.',visual:'The query and key dimensions are both one in this example.',draw:queriesKeys},
@@ -241,6 +274,8 @@ export function createSocksScenes({m,text,line,rect,circle,C,ease,lerp,clamp,num
     {part:'02 · Construct one attention head',label:'Apply the weighted sum',title:'Shoes receives a trace of where socks was.',caption:'The socks destination averages the two positions to zero. The shoes destination puts more weight on socks and receives one half.',equation:'U=AV',detail:'The matrix multiplication happens from the left. Each destination row is a weighted sum of source values.',visual:'The highlighted calculation is the shoes destination, which reads 75% from socks.',draw:weightedValues},
     {part:'03 · Read the task score',label:'A separate, simple readout',title:'Turn the two outputs into one score.',caption:'Average both destination outputs, then apply a fixed scoring rule. For socks before shoes, the resulting prediction is zero.',equation:'\\hat y=2\\bar u-\\tfrac12',detail:'The averaging and scoring rule are the task readout. They are specified separately from the attention operation.',visual:'Attention gives outputs zero and one half; their average is one quarter.',draw:prediction},
     {part:'03 · Read the task score',label:'Use exactly the same parameters',title:'Reverse the order. Keep the rule.',caption:'Socks now supplies the value minus one. Shoes still reads mostly from socks, so its output becomes minus one half and the final prediction becomes minus one.',equation:'\\hat y=-1',detail:'Queries and keys move with token identity. The position values remain attached to the first and second slots.',visual:'Only the token order changes; all projection maps and the scoring rule remain fixed.',draw:swapped},
-    {part:'03 · Read the task score',label:'What makes the distinction possible',title:'We need position and selective mixing.',caption:'Remove position, or make both attention rows uniform, and the two orders collapse to the same prediction. The useful signal needs both ingredients.',equation:'\\hat y=-\\tfrac12\\quad\\text{for both orders}',detail:'This construction demonstrates how attention can move information that makes order distinguishable. It does not imply that every learned head follows this rule.',visual:'Scroll to compare removing position with replacing attention by uniform weights.',draw:ablations,discretePhases:true}
+    {part:'03 · Read the task score',label:'What makes the distinction possible',title:'We need position and selective mixing.',caption:'Remove position, or make both attention rows uniform, and the two orders collapse to the same prediction. The useful signal needs both ingredients.',equation:'\\hat y=-\\tfrac12\\quad\\text{for both orders}',detail:'This construction demonstrates how attention can move information that makes order distinguishable. It does not imply that every learned head follows this rule.',visual:'Scroll to compare removing position with replacing attention by uniform weights.',draw:ablations,discretePhases:true},
+    {id:'socks-many-solutions',part:'03 · What makes the example work',label:'The exact weights are not special',title:'Almost any attention pattern can work.',caption:'Unequal column totals preserve an order signal. A suitable linear readout can then recover the two target scores.',equation:'\\begin{gathered}A='+array([['a','1-a'],['b','1-b']])+'\\\\a+b\\ne1\\end{gathered}',detail:'Keep values tied to position and matching tied to token identity. Reversing the tokens swaps both rows and columns of A. Each new pattern may require a new readout, shared by both orders.',visual:'Scroll through three different attention patterns. Even identical attention rows can preserve order.',draw:t=>patternComparison(t),discretePhases:true},
+    {id:'socks-balanced-exception',part:'03 · What makes the example work',label:'Identity is only one failure case',title:'Equal column totals erase the signal.',caption:'Mean pooling cancels the position information when the two sources receive equal total attention. This is the entire exception in our two-token construction.',equation:'a+b=1\\;\\Longrightarrow\\;\\bar u=0',detail:'The rows already sum to one. When the columns also sum to one, A is doubly stochastic. Identity and a pure swap are limiting cases of unmasked softmax.',visual:'Identity, swapping, uniform averaging, and balanced selective mixing all have column totals 1 and 1.',draw:t=>patternComparison(t,true),discretePhases:true}
   ];
 }
