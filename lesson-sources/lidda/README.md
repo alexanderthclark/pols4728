@@ -29,9 +29,9 @@ This command rebuilds the package and replaces the generated `../../docs/lidda/`
 ## Files to maintain
 
 - `app/page.tsx` organizes the lesson; `app/globals.css` supplies shared styles.
-- `components/explainer/` contains the explanation, equations, optional controls, and their styles.
-- `lib/attribution-model.ts`, `lib/attention-detail.ts`, and `lib/attention-bridge.ts` define the fixed teaching examples. These parameters are illustrative; they are not fitted LiDDA estimates.
-- `tests/` verifies the attention arithmetic and readout comparisons.
+- `components/explainer/` contains the training examples, architecture diagram, scroll-driven readout, equations, and styles.
+- `lib/attribution-model.ts`, `lib/attention-detail.ts`, and `lib/lesson-shapes.ts` define the fixed teaching example and padded tensor shapes. These parameters are illustrative; they are not fitted LiDDA estimates.
+- `tests/` verifies attention arithmetic, padding, column-wise credit, and all ten flattened slots.
 - `static/index.html` and `static/main.tsx` provide the standalone browser entry and initial section-link behavior.
 - `public/favicon.svg` supplies the icon.
 - `scripts/export-static.mjs` builds the standalone output; `scripts/publish-static.mjs` stages it under `docs/lidda/`.
@@ -40,8 +40,10 @@ The source intentionally excludes the original hosting configuration, authentica
 
 ## Scope and source history
 
-This lesson focuses on event representations, attention arithmetic, conversion prediction, flattening, padding, and touchpoint credit. All eight numerical stages are available by scrolling. The fixed-attention value experiment keeps the distinction between prediction and normalized credit explicit. The paper’s ambiguous head combination, flattened tensor, and query-axis reduction are identified as implementation choices.
+This lesson assumes students already know embeddings and attention. After concrete training examples, a two-branch diagram shows the sequence model and member/employer covariates. Five scroll stages follow the attention matrices through value mixing, flattening, conversion prediction, and credit. The same ten output cells move from a 5 × 2 array into a vector; reverse scrolling restores their positions. Reduced motion uses discrete completed states.
+
+The paper specifies one self-attention layer but does not report the head count or residual/LayerNorm wiring. The illustration consistently uses two heads, five padded positions, and two symbolic value coordinates per head. The attention weights are numerical; output coordinates are symbolic. Head averaging, flattening the mixed outputs in position order, and summing incoming attention across queries are explicit teaching conventions where the paper is underspecified.
 
 The full earlier guide is preserved in the original Sites source commit `2c4e2f47cb0f4578326ad84e1affbfacc55f6509`. The course package contains the focused revision only.
 
-The course presentation uses white backgrounds, the shared palette, direct labels, and explicit outlines for selected matrix rows and controls. The four numbered event paths in the opening are a schematic, not measured flows. No character artwork is introduced.
+The course presentation uses white backgrounds, the shared palette, direct labels, and outlines for matrices and output coordinates. The training journeys are synthetic; the architecture diagram distinguishes sequence inputs from context covariates. No character artwork is introduced.
