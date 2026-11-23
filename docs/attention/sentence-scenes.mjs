@@ -134,7 +134,7 @@ export function createSentenceScenes({m, line, rect, C}) {
   function readEntry(t) {
     return label('Columns: tokens attended to',371,28,24,teal)
       +attentionGrid({row:0,column:4,columnWords:true})
-      +dot(lerp(355.5,231.5,ease(t)),166.5,rust,5)
+      +dot(lerp(355.5,205,ease(t)),166.5,rust,5)
       +math('u_1=a_{11}v_1+\\cdots+{\\color{'+rust+'}a_{15}v_5}+\\cdots',320,508,620,60,29,teal);
   }
   function readRow(t) {
