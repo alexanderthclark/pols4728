@@ -31,7 +31,7 @@ const coreScenes=createSentenceScenes(drawing);
 const mechanicsScenes=[...createSocksScenes(drawing),...createExtensionScenes(drawing)];
 // The complete text remains available independently of visual scene changes.
 const transcript=scenes=>scenes.map((s,i)=>`<section>${s.title?`<h3>${i+1}. ${s.title}</h3>`:""}${s.caption?`<p>${s.caption}</p>`:""}${(s.quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('')}${s.equation?`<div class="transcript-eq">${tex(s.equation)}</div>`:""}${s.detail?`<p>${s.detail}</p>`:""}${s.reading||''}</section>`).join('');
-document.querySelector('#transcript').innerHTML='<h3>One token, different contexts</h3>'+transcript(intuitionScenes)+'<h3>Sentiment, the residual stream, and attention</h3>'+transcript(coreScenes)+'<h3 id="transcript-mechanics">The earlier Q/K/V calculation</h3>'+transcript(mechanicsScenes);
+document.querySelector('#transcript').innerHTML='<h3>One token, different contexts</h3>'+transcript(intuitionScenes)+'<h3>Sentiment, the residual stream, and attention</h3>'+transcript(coreScenes)+'<h3 id="transcript-mechanics">Constructing the socks-and-shoes head</h3>'+transcript(mechanicsScenes);
 renderMathNodes(document.querySelector('#transcript'));
 const quoteMarkup=quotes=>(quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('');
 function makeStory(id,prefix,scenes){
@@ -103,14 +103,15 @@ Promise.all(['infinite-jest-attention.json','infinite-jest-investigation.json'].
  fetch(new URL(`./data/${file}`,import.meta.url)).then(response=>{if(!response.ok)throw new Error('Model results unavailable');return response.json();})))
  .then(([data,investigation])=>{
   const scenes=createGuidedTrainedScenes(drawing,data,investigation);
-  renderStories.splice(2,0,makeStory('trained-story','trained-',scenes));
+  renderStories.push(makeStory('trained-story','trained-',scenes));
   buildExplorer(document.querySelector('#trained-explorer'),data);
   const reading=document.createElement('div');
   reading.id='trained-reading';
   reading.innerHTML='<h3>Testing DistilBERT’s attention and contextual states</h3>'+transcript(scenes);
-  document.querySelector('#transcript-mechanics').before(reading);
+  document.querySelector('#transcript').append(reading);
   renderMathNodes(reading);
   render();
+  if(location.hash==='#trained-reading')revealReading();
  })
  .catch(error=>{
   document.querySelector('#trained-error').hidden=false;

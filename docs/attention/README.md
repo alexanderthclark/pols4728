@@ -38,8 +38,10 @@ symbolic; highlighted entries do not assert learned weight magnitudes. For
 legibility the first sentence is shown as ten word-level units, with an explicit
 note that an actual tokenizer may split them further.
 
-The measured Infinite Jest chapter leads into the research interpretation
-guide and the socks-and-shoes calculation. The former thirteen-scene film
+After the schematic introduction, the socks-and-shoes calculation and encoder
+notebook bridge precede the measured Infinite Jest investigation. The research
+interpretation guide follows the measured chapter. The reading transcript follows
+the same scene order. The former thirteen-scene film
 classifier has been removed from the live route, navigation, and reading
 version. Its source modules and arithmetic tests remain as an archived example.
 
@@ -245,9 +247,9 @@ The current site does not run that checkpoint or claim measurements from it.
 ## Implementation and checking
 
 `app.mjs` initializes four pinned stories: the intuition primer, Infinite Jest
-schematic, measured-model chapter, and socks-and-shoes calculation.
+schematic, socks-and-shoes calculation, and measured-model chapter.
 `intuition-scenes.mjs` introduces meaning in context; `sentence-scenes.mjs`
-supplies the schematic; `trained-scenes.mjs` displays measured results; and
+supplies the schematic; `trained-tour-scenes.mjs` displays measured results; and
 `socks-scenes.mjs` plus `extension-scenes.mjs` supply the full worked example.
 `interpretation-scenes.mjs` is archived and is not imported by the live app. Hash links offer shortcuts; scrolling reaches every scene. It derives
 scene state directly from native scroll position. There are no

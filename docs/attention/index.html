@@ -5,14 +5,14 @@
 <title>Attention — How tokens share information · POLS 4728</title>
 <meta name="description" content="Start with two meanings of desert, see how context changes token representations, then follow attention into Infinite Jest sentiment and a complete socks-and-shoes calculation.">
 <link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="style.css?v=attention-interventions-28">
-<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs?v=attention-interventions-28"></script>
+<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs?v=attention-order-29"></script>
 </head>
 <body>
 <a class="skip" href="#reading">Skip to the reading version</a>
 <header><a href="https://alexanderthclark.github.io/pols4728/">POLS 4728</a><span>Machine learning for political science</span><a href="#using-attention">Using attention</a><a href="#references">Sources</a></header>
 <main>
 <section class="hero" aria-labelledby="title">
-<div class="hero-copy"><p class="eyebrow">A visual lesson</p><h1 id="title">Attention</h1><p class="subtitle">How tokens share<br>information.</p><p class="intro">Start with the running token vectors.<br>See how context changes what they represent.</p><a class="begin" href="#intuition">Start with context <span aria-hidden="true">↓</span></a><p class="route-link"><a href="#story">Sentiment example</a> · <a href="#trained-model">Real model results</a> · <a href="#mechanics">Socks and shoes</a></p></div>
+<div class="hero-copy"><p class="eyebrow">A visual lesson</p><h1 id="title">Attention</h1><p class="subtitle">How tokens share<br>information.</p><p class="intro">Start with the running token vectors.<br>See how context changes what they represent.</p><a class="begin" href="#intuition">Start with context <span aria-hidden="true">↓</span></a><p class="route-link"><a href="#story">Attention basics</a> · <a href="#mechanics">Socks and shoes</a> · <a href="#encoder-notebook">Train an encoder</a> · <a href="#trained-model">Real model results</a></p></div>
 <figure class="hero-art"><img src="assets/attention-crowd-loudspeaker.png" width="1536" height="1024" alt="A crowd of round figures holds phones beneath a loudspeaker. Most look up attentively; four keep staring down at their phones with slack, blank expressions."></figure>
 <div class="hero-foot"><span>Tokens as rows. Attention from the left.</span><span data-math="X\;\longmapsto\;AX"></span></div>
 </section>
@@ -42,9 +42,25 @@
 </div>
 </section>
 
+<section class="worked-chapter" id="mechanics"><section class="chapter-intro" id="mechanics-intro"><p class="eyebrow">Build one attention head</p><h2>Socks and shoes</h2><p>Follow every number from input vectors through Q/K matching, values, and a prediction. Then project an update back into the residual stream and examine a causal mask.</p></section>
+<section id="mechanics-story" class="story" aria-label="Twenty-one scenes constructing Q, K and V">
+<div class="stage"><div class="progress-track" aria-hidden="true"><div id="mechanics-progress"></div></div>
+<div class="stage-top"><a href="#story">Core idea ↑</a><span id="mechanics-chapter">One head · Socks and shoes</span><span id="mechanics-counter">1 / 21</span></div>
+<div class="scene-layout"><div class="narration" id="mechanics-narration"><p class="eyebrow" id="mechanics-scene-label"></p><h2 id="mechanics-scene-title"></h2><p id="mechanics-caption"></p><div id="mechanics-equation" class="equation"></div><p id="mechanics-detail" class="detail"></p></div><figure class="visual"><svg id="mechanics-diagram" viewBox="0 0 640 540" role="img" aria-label="Attention calculation"></svg><figcaption id="mechanics-visual-caption"></figcaption></figure></div>
+<div class="stage-bottom"><span>Illustrative numbers · exact calculations</span></div></div>
+</section>
+</section>
+<section class="afterword" id="encoder-notebook" aria-labelledby="encoder-notebook-title">
+<p class="eyebrow">From a constructed solution to a learned one</p>
+<h2 id="encoder-notebook-title">Now learn the ordering rule.</h2>
+<p>The notebook replaces socks and shoes with A and B among ten distractor tokens. The target is 1 when A comes before B, and 0 otherwise. Each example is paired with a copy in which A and B swap places.</p>
+<p>The challenge is the same: make order survive mean pooling. Even after adding position vectors, those paired sequences have the same average initial representation. The encoder must transform the token vectors so their final averages can differ.</p>
+<p>Here we chose the projections and scoring rule. The notebook trains the token and position embeddings, encoder, and classifier together. Its two encoder blocks use four attention heads each, followed by mean pooling and a learned linear classifier.</p>
+<p><a href="https://github.com/alexanderthclark/pols4728-2026f/blob/5a29ace12e91b1aca3d26eea54b4cbceba92fb22/notes/notebooks/annotated_encoder_classifier.ipynb">Open the annotated PyTorch encoder notebook →</a></p>
+</section>
 <section id="trained-model" class="worked-chapter">
-<div class="chapter-intro"><p class="eyebrow">A trained sentiment model</p><h2>Test what the model uses.</h2><p>Change an input or an internal message. See which predictions change.</p></div>
-<p id="trained-error" class="appendix-intro" hidden>The saved model results could not be loaded. Reload this page to try again; the complete worked examples continue below.</p>
+<div class="chapter-intro"><p class="eyebrow">A trained sentiment model</p><h2>Test what the model uses.</h2><p>Now inspect a pretrained sentiment model. Change an input or an internal message, and see which predictions change.</p></div>
+<p id="trained-error" class="appendix-intro" hidden>The saved model results could not be loaded. Reload this page to try again; the socks-and-shoes calculation above remains available.</p>
 <section id="trained-story" class="story trained-story" aria-label="Eight scenes testing attention messages and contextual representations in DistilBERT">
 <div class="stage"><div class="progress-track" aria-hidden="true"><div id="trained-progress"></div></div>
 <div class="stage-top"><a href="#title">Attention</a><span id="trained-chapter">DistilBERT · tested computations</span><span id="trained-counter">1 / 8</span></div>
@@ -83,24 +99,8 @@
 <p>A 40% credit share is a model-based allocation within a path. It is not automatically a 40% change in conversion probability or a 40% causal effect. The Infinite Jest example illustrates the interpretive distinction; it is not a reconstruction of LiDDA.</p>
 <details><summary>A technical qualification about LiDDA</summary><p>The paper describes aggregation across heads and normalization, but does not fully specify how its query-by-source attention tensor reduces to one credit per touchpoint. We therefore leave that query-axis reduction unspecified here.</p></details>
 <h3>What to remember about Q, K and V</h3>
-<p>A query is what a destination is matched on; a key is what each source is matched on; a value is what that source contributes to the mixture. In a trained transformer, these projections are learned from the training task. “Looking for” is an analogy, not a claim that their coordinates have human-readable meanings. Learn the flow from matching to mixing to prediction first. The full calculation follows below.</p>
-<p class="section-links"><a href="#mechanics">Work through socks and shoes</a><a href="#reading">Read the complete text</a></p>
-</section>
-<section class="worked-chapter" id="mechanics"><section class="chapter-intro" id="mechanics-intro"><p class="eyebrow">Build one attention head</p><h2>Socks and shoes</h2><p>Follow every number from input vectors through Q/K matching, values, and a prediction. Then project an update back into the residual stream and examine a causal mask.</p></section>
-<section id="mechanics-story" class="story" aria-label="Twenty-one scenes constructing Q, K and V">
-<div class="stage"><div class="progress-track" aria-hidden="true"><div id="mechanics-progress"></div></div>
-<div class="stage-top"><a href="#story">Core idea ↑</a><span id="mechanics-chapter">One head · Socks and shoes</span><span id="mechanics-counter">1 / 21</span></div>
-<div class="scene-layout"><div class="narration" id="mechanics-narration"><p class="eyebrow" id="mechanics-scene-label"></p><h2 id="mechanics-scene-title"></h2><p id="mechanics-caption"></p><div id="mechanics-equation" class="equation"></div><p id="mechanics-detail" class="detail"></p></div><figure class="visual"><svg id="mechanics-diagram" viewBox="0 0 640 540" role="img" aria-label="Attention calculation"></svg><figcaption id="mechanics-visual-caption"></figcaption></figure></div>
-<div class="stage-bottom"><span>Illustrative numbers · exact calculations</span></div></div>
-</section>
-</section>
-<section class="afterword" id="encoder-notebook" aria-labelledby="encoder-notebook-title">
-<p class="eyebrow">From a constructed solution to a learned one</p>
-<h2 id="encoder-notebook-title">Now learn the ordering rule.</h2>
-<p>The notebook replaces socks and shoes with A and B among ten distractor tokens. The target is 1 when A comes before B, and 0 otherwise. Each example is paired with a copy in which A and B swap places.</p>
-<p>The challenge is the same: make order survive mean pooling. Even after adding position vectors, those paired sequences have the same average initial representation. The encoder must transform the token vectors so their final averages can differ.</p>
-<p>Here we chose the projections and scoring rule. The notebook trains the token and position embeddings, encoder, and classifier together. Its two encoder blocks use four attention heads each, followed by mean pooling and a learned linear classifier.</p>
-<p><a href="https://github.com/alexanderthclark/pols4728-2026f/blob/5a29ace12e91b1aca3d26eea54b4cbceba92fb22/notes/notebooks/annotated_encoder_classifier.ipynb">Open the annotated PyTorch encoder notebook →</a></p>
+<p>A query is what a destination is matched on; a key is what each source is matched on; a value is what that source contributes to the mixture. In a trained transformer, these projections are learned from the training task. “Looking for” is an analogy, not a claim that their coordinates have human-readable meanings. The socks-and-shoes calculation makes this matching and mixing explicit; the trained-model experiments test how it affects predictions.</p>
+<p class="section-links"><a href="#mechanics">Return to socks and shoes</a><a href="#reading">Read the complete text</a></p>
 </section>
 <section class="afterword" id="references">
 <p class="eyebrow">Keep the two operations in view</p><h2>Choose where to read.<br>Choose what to carry.</h2>
