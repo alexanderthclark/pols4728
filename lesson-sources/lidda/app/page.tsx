@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GuideRoadmap, PathRepresentation, PaperReference } from "../components/explainer/FullPaperGuide";
+import { TrainingExamples } from "../components/explainer/TrainingExamples";
 import { AttentionWalkthrough } from "../components/explainer/AttentionWalkthrough";
 import { ArchitectureCheckpoint, AttentionReadoutBridge } from "../components/explainer/AttentionReadoutBridge";
 import { TOUCHES } from "../lib/attribution-model";
@@ -24,7 +25,7 @@ function Bars({ values }: { values: number[] }) {
 }
 function Journey() {
   return <div className="journey">
-    {TOUCHES.map((t, i) => <div key={t.id} className="touch"><span className="touch-day">{Math.abs(t.day)} {t.day === -1 ? "day" : "days"} before</span><span className="touch-dot" style={{ background: t.color }}>{i + 1}</span><strong>{t.label}</strong><span>{t.action}</span></div>)}
+    {TOUCHES.map((t, i) => <div key={t.id} className="touch"><span className="touch-day">{Math.abs(t.day)} {t.day === -1 ? "day" : "days"} before cutoff</span><span className="touch-dot" style={{ background: t.color }}>{i + 1}</span><strong>{t.label}</strong><span>{t.action}</span></div>)}
     <div className="conversion"><span>✓</span><strong>Purchase</strong><small>Our company</small></div>
   </div>;
 }
@@ -57,15 +58,15 @@ export default function Home() {
     return () => { window.removeEventListener("scroll", update); window.removeEventListener("resize", update); };
   }, []);
   return <>
-    <a className="skip" href="#story">Skip to the explainer</a>
-    <header className="site-header"><a href="#top" className="brand"><span className="brand-mark">a</span> LiDDA, unpacked</a><nav aria-label="Main navigation"><a href="#roadmap">Learning path</a><a href="#architecture-check">Attention lesson</a><a href="#attention-readout">Prediction & credit</a><a href="#notes">Paper & glossary</a></nav><div ref={progressRef} className="reading-progress" style={{ width: "100%", transform: "scaleX(0)", transformOrigin: "left" }} /></header>
+    <a className="skip" href="#training-data">Skip to the explainer</a>
+    <header className="site-header"><a href="#top" className="brand"><span className="brand-mark">a</span> LiDDA, unpacked</a><nav aria-label="Main navigation"><a href="#training-data">Training data</a><a href="#architecture-check">Attention lesson</a><a href="#attention-readout">Prediction & credit</a><a href="#notes">Paper & glossary</a></nav><div ref={progressRef} className="reading-progress" style={{ width: "100%", transform: "scaleX(0)", transformOrigin: "left" }} /></header>
     <main id="top">
       <section className="hero" aria-labelledby="lesson-title">
         <h1 id="lesson-title">LiDDA</h1>
         <p className="hero-name">LinkedIn Data-Driven Attribution</p>
         <p className="hero-subtitle">An application of attention · POLS 4728</p>
       </section>
-      <section className="scope-strip"><span className="eyebrow">Our lens</span><p>You buy ads for <strong>one company</strong>. You observe that company’s recorded ad touchpoints and purchases. You do not observe anyone’s journey across competing companies or products.</p><span className="scope-tag">An in-house advertiser’s view</span></section>
+      <TrainingExamples />
       <GuideRoadmap />
       <PathRepresentation />
       <section className="scrolly" id="story"><aside className="visual-column" aria-label="Illustration for the current chapter"><div className="visual-sticky"><div className="stage-top"><span className="eyebrow">A single observed journey</span><span className="stage-counter">0{active+1} / 04</span></div><div className="chapter-tabs">{chapterLabels.map((label, i) => <a key={label} aria-current={active === i ? "step" : undefined} href={`#chapter-${i}`}>{label}</a>)}</div>
