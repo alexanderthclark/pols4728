@@ -34,14 +34,12 @@ body, #top { color: var(--course-ink); background: #fff; }
 .skip { color: #fff; background: var(--course-blue); }
 footer { background: #fff; color: var(--course-muted); border-color: var(--course-hairline); }
 #top :is(h1, h2, h3, h4, p, li, dd, dt) { color: var(--course-ink); }
-#top .hero h1 em { color: var(--course-blue); }
-#top :is(.hero-deck, .section-lede) { color: var(--course-ink); }
-#top :is(.eyebrow, .hero-meta, .hero-art > span, .record-tag,
+#top .section-lede { color: var(--course-ink); }
+#top :is(.hero-subtitle, .eyebrow, .record-tag,
   .guide-source-note, .guide-map small, .guide-distinction small,
   .aw-small, .aw-example-note, .aw-counter, .ab-note, .ab-kicker,
   .aw-label, .scope-tag) { color: var(--course-muted); }
 #top :is(.paper-link, .ref, .text-link, .coverage-table td a) { color: var(--course-blue); }
-#top .start-link { border-color: var(--course-blue); color: var(--course-blue); }
 #top .guide-map a > span { color: var(--course-blue); }
 #top .guide-map b { color: var(--course-muted); }
 #top :is(.path-record, .encoding-recipe, .paper-details,
