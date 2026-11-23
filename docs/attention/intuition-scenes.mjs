@@ -96,6 +96,7 @@ export function createIntuitionScenes({m, line, rect, C}) {
     }
     return out;
   }
+  // As in the overview, residual states advance from bottom to top.
   function contextUpdates(t) {
     const p=ease(t);
     let out=label('Different context can supply different updates.',320,36,24,ink);
