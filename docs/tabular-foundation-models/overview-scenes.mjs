@@ -20,11 +20,11 @@ export const overviewScenes = [
   },
   {
     chapter:'How the predictor works', kind:'overview', overviewStage:2,
-    title:'The context can change the prediction.',
+    title:'Inside an in-context prediction.',
     body:'Encode the table, exchange information across its representations, then decode the missing target. Changing the context changes these calculations.',
     equation:'\\text{encode}\\longrightarrow\\text{exchange}\\longrightarrow\\text{decode}',
-    note:'Same query, same weights, different labeled context. The prediction can change. Connections show information flow, not measured attention.',
-    reading:'Encoding turns inputs into numerical representations. Attention and nonlinear transformations let those representations exchange and refine information. A prediction head decodes the new row’s representation into an output. Changing the context changes these internal calculations even while the weights remain fixed. The diagram is a simplified architecture: models may represent individual cells, groups of features, or rows. It shows no measured attention weights or model scores.',
-    references:[{title:'Molnar · In-context learning',url:'https://tabularfoundationmodels.com/prediction'}]
+    note:'Same query and weights; different context. Encode/decode mean input embedding and output prediction, not separate Transformer stacks.',
+    reading:'Encoding embeds table inputs as vectors. Attention and nonlinear transformations combine and refine their information. A prediction head maps the final query representation to an output. These are computational stages, not separate Transformer encoder and decoder stacks. Changing the labeled context changes the computation while pretrained weights stay fixed. This is a schematic; models may represent cells, feature groups, or rows. It shows no measured attention weights or scores.',
+    references:[{title:'Molnar · In-context learning',url:'https://tabularfoundationmodels.com/prediction'},{title:'Nature 2025 · Details on the neural architecture',url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC11711098/'}]
   }
 ];

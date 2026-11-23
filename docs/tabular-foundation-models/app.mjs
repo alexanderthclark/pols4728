@@ -5,7 +5,7 @@ import {renderBear,renderBearMobile} from './bear.mjs?v=20261123-context-ten-noi
 import {renderDgp} from './dgp.mjs';
 import {renderMechanism} from './mechanism.mjs';
 import {renderNature,renderNatureMobile} from './nature.mjs?v=20261123-context-ten-noise';
-import {scenes,sources} from './scenes.mjs?v=20261123-context-ten-noise';
+import {scenes,sources} from './scenes.mjs?v=20261123-icl-labels';
 import {renderVisual,renderMobile} from './visuals.mjs';
 import * as bayes from './bayes.mjs';
 const $=id=>document.getElementById(id), story=$('story'),diagram=$('diagram');
