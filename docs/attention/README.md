@@ -46,8 +46,8 @@ former seventeen-scene four-token restart has been removed.
 X is T × d; Q = X WQ; K = X WK; A = row-softmax(Q Kᵀ / sqrt(dk) + M);
 V = X WV; U = A V. A's rows are destinations and columns are sources. U contains mixed feature
 rows, not outcome labels; actual targets and predictions retain y notation.
-The opening uses W1 = WV and W2 = WO, so V = X W1 and
-deltaX = A X W1 W2. Attention biases and normalization are omitted in this
+The value projection is WV and the output projection is WO, so V = X WV and
+deltaX = A X WV WO. Attention biases and normalization are omitted in this
 schematic. The maps are shared across token positions.
 For a representation update, deltaX = U WO and X′ = X + deltaX. This update
 illustration does not replace the original task's U-based readout. The later
@@ -56,7 +56,7 @@ original task's target-score claim. The new opening locates attention in a simpl
 
 Primary reference: Elhage et al. (2021), A Mathematical Framework for Transformer
 Circuits. Secondary: Prince, Understanding Deep Learning, chapter 12 §§12.2–12.3.
-The page explains the transpose convention and includes the exact toy maps. Grant Sanderson’s attention lesson is an additional visual reference. The opening connects the course’s W1/W2 notation directly to the Q/K/V maps.
+The page explains the transpose convention and includes the exact toy maps. Grant Sanderson’s attention lesson is an additional visual reference. The opening defines the value and output projections before using the Q/K/V maps.
 
 ## Measured Infinite Jest results
 

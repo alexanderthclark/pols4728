@@ -5,7 +5,7 @@
 <title>Attention — How tokens share information · POLS 4728</title>
 <meta name="description" content="Compare two reviews of Infinite Jest, follow the residual stream to a sentiment score, and open one attention head to examine its matrix and token updates.">
 <link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="style.css?v=attention-comparison-7">
-<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs?v=attention-notation-8"></script>
+<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs?v=attention-notation-9"></script>
 </head>
 <body>
 <a class="skip" href="#reading">Skip to the reading version</a>
@@ -95,8 +95,8 @@
 <p>When the attention output is used to update a representation, an output map returns it to the input width before addition:</p>
 <div class="closing-math" data-math="\Delta X=UW_O,\qquad X'=X+\Delta X"></div>
 <h3>Notation for this lesson</h3>
-<p>The opening uses <span data-math="W_1=W_V"></span> for the value projection and <span data-math="W_2=W_O"></span> for the output projection. They are the same two maps in our earlier <span data-math="AXW_1W_2"></span> expression:</p>
-<div class="closing-math" data-math="V=XW_1,\qquad U=AV,\qquad \Delta X=UW_2=AXW_1W_2"></div>
+<p>The value projection <span data-math="W_V"></span> reads features from each source. The output projection <span data-math="W_O"></span> maps their weighted mixtures back to the residual stream’s feature width:</p>
+<div class="closing-math" data-math="V=XW_V,\qquad U=AV,\qquad \Delta X=UW_O=AXW_VW_O"></div>
 <p>Each row of <span data-math="V"></span> is a source value vector; each row of <span data-math="U"></span> is a weighted mixture at a destination. Neither is an outcome label. The update <span data-math="\Delta X"></span> has the same shape as <span data-math="X"></span>, so it can be added to the residual stream. These schematic equations omit attention biases and normalization.</p>
 <p>Tokens are rows of <span data-math="X\in\mathbb R^{T\times d}"></span>. Query and key maps have shape <span data-math="W_Q,W_K\in\mathbb R^{d\times d_k}"></span>; the value map has shape <span data-math="W_V\in\mathbb R^{d\times d_v}"></span>. Thus <span data-math="A\in\mathbb R^{T\times T}"></span> and <span data-math="V,U\in\mathbb R^{T\times d_v}"></span>. The output map for a representation update is <span data-math="W_O\in\mathbb R^{d_v\times d}"></span>. A subscripted token vector denotes a row throughout.</p>
 <p>The full Q/K/V calculation follows one constructed socks-and-shoes head. First, it matches a destination to a source and mixes position values to produce a task score. Then we generalize the scalar query–key calculation, show how its output can update a representation, and change the setting to left-to-right prediction with a causal mask. The original task has access to both items; its target scores are not claims about the later masked calculation. The parameters are chosen to make every step inspectable.</p>
