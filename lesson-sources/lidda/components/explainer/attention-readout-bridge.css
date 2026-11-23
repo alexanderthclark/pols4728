@@ -1,0 +1,109 @@
+.architecture-checkpoint,
+.attention-readout-bridge {
+  scroll-margin-top: calc(var(--header) + 1.5rem);
+}
+.architecture-checkpoint .ab-question {
+  background: #e7eddf;
+}
+.ab-question,
+.ab-source-note {
+  border-left: 3px solid #78926c;
+  padding: 1.25rem 1.5rem;
+  margin: 1.75rem 0;
+  background: #eef1e6;
+}
+.ab-question > p:last-child,
+.ab-source-note > p:last-child { margin-bottom: 0; }
+.ab-question ol { padding-left: 1.5rem; }
+.ab-question li { margin-bottom: 1rem; padding-left: .25rem; }
+.ab-checklist { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #bdccb1; }
+.ab-padding { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #bdccb1; }
+.ab-padding h4 { font-size: 1.125rem; line-height: 1.5; margin: 0 0 1rem; }
+.attention-readout-bridge .ab-note {
+  font-size: .875rem;
+  line-height: 1.75;
+  color: #50614e;
+}
+.ab-table-scroll { overflow-x: auto; margin: 1.5rem 0; }
+.ab-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+.ab-table caption { text-align: left; font-size: .875rem; font-weight: 600; padding-bottom: .8rem; color: #536b4a; }
+.ab-table th,
+.ab-table td { padding: 1rem; border-bottom: 1px solid #c4cfb9; vertical-align: top; }
+.ab-table thead { background: #e5ecdc; }
+.ab-table th { font-weight: 600; }
+.ab-table th .math-inline { display: block; margin-top: .4rem; }
+.ab-table thead th { font-size: .875rem; }
+.ab-table tfoot { background: #e5ecdc; font-weight: 600; }
+.ab-branches { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1.5rem; margin: 2.5rem 0; }
+.ab-branches article { min-width: 0; border: 1px solid #aebf9d; padding: 1.5rem; background: #f1f4e9; }
+.attention-readout-bridge h3 { font-family: Georgia, 'Times New Roman', serif; font-size: 1.8rem; font-weight: 400; line-height: 1.25; }
+.ab-kicker { display: block; margin-bottom: 1rem; color: #526e45; font-size: .875rem; line-height: 1.6; font-weight: 600; }
+.ab-branches .math-block { font-size: 1rem; padding: 1rem .6rem; }
+.ab-source-note strong { display: block; margin-bottom: .75rem; }
+.ab-flatten,
+.ab-live,
+.ab-credit,
+.ab-normalizations { border-top: 1px solid #bdccb1; padding-top: 2.5rem; margin-top: 2.5rem; }
+.ab-flatten-visual { display: grid; grid-template-columns: minmax(220px, .8fr) minmax(0,1.6fr); gap: 2rem; margin: 2rem 0; align-items: start; }
+.ab-position-matrix { display: flex; flex-direction: column; gap: .5rem; }
+.ab-position-matrix button {
+  display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 1rem;
+  padding: 1rem; border: 1px solid #aebc9f; background: #eff2e7;
+  font-size: 1rem; text-align: left; min-height: 3rem;
+}
+.ab-position-matrix button[aria-pressed="true"] { background: #183b30; color: #fff; border-color: #183b30; }
+.ab-flat-slots { display: grid; grid-template-columns: repeat(8,minmax(0,1fr)); gap: .35rem; list-style: none; padding: 0; margin: 1rem 0; }
+.ab-flat-slots li { padding: .8rem .2rem; text-align: center; border: 1px solid #b7c5a8; background: #e8eddf; font-size: 1rem; }
+.ab-flat-slots .is-highlighted { color: #fff; background: #183b30; border-color: #183b30; }
+.ab-flat-result > p { font-size: .875rem; }
+.ab-live { padding: 2rem; border: 1px solid #9eaf8f; background: #eef2e5; }
+.ab-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 1rem 1.5rem; margin: 1.5rem 0; }
+.ab-controls label { display: flex; flex-direction: column; gap: .5rem; font-size: .875rem; flex: 1 1 260px; }
+.ab-controls select {
+  appearance: none; width: 100%; min-height: 3rem; border: 1px solid #8fa27f;
+  padding: .65rem 2.2rem .65rem .75rem; color: #183b30; background-color: #fbfcf6;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='m1 1 5 5 5-5' stroke='%23183b30' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right .75rem center;
+  font-size: .875rem;
+}
+.ab-controls button { min-height: 3rem; padding: .75rem 1rem; color: #fff; background: #183b30; border: 1px solid #183b30; font-size: .875rem; }
+.ab-controls button[aria-pressed="true"] { background: #713e2b; border-color: #713e2b; }
+.ab-value-strip { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 1rem; padding: 1.25rem 0; border-top: 1px solid #bac9ab; border-bottom: 1px solid #bac9ab; }
+.ab-value-strip span { display: block; font-size: .875rem; }
+.ab-value-strip strong { display: block; margin-top: .3rem; font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+.ab-results { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 1.5rem; margin: 1.75rem 0; }
+.ab-results > div { border-top: 2px solid #58784a; padding-top: 1rem; min-width: 0; }
+.ab-results span { display: block; font-size: .875rem; line-height: 1.6; min-height: 3em; }
+.ab-results strong { display: block; font-family: Georgia, serif; font-size: 2.5rem; font-weight: 400; font-variant-numeric: tabular-nums; }
+.ab-normalizations dl { margin: 1.75rem 0; }
+.ab-normalizations dl > div { display: grid; grid-template-columns: 210px minmax(0,1fr); gap: 1.5rem; padding: 1.25rem 0; border-top: 1px solid #c4cfb9; }
+.ab-normalizations dt { font-weight: 600; }
+.ab-normalizations dd { margin: 0; }
+.attention-readout-bridge :is(button,select):focus-visible,
+.ab-table-scroll:focus-visible { outline: 3px solid #a76f17; outline-offset: 4px; }
+@media (max-width: 1000px) {
+  .ab-branches { grid-template-columns: 1fr; }
+  .ab-flatten-visual { grid-template-columns: 1fr; }
+  .ab-position-matrix { max-width: 430px; }
+}
+@media (max-width: 760px) {
+  .ab-question, .ab-source-note { padding: 1rem; }
+  .ab-branches { gap: 1rem; margin: 1.75rem 0; }
+  .ab-branches article { padding: 1.25rem; }
+  .ab-table { min-width: 520px; }
+  .ab-table th, .ab-table td { padding: .8rem; }
+  .ab-flat-slots { grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .ab-live { padding: 1.25rem; }
+  .ab-value-strip { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .ab-results { grid-template-columns: 1fr; gap: 1rem; }
+  .ab-results span { min-height: 0; }
+  .ab-results strong { font-size: 2.25rem; }
+  .ab-normalizations dl > div { grid-template-columns: 1fr; gap: .5rem; }
+  .ab-controls button { width: 100%; }
+}

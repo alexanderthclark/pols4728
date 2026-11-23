@@ -1,0 +1,203 @@
+/* Reading and interaction sizes for this lesson; retain the existing visual theme. */
+body { font-size: 1rem; }
+#top :is(.paper-section, .chapter, .lab, .interpretation) p,
+#top :is(.paper-section, .interpretation) li,
+#top :is(.glossary, .encoding-recipe, .evidence-definitions) dd {
+  font-size: 1rem;
+  line-height: 1.75;
+}
+#top .paper-section .section-lede { font-size: 1.125rem !important; }
+#top .guide-source-note { font-size: .875rem !important; }
+#top :is(.aw-example-note, .aw-small, .cs-note, .evidence-fine,
+  .stage-note, .matrix-caption, .small-note, .dq-source) {
+  font-size: .875rem;
+  line-height: 1.7;
+}
+#top :is(.paper-section, .chapter, .lab) .math-block {
+  font-size: 1rem;
+  max-width: 100%;
+  overflow-x: auto;
+}
+#top :is(.paper-link, .ref, .text-link, .text-button, .takeaway,
+  .technical-details summary, .paper-details summary, .dq-details summary,
+  .paper-details summary) {
+  font-size: .875rem;
+  line-height: 1.6;
+}
+#top summary { padding-block: 1rem; }
+#top :is(.eyebrow, .record-tag, .dq-badge, .chapter-number,
+  .method-category, .aw-label, .cs-section-number, .cs-model-label) {
+  font-size: .8125rem;
+  letter-spacing: .08em;
+}
+#top :is(button, select, input):focus-visible,
+#top :is(a, summary):focus-visible,
+.site-header a:focus-visible {
+  outline: 3px solid #b27c28;
+  outline-offset: 3px;
+}
+#top .visual-column :is(button, a):focus-visible {
+  outline-color: #f0c879;
+  outline-offset: 2px;
+}
+#top :is(button, select) { min-height: 2.75rem; }
+#top input[type="range"] { min-height: 2.75rem; }
+.site-header :is(.brand, nav a) { font-size: .875rem; }
+.site-header nav a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+#top :is(.guide-map small, .guide-distinction small,
+  .two-views strong, .path-record dl, .glossary dt,
+  .evidence-map small, .evidence-definitions dt) { font-size: .875rem; }
+#top .paper-section :is(table, thead th, caption) { font-size: .875rem; }
+#top :is(.paper-section table small, .experiment-results small,
+  .experiment-results > div > div > span, .evidence-speed > div > span,
+  .evidence-speed small, .evidence-verdict span) { font-size: .875rem; }
+#top :is(.coverage-table, .evidence-table-scroll) { overflow-x: auto; }
+
+/* Give the illustration its own scroll area instead of shrinking its text. */
+#top .visual-sticky {
+  height: calc(100svh - var(--header));
+  min-height: 0;
+  padding-block: 1.25rem;
+}
+#top .stage-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  justify-content: flex-start;
+  padding: .75rem .25rem;
+  scrollbar-width: thin;
+  scrollbar-color: #adc4a4 #254938;
+}
+#top .stage-body > * { flex-shrink: 0; }
+#top .stage-body > h3 { font-size: 1.625rem; margin-bottom: 1rem; }
+#top .stage-body > p { font-size: .875rem; }
+#top .stage-bottom { font-size: .8125rem; padding-top: .75rem; }
+#top .chapter-tabs { flex-shrink: 0; overflow-x: auto; gap: .5rem; }
+#top .chapter-tabs a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 0 4.5rem;
+  font-size: .875rem;
+  min-height: 2.75rem;
+  padding: .375rem .125rem;
+}
+#top :is(.stage-formula, .matrix-toolbar, .matrix-axis, .matrix-col,
+  .query-label, .matrix-row > button, .segmented button) { font-size: .875rem; }
+#top .matrix-wrap { overflow-x: auto; padding: .25rem; }
+#top .matrix-toolbar { flex-wrap: wrap; gap: .5rem; }
+#top .matrix-grid {
+  grid-template-columns: 5.25rem repeat(4, minmax(3.75rem, 1fr));
+  min-width: 22.25rem;
+  gap: .375rem;
+}
+#top .matrix-row > button { min-height: 2.75rem; }
+#top .matrix-axis { margin-left: 5.25rem; }
+#top .matrix-col { min-height: 1.75rem; }
+#top :is(.bar-label, .bar-number, .bar-axis, .touch-day,
+  .touch > span:last-child, .touch strong, .conversion,
+  .training-paths > div, .observation-box, .model-flow,
+  .aggregate-flow > span, .aggregate-flow > strong) { font-size: .875rem; }
+#top .bar-row {
+  grid-template-columns: 4.75rem minmax(0, 1fr) 4rem;
+  gap: .625rem;
+  min-height: 1.75rem;
+}
+#top .bar-axis { margin-inline: 5.375rem 4.625rem; }
+#top .bar-track { min-height: 1.125rem; }
+#top .training-paths > div { grid-template-columns: 5.5rem 1fr 6rem; }
+#top .training-paths .mini-path { min-width: 0; flex-wrap: wrap; }
+#top .aggregate-flow { flex-wrap: wrap; }
+
+/* Worked arithmetic: labels and values must remain readable together. */
+#top .aw-stage-nav button { font-size: .875rem; padding: .875rem .625rem; }
+#top .aw-stage-nav button > span { font-size: .8125rem; }
+#top :is(.aw-controls label, .aw-controls p, .aw-selected > span:first-child,
+  .aw-event > div > span, .aw-encoding-grid span,
+  .aw-number-card > strong, .aw-number-card dt, .aw-number-card dd,
+  .aw-output-grid span, .aw-output-grid strong, .aw-credit-list strong,
+  .aw-credit-list > div > span, .aw-training-loop > span,
+  .aw-step-footer button, .aw-step-footer > span) { font-size: .875rem; }
+#top .aw-controls select { font-size: 1rem; }
+#top .aw-number-card > .math-inline { font-size: .875rem; }
+#top .aw-number-card .aw-emphasis dd { font-size: 1.25rem; }
+#top .aw-total > span:not(.math-inline) { font-size: .875rem; }
+#top .aw-stage .aw-counter { font-size: .8125rem; }
+#top .aw-number-card dl > div { flex-wrap: wrap; }
+#top .aw-role-grid strong { font-size: 1rem; }
+#top .aw-credit-list > div { grid-template-columns: 4.5rem minmax(0, 1fr) 4rem; }
+#top .aw-step-footer { flex-wrap: wrap; }
+
+/* Controls, empirical tables, and attribution comparisons use the same scale. */
+#top :is(.scenario-options button, .temperature, .temperature > span,
+  .lab-controls legend, .reset, .method-footer,
+  .metrics > div > span:not(.math-inline), .probability-path,
+  .probability-path small, .value-list, .dq-controls > label,
+  .dq-controls output, .dq-controls small, .dq-event, .dq-aggregate,
+  .dq-number-line, .dq-path-allocations > div > span,
+  .dq-path-allocations small, .dq-budget-labels, .dq-session-events > span,
+  .dq-session-events small, .dq-session-demo button, .cal-bars > div > span,
+  .cal-share-bar > i, .cal-share-bar > b, .cal-legend,
+  .cal-loss > div > span, .cal-target-steps > div,
+  .cs-touches > div > span:not(.math-inline), .cs-report-action button,
+  .cs-report-action > span, .cs-signal-controls label,
+  .cs-parameterizations dt, .cs-allocation-bar > span,
+  .cs-prediction > span) { font-size: .875rem; }
+#top .dq-session-events > span { flex-basis: 8rem; }
+#top .dq-session-events .dq-session-group { flex-basis: 100%; }
+#top .cal-loss { flex-wrap: wrap; }
+#top .cs-report-action { flex-wrap: wrap; }
+#top .cs-report-action > span { max-width: none; }
+#top .cs-parameterizations dl > div { flex-wrap: wrap; gap: .5rem; }
+#top .cs-allocation-bar > span { flex-wrap: wrap; gap: .25rem; }
+#top .cs-allocation-bar { height: auto; min-height: 3rem; }
+
+@media (max-width: 1000px) {
+  #top .aw-number-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #top .aw-readout-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  :root { --header: 6.5rem; --lesson-stage-height: min(46svh, 25rem); }
+  .site-header { flex-wrap: wrap; gap: 0 .75rem; padding: .5rem 1.25rem; }
+  .site-header .brand { flex-basis: 100%; min-height: 2.5rem; }
+  .site-header nav { width: 100%; gap: 1rem; overflow-x: auto; }
+  .site-header nav a,
+  .site-header nav a:first-child:not(:last-child) {
+    display: inline-flex;
+    flex-shrink: 0;
+    font-size: .875rem;
+    white-space: nowrap;
+  }
+  #top .visual-sticky { height: var(--lesson-stage-height); padding: .5rem 1rem; }
+  #top .chapter { scroll-margin-top: calc(var(--header) + var(--lesson-stage-height) + 1rem); }
+  #top .chapter-tabs { margin: 0 0 .375rem; }
+  #top .stage-body { padding-top: .5rem; }
+  #top .stage-body > h3 { font-size: 1.375rem; }
+  #top .aw-controls { grid-template-columns: 1fr; }
+  #top .aw-controls p { grid-column: auto; }
+  #top .aw-output-grid > div { gap: .625rem; padding: .75rem; }
+  #top .aw-number-card { padding: .875rem .75rem; }
+  #top .aw-selected { overflow-x: auto; }
+  #top .method-card { padding-inline: 1rem; }
+  #top .metrics { grid-template-columns: 1fr; gap: 1rem; }
+  #top .metrics > div { border-left: 0; padding: 0; }
+  #top .probability-path { flex-wrap: wrap; gap: 1rem; }
+  #top .probability-path > div { flex: 1 1 6rem; }
+  #top .cal-bars { overflow-x: auto; padding-bottom: .5rem; }
+  #top .cal-bars > div { min-width: 28rem; }
+  #top .cs-report-totals { flex-wrap: wrap; gap: .75rem; }
+  #top .paper-section table { min-width: 30rem; }
+  #top .paper-method-comparison { overflow-x: auto; }
+  #top .dq-budget-labels { flex-wrap: wrap; gap: .75rem; }
+}
+@media (max-width: 420px) {
+  #top .aw-number-grid { grid-template-columns: 1fr; }
+  #top .aw-number-card dl > div { display: flex; }
+  #top .aw-role-grid > div { grid-template-columns: 1fr; }
+  #top .aw-role-grid > div > .math-inline { grid-row: auto; }
+}
+@media print {
+  #top .visual-sticky, #top .stage-body { height: auto; overflow: visible; }
+  #top .visual-column { position: static; }
+}
