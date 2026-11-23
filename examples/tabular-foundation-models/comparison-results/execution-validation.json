@@ -1,0 +1,132 @@
+{
+  "purpose": "Validate independent CPU stage batching without changing weights, input rows, or attention sequences",
+  "native_seed0": {
+    "model": "tabicl_v2",
+    "id": "continuous_noise",
+    "seed": 0,
+    "n_features": 5,
+    "n_train": 8000,
+    "n_test": 2000,
+    "auc": 0.7222780851070216,
+    "brier": 0.20026981511045677,
+    "oracle_test_auc": 0.7241760891511609,
+    "fit_seconds": 27.78034824399947,
+    "total_seconds": 34.50686709999718,
+    "prediction_sha256": "5ba85f331623d1ae129a8f638fe3515282632f8c6a39abeb107e7d6a2f0abc7c"
+  },
+  "bounded_seed0": {
+    "model": "tabicl_v2",
+    "id": "continuous_noise",
+    "seed": 0,
+    "n_features": 5,
+    "n_train": 8000,
+    "n_test": 2000,
+    "auc": 0.7222780851070216,
+    "brier": 0.20026981271280644,
+    "oracle_test_auc": 0.7241760891511609,
+    "fit_seconds": 37.56677993199992,
+    "total_seconds": 45.59864095500234,
+    "prediction_sha256": "198f409a959f540aa432d662389eceeb38030a2ca8bcf116438f9cacdfce54a7"
+  },
+  "same_held_out_auc": true,
+  "absolute_brier_difference": 2.3976503282785444e-09,
+  "small_network_tests": {
+    "passed": true,
+    "torch_version": "2.15.0+cpu",
+    "tolerance": {
+      "rtol": 2e-05,
+      "atol": 2e-06
+    },
+    "checks": [
+      {
+        "grouping": false,
+        "attention_scaling": false,
+        "mode": "uncached",
+        "max_abs_error": 1.6391277313232422e-07
+      },
+      {
+        "grouping": false,
+        "attention_scaling": false,
+        "mode": "kv",
+        "max_abs_error": 1.9371509552001953e-07,
+        "cache_tensors_compared": 8,
+        "max_cache_abs_error": 7.152557373046875e-07
+      },
+      {
+        "grouping": false,
+        "attention_scaling": false,
+        "mode": "repr",
+        "max_abs_error": 1.6391277313232422e-07,
+        "cache_tensors_compared": 5,
+        "max_cache_abs_error": 9.5367431640625e-07
+      },
+      {
+        "grouping": false,
+        "attention_scaling": "qassmax-mlp-elementwise",
+        "mode": "uncached",
+        "max_abs_error": 1.4901161193847656e-07
+      },
+      {
+        "grouping": false,
+        "attention_scaling": "qassmax-mlp-elementwise",
+        "mode": "kv",
+        "max_abs_error": 1.4901161193847656e-07,
+        "cache_tensors_compared": 8,
+        "max_cache_abs_error": 5.960464477539062e-07
+      },
+      {
+        "grouping": false,
+        "attention_scaling": "qassmax-mlp-elementwise",
+        "mode": "repr",
+        "max_abs_error": 1.4901161193847656e-07,
+        "cache_tensors_compared": 5,
+        "max_cache_abs_error": 5.364418029785156e-07
+      },
+      {
+        "grouping": "same",
+        "attention_scaling": false,
+        "mode": "uncached",
+        "max_abs_error": 2.086162567138672e-07
+      },
+      {
+        "grouping": "same",
+        "attention_scaling": false,
+        "mode": "kv",
+        "max_abs_error": 2.086162567138672e-07,
+        "cache_tensors_compared": 8,
+        "max_cache_abs_error": 9.5367431640625e-07
+      },
+      {
+        "grouping": "same",
+        "attention_scaling": false,
+        "mode": "repr",
+        "max_abs_error": 2.086162567138672e-07,
+        "cache_tensors_compared": 5,
+        "max_cache_abs_error": 9.5367431640625e-07
+      },
+      {
+        "grouping": "same",
+        "attention_scaling": "qassmax-mlp-elementwise",
+        "mode": "uncached",
+        "max_abs_error": 1.4156103134155273e-07
+      },
+      {
+        "grouping": "same",
+        "attention_scaling": "qassmax-mlp-elementwise",
+        "mode": "kv",
+        "max_abs_error": 1.4156103134155273e-07,
+        "cache_tensors_compared": 8,
+        "max_cache_abs_error": 7.152557373046875e-07
+      },
+      {
+        "grouping": "same",
+        "attention_scaling": "qassmax-mlp-elementwise",
+        "mode": "repr",
+        "max_abs_error": 1.4156103134155273e-07,
+        "cache_tensors_compared": 5,
+        "max_cache_abs_error": 7.152557373046875e-07
+      }
+    ]
+  },
+  "prediction_probability_comparison": "Per-person probability hashes differ at floating-point roundoff; no claim of bit-identical probabilities. The actual bear-task ROC AUC matches exactly and Brier scores differ by less than 3e-9."
+}

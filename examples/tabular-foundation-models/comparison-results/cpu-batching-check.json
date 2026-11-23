@@ -1,0 +1,98 @@
+{
+  "passed": true,
+  "torch_version": "2.15.0+cpu",
+  "tolerance": {
+    "rtol": 2e-05,
+    "atol": 2e-06
+  },
+  "checks": [
+    {
+      "grouping": false,
+      "attention_scaling": false,
+      "mode": "uncached",
+      "max_abs_error": 1.6391277313232422e-07
+    },
+    {
+      "grouping": false,
+      "attention_scaling": false,
+      "mode": "kv",
+      "max_abs_error": 1.9371509552001953e-07,
+      "cache_tensors_compared": 8,
+      "max_cache_abs_error": 7.152557373046875e-07
+    },
+    {
+      "grouping": false,
+      "attention_scaling": false,
+      "mode": "repr",
+      "max_abs_error": 1.6391277313232422e-07,
+      "cache_tensors_compared": 5,
+      "max_cache_abs_error": 9.5367431640625e-07
+    },
+    {
+      "grouping": false,
+      "attention_scaling": "qassmax-mlp-elementwise",
+      "mode": "uncached",
+      "max_abs_error": 1.4901161193847656e-07
+    },
+    {
+      "grouping": false,
+      "attention_scaling": "qassmax-mlp-elementwise",
+      "mode": "kv",
+      "max_abs_error": 1.4901161193847656e-07,
+      "cache_tensors_compared": 8,
+      "max_cache_abs_error": 5.960464477539062e-07
+    },
+    {
+      "grouping": false,
+      "attention_scaling": "qassmax-mlp-elementwise",
+      "mode": "repr",
+      "max_abs_error": 1.4901161193847656e-07,
+      "cache_tensors_compared": 5,
+      "max_cache_abs_error": 5.364418029785156e-07
+    },
+    {
+      "grouping": "same",
+      "attention_scaling": false,
+      "mode": "uncached",
+      "max_abs_error": 2.086162567138672e-07
+    },
+    {
+      "grouping": "same",
+      "attention_scaling": false,
+      "mode": "kv",
+      "max_abs_error": 2.086162567138672e-07,
+      "cache_tensors_compared": 8,
+      "max_cache_abs_error": 9.5367431640625e-07
+    },
+    {
+      "grouping": "same",
+      "attention_scaling": false,
+      "mode": "repr",
+      "max_abs_error": 2.086162567138672e-07,
+      "cache_tensors_compared": 5,
+      "max_cache_abs_error": 9.5367431640625e-07
+    },
+    {
+      "grouping": "same",
+      "attention_scaling": "qassmax-mlp-elementwise",
+      "mode": "uncached",
+      "max_abs_error": 1.4156103134155273e-07
+    },
+    {
+      "grouping": "same",
+      "attention_scaling": "qassmax-mlp-elementwise",
+      "mode": "kv",
+      "max_abs_error": 1.4156103134155273e-07,
+      "cache_tensors_compared": 8,
+      "max_cache_abs_error": 7.152557373046875e-07
+    },
+    {
+      "grouping": "same",
+      "attention_scaling": "qassmax-mlp-elementwise",
+      "mode": "repr",
+      "max_abs_error": 1.4156103134155273e-07,
+      "cache_tensors_compared": 5,
+      "max_cache_abs_error": 7.152557373046875e-07
+    }
+  ]
+}
