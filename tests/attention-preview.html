@@ -20,9 +20,10 @@
   <label for="reduce"><input id="reduce" type="checkbox">Reduced motion</label>
   <output id="dimensions" aria-live="polite"></output>
   <a href="../docs/attention/" target="_blank" rel="noopener">Open full lesson from the beginning</a>
+  <a id="model-link" href="../docs/attention/#trained-model" target="lesson-preview">New model sequence</a>
 </header>
-<div class="viewport"><iframe id="lesson" title="Attention lesson preview"></iframe></div>
-<p>This preview includes the complete lesson, beginning with the title and contextual meaning, followed by sentiment, the trained model, the numerical classifier, and socks and shoes. Scroll inside the lesson in both directions. Page Up and Page Down use the same native scrolling route. The viewport controls belong to this review harness; the lesson itself requires no controls to reach its conclusions.</p>
+<div class="viewport"><iframe id="lesson" name="lesson-preview" title="Attention lesson preview"></iframe></div>
+<p>This preview starts with the full title, then context, the sentiment schematic, the measured model investigation, and socks and shoes. Scroll inside the lesson in both directions and check Page Up and Page Down. The viewport controls belong only to this review harness.</p>
 <script>
   const lesson=document.getElementById('lesson');
   const size=document.getElementById('size');
@@ -37,6 +38,8 @@
     const url=new URL('../docs/attention/',location.href);
     if(reduce.checked)url.searchParams.set('motion','reduce');
     lesson.src=url.href;
+    url.hash='trained-model';
+    document.getElementById('model-link').href=url.href;
   }
   size.addEventListener('change',resize);reduce.addEventListener('change',load);
   resize();load();
