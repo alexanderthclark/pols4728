@@ -185,7 +185,7 @@ export function createIntuitionScenes({m, line, rect, C}) {
     {id:'repeated-updates',part:'Before attention · Updating token vectors',label:'',title:'Keep updating the token vectors.',
       caption:'Each token starts with a lookup vector and position information. Attention mixes across positions; the MLP transforms each row separately. Both add updates to the running token representations.',
       equation:"X'=X+\\Delta_{\\mathrm{attn}}X",
-      detail:'Blocks repeat. Useful features can be added, revised or canceled; each update need not improve the representation. The full model sums the attention heads’ projected updates. These equations omit normalization and biases.',
+      detail:'The full model sums the attention heads’ projected updates. These equations omit normalization and biases.',
       visual:'Attention can connect different token rows. The MLP applies the same function to each row without mixing positions.',draw:repeatedUpdates,discretePhases:true},
   ];
 }
