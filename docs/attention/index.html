@@ -5,7 +5,7 @@
 <title>Attention — How tokens share information · POLS 4728</title>
 <meta name="description" content="Start with two meanings of desert, see how context changes token representations, then follow attention into Infinite Jest sentiment and a complete socks-and-shoes calculation.">
 <link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="style.css?v=attention-sequence-20">
-<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs?v=attention-sequence-20"></script>
+<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs?v=socks-takeaway-21"></script>
 </head>
 <body>
 <a class="skip" href="#reading">Skip to the reading version</a>
@@ -92,9 +92,9 @@
 <p class="section-links"><a href="#numerical">Work through the numerical example</a><a href="#reading">Read the complete text</a></p>
 </section>
 <section class="worked-chapter" id="mechanics"><section class="chapter-intro" id="mechanics-intro"><p class="eyebrow">Build one attention head</p><h2>Socks and shoes</h2><p>Follow every number from input vectors through Q/K matching, values, and a prediction. Then project an update back into the residual stream and examine a causal mask.</p></section>
-<section id="mechanics-story" class="story" aria-label="Twenty scenes constructing Q, K and V">
+<section id="mechanics-story" class="story" aria-label="Twenty-two scenes constructing Q, K and V">
 <div class="stage"><div class="progress-track" aria-hidden="true"><div id="mechanics-progress"></div></div>
-<div class="stage-top"><a href="#story">Core idea ↑</a><span id="mechanics-chapter">One head · Socks and shoes</span><span id="mechanics-counter">1 / 20</span></div>
+<div class="stage-top"><a href="#story">Core idea ↑</a><span id="mechanics-chapter">One head · Socks and shoes</span><span id="mechanics-counter">1 / 22</span></div>
 <div class="scene-layout"><div class="narration" id="mechanics-narration"><p class="eyebrow" id="mechanics-scene-label"></p><h2 id="mechanics-scene-title"></h2><p id="mechanics-caption"></p><div id="mechanics-equation" class="equation"></div><p id="mechanics-detail" class="detail"></p></div><figure class="visual"><svg id="mechanics-diagram" viewBox="0 0 640 540" role="img" aria-label="Attention calculation"></svg><figcaption id="mechanics-visual-caption"></figcaption></figure></div>
 <div class="stage-bottom"><span>Illustrative numbers · exact calculations</span></div></div>
 </section>
@@ -119,6 +119,9 @@
 <p>Queries and keys read token identity; values carry position. With <span data-math="d_k=1"></span>, the score matrix is <span data-math="QK^\top"></span>. Shoes assigns 75% to socks and 25% to itself. The socks row is uniform. All weights come from finite softmax scores.</p>
 <div class="closing-math" data-math="U=AV,\qquad \widehat y=2\left(\frac{u_1+u_2}{2}\right)-\frac12"></div>
 <p>Swapping the token order preserves the identity-based matching rule while changing which position is carried by each token. The mean output changes from +0.25 to −0.25, giving predictions 0 and −1. Removing positional information or using uniform attention gives −0.5 for both orders. This exact solution covers the two sequences shown; it does not demonstrate generalization to arbitrary clothing sequences.</p>
+<p>The exact attention weights are not special. Write the socks-first matrix as <span data-math="A=\begin{bmatrix}a&amp;1-a\\b&amp;1-b\end{bmatrix}"></span>, with <span data-math="0\le a,b\le1"></span>. The values are <span data-math="V=[1,-1]^\top"></span>, so mean pooling gives <span data-math="\bar u_{\mathrm{socks\ first}}=a+b-1"></span>. Identity-only queries and keys make the reversed attention matrix <span data-math="PAP^\top"></span>, where P swaps the two tokens. The position values remain attached to their slots, giving <span data-math="\bar u_{\mathrm{shoes\ first}}=-(a+b-1)"></span>.</p>
+<p>Whenever <span data-math="a+b\ne1"></span>, the shared linear readout <span data-math="\hat y=\bar u/[2(a+b-1)]-1/2"></span> recovers 0 and −1. Thus almost every row-stochastic 2×2 pattern can work with a suitable readout. Keeping the original readout <span data-math="2\bar u-1/2"></span> gives the exact targets only when <span data-math="a+b=1.25"></span>. This result concerns the unmasked, identity-based matching rule used here; holding A fixed in slot order instead would give the same output for both sequences.</p>
+<p>The exceptional family is <span data-math="a+b=1"></span>: both column sums are one, so the matrix is doubly stochastic and both pooled values are zero. Identity, a pure swap, uniform attention, and balanced selective attention all fail. Identical but biased rows can work: <span data-math="A=\begin{bmatrix}.75&amp;.25\\.75&amp;.25\end{bmatrix}"></span> gives pooled values +0.5 and −0.5. Invertibility is therefore not the criterion. Every interior choice of a and b is realizable with one-dimensional identity-only Q/K maps: take query values <span data-math="[\log(a/(1-a)),\log(b/(1-b))]^\top"></span> and key values <span data-math="[1,0]^\top"></span>. Exact zero/one weights are softmax limits.</p>
 </details>
 <h3>From a constructed head to a pretrained model</h3>
 <p>A useful next step is <a href="https://huggingface.co/NeelNanda/Attn_Only_1L512W_C4_Code">Neel Nanda’s pretrained one-layer attention-only model</a>. Its <a href="https://huggingface.co/NeelNanda/Attn_Only_1L512W_C4_Code/blob/main/config.json">configuration</a> has eight parallel attention heads and no feed-forward network in the layer. Embeddings, positional information, normalization, and a prediction readout remain. One layer need not mean one head.</p>

@@ -8,6 +8,29 @@ export const SOCKS_WK = [[Math.log(3)], [0], [0]];
 export const SOCKS_WV = [[0], [0], [1]];
 export const SOCKS_WO = [[0, 0, 1]];
 
+// Generalize the unmasked example: a and b are the weights on the socks source
+// for the socks and shoes destinations. The rule follows token identity, so
+// reversing the sequence permutes BOTH axes of A, while slot values stay fixed.
+export function socksPattern(a, b, { reverse = false } = {}) {
+  if (![a, b].every(weight => Number.isFinite(weight) && weight >= 0 && weight <= 1)) {
+    throw new RangeError('Attention weights a and b must be finite numbers in [0, 1].');
+  }
+  const A = reverse ? [[1 - b, b], [1 - a, a]] : [[a, 1 - a], [b, 1 - b]];
+  const U = matmul(A, [[1], [-1]]);
+  // Use the analytic column-sum difference, avoiding multiplication roundoff
+  // masquerading as an order signal for balanced examples such as (.8, .2).
+  // Only an exactly zero difference collapses; no near-zero cutoff is imposed.
+  const contrast = a + b - 1;
+  const pooled = reverse ? -contrast : contrast;
+  const coefficient = contrast === 0 ? null : 1 / (2 * contrast);
+  return {
+    A, U, pooled, coefficient,
+    prediction: coefficient === null ? null : coefficient * pooled - .5,
+    originalPrediction: 2 * pooled - .5,
+    columnSums: [A[0][0] + A[1][0], A[0][1] + A[1][1]],
+  };
+}
+
 export function socksAttention({ reverse = false, position = true, uniform = false, causal = false } = {}) {
   const tokens = reverse ? ['shoes', 'socks'] : ['socks', 'shoes'];
   const X = tokens.map((token, i) => [

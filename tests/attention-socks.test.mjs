@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { socksAttention, SOCKS_WQ, SOCKS_WK, SOCKS_WV, SOCKS_WO } from '../docs/attention/socks-model.mjs';
+import { socksAttention, socksPattern, SOCKS_WQ, SOCKS_WK, SOCKS_WV, SOCKS_WO } from '../docs/attention/socks-model.mjs';
+import { matmul, transpose, softmax } from '../docs/attention/model.mjs';
 
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-12, `${actual} != ${expected}`);
 function matrixClose(actual, expected) {
@@ -146,5 +147,79 @@ test('uniform causal intervention averages only allowed positions', () => {
     matrixClose(noPosition.deltaX, [[0, 0, 0], [0, 0, 0]]);
     matrixClose(noPosition.updatedX, noPosition.X);
     close(noPosition.prediction, -.5);
+  }
+});
+
+test('balanced column totals erase the order signal beyond identity and uniform attention', () => {
+  for (const [a, b] of [[1, 0], [0, 1], [.5, .5], [.8, .2]]) {
+    for (const reverse of [false, true]) {
+      const result = socksPattern(a, b, { reverse });
+      close(result.pooled, 0);
+      result.columnSums.forEach(sum => close(sum, 1));
+      assert.equal(result.coefficient, null);
+      assert.equal(result.prediction, null);
+      close(result.originalPrediction, -.5);
+    }
+  }
+});
+
+test('unequal column totals separate both orders even with identical attention rows', () => {
+  for (const [a, b] of [[.5, .75], [.75, .75], [.2, .4], [.9, .3], [1, 1], [.5, .500001]]) {
+    const forward = socksPattern(a, b);
+    const reverse = socksPattern(a, b, { reverse: true });
+    // Independently sum the destination mixtures of the two position values.
+    close(forward.pooled, ((a - (1 - a)) + (b - (1 - b))) / 2);
+    close(reverse.pooled, -forward.pooled);
+    close(forward.prediction, 0);
+    close(reverse.prediction, -1);
+    close(forward.coefficient, reverse.coefficient);
+    for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) {
+      close(reverse.A[1 - i][1 - j], forward.A[i][j]);
+    }
+  }
+  const rankOne = socksPattern(.75, .75);
+  assert.deepEqual(rankOne.A[0], rankOne.A[1]);
+  close(rankOne.pooled, .5);
+  close(rankOne.coefficient, 1);
+});
+
+test('the original readout needs column totals 1.25 and .75 for the exact target scores', () => {
+  for (const [a, b] of [[.5, .75], [.75, .5], [1, .25]]) {
+    close(socksPattern(a, b).originalPrediction, 0);
+    close(socksPattern(a, b, { reverse: true }).originalPrediction, -1);
+  }
+  const changed = socksPattern(.75, .75);
+  close(changed.originalPrediction, .5);
+  close(socksPattern(.75, .75, { reverse: true }).originalPrediction, -1.5);
+  close(changed.prediction, 0);
+  for (const reverse of [false, true]) {
+    const pattern = socksPattern(.5, .75, { reverse });
+    const worked = socksAttention({ reverse });
+    matrixClose(pattern.A, worked.A);
+    matrixClose(pattern.U, worked.U);
+    close(pattern.pooled, worked.pooled);
+    close(pattern.prediction, worked.prediction);
+  }
+});
+
+test('one-dimensional identity-only queries and keys realize any strictly positive two-token pattern', () => {
+  const logit = p => Math.log(p / (1 - p));
+  for (const [a, b] of [[.2, .4], [.8, .2], [.75, .75], [.5, .75]]) {
+    const WQ = [[logit(a)], [logit(b)], [0]];
+    const WK = [[1], [0], [0]];
+    for (const reverse of [false, true]) {
+      const { X } = socksAttention({ reverse });
+      const Q = matmul(X, WQ);
+      const K = matmul(X, WK);
+      const A = matmul(Q, transpose(K)).map(softmax);
+      matrixClose(A, socksPattern(a, b, { reverse }).A);
+    }
+  }
+});
+
+test('generalized patterns reject weights outside the probability range', () => {
+  for (const invalid of [-.1, 1.1, NaN, Infinity, '0.5', null]) {
+    assert.throws(() => socksPattern(invalid, .5), RangeError);
+    assert.throws(() => socksPattern(.5, invalid), RangeError);
   }
 });

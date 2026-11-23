@@ -44,12 +44,23 @@ output rows into h, and applies a linear readout. This separate constructed
 example omits residual paths and MLPs; h is not the final residual state in the
 main architecture. Its interpretation comparisons and exact arithmetic remain.
 
-The original twenty socks-and-shoes scenes are also part of the main scroll sequence.
+Twenty-two socks-and-shoes scenes are part of the main scroll sequence.
 The first thirteen
 establish the target, show why identity pooling loses order, add explicit position,
 and motivate a chosen retrieval: shoes looks for socks and reads their position.
 Fixed query/key/value maps implement that rule; softmax, left multiplication,
 a task readout, order reversal, and ablations complete the calculation.
+
+Two takeaway scenes then make the non-uniqueness explicit. For socks-first
+A=[[a,1-a],[b,1-b]], position values [1,-1] give pooled h=a+b-1. Reversing
+identities swaps both rows and columns of A, giving -h. Any a+b != 1 separates
+the two orders; a shared recalibrated readout h_current/[2(a+b-1)]-1/2 recovers
+0 and -1. The original readout works exactly when a+b=1.25. Equal column totals
+(the doubly stochastic family a+b=1) erase the signal, including identity, swap,
+uniform attention, and balanced selective mixing. Biased identical rows can
+work, so rank and invertibility are not the criterion. The scroll shows three
+successful patterns and four failures; the complete-text explanation derives
+the condition and its realization by one-dimensional identity-only Q/K maps.
 
 Seven short extension scenes keep the same example. They generalize scalar
 query/key products to vector dot products, project an attention output back to
@@ -218,7 +229,7 @@ node --test tests/attention-layer.test.mjs tests/attention-socks.test.mjs tests/
 
 Six tests independently check the known numeric projections and mixtures,
 normalization, value/output shapes, stable softmax, correct causal masking, and
-invariance of earlier causal outputs to future input changes. Seven socks-model tests
+invariance of earlier causal outputs to future input changes. Twelve socks-model tests
 check independent two-order arithmetic, interventions, shared projections, the
 exact readout, causal masks, and the output projection/residual addition.
 Six interpretation tests cover all three attention and output rows, row
@@ -227,7 +238,7 @@ logit terms, fixed Q/K under value substitution, full row-and-column deletion,
 and deterministic rendering of the thirteen scenes. These three suites contain
 nineteen tests in total. Three more tests check the exact sentences and complete
 word sequence, the residual/readout structure, and strict math plus reversible
-rendering for the seven sentence scenes: twenty-two tests overall.
+rendering for the seven sentence scenes: twenty-seven tests overall.
 
 Manual review includes forward/backward native scrolling, narrow/mobile layout,
 PageUp/PageDown navigation, the reading link, all lesson scenes, math rendering, and
