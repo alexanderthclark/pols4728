@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Attention — How tokens share information · POLS 4728</title>
-<meta name="description" content="Start with two meanings of desert, see how context changes token representations, then follow attention into Infinite Jest sentiment and a complete socks-and-shoes calculation.">
+<meta name="description" content="Start with two meanings of desert, build attention with socks and shoes, then explain Infinite Jest sentiment with measured predictions, exact Shapley contributions, and internal interventions.">
 <link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="style.css?v=desert-panel-30">
-<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs?v=desert-upward-32"></script>
+<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs?v=shap-order-33"></script>
 </head>
 <body>
 <a class="skip" href="#reading">Skip to the reading version</a>
 <header><a href="https://alexanderthclark.github.io/pols4728/">POLS 4728</a><span>Machine learning for political science</span><a href="#using-attention">Using attention</a><a href="#references">Sources</a></header>
 <main>
 <section class="hero" aria-labelledby="title">
-<div class="hero-copy"><p class="eyebrow">A visual lesson</p><h1 id="title">Attention</h1><p class="subtitle">How tokens share<br>information.</p><p class="intro">Start with the running token vectors.<br>See how context changes what they represent.</p><a class="begin" href="#intuition">Start with context <span aria-hidden="true">↓</span></a><p class="route-link"><a href="#story">Attention basics</a> · <a href="#mechanics">Socks and shoes</a> · <a href="#encoder-notebook">Train an encoder</a> · <a href="#trained-model">Real model results</a></p></div>
+<div class="hero-copy"><p class="eyebrow">A visual lesson</p><h1 id="title">Attention</h1><p class="subtitle">How tokens share<br>information.</p><p class="intro">Start with the running token vectors.<br>See how context changes what they represent.</p><a class="begin" href="#intuition">Start with context <span aria-hidden="true">↓</span></a><p class="route-link"><a href="#mechanics">Socks and shoes</a> · <a href="#encoder-notebook">Train an encoder</a> · <a href="#trained-model">Infinite Jest</a> · <a href="#trained-story">Predictions and SHAP</a></p></div>
 <figure class="hero-art"><img src="assets/attention-crowd-loudspeaker.png" width="1536" height="1024" alt="A crowd of round figures holds phones beneath a loudspeaker. Most look up attentively; four keep staring down at their phones with slack, blank expressions."></figure>
 <div class="hero-foot"><span>Tokens as rows. Attention from the left.</span><span data-math="X\;\longmapsto\;AX"></span></div>
 </section>
@@ -29,23 +29,10 @@
 </div>
 </section>
 
-<section id="story" class="story sentence-story" aria-label="From contrasting sentences through attention to a sentiment score">
-<div class="stage">
-<div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
-
-<div class="stage-top lesson-heading"><a class="lesson-name" href="#title">Attention</a><span id="chapter">From a sentence to a score</span><span id="counter"></span></div>
-<div class="scene-layout">
-<div class="narration" id="narration"><p class="eyebrow" id="scene-label"></p><h2 id="scene-title"></h2><p id="caption"></p><div id="examples" class="sentence-examples" hidden></div><div id="equation" class="equation"></div><p id="detail" class="detail"></p></div>
-<figure class="visual"><svg id="diagram" viewBox="0 0 640 540" role="img" aria-label="Attention calculation"></svg><figcaption id="visual-caption"></figcaption></figure>
-</div>
-<div class="stage-bottom"><span>Schematic encoder · normalization omitted</span></div>
-</div>
-</section>
-
 <section class="worked-chapter" id="mechanics"><section class="chapter-intro" id="mechanics-intro"><p class="eyebrow">Build one attention head</p><h2>Socks and shoes</h2><p>Follow every number from input vectors through Q/K matching, values, and a prediction. Then project an update back into the residual stream and examine a causal mask.</p></section>
 <section id="mechanics-story" class="story" aria-label="Twenty-one scenes constructing Q, K and V">
 <div class="stage"><div class="progress-track" aria-hidden="true"><div id="mechanics-progress"></div></div>
-<div class="stage-top"><a href="#story">Core idea ↑</a><span id="mechanics-chapter">One head · Socks and shoes</span><span id="mechanics-counter">1 / 21</span></div>
+<div class="stage-top"><a href="#intuition">Core idea ↑</a><span id="mechanics-chapter">One head · Socks and shoes</span><span id="mechanics-counter">1 / 21</span></div>
 <div class="scene-layout"><div class="narration" id="mechanics-narration"><p class="eyebrow" id="mechanics-scene-label"></p><h2 id="mechanics-scene-title"></h2><p id="mechanics-caption"></p><div id="mechanics-equation" class="equation"></div><p id="mechanics-detail" class="detail"></p></div><figure class="visual"><svg id="mechanics-diagram" viewBox="0 0 640 540" role="img" aria-label="Attention calculation"></svg><figcaption id="mechanics-visual-caption"></figcaption></figure></div>
 <div class="stage-bottom"><span>Illustrative numbers · exact calculations</span></div></div>
 </section>
@@ -59,11 +46,25 @@
 <p><a href="https://github.com/alexanderthclark/pols4728-2026f/blob/5a29ace12e91b1aca3d26eea54b4cbceba92fb22/notes/notebooks/annotated_encoder_classifier.ipynb">Open the annotated PyTorch encoder notebook →</a></p>
 </section>
 <section id="trained-model" class="worked-chapter">
-<div class="chapter-intro"><p class="eyebrow">A trained sentiment model</p><h2>Test what the model uses.</h2><p>Now inspect a pretrained sentiment model. Change an input or an internal message, and see which predictions change.</p></div>
+<div class="chapter-intro"><p class="eyebrow">From token representations to sentiment</p><h2>Infinite Jest</h2><p>Apply the same attention operations to two reviews. Follow the representation updates, then inspect a trained classifier’s predictions, word contributions, and internal messages.</p></div>
+<section id="story" class="story sentence-story" aria-label="From contrasting sentences through attention to a sentiment score">
+<div class="stage">
+<div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
+
+<div class="stage-top lesson-heading"><a class="lesson-name" href="#title">Attention</a><span id="chapter">From a sentence to a score</span><span id="counter"></span></div>
+<div class="scene-layout">
+<div class="narration" id="narration"><p class="eyebrow" id="scene-label"></p><h2 id="scene-title"></h2><p id="caption"></p><div id="examples" class="sentence-examples" hidden></div><div id="equation" class="equation"></div><p id="detail" class="detail"></p></div>
+<figure class="visual"><svg id="diagram" viewBox="0 0 640 540" role="img" aria-label="Attention calculation"></svg><figcaption id="visual-caption"></figcaption></figure>
+</div>
+<div class="stage-bottom"><span>Schematic encoder · normalization omitted</span></div>
+</div>
+</section>
+
+<p class="appendix-intro">The schematic used mean pooling. The trained classifier below instead reads the final <span data-math="[\mathrm{CLS}]"></span> token state, after six encoder blocks with twelve attention heads each.</p>
 <p id="trained-error" class="appendix-intro" hidden>The saved model results could not be loaded. Reload this page to try again; the socks-and-shoes calculation above remains available.</p>
-<section id="trained-story" class="story trained-story" aria-label="Eight scenes testing attention messages and contextual representations in DistilBERT">
+<section id="trained-story" class="story trained-story" aria-label="Eleven scenes explaining sentiment predictions with Shapley contributions, attention messages, and contextual representations in DistilBERT">
 <div class="stage"><div class="progress-track" aria-hidden="true"><div id="trained-progress"></div></div>
-<div class="stage-top"><a href="#title">Attention</a><span id="trained-chapter">DistilBERT · tested computations</span><span id="trained-counter">1 / 8</span></div>
+<div class="stage-top"><a href="#title">Attention</a><span id="trained-chapter">DistilBERT · tested computations</span><span id="trained-counter">1 / 11</span></div>
 <div class="scene-layout"><div class="narration" id="trained-narration"><p class="eyebrow" id="trained-scene-label"></p><h2 id="trained-scene-title"></h2><p id="trained-caption"></p><div id="trained-equation" class="equation"></div><p id="trained-detail" class="detail"></p></div><figure class="visual"><svg id="trained-diagram" viewBox="0 0 640 540" role="img" aria-label="Measured model attention"></svg><figcaption id="trained-visual-caption"></figcaption></figure></div>
 <div class="stage-bottom"><span>Measured model runs</span><span id="trained-footer">6 blocks · 12 heads per block</span></div></div></section>
 <section class="afterword trained-explorer-section" aria-labelledby="trained-explorer-heading">
@@ -74,7 +75,7 @@
 <p>The two-message removal was selected after inspecting this checkpoint. It reverses all five tested short reviews; their full versions remain positive. State swaps after block 4 reverse 15 of 16 new directions. These tests establish particular dependencies, not a universal job for a head or a complete explanation of either original review.</p>
 <p>The model also predicts “Bad and Infinite Jest don’t belong in the same sentence” as negative. Two original successes do not establish reliable understanding of every related construction. A message norm measures vector magnitude, not its signed effect on sentiment.</p>
 <p>Each layer has its own heads. The value-swap experiment holds all layer-5 attention weights fixed; layer 6 reruns. The earlier mean-pooling schematic is distinct from this checkpoint’s final [CLS] readout.</p>
-<p class="trained-provenance"><a href="data/infinite-jest-investigation.json">Measured interventions and validation cases</a> · <a href="data/infinite-jest-attention.json">All original attention matrices</a> · <a href="https://github.com/alexanderthclark/pols4728/blob/501f8f5a566ef3fc4a87b04305d652d3450d75f2/scripts/export_attention_investigation.py">Reproduce the interventions</a> · <a href="#trained-reading">Complete reading version</a>.</p>
+<p class="trained-provenance"><a href="data/infinite-jest-shap.json">Exact token Shapley contributions</a> · <a href="https://github.com/alexanderthclark/pols4728/blob/main/scripts/export_attention_shap.py">Reproduce SHAP</a> · <a href="data/infinite-jest-investigation.json">Measured interventions and validation cases</a> · <a href="data/infinite-jest-attention.json">All original attention matrices</a> · <a href="https://github.com/alexanderthclark/pols4728/blob/501f8f5a566ef3fc4a87b04305d652d3450d75f2/scripts/export_attention_investigation.py">Reproduce the interventions</a> · <a href="#trained-reading">Complete reading version</a>.</p>
 <p class="trained-provenance">Model: <a href="https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english/tree/714eb0fa89d2f80546fda750413ed43d93601a13">DistilBERT SST-2, pinned checkpoint</a>. Further reading: <a href="https://aclanthology.org/2020.emnlp-main.574/">Kobayashi et al. (2020), weights and transformed values</a>; <a href="https://aclanthology.org/2020.acl-main.385/">Abnar and Zuidema (2020), mixing across layers</a>; <a href="https://aclanthology.org/W19-4828/">Clark et al. (2019), patterns across heads</a>.</p>
 </details></section>
 </section>
@@ -87,13 +88,14 @@
 <div class="table-scroll"><table class="interpretation-table"><thead><tr><th>Question</th><th>Useful display</th><th>Interpretation</th></tr></thead><tbody>
 <tr><td>Where is information being read?</td><td>A named layer, head and destination row of attention</td><td>Mixing coefficients for source representations.</td></tr>
 <tr><td>What adds to this class score?</td><td>Signed output terms, when the architecture permits an exact decomposition</td><td>Contributions to this computation, including values and the readout.</td></tr>
+<tr><td>How can we allocate this prediction across words?</td><td>Exact token Shapley contributions and their word sums</td><td>An additive allocation relative to the specified masked-input baseline.</td></tr>
 <tr><td>Which words change this prediction?</td><td>Replace or remove a word or phrase, rerun the whole model, and compare a fixed class score</td><td>Sensitivity to that particular text edit.</td></tr>
 <tr><td>What caused an outcome outside the model?</td><td>An experiment or an identified causal design</td><td>A different question that attention weights alone do not answer.</td></tr>
 </tbody></table></div>
 <h3>A useful sentiment exercise</h3>
-<p>Begin with a fixed target, such as the positive-class logit, and show the original prediction. Start with the Infinite Jest reviews above, then compare “Infinite Jest was good” with “Infinite Jest was not good.” Rerun the classifier on each complete sentence. These further edits are proposed checks; the saved DistilBERT results include the original reviews and the interventions shown above.</p>
+<p>Begin with a fixed target, such as the positive-minus-negative logit margin, and show the original prediction. Start with the Infinite Jest reviews above, then compare “Infinite Jest was good” with “Infinite Jest was not good.” Rerun the classifier on each complete sentence. These further edits are proposed checks; the saved DistilBERT results include the original reviews and the interventions shown above.</p>
 <p>Put the chosen attention row beside the score changes and ask whether its highlighted positions help explain them. Inspect negation as a phrase: in a deep transformer, the representation at “good” may already contain information from “not.” Removing a token also changes the context, positions, and potentially every attention row. It does not isolate a unique contribution inherent to that word.</p>
-<p>Integrated gradients can provide a signed attribution to a chosen output relative to a specified baseline; SHAP requires a specified treatment of missing features. Both address questions that a raw attention heatmap leaves open, and both need their own interpretation. For an introductory exercise, a small set of meaningful text edits makes the contrast easier to inspect. See <a href="https://proceedings.mlr.press/v70/sundararajan17a.html">Sundararajan et al. (2017)</a> and <a href="https://proceedings.neurips.cc/paper_files/paper/2017/hash/8a20a8621978632d76c43dfd28b67767-Abstract.html">Lundberg and Lee (2017)</a>.</p>
+<p>The SHAP calculation above allocates the difference between a masked baseline and the original sentiment margin across input token positions. It averages marginal changes over all token subsets. Its contributions depend on the masking rule; changing the rule changes the attribution problem. Integrated gradients provides another signed attribution relative to a specified baseline. See <a href="https://proceedings.mlr.press/v70/sundararajan17a.html">Sundararajan et al. (2017)</a> and <a href="https://proceedings.neurips.cc/paper_files/paper/2017/hash/8a20a8621978632d76c43dfd28b67767-Abstract.html">Lundberg and Lee (2017)</a>.</p>
 <h3 id="lidda">From words to marketing touchpoints</h3>
 <p>LiDDA predicts conversion from a sequence of marketing interactions and uses aggregated, normalized attention to assign relative touchpoint credit. Its single attention layer and flattened readout are deliberate design choices. The paper also reports sensitivity checks, comparison with incremental propensity, MMM calibration, and email experiments. These provide evidence beyond the attention visualization itself. <a href="https://arxiv.org/html/2505.09861v3">LiDDA v3, §§2.1, 2.4, 2.7, 3.2 and Appendix B.2</a>.</p>
 <p>A 40% credit share is a model-based allocation within a path. It is not automatically a 40% change in conversion probability or a 40% causal effect. The Infinite Jest example illustrates the interpretive distinction; it is not a reconstruction of LiDDA.</p>

@@ -6,7 +6,7 @@ The course homepage links to the lesson. Local fonts and KaTeX require no CDN.
 ## Scope and convention
 
 The lesson opens with its full illustrated title page, then six intuition
-scenes precede Infinite Jest. A residual-stream overview first defines X_0=SW+P:
+scenes precede the socks-and-shoes construction. A residual-stream overview first defines X_0=SW+P:
 one-hot token rows S select learned embedding rows from W, and P adds position.
 The next three scenes contrast the two user-supplied desert sentences. The
 comparison emphasizes that initial rows do not yet incorporate surrounding words;
@@ -20,10 +20,11 @@ pattern; V/O transforms the mixed content. Parameters are fixed during
 inference and generally differ across heads and layers; the attention weights
 are computed from the current input representations. Refinement need not
 mean monotonic improvement: an update can revise or cancel a feature.
-Scrolling then enters the Infinite Jest comparison and
-continues through all worked examples. No teaching chapter is hidden behind
-a disclosure panel.
-The following seven-scene story starts by comparing these two reviews:
+Scrolling then enters the complete socks-and-shoes construction and its encoder
+notebook bridge. All Infinite Jest material follows together: the seven-scene
+schematic, measured predictions, exact Shapley contributions, and internal
+interventions. No teaching chapter is hidden behind a disclosure panel.
+The Infinite Jest schematic starts by comparing these two reviews:
 
 - “Good and Infinite Jest don't belong in the same sentence”
 - “Infinite Jest wasn't just good. It was spectacular.”
@@ -38,8 +39,8 @@ symbolic; highlighted entries do not assert learned weight magnitudes. For
 legibility the first sentence is shown as ten word-level units, with an explicit
 note that an actual tokenizer may split them further.
 
-After the schematic introduction, the socks-and-shoes calculation and encoder
-notebook bridge precede the measured Infinite Jest investigation. The research
+The socks-and-shoes calculation and encoder notebook bridge precede the entire
+Infinite Jest chapter, including its schematic introduction. The research
 interpretation guide follows the measured chapter. The reading transcript follows
 the same scene order. The former thirteen-scene film
 classifier has been removed from the live route, navigation, and reading
@@ -168,6 +169,41 @@ The `Export measured attention` GitHub Actions workflow reproduces the original
 attention export and saves an artifact with read-only repository permissions;
 it does not commit generated results.
 
+## Exact Shapley explanation of the original reviews
+
+Three scenes follow the original measured predictions: define a missing token,
+then decompose the negative and positive review scores. The display uses the same
+positive-minus-negative logit margin as the intervention chapter. For binary
+softmax this equals log(P(positive)/P(negative)). It is an explanation of overall
+sentiment for the complete input, not a target-conditioned sentiment model.
+
+Each original input has thirteen non-special WordPiece tokens. Each token
+position is one player. For every one of its 8,192 subsets, omitted tokens are
+replaced by the checkpoint's [MASK] ID. [CLS], [SEP], input length, position IDs,
+and the all-one attention mask remain fixed. The full classifier reruns for
+every subset; attention weights are not held fixed. The ordinary Shapley formula
+averages marginal score changes with weights |S|!(n-|S|-1)!/n!. This is exhaustive
+coalition enumeration, not Partition/Owen attribution or permutation sampling.
+The baseline is the score of the fully masked non-special input, not a neutral
+score. This masking rule defines the game; a deletion or imputation rule defines
+a different game.
+
+`data/infinite-jest-shap.json` records the measured baseline, original score,
+individual token contributions, original-prediction checks, and provenance.
+The export script checks that baseline plus all attributions reconstructs the
+original margin. The readable explanation retains the token details. The plot
+sums subword contributions for readable word labels; it does not recompute a
+separate word-player game. The signed waterfall is an allocation of the model's
+prediction relative to this baseline, while the following interventions test
+particular internal computations.
+
+Reproduce with the attention-model dependencies and cached or downloaded pinned
+checkpoint:
+
+```sh
+python scripts/export_attention_shap.py --output docs/attention/data/infinite-jest-shap.json
+```
+
 ## Archived classification example
 
 This film example is retained in source only; the live lesson does not import
@@ -246,10 +282,11 @@ The current site does not run that checkpoint or claim measurements from it.
 
 ## Implementation and checking
 
-`app.mjs` initializes four pinned stories: the intuition primer, Infinite Jest
-schematic, socks-and-shoes calculation, and measured-model chapter.
+`app.mjs` initializes four pinned stories in scroll order: the intuition primer,
+socks-and-shoes calculation, Infinite Jest schematic, and measured-model chapter.
 `intuition-scenes.mjs` introduces meaning in context; `sentence-scenes.mjs`
-supplies the schematic; `trained-tour-scenes.mjs` displays measured results; and
+supplies the schematic; `trained-tour-scenes.mjs` displays measured results, `shap-scenes.mjs` inserts
+the exact Shapley explanation after the original predictions; and
 `socks-scenes.mjs` plus `extension-scenes.mjs` supply the full worked example.
 `interpretation-scenes.mjs` is archived and is not imported by the live app. Hash links offer shortcuts; scrolling reaches every scene. It derives
 scene state directly from native scroll position. There are no
