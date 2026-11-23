@@ -165,11 +165,6 @@ export function createSentenceScenes({m, line, rect, C}) {
     return out+label('A weighted sum of all ten value vectors.',320,523,25,muted);
   }
   return [
-    {id:'sentence-stream',part:'01 · From a sentence to a score',label:'',title:'Follow the residual stream.',
-      caption:'Contextual token features can support a sentence-level prediction. Attention and an MLP add updates; a readout scores the final sentence.',
-      equation:'r=\\frac1T\\sum_i(X_2)_i,\\qquad z=b+r\\beta',
-      detail:'One encoder block; one head shown. Normalization and attention biases omitted. A is symbolic, with no measured weights. Readings are labels, not model outputs.',
-      visual:'The attention matrix A sits on the branch that adds an update to the blue residual stream.',quotes:SENTENCE_EXAMPLES,draw:architecture},
     {id:'sentence-contrast',part:'01 · From a sentence to a score',label:'',title:'“Good” is not enough.',
       caption:'Desert showed how context selects a word’s sense. Here, the whole phrase determines sentiment: “don’t belong” rejects good, while “wasn’t just good” introduces emphatic praise.',
       equation:'z=f(\\text{whole sentence})',detail:'The task is sentiment toward Infinite Jest. These qualitative readings are not outputs from a fitted model.',

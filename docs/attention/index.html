@@ -4,15 +4,15 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Attention — How tokens share information · POLS 4728</title>
 <meta name="description" content="Start with two meanings of desert, see how context changes token representations, then follow attention into Infinite Jest sentiment and a complete socks-and-shoes calculation.">
-<link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="style.css?v=attention-centered-updates-19">
-<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs?v=attention-centered-updates-19"></script>
+<link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="style.css?v=attention-sequence-20">
+<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs?v=attention-sequence-20"></script>
 </head>
 <body>
 <a class="skip" href="#reading">Skip to the reading version</a>
 <header><a href="https://alexanderthclark.github.io/pols4728/">POLS 4728</a><span>Machine learning for political science</span><a href="#using-attention">Using attention</a><a href="#references">Sources</a></header>
 <main>
 <section class="hero" aria-labelledby="title">
-<div class="hero-copy"><p class="eyebrow">A visual lesson</p><h1 id="title">Attention</h1><p class="subtitle">How tokens share<br>information.</p><p class="intro">Start with the running token vectors.<br>See how context changes what they represent.</p><a class="begin" href="#intuition">Start with context <span aria-hidden="true">↓</span></a><p class="route-link"><a href="#story">Residual stream</a> · <a href="#trained-model">Real model results</a> · <a href="#mechanics">Socks and shoes</a> · <a href="#numerical">A numerical classifier</a></p></div>
+<div class="hero-copy"><p class="eyebrow">A visual lesson</p><h1 id="title">Attention</h1><p class="subtitle">How tokens share<br>information.</p><p class="intro">Start with the running token vectors.<br>See how context changes what they represent.</p><a class="begin" href="#intuition">Start with context <span aria-hidden="true">↓</span></a><p class="route-link"><a href="#story">Sentiment example</a> · <a href="#trained-model">Real model results</a> · <a href="#mechanics">Socks and shoes</a> · <a href="#numerical">A numerical classifier</a></p></div>
 <figure class="hero-art"><img src="assets/attention-crowd-loudspeaker.png" width="1536" height="1024" alt="A crowd of round figures holds phones beneath a loudspeaker. Most look up attentively; four keep staring down at their phones with slack, blank expressions."></figure>
 <div class="hero-foot"><span>Tokens as rows. Attention from the left.</span><span data-math="X\;\longmapsto\;AX"></span></div>
 </section>
@@ -29,7 +29,7 @@
 </div>
 </section>
 
-<section id="story" class="story sentence-story" aria-label="From a sentiment model through the residual stream into attention">
+<section id="story" class="story sentence-story" aria-label="From contrasting sentences through attention to a sentiment score">
 <div class="stage">
 <div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
 

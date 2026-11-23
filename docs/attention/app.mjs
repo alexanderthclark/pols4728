@@ -4,7 +4,7 @@ import {buildExplorer} from './trained-explorer.mjs?v=attention-trained-model-5'
 import {createSocksScenes} from './socks-scenes.mjs?v=attention-notation-8';
 import {createExtensionScenes} from './extension-scenes.mjs?v=attention-notation-8';
 import {createInterpretationScenes} from './interpretation-scenes.mjs?v=attention-notation-8';
-import {createSentenceScenes} from './sentence-scenes.mjs?v=attention-intuition-13';
+import {createSentenceScenes} from './sentence-scenes.mjs?v=attention-sequence-20';
 
 const C={ink:'#242424',blue:'#234e70',rust:'#a54f32',teal:'#007f73',purple:'#7b4f9d',muted:'#606060',rule:'#dededb'};
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
@@ -51,6 +51,7 @@ function makeStory(id,prefix,scenes){
  const s=scenes[index];
  const t=reducedMotion()&&!s.discretePhases?1:clamp(local/.66);
  if(last!==index){
+  story.dataset.sceneId=s.id;
   field('chapter').textContent=s.part;
   field('counter').textContent=`${index+1} / ${scenes.length}`;
   field('scene-label').textContent=s.label;

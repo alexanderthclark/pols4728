@@ -21,16 +21,17 @@ test('the schematic retains the residual update and reads out the final stream',
     m: tex => {equations.push(tex); return `<math>${tex}</math>`;},
     line: () => '<line/>', rect: () => '<rect/>'};
   const scenes = createSentenceScenes(drawing);
-  assert.equal(scenes.length, 8);
-  const overview = scenes[0].draw(0);
+  assert.equal(scenes.length, 7);
+  assert.equal(scenes[0].id, 'sentence-contrast');
+  const overview = scenes.find(s => s.id === 'sentence-head').draw(0);
   assert.match(overview, /Attention/);
   assert.match(overview, /MLP/);
   assert.match(overview, /Residual stream/);
   const inset = overview.match(/<g class="attention-matrix-inset"[^>]*>([\s\S]*?)<\/g>/)?.[1];
-  assert.ok(inset, 'the attention matrix is visible before any scrolling');
+  assert.ok(inset, 'the head view retains the symbolic attention matrix');
   assert.equal((inset.match(/<rect\//g) || []).length, 100, 'the inset has all ten source and destination positions');
   assert.ok(equations.includes('A'));
-  assert.match(scenes[0].detail, /symbolic.*no measured weights/);
+  assert.match(scenes.find(s => s.id === 'sentence-matrix').detail, /No measured weights/);
   assert.ok(equations.includes('X_0') && equations.includes('X_1') && equations.includes('X_2'));
   equations.length = 0;
   const final = scenes.at(-1).draw(1);

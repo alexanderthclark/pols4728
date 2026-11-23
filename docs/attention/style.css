@@ -48,9 +48,9 @@
 .trained-heatmap svg{display:block;width:100%;font-family:var(--sans)}.trained-weight-table table{width:100%;border-collapse:collapse}.trained-weight-table caption{text-align:left;color:var(--blue);padding-bottom:.5rem}.trained-explorer-note{font:13px/1.6 var(--sans);color:var(--muted);margin-top:1rem}.trained-explorer-controls>*{min-width:0}
 
 /* Let the two sentences carry the comparison scene on their own. */
-#story[data-scene="1"] #narration{display:none}
-#story[data-scene="1"] .scene-layout{grid-template-columns:minmax(0,1fr)}
-#story[data-scene="1"] .visual{max-width:760px;max-height:none;margin-inline:auto}
+#story[data-scene-id="sentence-contrast"] #narration{display:none}
+#story[data-scene-id="sentence-contrast"] .scene-layout{grid-template-columns:minmax(0,1fr)}
+#story[data-scene-id="sentence-contrast"] .visual{max-width:760px;max-height:none;margin-inline:auto}
 
 /* Contextual meaning introduces the existing residual-stream sequence. */
 .intuition-story{height:700svh;border-top:0}

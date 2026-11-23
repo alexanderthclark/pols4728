@@ -20,21 +20,20 @@ pattern; V/O transforms the mixed content. Parameters are fixed during
 inference and generally differ across heads and layers; the attention weights
 are computed from the current input representations. Refinement need not
 mean monotonic improvement: an update can revise or cancel a feature.
-Scrolling then enters the residual-stream overview and
+Scrolling then enters the Infinite Jest comparison and
 continues through all worked examples. No teaching chapter is hidden behind
 a disclosure panel.
-The following eight-scene story starts with a sentiment encoder and the residual stream, using
-these two reviews as the task:
+The following seven-scene story starts by comparing these two reviews:
 
 - “Good and Infinite Jest don't belong in the same sentence”
 - “Infinite Jest wasn't just good. It was spectacular.”
 
 Their negative and positive labels are intended readings, not measured model
-predictions. The opening traces token representations through residual attention
-and MLP updates into a final sentence readout. Its uniform, empty matrix cells
-identify the matrix's dimensions; they do not encode fitted weights. It then extracts the attention
-matrix from one head, reads a source/destination entry, combines a row of value
-vectors, and returns the projected output to the residual stream. The matrix is
+predictions. The next scene opens one attention head in the schematic encoder.
+Its uniform, empty matrix cells identify dimensions; they do not encode fitted
+weights. The story extracts this attention matrix, reads an entry, combines a
+row of value vectors, then returns the projected output to the residual stream
+and follows the MLP update into the sentence readout. The matrix is
 symbolic; highlighted entries do not assert learned weight magnitudes. For
 legibility the first sentence is shown as ten word-level units, with an explicit
 note that an actual tokenizer may split them further.
@@ -81,7 +80,7 @@ and the full explanation stays in the reading transcript.
 
 ## Measured Infinite Jest results
 
-After the eight schematic scenes, three additional scroll scenes show predictions
+After the seven schematic scenes, three additional scroll scenes show predictions
 and attention exported from `distilbert/distilbert-base-uncased-finetuned-sst-2-english`,
 pinned to revision `714eb0fa89d2f80546fda750413ed43d93601a13`. This SST-2
 checkpoint has six blocks and twelve heads per block. Its classifier reads the
@@ -228,7 +227,7 @@ logit terms, fixed Q/K under value substitution, full row-and-column deletion,
 and deterministic rendering of the thirteen scenes. These three suites contain
 nineteen tests in total. Three more tests check the exact sentences and complete
 word sequence, the residual/readout structure, and strict math plus reversible
-rendering for the eight new scenes: twenty-two tests overall.
+rendering for the seven sentence scenes: twenty-two tests overall.
 
 Manual review includes forward/backward native scrolling, narrow/mobile layout,
 PageUp/PageDown navigation, the reading link, all lesson scenes, math rendering, and
