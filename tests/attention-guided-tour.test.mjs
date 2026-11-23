@@ -5,13 +5,13 @@ import katex from '../docs/attention/vendor/katex/katex.min.js';
 import {formatWeight} from '../docs/attention/trained-scenes.mjs';
 import {createGuidedTrainedScenes} from '../docs/attention/trained-tour-scenes.mjs';
 
-const data=JSON.parse(readFileSync(new URL('../docs/attention/data/infinite-jest-attention.json',import.meta.url),'utf8'));
+const original=JSON.parse(readFileSync(new URL('../docs/attention/data/infinite-jest-attention.json',import.meta.url),'utf8'));
+const investigation=JSON.parse(readFileSync(new URL('../docs/attention/data/infinite-jest-investigation.json',import.meta.url),'utf8'));
 const near=(actual,expected,tolerance,message)=>assert.ok(Math.abs(actual-expected)<=tolerance,`${message}: ${actual} versus ${expected}`);
-const weight=(example,layer,head,destination,source)=>example.attentions[layer-1][head-1][example.tokens.indexOf(destination)][example.tokens.indexOf(source)];
 const clamp=(value,minimum=0,maximum=1)=>Math.max(minimum,Math.min(maximum,value));
 const escapeText=value=>String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const drawing={
-  C:{blue:'#234e70',teal:'#007f73',rust:'#a54f32',ink:'#242424',muted:'#606060'},
+  C:{blue:'#234e70',teal:'#007f73',rust:'#a54f32',ink:'#242424',muted:'#606060',rule:'#dededb'},
   m:tex=>katex.renderToString(tex,{throwOnError:true,strict:'error',output:'htmlAndMathml'}),
   text:(value,...args)=>`<text data-args="${escapeText(args.join(','))}">${escapeText(value)}</text>`,
   line:(...args)=>`<line data-args="${escapeText(args.join(','))}"/>`,
@@ -21,129 +21,232 @@ const drawing={
   lerp:(from,to,phase)=>from+(to-from)*phase,
   ease:value=>{const phase=clamp(value);return phase*phase*(3-2*phase);},
 };
-const sceneById=(scenes,id)=>{
-  const scene=scenes.find(candidate=>candidate.id===id);
-  assert.ok(scene,`missing guided observation ${id}`);
-  return scene;
+const scoresIn=value=>{
+  if(!value||typeof value!=='object')return [];
+  if(Array.isArray(value.logits)&&'positive_probability' in value)return [value];
+  return Object.values(value).flatMap(scoresIn);
+};
+const tokensRetained=tokens=>{
+  assert.equal(tokens[0],'[CLS]');assert.equal(tokens.at(-1),'[SEP]');
+  assert.ok(tokens.includes("'"),'tokenized contractions must retain the apostrophe');
 };
 
-test('the guided next-token observation holds for every eligible content position in both reviews',()=>{
-  for(const example of data.examples){
-    const matrix=example.attentions[1][9];
-    // Exclude [CLS], [SEP], and the last ordinary token: the stated pattern
-    // concerns an ordinary destination with a following ordinary source.
-    for(let destination=1;destination<example.tokens.length-2;destination++){
-      const row=matrix[destination],source=destination+1;
-      assert.ok(row[source]>.9999,`${example.tokens[destination]} should read its next token ${example.tokens[source]} with >99.99% weight`);
-      assert.equal(row.indexOf(Math.max(...row)),source);
-    }
+test('the investigation uses the original checkpoint and independently reproduces its published results',()=>{
+  assert.equal(investigation.schema_version,1);
+  assert.equal(investigation.model.id,original.model.id);
+  assert.equal(investigation.model.revision,original.model.revision);
+  assert.equal(investigation.model.architecture,'DistilBertForSequenceClassification');
+  assert.deepEqual(investigation.model.labels,['NEGATIVE','POSITIVE']);
+  assert.equal(investigation.model.layers,6);assert.equal(investigation.model.heads,12);
+  const settings=investigation.provenance.settings;
+  assert.equal(settings.device,'cpu');assert.equal(settings.dtype,'float32');
+  assert.equal(settings.model_mode,'eval');assert.equal(settings.attention_implementation,'eager');
+  assert.equal(settings.padding,false);assert.equal(settings.truncation,false);
+  assert.equal(investigation.provenance.checks.published_originals.length,2);
+  original.examples.forEach((example,index)=>{
+    const observed=investigation.behavior[index?'full':'negative'];
+    assert.equal(observed.text,example.text);assert.deepEqual(observed.tokens,example.tokens);
+    example.logits.forEach((logit,label)=>near(observed.score.logits[label],logit,1e-5,'reproduced original logit'));
+    const check=investigation.provenance.checks.published_originals.find(item=>item.text===example.text);
+    assert.ok(check&&check.max_logit_error<1e-5&&check.max_attention_error<1e-5);
+  });
+});
+
+test('every reported prediction and probability is consistent with its measured logits',()=>{
+  const scores=scoresIn(investigation);
+  assert.ok(scores.length>50,'include validation outcomes as well as selected examples');
+  for(const score of scores){
+    assert.equal(score.logits.length,2);assert.ok(score.logits.every(Number.isFinite));
+    const margin=score.logits[1]-score.logits[0];
+    near(score.margin,margin,2e-6,'positive-minus-negative margin');
+    near(score.positive_probability,1/(1+Math.exp(-margin)),2e-7,'probability from logits');
+    assert.equal(score.prediction,margin>0?'POSITIVE':'NEGATIVE');
   }
 });
 
-test('the two first-layer heads read opposite pieces of the same contraction',()=>{
-  const [negative,positive]=data.examples;
-  near(weight(negative,1,3,"'",'don'),.9920895099639893,1e-7,'negative contraction: previous-piece coefficient');
-  near(weight(negative,1,11,"'",'t'),.9878438711166382,1e-7,'negative contraction: following-piece coefficient');
-  // Check the same relation at a different location and with a different stem;
-  // this guards against accidentally rendering a fixed column from review 1.
-  near(weight(positive,1,3,"'",'wasn'),.9924139380455017,1e-7,'positive contraction: previous-piece coefficient');
-  near(weight(positive,1,11,"'",'t'),.9837672710418701,1e-7,'positive contraction: following-piece coefficient');
+test('the two selected reads address actual token positions in the complete measured matrix',()=>{
+  const phrase=investigation.phrase,n=phrase.tokens.length;
+  assert.equal(phrase.layer,2);assert.equal(phrase.head,9);
+  assert.equal(phrase.text,investigation.behavior.short.text);
+  assert.deepEqual(phrase.tokens,investigation.behavior.short.tokens);
+  tokensRetained(phrase.tokens);assert.equal(n,11);
+  assert.equal(phrase.attention.length,n);
+  for(const row of phrase.attention){
+    assert.equal(row.length,n);assert.ok(row.every(value=>Number.isFinite(value)&&value>=0&&value<=1));
+    near(row.reduce((sum,value)=>sum+value,0),1,2e-6,'complete attention row');
+  }
+  assert.deepEqual(phrase.edges.map(edge=>[edge.destination_token,edge.source_token]),[['t','just'],['just','t']]);
+  for(const edge of phrase.edges){
+    assert.equal(phrase.tokens[edge.destination_index],edge.destination_token);
+    assert.equal(phrase.tokens[edge.source_index],edge.source_token);
+    near(edge.weight,phrase.attention[edge.destination_index][edge.source_index],1e-9,'selected source coefficient');
+  }
+  near(phrase.edges[0].weight,.7736082,1e-6,'t reads just');
+  near(phrase.edges[1].weight,.8649251,1e-6,'just reads t');
+  assert.equal(investigation.provenance.checks.removed_edges_zero,true);
+  assert.equal(investigation.provenance.checks.intervened_row_sums_match_method,true);
+  near(investigation.provenance.checks.all_ones_mask_max_logit_error,0,1e-6,'unmodified mask control');
 });
 
-test('the same late head reads good in both reviews despite their opposite predictions',()=>{
-  const [negative,positive]=data.examples;
-  near(weight(negative,5,8,'[CLS]','good'),.46756666898727417,1e-7,'negative review: good coefficient');
-  near(weight(positive,5,8,'[CLS]','good'),.625940203666687,1e-7,'positive review: good coefficient');
-  assert.ok(negative.probabilities[1]<.01);
-  assert.ok(positive.probabilities[1]>.99);
+test('the phrase intervention preserves both the short-review reversal and the full-review non-reversal',()=>{
+  const {short,full}=investigation.phrase;
+  assert.equal(short.before.prediction,'POSITIVE');assert.equal(short.after.prediction,'NEGATIVE');
+  assert.equal(full.before.prediction,'POSITIVE');assert.equal(full.after.prediction,'POSITIVE');
+  near(short.after.positive_probability,.100165,1e-5,'short review after message removal');
+  near(full.after.positive_probability,.9994966,1e-6,'full review after the same intervention');
+  for(const result of [short,full])near(result.delta_margin,result.after.margin-result.before.margin,1e-9,'intervention margin change');
+  assert.equal(full.text,investigation.behavior.full.text);
+  assert.equal(full.renormalized,false);
+  const checks=investigation.validation.phrase;
+  assert.equal(checks.cases.length,5);
+  for(const [kind,count] of [['short','short_flips'],['full','full_flips'],['renormalized_short','renormalized_short_flips']]){
+    const flips=checks.cases.filter(entry=>entry[kind].before.prediction!==entry[kind].after.prediction).length;
+    assert.equal(flips,checks[count]);
+    for(const entry of checks.cases){
+      tokensRetained(entry[kind].tokens);
+      assert.equal(entry[kind].renormalized,kind==='renormalized_short');
+      assert.deepEqual(entry[kind].edges.map(edge=>[edge.destination_token,edge.source_token]),[['t','just'],['just','t']]);
+    }
+  }
+  assert.equal(checks.short_flips,5);assert.equal(checks.full_flips,0);
 });
 
-test('the surprising final readout example is the actual CLS-to-apostrophe coefficient',()=>{
-  const negative=data.examples[0];
-  assert.equal(data.model.architecture,'DistilBertForSequenceClassification');
-  assert.equal(data.model.readout,'[CLS]');
-  near(weight(negative,6,10,'[CLS]',"'"),.8731127381324768,1e-7,'final apostrophe coefficient');
-  const row=negative.attentions[5][9][0];
-  near(row.reduce((sum,value)=>sum+value,0),1,2e-6,'full final-layer row, including special tokens');
-  assert.equal(row.indexOf(Math.max(...row)),negative.tokens.indexOf("'"));
+test('the brightness comparison holds one head fixed and includes transformed-value magnitude',()=>{
+  const brightness=investigation.brightness;
+  assert.equal(brightness.text,original.examples[0].text);
+  const [apostrophe,t]=brightness.messages;
+  assert.equal(apostrophe.id,'apostrophe');assert.equal(t.id,'t');
+  for(const message of brightness.messages){
+    assert.equal(message.layer,6);assert.equal(message.head,10);
+    assert.equal(message.destination_index,0);assert.equal(message.destination_token,'[CLS]');
+    assert.equal(brightness.tokens[message.source_index],message.source_token);
+    near(message.weight,original.examples[0].attentions[5][9][0][message.source_index],1e-9,'same measured head and destination');
+    assert.ok(message.value_norm>=0&&message.projected_value_norm>=0);
+    near(message.message_norm,message.weight*message.projected_value_norm,2e-6,'weighted projected-value norm');
+    near(message.delta_margin,message.after.margin-brightness.baseline.margin,1e-9,'message removal effect');
+  }
+  assert.ok(apostrophe.weight/t.weight>20);
+  assert.ok(Math.abs(apostrophe.message_norm/t.message_norm-1)<.05,'the two measured messages have similar magnitudes');
+  near(apostrophe.delta_margin,.011164,1e-5,'apostrophe message removal');
 });
 
-test('guided scenes render strict mathematics and restore the same measured states in reverse',()=>{
-  const scenes=createGuidedTrainedScenes(drawing,data);
-  assert.equal(new Set(scenes.map(scene=>scene.id)).size,scenes.length,'scene identities must remain distinct');
+test('state and value transfers use an aligned token and distinguish fixed layer-5 attention',()=>{
+  const context=investigation.context;
+  assert.equal(context.layer,5);assert.equal(context.state_after_block,4);assert.equal(context.source_token,'not');
+  assert.equal(context.negative.tokens.length,context.positive.tokens.length);
+  assert.equal(context.negative.not_index,context.positive.not_index);
+  for(const example of [context.negative,context.positive])assert.equal(example.tokens[example.not_index],'not');
+  assert.equal(context.directions.length,2);
+  for(const transfer of context.directions){
+    assert.notEqual(transfer.recipient,transfer.donor);
+    assert.deepEqual(transfer.before,context[transfer.recipient].score);
+    assert.equal(transfer.values_after.prediction,context[transfer.donor].score.prediction);
+    assert.equal(transfer.state_after.prediction,context[transfer.donor].score.prediction);
+    near(transfer.values_delta_margin,transfer.values_after.margin-transfer.before.margin,1e-9,'value transfer effect');
+    near(transfer.state_delta_margin,transfer.state_after.margin-transfer.before.margin,1e-9,'complete-state transfer effect');
+    near(transfer.attention_max_abs_change,0,1e-7,'layer-5 attention stays fixed during value replacement');
+  }
+  near(context.directions[0].values_after.margin,4.906172,1e-5,'positive donor values into negative recipient');
+  near(context.directions[1].values_after.margin,-3.402029,1e-5,'negative donor values into positive recipient');
+  for(const value of Object.values(context.controls))near(value,0,1e-6,'embedding, own-state, and final-token controls');
+});
+
+test('validation retains all eight additional pairs and the unsuccessful direction',()=>{
+  const validation=investigation.validation.context;
+  assert.equal(validation.pairs,8);assert.equal(validation.cases.length,8);
+  assert.equal(new Set(validation.cases.map(entry=>entry.id)).size,8);
+  const directions=validation.cases.flatMap(entry=>entry.directions);
+  assert.equal(directions.length,validation.interventions);assert.equal(directions.length,16);
+  for(const result of directions)assert.equal(result.flipped,result.before.prediction!==result.after.prediction);
+  assert.equal(directions.filter(result=>result.flipped).length,validation.flips);
+  assert.equal(validation.flips,15);
+  assert.equal(directions.filter(result=>!result.flipped).length,1,'do not silently discard the failed validation direction');
+});
+
+test('all eight scenes render strict mathematics and restore measured states in both motion modes',()=>{
+  const scenes=createGuidedTrainedScenes(drawing,original,investigation);
+  assert.deepEqual(scenes.map(scene=>scene.id),[
+    'trained-predictions','trained-phrase-test','trained-phrase-routing','trained-message-removal',
+    'trained-context-restored','trained-brightness-test','trained-state-swap','trained-value-swap',
+  ]);
   for(const scene of scenes){
-    drawing.m(scene.equation);
-    const phases=[0,.1,.35,.5,.7,.9,1];
-    const forward=phases.map(phase=>scene.draw(phase));
-    for(const output of forward)assert.doesNotMatch(output,/NaN|undefined|\[object Object\]/,scene.id);
-    assert.ok(new Set(forward).size>1,`${scene.id} must show a change during its scroll progression`);
-    for(let index=phases.length-1;index>=0;index--){
-      assert.equal(scene.draw(phases[index]),forward[index],`${scene.id} must restore phase ${phases[index]}`);
+    assert.equal(scene.discretePhases,true,'measured states must not be replaced by a generic interpolated scene phase');
+    if(scene.equation)drawing.m(scene.equation);
+    for(const reducedMotion of [false,true]){
+      const phases=[0,.13,.3,.42,.58,.67,.82,1];
+      const forward=phases.map(phase=>scene.draw(phase,{reducedMotion}));
+      for(const svg of forward)assert.doesNotMatch(svg,/NaN|undefined|\[object Object\]/,scene.id);
+      assert.ok(new Set(forward).size>1,`${scene.id} must progress as the page scrolls`);
+      for(let index=phases.length-1;index>=0;index--){
+        assert.equal(scene.draw(phases[index],{reducedMotion}),forward[index],`${scene.id} restores phase ${phases[index]}`);
+      }
     }
   }
+  const wrong=structuredClone(investigation);wrong.model.revision='different-checkpoint';
+  assert.throws(()=>createGuidedTrainedScenes(drawing,original,wrong),/checkpoint/);
 });
 
-test('the opening matrix retains every measured cell and every special-token row',()=>{
-  const scene=sceneById(createGuidedTrainedScenes(drawing,data),'trained-local-routing');
-  const example=data.examples[0],matrix=example.attentions[1][9];
-  for(const phase of [0,.5,1]){
+test('the matrix-to-message diagram preserves every measured source and destination cell',()=>{
+  const scene=createGuidedTrainedScenes(drawing,original,investigation).find(scene=>scene.id==='trained-phrase-routing');
+  const {tokens,attention}=investigation.phrase;
+  for(const phase of [0,.4,1]){
     const svg=scene.draw(phase);
-    assert.equal((svg.match(/<title>/g)||[]).length,example.tokens.length**2);
-    example.tokens.forEach((destination,i)=>example.tokens.forEach((source,j)=>{
-      const description=`Layer 2 head 10. Destination ${i+1} ${destination}, source ${j+1} ${source}: ${formatWeight(matrix[i][j])}`;
-      assert.ok(svg.includes(`<title>${escapeText(description)}</title>`),description);
+    assert.equal((svg.match(/data-attention-cell=/g)||[]).length,tokens.length**2);
+    tokens.forEach((destination,i)=>tokens.forEach((source,j)=>{
+      const title=`Layer 2 head 9. Destination ${i+1} ${destination}, source ${j+1} ${source}: ${formatWeight(attention[i][j])}`;
+      assert.ok(svg.includes(`<title>${escapeText(title)}</title>`),title);
     }));
     assert.match(svg,/\[CLS\]/);assert.match(svg,/\[SEP\]/);
   }
 });
 
-test('the final summary retains each separate CLS row and every measured source column',()=>{
-  const scene=sceneById(createGuidedTrainedScenes(drawing,data),'trained-readout-route');
-  const example=data.examples[0],destination=example.tokens.indexOf('[CLS]');
-  const svg=scene.draw(1);
-  example.attentions[5].forEach((matrix,head)=>example.tokens.forEach((source,j)=>{
-    const description=`Layer 6 head ${head+1}. Destination ${destination+1} [CLS], source ${j+1} ${source}: ${formatWeight(matrix[destination][j])}`;
-    assert.ok(svg.includes(`<title>${escapeText(description)}</title>`),description);
-  }));
-  assert.match(svg,/Earlier \[CLS\]/,'the diagram must preserve the incoming residual route');
-});
-
-test('grouped good bars use original weights and preserve the mass of all other positions',()=>{
-  const scene=sceneById(createGuidedTrainedScenes(drawing,data),'trained-sentiment-context');
-  const svg=scene.draw(1);
-  const groups=[...svg.matchAll(/<g clip-path="url\(#([^\)]+)\)">([\s\S]*?)<\/g>/g)];
-  assert.equal(groups.length,2);
-  groups.forEach(([,clip,contents],index)=>{
-    const example=data.examples[index],row=example.attentions[4][7][0],good=example.tokens.indexOf('good');
-    const rest=row.reduce((sum,value,source)=>sum+(source===good?0:value),0);
-    assert.ok(contents.includes(`good ${formatWeight(row[good])}; all other positions ${formatWeight(rest)}`));
-    const clipMarkup=svg.match(new RegExp(`<clipPath id="${clip}">([\\s\\S]*?)<\\/clipPath>`));
-    assert.ok(clipMarkup);
-    const fullWidth=Number(clipMarkup[1].match(/width="([^"]+)"/)[1]);
-    const segments=[...contents.matchAll(/<rect x="([^"]+)" y="([^"]+)" width="([^"]+)" height="([^"]+)"/g)];
-    assert.equal(segments.length,2);
-    const [goodBar,restBar]=segments;
-    near(Number(goodBar[3])/fullWidth,row[good],1e-12,'good occupies its original share of the absolute scale');
-    near(Number(restBar[3])/fullWidth,rest,1e-12,'other positions retain their original combined mass');
-    near(Number(restBar[1]),Number(goodBar[1])+Number(goodBar[3]),1e-10,'the two bars meet without gaps or overlap');
-    near((Number(goodBar[3])+Number(restBar[3]))/fullWidth,1,2e-6,'the complete measured row is retained');
-  });
-});
-
-test('displayed weights change with the supplied data instead of hardcoded teaching numbers',()=>{
-  const changed=structuredClone(data);
-  const replaceWeight=(example,layer,head,destination,source,newWeight)=>{
-    const row=example.attentions[layer-1][head-1][example.tokens.indexOf(destination)];
-    const column=example.tokens.indexOf(source),oldOther=row.reduce((sum,value,index)=>sum+(index===column?0:value),0);
-    row.forEach((value,index)=>{row[index]=index===column?newWeight:value*(1-newWeight)/oldOther;});
+test('scrolling only displays measured probabilities and attention percentages, never intermediate predictions',()=>{
+  const {behavior,phrase,brightness,context}=investigation;
+  const negativeTransfer=context.directions.find(direction=>direction.recipient==='negative');
+  const scoreSets={
+    'trained-predictions':[behavior.negative.score,behavior.full.score],
+    'trained-phrase-test':[behavior.full.score,behavior.short.score,behavior.without_just.score],
+    'trained-phrase-routing':[],
+    'trained-message-removal':[phrase.short.before,phrase.short.after],
+    'trained-context-restored':[phrase.short.before,phrase.short.after,phrase.full.before,phrase.full.after],
+    'trained-brightness-test':[brightness.baseline,brightness.messages[0].after],
+    'trained-state-swap':[context.negative.score,context.positive.score,...context.directions.map(direction=>direction.state_after)],
+    'trained-value-swap':[negativeTransfer.before,negativeTransfer.values_after],
   };
-  replaceWeight(changed.examples[0],5,8,'[CLS]','good',.413);
-  replaceWeight(changed.examples[0],6,10,'[CLS]',"'",.327);
-  const scenes=createGuidedTrainedScenes(drawing,changed);
-  const goodScene=sceneById(scenes,'trained-sentiment-context');
-  assert.ok(goodScene.draw(1).includes('good 0.413000; all other positions 0.587000'));
-  assert.match(goodScene.detail,/41\.3%/);
-  const apostropheScene=sceneById(scenes,'trained-contextual-state');
-  assert.match(apostropheScene.draw(1),/32\.7%/);
-  assert.match(apostropheScene.detail,/32\.7%/);
+  for(const scene of createGuidedTrainedScenes(drawing,original,investigation)){
+    const probabilities=scoreSets[scene.id].map(score=>score.positive_probability);
+    const permittedPercentages=new Set(probabilities.flatMap(value=>[2,4].map(digits=>Number((value*100).toFixed(digits)))));
+    if(['trained-phrase-routing','trained-message-removal'].includes(scene.id)){
+      phrase.edges.forEach(edge=>permittedPercentages.add(Number((100*edge.weight).toFixed(1))));
+    }
+    if(scene.id==='trained-brightness-test')brightness.messages.forEach(message=>permittedPercentages.add(Number((100*message.weight).toFixed(1))));
+    for(const reducedMotion of [false,true])for(let step=0;step<=20;step++){
+      const svg=scene.draw(step/20,{reducedMotion});
+      for(const [,value] of svg.matchAll(/data-positive-probability="([^"]+)"/g)){
+        assert.ok(probabilities.includes(Number(value)),`${scene.id} fabricated a probability ${value} at phase ${step/20}`);
+      }
+      for(const [,value] of svg.matchAll(/(\d+(?:\.\d+)?)%/g)){
+        assert.ok(permittedPercentages.has(Number(value)),`${scene.id} displays an unmeasured percentage ${value}%`);
+      }
+    }
+  }
+});
+
+test('intervention readouts follow the supplied results rather than hardcoded teaching outcomes',()=>{
+  const changed=structuredClone(investigation);
+  const replacement=p=>{
+    const margin=Math.log(p/(1-p));
+    return {logits:[0,margin],margin,positive_probability:p,prediction:p>.5?'POSITIVE':'NEGATIVE'};
+  };
+  changed.phrase.short.after=replacement(.271828);
+  changed.phrase.short.delta_margin=changed.phrase.short.after.margin-changed.phrase.short.before.margin;
+  const transfer=changed.context.directions.find(direction=>direction.recipient==='negative');
+  transfer.values_after=replacement(.64123);
+  transfer.values_delta_margin=transfer.values_after.margin-transfer.before.margin;
+  const scenes=createGuidedTrainedScenes(drawing,original,changed);
+  for(const [id,value] of [['trained-message-removal',.271828],['trained-value-swap',.64123]]){
+    const scene=scenes.find(candidate=>candidate.id===id);
+    assert.ok(scene.draw(1).includes(`data-positive-probability="${value}"`));
+    assert.ok(scene.draw(1).includes(`${(100*value).toFixed(2)}%`));
+  }
 });

@@ -9,6 +9,7 @@ export function buildExplorer(element,data) {
   // These are entry points into the unchanged full matrices, not head labels
   // or rankings of importance. Layer/head indices are zero-based internally.
   const presets=[
+    {id:'phrase-head',label:'just in the full positive review · layer 2, head 9',sentence:1,layer:1,head:8,token:'just'},
     {id:'next-token',label:'Next-token stripe · layer 2, head 10',sentence:0,layer:1,head:9,token:'je'},
     {id:'apostrophe-left',label:'Apostrophe reads don · layer 1, head 3',sentence:0,layer:0,head:2,token:"'"},
     {id:'apostrophe-right',label:'Apostrophe reads t · layer 1, head 11',sentence:0,layer:0,head:10,token:"'"},
@@ -19,7 +20,7 @@ export function buildExplorer(element,data) {
   const prefix=element.id||'trained-explorer';
   const select=(name,title,options)=>`<label for="${prefix}-${name}">${title}<select id="${prefix}-${name}" name="${name}">${options}</select></label>`;
   const option=(value,label,selected=false)=>`<option value="${value}"${selected?' selected':''}>${esc(label)}</option>`;
-  element.innerHTML=`<div class="trained-explorer-presets">${select('preset','Revisit a guided view',option('','Custom selection')+presets.map(preset=>option(preset.id,preset.label,preset.id==='late-apostrophe')).join(''))}</div><div class="trained-explorer-controls">
+  element.innerHTML=`<div class="trained-explorer-presets">${select('preset','Original-review examples',option('','Custom selection')+presets.map(preset=>option(preset.id,preset.label,preset.id==='late-apostrophe')).join(''))}</div><div class="trained-explorer-controls">
     ${select('sentence','Sentence',examples.map((example,i)=>option(i,`${i+1}. ${example.text}`)).join(''))}
     ${select('layer','Encoder layer',Array.from({length:measured.layers},(_,i)=>option(i,i+1,i===state.layer)).join(''))}
     ${select('head','Attention head',Array.from({length:measured.heads},(_,i)=>option(i,i+1,i===state.head)).join(''))}

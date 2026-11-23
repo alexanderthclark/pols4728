@@ -1,10 +1,8 @@
 import {createIntuitionScenes} from './intuition-scenes.mjs?v=attention-copy-18';
-import {createTrainedScenes} from './trained-scenes.mjs?v=attention-trained-model-6';
-import {createGuidedTrainedScenes} from './trained-tour-scenes.mjs?v=attention-guided-tour-1';
-import {buildExplorer} from './trained-explorer.mjs?v=attention-guided-tour-1';
+import {createGuidedTrainedScenes} from './trained-tour-scenes.mjs?v=attention-interventions-1';
+import {buildExplorer} from './trained-explorer.mjs?v=attention-interventions-1';
 import {createSocksScenes} from './socks-scenes.mjs?v=socks-width-25';
 import {createExtensionScenes} from './extension-scenes.mjs?v=attention-notation-8';
-import {createInterpretationScenes} from './interpretation-scenes.mjs?v=attention-notation-8';
 import {createSentenceScenes} from './sentence-scenes.mjs?v=attention-sequence-20';
 
 const C={ink:'#242424',blue:'#234e70',rust:'#a54f32',teal:'#007f73',purple:'#7b4f9d',muted:'#606060',rule:'#dededb'};
@@ -30,11 +28,10 @@ renderMathNodes();
 const drawing={m,text,line,rect,circle,C,ease,lerp,clamp,num};
 const intuitionScenes=createIntuitionScenes(drawing);
 const coreScenes=createSentenceScenes(drawing);
-const numericalScenes=createInterpretationScenes(drawing);
 const mechanicsScenes=[...createSocksScenes(drawing),...createExtensionScenes(drawing)];
 // The complete text remains available independently of visual scene changes.
 const transcript=scenes=>scenes.map((s,i)=>`<section>${s.title?`<h3>${i+1}. ${s.title}</h3>`:""}${s.caption?`<p>${s.caption}</p>`:""}${(s.quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('')}${s.equation?`<div class="transcript-eq">${tex(s.equation)}</div>`:""}${s.detail?`<p>${s.detail}</p>`:""}${s.reading||''}</section>`).join('');
-document.querySelector('#transcript').innerHTML='<h3>One token, different contexts</h3>'+transcript(intuitionScenes)+'<h3>Sentiment, the residual stream, and attention</h3>'+transcript(coreScenes)+'<h3 id="transcript-numerical">A numerical attention classifier</h3>'+transcript(numericalScenes)+'<h3>The earlier Q/K/V calculation</h3>'+transcript(mechanicsScenes);
+document.querySelector('#transcript').innerHTML='<h3>One token, different contexts</h3>'+transcript(intuitionScenes)+'<h3>Sentiment, the residual stream, and attention</h3>'+transcript(coreScenes)+'<h3 id="transcript-mechanics">The earlier Q/K/V calculation</h3>'+transcript(mechanicsScenes);
 renderMathNodes(document.querySelector('#transcript'));
 const quoteMarkup=quotes=>(quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('');
 function makeStory(id,prefix,scenes){
@@ -77,13 +74,13 @@ function makeStory(id,prefix,scenes){
  }
  field('progress').style.width=`${clamp(total/scenes.length)*100}%`;
  // Each pinned stage owns its SVG paint definitions.
- svg.innerHTML=(defs+s.draw(t)).replaceAll('id="arrow"',`id="${id}-arrow"`).replaceAll('url(#arrow)',`url(#${id}-arrow)`).replaceAll('id="blocked"',`id="${id}-blocked"`).replaceAll('url(#blocked)',`url(#${id}-blocked)`);
+ svg.innerHTML=(defs+s.draw(t,{reducedMotion:reducedMotion()})).replaceAll('id="arrow"',`id="${id}-arrow"`).replaceAll('url(#arrow)',`url(#${id}-arrow)`).replaceAll('id="blocked"',`id="${id}-blocked"`).replaceAll('url(#blocked)',`url(#${id}-blocked)`);
  story.dataset.scene=index;story.dataset.phase=t.toFixed(3);
  const a=reducedMotion()?1:Math.min(1,.72+local*4);
  field('narration').style.opacity=a;
  };
 }
-const renderStories=[makeStory('intuition','intuition-',intuitionScenes),makeStory('story','',coreScenes),makeStory('numerical-story','numerical-',numericalScenes),makeStory('mechanics-story','mechanics-',mechanicsScenes)];
+const renderStories=[makeStory('intuition','intuition-',intuitionScenes),makeStory('story','',coreScenes),makeStory('mechanics-story','mechanics-',mechanicsScenes)];
 let scheduled=false;
 function render(){scheduled=false;renderStories.forEach(draw=>draw())}
 function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(render)}}
@@ -102,16 +99,16 @@ render();
 
 
 // Precomputed outputs keep this lesson usable without a model download.
-fetch(new URL('./data/infinite-jest-attention.json',import.meta.url))
- .then(response=>{if(!response.ok)throw new Error('Model results unavailable');return response.json();})
- .then(data=>{
-  const scenes=[createTrainedScenes(drawing,data)[0],...createGuidedTrainedScenes(drawing,data)];
+Promise.all(['infinite-jest-attention.json','infinite-jest-investigation.json'].map(file=>
+ fetch(new URL(`./data/${file}`,import.meta.url)).then(response=>{if(!response.ok)throw new Error('Model results unavailable');return response.json();})))
+ .then(([data,investigation])=>{
+  const scenes=createGuidedTrainedScenes(drawing,data,investigation);
   renderStories.splice(2,0,makeStory('trained-story','trained-',scenes));
   buildExplorer(document.querySelector('#trained-explorer'),data);
   const reading=document.createElement('div');
   reading.id='trained-reading';
-  reading.innerHTML='<h3>Reading DistilBERT’s heads and layers</h3>'+transcript(scenes);
-  document.querySelector('#transcript-numerical').before(reading);
+  reading.innerHTML='<h3>Testing DistilBERT’s attention and contextual states</h3>'+transcript(scenes);
+  document.querySelector('#transcript-mechanics').before(reading);
   renderMathNodes(reading);
   render();
  })

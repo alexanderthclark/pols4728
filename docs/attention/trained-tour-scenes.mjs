@@ -1,273 +1,236 @@
-// Guided observations from the checked-in checkpoint export. Geometry may
-// reveal or rearrange measurements, but never interpolates attention weights.
+// Scroll reveals recorded forward passes; it never interpolates model scores.
 import {normalizeTrainedData, attentionColor, formatWeight} from './trained-scenes.mjs';
 
-const escapeText = value => String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
-const percent = value => `${(100 * value).toFixed(1)}%`;
-const probability = value => `${(100 * value).toFixed(2)}%`;
-const nearOne = value => value > .9999 && value < 1 ? '>99.99%' : percent(value);
-const sum = values => values.reduce((total, value) => total + value, 0);
-
-export function createGuidedTrainedScenes(drawing, data) {
-  const {m, text, line, rect, circle, C, ease, lerp, clamp} = drawing;
-  const {examples, layers, heads} = normalizeTrainedData(data);
-  const negative = examples.find(example => example.tokens.includes('don') && example.tokens.includes('good'));
-  const positive = examples.find(example => example.tokens.includes('spectacular'));
-  if (!negative || !positive || layers < 6 || heads < 11) {
-    throw new Error('The guided tour requires the two Infinite Jest examples and their six-layer, twelve-head export.');
+const esc = value => String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+const percent = (value, digits = 2) => `${(100 * value).toFixed(digits)}%`;
+const wrap = (value, width = 43) => {
+  const lines = []; let row = '';
+  for (const word of value.split(/\s+/)) {
+    if (row && `${row} ${word}`.length > width) { lines.push(row); row = word; }
+    else row += `${row ? ' ' : ''}${word}`;
   }
-  const position = (example, token) => {
-    const index = example.tokens.indexOf(token);
-    if (index < 0) throw new Error(`The guided example is missing token ${token}.`);
-    return index;
+  if (row) lines.push(row);
+  return lines;
+};
+
+export function createGuidedTrainedScenes(drawing, data, investigation) {
+  const {text, line, rect, circle, m, C, ease, lerp, clamp} = drawing;
+  const measured = normalizeTrainedData(data);
+  if (!investigation || investigation.schema_version !== 1 || investigation.model.revision !== measured.revision) {
+    throw new Error('The intervention export must match the original pinned checkpoint.');
+  }
+  const {behavior, phrase, brightness, context, validation} = investigation;
+  const label = (value,x,y,size=26,color=C.ink,anchor='middle',extra='') =>
+    text(value,x,y,size,color,anchor,extra).replace('style="',`style="font-size:${size}px;`);
+  const group = (opacity,content,extra='') => `<g opacity="${opacity}" ${extra}>${content}</g>`;
+  const phase = (t,start,end,reduced=false) => reduced ? Number(t>=end) : ease(clamp((t-start)/(end-start)));
+  const arrow = (x1,y1,x2,y2,color=C.blue,extra='') => line(x1,y1,x2,y2,color,2,`marker-end="url(#arrow)" ${extra}`);
+  const box = (value,x,y,width=124,color=C.blue) =>
+    rect(x-width/2,y-25,width,50,'#fff',color,4,'stroke-width="1.6"') + label(value,x,y+9,28,color);
+  const words = (value,x,y,width=43,size=27,color=C.ink,anchor='middle') =>
+    wrap(value,width).map((row,i)=>label(row,x,y+i*(size+10),size,color,anchor)).join('');
+  const score = (value,x,y,width=480,color=C.blue,digits=2) => {
+    const p=value.positive_probability;
+    return `<g data-positive-probability="${p}"><title>P(positive): ${percent(p,4)}</title>`+
+      label(percent(p,digits),x+width,y,38,color,'end')+label('P(positive)',x,y,23,C.muted,'start')+
+      rect(x,y+17,width,11,'#e8ecec')+rect(x,y+17,width*p,11,color)+'</g>';
   };
-  const cls = position(negative, '[CLS]');
-  const apostrophe = position(negative, "'");
-  const don = position(negative, 'don');
-  const tToken = position(negative, 't');
-  const previousRead = negative.attentions[0][2][apostrophe][don];
-  const nextRead = negative.attentions[0][10][apostrophe][tToken];
-  const finalRead = negative.attentions[5][9][cls][apostrophe];
-  const goodWeights = [negative, positive].map(example => example.attentions[4][7][position(example, '[CLS]')][position(example, 'good')]);
-  const label = (value, x, y, size = 24, color = C.ink, anchor = 'middle', extra = '') =>
-    text(value, x, y, size, color, anchor, extra).replace('style="', `style="font-size:${size}px;`);
-  const phase = (value, start, end) => ease(clamp((value - start) / (end - start)));
-  const title = value => label(value, 320, 31, 26, C.blue);
-  const arrow = (x1, y1, x2, y2, color = C.blue, extra = '') => line(x1, y1, x2, y2, color, 2, `marker-end="url(#arrow)" ${extra}`);
-  const tokenBox = (token, x, y, width = 104, color = C.blue) =>
-    rect(x - width / 2, y - 25, width, 50, '#fff', color, 4, 'stroke-width="1.7"') + label(token, x, y + 9, 29, color);
-  const measuredCell = (value, x, y, width, height, description, extra = '') =>
-    `<g><title>${escapeText(`${description}: ${formatWeight(value)}`)}</title>${rect(x, y, width, height, attentionColor(value), '#dce4df', 0, `stroke-width=".6" ${extra}`)}</g>`;
-  const wrap = (value, length = 45) => {
-    const lines = []; let current = '';
-    for (const word of value.split(/\s+/)) {
-      if (current && `${current} ${word}`.length > length) { lines.push(current); current = word; }
-      else current += `${current ? ' ' : ''}${word}`;
-    }
-    if (current) lines.push(current);
-    return lines;
-  };
+  const comparison = (before,after,y=359,afterLabel='Two messages removed',digits=2) =>
+    label('Original',74,y,23,C.blue,'start')+score(before,74,y+37,492,C.blue,digits)+
+    label(afterLabel,74,y+105,23,C.rust,'start')+score(after,74,y+142,492,C.rust,digits);
+  const flowPath = (sourceX,destinationX,y1,y2,color,opacity=1) =>
+    `<path d="M ${sourceX} ${y1} C ${sourceX} ${y1+52}, ${destinationX} ${y2-52}, ${destinationX} ${y2}" fill="none" stroke="${color}" stroke-width="3" opacity="${opacity}" marker-end="url(#arrow)"/>`;
 
-  function localRouting(progress) {
-    const tokens = negative.tokens, matrix = negative.attentions[1][9];
-    const n = tokens.length, x = 83, y = 103, width = 315, cell = width / n;
-    // The lens traverses ordinary-token rows. [CLS] and [SEP] remain visible
-    // with their original values; the final ordinary-token row is not omitted.
-    const first = position(negative, 'good'), last = position(negative, 'same');
-    const cursor = lerp(first, last, phase(progress, .13, .88));
-    const destination = Math.round(cursor);
-    const source = matrix[destination].indexOf(Math.max(...matrix[destination]));
-    const weight = matrix[destination][source];
-    let out = title('Layer 2 · head 10');
-    out += label('Read from →', x + width / 2, 69, 22, C.teal);
-    out += label('Position · token', 448, 80, 20, C.muted, 'start');
-    out += label('Update', 13, y + width / 2, 22, C.blue, 'middle', `transform="rotate(-90 13 ${y + width / 2})"`);
-    for (let row = 0; row < n; row++) {
-      out += label(row + 1, x - 12, y + (row + .5) * cell + 6, 17, row === destination ? C.rust : C.muted, 'end');
-      out += label(row + 1, x + (row + .5) * cell, y - 9, 17, C.muted);
-      out += label(`${row + 1}  ${tokens[row]}`, 448, y + (row + .5) * cell + 6, 20, row === destination || row === source ? C.blue : C.ink, 'start');
-      for (let column = 0; column < n; column++) {
-        out += measuredCell(matrix[row][column], x + column * cell, y + row * cell, cell, cell,
-          `Layer 2 head 10. Destination ${row + 1} ${tokens[row]}, source ${column + 1} ${tokens[column]}`);
-      }
-    }
-    out += rect(x - 2, y + cursor * cell - 1, width + 4, cell + 2, 'none', C.rust, 0, 'stroke-width="2.5"');
-    out += rect(x + source * cell, y + destination * cell, cell, cell, 'none', C.ink, 0, 'stroke-width="2.5"');
-    out += label(`${tokens[destination]}  reads  ${tokens[source]}`, 320, 456, 28, C.blue);
-    out += label(`${nearOne(weight)} of this head’s mixture`, 320, 489, 24, C.ink);
-    const scaleX = 174, scaleY = 516, scaleWidth = 228;
-    for (let k = 0; k < 80; k++) out += rect(scaleX + k * scaleWidth / 80, scaleY, scaleWidth / 80 + .2, 9, attentionColor(k / 79));
-    out += label('0', scaleX - 12, scaleY + 10, 18, C.muted, 'end') + label('1', scaleX + scaleWidth + 12, scaleY + 10, 18, C.muted, 'start');
-    out += label('absolute scale', 500, scaleY + 10, 18, C.muted);
-    return out;
-  }
-
-  function parallelHeads(progress) {
-    const incoming = phase(progress, .12, .47), outgoing = phase(progress, .48, .89);
-    let out = title('Two heads update the same position');
-    out += label('Layer 1 reads the initial token states', 320, 76, 23, C.muted);
-    out += tokenBox('don', 125, 128) + tokenBox("'", 320, 128) + tokenBox('t', 515, 128);
-    out += arrow(125, 158, 160, 211, C.blue) + arrow(515, 158, 480, 211, C.teal);
-    out += line(300, 158, 207, 211, C.muted, 1.4, 'stroke-dasharray="4 4"');
-    out += line(340, 158, 433, 211, C.muted, 1.4, 'stroke-dasharray="4 4"');
-    out += label('same input row', 320, 195, 20, C.muted);
-    const headData = [{x:160, head:3, source:'don', weight:previousRead, color:C.blue}, {x:480, head:11, source:'t', weight:nextRead, color:C.teal}];
-    for (const entry of headData) {
-      out += rect(entry.x - 117, 218, 234, 108, '#fff', entry.color, 4, 'stroke-width="1.6"');
-      out += label(`Head ${entry.head} reads ${entry.source}`, entry.x, 250, 24, entry.color);
-      out += label(percent(entry.weight), entry.x, 293, 34, entry.color);
-      out += label('Own value projection', entry.x, 353, 20, C.muted);
-      out += arrow(entry.x, 365, 320 + (entry.x < 320 ? -30 : 30), 425, entry.color);
-      // These markers show a route through the computation, not a measured
-      // vector component or a numerical attribution.
-      const fromX = entry.source === 'don' ? 125 : 515;
-      out += rect(lerp(fromX, entry.x, incoming) - 6, lerp(164, 201, incoming) - 6, 12, 12, entry.color);
-      out += circle(lerp(entry.x, 320 + (entry.x < 320 ? -30 : 30), outgoing), lerp(367, 423, outgoing), 6, entry.color);
-    }
-    out += label('Combine heads + residual + FFN', 320, 394, 22, C.blue);
-    out += tokenBox("'", 320, 455, 142);
-    out += label('Updated state at the apostrophe', 320, 508, 24, C.blue);
-    return out;
-  }
-
-  function sameWord(progress) {
-    let out = title('Layer 5 · head 8 · [CLS] row');
-    const x = 42, width = 556, barHeight = 36;
-    [negative, positive].forEach((example, index) => {
-      const y = 76 + index * 218, color = index ? C.teal : C.blue;
-      const row = example.attentions[4][7][position(example, '[CLS]')];
-      const weight = goodWeights[index];
-      const rest = sum(row.filter((_, token) => token !== position(example, 'good')));
-      const reveal = phase(progress, index ? .38 : .08, index ? .86 : .53);
-      out += label(index ? 'Second review' : 'First review', x, y, 22, color, 'start');
-      out += label(`P(positive) ${probability(example.positive)}`, x + width, y, 22, color, 'end');
-      wrap(example.text).forEach((part, lineIndex) => { out += label(part, x, y + 34 + lineIndex * 27, 23, C.ink, 'start'); });
-      const barY = y + 93;
-      // The full measured distribution is always laid out at its true width.
-      // Scrolling uncovers it with a clip, rather than changing its values.
-      const clip = `tour-good-row-${index}`;
-      out += `<defs><clipPath id="${clip}">${rect(x, barY - 1, width * reveal, barHeight + 2, '#fff')}</clipPath></defs>`;
-      out += rect(x, barY, width, barHeight, '#fff', '#a4aaa8', 0, 'stroke-width="1"');
-      out += `<g clip-path="url(#${clip})"><title>${escapeText(`Layer 5 head 8 [CLS] row. good ${formatWeight(weight)}; all other positions ${formatWeight(rest)}. Original row sum ${formatWeight(sum(row))}.`)}</title>`;
-      out += rect(x, barY, width * weight, barHeight, color);
-      out += rect(x + width * weight, barY, width * rest, barHeight, '#e5e8e6');
-      out += line(x + width * weight, barY, x + width * weight, barY + barHeight, C.ink, 1.4) + '</g>';
-      out += line(x + width * reveal, barY - 5, x + width * reveal, barY + barHeight + 5, C.ink, 1.8);
-      out += label(`good: ${percent(weight)}`, x, barY + 66, 25, color, 'start');
-      out += label(`all other positions: ${percent(rest)}`, x + width, barY + 66, 22, C.muted, 'end');
+  function predictions(t,{reducedMotion=false}={}) {
+    let out=label('Same word. Different constructions.',320,32,26,C.muted);
+    [behavior.negative,behavior.full].forEach((example,index)=>{
+      const y=74+index*220,reveal=phase(t,index*.2,.28+index*.2,reducedMotion);
+      out+=rect(28,y,584,194,'#fff','#cbd2d5',5,'stroke-width="1.2"');
+      out+=words(example.text,58,y+40,39,28,C.ink,'start');
+      out+=group(reveal,score(example.score,58,y+151,524,C.blue));
     });
-    out += label('A large weight does not specify sentiment direction.', 320, 529, 23, C.ink);
+    return out+label('6 blocks · 12 heads per block · final [CLS] readout',320,535,22,C.muted);
+  }
+
+  function phraseTest(t,{reducedMotion=false}={}) {
+    const state=t<.34?0:t<.70?1:2;
+    const examples=[behavior.full,behavior.short,behavior.without_just];
+    const removeEnding=phase(t,.16,.34,reducedMotion),removeJust=phase(t,.52,.70,reducedMotion);
+    let out=label(['Full review','Keep only the first sentence','Remove “just”'][state],320,36,25,C.muted);
+    out+=label('Infinite Jest',320,109,35);
+    out+=label('wasn’t',lerp(191,238,removeJust),170,35);
+    out+=group(1-removeJust,label('just',321,170,35,C.teal));
+    out+=label('good.',lerp(438,392,removeJust),170,35);
+    out+=group(1-removeEnding,label('It was spectacular.',320,233+removeEnding*24,32,C.teal));
+    out+=score(examples[state].score,74,309,492,C.blue);
+    ['Full review','First sentence','Without “just”'].forEach((name,i)=>{
+      const x=116+i*204,active=i===state;
+      out+=circle(x,404,active?7:4,active?C.blue:'#bbc4c9');
+      out+=label(name,x,441,21,active?C.blue:C.muted);
+      out+=label(percent(examples[i].score.positive_probability),x,478,28,active?C.blue:C.muted);
+    });
     return out;
   }
 
-  function contextualState(progress) {
-    const history = phase(progress, .14, .69), finalRoute = phase(progress, .69, .92);
-    const stateX = index => 64 + index * 102;
-    let out = title('The token label stays the same');
-    out += label(`Earlier: apostrophe reads don (${percent(previousRead)})`, 320, 81, 23, C.blue);
-    out += label(`and t (${percent(nextRead)}) in two layer-1 heads.`, 320, 113, 23, C.blue);
-    out += label('Five blocks revise its representation', 320, 165, 24, C.muted);
-    for (let block = 0; block <= 5; block++) {
-      const x = stateX(block);
-      if (block < 5) out += arrow(x + 35, 251, x + 65, 251, C.muted);
-      out += label(block === 0 ? 'Input' : `After ${block}`, x, 205, 20, C.muted);
-      out += rect(x - 35, 220, 70, 103, '#fff', C.blue, 4, 'stroke-width="1.4"');
-      out += label("'", x, 254, 37, C.blue);
-      out += m(`x_{${apostrophe + 1}}^{(${block})}`, x, 295, 69, 42, 23, C.ink);
-    }
-    // The moving outline follows successive states of one position. No
-    // vector values or purported fractions of causal influence are invented.
-    out += rect(lerp(stateX(0), stateX(5), history) - 39, 216, 78, 111, 'none', C.rust, 5, 'stroke-width="2.7"');
-    out += label('A state history, not a measured attribution path', 320, 357, 20, C.muted);
-    const startX = stateX(5), startY = 333, endX = 360, endY = 426;
-    out += arrow(startX, startY, endX, endY, C.blue);
-    out += circle(lerp(startX, endX, finalRoute), lerp(startY, endY, finalRoute), 7, C.blue);
-    out += label(`Layer 6 · head 10: ${percent(finalRead)}`, 292, 401, 25, C.blue);
-    out += tokenBox('[CLS]', 320, 456, 158);
-    out += label('Reads the layer-5 state at the apostrophe', 320, 512, 24, C.ink);
+  function matrix() {
+    const n=phrase.tokens.length,x=153,y=139,size=330,cell=size/n;
+    let out=label('Layer 2 · head 9',320,31,27,C.blue);
+    out+=label('Read from →',x+size/2,72,23,C.muted);
+    out+=label('Update',36,y+size/2,22,C.muted,'middle',`transform="rotate(-90 36 ${y+size/2})"`);
+    phrase.tokens.forEach((token,i)=>{
+      const selected=['t','just'].includes(token),color=selected?C.blue:C.muted;
+      out+=label(token,x-12,y+(i+.5)*cell+6,19,color,'end');
+      out+=label(token,x+(i+.5)*cell,y-12,18,color,'start',`transform="rotate(-48 ${x+(i+.5)*cell} ${y-12})"`);
+      phrase.attention[i].forEach((weight,j)=>{
+        out+=`<g data-attention-cell="${i},${j}"><title>${esc(`Layer 2 head 9. Destination ${i+1} ${token}, source ${j+1} ${phrase.tokens[j]}: ${formatWeight(weight)}`)}</title>`+
+          rect(x+j*cell,y+i*cell,cell,cell,attentionColor(weight),'#dce4df',0,'stroke-width=".5"')+'</g>';
+      });
+    });
+    for(const edge of phrase.edges)out+=rect(x+edge.source_index*cell,y+edge.destination_index*cell,cell,cell,'none',C.rust,0,'stroke-width="3"');
+    for(let i=0;i<80;i++)out+=rect(222+i*2.4,499,2.5,8,attentionColor(i/79));
+    out+=label('0',208,511,19,C.muted,'end')+label('1',428,511,19,C.muted,'start');
     return out;
   }
 
-  function readoutRoute(progress) {
-    const selection = phase(progress, .16, .79);
-    const tokens = negative.tokens, n = tokens.length, x = 48, y = 113, width = 300, cell = width / n;
-    const chosenHead = 9, matrix = negative.attentions[5][chosenHead], rowHeight = 23;
-    let out = title('Final layer: keep the [CLS] rows');
-    out += label(selection < .5 ? 'Head 10 · all destination rows' : 'All heads · [CLS] destination only', 198, 73, 21, C.blue);
-    for (let source = 0; source < n; source++) out += label(source + 1, x + (source + .5) * cell, y - 10, 16, C.muted);
-    // Other destinations leave the readout diagram; their measured values
-    // remain unchanged. The selected [CLS] row moves into the head summary.
-    out += `<g opacity="${1 - selection}">`;
-    for (let destination = 0; destination < n; destination++) {
-      if (destination === cls) continue;
-      const rowY = y + destination * cell + selection * 104;
-      out += label(destination + 1, x - 10, rowY + cell / 2 + 6, 17, C.muted, 'end');
-      for (let source = 0; source < n; source++) out += measuredCell(matrix[destination][source], x + source * cell, rowY, cell, cell,
-        `Layer 6 head 10. Destination ${destination + 1} ${tokens[destination]}, source ${source + 1} ${tokens[source]}`);
+  function messages(t,{cut=false,reducedMotion=false,compact=false}={}) {
+    const top=compact?99:130,bottom=compact?259:367;
+    const move=phase(t,.12,.84,reducedMotion),opacity=cut?0:1;
+    let out=compact?'':label('wasn  ·  ’  ·  t',160,top-61,25,C.muted)+label('just',480,top-61,25,C.muted);
+    out+=label('Incoming states',320,top-23,21,C.muted);
+    out+=box('t',160,top+15)+box('just',480,top+15,124,C.teal);
+    out+=box('t',160,bottom,124,C.blue)+box('just',480,bottom,124,C.teal);
+    const eT=phrase.edges.find(edge=>edge.source_token==='t'),eJust=phrase.edges.find(edge=>edge.source_token==='just');
+    out+=flowPath(160,480,top+43,bottom-30,C.blue,opacity)+flowPath(480,160,top+43,bottom-30,C.teal,opacity);
+    // Route markers are schematic, not measured vector coordinates or norms.
+    if(!cut){
+      const bend=move*move*(3-2*move);
+      out+=circle(lerp(160,480,bend),lerp(top+44,bottom-32,move),6,C.blue);
+      out+=circle(lerp(480,160,bend),lerp(top+44,bottom-32,move),6,C.teal);
+      out+=label(percent(eJust.weight,1),113,(top+bottom)/2+14,23,C.teal);
+      out+=label(percent(eT.weight,1),527,(top+bottom)/2+14,23,C.blue);
+    }else{
+      out+=line(210,top+64,430,bottom-51,'#bbc4c9',2,'stroke-dasharray="5 7"');
+      out+=line(430,top+64,210,bottom-51,'#bbc4c9',2,'stroke-dasharray="5 7"');
+      out+=rect(226,(top+bottom)/2-18,188,39,'#fff');
+      out+=label('Two messages off',320,(top+bottom)/2+9,23,C.rust);
     }
-    out += '</g>';
-    for (let head = 0; head < heads; head++) {
-      const row = negative.attentions[5][head][cls];
-      const rowY = head === chosenHead ? lerp(y + cls * cell, y + head * rowHeight, selection) : y + head * rowHeight;
-      const alpha = head === chosenHead ? 1 : selection;
-      out += `<g opacity="${alpha}">`;
-      const rowLabel = head === chosenHead && selection < .5 ? cls + 1 : head + 1;
-      out += label(rowLabel, x - 10, rowY + rowHeight / 2 + 6, 18, head === chosenHead ? C.blue : C.muted, 'end');
-      for (let source = 0; source < n; source++) out += measuredCell(row[source], x + source * cell, rowY, cell, lerp(cell, rowHeight, selection),
-        `Layer 6 head ${head + 1}. Destination ${cls + 1} [CLS], source ${source + 1} ${tokens[source]}`);
-      if (head === chosenHead) out += rect(x - 1, rowY - 1, width + 2, lerp(cell, rowHeight, selection) + 2, 'none', C.rust, 0, 'stroke-width="2.3"');
-      out += '</g>';
-    }
-    out += `<g opacity="${selection}">`;
-    out += label('Head', 24, 101, 16, C.muted);
-    out += label('All token positions, including [CLS] and [SEP]', 198, 417, 18, C.muted);
-    out += line(364, y, 373, y, C.blue, 1.6) + line(373, y, 373, y + heads * rowHeight, C.blue, 1.6) + line(364, y + heads * rowHeight, 373, y + heads * rowHeight, C.blue, 1.6);
-    out += arrow(373, 260, 417, 260, C.blue);
-    out += label('Earlier [CLS]', 516, 129, 23, C.blue);
-    out += arrow(516, 147, 516, 220, C.blue, 'stroke-dasharray="5 4"');
-    out += label('residual', 570, 183, 19, C.muted);
-    out += rect(420, 226, 191, 91, '#fff', C.blue, 4, 'stroke-width="1.7"');
-    out += label('Final [CLS]', 515, 262, 26, C.blue);
-    out += label('after block 6', 515, 292, 21, C.muted);
-    out += arrow(515, 324, 515, 365, C.blue);
-    out += rect(420, 373, 191, 64, '#fff', C.blue, 4, 'stroke-width="1.7"');
-    out += label('Classifier', 515, 414, 26, C.blue);
-    out += '</g>';
-    out += label('Other final-layer token outputs have no later reader.', 320, 477, 23, C.ink);
-    out += label('Earlier layers: any row can supply a later read.', 320, 514, 23, C.muted);
+    out+=label('Update t',160,bottom+59,24,C.blue)+label('Update just',480,bottom+59,24,C.teal);
     return out;
   }
 
+  function routing(t,{reducedMotion=false}={}) {
+    const unfold=phase(t,.32,.57,reducedMotion);
+    let out=group(1-unfold,matrix(),`transform="translate(0 ${-32*unfold})"`);
+    out+=group(unfold,label('Layer 2 · head 9',320,31,27,C.blue)+messages(phase(t,.57,1,reducedMotion),{reducedMotion}));
+    if(t>=.57)out+=label('Both reads use the incoming layer-1 states.',320,506,23,C.muted);
+    return out;
+  }
+
+  function removal(t,{reducedMotion=false}={}) {
+    let out=label(behavior.short.text,320,31,27,C.ink);
+    out+=messages(t,{cut:t>=.36,reducedMotion,compact:true});
+    out+=group(phase(t,.38,.53,reducedMotion),comparison(phrase.short.before,phrase.short.after,351));
+    return out;
+  }
+
+  function restored(t,{reducedMotion=false}={}) {
+    const example=t>=.45?phrase.full:phrase.short,arrive=phase(t,.17,.45,reducedMotion);
+    let out=words(behavior.short.text,320,72,32,30);
+    out+=group(arrive,label('It was spectacular.',320,184,34,C.teal));
+    out+=label('The same two messages stay off.',320,258,25,C.rust);
+    return out+comparison(example.before,example.after,329);
+  }
+
+  function bright(t,{reducedMotion=false}={}) {
+    const [apostrophe,tPiece]=brightness.messages,showMagnitude=t>=.34,showEffect=t>=.70;
+    let out=label('Negative review · layer 6, head 10 · [CLS] row',320,30,24,C.blue);
+    out+=label('Source',57,94,23,C.muted,'start')+label(showMagnitude?'Message magnitude':'Attention weight',345,94,24,C.muted);
+    [apostrophe,tPiece].forEach((message,i)=>{
+      const y=139+i*88,v=showMagnitude?message.message_norm/.5:message.weight;
+      out+=label(i===0?'apostrophe':'t',57,y+23,26,C.ink,'start');
+      out+=rect(222,y,300,30,'#edf0f0')+rect(222,y,300*v,30,i?C.teal:C.blue);
+      out+=label(showMagnitude?message.message_norm.toFixed(3):percent(message.weight,1),576,y+24,25,i?C.teal:C.blue,'end');
+    });
+    out+=label('0',222,327,21,C.muted)+label(showMagnitude?'0.5':'1',522,327,21,C.muted);
+    out+=group(phase(t,.36,.55,reducedMotion),label('A larger weight can multiply a smaller vector.',320,379,25,C.muted));
+    if(showEffect){
+      out+=label('Remove only the apostrophe message',320,433,25,C.rust);
+      out+=label(`${percent(brightness.baseline.positive_probability,4)}  →  ${percent(apostrophe.after.positive_probability,4)}`,320,479,34,C.blue);
+      out+=label('P(positive) · the prediction stays negative',320,518,23,C.muted);
+    }
+    return out;
+  }
+
+  function stateSwap(t,{reducedMotion=false}={}) {
+    const swap=phase(t,.22,.66,reducedMotion),done=t>=.66;
+    let out=label('Same words; good and bad trade places.',320,30,25,C.muted);
+    [context.negative,context.positive].forEach((example,i)=>{
+      const x=162+i*316;
+      out+=label('Infinite Jest was',x,94,27)+label(i?'good, not bad.':'bad, not good.',x,133,29);
+      out+=label(percent(example.score.positive_probability),x,180,30,C.blue);
+    });
+    out+=label('Exchange only the state at not after block 4',320,237,25,C.muted);
+    const arc=52*Math.sin(Math.PI*swap);
+    out+=box('not',lerp(162,478,swap),301-arc,126,C.blue)+box('not',lerp(478,162,swap),301+arc,126,C.teal);
+    out+=arrow(162,340,162,386,C.muted)+arrow(478,340,478,386,C.muted);
+    out+=label('Rerun the remaining blocks',320,373,24,C.muted);
+    if(done){
+      context.directions.forEach((direction,i)=>{out+=label(percent(direction.state_after.positive_probability),162+i*316,431,38,C.rust);});
+      out+=label('P(positive) after the swap',320,469,23,C.muted);
+      out+=label(`${validation.context.flips} of ${validation.context.interventions} new swap directions also reversed.`,320,521,23,C.muted);
+    }
+    return out;
+  }
+
+  function valueSwap(t,{reducedMotion=false}={}) {
+    const patched=t>=.61,move=phase(t,.20,.61,reducedMotion);
+    const direction=context.directions.find(entry=>entry.recipient==='negative');
+    let out=label('Recipient: “bad, not good.”',320,32,28,C.ink);
+    out+=rect(50,87,238,137,'#fff',C.blue,5,'stroke-width="1.5"');
+    out+=m('A^{(5,h)}',169,126,174,56,36,C.blue);
+    out+=label('Weights unchanged',169,185,24,C.blue)+label('all 12 heads',169,213,21,C.muted);
+    out+=label('Value at not',463,85,25,C.muted)+box(patched?'donor value':'own value',463,141,216,patched?C.teal:C.blue);
+    out+=group(move,label('from “good, not bad”',463,207,22,C.teal));
+    out+=arrow(169,230,267,275,C.blue)+arrow(463,230,379,275,patched?C.teal:C.blue);
+    out+=circle(lerp(463,379,move),lerp(230,271,move),6,C.teal);
+    out+=rect(147,280,346,54,'#fff','#9da9af',4,'stroke-width="1.3"')+label('Layer-5 token updates',320,316,26,C.ink);
+    out+=arrow(320,336,320,367,C.muted)+label('Layer 6 → classifier',320,398,26,C.muted);
+    return out+score(patched?direction.values_after:direction.before,74,472,492,patched?C.rust:C.blue);
+  }
+
+  const common={part:'DistilBERT · tested computations',label:'',equation:'',detail:'',discretePhases:true};
   return [
-    {
-      id:'trained-local-routing', part:'05 · A trained sentiment model', label:'Notice a routing pattern',
-      title:'First, notice the stripe.',
-      caption:'This head usually reads the next token position. Follow the moving row: the destination reads a source just to its right. All fifteen positions, including the special tokens, remain visible.',
-      equation:String.raw`A^{(2,10)}_{i,i+1}>0.9999`,
-      detail:'The next-position coefficients between ordinary tokens exceed 99.99%. This is a routing pattern in these examples; it does not identify a sentiment word or a universal role for the head.',
-      visual:'The full measured 15 by 15 layer-2, head-10 matrix for the negative review, on an absolute linear zero-to-one color scale. The row lens moves through ordinary-token positions and identifies each largest coefficient.',
-      reading:'<p>The nearly off-diagonal stripe connects successive token positions. For example, the position labeled <code>good</code> reads <code>and</code>. This head is useful for seeing a simple information-routing rule before trying to interpret sentiment. The boundary rows behave differently: <code>[CLS]</code> and <code>[SEP]</code> are retained, without masking or renormalizing them. These observations are deliberately selected teaching examples, not a claim that every head has one interpretable job.</p>',
-      footer:'Measured attention · negative review · layer 2, head 10 · full matrix', draw:localRouting,
-    },
-    {
-      id:'trained-parallel-heads', part:'05 · A trained sentiment model', label:'Compare parallel heads',
-      title:'Two heads gather different context.',
-      caption:'At the apostrophe in don’t, head 3 reads don while head 11 reads t. Both work from the same initial states, then contribute different value mixtures to one updated apostrophe representation.',
-      equation:String.raw`z_i^{(1,h)}=\sum_j A_{ij}^{(1,h)}v_j^{(1,h)}`,
-      detail:`In this review, the coefficients are ${percent(previousRead)} for don and ${percent(nextRead)} for t. These heads run in parallel; neither reads the other head’s newly computed output.`,
-      visual:`Layer 1, apostrophe destination. Head 3 reads don with weight ${formatWeight(previousRead)}; head 11 reads t with weight ${formatWeight(nextRead)}. Route markers are schematic and do not depict measured vector components.`,
-      reading:`<p>The exact coefficients are ${formatWeight(previousRead)} and ${formatWeight(nextRead)}. Other sources retain ${percent(sum(negative.attentions[0][2][apostrophe].filter((_, index) => index !== don)))} and ${percent(sum(negative.attentions[0][10][apostrophe].filter((_, index) => index !== tToken)))} of the respective rows. Each head has its own learned value projection. Their outputs are combined with the residual and feed-forward operations. A head’s number is local to its layer: head 3 in another layer is a different learned module.</p>`,
-      footer:'Measured reads · negative review · layer 1, heads 3 and 11 · apostrophe destination', draw:parallelHeads,
-    },
-    {
-      id:'trained-sentiment-context', part:'05 · A trained sentiment model', label:'Separate weight from sentiment',
-      title:'Both reviews give good a large weight.',
-      caption:'The same head gives good a large [CLS]-row coefficient in both reviews, although the model predicts opposite sentiments. Attention determines how much of a contextual value vector enters this mixture.',
-      equation:String.raw`z_{\mathrm{CLS}}^{(5,8)}=\sum_j A_{\mathrm{CLS},j}^{(5,8)}v_j^{(5,8)}`,
-      detail:`The weights on good are ${percent(goodWeights[0])} and ${percent(goodWeights[1])}. Positive-class probabilities are ${probability(negative.positive)} and ${probability(positive.positive)}. A large coefficient does not specify sentiment direction.`,
-      visual:`Measured layer-5, head-8 [CLS] rows. Negative review: good ${percent(goodWeights[0])}, model P(positive) ${probability(negative.positive)}. Positive review: good ${percent(goodWeights[1])}, model P(positive) ${probability(positive.positive)}. Each bar includes all remaining measured attention mass on an unchanged zero-to-one scale.`,
-      reading:'<p>The label <code>good</code> is shared, but its incoming layer-4 representation depends on the surrounding review. The attention output also depends on the head’s value projection and the subsequent network. The two bars group only the named source and all remaining positions; they do not delete or renormalize any tokens. Comparing these reviews demonstrates that a large attention coefficient is compatible with either predicted sentiment.</p>',
-      footer:'Measured attention · both reviews · layer 5, head 8 · [CLS] destination', draw:sameWord,
-    },
-    {
-      id:'trained-contextual-state', part:'05 · A trained sentiment model', label:'Follow the changing representation',
-      title:'The apostrophe now has a history.',
-      caption:'By layer 6, the apostrophe position has passed through five blocks. Head 10 gives its incoming representation a large [CLS]-row weight. The column still says apostrophe; its vector can contain context.',
-      equation:String.raw`z_{\mathrm{CLS}}^{(6,10)}=\sum_j A_{\mathrm{CLS},j}^{(6,10)}v_j^{(6,10)}`,
-      detail:`The final read is ${percent(finalRead)}. Earlier, two layer-1 heads read don (${percent(previousRead)}) and t (${percent(nextRead)}) into this position. These observations suggest a question about context; they do not prove a negation circuit.`,
-      visual:`For the negative review, layer 6 head 10 gives the apostrophe weight ${formatWeight(finalRead)} in the [CLS] row. Five prior block updates are shown schematically. The diagram does not quantify a causal path from don or t to the prediction.`,
-      reading:`<p>The exact final coefficient is ${formatWeight(finalRead)}. Attention reads the <em>incoming</em> layer-5 state at the apostrophe, not the apostrophe’s simultaneously computed layer-6 output. The values are learned affine projections of those layer-5 states, including the checkpoint’s value bias. The token label stays fixed while its representation changes. The earlier local reads make the apostrophe an informative location to inspect, but attention matrices alone do not establish which information survives the intervening blocks or how it affects the sentiment score.</p>`,
-      footer:'Measured reads + schematic state history · negative review · final read: layer 6, head 10', draw:contextualState,
-    },
-    {
-      id:'trained-readout-route', part:'05 · A trained sentiment model', label:'Choose where to look',
-      title:'Start at the vector the classifier reads.',
-      caption:'The classifier reads final [CLS]. Keep its row from each final-layer head, then look backward at the representations those rows read. Other final-layer token outputs are never read again in this classifier.',
-      equation:String.raw`\hat p=\operatorname{softmax}\!\bigl(g(x_{\mathrm{CLS}}^{(6)})\bigr)`,
-      detail:'Earlier layers are different: any token representation can feed a later [CLS] update. Residual paths also preserve earlier information. Final [CLS] rows are a useful starting point, not a complete attribution.',
-      visual:`The measured layer-6 head-10 matrix is filtered to its [CLS] row. The ${heads} final-layer [CLS] rows are then shown together, preserving every source position and the absolute zero-to-one color scale. The classifier reads the final [CLS] representation.`,
-      reading:'<p>All heads in a block read the same incoming sequence of states. The non-<code>[CLS]</code> outputs produced by the last block therefore cannot feed that block’s <code>[CLS]</code> output, and there is no later block to read them. Feed-forward layers and layer normalization act within each position, so they introduce no later cross-position route. In earlier blocks, those token outputs remain available to subsequent attention. The summary preserves all twelve heads rather than averaging distinct value projections into an importance score.</p>',
-      footer:'Measured final-layer rows + architecture schematic · [CLS] readout · no head averaging', draw:readoutRoute,
-    },
+    {...common,id:'trained-predictions',title:'Two reviews, opposite predictions.',caption:'These are the model’s scores for the original reviews.',
+      visual:'Both cards report P(positive) from the same pinned DistilBERT checkpoint.',
+      reading:`<p>${esc(behavior.negative.text)}: P(positive) ${percent(behavior.negative.score.positive_probability,4)}. ${esc(behavior.full.text)}: P(positive) ${percent(behavior.full.score.positive_probability,4)}. This model has six encoder blocks, twelve heads per block, and a classifier reading the final [CLS] state.</p>`,
+      footer:'Original inputs · measured predictions',draw:predictions},
+    {...common,id:'trained-phrase-test',title:'“Just” changes the interpretation.',caption:'The short review stays positive until we remove just.',
+      visual:'Scroll through the full review, its first sentence, and the sentence without just. Each score is a separate model run.',
+      reading:`<p>The full review scores ${percent(behavior.full.score.positive_probability,4)} positive. Its first sentence alone scores ${percent(behavior.short.score.positive_probability,4)}; removing just gives ${percent(behavior.without_just.score.positive_probability,4)}. These edits rerun the complete model.</p>`,
+      footer:'Text edits · three measured inputs',draw:phraseTest},
+    {...common,id:'trained-phrase-routing',title:'One head connects the construction.',caption:'Layer 2, head 9 mixes information between t and just.',
+      visual:'The full measured matrix unfolds into two source-to-destination message routes. The t is one piece of wasn’t.',
+      reading:`<p>The destination t reads just with weight ${formatWeight(phrase.edges.find(edge=>edge.destination_token==='t').weight)}; just reads t with weight ${formatWeight(phrase.edges.find(edge=>edge.destination_token==='just').weight)}. Both rows read incoming layer-1 states simultaneously. They are not a within-layer feedback loop. Each arrow carries a weighted value vector, not a raw word.</p>`,
+      footer:'Layer 2 · head 9 · arrows carry value messages',draw:routing},
+    {...common,id:'trained-message-removal',title:'Keep the words. Remove two messages.',caption:'The short review’s prediction reverses.',
+      visual:`The same sentence changes from ${percent(phrase.short.before.positive_probability)} to ${percent(phrase.short.after.positive_probability)} positive after the two selected messages are removed.`,
+      reading:`<p>Set the two selected layer-2/head-9 coefficients to zero without renormalizing the remaining weights. Every other message, the residual paths, the shared output bias, and feed-forward networks remain; later computation reruns. The original margin ${phrase.short.before.margin.toFixed(3)} becomes ${phrase.short.after.margin.toFixed(3)}. The same intervention reverses all ${validation.phrase.short_flips} tested short title variants. These were exploratory, construction-specific checks, not a universal role for the head.</p>`,
+      footer:`Same intervention reverses ${validation.phrase.short_flips}/${validation.phrase.cases.length} tested short reviews`,draw:removal},
+    {...common,id:'trained-context-restored',title:'More context changes what is necessary.',caption:'With spectacular restored, the prediction survives the same intervention.',
+      visual:'Restore the final sentence while the same two messages stay removed. The full review remains strongly positive.',
+      reading:`<p>The full review changes from ${percent(phrase.full.before.positive_probability,4)} to ${percent(phrase.full.after.positive_probability,4)} positive under exactly the same two-edge intervention. Adding text recomputes contextual states and attention; the intervention definition stays fixed. This result does not identify a particular alternative pathway.</p>`,
+      footer:'Same two messages removed · full review rerun',draw:restored},
+    {...common,id:'trained-brightness-test',title:'A bright square needs a test.',caption:'The coefficient, the message, and the prediction are different quantities.',
+      visual:'Compare the apostrophe and t in the same final-layer head. Their message magnitudes are similar despite very different attention weights.',
+      reading:`<p>For the negative review, layer 6/head 10 gives the apostrophe weight ${formatWeight(brightness.messages[0].weight)} and t weight ${formatWeight(brightness.messages[1].weight)}. Their projected value norms are ${brightness.messages[0].projected_value_norm.toFixed(3)} and ${brightness.messages[1].projected_value_norm.toFixed(3)}. Multiplication gives message norms ${brightness.messages[0].message_norm.toFixed(3)} and ${brightness.messages[1].message_norm.toFixed(3)}. These norms measure vector magnitude, not signed sentiment contributions. Removing only the apostrophe message changes P(positive) from ${percent(brightness.baseline.positive_probability,4)} to ${percent(brightness.messages[0].after.positive_probability,4)}.</p>`,
+      footer:'Layer 6 · head 10 · exact single-message removal',draw:bright},
+    {...common,part:'DistilBERT · context across layers',id:'trained-state-swap',title:'The label stays “not”.',caption:'Exchange its contextual state; keep each sentence’s words fixed.',
+      visual:'Swap only the not state after block 4 between two opposite word-order readings, then rerun later blocks.',
+      reading:`<p>The two inputs contain the same words; good and bad exchange positions. Replacing only not’s state after the complete fourth block reverses both predictions. The initial not states are identical; swapping them has no effect. With the block-4 intervention fixed before validation, ${validation.context.flips} of ${validation.context.interventions} directions across ${validation.context.pairs} additional pairs reverse. The one nonflip also moves toward the donor reading. This is a distinct experiment from the earlier two-message removal.</p>`,
+      footer:'After block 4 · both remaining blocks rerun',draw:stateSwap},
+    {...common,part:'DistilBERT · context across layers',id:'trained-value-swap',title:'Same weights. Different contents.',caption:'Change only not’s layer-5 values; the prediction reverses.',
+      visual:'Keep every layer-5 attention matrix fixed, replace the values at not across all twelve heads, and rerun later computation.',
+      reading:`<p>The negative recipient receives only the donor’s layer-5 value projection at not, across all twelve heads. Its queries, keys, incoming residual states, and layer-5 attention coefficients are unchanged. P(positive) changes from ${percent(context.directions[0].before.positive_probability,4)} to ${percent(context.directions[0].values_after.positive_probability,4)}. The reverse direction changes from ${percent(context.directions[1].before.positive_probability,4)} to ${percent(context.directions[1].values_after.positive_probability,4)}. Layer 6, including its attention weights, is recomputed. This is not a single direct not-to-[CLS] route or a complete explanation of either original review.</p>`,
+      footer:'Layer-5 weights fixed · layer 6 rerun',draw:valueSwap},
   ];
 }

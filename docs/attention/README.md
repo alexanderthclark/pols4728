@@ -38,11 +38,10 @@ symbolic; highlighted entries do not assert learned weight magnitudes. For
 legibility the first sentence is shown as ten word-level units, with an explicit
 note that an actual tokenizer may split them further.
 
-The thirteen-scene numerical classifier follows in the main scroll sequence.
-It starts from a complete three-by-three matrix, computes U=AV, mean-pools the
-output rows into h, and applies a linear readout. This separate constructed
-example omits residual paths and MLPs; h is not the final residual state in the
-main architecture. Its interpretation comparisons and exact arithmetic remain.
+The measured Infinite Jest chapter leads into the research interpretation
+guide and the socks-and-shoes calculation. The former thirteen-scene film
+classifier has been removed from the live route, navigation, and reading
+version. Its source modules and arithmetic tests remain as an archived example.
 
 Twenty-one socks-and-shoes scenes are part of the main scroll sequence.
 The first twelve
@@ -69,6 +68,15 @@ query/key products to vector dot products, project an attention output back to
 representation width, add that update to the original representation, then switch
 to left-to-right prediction to motivate causal masking and renormalization. The
 former seventeen-scene four-token restart has been removed.
+
+The socks chapter ends with a bridge to the annotated encoder classifier in the
+course repository, pinned to 5a29ace12e91b1aca3d26eea54b4cbceba92fb22. It connects
+the hand-chosen two-token solution to learning A-before-B among distractors.
+For each swapped pair, even the initial token-plus-position mean is identical;
+the encoder must transform the representations so order survives mean pooling.
+The notebook trains embeddings, two four-head encoder blocks, and a linear
+classifier together. The link requires access to the course repository; the
+notebook itself is not copied to this public site.
 
 X is T × d; Q = X WQ; K = X WK; A = row-softmax(Q Kᵀ / sqrt(dk) + M);
 V = X WV; U = A V. A's rows are destinations and columns are sources. U contains mixed feature
@@ -149,7 +157,10 @@ saves an artifact. It has read-only repository permissions and does not commit
 generated results. Inference uses CPU float32, evaluation mode, eager attention,
 and the pinned checkpoint's safetensors weights, without custom model code.
 
-## Interpreting a classification
+## Archived classification example
+
+This film example is retained in source only; the live lesson does not import
+its scenes or include its worked arithmetic.
 
 `interpretation-model.mjs` defines a hand-constructed self-attention classifier,
 not a trained sentiment model or a reconstruction of LiDDA. The three tokens
@@ -224,10 +235,12 @@ The current site does not run that checkpoint or claim measurements from it.
 
 ## Implementation and checking
 
-`app.mjs` initializes the intuition, three original pinned stories, and measured-model chapter. `intuition-scenes.mjs` introduces meaning in context; `sentence-scenes.mjs` is the default
-route; `interpretation-scenes.mjs` supplies the numerical chapter; and the
-original `socks-scenes.mjs` plus `extension-scenes.mjs` supply the full
-worked-example chapter. Hash links offer shortcuts; scrolling reaches every scene. It derives
+`app.mjs` initializes four pinned stories: the intuition primer, Infinite Jest
+schematic, measured-model chapter, and socks-and-shoes calculation.
+`intuition-scenes.mjs` introduces meaning in context; `sentence-scenes.mjs`
+supplies the schematic; `trained-scenes.mjs` displays measured results; and
+`socks-scenes.mjs` plus `extension-scenes.mjs` supply the full worked example.
+`interpretation-scenes.mjs` is archived and is not imported by the live app. Hash links offer shortcuts; scrolling reaches every scene. It derives
 scene state directly from native scroll position. There are no
 autoplay timers or required clicks. Reversing the scroll restores earlier states.
 Mathematics uses self-hosted KaTeX with MathML output, including SVG labels.
@@ -257,11 +270,11 @@ normalization, value/output shapes, stable softmax, correct causal masking, and
 invariance of earlier causal outputs to future input changes. Twelve socks-model tests
 check independent two-order arithmetic, interventions, shared projections, the
 exact readout, causal masks, and the output projection/residual addition.
-Six interpretation tests cover all three attention and output rows, row
+Six archived interpretation tests cover all three attention and output rows, row
 normalization and asymmetry, mean pooling and effective source weights, signed
 logit terms, fixed Q/K under value substitution, full row-and-column deletion,
 and deterministic rendering of the thirteen scenes. These three suites contain
-nineteen tests in total. Three more tests check the exact sentences and complete
+twenty-four tests in total. Three more tests check the exact sentences and complete
 word sequence, the residual/readout structure, and strict math plus reversible
 rendering for the seven sentence scenes: twenty-seven tests overall.
 
