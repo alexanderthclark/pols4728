@@ -1,6 +1,6 @@
 # Tabular foundation models
 
-Buildless scroll-driven course lesson for POLS 4728, following Christoph Molnar's *Tabular Foundation Models* and Hollmann et al.'s Nature 2025 paper. White textbook layout, Latin Modern type, course palette, torso-less hero illustration. The bear-survival task is the running example throughout the lesson: the true depth-two data-generating tree, labeled context, a worked training episode, shared network weights, actual row encodings and cross-attention calculations, exact Bayesian updating, and seven scenes diagnosing the interaction for XGBoost.
+Buildless scroll-driven course lesson for POLS 4728, following Christoph Molnar's *Tabular Foundation Models* and Hollmann et al.'s Nature 2025 paper. White textbook layout, Latin Modern type, course palette, torso-less hero illustration. An opening ATUS prediction comparison motivates testing pretrained models on a real task. The bear-survival task is then the running mechanism example: the true depth-two data-generating tree, labeled context, a worked training episode, shared network weights, actual row encodings and cross-attention calculations, exact Bayesian updating, and seven scenes diagnosing the interaction for XGBoost.
 
 Run `npm run build` to regenerate the no-JavaScript reading version, `npm test` for Bayesian arithmetic and reversible visual-state checks, and `npm run dev` for a local preview. Source files in this directory are served directly. All core teaching points are reached by native scrolling; chapter links offer shortcuts. `?motion=reduce` or system reduced-motion preference uses complete visual states at logical thresholds.
 
@@ -44,3 +44,11 @@ The bear chapter separates population probabilities, measured XGBoost results, a
 The plotted variants hold labels and splits fixed within each seed: no distractors; continuous distractors; binarized distractors; two histogram bins; and an added feature product. Full CSV/JSON results and dependency versions are tracked with the script. `npm test` checks reported summaries against all per-seed records, exact chart data, retained scene routing, and deterministic reversible visual states.
 
 Authoritative source is this directory in `alexanderthclark/pols4728`, branch `codex/tabular-foundation-models`. The hosted preview is a copy of these assets. No homepage link is added by this change.
+
+## Opening ATUS comparison
+
+Two scroll beats precede the formal mechanism. A fixed average-precision scale shows the seven-candidate AutoGluon OOF ensemble and all four prespecified TabICLv2/TabDPT feature variants. The larger-training comparison explicitly distinguishes AutoGluon’s 136,146 fitted cases from the foundation models’ 6,468-row contexts. The next beat changes to the same 100-positive/100-negative training sample for every learner. Both use the unchanged 44,885-case official test set (526 positives).
+
+Only weights selected from the 200-row OOF predictions define the low-data AutoGluon baseline. The inherited fixed three-model average is excluded. Feature ranking and learned preprocessing are redone using the 200 cases. Three of four foundation variants have higher observed AP, but the leading TabDPT100 difference has paired interval [-0.00205,0.00864], which includes zero. The leading feature variant is a descriptive maximum across the four reported fixed variants, not a training-selected pipeline. These are two different sample-size/class-balance regimes, not a controlled learning curve or a 200-label acquisition experiment: balancing consulted the full training pool’s labels.
+
+`atus-results.mjs` records exact aggregate measurements, seeds, contexts and scoring conventions. No student model, per-person prediction, or withheld test outcome is published here. These measurements run TabICLv2 and TabDPT; they are distinct from the TabPFN paper evidence and the miniature teaching network. The static reading version retains both charts and the protocol qualifications.

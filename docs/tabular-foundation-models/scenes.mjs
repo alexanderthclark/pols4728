@@ -1,3 +1,4 @@
+import {atusScenes} from './atus-scenes.mjs';
 import {bearScenes} from './bear-scenes.mjs';
 import {mechanismScenes} from './mechanism-scenes.mjs';
 import {bayesScenes} from './bayes-scenes.mjs';
@@ -38,7 +39,10 @@ scenes.unshift({
   reading:'This tree specifies the true conditional outcome distribution in our simulation. A brown bear with a fight response has survival probability logistic(−1) ≈ 26.9%; a brown bear with a lie-down response has logistic(1) ≈ 73.1%. For black bears, those probabilities reverse: fight gives 73.1%, and lie down gives 26.9%. Bear type and strategy are independent balanced binary variables, so the four leaves are equally likely. Conditional on those features, survival is a Bernoulli draw with the displayed probability. This is a stipulated simulation rule, not a fitted tree. The learner will receive sampled encounters without being given this tree. Later we add independent continuous distractors, which do not change these probabilities.'
 });
 
+scenes.unshift(...atusScenes);
+
 export const sources = [
+ {title:'ATUS prediction comparison · Measured results and protocol',url:'https://github.com/alexanderthclark/pols4728/blob/codex/tabular-foundation-models/docs/tabular-foundation-models/atus-results.mjs',note:'Actual AutoGluon, TabICLv2, and TabDPT test average precision. The 200-row baseline selects ensemble weights using only that sample’s out-of-fold predictions.'},
  {title:'Mini-PFN · Reproduce the trained teaching model',url:'https://github.com/alexanderthclark/pols4728/blob/codex/tabular-foundation-models/examples/tabular-foundation-models/README-mini-pfn.md',note:'Real PyTorch training, saved parameters, validation curve, test scores, and exact attention traces. A restricted educational PFN, not TabPFN.'},
  {title:'Bear simulation · Reproduce the experiment',url:'https://github.com/alexanderthclark/pols4728/tree/codex/tabular-foundation-models/examples/tabular-foundation-models',note:'Runnable Python, fixed configurations, per-seed AUC and Brier scores, and paired comparisons. The experiment runs XGBoost only.'},
  {title:'XGBoost · Introduction to boosted trees',url:'https://xgboost.readthedocs.io/en/stable/tutorials/model.html#learn-the-tree-structure',note:'Greedy split gains and the limitation of considering one feature dimension at a time.'},

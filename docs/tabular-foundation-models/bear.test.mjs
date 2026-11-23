@@ -1,3 +1,5 @@
+import {atusScenes} from './atus-scenes.mjs';
+import {renderAtus} from './atus.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {bearResults} from './bear-results.mjs';
@@ -74,14 +76,15 @@ test('oracle AUC is the population ranking reference, which sample AUC may excee
 });
 
 test('worked episodes preserve retained scene routing and every scroll state renders',()=>{
-  assert.equal(scenes.length,12+mechanismScenes.length+bayesScenes.length+natureScenes.length);
-  assert.equal(scenes[0].kind,'dgp');
+  assert.equal(scenes.length,12+mechanismScenes.length+bayesScenes.length+natureScenes.length+atusScenes.length);
+  assert.equal(scenes[0].kind,'atus');
+  assert.equal(scenes[atusScenes.length].kind,'dgp');
   const old=scenes.filter(s=>s.visualIndex!==undefined);
   assert.deepEqual(old.map(s=>s.visualIndex),[0,1,16,17]);
   assert.deepEqual(scenes.filter(s=>s.kind==='bear').map(s=>s.bearStage),[0,1,2,3,4,5,6]);
   for(const scene of scenes)for(const mobile of [false,true])for(const p of [0,.25,.5,.75,1]){
     const index=scene.visualIndex;
-    const svg=scene.kind==='nature'?(mobile?renderNatureMobile(scene.natureStage,p):renderNature(scene.natureStage,p)):scene.kind==='bayes'?(mobile?renderBayesMobile(scene.bayesStage,p):renderBayes(scene.bayesStage,p)):scene.kind==='mechanism'?renderMechanism(scene.mechanismStage,p,mobile):scene.kind==='dgp'?renderDgp(p,mobile):scene.kind==='bear'?(mobile?renderBearMobile(scene.bearStage,p):renderBear(scene.bearStage,p)):
+    const svg=scene.kind==='atus'?renderAtus(scene.atusStage,p,mobile):scene.kind==='nature'?(mobile?renderNatureMobile(scene.natureStage,p):renderNature(scene.natureStage,p)):scene.kind==='bayes'?(mobile?renderBayesMobile(scene.bayesStage,p):renderBayes(scene.bayesStage,p)):scene.kind==='mechanism'?renderMechanism(scene.mechanismStage,p,mobile):scene.kind==='dgp'?renderDgp(p,mobile):scene.kind==='bear'?(mobile?renderBearMobile(scene.bearStage,p):renderBear(scene.bearStage,p)):
       mobile?(index>=10&&index<=14?renderBayesMobile(index-10,p):renderMobile(index,p)):renderVisual(index,p);
     assert.ok(svg.length>100);
     assert.doesNotMatch(svg,/NaN|undefined|Infinity/);
