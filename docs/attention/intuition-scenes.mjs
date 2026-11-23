@@ -105,9 +105,9 @@ export function createIntuitionScenes({m, line, rect, C}) {
       {x:480,sub:'k',name:'Restaurant sentence',cue:'taco · bell',color:teal},
     ].forEach(({x,sub,name,cue,color})=>{
       out+=label(name,x,84,23,color)+label('desert',x,124,28,blue)
-        +box(x-75,144,150,62,color,'#fff')+math(`x_${sub}^{(1)}`,x,175,142,50,32,color)
-        +label('contextual state',x,239,22,muted)
-        +path([[x,395],[x,312]],blue)+path([[x,288],[x,206]],blue)
+        +box(x-75,144,150,108,color,'#fff')+math(`x_${sub}^{(1)}`,x,175,142,50,32,color)
+        +label('contextual state',x,239,20,muted)
+        +path([[x,395],[x,312]],blue)+path([[x,288],[x,252]],blue)
         +box(x-140,332,120,54,color,'#fff')+label(cue,x-80,367,20,color);
       const route=[[x-80,332],[x-80,300],[x-12,300]];
       out+=path(route,color)+dot(...pointOnPath(route,p),color)
