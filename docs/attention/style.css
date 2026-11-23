@@ -72,3 +72,17 @@
 #intuition[data-scene="5"] .scene-layout{grid-template-columns:minmax(0,1fr)}
 #intuition[data-scene="5"] .visual{max-width:840px;max-height:none;margin-inline:auto}
 
+/* Guided observations precede the optional full-tensor explorer. */
+.equation[hidden]{display:none}
+.chapter-intro>.trained-takeaway{margin-top:1.4rem;color:var(--ink)}
+.trained-explorer-presets{max-width:46rem;margin-top:1.8rem;font:14px/1.5 var(--sans)}
+.trained-explorer-presets label{display:flex;flex-direction:column;gap:.4rem}
+.trained-explorer-presets select{width:100%;min-height:44px;padding:8px;border:1px solid var(--rule);border-radius:3px;background:white;color:var(--ink);font:inherit}
+.trained-explorer-presets+.trained-explorer-controls{margin-top:1rem}
+#trained-reading{scroll-margin-top:2rem}
+@media(max-width:760px){
+ .trained-story .stage-bottom>span:last-child{max-width:58%}
+ .trained-story .equation{overflow-x:auto;max-width:100%}
+ .trained-explorer-presets{font-size:13px}
+}
+

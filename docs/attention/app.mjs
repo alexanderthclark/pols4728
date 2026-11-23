@@ -1,6 +1,7 @@
 import {createIntuitionScenes} from './intuition-scenes.mjs?v=attention-copy-18';
 import {createTrainedScenes} from './trained-scenes.mjs?v=attention-trained-model-6';
-import {buildExplorer} from './trained-explorer.mjs?v=attention-trained-model-5';
+import {createGuidedTrainedScenes} from './trained-tour-scenes.mjs?v=attention-guided-tour-1';
+import {buildExplorer} from './trained-explorer.mjs?v=attention-guided-tour-1';
 import {createSocksScenes} from './socks-scenes.mjs?v=attention-notation-8';
 import {createExtensionScenes} from './extension-scenes.mjs?v=attention-notation-8';
 import {createInterpretationScenes} from './interpretation-scenes.mjs?v=attention-notation-8';
@@ -32,8 +33,8 @@ const coreScenes=createSentenceScenes(drawing);
 const numericalScenes=createInterpretationScenes(drawing);
 const mechanicsScenes=[...createSocksScenes(drawing),...createExtensionScenes(drawing)];
 // The complete text remains available independently of visual scene changes.
-const transcript=scenes=>scenes.map((s,i)=>`<section>${s.title?`<h3>${i+1}. ${s.title}</h3>`:""}${s.caption?`<p>${s.caption}</p>`:""}${(s.quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('')}<div class="transcript-eq">${tex(s.equation)}</div><p>${s.detail}</p></section>`).join('');
-document.querySelector('#transcript').innerHTML='<h3>One token, different contexts</h3>'+transcript(intuitionScenes)+'<h3>Sentiment, the residual stream, and attention</h3>'+transcript(coreScenes)+'<h3>A numerical attention classifier</h3>'+transcript(numericalScenes)+'<h3>The earlier Q/K/V calculation</h3>'+transcript(mechanicsScenes);
+const transcript=scenes=>scenes.map((s,i)=>`<section>${s.title?`<h3>${i+1}. ${s.title}</h3>`:""}${s.caption?`<p>${s.caption}</p>`:""}${(s.quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('')}${s.equation?`<div class="transcript-eq">${tex(s.equation)}</div>`:""}${s.detail?`<p>${s.detail}</p>`:""}${s.reading||''}</section>`).join('');
+document.querySelector('#transcript').innerHTML='<h3>One token, different contexts</h3>'+transcript(intuitionScenes)+'<h3>Sentiment, the residual stream, and attention</h3>'+transcript(coreScenes)+'<h3 id="transcript-numerical">A numerical attention classifier</h3>'+transcript(numericalScenes)+'<h3>The earlier Q/K/V calculation</h3>'+transcript(mechanicsScenes);
 renderMathNodes(document.querySelector('#transcript'));
 const quoteMarkup=quotes=>(quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('');
 function makeStory(id,prefix,scenes){
@@ -63,11 +64,14 @@ function makeStory(id,prefix,scenes){
   const examples=field('examples');
   if(examples){examples.innerHTML=quoteMarkup(s.quotes);examples.hidden=!s.quotes?.length;}
   story.dataset.hasQuotes=String(Boolean(s.quotes?.length));
-  field('equation').innerHTML=tex(s.equation);
+  field('equation').innerHTML=s.equation?tex(s.equation):'';
+  field('equation').hidden=!s.equation;
   field('detail').innerHTML=s.detail;
   field('detail').hidden=!s.detail;
   renderMathNodes(field('detail'));
   field('visual-caption').textContent=s.visual;
+  const footer=field('footer');
+  if(footer)footer.textContent=s.footer||'6 blocks · 12 heads per block';
   svg.setAttribute('aria-label',`${s.title} ${s.caption} ${s.visual}`);
   last=index;
  }
@@ -101,12 +105,14 @@ render();
 fetch(new URL('./data/infinite-jest-attention.json',import.meta.url))
  .then(response=>{if(!response.ok)throw new Error('Model results unavailable');return response.json();})
  .then(data=>{
-  const scenes=createTrainedScenes(drawing,data);
+  const scenes=[createTrainedScenes(drawing,data)[0],...createGuidedTrainedScenes(drawing,data)];
   renderStories.splice(2,0,makeStory('trained-story','trained-',scenes));
   buildExplorer(document.querySelector('#trained-explorer'),data);
   const reading=document.createElement('div');
-  reading.innerHTML='<h3>Measured results from DistilBERT</h3>'+transcript(scenes);
-  document.querySelector('#transcript').append(reading);
+  reading.id='trained-reading';
+  reading.innerHTML='<h3>Reading DistilBERT’s heads and layers</h3>'+transcript(scenes);
+  document.querySelector('#transcript-numerical').before(reading);
+  renderMathNodes(reading);
   render();
  })
  .catch(error=>{

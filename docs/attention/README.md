@@ -80,7 +80,7 @@ and the full explanation stays in the reading transcript.
 
 ## Measured Infinite Jest results
 
-After the seven schematic scenes, three additional scroll scenes show predictions
+After the seven schematic scenes, six scroll scenes show predictions
 and attention exported from `distilbert/distilbert-base-uncased-finetuned-sst-2-english`,
 pinned to revision `714eb0fa89d2f80546fda750413ed43d93601a13`. This SST-2
 checkpoint has six blocks and twelve heads per block. Its classifier reads the
@@ -91,15 +91,37 @@ sentiment, not sentiment toward an independently specified target.
 The export includes both unchanged sentences, actual WordPiece tokens and special
 tokens, token IDs and offsets, logits, softmax probabilities, and all 72 full
 attention matrices for each sentence. No special-token columns are discarded or
-renormalized. The initial comparison fixes layer 6/head 1 by position, rather
-than selecting a head for an appealing pattern. A following explorer lets the
-reader inspect every layer, head, sentence, and destination with an exact row
-table. Colors use one linear 0–1 scale. Intended readings remain distinct from
-model predictions; attention coefficients are not signed sentiment attributions.
+renormalized. After the predictions, a guided tour selects observed patterns in
+these two reviews to make the many heads and layers approachable:
+
+1. Layer 2/head 10: a full matrix with an almost exact next-token stripe.
+2. Layer 1/heads 3 and 11: the apostrophe position reads `don` and `t` in parallel.
+3. Layer 5/head 8: `[CLS]` reads `good` in both reviews despite opposite predictions.
+4. Layer 6/head 10: `[CLS]` gives 87.3% weight to the contextual representation at
+   the apostrophe in the negative review.
+5. The final readout: only final-layer `[CLS]` query rows update the representation
+   that this classifier reads; all preceding-layer source positions can matter.
+
+The central distinction is that token labels identify positions while their
+representations change. Heads make different reads in parallel; later layers
+can use the updated states. The early apostrophe reads and late `[CLS]` read are
+observed computations, not a proven causal path or a signed attribution of the
+negative prediction. Head numbers identify separate learned modules in each
+layer, and the selected examples do not establish universal specialist roles.
+
+A following explorer retains every layer, head, sentence, and destination, with
+an exact full-row table and shortcuts to the guided comparisons. Changing the
+sentence preserves the selected token/occurrence when it exists in both inputs.
+Colors use one linear 0–1 scale. Intended readings remain distinct from model
+predictions; attention coefficients are not signed sentiment attributions.
 
 `data/infinite-jest-attention.json` stores the computed results, checkpoint
 revision, package versions, precision, evaluation settings, and row-sum checks.
-`trained-scenes.mjs` and `trained-explorer.mjs` only display these results.
+`trained-scenes.mjs`, `trained-tour-scenes.mjs`, and `trained-explorer.mjs` only
+display these results. The guided tour replaces the two arbitrary layer 6/head 1
+scroll views; those complete matrices remain available in the explorer.
+Scene-specific footers identify each measured selection. The reading version
+contains the same comparisons and qualifications in the same chapter order.
 The page downloads the small results file, not the model weights.
 
 Reproduce with Python 3.11:
@@ -213,7 +235,8 @@ node --check docs/attention/socks-scenes.mjs
 node --check docs/attention/extension-scenes.mjs
 node --check docs/attention/interpretation-model.mjs
 node --check docs/attention/interpretation-scenes.mjs
-node --test tests/attention-layer.test.mjs tests/attention-socks.test.mjs tests/attention-interpretation.test.mjs tests/attention-sentences.test.mjs
+node --check docs/attention/trained-tour-scenes.mjs
+node --test tests/attention-*.test.mjs
 ```
 
 Six tests independently check the known numeric projections and mixtures,
@@ -234,4 +257,10 @@ PageUp/PageDown navigation, the reading link, all lesson scenes, math rendering,
 the reduced-motion rendering path. Continuous intermediate states retain honest
 numeric labels; softmax uses discrete exact calculations rather than interpolating
 unnormalized values while calling them probabilities.
+
+`tests/attention-preview.html`, served from the repository root, provides desktop
+(1120 × 780), mobile (390 × 844), and small-mobile (360 × 640) iframe viewports
+for reviewing the actual lesson. Its reduced-motion checkbox reloads the lesson
+with the documented query override. These are review controls outside the
+published `docs/` tree; they are not required by students or used in the story.
 
