@@ -1,4 +1,4 @@
-import {createIntuitionScenes} from './intuition-scenes.mjs?v=attention-context-16';
+import {createIntuitionScenes} from './intuition-scenes.mjs?v=attention-dimensions-17';
 import {createTrainedScenes} from './trained-scenes.mjs?v=attention-trained-model-6';
 import {buildExplorer} from './trained-explorer.mjs?v=attention-trained-model-5';
 import {createSocksScenes} from './socks-scenes.mjs?v=attention-notation-8';
@@ -32,7 +32,7 @@ const coreScenes=createSentenceScenes(drawing);
 const numericalScenes=createInterpretationScenes(drawing);
 const mechanicsScenes=[...createSocksScenes(drawing),...createExtensionScenes(drawing)];
 // The complete text remains available independently of visual scene changes.
-const transcript=scenes=>scenes.map((s,i)=>`<section><h3>${i+1}. ${s.title}</h3><p>${s.caption}</p>${(s.quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('')}<div class="transcript-eq">${tex(s.equation)}</div><p>${s.detail}</p></section>`).join('');
+const transcript=scenes=>scenes.map((s,i)=>`<section>${s.title?`<h3>${i+1}. ${s.title}</h3>`:""}${s.caption?`<p>${s.caption}</p>`:""}${(s.quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('')}<div class="transcript-eq">${tex(s.equation)}</div><p>${s.detail}</p></section>`).join('');
 document.querySelector('#transcript').innerHTML='<h3>One token, different contexts</h3>'+transcript(intuitionScenes)+'<h3>Sentiment, the residual stream, and attention</h3>'+transcript(coreScenes)+'<h3>A numerical attention classifier</h3>'+transcript(numericalScenes)+'<h3>The earlier Q/K/V calculation</h3>'+transcript(mechanicsScenes);
 renderMathNodes(document.querySelector('#transcript'));
 const quoteMarkup=quotes=>(quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('');
@@ -56,7 +56,9 @@ function makeStory(id,prefix,scenes){
   field('scene-label').textContent=s.label;
   field('scene-label').hidden=!s.label;
   field('scene-title').textContent=s.title;
+  field('scene-title').hidden=!s.title;
   field('caption').textContent=s.caption;
+  field('caption').hidden=!s.caption;
   const examples=field('examples');
   if(examples){examples.innerHTML=quoteMarkup(s.quotes);examples.hidden=!s.quotes?.length;}
   story.dataset.hasQuotes=String(Boolean(s.quotes?.length));

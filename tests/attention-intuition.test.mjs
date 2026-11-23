@@ -34,6 +34,7 @@ test('lookup identity is distinguished from position and schematic contextual up
 test('intuition scenes render strict mathematics and reverse their scroll-driven states',()=>{
   for(const scene of createIntuitionScenes(drawing)){
     drawing.m(scene.equation);
+    for(const match of scene.detail.matchAll(/data-math="([^"]+)"/g)) drawing.m(match[1]);
     const initial=scene.draw(0);
     for(const t of [.1,.35,.6,.85,1]) assert.doesNotMatch(scene.draw(t),/NaN|undefined/);
     assert.ok([.1,.35,.6,.85,1].some(t=>scene.draw(t)!==initial),scene.id);
