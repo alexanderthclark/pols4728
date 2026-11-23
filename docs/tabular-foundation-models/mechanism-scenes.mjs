@@ -2,15 +2,16 @@ import {miniPfnResults as run} from './mini-pfn-results.mjs';
 const A=run.examples.A, B=run.examples.B;
 const update=run.first_update;
 const pct=x=>`${(100*x).toFixed(1)}%`, f=x=>x.toFixed(3);
-const training='Learning to use a table', inside='An actual prediction';
+const training='Pretraining our teaching model', inside='An actual prediction';
 export const mechanismScenes=[
   {
     chapter:training, kind:'mechanism', mechanismStage:0,
-    title:'One rule within a table. Different rules across tables.',
-    body:'Our opening simulation uses rule A. For pretraining, choose A or its reverse, B, once per table. Every encounter in that table shares the chosen rule.',
+    title:'Pretrain a miniature model on two bear rules.',
+    body:'We pretrain a miniature PFN on synthetic bear tables. Each table uses rule A or its reverse, B, shared by all its rows.',
     equation:'P(\\phi_t=A)=P(\\phi_t=B)=\\tfrac12',
-    note:'The network is not told which rule was chosen. This deliberately small task family makes the learning problem visible.',
-    reading:'We built and trained a small educational prior-data fitted network for this two-world family. It is not TabPFN. World A is the opening bear rule; B reverses all four survival probabilities. Each task chooses its world with equal probability, then draws four labeled context encounters and one query encounter. Bear type and strategy are independent balanced binary features; outcomes are conditionally independent Bernoulli draws. Crucially, the world is shared within a table. If we instead drew a fresh world for every row, context outcomes would tell us nothing about the query. Real tabular foundation models train on much broader families of tasks.'
+    note:'Only our teaching model uses this two-rule family. TabPFN pretrains on varied synthetic tasks; their labels need no bear-specific meaning.',
+    reading:'We built and pretrained a small educational prior-data fitted network for this two-world family. It is not TabPFN. World A is the opening bear rule; B reverses all four survival probabilities. Each task chooses its world with equal probability, then draws four labeled context encounters and one query encounter. Bear type and strategy are independent balanced binary features; outcomes are conditionally independent Bernoulli draws. Crucially, the world is shared within a table. If we instead drew a fresh world for every row, context outcomes would tell us nothing about the query. Bear type, strategy, and survival are the fixed schema of this deliberately restricted teaching example. The 2025 TabPFN instead pretrains across millions of synthetic tables from an SCM-based generator, varying graph structures, functions, noise, features, and the selected target. Its class codes need not share a real-world meaning across tasks. The generator produces the tables; the predictor receives feature values and observed labels, not the SCM graph or its identity.',
+    references:[{title:'Nature 2025 · Synthetic data based on causal models; target generation',url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC11711098/'}]
   },
   {
     chapter:training, kind:'mechanism', mechanismStage:1,
@@ -46,8 +47,8 @@ export const mechanismScenes=[
   },
   {
     chapter:training, kind:'mechanism', mechanismStage:5,
-    title:'Train one network across all those exercises.',
-    body:`We made ${run.metadata.steps.toLocaleString()} updates using ${run.metadata.batch_size} new tasks per update. The encoders, attention projections, and decoder learned together from hidden-outcome errors.`,
+    title:'Pretrain our miniature network across these tasks.',
+    body:`Our Mini-PFN made ${run.metadata.steps.toLocaleString()} updates using ${run.metadata.batch_size} new tasks per update. Its encoders, attention projections, and decoder learned together from hidden-outcome errors.`,
     equation:'\\theta\\leftarrow\\operatorname{Adam}\\!\\left(\\theta,\\nabla_\\theta\\frac1{256}\\sum_t\\ell_t\\right)',
     note:'A real training run of a 7,617-parameter teaching model with one attention head. The task generator supplies labels, not Bayesian answers.',
     reading:'The model starts with randomly initialized neural-network weights. Its inputs contain raw binary bear, strategy, and context-label columns. Neither world identity, the matching-pair indicator, the exact posterior, nor a Bayesian prediction is supplied as an input or training target. A context-row MLP and query MLP feed a single cross-attention head; an MLP decoder produces a survival logit. Adam updates all parameters through the sampled query loss. The final checkpoint is fixed by the training schedule, without selecting it against test results. The plotted curve reports observed log loss on the same 2,048 independent validation tasks at each checkpoint, not the training minibatch loss. The saved source and numerical trace make the calculation reproducible.'
@@ -92,7 +93,7 @@ const chronologicalOrder=[0,1,3,2,5,6,4,7,8,9];
 mechanismScenes.sort((a,b)=>chronologicalOrder.indexOf(a.mechanismStage)-chronologicalOrder.indexOf(b.mechanismStage));
 for(const scene of mechanismScenes){
   const phase=scene.chapter===training
-    ? 'Pretraining: shared weights change after minibatch updates.'
+    ? 'Mini-PFN pretraining: shared weights change after minibatch updates.'
     : 'Inference: weights stay fixed as the context changes.';
   scene.note=`${phase} ${scene.note}`;
 }

@@ -2,7 +2,7 @@ import {overviewScenes} from './overview-scenes.mjs?v=20261123-icl-labels';
 import {bearComparisonScenes} from './bear-comparison-scenes.mjs?v=20261123-context-ten-noise';
 import {atusScenes} from './atus-scenes.mjs';
 import {bearScenes} from './bear-scenes.mjs?v=20261123-context-ten-noise';
-import {mechanismScenes} from './mechanism-scenes.mjs';
+import {mechanismScenes} from './mechanism-scenes.mjs?v=20261123-toy-pretraining';
 import {bayesScenes} from './bayes-scenes.mjs';
 import {natureScenes} from './nature-scenes.mjs?v=20261123-context-ten-noise';
 export const scenes = [
