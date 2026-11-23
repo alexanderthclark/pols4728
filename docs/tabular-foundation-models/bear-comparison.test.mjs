@@ -24,25 +24,27 @@ test('three-model comparisons use every paired simulation seed and exact summari
   }
 });
 
-test('comparison endpoints preserve measured geometry in both responsive layouts',()=>{
+test('noise-only comparisons preserve measured geometry in both responsive layouts',()=>{
   const order=['tree_depth2','random_forest','tabicl_v2'];
   for(const mobile of [false,true])for(let stage=0;stage<3;stage++){
     const end=renderBearComparison(stage,1,mobile),start=renderBearComparison(stage,0,mobile);
     assert.notEqual(start,end);
     assert.equal(start,renderBearComparison(stage,0,mobile));
     assert.equal(end,renderBearComparison(stage,1,mobile));
-    assert.doesNotMatch(end,/NaN|undefined|Infinity/);
+    assert.doesNotMatch(end,/NaN|undefined|Infinity|signal_only|Signal only|data-clean-auc|clean-mean/);
+    assert.equal((end.match(/data-case="continuous_noise"/g)||[]).length,results.metadata.seeds.length*(stage+1));
     const left=mobile?24:260,right=mobile?376:810;
     const dots=[...end.matchAll(/<circle cx="([^"]+)"[^>]+data-seed="(\d+)" data-case="([^"]+)" data-auc="([^"]+)"/g)];
-    assert.equal(dots.length,2*results.metadata.seeds.length*(stage+1));
+    assert.equal(dots.length,results.metadata.seeds.length*(stage+1));
     for(const [,x,,,auc] of dots)assert.ok(Math.abs(Number(x)-(left+(Number(auc)-.46)/.32*(right-left)))<.000051);
     assert.equal((end.match(/data-endpoint="true"/g)||[]).length,stage+1);
     for(const model of order.slice(0,stage+1)){
-      const clean=results.cases.find(r=>r.model===model&&r.id==='signal_only');
       const noise=results.cases.find(r=>r.model===model&&r.id==='continuous_noise');
-      assert.ok(end.includes(`${clean.mean_auc.toFixed(3)} / ${noise.mean_auc.toFixed(3)}`));
+      assert.ok(end.includes(`>${noise.mean_auc.toFixed(3)}</text>`));
     }
     const middle=renderBearComparison(stage,.5,mobile);
     assert.match(middle,/data-mark="mean-label"[^>]*><\/text>/);
+    const middleDots=[...middle.matchAll(/<circle cx="([^"]+)"[^>]+data-seed="(\d+)" data-case="([^"]+)" data-auc="([^"]+)"/g)];
+    assert.deepEqual(middleDots.map(d=>[d[1],d[2],d[3],d[4]]),dots.map(d=>[d[1],d[2],d[3],d[4]]));
   }
 });
