@@ -1,4 +1,4 @@
-import {bearResults} from './bear-results.mjs';
+import {bearResults} from './bear-results.mjs?v=20261123-context-ten-noise';
 // The bear example is simulated. SVG transitions interpolate visual geometry;
 // they do not represent intermediate fitted models or measured attention.
 const C = {ink:'#242424', blue:'#234E70', rust:'#A54F32', teal:'#007F73', muted:'#606060', rule:'#767676'};
@@ -19,11 +19,11 @@ const percent = value => `${(value*100).toFixed(1)}%`;
 const growLine = (x1,y1,x2,y2,p,color=C.blue,width=2) => line(x1,y1,mix(x1,x2,p),mix(y1,y2,p),color,width);
 
 export const bearAucCases = [
-  {id:'signal_only', label:'Two useful columns', short:'Signal only', auc:.7300, color:C.blue},
-  {id:'continuous_noise', label:'+ continuous noise', short:'+ continuous noise', auc:.6506, color:C.rust},
-  {id:'binary_noise', label:'+ binary noise', short:'+ binary noise', auc:.7304, color:C.blue},
-  {id:'two_bins', label:'Continuous noise; two bins', short:'Two histogram bins', auc:.7291, color:C.blue},
-  {id:'interaction_feature', label:'Continuous noise + product', short:'+ interaction product', auc:.7277, color:C.blue}
+  {id:'signal_only', label:'Two useful columns', short:'Signal only', color:C.blue},
+  {id:'continuous_noise', label:'+ continuous noise', short:'+ continuous noise', color:C.rust},
+  {id:'binary_noise', label:'+ binary noise', short:'+ binary noise', color:C.blue},
+  {id:'two_bins', label:'Continuous noise; two bins', short:'Two histogram bins', color:C.blue},
+  {id:'interaction_feature', label:'Continuous noise + product', short:'+ interaction product', color:C.blue}
 ].map(item => {
   const result = bearResults.cases.find(row => row.depth === 2 && row.id === item.id);
   if (!result) throw new Error(`Missing bear diagnostic: ${item.id}`);
@@ -155,9 +155,9 @@ function auc(p,mobile) {
 
 function hypothesis(p,mobile) {
   const W=mobile?400:900, left=mobile?11:40, top=mobile?64:119, w=mobile?63:72, h=mobile?32:48;
-  const headings=['B','L','Z₁','Z₂','Z₃','Y'];
-  const rows=[[0,0,'.13','.89','.24',1],[0,1,'.82','.35','.91',0],[1,0,'.26','.77','.42',0],[1,1,'.63','.19','.68',1]];
-  let s=text(W/2,mobile?25:36,'All columns enter the context',mobile?20:27,C.blue);
+  const headings=['B','L','Z₁','…','Z₁₀','Y'];
+  const rows=[[0,0,'.13','…','.24',1],[0,1,'.82','…','.91',0],[1,0,'.26','…','.42',0],[1,1,'.63','…','.68',1]];
+  let s=text(W/2,mobile?25:36,'12 input columns enter the context',mobile?20:27,C.blue);
   headings.forEach((name,j)=>s+=text(left+(j+.5)*w,top-16,name,mobile?19:25,j===5?C.teal:C.ink));
   rows.forEach((row,i)=>row.forEach((value,j)=>{
     const x=left+j*w,y=top+i*h;
@@ -179,7 +179,7 @@ function hypothesis(p,mobile) {
 }
 
 function typeControl(p,mobile) {
-  const names=mobile?['Bear','Strategy','Noise 1','Noise 2','Noise 3']:['Bear type','Strategy','Noise 1','Noise 2','Noise 3'];
+  const names=mobile?['Bear','Strategy','Noise 1','…','Noise 10']:['Bear type','Strategy','Noise 1','…','Noise 10'];
   const values=[[0,0,.13,.89,.24],[0,1,.82,.35,.91],[1,0,.26,.77,.42],[1,1,.63,.19,.68]];
   const left=mobile?15:90, top=mobile?72:110, w=mobile?74:144, h=mobile?43:58;
   let s=text(mobile?200:450,mobile?25:40,p<.5?'Only the signal columns are binary.':'Now the distractors are binary too.',mobile?19:27,C.blue);
@@ -189,6 +189,7 @@ function typeControl(p,mobile) {
     s+=rect(x,y,w,h,j<2?C.blue:C.rule,j<2?'#f0f5f8':'white',0);
     const v=values[i][j];
     if(j<2)s+=text(x+w/2,y+h/2+7,v,mobile?20:27,C.blue);
+    else if(j===3)s+=text(x+w/2,y+h/2+7,'…',mobile?20:27,C.muted);
     else {
       const offset=mix(0,-h*.65,clamp(p*2));
       s+=group(text(x+w/2,y+h/2+7+offset,v.toFixed(2),mobile?18:24,C.muted),1-clamp(p*2));
@@ -196,7 +197,7 @@ function typeControl(p,mobile) {
     }
   }
   s+=text(mobile?200:450,mobile?300:395,'Compare TabPFN on both inputs.',mobile?20:27,C.blue);
-  s+=text(mobile?200:450,mobile?329:435,'The TabPFN comparison remains to be measured.',mobile?16:21,C.muted);
+  s+=text(mobile?200:450,mobile?329:435,mobile?'8 columns omitted; TabPFN test proposed.':'Eight noise columns omitted. The TabPFN comparison remains unmeasured.',mobile?16:21,C.muted);
   return s;
 }
 

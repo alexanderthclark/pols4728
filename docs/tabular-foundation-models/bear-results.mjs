@@ -7,6 +7,9 @@ export const bearResults = {
     "tabpfn_evaluated": false,
     "n_total": 10000,
     "n_train": 8000,
+    "n_signal_features": 2,
+    "n_noise": 10,
+    "n_features": 12,
     "n_test": 2000,
     "seeds": [
       0,
@@ -36,16 +39,20 @@ export const bearResults = {
     "split_random_state": "same integer as data seed",
     "tuned": false,
     "uncertainty": "SD is the sample standard deviation across seeds, not a confidence interval.",
-    "dgp": "B,A independently Bernoulli(0.5); Z1,Z2,Z3 independently Uniform(0,1); E independently standard Logistic; Y=1[-1+2*1[B=A]+E>0].",
+    "dgp": "B,A independently Bernoulli(0.5); Z1,...,Z10 independently Uniform(0,1); E independently standard Logistic; Y=1[-1+2*1[B=A]+E>0].",
+    "noise_extension": "Original B, A, first three noise columns and logistic error preserve their original draw order. Extra distractors use an independent SeedSequence([seed,4728,20261123]) stream, drawn column-wise.",
     "p_survival_match": 0.7310585786300049,
     "p_survival_mismatch": 0.2689414213699951,
     "population_marginal_survival": 0.5,
     "paired_design": "Within each seed, all cases share B, A, continuous noise draws, Y, and train/test indices.",
     "versions": {
-      "python": "3.11.5",
+      "python": "3.12.14",
       "numpy": "1.26.4",
       "scikit_learn": "1.7.2",
-      "xgboost": "3.0.5"
+      "xgboost": "3.0.5",
+      "scipy": "1.16.3",
+      "joblib": "1.5.3",
+      "threadpoolctl": "3.6.0"
     }
   },
   "cases": [
@@ -66,16 +73,16 @@ export const bearResults = {
     },
     {
       "id": "continuous_noise",
-      "label": "Add three continuous noise columns",
+      "label": "Add 10 continuous noise columns",
       "depth": 2,
       "max_bin": 256,
       "n_seeds": 12,
-      "mean_auc": 0.6506132071776453,
-      "sd_auc": 0.10876947423690908,
-      "mean_brier": 0.22477154534287502,
-      "sd_brier": 0.021618649296613324,
-      "root_signal_fraction": 0.16666666666666666,
-      "root_noise_fraction": 0.8333333333333334,
+      "mean_auc": 0.5966097273467259,
+      "sd_auc": 0.11258631166756222,
+      "mean_brier": 0.23708736469417402,
+      "sd_brier": 0.019289082994044117,
+      "root_signal_fraction": 0.0,
+      "root_noise_fraction": 1.0,
       "root_product_fraction": 0.0,
       "root_leaf_fraction": 0.0
     },
@@ -85,12 +92,12 @@ export const bearResults = {
       "depth": 2,
       "max_bin": 256,
       "n_seeds": 12,
-      "mean_auc": 0.7303769412364384,
-      "sd_auc": 0.009256979696950048,
-      "mean_brier": 0.20158324752574588,
-      "sd_brier": 0.007597723724886262,
-      "root_signal_fraction": 0.4166666666666667,
-      "root_noise_fraction": 0.5833333333333334,
+      "mean_auc": 0.7289861588138716,
+      "sd_auc": 0.01028711050557596,
+      "mean_brier": 0.20895852144455038,
+      "sd_brier": 0.013855390971430856,
+      "root_signal_fraction": 0.25,
+      "root_noise_fraction": 0.75,
       "root_product_fraction": 0.0,
       "root_leaf_fraction": 0.0
     },
@@ -100,10 +107,10 @@ export const bearResults = {
       "depth": 2,
       "max_bin": 256,
       "n_seeds": 12,
-      "mean_auc": 0.7276865024986222,
-      "sd_auc": 0.01144418442101331,
-      "mean_brier": 0.1994849488079741,
-      "sd_brier": 0.003924743169416786,
+      "mean_auc": 0.7263924891654724,
+      "sd_auc": 0.010400314437853391,
+      "mean_brier": 0.200020939724311,
+      "sd_brier": 0.00383272018203986,
       "root_signal_fraction": 0.0,
       "root_noise_fraction": 0.0,
       "root_product_fraction": 1.0,
@@ -115,12 +122,12 @@ export const bearResults = {
       "depth": 2,
       "max_bin": 2,
       "n_seeds": 12,
-      "mean_auc": 0.7291245329866238,
-      "sd_auc": 0.009848836727604556,
-      "mean_brier": 0.2003801856326264,
-      "sd_brier": 0.007761751074846635,
-      "root_signal_fraction": 0.3333333333333333,
-      "root_noise_fraction": 0.6666666666666666,
+      "mean_auc": 0.7236429518985111,
+      "sd_auc": 0.01915401705958893,
+      "mean_brier": 0.20955926988018458,
+      "sd_brier": 0.016242160094321233,
+      "root_signal_fraction": 0.25,
+      "root_noise_fraction": 0.75,
       "root_product_fraction": 0.0,
       "root_leaf_fraction": 0.0
     },
@@ -141,16 +148,16 @@ export const bearResults = {
     },
     {
       "id": "continuous_noise",
-      "label": "Add three continuous noise columns",
+      "label": "Add 10 continuous noise columns",
       "depth": 6,
       "max_bin": 256,
       "n_seeds": 12,
-      "mean_auc": 0.697097366207338,
-      "sd_auc": 0.023676549432816333,
-      "mean_brier": 0.22063987707079688,
-      "sd_brier": 0.008699953694037352,
-      "root_signal_fraction": 0.16666666666666666,
-      "root_noise_fraction": 0.8333333333333334,
+      "mean_auc": 0.6293744094327002,
+      "sd_auc": 0.057223420238739185,
+      "mean_brier": 0.23900062173501524,
+      "sd_brier": 0.013688496497783746,
+      "root_signal_fraction": 0.0,
+      "root_noise_fraction": 1.0,
       "root_product_fraction": 0.0,
       "root_leaf_fraction": 0.0
     },
@@ -160,12 +167,12 @@ export const bearResults = {
       "depth": 6,
       "max_bin": 256,
       "n_seeds": 12,
-      "mean_auc": 0.7268759912895749,
-      "sd_auc": 0.009672399541985056,
-      "mean_brier": 0.19850113305356795,
-      "sd_brier": 0.004069584337688889,
-      "root_signal_fraction": 0.4166666666666667,
-      "root_noise_fraction": 0.5833333333333334,
+      "mean_auc": 0.7239162828136668,
+      "sd_auc": 0.009656145456517872,
+      "mean_brier": 0.21392597410866407,
+      "sd_brier": 0.004255190205147341,
+      "root_signal_fraction": 0.25,
+      "root_noise_fraction": 0.75,
       "root_product_fraction": 0.0,
       "root_leaf_fraction": 0.0
     },
@@ -175,10 +182,10 @@ export const bearResults = {
       "depth": 6,
       "max_bin": 256,
       "n_seeds": 12,
-      "mean_auc": 0.7213793614464743,
-      "sd_auc": 0.009346748526314005,
-      "mean_brier": 0.21181833859566926,
-      "sd_brier": 0.004173482151684997,
+      "mean_auc": 0.7225371512869097,
+      "sd_auc": 0.013038701647791088,
+      "mean_brier": 0.21296047163748535,
+      "sd_brier": 0.005368453453193141,
       "root_signal_fraction": 0.0,
       "root_noise_fraction": 0.0,
       "root_product_fraction": 1.0,
@@ -190,12 +197,12 @@ export const bearResults = {
       "depth": 6,
       "max_bin": 2,
       "n_seeds": 12,
-      "mean_auc": 0.7278373077093322,
-      "sd_auc": 0.00949615467061914,
-      "mean_brier": 0.1984829205002989,
-      "sd_brier": 0.004151776888617508,
-      "root_signal_fraction": 0.3333333333333333,
-      "root_noise_fraction": 0.6666666666666666,
+      "mean_auc": 0.7247914041886968,
+      "sd_auc": 0.011262383137583595,
+      "mean_brier": 0.21337964855930636,
+      "sd_brier": 0.005080029406521699,
+      "root_signal_fraction": 0.25,
+      "root_noise_fraction": 0.75,
       "root_product_fraction": 0.0,
       "root_leaf_fraction": 0.0
     }
@@ -208,6 +215,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7262496860839385,
       "brier": 0.19969590530799025,
       "first_root_feature": "brown_bear",
@@ -220,6 +228,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7262496860839385,
       "brier": 0.19969590530799025,
       "first_root_feature": "brown_bear",
@@ -232,9 +241,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7228318780634956,
-      "brier": 0.21372176629416553,
-      "first_root_feature": "noise_2",
+      "n_features": 12,
+      "auc": 0.5817432421751106,
+      "brier": 0.24552314854237262,
+      "first_root_feature": "noise_4",
       "first_root_kind": "noise"
     },
     {
@@ -244,9 +254,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.6759805937340854,
-      "brier": 0.22882281269964977,
-      "first_root_feature": "noise_2",
+      "n_features": 12,
+      "auc": 0.6180419441884757,
+      "brier": 0.24338462107759323,
+      "first_root_feature": "noise_4",
       "first_root_kind": "noise"
     },
     {
@@ -256,9 +267,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7263257263092175,
-      "brier": 0.20054530592753772,
-      "first_root_feature": "noise_2",
+      "n_features": 12,
+      "auc": 0.7189328154593779,
+      "brier": 0.20116212218450058,
+      "first_root_feature": "noise_4",
       "first_root_kind": "noise"
     },
     {
@@ -268,9 +280,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.723254101419651,
-      "brier": 0.2009562306320308,
-      "first_root_feature": "noise_2",
+      "n_features": 12,
+      "auc": 0.7123893539682493,
+      "brier": 0.21911177093017697,
+      "first_root_feature": "noise_4",
       "first_root_kind": "noise"
     },
     {
@@ -280,8 +293,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7234547075402888,
-      "brier": 0.20144243671522355,
+      "n_features": 13,
+      "auc": 0.7126039674988068,
+      "brier": 0.2035185015248865,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -292,8 +306,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7170333106213187,
-      "brier": 0.21263300046410816,
+      "n_features": 13,
+      "auc": 0.7069549791839883,
+      "brier": 0.21937968173039085,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -304,9 +319,10 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7224391703210998,
-      "brier": 0.20071543276072992,
-      "first_root_feature": "noise_2",
+      "n_features": 12,
+      "auc": 0.7148996819317419,
+      "brier": 0.20872837365460775,
+      "first_root_feature": "noise_4",
       "first_root_kind": "noise"
     },
     {
@@ -316,9 +332,10 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7210174182142354,
-      "brier": 0.20118051688332184,
-      "first_root_feature": "noise_2",
+      "n_features": 12,
+      "auc": 0.7158651926869314,
+      "brier": 0.21695827599448073,
+      "first_root_feature": "noise_4",
       "first_root_kind": "noise"
     },
     {
@@ -328,6 +345,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7389901775530702,
       "brier": 0.1914244183418206,
       "first_root_feature": "brown_bear",
@@ -340,6 +358,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7389901775530702,
       "brier": 0.1914244183418206,
       "first_root_feature": "brown_bear",
@@ -352,10 +371,11 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7407601005776909,
-      "brier": 0.20235840148824616,
-      "first_root_feature": "brown_bear",
-      "first_root_kind": "signal"
+      "n_features": 12,
+      "auc": 0.7369058240731561,
+      "brier": 0.20830644444982807,
+      "first_root_feature": "noise_7",
+      "first_root_kind": "noise"
     },
     {
       "seed": 1,
@@ -364,10 +384,11 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7288377789193405,
-      "brier": 0.20824582812612968,
-      "first_root_feature": "brown_bear",
-      "first_root_kind": "signal"
+      "n_features": 12,
+      "auc": 0.7049110231907482,
+      "brier": 0.21909110029020962,
+      "first_root_feature": "noise_7",
+      "first_root_kind": "noise"
     },
     {
       "seed": 1,
@@ -376,8 +397,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7368202068631957,
-      "brier": 0.19201269205898597,
+      "n_features": 12,
+      "auc": 0.7422741733433069,
+      "brier": 0.19288036610701986,
       "first_root_feature": "brown_bear",
       "first_root_kind": "signal"
     },
@@ -388,8 +410,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7306087033148381,
-      "brier": 0.19303982155748173,
+      "n_features": 12,
+      "auc": 0.73163711120524,
+      "brier": 0.20981110822277652,
       "first_root_feature": "brown_bear",
       "first_root_kind": "signal"
     },
@@ -400,8 +423,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.739807296188482,
-      "brier": 0.1943175666804218,
+      "n_features": 13,
+      "auc": 0.7393541758667616,
+      "brier": 0.19494460588464355,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -412,8 +436,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7341866014573951,
-      "brier": 0.20509607606178862,
+      "n_features": 13,
+      "auc": 0.7349010795779423,
+      "brier": 0.2077392211687239,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -424,8 +449,9 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7398158078409343,
-      "brier": 0.19152072547167603,
+      "n_features": 12,
+      "auc": 0.7415942425180071,
+      "brier": 0.19260845020310877,
       "first_root_feature": "brown_bear",
       "first_root_kind": "signal"
     },
@@ -436,8 +462,9 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7347879246688718,
-      "brier": 0.19263122785860817,
+      "n_features": 12,
+      "auc": 0.736136270554389,
+      "brier": 0.20786757033998696,
       "first_root_feature": "brown_bear",
       "first_root_kind": "signal"
     },
@@ -448,6 +475,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7234500110500994,
       "brier": 0.200501877557539,
       "first_root_feature": "brown_bear",
@@ -460,6 +488,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7234500110500994,
       "brier": 0.200501877557539,
       "first_root_feature": "brown_bear",
@@ -472,9 +501,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.4977544797903181,
-      "brier": 0.2530120304774497,
-      "first_root_feature": "noise_2",
+      "n_features": 12,
+      "auc": 0.49959099631896686,
+      "brier": 0.2527682396331349,
+      "first_root_feature": "noise_8",
       "first_root_kind": "noise"
     },
     {
@@ -484,9 +514,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.6689905209146881,
-      "brier": 0.23004910403912426,
-      "first_root_feature": "noise_2",
+      "n_features": 12,
+      "auc": 0.5680771126940143,
+      "brier": 0.25383039338227564,
+      "first_root_feature": "noise_8",
       "first_root_kind": "noise"
     },
     {
@@ -496,9 +527,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7275835482519343,
-      "brier": 0.200407911025857,
-      "first_root_feature": "noise_1",
+      "n_features": 12,
+      "auc": 0.7242110178991611,
+      "brier": 0.2276114171552809,
+      "first_root_feature": "noise_5",
       "first_root_kind": "noise"
     },
     {
@@ -508,9 +540,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7266005394048546,
-      "brier": 0.20050756377383197,
-      "first_root_feature": "noise_1",
+      "n_features": 12,
+      "auc": 0.7177059593536341,
+      "brier": 0.21562916096234933,
+      "first_root_feature": "noise_5",
       "first_root_kind": "noise"
     },
     {
@@ -520,8 +553,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7141214270928438,
-      "brier": 0.20307510110798058,
+      "n_features": 13,
+      "auc": 0.7216004944044497,
+      "brier": 0.2024716120964732,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -532,8 +566,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7183249649246842,
-      "brier": 0.21318184300601944,
+      "n_features": 13,
+      "auc": 0.719642476782291,
+      "brier": 0.2137386824345933,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -544,9 +579,10 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7246775220976989,
-      "brier": 0.20196100908031986,
-      "first_root_feature": "noise_1",
+      "n_features": 12,
+      "auc": 0.7166859501735515,
+      "brier": 0.22781881433454595,
+      "first_root_feature": "noise_5",
       "first_root_kind": "noise"
     },
     {
@@ -556,9 +592,10 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7261125350128151,
-      "brier": 0.20080518931781688,
-      "first_root_feature": "noise_1",
+      "n_features": 12,
+      "auc": 0.7161619454575091,
+      "brier": 0.21662065940744815,
+      "first_root_feature": "noise_5",
       "first_root_kind": "noise"
     },
     {
@@ -568,6 +605,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7282138151703369,
       "brier": 0.2004130660076464,
       "first_root_feature": "brown_bear",
@@ -580,6 +618,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7282138151703369,
       "brier": 0.2004130660076464,
       "first_root_feature": "brown_bear",
@@ -592,9 +631,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.49849576109983146,
-      "brier": 0.2515538744062382,
-      "first_root_feature": "noise_1",
+      "n_features": 12,
+      "auc": 0.4832506377372242,
+      "brier": 0.253190279184257,
+      "first_root_feature": "noise_5",
       "first_root_kind": "noise"
     },
     {
@@ -604,9 +644,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7007505676562107,
-      "brier": 0.21966909366404958,
-      "first_root_feature": "noise_1",
+      "n_features": 12,
+      "auc": 0.5437615883961859,
+      "brier": 0.2581770290568904,
+      "first_root_feature": "noise_5",
       "first_root_kind": "noise"
     },
     {
@@ -616,9 +657,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7340655798102605,
-      "brier": 0.21640693678776718,
-      "first_root_feature": "noise_3",
+      "n_features": 12,
+      "auc": 0.7211851900797323,
+      "brier": 0.22696669396831565,
+      "first_root_feature": "noise_10",
       "first_root_kind": "noise"
     },
     {
@@ -628,9 +670,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7271395733467889,
-      "brier": 0.20076459308151323,
-      "first_root_feature": "noise_3",
+      "n_features": 12,
+      "auc": 0.7133441258094357,
+      "brier": 0.2193912439620582,
+      "first_root_feature": "noise_10",
       "first_root_kind": "noise"
     },
     {
@@ -640,8 +683,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7180000080092587,
-      "brier": 0.20189340808684444,
+      "n_features": 13,
+      "auc": 0.7234352911966233,
+      "brier": 0.20194817548364474,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -652,8 +696,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7150611106439043,
-      "brier": 0.2152877014314566,
+      "n_features": 13,
+      "auc": 0.712504655381621,
+      "brier": 0.217276893799047,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -664,9 +709,10 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7261429212169268,
-      "brier": 0.20457016692468227,
-      "first_root_feature": "noise_3",
+      "n_features": 12,
+      "auc": 0.6759789316449816,
+      "brier": 0.24104236296828105,
+      "first_root_feature": "noise_5",
       "first_root_kind": "noise"
     },
     {
@@ -676,9 +722,10 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.722815074225805,
-      "brier": 0.2010226807171096,
-      "first_root_feature": "noise_3",
+      "n_features": 12,
+      "auc": 0.7031273151763439,
+      "brier": 0.22393472389331562,
+      "first_root_feature": "noise_5",
       "first_root_kind": "noise"
     },
     {
@@ -688,6 +735,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7166951248910935,
       "brier": 0.20284388541515422,
       "first_root_feature": "lie_down",
@@ -700,6 +748,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7166951248910935,
       "brier": 0.20284388541515422,
       "first_root_feature": "lie_down",
@@ -712,10 +761,11 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7200150843593798,
-      "brier": 0.20755470807497978,
-      "first_root_feature": "lie_down",
-      "first_root_kind": "signal"
+      "n_features": 12,
+      "auc": 0.7208403228533046,
+      "brier": 0.2091367910481597,
+      "first_root_feature": "noise_10",
+      "first_root_kind": "noise"
     },
     {
       "seed": 4,
@@ -724,10 +774,11 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7118827341101578,
-      "brier": 0.21565082397264956,
-      "first_root_feature": "lie_down",
-      "first_root_kind": "signal"
+      "n_features": 12,
+      "auc": 0.6983258161608705,
+      "brier": 0.2209821338935016,
+      "first_root_feature": "noise_10",
+      "first_root_kind": "noise"
     },
     {
       "seed": 4,
@@ -736,8 +787,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7161024536090931,
-      "brier": 0.20289268135433539,
+      "n_features": 12,
+      "auc": 0.7153757435898974,
+      "brier": 0.20411158953138892,
       "first_root_feature": "lie_down",
       "first_root_kind": "signal"
     },
@@ -748,8 +800,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7126624594507813,
-      "brier": 0.203937473204727,
+      "n_features": 12,
+      "auc": 0.7136837546050808,
+      "brier": 0.2186818498923568,
       "first_root_feature": "lie_down",
       "first_root_kind": "signal"
     },
@@ -760,8 +813,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7173183049901422,
-      "brier": 0.20382685958669333,
+      "n_features": 13,
+      "auc": 0.7199630693270356,
+      "brier": 0.20380210466732784,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -772,8 +826,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7122253331212721,
-      "brier": 0.21615300454845354,
+      "n_features": 13,
+      "auc": 0.7137242663129644,
+      "brier": 0.21696219801225033,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -784,8 +839,9 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7137547751300126,
-      "brier": 0.20290443751945525,
+      "n_features": 12,
+      "auc": 0.7144704819692892,
+      "brier": 0.2034038889678471,
       "first_root_feature": "lie_down",
       "first_root_kind": "signal"
     },
@@ -796,8 +852,9 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7149911324372744,
-      "brier": 0.20367345049926366,
+      "n_features": 12,
+      "auc": 0.7165700887556503,
+      "brier": 0.21697707967951163,
       "first_root_feature": "lie_down",
       "first_root_kind": "signal"
     },
@@ -808,6 +865,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7286534470255808,
       "brier": 0.1974750647554769,
       "first_root_feature": "lie_down",
@@ -820,6 +878,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7286534470255808,
       "brier": 0.1974750647554769,
       "first_root_feature": "lie_down",
@@ -832,9 +891,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7211687629716685,
-      "brier": 0.20865108300249796,
-      "first_root_feature": "noise_1",
+      "n_features": 12,
+      "auc": 0.723374759320847,
+      "brier": 0.22193358033057944,
+      "first_root_feature": "noise_8",
       "first_root_kind": "noise"
     },
     {
@@ -844,9 +904,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7127453677077342,
-      "brier": 0.21293378907279356,
-      "first_root_feature": "noise_1",
+      "n_features": 12,
+      "auc": 0.6739946487959791,
+      "brier": 0.2288187444324508,
+      "first_root_feature": "noise_8",
       "first_root_kind": "noise"
     },
     {
@@ -856,9 +917,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7235823060188542,
-      "brier": 0.19769021791913843,
-      "first_root_feature": "noise_1",
+      "n_features": 12,
+      "auc": 0.7311720137030833,
+      "brier": 0.22547143017113666,
+      "first_root_feature": "noise_8",
       "first_root_kind": "noise"
     },
     {
@@ -868,9 +930,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7192803380760671,
-      "brier": 0.19886177275272174,
-      "first_root_feature": "noise_1",
+      "n_features": 12,
+      "auc": 0.7293716086119377,
+      "brier": 0.21198496646326107,
+      "first_root_feature": "noise_8",
       "first_root_kind": "noise"
     },
     {
@@ -880,8 +943,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7197094346227901,
-      "brier": 0.20028923986722733,
+      "n_features": 13,
+      "auc": 0.7244129929234078,
+      "brier": 0.20012410465462765,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -892,8 +956,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7203695831562101,
-      "brier": 0.21086720524772154,
+      "n_features": 13,
+      "auc": 0.7201740391588107,
+      "brier": 0.2140249176977165,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -904,9 +969,10 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7261213773098948,
-      "brier": 0.19752205974795198,
-      "first_root_feature": "noise_1",
+      "n_features": 12,
+      "auc": 0.7242744617538946,
+      "brier": 0.2324235366021913,
+      "first_root_feature": "noise_8",
       "first_root_kind": "noise"
     },
     {
@@ -916,9 +982,10 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7230886949563652,
-      "brier": 0.19875603819492066,
-      "first_root_feature": "noise_1",
+      "n_features": 12,
+      "auc": 0.7241564351979194,
+      "brier": 0.21355214547390633,
+      "first_root_feature": "noise_8",
       "first_root_kind": "noise"
     },
     {
@@ -928,6 +995,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7382195759047325,
       "brier": 0.19680107373898217,
       "first_root_feature": "brown_bear",
@@ -940,6 +1008,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7382195759047325,
       "brier": 0.19680107373898217,
       "first_root_feature": "brown_bear",
@@ -952,9 +1021,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.487540051441852,
-      "brier": 0.2529716801410754,
-      "first_root_feature": "noise_2",
+      "n_features": 12,
+      "auc": 0.49629986679520466,
+      "brier": 0.25323750776775894,
+      "first_root_feature": "noise_6",
       "first_root_kind": "noise"
     },
     {
@@ -964,9 +1034,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.6870172326203743,
-      "brier": 0.22511921218234676,
-      "first_root_feature": "noise_2",
+      "n_features": 12,
+      "auc": 0.6394220191926909,
+      "brier": 0.23788251329448443,
+      "first_root_feature": "noise_6",
       "first_root_kind": "noise"
     },
     {
@@ -976,9 +1047,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.729391258085291,
-      "brier": 0.21639160762271417,
-      "first_root_feature": "noise_3",
+      "n_features": 12,
+      "auc": 0.7303642931145521,
+      "brier": 0.21038295197331855,
+      "first_root_feature": "noise_5",
       "first_root_kind": "noise"
     },
     {
@@ -988,9 +1060,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7314823333640011,
-      "brier": 0.19795244852723434,
-      "first_root_feature": "noise_3",
+      "n_features": 12,
+      "auc": 0.7244380797708717,
+      "brier": 0.21209072029638248,
+      "first_root_feature": "noise_5",
       "first_root_kind": "noise"
     },
     {
@@ -1000,8 +1073,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.726869667308023,
-      "brier": 0.19950478687170106,
+      "n_features": 13,
+      "auc": 0.7254261153401522,
+      "brier": 0.20042061232151312,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -1012,8 +1086,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7140827069774511,
-      "brier": 0.21476494815367544,
+      "n_features": 13,
+      "auc": 0.7156027616994212,
+      "brier": 0.21482553736674015,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -1024,9 +1099,10 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7309868155253589,
-      "brier": 0.22076901151596992,
-      "first_root_feature": "noise_3",
+      "n_features": 12,
+      "auc": 0.7234775451916269,
+      "brier": 0.20314801475342312,
+      "first_root_feature": "noise_5",
       "first_root_kind": "noise"
     },
     {
@@ -1036,9 +1112,10 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7322188598789556,
-      "brier": 0.19820537155253282,
-      "first_root_feature": "noise_3",
+      "n_features": 12,
+      "auc": 0.7231285326271746,
+      "brier": 0.21331954913755,
+      "first_root_feature": "noise_5",
       "first_root_kind": "noise"
     },
     {
@@ -1048,6 +1125,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7336901032109289,
       "brier": 0.196103978654319,
       "first_root_feature": "brown_bear",
@@ -1060,6 +1138,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7336901032109289,
       "brier": 0.196103978654319,
       "first_root_feature": "brown_bear",
@@ -1072,9 +1151,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7349116142045278,
-      "brier": 0.20649504900364896,
-      "first_root_feature": "noise_2",
+      "n_features": 12,
+      "auc": 0.7265885392968536,
+      "brier": 0.21209213905112492,
+      "first_root_feature": "noise_7",
       "first_root_kind": "noise"
     },
     {
@@ -1084,9 +1164,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7065083585752272,
-      "brier": 0.2175284279088363,
-      "first_root_feature": "noise_2",
+      "n_features": 12,
+      "auc": 0.6724300518704668,
+      "brier": 0.2286947372307137,
+      "first_root_feature": "noise_7",
       "first_root_kind": "noise"
     },
     {
@@ -1096,8 +1177,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7298350685156166,
-      "brier": 0.1999424211452028,
+      "n_features": 12,
+      "auc": 0.7362256260306344,
+      "brier": 0.196807216345823,
       "first_root_feature": "brown_bear",
       "first_root_kind": "signal"
     },
@@ -1108,8 +1190,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7260970348733138,
-      "brier": 0.19721587902692408,
+      "n_features": 12,
+      "auc": 0.7360106240956168,
+      "brier": 0.20912593891582315,
       "first_root_feature": "brown_bear",
       "first_root_kind": "signal"
     },
@@ -1120,8 +1203,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7324590921318292,
-      "brier": 0.19785842571411194,
+      "n_features": 13,
+      "auc": 0.732159089431805,
+      "brier": 0.19791956060264268,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -1132,8 +1216,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7202084818763369,
-      "brier": 0.21171099807383523,
+      "n_features": 13,
+      "auc": 0.7381516433647903,
+      "brier": 0.20630169223084607,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -1144,10 +1229,11 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7355376198385786,
-      "brier": 0.1960205267940177,
-      "first_root_feature": "brown_bear",
-      "first_root_kind": "signal"
+      "n_features": 12,
+      "auc": 0.7405971653744884,
+      "brier": 0.1966498146643511,
+      "first_root_feature": "noise_6",
+      "first_root_kind": "noise"
     },
     {
       "seed": 7,
@@ -1156,10 +1242,11 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.732987596888372,
-      "brier": 0.19652027237250785,
-      "first_root_feature": "brown_bear",
-      "first_root_kind": "signal"
+      "n_features": 12,
+      "auc": 0.7411531703785335,
+      "brier": 0.20616423307687975,
+      "first_root_feature": "noise_6",
+      "first_root_kind": "noise"
     },
     {
       "seed": 8,
@@ -1168,6 +1255,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7319323495645844,
       "brier": 0.20003619148263865,
       "first_root_feature": "lie_down",
@@ -1180,6 +1268,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7319323495645844,
       "brier": 0.20003619148263865,
       "first_root_feature": "lie_down",
@@ -1192,9 +1281,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.5409689748830958,
-      "brier": 0.24952900709969514,
-      "first_root_feature": "noise_3",
+      "n_features": 12,
+      "auc": 0.4894106187822762,
+      "brier": 0.25318157019728516,
+      "first_root_feature": "noise_4",
       "first_root_kind": "noise"
     },
     {
@@ -1204,9 +1294,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.6561396210263569,
-      "brier": 0.2343866012762032,
-      "first_root_feature": "noise_3",
+      "n_features": 12,
+      "auc": 0.5861541015476557,
+      "brier": 0.2495323394838839,
+      "first_root_feature": "noise_4",
       "first_root_kind": "noise"
     },
     {
@@ -1216,9 +1307,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7280522098795557,
-      "brier": 0.20023059569581364,
-      "first_root_feature": "noise_3",
+      "n_features": 12,
+      "auc": 0.7246880887711958,
+      "brier": 0.20499665669064193,
+      "first_root_feature": "noise_8",
       "first_root_kind": "noise"
     },
     {
@@ -1228,9 +1320,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7221599977599193,
-      "brier": 0.20098221670584263,
-      "first_root_feature": "noise_3",
+      "n_features": 12,
+      "auc": 0.7177518390662064,
+      "brier": 0.21649216926388384,
+      "first_root_feature": "noise_8",
       "first_root_kind": "noise"
     },
     {
@@ -1240,8 +1333,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7332863983103391,
-      "brier": 0.20031558118952247,
+      "n_features": 13,
+      "auc": 0.7233095391434091,
+      "brier": 0.20191428137312525,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -1252,8 +1346,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7322123596449472,
-      "brier": 0.20848990263395836,
+      "n_features": 13,
+      "auc": 0.7240720665943974,
+      "brier": 0.21345403570723465,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -1264,9 +1359,10 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7290202447288102,
-      "brier": 0.2002437376821483,
-      "first_root_feature": "noise_3",
+      "n_features": 12,
+      "auc": 0.7314518322659616,
+      "brier": 0.20206398526144664,
+      "first_root_feature": "noise_8",
       "first_root_kind": "noise"
     },
     {
@@ -1276,9 +1372,10 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7300682824581685,
-      "brier": 0.20056543723092246,
-      "first_root_feature": "noise_3",
+      "n_features": 12,
+      "auc": 0.7316928409422739,
+      "brier": 0.2113268181565326,
+      "first_root_feature": "noise_8",
       "first_root_kind": "noise"
     },
     {
@@ -1288,6 +1385,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7139849852642779,
       "brier": 0.20139569558646564,
       "first_root_feature": "brown_bear",
@@ -1300,6 +1398,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7139849852642779,
       "brier": 0.20139569558646564,
       "first_root_feature": "brown_bear",
@@ -1312,8 +1411,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7132549494925251,
-      "brier": 0.20833231286078174,
+      "n_features": 12,
+      "auc": 0.6954300760737276,
+      "brier": 0.23030762130732255,
       "first_root_feature": "noise_3",
       "first_root_kind": "noise"
     },
@@ -1324,8 +1424,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.703224958022943,
-      "brier": 0.21931405777740856,
+      "n_features": 12,
+      "auc": 0.6718869224592006,
+      "brier": 0.2301538958110744,
       "first_root_feature": "noise_3",
       "first_root_kind": "noise"
     },
@@ -1336,10 +1437,11 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7228104177104678,
-      "brier": 0.20130921471321545,
-      "first_root_feature": "brown_bear",
-      "first_root_kind": "signal"
+      "n_features": 12,
+      "auc": 0.7175766612564015,
+      "brier": 0.2017270266375769,
+      "first_root_feature": "noise_9",
+      "first_root_kind": "noise"
     },
     {
       "seed": 9,
@@ -1348,10 +1450,11 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7265436006364312,
-      "brier": 0.20160708204547687,
-      "first_root_feature": "brown_bear",
-      "first_root_kind": "signal"
+      "n_features": 12,
+      "auc": 0.7177996721839369,
+      "brier": 0.21709269953117571,
+      "first_root_feature": "noise_9",
+      "first_root_kind": "noise"
     },
     {
       "seed": 9,
@@ -1360,8 +1463,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7187547189812301,
-      "brier": 0.20322454170798826,
+      "n_features": 13,
+      "auc": 0.7160150847391522,
+      "brier": 0.20377724427354338,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -1372,8 +1476,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.707271156286658,
-      "brier": 0.2188857045953763,
+      "n_features": 13,
+      "auc": 0.7058780880263132,
+      "brier": 0.2196343587844389,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -1384,8 +1489,9 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7167346199963798,
-      "brier": 0.20134774755184465,
+      "n_features": 12,
+      "auc": 0.713553464119742,
+      "brier": 0.20222920742562303,
       "first_root_feature": "brown_bear",
       "first_root_kind": "signal"
     },
@@ -1396,8 +1502,9 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7172846469477003,
-      "brier": 0.20228724849972063,
+      "n_features": 12,
+      "auc": 0.7208618222292893,
+      "brier": 0.2153850504989034,
       "first_root_feature": "brown_bear",
       "first_root_kind": "signal"
     },
@@ -1408,6 +1515,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7342723568089202,
       "brier": 0.19559366009676227,
       "first_root_feature": "brown_bear",
@@ -1420,6 +1528,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7342723568089202,
       "brier": 0.19559366009676227,
       "first_root_feature": "brown_bear",
@@ -1432,8 +1541,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.6787419685492138,
-      "brier": 0.23589409843604403,
+      "n_features": 12,
+      "auc": 0.5038225955648891,
+      "brier": 0.2527331290624599,
       "first_root_feature": "noise_2",
       "first_root_kind": "noise"
     },
@@ -1444,8 +1554,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.6804455111377784,
-      "brier": 0.22806962096864367,
+      "n_features": 12,
+      "auc": 0.5473886847171179,
+      "brier": 0.2572022490145033,
       "first_root_feature": "noise_2",
       "first_root_kind": "noise"
     },
@@ -1456,9 +1567,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7371324283107077,
-      "brier": 0.19764178082198947,
-      "first_root_feature": "noise_2",
+      "n_features": 12,
+      "auc": 0.7396114902872571,
+      "brier": 0.2250579563355621,
+      "first_root_feature": "noise_4",
       "first_root_kind": "noise"
     },
     {
@@ -1468,9 +1580,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.723592089802245,
-      "brier": 0.19704812631873064,
-      "first_root_feature": "noise_2",
+      "n_features": 12,
+      "auc": 0.7338683467086676,
+      "brier": 0.20975561728196201,
+      "first_root_feature": "noise_4",
       "first_root_kind": "noise"
     },
     {
@@ -1480,8 +1593,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7357133928348208,
-      "brier": 0.19750043214480892,
+      "n_features": 13,
+      "auc": 0.727499187479687,
+      "brier": 0.19792810086834778,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -1492,8 +1606,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7302722568064202,
-      "brier": 0.20858847966689273,
+      "n_features": 13,
+      "auc": 0.7310442761069027,
+      "brier": 0.20964939469626623,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -1504,8 +1619,9 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7351463786594665,
-      "brier": 0.19657435892343533,
+      "n_features": 12,
+      "auc": 0.7419655491387285,
+      "brier": 0.21465595913446897,
       "first_root_feature": "noise_2",
       "first_root_kind": "noise"
     },
@@ -1516,8 +1632,9 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.728051201280032,
-      "brier": 0.19681379867484775,
+      "n_features": 12,
+      "auc": 0.7288497212430312,
+      "brier": 0.21156712357004076,
       "first_root_feature": "noise_2",
       "first_root_kind": "noise"
     },
@@ -1528,6 +1645,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7456667256738065,
       "brier": 0.18913688575125542,
       "first_root_feature": "lie_down",
@@ -1540,6 +1658,7 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
+      "n_features": 2,
       "auc": 0.7456667256738065,
       "brier": 0.18913688575125542,
       "first_root_feature": "lie_down",
@@ -1552,9 +1671,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7509148606981444,
-      "brier": 0.2071845328296775,
-      "first_root_feature": "noise_3",
+      "n_features": 12,
+      "auc": 0.5020592491691496,
+      "brier": 0.2526379257558047,
+      "first_root_feature": "noise_9",
       "first_root_kind": "noise"
     },
     {
@@ -1564,9 +1684,10 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7326451500631577,
-      "brier": 0.20788915316172743,
-      "first_root_feature": "noise_3",
+      "n_features": 12,
+      "auc": 0.6280989999789974,
+      "brier": 0.24025770385260206,
+      "first_root_feature": "noise_9",
       "first_root_kind": "noise"
     },
     {
@@ -1576,10 +1697,11 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7528220914730683,
-      "brier": 0.19352760523639295,
-      "first_root_feature": "lie_down",
-      "first_root_kind": "signal"
+      "n_features": 12,
+      "auc": 0.7462167922318601,
+      "brier": 0.1903268302340396,
+      "first_root_feature": "noise_8",
+      "first_root_kind": "noise"
     },
     {
       "seed": 11,
@@ -1588,10 +1710,11 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7530911240260072,
-      "brier": 0.18914038901629998,
-      "first_root_feature": "lie_down",
-      "first_root_kind": "signal"
+      "n_features": 12,
+      "auc": 0.7389949183851245,
+      "brier": 0.20794444358176276,
+      "first_root_feature": "noise_8",
+      "first_root_kind": "noise"
     },
     {
       "seed": 11,
@@ -1600,8 +1723,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7527435819734188,
-      "brier": 0.19057100602316546,
+      "n_features": 13,
+      "auc": 0.7509308626343787,
+      "brier": 0.19148237294095632,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -1612,8 +1736,9 @@ export const bearResults = {
       "max_bin": 256,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7353044718410928,
-      "brier": 0.20616119926474538,
+      "n_features": 13,
+      "auc": 0.7477954832534737,
+      "brier": 0.20253904602157705,
       "first_root_feature": "brown_bear_times_lie_down",
       "first_root_kind": "product"
     },
@@ -1624,8 +1749,9 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7491171431743241,
-      "brier": 0.1904130136192857,
+      "n_features": 12,
+      "auc": 0.7447661167001207,
+      "brier": 0.18993883059232106,
       "first_root_feature": "noise_2",
       "first_root_kind": "noise"
     },
@@ -1636,8 +1762,9 @@ export const bearResults = {
       "max_bin": 2,
       "n_train": 8000,
       "n_test": 2000,
-      "auc": 0.7506243255433908,
-      "brier": 0.18933381420201426,
+      "n_features": 12,
+      "auc": 0.7397935150153168,
+      "brier": 0.20688255348311987,
       "first_root_feature": "noise_2",
       "first_root_kind": "noise"
     }
@@ -1647,70 +1774,70 @@ export const bearResults = {
       "id": "signal_only",
       "depth": 2,
       "baseline": "continuous_noise",
-      "mean_auc_delta": 0.07938832267246888,
-      "sd_auc_delta": 0.1089541483955335,
-      "mean_brier_delta": -0.027153070118204125,
-      "sd_brier_delta": 0.020668838112103773,
+      "mean_auc_delta": 0.1333918025033883,
+      "sd_auc_delta": 0.11588363780993154,
+      "mean_brier_delta": -0.03946888946950311,
+      "sd_brier_delta": 0.01964450133328057,
       "per_seed": [
         {
           "seed": 0,
-          "auc_delta": 0.0034178080204428918,
-          "brier_delta": -0.014025860986175281
+          "auc_delta": 0.14450644390882783,
+          "brier_delta": -0.045827243234382364
         },
         {
           "seed": 1,
-          "auc_delta": -0.0017699230246207565,
-          "brier_delta": -0.010933983146425547
+          "auc_delta": 0.0020843534799140917,
+          "brier_delta": -0.01688202610800746
         },
         {
           "seed": 2,
-          "auc_delta": 0.2256955312597813,
-          "brier_delta": -0.05251015291991068
+          "auc_delta": 0.22385901473113257,
+          "brier_delta": -0.052266362075595874
         },
         {
           "seed": 3,
-          "auc_delta": 0.22971805407050544,
-          "brier_delta": -0.05114080839859181
+          "auc_delta": 0.2449631774331127,
+          "brier_delta": -0.052777213176610605
         },
         {
           "seed": 4,
-          "auc_delta": -0.0033199594682862266,
-          "brier_delta": -0.004710822659825559
+          "auc_delta": -0.0041451979622110224,
+          "brier_delta": -0.006292905633005469
         },
         {
           "seed": 5,
-          "auc_delta": 0.007484684053912227,
-          "brier_delta": -0.011176018247021052
+          "auc_delta": 0.00527868770473372,
+          "brier_delta": -0.024458515575102535
         },
         {
           "seed": 6,
-          "auc_delta": 0.25067952446288055,
-          "brier_delta": -0.05617060640209323
+          "auc_delta": 0.24191970910952787,
+          "brier_delta": -0.056436434028776766
         },
         {
           "seed": 7,
-          "auc_delta": -0.0012215109935989066,
-          "brier_delta": -0.010391070349329956
+          "auc_delta": 0.007101563914075237,
+          "brier_delta": -0.015988160396805923
         },
         {
           "seed": 8,
-          "auc_delta": 0.1909633746814886,
-          "brier_delta": -0.049492815617056485
+          "auc_delta": 0.2425217307823082,
+          "brier_delta": -0.0531453787146465
         },
         {
           "seed": 9,
-          "auc_delta": 0.0007300357717527906,
-          "brier_delta": -0.006936617274316104
+          "auc_delta": 0.01855490919055025,
+          "brier_delta": -0.028911925720856907
         },
         {
           "seed": 10,
-          "auc_delta": 0.055530388259706465,
-          "brier_delta": -0.04030043833928176
+          "auc_delta": 0.23044976124403116,
+          "brier_delta": -0.05713946896569766
         },
         {
           "seed": 11,
-          "auc_delta": -0.005248135024337852,
-          "brier_delta": -0.018047647078422074
+          "auc_delta": 0.24360747650465697,
+          "brier_delta": -0.06350104000454926
         }
       ]
     },
@@ -1789,70 +1916,70 @@ export const bearResults = {
       "id": "binary_noise",
       "depth": 2,
       "baseline": "continuous_noise",
-      "mean_auc_delta": 0.07976373405879328,
-      "sd_auc_delta": 0.1083087628175123,
-      "mean_brier_delta": -0.023188297817129156,
-      "sd_brier_delta": 0.017794559927743217,
+      "mean_auc_delta": 0.1323764314671458,
+      "sd_auc_delta": 0.11348188639162304,
+      "mean_brier_delta": -0.028128843249623604,
+      "sd_brier_delta": 0.01889386566805845,
       "per_seed": [
         {
           "seed": 0,
-          "auc_delta": 0.0034938482457219644,
-          "brier_delta": -0.013176460366627812
+          "auc_delta": 0.13718957328426729,
+          "brier_delta": -0.044361026357872035
         },
         {
           "seed": 1,
-          "auc_delta": -0.003939893714495213,
-          "brier_delta": -0.010345709429260191
+          "auc_delta": 0.005368349270150841,
+          "brier_delta": -0.015426078342808208
         },
         {
           "seed": 2,
-          "auc_delta": 0.22982906846161616,
-          "brier_delta": -0.052604119451592685
+          "auc_delta": 0.22462002158019423,
+          "brier_delta": -0.025156822477853974
         },
         {
           "seed": 3,
-          "auc_delta": 0.2355698187104291,
-          "brier_delta": -0.03514693761847104
+          "auc_delta": 0.23793455234250804,
+          "brier_delta": -0.02622358521594137
         },
         {
           "seed": 4,
-          "auc_delta": -0.003912630750286694,
-          "brier_delta": -0.004662026720644391
+          "auc_delta": -0.005464579263407154,
+          "brier_delta": -0.005025201516770772
         },
         {
           "seed": 5,
-          "auc_delta": 0.0024135430471856623,
-          "brier_delta": -0.010960865083359528
+          "auc_delta": 0.007797254382236218,
+          "brier_delta": 0.0035378498405572167
         },
         {
           "seed": 6,
-          "auc_delta": 0.24185120664343907,
-          "brier_delta": -0.036580072518361234
+          "auc_delta": 0.23406442631934743,
+          "brier_delta": -0.04285455579444039
         },
         {
           "seed": 7,
-          "auc_delta": -0.005076545688911138,
-          "brier_delta": -0.006552627858446153
+          "auc_delta": 0.00963708673378072,
+          "brier_delta": -0.015284922705301934
         },
         {
           "seed": 8,
-          "auc_delta": 0.18708323499645985,
-          "brier_delta": -0.0492984114038815
+          "auc_delta": 0.23527746998891963,
+          "brier_delta": -0.04818491350664322
         },
         {
           "seed": 9,
-          "auc_delta": 0.00955546821794273,
-          "brier_delta": -0.007023098147566298
+          "auc_delta": 0.022146585182673872,
+          "brier_delta": -0.028580594669745635
         },
         {
           "seed": 10,
-          "auc_delta": 0.05839045976149393,
-          "brier_delta": -0.038252317614054565
+          "auc_delta": 0.23578889472236808,
+          "brier_delta": -0.027675172726897818
         },
         {
           "seed": 11,
-          "auc_delta": 0.0019072307749239403,
-          "brier_delta": -0.013656927593284546
+          "auc_delta": 0.24415754306271054,
+          "brier_delta": -0.062311095521765086
         }
       ]
     },
@@ -1860,70 +1987,70 @@ export const bearResults = {
       "id": "interaction_feature",
       "depth": 2,
       "baseline": "continuous_noise",
-      "mean_auc_delta": 0.07707329532097697,
-      "sd_auc_delta": 0.10499954987243502,
-      "mean_brier_delta": -0.025286596534900913,
-      "sd_brier_delta": 0.020709248988386695,
+      "mean_auc_delta": 0.12978276181874657,
+      "sd_auc_delta": 0.11346488734559144,
+      "mean_brier_delta": -0.03706642496986299,
+      "sd_brier_delta": 0.01949774301729934,
       "per_seed": [
         {
           "seed": 0,
-          "auc_delta": 0.000622829476793263,
-          "brier_delta": -0.012279329578941983
+          "auc_delta": 0.1308607253236962,
+          "brier_delta": -0.0420046470174861
         },
         {
           "seed": 1,
-          "auc_delta": -0.0009528043892089721,
-          "brier_delta": -0.00804083480782436
+          "auc_delta": 0.0024483517936054744,
+          "brier_delta": -0.013361838565184525
         },
         {
           "seed": 2,
-          "auc_delta": 0.21636694730252565,
-          "brier_delta": -0.04993692936946911
+          "auc_delta": 0.22200949808548287,
+          "brier_delta": -0.05029662753666167
         },
         {
           "seed": 3,
-          "auc_delta": 0.21950424690942721,
-          "brier_delta": -0.049660466319393776
+          "auc_delta": 0.2401846534593991,
+          "brier_delta": -0.051242103700612274
         },
         {
           "seed": 4,
-          "auc_delta": -0.002696779369237623,
-          "brier_delta": -0.003727848488286445
+          "auc_delta": -0.0008772535262689951,
+          "brier_delta": -0.005334686380831843
         },
         {
           "seed": 5,
-          "auc_delta": -0.0014593283488784081,
-          "brier_delta": -0.008361843135270636
+          "auc_delta": 0.001038233602560723,
+          "brier_delta": -0.02180947567595179
         },
         {
           "seed": 6,
-          "auc_delta": 0.23932961586617107,
-          "brier_delta": -0.053466893269374344
+          "auc_delta": 0.22912624854494756,
+          "brier_delta": -0.05281689544624582
         },
         {
           "seed": 7,
-          "auc_delta": -0.0024525220726985264,
-          "brier_delta": -0.008636623289537015
+          "auc_delta": 0.005570550134951335,
+          "brier_delta": -0.014172578448482243
         },
         {
           "seed": 8,
-          "auc_delta": 0.19231742342724334,
-          "brier_delta": -0.049213425910172665
+          "auc_delta": 0.2338989203611329,
+          "brier_delta": -0.0512672888241599
         },
         {
           "seed": 9,
-          "auc_delta": 0.005499769488705009,
-          "brier_delta": -0.005107771152793483
+          "auc_delta": 0.020585008665424565,
+          "brier_delta": -0.026530377033779168
         },
         {
           "seed": 10,
-          "auc_delta": 0.056971424285607086,
-          "brier_delta": -0.03839366629123511
+          "auc_delta": 0.22367659191479794,
+          "brier_delta": -0.05480502819411215
         },
         {
           "seed": 11,
-          "auc_delta": 0.0018287212752744475,
-          "brier_delta": -0.01661352680651204
+          "auc_delta": 0.24887161346522912,
+          "brier_delta": -0.06115555281484836
         }
       ]
     },
@@ -1931,70 +2058,70 @@ export const bearResults = {
       "id": "two_bins",
       "depth": 2,
       "baseline": "continuous_noise",
-      "mean_auc_delta": 0.0785113258089785,
-      "sd_auc_delta": 0.10755147576687245,
-      "mean_brier_delta": -0.0243913597102486,
-      "sd_brier_delta": 0.017985827017824127,
+      "mean_auc_delta": 0.1270332245517853,
+      "sd_auc_delta": 0.11068225237696476,
+      "mean_brier_delta": -0.027528094813989334,
+      "sd_brier_delta": 0.021212252861467953,
       "per_seed": [
         {
           "seed": 0,
-          "auc_delta": -0.00039270774239574813,
-          "brier_delta": -0.01300633353343561
+          "auc_delta": 0.13315643975663127,
+          "brier_delta": -0.036794774887764864
         },
         {
           "seed": 1,
-          "auc_delta": -0.0009442927367566689,
-          "brier_delta": -0.010837676016570125
+          "auc_delta": 0.004688418444851017,
+          "brier_delta": -0.015697994246719305
         },
         {
           "seed": 2,
-          "auc_delta": 0.22692304230738075,
-          "brier_delta": -0.05105102139712983
+          "auc_delta": 0.21709495385458466,
+          "brier_delta": -0.02494942529858893
         },
         {
           "seed": 3,
-          "auc_delta": 0.22764716011709535,
-          "brier_delta": -0.04698370748155595
+          "auc_delta": 0.19272829390775736,
+          "brier_delta": -0.012147916215975968
         },
         {
           "seed": 4,
-          "auc_delta": -0.006260309229367156,
-          "brier_delta": -0.004650270555524527
+          "auc_delta": -0.006369840884015376,
+          "brier_delta": -0.005732902080312574
         },
         {
           "seed": 5,
-          "auc_delta": 0.004952614338226247,
-          "brier_delta": -0.011129023254545983
+          "auc_delta": 0.0008997024330476,
+          "brier_delta": 0.010489956271611867
         },
         {
           "seed": 6,
-          "auc_delta": 0.24344676408350696,
-          "brier_delta": -0.032202668625105485
+          "auc_delta": 0.22717767839642222,
+          "brier_delta": -0.05008949301433582
         },
         {
           "seed": 7,
-          "auc_delta": 0.0006260056340507969,
-          "brier_delta": -0.010474522209631243
+          "auc_delta": 0.014008626077634756,
+          "brier_delta": -0.015442324386773815
         },
         {
           "seed": 8,
-          "auc_delta": 0.1880512698457144,
-          "brier_delta": -0.04928526941754685
+          "auc_delta": 0.24204121348368535,
+          "brier_delta": -0.05111758493583851
         },
         {
           "seed": 9,
-          "auc_delta": 0.0034796705038546705,
-          "brier_delta": -0.006984565308937096
+          "auc_delta": 0.01812338804601432,
+          "brier_delta": -0.028078413881699515
         },
         {
           "seed": 10,
-          "auc_delta": 0.05640441011025277,
-          "brier_delta": -0.0393197395126087
+          "auc_delta": 0.2381429535738394,
+          "brier_delta": -0.038077169927990956
         },
         {
           "seed": 11,
-          "auc_delta": -0.001797717523820297,
-          "brier_delta": -0.0167715192103918
+          "auc_delta": 0.24270686753097115,
+          "brier_delta": -0.06269909516348363
         }
       ]
     },
@@ -2002,70 +2129,70 @@ export const bearResults = {
       "id": "signal_only",
       "depth": 6,
       "baseline": "continuous_noise",
-      "mean_auc_delta": 0.03290416364277629,
-      "sd_auc_delta": 0.023202411663080694,
-      "mean_brier_delta": -0.023021401846125982,
-      "sd_brier_delta": 0.007302665685967763,
+      "mean_auc_delta": 0.1006271204174139,
+      "sd_auc_delta": 0.05887880128450146,
+      "mean_brier_delta": -0.041382146510344366,
+      "sd_brier_delta": 0.013658477747635097,
       "per_seed": [
         {
           "seed": 0,
-          "auc_delta": 0.050269092349853106,
-          "brier_delta": -0.029126907391659518
+          "auc_delta": 0.10820774189546278,
+          "brier_delta": -0.04368871576960298
         },
         {
           "seed": 1,
-          "auc_delta": 0.010152398633729631,
-          "brier_delta": -0.01682140978430907
+          "auc_delta": 0.034079154362322006,
+          "brier_delta": -0.027666681948389005
         },
         {
           "seed": 2,
-          "auc_delta": 0.05445949013541129,
-          "brier_delta": -0.029547226481585254
+          "auc_delta": 0.15537289835608514,
+          "brier_delta": -0.05332851582473663
         },
         {
           "seed": 3,
-          "auc_delta": 0.02746324751412621,
-          "brier_delta": -0.019256027656403163
+          "auc_delta": 0.18445222677415096,
+          "brier_delta": -0.05776396304924397
         },
         {
           "seed": 4,
-          "auc_delta": 0.00481239078093576,
-          "brier_delta": -0.012806938557495345
+          "auc_delta": 0.018369308730223022,
+          "brier_delta": -0.018138248478347385
         },
         {
           "seed": 5,
-          "auc_delta": 0.015908079317846546,
-          "brier_delta": -0.015458724317316652
+          "auc_delta": 0.054658798229601624,
+          "brier_delta": -0.03134367967697388
         },
         {
           "seed": 6,
-          "auc_delta": 0.05120234328435824,
-          "brier_delta": -0.028318138443364588
+          "auc_delta": 0.0987975567120416,
+          "brier_delta": -0.04108143955550225
         },
         {
           "seed": 7,
-          "auc_delta": 0.027181744635701666,
-          "brier_delta": -0.021424449254517308
+          "auc_delta": 0.061260051340462085,
+          "brier_delta": -0.03259075857639471
         },
         {
           "seed": 8,
-          "auc_delta": 0.0757927285382275,
-          "brier_delta": -0.034350409793564546
+          "auc_delta": 0.14577824801692874,
+          "brier_delta": -0.049496148001245244
         },
         {
           "seed": 9,
-          "auc_delta": 0.010760027241334846,
-          "brier_delta": -0.01791836219094292
+          "auc_delta": 0.04209806280507733,
+          "brier_delta": -0.02875820022460876
         },
         {
           "seed": 10,
-          "auc_delta": 0.05382684567114182,
-          "brier_delta": -0.0324759608718814
+          "auc_delta": 0.18688367209180234,
+          "brier_delta": -0.061608588917741014
         },
         {
           "seed": 11,
-          "auc_delta": 0.013021575610648872,
-          "brier_delta": -0.018752267410472007
+          "auc_delta": 0.11756772569480911,
+          "brier_delta": -0.05112081810134664
         }
       ]
     },
@@ -2144,70 +2271,70 @@ export const bearResults = {
       "id": "binary_noise",
       "depth": 6,
       "baseline": "continuous_noise",
-      "mean_auc_delta": 0.029778625082237026,
-      "sd_auc_delta": 0.02173875045358315,
-      "mean_brier_delta": -0.022138744017228946,
-      "sd_brier_delta": 0.007295453378535317,
+      "mean_auc_delta": 0.09454187338096655,
+      "sd_auc_delta": 0.05606486845825531,
+      "mean_brier_delta": -0.025074647626351185,
+      "sd_brier_delta": 0.013445190208319684,
       "per_seed": [
         {
           "seed": 0,
-          "auc_delta": 0.0472735076855656,
-          "brier_delta": -0.027866582067618967
+          "auc_delta": 0.09434740977977363,
+          "brier_delta": -0.02427285014741626
         },
         {
           "seed": 1,
-          "auc_delta": 0.0017709243954975307,
-          "brier_delta": -0.015206006568647956
+          "auc_delta": 0.026726088014491833,
+          "brier_delta": -0.009279992067433102
         },
         {
           "seed": 2,
-          "auc_delta": 0.05761001849016645,
-          "brier_delta": -0.029541540265292293
+          "auc_delta": 0.14962884665961984,
+          "brier_delta": -0.03820123241992632
         },
         {
           "seed": 3,
-          "auc_delta": 0.026389005690578227,
-          "brier_delta": -0.018904500582536343
+          "auc_delta": 0.1695825374132498,
+          "brier_delta": -0.03878578509483219
         },
         {
           "seed": 4,
-          "auc_delta": 0.0007797253406235383,
-          "brier_delta": -0.01171335076792257
+          "auc_delta": 0.015357938444210295,
+          "brier_delta": -0.0023002840011447923
         },
         {
           "seed": 5,
-          "auc_delta": 0.0065349703683328375,
-          "brier_delta": -0.014072016320071823
+          "auc_delta": 0.05537695981595858,
+          "brier_delta": -0.016833777969189723
         },
         {
           "seed": 6,
-          "auc_delta": 0.04446510074362686,
-          "brier_delta": -0.02716676365511242
+          "auc_delta": 0.08501606057818079,
+          "brier_delta": -0.025791792998101942
         },
         {
           "seed": 7,
-          "auc_delta": 0.019588676298086583,
-          "brier_delta": -0.020312548881912224
+          "auc_delta": 0.06358057222515001,
+          "brier_delta": -0.019568798314890556
         },
         {
           "seed": 8,
-          "auc_delta": 0.06602037673356242,
-          "brier_delta": -0.033404384570360574
+          "auc_delta": 0.13159773751855075,
+          "brier_delta": -0.033040170220000054
         },
         {
           "seed": 9,
-          "auc_delta": 0.02331864261348815,
-          "brier_delta": -0.017706975731931696
+          "auc_delta": 0.04591274972473636,
+          "brier_delta": -0.013061196279898685
         },
         {
           "seed": 10,
-          "auc_delta": 0.043146578664466584,
-          "brier_delta": -0.031021494649913023
+          "auc_delta": 0.18647966199154975,
+          "brier_delta": -0.04744663173254127
         },
         {
           "seed": 11,
-          "auc_delta": 0.02044597396284953,
-          "brier_delta": -0.01874876414542745
+          "auc_delta": 0.11089591840612711,
+          "brier_delta": -0.032313260270839306
         }
       ]
     },
@@ -2215,70 +2342,70 @@ export const bearResults = {
       "id": "interaction_feature",
       "depth": 6,
       "baseline": "continuous_noise",
-      "mean_auc_delta": 0.02428199523913639,
-      "sd_auc_delta": 0.024399925731477593,
-      "mean_brier_delta": -0.008821538475127585,
-      "sd_brier_delta": 0.008742773450777433,
+      "mean_auc_delta": 0.09316274185420943,
+      "sd_auc_delta": 0.057859961143343124,
+      "mean_brier_delta": -0.026040150097529843,
+      "sd_brier_delta": 0.014182451322087607,
       "per_seed": [
         {
           "seed": 0,
-          "auc_delta": 0.04105271688723333,
-          "brier_delta": -0.016189812235541612
+          "auc_delta": 0.08891303499551262,
+          "brier_delta": -0.02400493934720238
         },
         {
           "seed": 1,
-          "auc_delta": 0.005348822538054576,
-          "brier_delta": -0.003149752064341066
+          "auc_delta": 0.029990056387194097,
+          "brier_delta": -0.01135187912148572
         },
         {
           "seed": 2,
-          "auc_delta": 0.04933444400999609,
-          "brier_delta": -0.01686726103310482
+          "auc_delta": 0.1515653640882767,
+          "brier_delta": -0.04009171094768235
         },
         {
           "seed": 3,
-          "auc_delta": 0.01431054298769363,
-          "brier_delta": -0.004381392232592984
+          "auc_delta": 0.16874306698543506,
+          "brier_delta": -0.04090013525784339
         },
         {
           "seed": 4,
-          "auc_delta": 0.00034259901111433066,
-          "brier_delta": 0.0005021805758039788
+          "auc_delta": 0.015398450152093845,
+          "brier_delta": -0.004019935881251269
         },
         {
           "seed": 5,
-          "auc_delta": 0.007624215448475913,
-          "brier_delta": -0.0020665838250720214
+          "auc_delta": 0.046179390362831585,
+          "brier_delta": -0.014793826734734283
         },
         {
           "seed": 6,
-          "auc_delta": 0.027065474357076846,
-          "brier_delta": -0.010354264028671317
+          "auc_delta": 0.07618074250673024,
+          "brier_delta": -0.023056975927744278
         },
         {
           "seed": 7,
-          "auc_delta": 0.013700123301109701,
-          "brier_delta": -0.005817429835001081
+          "auc_delta": 0.06572159149432355,
+          "brier_delta": -0.022393044999867634
         },
         {
           "seed": 8,
-          "auc_delta": 0.07607273861859032,
-          "brier_delta": -0.025896698642244836
+          "auc_delta": 0.1379179650467417,
+          "brier_delta": -0.03607830377664925
         },
         {
           "seed": 9,
-          "auc_delta": 0.004046198263714995,
-          "brier_delta": -0.0004283531820322706
+          "auc_delta": 0.03399116556711268,
+          "brier_delta": -0.010519537026635495
         },
         {
           "seed": 10,
-          "auc_delta": 0.04982674566864176,
-          "brier_delta": -0.019481141301750937
+          "auc_delta": 0.18365559138978482,
+          "brier_delta": -0.04755285431823705
         },
         {
           "seed": 11,
-          "auc_delta": 0.002659321777935153,
-          "brier_delta": -0.0017279538969820485
+          "auc_delta": 0.11969648327447624,
+          "brier_delta": -0.037718657831025015
         }
       ]
     },
@@ -2286,70 +2413,70 @@ export const bearResults = {
       "id": "two_bins",
       "depth": 6,
       "baseline": "continuous_noise",
-      "mean_auc_delta": 0.030739941501994317,
-      "sd_auc_delta": 0.022538485755703153,
-      "mean_brier_delta": -0.022156956570497977,
-      "sd_brier_delta": 0.007291419268333686,
+      "mean_auc_delta": 0.09541699475599659,
+      "sd_auc_delta": 0.054088030579771,
+      "mean_brier_delta": -0.025620973175708935,
+      "sd_brier_delta": 0.012571707859783085,
       "per_seed": [
         {
           "seed": 0,
-          "auc_delta": 0.045036824480150006,
-          "brier_delta": -0.027642295816327933
+          "auc_delta": 0.0978232484984557,
+          "brier_delta": -0.026426345083112507
         },
         {
           "seed": 1,
-          "auc_delta": 0.005950145749531233,
-          "brier_delta": -0.015614600267521511
+          "auc_delta": 0.03122524736364085,
+          "brier_delta": -0.01122352995022266
         },
         {
           "seed": 2,
-          "auc_delta": 0.057122014098127005,
-          "brier_delta": -0.029243914721307385
+          "auc_delta": 0.14808483276349482,
+          "brier_delta": -0.03720973397482749
         },
         {
           "seed": 3,
-          "auc_delta": 0.022064506569594355,
-          "brier_delta": -0.018646412946939972
+          "auc_delta": 0.15936572678015792,
+          "brier_delta": -0.034242305163574766
         },
         {
           "seed": 4,
-          "auc_delta": 0.0031083983271166238,
-          "brier_delta": -0.0119773734733859
+          "auc_delta": 0.018244272594779787,
+          "brier_delta": -0.0040050542139899725
         },
         {
           "seed": 5,
-          "auc_delta": 0.010343327248630962,
-          "brier_delta": -0.014177750877872902
+          "auc_delta": 0.050161786401940245,
+          "brier_delta": -0.015266598958544458
         },
         {
           "seed": 6,
-          "auc_delta": 0.045201627258581345,
-          "brier_delta": -0.026913840629813945
+          "auc_delta": 0.08370651343448365,
+          "brier_delta": -0.02456296415693443
         },
         {
           "seed": 7,
-          "auc_delta": 0.026479238313144804,
-          "brier_delta": -0.021008155536328454
+          "auc_delta": 0.06872311850806667,
+          "brier_delta": -0.022530504153833952
         },
         {
           "seed": 8,
-          "auc_delta": 0.07392866143181154,
-          "brier_delta": -0.03382116404528074
+          "auc_delta": 0.14553873939461826,
+          "brier_delta": -0.038205521327351305
         },
         {
           "seed": 9,
-          "auc_delta": 0.014059688924757285,
-          "brier_delta": -0.017026809277687932
+          "auc_delta": 0.04897489977008873,
+          "brier_delta": -0.014768845312170986
         },
         {
           "seed": 10,
-          "auc_delta": 0.047605690142253576,
-          "brier_delta": -0.03125582229379592
+          "auc_delta": 0.18146103652591328,
+          "brier_delta": -0.04563512544446252
         },
         {
           "seed": 11,
-          "auc_delta": 0.01797917548023309,
-          "brier_delta": -0.018555338959713175
+          "auc_delta": 0.11169451503631933,
+          "brier_delta": -0.03337515036948219
         }
       ]
     }

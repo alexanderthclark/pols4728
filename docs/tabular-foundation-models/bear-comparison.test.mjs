@@ -6,6 +6,7 @@ import {renderBearComparison} from './bear-comparison.mjs';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-12,`${a} != ${b}`);
 test('three-model comparisons use every paired simulation seed and exact summaries',()=>{
   const seeds=results.metadata.seeds;
+  assert.equal(results.metadata.n_noise,10);
   assert.deepEqual(seeds,Array.from({length:12},(_,i)=>i));
   assert.notEqual(results.metadata.incomplete_preview_only,true);
   assert.equal(results.cases.length,6);
@@ -16,6 +17,7 @@ test('three-model comparisons use every paired simulation seed and exact summari
     for(const row of rows){
       assert.equal(row.n_train,results.metadata.n_train);
       assert.equal(row.n_test,results.metadata.n_test);
+      assert.equal(row.n_features,row.id==='continuous_noise'?12:2);
       assert.ok(row.auc>=.46&&row.auc<=.78,'The published AUC must fit inside the displayed scale.');
     }
     const mean=rows.reduce((s,r)=>s+r.auc,0)/rows.length;

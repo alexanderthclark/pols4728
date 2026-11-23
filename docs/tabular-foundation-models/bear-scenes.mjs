@@ -1,12 +1,19 @@
+import {bearResults} from './bear-results.mjs?v=20261123-context-ten-noise';
+const diagnostics=bearResults.cases.filter(row=>row.depth===2);
+const continuous=diagnostics.find(row=>row.id==='continuous_noise');
+const continuousAucs=bearResults.records.filter(row=>row.depth===2&&row.id==='continuous_noise').map(row=>row.auc);
+const diagnosticOrder=['signal_only','continuous_noise','binary_noise','two_bins','interaction_feature'];
+const reportedMeans=diagnosticOrder.map(id=>diagnostics.find(row=>row.id===id).mean_auc.toFixed(3)).join(', ');
+const reportedSDs=diagnosticOrder.map(id=>diagnostics.find(row=>row.id===id).sd_auc.toFixed(3)).join(', ');
 const chapter = 'Why the interaction matters';
 export const bearScenes = [
   {
     chapter, kind:'bear', bearStage:0,
     title:'Return to the distractor columns.',
-    body:'Our miniature PFN varied the rule but always used the same two features. Return to world A and the three distractors from our opening comparison. Bear type and strategy still have no marginal signal.',
+    body:'Our miniature PFN varied the rule but always used the same two features. Return to world A and the ten distractors from our opening comparison. Bear type and strategy still have no marginal signal.',
     equation:'P(Y=1\\mid B)=P(Y=1\\mid L)=\\tfrac12',
     note:'Changing which rule applies and discovering which columns matter are different tasks. The miniature PFN demonstrated the first.',
-    reading:'The miniature PFN was trained to distinguish two opposed rules using two fixed, relevant feature columns. It was not trained or tested on finding those columns among distractors. We now generate data from world A with both relevant features independently Bernoulli(0.5). The target is Y = 1[−1 + 2·1(B = L) + ε > 0], with independent standard logistic noise ε. Three independent Uniform(0,1) columns contain no information about survival. The random outcome noise and the irrelevant input columns play different roles: even a predictor that knows the correct rule cannot predict every outcome. The opening tree, forest and TabICLv2 comparison already measured this difficulty. This separate XGBoost experiment now investigates its split-search mechanism.'
+    reading:'The miniature PFN was trained to distinguish two opposed rules using two fixed, relevant feature columns. It was not trained or tested on finding those columns among distractors. We now generate data from world A with both relevant features independently Bernoulli(0.5). The target is Y = 1[−1 + 2·1(B = L) + ε > 0], with independent standard logistic noise ε. Ten independent Uniform(0,1) columns contain no information about survival. The random outcome noise and the irrelevant input columns play different roles: even a predictor that knows the correct rule cannot predict every outcome. The opening tree, forest and TabICLv2 comparison already measured this difficulty. This separate XGBoost experiment now investigates its split-search mechanism.'
   },
   {
     chapter, kind:'bear', bearStage:1,
@@ -34,11 +41,11 @@ export const bearScenes = [
   },
   {
     chapter, kind:'bear', bearStage:4,
-    title:'The average hides unstable fits.',
-    body:'With continuous distractors, some runs approach chance while others approach the oracle. Reveal the individual seeds first, then their means. The repairs make performance much more consistent.',
+    title:'Compare the fitted runs.',
+    body:'Reveal the individual seeds first, then their means. Compare the ten continuous distractors with binary distractors, coarser histogram bins, and an added interaction feature.',
     equation:'\\operatorname{AUC}_{\\rm oracle}=\\operatorname{logistic}(1)\\approx0.7311',
     note:'12 seeds; paired lines join continuous and binary noise on the same split. Depth 2, 200 trees, learning rate 0.1; 8,000 train and 2,000 test rows.',
-    reading:'Each dot is one measured test AUC from XGBoost 3.0.5. The same seed uses identical sampled bear types, strategies, survival outcomes, and train–test splits across all five conditions. Continuous-noise AUC ranges from about 0.488 to 0.751, so its mean of 0.651 conceals near-chance and near-oracle fits. Light lines connect each continuous-noise result to its binary-noise counterpart. Mean markers appear after the individual results. Binarizing distractors at 0.5, reducing max_bin from 256 to 2, or adding the product B·L alongside the original inputs makes performance much more consistent. The five means are approximately 0.730, 0.651, 0.730, 0.729, and 0.728. The dashed line is the population AUC of the oracle that ranks matching strategies above mismatching strategies: p² + p(1−p) = p, where p = logistic(1). It is not an upper bound on finite-test-sample AUC; sample results can lie above it. These are fixed-setting diagnostics with no tuning against the test set and no TabPFN evaluation. The Nature 2025 inference pipeline also offers optional products of up to 50 randomly selected feature pairs, disabled by default. This connects to our B·L repair, but this optional feature construction is not part of the paper’s default benchmark. Feature grouping into tokens and explicit product construction are different operations.', references:[{title:'Nature 2025 · Inference details: optional second-order features',url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC11711098/'}]
+    reading:`Each dot is one measured test AUC from XGBoost ${bearResults.metadata.versions.xgboost}. The same seed uses identical sampled bear types, strategies, survival outcomes, and train–test splits across all five conditions. With ten continuous distractors, test AUC ranges from ${Math.min(...continuousAucs).toFixed(3)} to ${Math.max(...continuousAucs).toFixed(3)}, with mean ${continuous.mean_auc.toFixed(3)}. Light lines connect each continuous-noise result to its binary-noise counterpart. Mean markers appear after the individual results. The comparisons binarize all ten distractors at 0.5, reduce max_bin from 256 to 2, or add the product B·L alongside the original inputs. The five means, ordered as signal only, continuous noise, binary noise, two bins, and added product, are ${reportedMeans}; their between-seed standard deviations are ${reportedSDs}. The dashed line is the population AUC of the oracle that ranks matching strategies above mismatching strategies: p² + p(1−p) = p, where p = logistic(1). It is not an upper bound on finite-test-sample AUC; sample results can lie above it. These are fixed-setting diagnostics with no tuning against the test set and no TabPFN evaluation. The Nature 2025 inference pipeline also offers optional products of up to 50 randomly selected feature pairs, disabled by default. This connects to our B·L repair, but this optional feature construction is not part of the paper’s default benchmark. Feature grouping into tokens and explicit product construction are different operations.`, references:[{title:'Nature 2025 · Inference details: optional second-order features',url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC11711098/'}]
   },
   {
     chapter, kind:'bear', bearStage:5,

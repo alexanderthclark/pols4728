@@ -4,18 +4,18 @@ This experiment isolates difficulties in finding a simple interaction amid irrel
 
 ## Reproduce
 
-Use Python 3.11 and install the pinned requirements:
+Use Python 3.12 and install the pinned requirements:
 
 ```sh
 python -m pip install -r examples/tabular-foundation-models/requirements.txt
 python examples/tabular-foundation-models/bear_diagnostics.py
 ```
 
-The command writes per-seed records to `results/bear-records.csv`, complete results to `results/bear-results.json`, and the equivalent JavaScript module to `docs/tabular-foundation-models/bear-results.mjs`. Paths are resolved from the script, so it can run from any working directory. `--n`, `--seeds`, `--depths`, `--output-dir`, and `--web-output` support separate exploratory runs; use separate output paths to retain the published run.
+The command writes per-seed records to `results/bear-records.csv`, complete results to `results/bear-results.json`, and the equivalent JavaScript module to `docs/tabular-foundation-models/bear-results.mjs`. Paths are resolved from the script, so it can run from any working directory. `--n`, `--noise-columns` (default 10), `--seeds`, `--depths`, `--output-dir`, and `--web-output` support separate exploratory runs; use separate output paths to retain the published run.
 
 ## Data-generating process
 
-Let `B` indicate a brown bear and `A` indicate lying down. Both are independent Bernoulli(0.5) draws. Three additional columns are independent Uniform(0,1) noise, independent of both binary variables and the standard logistic outcome error `E`:
+Let `B` indicate a brown bear and `A` indicate lying down. Both are independent Bernoulli(0.5) draws. Ten additional columns are independent Uniform(0,1) noise, independent of both binary variables and the standard logistic outcome error `E`:
 
 ```python
 y = (-1 + 2 * (B == A) + E > 0).astype(int)
@@ -23,12 +23,12 @@ y = (-1 + 2 * (B == A) + E > 0).astype(int)
 
 Population survival probability is `sigmoid(1) = 0.7310586` when `B == A`, and `sigmoid(-1) = 0.2689414` otherwise. Either binary variable by itself leaves survival probability at 0.5. The logistic outcome error is distinct from the irrelevant input columns. The example is a simulated prediction problem.
 
-For each seed 0 through 11, generate 10,000 rows in the fixed order B, A, the three noise columns, then E. Use an unstratified 80/20 `train_test_split` with `random_state=seed`, giving 8,000 training and 2,000 test rows. All variants within a seed share exactly the same labels and split indices.
+For each seed 0 through 11, generate 10,000 rows using `bear_simulation.py`. The original draw order B, A, the first three noise columns, then E is preserved. Seven further noise columns are appended from an independent `SeedSequence([seed, 4728, 20261123])` random stream, drawn one full column at a time. This preserves the original labels, signal columns, and first three distractors when extending the earlier design from three to ten noise columns. Use an unstratified 80/20 `train_test_split` with `random_state=seed`, giving 8,000 training and 2,000 test rows. All variants within a seed share exactly the same labels and split indices.
 
 ## Comparisons
 
 1. Bear type and strategy only.
-2. Add three continuous noise columns.
+2. Add ten continuous noise columns (12 input features in total).
 3. Replace the same noise draws by indicators `noise > 0.5`.
 4. Keep continuous noise and append the product `B * A`.
 5. Keep the original continuous inputs but reduce XGBoost's histogram bin count from 256 to 2.

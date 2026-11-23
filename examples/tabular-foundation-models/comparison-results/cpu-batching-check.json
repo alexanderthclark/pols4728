@@ -1,6 +1,15 @@
 {
   "passed": true,
   "torch_version": "2.15.0+cpu",
+  "tabicl_version": "2.2.0",
+  "script_sha256": "102b2d116366fd93dafd49dbcd61bb300cd4c57da0260ff403d374550402d116",
+  "adapter_sha256": "750c4b66ed1d384a601a87f9bfe4a26d3c78deca7d51111fbb390b25fee8166f",
+  "stage_batch_limits": {
+    "column": 1,
+    "row": 8,
+    "icl": 1
+  },
+  "input_features": 12,
   "tolerance": {
     "rtol": 2e-05,
     "atol": 2e-06
@@ -16,83 +25,83 @@
       "grouping": false,
       "attention_scaling": false,
       "mode": "kv",
-      "max_abs_error": 1.9371509552001953e-07,
-      "cache_tensors_compared": 8,
-      "max_cache_abs_error": 7.152557373046875e-07
-    },
-    {
-      "grouping": false,
-      "attention_scaling": false,
-      "mode": "repr",
-      "max_abs_error": 1.6391277313232422e-07,
-      "cache_tensors_compared": 5,
-      "max_cache_abs_error": 9.5367431640625e-07
-    },
-    {
-      "grouping": false,
-      "attention_scaling": "qassmax-mlp-elementwise",
-      "mode": "uncached",
-      "max_abs_error": 1.4901161193847656e-07
-    },
-    {
-      "grouping": false,
-      "attention_scaling": "qassmax-mlp-elementwise",
-      "mode": "kv",
-      "max_abs_error": 1.4901161193847656e-07,
-      "cache_tensors_compared": 8,
-      "max_cache_abs_error": 5.960464477539062e-07
-    },
-    {
-      "grouping": false,
-      "attention_scaling": "qassmax-mlp-elementwise",
-      "mode": "repr",
-      "max_abs_error": 1.4901161193847656e-07,
-      "cache_tensors_compared": 5,
-      "max_cache_abs_error": 5.364418029785156e-07
-    },
-    {
-      "grouping": "same",
-      "attention_scaling": false,
-      "mode": "uncached",
-      "max_abs_error": 2.086162567138672e-07
-    },
-    {
-      "grouping": "same",
-      "attention_scaling": false,
-      "mode": "kv",
-      "max_abs_error": 2.086162567138672e-07,
+      "max_abs_error": 1.1920928955078125e-07,
       "cache_tensors_compared": 8,
       "max_cache_abs_error": 9.5367431640625e-07
     },
     {
-      "grouping": "same",
+      "grouping": false,
       "attention_scaling": false,
-      "mode": "repr",
-      "max_abs_error": 2.086162567138672e-07,
-      "cache_tensors_compared": 5,
-      "max_cache_abs_error": 9.5367431640625e-07
-    },
-    {
-      "grouping": "same",
-      "attention_scaling": "qassmax-mlp-elementwise",
-      "mode": "uncached",
-      "max_abs_error": 1.4156103134155273e-07
-    },
-    {
-      "grouping": "same",
-      "attention_scaling": "qassmax-mlp-elementwise",
-      "mode": "kv",
-      "max_abs_error": 1.4156103134155273e-07,
-      "cache_tensors_compared": 8,
-      "max_cache_abs_error": 7.152557373046875e-07
-    },
-    {
-      "grouping": "same",
-      "attention_scaling": "qassmax-mlp-elementwise",
       "mode": "repr",
       "max_abs_error": 1.4156103134155273e-07,
       "cache_tensors_compared": 5,
-      "max_cache_abs_error": 7.152557373046875e-07
+      "max_cache_abs_error": 9.5367431640625e-07
+    },
+    {
+      "grouping": false,
+      "attention_scaling": "qassmax-mlp-elementwise",
+      "mode": "uncached",
+      "max_abs_error": 1.1920928955078125e-07
+    },
+    {
+      "grouping": false,
+      "attention_scaling": "qassmax-mlp-elementwise",
+      "mode": "kv",
+      "max_abs_error": 1.1920928955078125e-07,
+      "cache_tensors_compared": 8,
+      "max_cache_abs_error": 8.344650268554688e-07
+    },
+    {
+      "grouping": false,
+      "attention_scaling": "qassmax-mlp-elementwise",
+      "mode": "repr",
+      "max_abs_error": 1.4901161193847656e-07,
+      "cache_tensors_compared": 5,
+      "max_cache_abs_error": 9.5367431640625e-07
+    },
+    {
+      "grouping": "same",
+      "attention_scaling": false,
+      "mode": "uncached",
+      "max_abs_error": 1.7881393432617188e-07
+    },
+    {
+      "grouping": "same",
+      "attention_scaling": false,
+      "mode": "kv",
+      "max_abs_error": 1.7881393432617188e-07,
+      "cache_tensors_compared": 8,
+      "max_cache_abs_error": 1.1920928955078125e-06
+    },
+    {
+      "grouping": "same",
+      "attention_scaling": false,
+      "mode": "repr",
+      "max_abs_error": 1.7881393432617188e-07,
+      "cache_tensors_compared": 5,
+      "max_cache_abs_error": 1.0132789611816406e-06
+    },
+    {
+      "grouping": "same",
+      "attention_scaling": "qassmax-mlp-elementwise",
+      "mode": "uncached",
+      "max_abs_error": 2.384185791015625e-07
+    },
+    {
+      "grouping": "same",
+      "attention_scaling": "qassmax-mlp-elementwise",
+      "mode": "kv",
+      "max_abs_error": 1.7881393432617188e-07,
+      "cache_tensors_compared": 8,
+      "max_cache_abs_error": 3.516674041748047e-06
+    },
+    {
+      "grouping": "same",
+      "attention_scaling": "qassmax-mlp-elementwise",
+      "mode": "repr",
+      "max_abs_error": 1.4901161193847656e-07,
+      "cache_tensors_compared": 5,
+      "max_cache_abs_error": 3.516674041748047e-06
     }
   ]
 }

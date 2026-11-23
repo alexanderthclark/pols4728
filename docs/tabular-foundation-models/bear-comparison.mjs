@@ -1,11 +1,12 @@
-import {bearComparisonResults as results} from './bear-comparison-results.mjs';
+import {bearComparisonResults as results} from './bear-comparison-results.mjs?v=20261123-context-ten-noise';
 
 // Every horizontal position is a measured AUC. Scrolling assembles the
 // individual simulation runs, then reveals their fixed mean.
+const noiseCount=results.metadata.n_noise;
 const C={ink:'#242424',muted:'#606060',rule:'#767676',grid:'#e0e4e6'};
 const models=[
   {id:'tree_depth2',name:'Depth-two tree',detail:'One greedy fitted tree',color:'#234E70'},
-  {id:'random_forest',name:'Random forest',detail:'500 trees',color:'#A54F32'},
+  {id:'random_forest',name:'Random forest',detail:'500 fully grown trees',color:'#A54F32'},
   {id:'tabicl_v2',name:'TabICLv2',detail:'Pretrained tabular model',color:'#007F73'}
 ];
 const clamp=p=>Math.max(0,Math.min(1,Number.isFinite(p)?p:0));
@@ -31,8 +32,8 @@ export function renderBearComparison(stage,p,mobile=false){
   const seedCount=results.metadata.seeds.length;
   let s=`<g data-bear-comparison-stage="${current}" data-comparison-progress="${progress}" data-scale-min="0.46" data-scale-max="0.78">`
     +'<title>Measured bear-survival prediction with continuous distractors</title>'
-    +`<desc>All models use the same ${results.metadata.n_train} training and ${results.metadata.n_test} test rows per seed. Each input contains bear type, response, and three independent uniform noise columns. Small circles show individual simulation runs; large circles and numerical labels show their mean test ROC AUC. Dashed line: population oracle AUC ${oracle}. Scrolling reveals the measured runs and their fixed mean without changing any horizontal AUC position.</desc>`;
-  const title='Three continuous distractor columns';
+    +`<desc>All models use the same ${results.metadata.n_train} training and ${results.metadata.n_test} test rows per seed. Each input contains bear type, response, and ${noiseCount} independent uniform noise columns. Small circles show individual simulation runs; large circles and numerical labels show their mean test ROC AUC. Dashed line: population oracle AUC ${oracle}. Scrolling reveals the measured runs and their fixed mean without changing any horizontal AUC position.</desc>`;
+  const title=`${noiseCount} continuous distractor columns`;
   s+=text(mobile?200:450,mobile?21:30,title,mobile?18:24,C.ink,'middle');
   const legendY=mobile?48:62,legendLeft=mobile?53:290;
   s+=circle(legendLeft,legendY-5,2.5,C.muted,true)+text(legendLeft+12,legendY,'Individual runs',mobile?17:18,C.muted)

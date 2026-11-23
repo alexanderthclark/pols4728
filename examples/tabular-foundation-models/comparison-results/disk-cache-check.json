@@ -1,0 +1,41 @@
+{
+  "passed": true,
+  "n_features": 12,
+  "n_train": 512,
+  "n_test": 64,
+  "n_estimators": 4,
+  "batch_size": 1,
+  "cache_mode": "kv",
+  "stage_batch_limits": {
+    "column": 1,
+    "row": 8,
+    "icl": 1
+  },
+  "average_logits": true,
+  "max_probability_abs_error": 0.0,
+  "native_auc": 0.6352813852813852,
+  "streamed_auc": 0.6352813852813852,
+  "native_brier": 0.2641325998837977,
+  "streamed_brier": 0.2641325998837977,
+  "checkpoint": {
+    "repo_id": "jingang/TabICL",
+    "revision": "4dcd344ece2c00be9e831fdd35bed57b5ad83e19",
+    "filename": "tabicl-classifier-v2-20260212.ckpt",
+    "sha256": "bdc7dbd5e4ff21f8f0456fcf90c6b7cdf72dbea960f2d05b19bec19f9b3d4ed0"
+  },
+  "versions": {
+    "numpy": "2.3.5",
+    "scikit-learn": "1.6.1",
+    "torch": "2.15.0+cpu",
+    "tabicl": "2.2.0"
+  },
+  "script_sha256": "73d2f20f7e94826e93edcc93d86c8cefec9ee9d85867de9c5778526b79d8b9dd",
+  "simulation_source_sha256": "16f4b26a9af1968e225c6a2876191cd2b6d8ce5e952a224c8c2d053a3e22af04",
+  "disk_adapter_sha256": "011bf68d8c253c0f2be211a8164b35bfbf75d2beb53d575ea82244c35d3ab3b9",
+  "cpu_adapter_sha256": "750c4b66ed1d384a601a87f9bfe4a26d3c78deca7d51111fbb390b25fee8166f",
+  "tolerance": {
+    "rtol": 2e-05,
+    "atol": 2e-06
+  },
+  "note": "Native class permutations, normalization, four ensemble views, per-member logits and final probability aggregation are unchanged. Only native cache storage is streamed."
+}

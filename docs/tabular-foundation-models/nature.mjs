@@ -9,9 +9,9 @@ const rect=(x,y,w,h,fill,extra='')=>`<rect x="${f(x)}" y="${f(y)}" width="${f(w)
 const line=(x1,y1,x2,y2,color=C.rule,width=1.5,extra='')=>`<line x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}" stroke="${color}" stroke-width="${width}" ${extra}/>`;
 const circle=(x,y,r,fill,extra='')=>`<circle cx="${f(x)}" cy="${f(y)}" r="${r}" fill="${fill}" ${extra}/>`;
 const group=(s,opacity=1,extra='')=>`<g opacity="${f(opacity)}" ${extra}>${s}</g>`;
-const rows=[['0','0','.13','.89','.24','1'],['0','1','.82','.35','.91','0'],['1','0','.26','.77','.42','0'],['1','1','.63','.19','.68','1']];
-const query=['1','1','.72','.28','.55','?'];
-const headers=['B','L','Z₁','Z₂','Z₃','Y'];
+const rows=[['0','0','.13','…','.24','1'],['0','1','.82','…','.91','0'],['1','0','.26','…','.42','0'],['1','1','.63','…','.68','1']];
+const query=['1','1','.72','…','.55','?'];
+const headers=['B','L','Z₁','…','Z₁₀','Y'];
 
 function arrow(x1,y1,x2,y2,t,color=C.blue) {
   const u=ease(t),x=x1+(x2-x1)*u,y=y1+(y2-y1)*u;
@@ -50,19 +50,19 @@ function generator(p,mobile) {
   if(mobile) {
     s+=txt(8,93,'Brown',16,C.ink)+txt(132,93,'Lie down',16,C.ink);
     s+=txt(90,172,'Survived',16,C.teal,'middle')+txt(204,172,'Noise',16,C.rust,'middle');
-    [265,315,365].forEach((x,i)=>s+=circle(x,41,21,'white',`stroke="${C.rule}" stroke-width="1.5"`)+txt(x,47,headers[i+2],18,C.muted,'middle'));
-    s+=txt(315,91,'Disconnected',16,C.muted,'middle')+txt(315,113,'distractors',16,C.muted,'middle');
+    [265,315,365].forEach((x,i)=>s+=(i===1?'':circle(x,41,21,'white',`stroke="${C.rule}" stroke-width="1.5"`))+txt(x,47,headers[i+2],18,C.muted,'middle'));
+    s+=txt(315,91,'10 disconnected',16,C.muted,'middle')+txt(315,113,'distractors',16,C.muted,'middle');
     s+=txt(20,213,'Illustrative rows from one rule',17);
     s+=smallTable(20,227,360,29,rows.slice(0,2),table,true);
-    s+=txt(200,341,'Teaching graph, not a sampled TabPFN task.',16,C.muted,'middle');
+    s+=txt(200,341,'Ten noise columns; eight omitted.',16,C.muted,'middle');
   } else {
     s+=txt(100,32,'Brown',21,C.ink,'middle')+txt(280,32,'Lie down',21,C.ink,'middle');
     s+=txt(190,274,'Survived',21,C.teal,'middle')+txt(385,274,'Noise',21,C.rust,'middle');
-    [100,230,360].forEach((x,i)=>s+=circle(x,341,26,'white',`stroke="${C.rule}" stroke-width="1.5"`)+txt(x,348,headers[i+2],23,C.muted,'middle'));
-    s+=txt(230,393,'Disconnected distractors',21,C.muted,'middle');
+    [100,230,360].forEach((x,i)=>s+=(i===1?'':circle(x,341,26,'white',`stroke="${C.rule}" stroke-width="1.5"`))+txt(x,348,headers[i+2],23,C.muted,'middle'));
+    s+=txt(230,393,'10 disconnected distractors',21,C.muted,'middle');
     s+=txt(480,76,'Illustrative rows from one rule',23);
     s+=smallTable(480,102,390,48,rows,table,false);
-    s+=txt(450,443,'Teaching graph, not a task extracted from TabPFN pretraining.',21,C.muted,'middle');
+    s+=txt(450,443,'Teaching graph · ten noise columns; eight omitted.',21,C.muted,'middle');
   }
   return s;
 }
@@ -99,11 +99,11 @@ function architecture(p,mobile) {
     if(sample>.01)s+=circle(cx+9,targetY,2.5,C.teal,`opacity="${f(sample)}"`);
   }
   if(mobile) {
-    s+=txt(200,307,'Last row: query; its Y stays hidden.',16,C.teal,'middle');
+    s+=txt(200,307,'Query Y hidden; eight noise columns omitted.',16,C.teal,'middle');
     s+=txt(200,332,'Paths show access, not attention weights.',16,C.muted,'middle');
   } else {
     s+=txt(450,415,'Query labels are withheld; training rows supply the context.',22,C.teal,'middle');
-    s+=txt(450,451,'Ungrouped view · permitted information flow, not measured attention',20,C.muted,'middle');
+    s+=txt(450,451,'Eight noise columns omitted · permitted flow, not measured attention',20,C.muted,'middle');
   }
   return s;
 }

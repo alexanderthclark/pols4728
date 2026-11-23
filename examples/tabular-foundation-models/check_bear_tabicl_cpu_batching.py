@@ -1,5 +1,7 @@
 """Compare original and bounded-memory TabICL inference; no model training."""
 import copy
+from hashlib import sha256
+from importlib.metadata import version
 import json
 from pathlib import Path
 from itertools import product
@@ -39,13 +41,13 @@ def main():
                        col_ssmax=ssmax, row_num_blocks=2, row_nhead=2,
                        row_num_cls=2, icl_num_blocks=2, icl_nhead=2,
                        icl_ssmax=ssmax, zero_init=False).eval()
-        X_train = torch.randn(2, 19, 11)
-        X_test = torch.randn(2, 7, 11)
+        X_train = torch.randn(2, 19, 12)
+        X_test = torch.randn(2, 7, 12)
         y = torch.randint(0, 2, (2, 19))
         X = torch.cat([X_train, X_test], dim=1)
         with torch.inference_mode():
             ordinary = model(X.clone(), y.clone(), inference_config=config)
-            with cpu_batched_tabicl(column_batch_size=3, row_batch_size=5, icl_batch_size=1):
+            with cpu_batched_tabicl(column_batch_size=1, row_batch_size=8, icl_batch_size=1):
                 bounded = model(X.clone(), y.clone(), inference_config=config)
             torch.testing.assert_close(ordinary, bounded, rtol=2e-5, atol=2e-6)
             checks.append({"grouping": groups, "attention_scaling": ssmax, "mode": "uncached",
@@ -60,7 +62,7 @@ def main():
                                                             cache=reference_cache,
                                                             inference_config=config)
                 model.clear_cache()
-                with cpu_batched_tabicl(column_batch_size=3, row_batch_size=5, icl_batch_size=1):
+                with cpu_batched_tabicl(column_batch_size=1, row_batch_size=8, icl_batch_size=1):
                     model.forward_with_cache(X_train=X_train.clone(), y_train=y.clone(),
                                              store_cache=True, use_cache=False,
                                              cache_mode=mode, inference_config=config)
@@ -78,9 +80,13 @@ def main():
                                "cache_tensors_compared": len(a),
                                "max_cache_abs_error": max(float((a[k]-b[k]).abs().max()) for k in a)})
     result = {"passed": True, "torch_version": torch.__version__,
+              "tabicl_version": version("tabicl"),
+              "script_sha256": sha256(Path(__file__).read_bytes()).hexdigest(),
+              "adapter_sha256": sha256(Path(__file__).with_name("bear_tabicl_cpu_batching.py").read_bytes()).hexdigest(),
+              "stage_batch_limits": {"column": 1, "row": 8, "icl": 1}, "input_features": 12,
               "tolerance": {"rtol": 2e-5, "atol": 2e-6}, "checks": checks}
     path = Path(__file__).with_name("comparison-results") / "cpu-batching-check.json"
-    path.write_text(json.dumps(result, indent=2))
+    path.write_text(json.dumps(result, indent=2)+'\n')
     print(json.dumps(result, indent=2))
 
 
