@@ -276,7 +276,7 @@ export function createInterpretationScenes({m, line, rect, C}) {
     const cards = [
       {y: 25, color: blue, title: 'Inspect the computation', first: 'Which head, layer, and destination?', second: 'Attention shows a particular mixing operation.'},
       {y: 189, color: teal, title: 'Test the prediction', first: 'Edit a word or phrase, then rerun.', second: 'Compare score changes or output attribution.'},
-      {y: 353, color: rust, title: 'Optional case · LiDDA', first: 'Normalized attention assigns credit.', second: 'Credit allocation is not incremental impact.'},
+      {y: 353, color: rust, title: 'LiDDA', first: 'Normalized attention assigns credit.', second: 'Credit allocation is not incremental impact.'},
     ];
     return cards.map(({y, color, title, first, second}) => panel(28, y, 584, 143, '#fff', rule)
       + rect(28, y, 5, 143, color, 'none', 2)
