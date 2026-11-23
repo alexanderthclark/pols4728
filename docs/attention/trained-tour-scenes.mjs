@@ -199,7 +199,7 @@ export function createGuidedTrainedScenes(drawing, data) {
       out += '</g>';
     }
     out += `<g opacity="${selection}">`;
-    out += label('Head', 28, 72, 18, C.muted);
+    out += label('Head', 24, 101, 16, C.muted);
     out += label('All token positions, including [CLS] and [SEP]', 198, 417, 18, C.muted);
     out += line(364, y, 373, y, C.blue, 1.6) + line(373, y, 373, y + heads * rowHeight, C.blue, 1.6) + line(364, y + heads * rowHeight, 373, y + heads * rowHeight, C.blue, 1.6);
     out += arrow(373, 260, 417, 260, C.blue);
