@@ -1,9 +1,9 @@
 import {createTrainedScenes} from './trained-scenes.mjs?v=attention-trained-model-6';
 import {buildExplorer} from './trained-explorer.mjs?v=attention-trained-model-5';
-import {createSocksScenes} from './socks-scenes.mjs?v=attention-sequence-2';
-import {createExtensionScenes} from './extension-scenes.mjs?v=attention-sequence-2';
-import {createInterpretationScenes} from './interpretation-scenes.mjs?v=attention-matrix-2';
-import {createSentenceScenes} from './sentence-scenes.mjs?v=attention-stream-polish-3';
+import {createSocksScenes} from './socks-scenes.mjs?v=attention-notation-8';
+import {createExtensionScenes} from './extension-scenes.mjs?v=attention-notation-8';
+import {createInterpretationScenes} from './interpretation-scenes.mjs?v=attention-notation-8';
+import {createSentenceScenes} from './sentence-scenes.mjs?v=attention-notation-8';
 
 const C={ink:'#242424',blue:'#234e70',rust:'#a54f32',teal:'#007f73',purple:'#7b4f9d',muted:'#606060',rule:'#dededb'};
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');

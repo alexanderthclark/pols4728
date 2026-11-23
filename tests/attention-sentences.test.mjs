@@ -35,7 +35,7 @@ test('the schematic retains the residual update and reads out the final stream',
   equations.length = 0;
   const final = scenes.at(-1).draw(1);
   assert.match(final, /MLP/);
-  assert.ok(equations.includes('YW_O'));
+  assert.ok(equations.includes('AXW_1W_2'));
   assert.ok(equations.includes('r=\\operatorname{mean}_i(X_2)_i'));
   assert.ok(equations.includes('z=b+r\\beta'));
   assert.match(scenes.find(s => s.id === 'sentence-entry').detail, /no claim.*large weight/);

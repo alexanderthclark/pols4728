@@ -26,16 +26,16 @@ export function socksAttention({ reverse = false, position = true, uniform = fal
   const A = uniform
     ? S.map((row, i) => row.map((_, j) => causal ? (j <= i ? 1 / (i + 1) : 0) : 1 / row.length))
     : maskedScores.map(softmax);
-  const Y = matmul(A, V);
+  const U = matmul(A, V);
   const AX = matmul(A, X);
   // A separate bridge to an attention contribution in the input feature space.
-  // The worked task's readout below still uses Y, not updatedX.
-  const deltaX = matmul(Y, SOCKS_WO);
+  // The worked task's readout below still uses U, not updatedX.
+  const deltaX = matmul(U, SOCKS_WO);
   const updatedX = X.map((row, i) => row.map((value, j) => value + deltaX[i][j]));
-  const pooled = (Y[0][0] + Y[1][0]) / 2;
+  const pooled = (U[0][0] + U[1][0]) / 2;
   const prediction = 2 * pooled - .5;
   // In the default bidirectional construction, the readout gives 0 for
   // socks→shoes and -1 for shoes→socks. Causal masking changes those outputs.
   // No residual is needed for the readout: the original position mean is zero.
-  return { tokens, X, Q, K, S, maskedScores, A, V, Y, AX, deltaX, updatedX, pooled, prediction };
+  return { tokens, X, Q, K, S, maskedScores, A, V, U, AX, deltaX, updatedX, pooled, prediction };
 }

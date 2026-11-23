@@ -48,7 +48,7 @@ export function attention({ causal = false, scale = 1, input = X } = {}) {
   const maskedScores = S.map((row, i) => row.map((value, j) => causal && j > i ? -Infinity : value));
   const A = maskedScores.map(softmax);
   const AX = matmul(A, input);
-  const Y = matmul(A, V);
-  const head = matmul(Y, WO);
-  return { X: input, Q, K, rawScores, S, maskedScores, A, V, Y, AX, head };
+  const U = matmul(A, V);
+  const head = matmul(U, WO);
+  return { X: input, Q, K, rawScores, S, maskedScores, A, V, U, AX, head };
 }

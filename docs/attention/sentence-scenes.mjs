@@ -72,7 +72,7 @@ export function createSentenceScenes({m, line, rect, C}) {
       +label('MLP',62,244,28,rust,'start')+label('shared across tokens',62,273,21,muted,'start')
       +join(sx,328,teal)+join(sx,190,rust)
       +'<g aria-label="Residual stream">'+label('Residual',461,370,24,blue,'start')+label('stream',461,399,24,blue,'start')+'</g>';
-    out+=writeUpdate?label('Attention update',62,381,25,teal,'start')+math('YW_O',184,424,220,52,34,teal)
+    out+=writeUpdate?label('Attention update',62,381,25,teal,'start')+math('AXW_1W_2',184,424,250,52,30,teal)
       :label('Attention',62,390,28,teal,'start')+label('one head shown',62,420,21,muted,'start')
         +'<g class="attention-matrix-inset" aria-label="Symbolic ten by ten attention matrix A">'
         +featureMatrix(inset.x,inset.y,10,10,teal,inset.cell,inset.gap)+math('A',inset.labelX,inset.labelY,45,34,25,teal)+'</g>';
@@ -102,9 +102,10 @@ export function createSentenceScenes({m, line, rect, C}) {
       +opacity((p-.8)/.2,label('One attention head',399.5,121,28,teal))
       +math('A',lerp(inset.labelX,286,p),lerp(inset.labelY,157,p),100,51,lerp(25,32,p),teal)
       +featureMatrix(lerp(inset.x,236,p),lerp(inset.y,180,p),10,10,teal,lerp(inset.cell,8,p),lerp(inset.gap,2,p));
-    if(p>.9)out+=opacity((p-.9)/.1,math('\\times',374,228,54,55,35)+math('V',491,157,100,51,32,blue)+featureMatrix(461,180,10,6,blue,8,2)
-      +math('Y=AV',399,320,330,68,34,teal)+arrow(399,346,399,369,teal)+math('\\Delta X=YW_O',399,408,370,68,34,teal)
-      +label('Update to the residual stream',399,455,23,muted));
+    if(p>.9)out+=opacity((p-.9)/.1,math('\\times',374,228,54,55,35)+math('V=XW_1',491,157,202,51,29,blue)+featureMatrix(461,180,10,6,blue,8,2)
+      +label('Mix source values',399,307,21,muted)+math('U=AV',399,341,330,54,32,teal)
+      +arrow(399,367,399,377,teal)+math('\\Delta X=UW_2',399,409,370,55,32,teal)
+      +label('Write back to the stream',399,455,23,muted));
     return out;
   }
   const zoomHead=t=>opacity(1-.88*ease(t),architecture(0,{showMotion:false}))+expandedHead(t)+opacity(ease(t),locationMarker(19,31));
@@ -138,7 +139,7 @@ export function createSentenceScenes({m, line, rect, C}) {
   function combineValues(t) {
     const total=clamp(t)*10,active=Math.min(9,Math.floor(total)),p=ease(total-Math.floor(total));
     let out=label('Source',115,47,25)+math('V',239,42,100,55,32,blue)+label('Weight',355,47,25,teal)
-      +label('Good',543,214,26,teal)+box(486,234,120,82,teal,'#fff',2)+math('y_1',546,275,104,67,40,teal);
+      +label('Good',543,214,26,teal)+box(486,234,120,82,teal,'#fff',2)+math('u_1',546,275,104,67,40,teal);
     WORD_TOKENS.forEach((word,j)=>{const y=100+j*38,color=j===active?teal:muted;
       out+=label(word,173,y+7,22,j===active?ink:muted,'end')+math(`v_{${j+1}}`,240,y,98,39,27,blue)+math(`a_{1,${j+1}}`,355,y,115,39,27,color)
         +opacity(j===active?1:.18,arrow(410,y,475,275,color,j===active?2.4:1));
@@ -151,15 +152,16 @@ export function createSentenceScenes({m, line, rect, C}) {
     {id:'sentence-stream',part:'01 · From a sentence to a score',label:'',title:'Follow the residual stream.',
       caption:'Each token carries a row of features. Attention and an MLP add updates; a readout scores the final sentence.',
       equation:'r=\\frac1T\\sum_i(X_2)_i,\\qquad z=b+r\\beta',
-      detail:'One encoder block; one head shown. Normalization omitted. A is symbolic, with no measured weights. Readings are labels, not model outputs.',
+      detail:'One encoder block; one head shown. Normalization and attention biases omitted. A is symbolic, with no measured weights. Readings are labels, not model outputs.',
       visual:'The attention matrix A sits on the branch that adds an update to the blue residual stream.',quotes:SENTENCE_EXAMPLES,draw:architecture},
     {id:'sentence-contrast',part:'01 · From a sentence to a score',label:'',title:'“Good” is not enough.',
       caption:'The first sentence rejects “good”; the second says “better than good.” Negation changes meaning through its surrounding phrase.',
       equation:'z=f(\\text{whole sentence})',detail:'The task is sentiment toward Infinite Jest. These qualitative readings are not outputs from a fitted model.',
       visual:'Shared words can occur in sentences with opposite sentiment.',draw:compareSentences,discretePhases:true},
     {id:'sentence-head',part:'02 · Inside attention',label:'',title:'Open one attention head.',
-      caption:'This branch reads the residual stream, combines information across token positions, and writes an update back.',
-      equation:'Y=AV,\\qquad\\Delta X=YW_O',detail:'The output projection returns the head’s output to the residual stream’s feature width.',
+      caption:'X holds one feature row per token. W₁ forms values, A mixes them across positions, and W₂ maps the mixtures back to the stream.',
+      equation:'\\Delta X=AXW_1W_2',
+      detail:'In Q/K/V notation, <span data-math="W_1=W_V"></span> and <span data-math="W_2=W_O"></span>. The values <span data-math="V=XW_1"></span> and mixtures <span data-math="U=AV"></span> are feature vectors, not outcome labels.',
       visual:'The highlighted branch remains attached to its place in the architecture.',draw:zoomHead},
     {id:'sentence-matrix',part:'02 · Inside attention',label:'',title:'Pull out the attention matrix.',
       caption:'Each row is a destination. Each column is a source. Both axes refer to positions in the first sentence.',equation:'A=(a_{ij})',
@@ -175,12 +177,12 @@ export function createSentenceScenes({m, line, rect, C}) {
       detail:'Weights are nonnegative. Rows sum to one; columns generally do not. The matrix need not be symmetric.',
       visual:'The weights are symbolic; cell shading does not encode invented values.',draw:readRow},
     {id:'sentence-values',part:'03 · Read the matrix',label:'',title:'Mix the value vectors.',
-      caption:'Each source supplies a value vector. Multiply it by the corresponding row weight, then add the vectors.',
-      equation:'y_1=\\sum_{j=1}^{10}a_{1j}v_j,\\qquad Y=AV',
+      caption:'Each source supplies a value vector: its feature row transformed by W₁. Multiply each value by its row weight, then add the vectors.',
+      equation:'u_1=\\sum_{j=1}^{10}a_{1j}v_j,\\qquad U=AV',
       detail:'This produces one output vector at each destination. At later layers, source vectors can already contain context from other positions.',
       visual:'The matrix of weights acts on the matrix of source values.',draw:combineValues},
     {id:'sentence-return',part:'04 · Return to the prediction',label:'',title:'Write the update back.',
-      caption:'Project the attention outputs to stream width and add them. After the MLP update, pooling and a readout produce the sentence score.',equation:'\\Delta X=YW_O',
+      caption:'W₂ maps the mixtures back to stream width; add them to X. After the MLP update, pooling and a readout produce the sentence score.',equation:'X_1=X_0+AX_0W_1W_2',
       detail:'The attention branch supplies an update, not the final score. In a multi-head block, all projected head updates are added.',
       visual:'Final token rows feed the sentence summary and classifier; no numerical sentiment score is claimed here.',draw:t=>architecture(t,{writeUpdate:true})},
   ];

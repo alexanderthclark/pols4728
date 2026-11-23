@@ -25,7 +25,7 @@ legibility the first sentence is shown as ten word-level units, with an explicit
 note that an actual tokenizer may split them further.
 
 The thirteen-scene numerical classifier follows in the main scroll sequence.
-It starts from a complete three-by-three matrix, computes Y=AV, mean-pools the
+It starts from a complete three-by-three matrix, computes U=AV, mean-pools the
 output rows into h, and applies a linear readout. This separate constructed
 example omits residual paths and MLPs; h is not the final residual state in the
 main architecture. Its interpretation comparisons and exact arithmetic remain.
@@ -44,16 +44,19 @@ to left-to-right prediction to motivate causal masking and renormalization. The
 former seventeen-scene four-token restart has been removed.
 
 X is T × d; Q = X WQ; K = X WK; A = row-softmax(Q Kᵀ / sqrt(dk) + M);
-V = X WV; Y = A V. A's rows are destinations and columns are sources.
-For a representation update, deltaX = Y WO and X′ = X + deltaX. This update
-illustration does not replace the original task's Y-based readout. The later
+V = X WV; U = A V. A's rows are destinations and columns are sources. U contains mixed feature
+rows, not outcome labels; actual targets and predictions retain y notation.
+The opening uses W1 = WV and W2 = WO, so V = X W1 and
+deltaX = A X W1 W2. Attention biases and normalization are omitted in this
+schematic. The maps are shared across token positions.
+For a representation update, deltaX = U WO and X′ = X + deltaX. This update
+illustration does not replace the original task's U-based readout. The later
 causal example changes the information available, and does not retain the
 original task's target-score claim. The new opening locates attention in a simplified encoder block; the separate residual-stream lesson treats the architecture in more detail.
 
 Primary reference: Elhage et al. (2021), A Mathematical Framework for Transformer
 Circuits. Secondary: Prince, Understanding Deep Learning, chapter 12 §§12.2–12.3.
-The page explains the transpose convention and includes the exact toy maps. Grant Sanderson’s attention lesson is an additional visual reference. A
-broader notation harmonization with the course notes remains for a later pass.
+The page explains the transpose convention and includes the exact toy maps. Grant Sanderson’s attention lesson is an additional visual reference. The opening connects the course’s W1/W2 notation directly to the Q/K/V maps.
 
 ## Measured Infinite Jest results
 
@@ -102,8 +105,8 @@ K=sqrt(3)*transpose(log(A)), with entrywise logarithms, give scaled scores
 QKᵀ/sqrt(3)=log(A). Row-wise softmax realizes the displayed matrix exactly.
 
 Values are V=[[0.1,4],[0,1],[-8,2]]. The three attention outputs are
-Y=AV=[[-.32,3.45],[-.74,2.90],[-1.16,2.35]]. Mean pooling gives the sentence
-summary h=mean(Y)=[-.74,2.90]. Equivalently, h=sum_j alpha_j*v_j, where
+U=AV=[[-.32,3.45],[-.74,2.90],[-1.16,2.35]]. Mean pooling gives the sentence
+summary h=mean(U)=[-.74,2.90]. Equivalently, h=sum_j alpha_j*v_j, where
 alpha_j=mean_i(a_ij): the effective source weights are the column means
 [.60,.30,.10], computed across all destinations rather than selected from one row.
 A column readout beta=[1,0]ᵀ and zero intercept give logit -.74 and
@@ -139,8 +142,8 @@ choose fixed position vectors supported on the third coordinate for this example
 token embeddings have zero in that coordinate. Position is +1 in the first slot
 and -1 in the second. Fixed projections read
 q=shoes, k=log(3)*socks, and v=position. Thus shoes allocates 75% to socks and
-25% to itself; socks allocates 50% to each. With Y=AV and readout
-2*mean(Y)-0.5, the predictions are 0 for socks→shoes and -1 for shoes→socks.
+25% to itself; socks allocates 50% to each. With U=AV and readout
+2*mean(U)-0.5, the predictions are 0 for socks→shoes and -1 for shoes→socks.
 No causal mask, feed-forward network, residual, or normalization is needed for
 the initial constructed task. The parameters are chosen, not trained. The later
 update illustration uses WO=[0,0,1], producing deltaX=[[0,0,0],[0,0,0.5]]

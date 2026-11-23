@@ -116,8 +116,8 @@ test('all thirteen scenes render deterministically, including reversible discret
   for (const id of ['mixture', 'readout']) {
     assert.notEqual(sceneById(id).draw(.1), sceneById(id).draw(.9));
   }
-  assert.match(sceneById('mixture').draw(.5), /y_\{1,\\mathrm\{partial\}\}/);
-  assert.match(sceneById('mixture').draw(1), /y_1=\\left\[-0\.32,\\;3\.45\\right\]/);
+  assert.match(sceneById('mixture').draw(.5), /u_\{1,\\mathrm\{partial\}\}/);
+  assert.match(sceneById('mixture').draw(1), /u_1=\\left\[-0\.32,\\;3\.45\\right\]/);
   assert.match(sceneById('readout').draw(1), /32\.3\\%/);
 });
 

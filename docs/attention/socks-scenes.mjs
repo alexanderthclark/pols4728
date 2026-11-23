@@ -1,4 +1,4 @@
-import { socksAttention } from './socks-model.mjs?v=attention-sequence-2';
+import { socksAttention } from './socks-model.mjs?v=attention-notation-8';
 
 // Introductory construction: chosen weights, exact arithmetic, and no causal mask.
 // The supplied drawing helpers keep math in the lesson's shared LaTeX renderer.
@@ -188,16 +188,16 @@ export function createSocksScenes({m,text,line,rect,circle,C,ease,lerp,clamp,num
     out+=rect(253,274,98,44,'#fff')+m('\\tfrac34',302,297,90,60,29,blue);
     out+=rect(253,354,98,44,'#fff')+m('\\tfrac14',302,377,90,60,29,rust);
     out+=text('socks',xt,ys[0]-39,26,blue)+text('shoes',xt,ys[1]-39,26,rust);
-    out+=m('y_1=0',xt,ys[0]+7,230,65,34,blue)+m('y_2=\\tfrac12',xt,ys[1]+7,230,65,34,rust);
+    out+=m('u_1=0',xt,ys[0]+7,230,65,34,blue)+m('u_2=\\tfrac12',xt,ys[1]+7,230,65,34,rust);
     out+=m('\\tfrac34(+1)+\\tfrac14(-1)=\\tfrac12',320,503,620,65,30,rust);
     return out;
   }
   function prediction(t) {
     let out=text('Both destination rows contribute.',320,54,25,C.muted);
-    out+=cellMatrix(forward.Y,{x:92,y:139,cw:100,ch:98})+m('Y',142,102,100,50,35,C.blue);
+    out+=cellMatrix(forward.U,{x:92,y:139,cw:100,ch:98})+m('U',142,102,100,50,35,C.blue);
     out+=line(223,236,303,236,C.muted,1.5,'marker-end="url(#arrow)"');
-    out+=m('\\bar y=\\tfrac14',393,235,240,90,35,C.teal)+text('average the two rows',393,307,23,C.muted);
-    out+=svgGroup(m('\\hat y=2\\bar y-\\tfrac12=0',320,416,600,92,38,C.blue),ease(t));
+    out+=m('\\bar u=\\tfrac14',393,235,240,90,35,C.teal)+text('average the two rows',393,307,23,C.muted);
+    out+=svgGroup(m('\\hat y=2\\bar u-\\tfrac12=0',320,416,600,92,38,C.blue),ease(t));
     out+=text('The task score matches the socks-first target.',320,501,23,C.muted);
     return out;
   }
@@ -209,7 +209,7 @@ export function createSocksScenes({m,text,line,rect,circle,C,ease,lerp,clamp,num
     out+=text('first',175,240,24,C.muted)+text('second',465,240,24,C.muted);
     out+=m('p_1=+1',175,285,190,50,29,blue)+m('p_2=-1',465,285,190,50,29,rust);
     if(done){
-      out+=m('Y='+array(reverse.Y),170,384,290,128,33,C.rust);
+      out+=m('U='+array(reverse.U),170,384,290,128,33,C.rust);
       out+=m('\\hat y=2(-\\tfrac14)-\\tfrac12=-1',432,402,390,110,28,C.rust);
     } else {
       out+=text('Queries and keys stay tied to identity.',320,380,24,C.muted);
@@ -238,8 +238,8 @@ export function createSocksScenes({m,text,line,rect,circle,C,ease,lerp,clamp,num
     {part:'02 · Construct one attention head',label:'Turn scores into weights',title:'Three parts socks, one part shoes.',caption:'Exponentiating the two scores gives three and one. Dividing by their total gives the shoes row weights of three quarters and one quarter.',equation:'\\operatorname{softmax}([\\log3\\;0])=[\\tfrac34\\;\\tfrac14]',detail:'The weights sum to one. They describe how much the shoes destination reads from each source.',visual:'The scroll shows exact scores, exponentials, and normalized weights in turn.',draw:softmax,discretePhases:true},
     {part:'02 · Construct one attention head',label:'Now include the socks destination',title:'Every destination gets a row.',caption:'The socks query is zero, so its scores tie and its weights are equal. Stack both distributions into the attention matrix.',equation:'A='+array([['\\tfrac12','\\tfrac12'],['\\tfrac34','\\tfrac14']]),detail:'Rows are destinations and columns are sources. Multiplying this matrix from the left mixes the rows of the input.',visual:'The full-row mixture is AX; the next step chooses which feature to carry.',draw:allAttention},
     {part:'02 · Construct one attention head',label:'Choose what the sources contribute',title:'Carry the position as the value.',caption:'The key identifies which source is socks. The value tells us where that source occurred. Choose a value map that carries only the position coordinate.',equation:'V=XW_V',detail:'Our source preference follows identity, while the information being mixed is position. The same input row supplies both through different maps.',visual:'The attention weights stay fixed while the value map selects the carried feature.',draw:carryPosition},
-    {part:'02 · Construct one attention head',label:'Apply the weighted sum',title:'Shoes receives a trace of where socks was.',caption:'The socks destination averages the two positions to zero. The shoes destination puts more weight on socks and receives one half.',equation:'Y=AV',detail:'The matrix multiplication happens from the left. Each destination row is a weighted sum of source values.',visual:'The highlighted calculation is the shoes destination, which reads 75% from socks.',draw:weightedValues},
-    {part:'03 · Read the task score',label:'A separate, simple readout',title:'Turn the two outputs into one score.',caption:'Average both destination outputs, then apply a fixed scoring rule. For socks before shoes, the resulting prediction is zero.',equation:'\\hat y=2\\bar y-\\tfrac12',detail:'The averaging and scoring rule are the task readout. They are specified separately from the attention operation.',visual:'Attention gives outputs zero and one half; their average is one quarter.',draw:prediction},
+    {part:'02 · Construct one attention head',label:'Apply the weighted sum',title:'Shoes receives a trace of where socks was.',caption:'The socks destination averages the two positions to zero. The shoes destination puts more weight on socks and receives one half.',equation:'U=AV',detail:'The matrix multiplication happens from the left. Each destination row is a weighted sum of source values.',visual:'The highlighted calculation is the shoes destination, which reads 75% from socks.',draw:weightedValues},
+    {part:'03 · Read the task score',label:'A separate, simple readout',title:'Turn the two outputs into one score.',caption:'Average both destination outputs, then apply a fixed scoring rule. For socks before shoes, the resulting prediction is zero.',equation:'\\hat y=2\\bar u-\\tfrac12',detail:'The averaging and scoring rule are the task readout. They are specified separately from the attention operation.',visual:'Attention gives outputs zero and one half; their average is one quarter.',draw:prediction},
     {part:'03 · Read the task score',label:'Use exactly the same parameters',title:'Reverse the order. Keep the rule.',caption:'Socks now supplies the value minus one. Shoes still reads mostly from socks, so its output becomes minus one half and the final prediction becomes minus one.',equation:'\\hat y=-1',detail:'Queries and keys move with token identity. The position values remain attached to the first and second slots.',visual:'Only the token order changes; all projection maps and the scoring rule remain fixed.',draw:swapped},
     {part:'03 · Read the task score',label:'What makes the distinction possible',title:'We need position and selective mixing.',caption:'Remove position, or make both attention rows uniform, and the two orders collapse to the same prediction. The useful signal needs both ingredients.',equation:'\\hat y=-\\tfrac12\\quad\\text{for both orders}',detail:'This construction demonstrates how attention can move information that makes order distinguishable. It does not imply that every learned head follows this rule.',visual:'Scroll to compare removing position with replacing attention by uniform weights.',draw:ablations,discretePhases:true}
   ];

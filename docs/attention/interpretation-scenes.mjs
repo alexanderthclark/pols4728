@@ -108,32 +108,32 @@ export function createInterpretationScenes({m, line, rect, C}) {
       + math('\\times', 336, 147, 60, 60, 32, ink)
       + math(texMatrix(negative.values), 478, 146, 250, 162, 27, teal)
       + arrow(320, 246, 320, 285)
-      + math('Y', 320, 312, 110, 50, 34, blue);
+      + math('U', 320, 312, 110, 50, 34, blue);
     negative.outputs.forEach((output, i) => {
       const y = 363 + i * 70;
       out += label(negative.tokens[i], 142, y + 8, 28, ink, 'end')
         + panel(174, y - 27, 405, 56, i === count - 1 ? '#edf3f6' : '#fff', rule)
-        + math(i < count ? `y_${i+1}=${texVector(output)}` : `y_${i+1}`, 375, y, 390, 53, 29, blue);
+        + math(i < count ? `u_${i+1}=${texVector(output)}` : `u_${i+1}`, 375, y, 390, 53, 29, blue);
     });
     return out;
   }
   function poolOutputs(t) {
     const total = clamp(t) * 3;
     const active = Math.min(2, Math.floor(total));
-    let out = label('Attention output Y', 320, 40, 27, blue);
+    let out = label('Attention output U', 320, 40, 27, blue);
     negative.outputs.forEach((output, i) => {
       const y = 100 + i * 77;
       out += label(negative.tokens[i], 135, y + 8, 27, ink, 'end')
-        + math(`y_${i+1}=${texVector(output)}`, 372, y, 430, 58, 29, blue);
+        + math(`u_${i+1}=${texVector(output)}`, 372, y, 430, 58, 29, blue);
     });
     out += arrow(320, 288, 320, 347)
       + label('mean of the three rows', 449, 321, 23, muted)
       + panel(62, 361, 516, 125, '#edf3f6')
       + label('Sentence summary', 320, 398, 27, blue)
-      + math(total >= 3 ? `h=${texVector(negative.output)}` : 'h=\\frac{y_1+y_2+y_3}{3}', 320, 446, 488, 70, 33, blue)
+      + math(total >= 3 ? `h=${texVector(negative.output)}` : 'h=\\frac{u_1+u_2+u_3}{3}', 320, 446, 488, 70, 33, blue)
       + label('This is the vector the classifier will read.', 320, 529, 24, muted);
     if (total < 3) {
-      out += packet(`\\tfrac13 y_${active+1}`, 212, lerp(100+active*77, 339, ease(total-active)), 120, teal);
+      out += packet(`\\tfrac13 u_${active+1}`, 212, lerp(100+active*77, 339, ease(total-active)), 120, teal);
     }
     return out;
   }
@@ -149,7 +149,7 @@ export function createInterpretationScenes({m, line, rect, C}) {
       + math('A', 176, 400, 120, 65, 42, blue)
       + arrow(476, 285, 476, 408)
       + arrow(211, 405, 416, 462)
-      + math('Y=AV', 467, 469, 245, 65, 36, teal);
+      + math('U=AV', 467, 469, 245, 65, 36, teal);
     return out + `<circle cx="176" cy="${lerp(288,358,ease(t))}" r="7" fill="${blue}"/>`;
   }
   function mixture(t) {
@@ -170,7 +170,7 @@ export function createInterpretationScenes({m, line, rect, C}) {
     });
     out += panel(81, 400, 478, 101, '#edf3f6')
       + label(completed === 3 ? 'The complete sum' : `${completed} of 3 weighted vectors added`, 320, 429, 23, blue)
-      + math(`${completed === 3 ? 'y_1' : 'y_{1,\\mathrm{partial}}'}=${texVector(partial)}`, 320, 472, 460, 62, 32, blue)
+      + math(`${completed === 3 ? 'u_1' : 'u_{1,\\mathrm{partial}}'}=${texVector(partial)}`, 320, 472, 460, 62, 32, blue)
       + label('Each arriving vector adds to both coordinates.', 320, 532, 22, muted);
     if (completed < 3) {
       out += packet(texVector(weightedValues[active]), lerp([130, 320, 510][active], 320, progress), lerp(276, 373, progress), 181, active === 2 ? rust : teal);
@@ -307,14 +307,14 @@ export function createInterpretationScenes({m, line, rect, C}) {
       visual: 'Values carry information; attention weights determine how it is mixed.', draw: sourceValues},
     {id: 'mixture', part: '02 · What the matrix does', label: '', title: 'One row makes one output.',
       caption: 'Multiply each source value by the weight in the “film” row, then add. The result stays at the “film” position.',
-      equation: 'y_1=.80v_1+.15v_2+.05v_3',
+      equation: 'u_1=.80v_1+.15v_2+.05v_3',
       detail: 'Each destination uses its own attention row to combine the same source values.',
       visual: 'The output at film is [−0.32, 3.45]. It is a feature vector, not a class probability.', draw: mixture},
     {id: 'outputs', part: '02 · What the matrix does', label: '', title: 'Every token gets an output.',
-      caption: 'Repeat with every row of A. Matrix multiplication collects the output vectors into Y.',
-      equation: '\\underbrace{A}_{3\\times3}\\underbrace{V}_{3\\times2}=\\underbrace{Y}_{3\\times2}',
+      caption: 'Repeat with every row of A. Matrix multiplication collects the output vectors into U.',
+      equation: '\\underbrace{A}_{3\\times3}\\underbrace{V}_{3\\times2}=\\underbrace{U}_{3\\times2}',
       detail: 'In a transformer, these rows feed into representation updates and subsequent processing.',
-      visual: 'A is the matrix of weights. Y is the matrix of attention outputs.', draw: allOutputs},
+      visual: 'A is the matrix of weights. U is the matrix of attention outputs.', draw: allOutputs},
     {id: 'roles', part: '02 · What the matrix does', label: '', title: 'Where do the weights come from?',
       caption: 'Queries and keys determine A by matching destinations to sources. Values supply the information that A combines.',
       equation: 'A=\\operatorname{softmax}_{\\mathrm{row}}(QK^\\top/\\sqrt{d_k})',
@@ -322,9 +322,9 @@ export function createInterpretationScenes({m, line, rect, C}) {
       visual: 'Matching produces the weights; multiplying by V produces the outputs.', draw: roles},
     {id: 'pooling', part: '03 · From outputs to a prediction', label: '', title: 'Make a sentence summary.',
       caption: 'For this classifier, average the three output vectors. Call this sentence summary h.',
-      equation: 'h=\\frac13(y_1+y_2+y_3)',
-      detail: 'Mean pooling is our chosen readout design; attention itself returns all three rows of Y.',
-      visual: 'Y supplies the token outputs. Their mean h goes to the classifier.', draw: poolOutputs},
+      equation: 'h=\\frac13(u_1+u_2+u_3)',
+      detail: 'Mean pooling is our chosen readout design; attention itself returns all three rows of U.',
+      visual: 'U supplies the token outputs. Their mean h goes to the classifier.', draw: poolOutputs},
     {id: 'readout', part: '03 · From outputs to a prediction', label: '', title: 'The classifier reads h.',
       caption: 'This classifier reads the first feature of h. Its score is −0.74; the sigmoid converts that score to a probability.',
       equation: 'z=h\\beta,\\quad\\beta=[1,0]^{\\mathsf T},\\quad p=\\sigma(z)',

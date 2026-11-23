@@ -37,29 +37,29 @@ test('query dot key, scaling, and softmax agree with the thanked-row hand calcul
 });
 
 test('left multiplication mixes complete token rows and value projection commutes with mixing', () => {
-  const { A, AX, V, Y, head } = attention();
+  const { A, AX, V, U, head } = attention();
   assert.equal(AX.length, 4);
   assert.equal(AX[0].length, 3);
-  assert.equal(Y.length, 4);
-  assert.equal(Y[0].length, 2);
+  assert.equal(U.length, 4);
+  assert.equal(U[0].length, 2);
   assert.equal(head[0].length, 3);
   for (let i = 0; i < 4; i++) {
     nearRow(AX[i], [2 * A[i][1], A[i][2] + 2 * A[i][3], 1]);
-    nearRow(Y[i], [AX[i][0] + .5, AX[i][1] - .5]);
-    nearRow(head[i], [Y[i][0], Y[i][1], 0]);
-    nearRow(matmul(AX, WV)[i], Y[i]);
+    nearRow(U[i], [AX[i][0] + .5, AX[i][1] - .5]);
+    nearRow(head[i], [U[i][0], U[i][1], 0]);
+    nearRow(matmul(AX, WV)[i], U[i]);
   }
   assert.deepEqual(V, matmul(X, WV));
   assert.deepEqual(matmul(X, WQ), attention().Q);
   assert.deepEqual(matmul(X, WK), attention().K);
-  assert.deepEqual(matmul(Y, WO), head);
+  assert.deepEqual(matmul(U, WO), head);
   assert.deepEqual(transpose([[1, 2, 3], [4, 5, 6]]), [[1, 4], [2, 5], [3, 6]]);
 });
 
 test('causal mask includes self, excludes future keys, and renormalizes allowed scores', () => {
-  const { A, maskedScores, Y, V } = attention({ causal: true });
+  const { A, maskedScores, U, V } = attention({ causal: true });
   assert.deepEqual(A[0], [1, 0, 0, 0]);
-  nearRow(Y[0], V[0]);
+  nearRow(U[0], V[0]);
   for (let i = 0; i < A.length; i++) {
     near(A[i].reduce((sum, value) => sum + value, 0), 1);
     for (let j = 0; j < A.length; j++) {
@@ -81,10 +81,10 @@ test('changing a future representation cannot affect earlier causal outputs', ()
   for (let i = 0; i < 3; i++) {
     nearRow(changed.A[i], original.A[i]);
     nearRow(changed.AX[i], original.AX[i]);
-    nearRow(changed.Y[i], original.Y[i]);
+    nearRow(changed.U[i], original.U[i]);
     nearRow(changed.head[i], original.head[i]);
   }
-  assert.notDeepEqual(attention({ input: altered }).Y[2], attention().Y[2],
+  assert.notDeepEqual(attention({ input: altered }).U[2], attention().U[2],
     'unmasked attention can read the future representation');
 });
 
