@@ -1,4 +1,4 @@
-import {createIntuitionScenes} from './intuition-scenes.mjs?v=attention-parameters-14';
+import {createIntuitionScenes} from './intuition-scenes.mjs?v=attention-initial-state-15';
 import {createTrainedScenes} from './trained-scenes.mjs?v=attention-trained-model-6';
 import {buildExplorer} from './trained-explorer.mjs?v=attention-trained-model-5';
 import {createSocksScenes} from './socks-scenes.mjs?v=attention-notation-8';

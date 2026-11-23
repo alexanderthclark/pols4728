@@ -38,6 +38,31 @@ export function createIntuitionScenes({m, line, rect, C}) {
     }
   }
   const sentenceLine = (before,after,x,y) => `<text x="${x}" y="${y}" style="font-size:30px;fill:${ink}">${esc(before)}<tspan style="fill:${blue};text-decoration:underline;text-underline-offset:5px">desert</tspan>${esc(after)}</text>`;
+  function residualOverview(t) {
+    const additions=[
+      {y:300,name:'Attention',note:'mix across tokens',color:teal},
+      {y:155,name:'MLP',note:'transform each row',color:rust},
+    ];
+    let out=math('X_1',480,48,180,60,36,blue)
+      +path([[480,425],[480,312]],blue,3)
+      +path([[480,288],[480,167]],blue,3)
+      +path([[480,143],[480,80]],blue,3)
+      +label('Residual',552,220,22,blue)+label('stream',552,247,22,blue)
+      +math('X_0=SW+P',400,466,450,65,36,blue)
+      +label('token lookup + position',400,515,24,muted);
+    additions.forEach(({y,name,note,color},i)=>{
+      const route=[[480,y+110],[200,y+110],[200,y+81]];
+      const write=[[200,y+16],[200,y],[468,y]];
+      out+=path(route,color)+box(80,y+16,240,65,color,'#fff')
+        +label(name,200,y+45,27,color)+label(note,200,y+69,19,muted)
+        +path(write,color)
+        +`<circle cx="480" cy="${y}" r="12" fill="#fff" stroke="${color}" stroke-width="2"/>`
+        +line(474,y,486,y,color,2)+line(480,y-6,480,y+6,color,2);
+      const phase=clamp(t*2-i),points=phase<.5?route:write;
+      if(phase>0&&phase<1)out+=dot(...pointOnPath(points,ease((phase% .5)*2)),color);
+    });
+    return out+label('Repeat in the next block',250,58,24,muted);
+  }
   function sameWord(t) {
     const active=clamp(t)<.5?0:1;
     return `<g aria-label="${esc(DESERT_EXAMPLES[0].text)}">`
@@ -132,10 +157,15 @@ export function createIntuitionScenes({m, line, rect, C}) {
   }
 
   return [
+    {id:'residual-primer',part:'Before attention · The residual stream',label:'',title:'Start with the running token vectors.',
+      caption:'Each token begins with a lookup embedding and position information. Attention and MLP blocks read these running vectors and add updates.',
+      equation:'X_0=SW+P',
+      detail:'<span data-math="S"></span> selects tokens with one-hot rows; <span data-math="W"></span> is the learned embedding table; <span data-math="P"></span> adds position information. One block is shown; normalization is omitted.',
+      visual:'The residual stream carries token vectors forward while each branch adds an update.',draw:residualOverview},
     {id:'desert-senses',part:'Before attention · Meaning in context',label:'',title:'The same word, used differently.',
-      caption:'“Moral desert” concerns what someone deserves. A “taco bell desert” describes scarcity. The surrounding words tell us which use is intended.',
-      equation:'',
-      detail:'These are readings of the example sentences, not predictions from a model.',
+      caption:'At initialization, each “desert” token has the same lookup embedding. Its vector does not yet include the surrounding words that distinguish the two senses.',
+      equation:'X_0=SW+P',
+      detail:'Adding position can make the rows different, but does not mix in neighboring words.',
       visual:'Both complete sentences contain desert, with a different intended sense in each.',quotes:DESERT_EXAMPLES,draw:sameWord,discretePhases:true},
     {id:'desert-lookup',part:'Before attention · Meaning in context',label:'',title:'The lookup starts the same way.',
       caption:'The same token selects the same learned embedding vector in either sentence. That lookup alone does not select the sense of this occurrence.',

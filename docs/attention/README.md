@@ -5,8 +5,12 @@ The course homepage links to the lesson. Local fonts and KaTeX require no CDN.
 
 ## Scope and convention
 
-The lesson opens with its full illustrated title page, then five intuition
-scenes precede Infinite Jest. The first three contrast the two user-supplied desert sentences. They distinguish a
+The lesson opens with its full illustrated title page, then six intuition
+scenes precede Infinite Jest. A residual-stream overview first defines X_0=SW+P:
+one-hot token rows S select learned embedding rows from W, and P adds position.
+The next three scenes contrast the two user-supplied desert sentences. The
+comparison emphasizes that initial rows do not yet incorporate surrounding words;
+position can make the two rows different without contextualizing their meaning. They distinguish a
 shared token lookup vector from positional information and context-dependent
 updates. These are conceptual diagrams, not measured sense disambiguation or
 attention weights. Two further scenes separate learned W_Q, W_K, W_V, W_O
