@@ -3,18 +3,30 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Attention — How tokens share information · POLS 4728</title>
-<meta name="description" content="Compare two reviews of Infinite Jest, follow the residual stream to a sentiment score, and open one attention head to examine its matrix and token updates.">
-<link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="style.css?v=attention-comparison-7">
-<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs?v=attention-rows-12"></script>
+<meta name="description" content="Start with two meanings of desert, see how context changes token representations, then follow attention into Infinite Jest sentiment and a complete socks-and-shoes calculation.">
+<link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="style.css?v=attention-intuition-13">
+<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs?v=attention-intuition-13"></script>
 </head>
 <body>
 <a class="skip" href="#reading">Skip to the reading version</a>
 <header><a href="https://alexanderthclark.github.io/pols4728/">POLS 4728</a><span>Machine learning for political science</span><a href="#using-attention">Using attention</a><a href="#references">Sources</a></header>
 <main>
 <section class="hero" aria-labelledby="title">
-<div class="hero-copy"><p class="eyebrow">A visual lesson</p><h1 id="title">Attention</h1><p class="subtitle">How tokens share<br>information.</p><p class="intro">Follow the residual stream into attention.<br>Then work through every number with socks and shoes.</p><a class="begin" href="#story">Follow the information <span aria-hidden="true">↓</span></a><p class="route-link"><a href="#trained-model">Real model results</a> · <a href="#mechanics">Socks and shoes</a> · <a href="#numerical">A numerical classifier</a></p></div>
+<div class="hero-copy"><p class="eyebrow">A visual lesson</p><h1 id="title">Attention</h1><p class="subtitle">How tokens share<br>information.</p><p class="intro">Start with one word, two meanings.<br>Follow how context enters a token’s representation.</p><a class="begin" href="#intuition">Start with context <span aria-hidden="true">↓</span></a><p class="route-link"><a href="#story">Residual stream</a> · <a href="#trained-model">Real model results</a> · <a href="#mechanics">Socks and shoes</a> · <a href="#numerical">A numerical classifier</a></p></div>
 <figure class="hero-art"><img src="assets/attention-crowd-loudspeaker.png" width="1536" height="1024" alt="A crowd of round figures holds phones beneath a loudspeaker. Most look up attentively; four keep staring down at their phones with slack, blank expressions."></figure>
 <div class="hero-foot"><span>Tokens as rows. Attention from the left.</span><span data-math="X\;\longmapsto\;AX"></span></div>
+</section>
+
+<section id="intuition" class="story intuition-story" aria-label="One token, different meanings in context">
+<div class="stage">
+<div class="progress-track" aria-hidden="true"><div id="intuition-progress"></div></div>
+<div class="stage-top lesson-heading"><a class="lesson-name" href="#title">Attention</a><span class="lesson-chapter" id="intuition-chapter">Meaning in context</span><span class="lesson-counter" id="intuition-counter"></span></div>
+<div class="scene-layout">
+<div class="narration" id="intuition-narration"><p class="eyebrow" id="intuition-scene-label"></p><h2 id="intuition-scene-title"></h2><p id="intuition-caption"></p><div id="intuition-equation" class="equation"></div><p id="intuition-detail" class="detail"></p></div>
+<figure class="visual"><svg id="intuition-diagram" viewBox="0 0 640 540" role="img" aria-label="How context can change a token representation"></svg><figcaption id="intuition-visual-caption"></figcaption></figure>
+</div>
+<div class="stage-bottom"><span>Conceptual illustration · no measured attention weights</span></div>
+</div>
 </section>
 
 <section id="story" class="story sentence-story" aria-label="From a sentiment model through the residual stream into attention">
@@ -54,7 +66,7 @@
 <section class="afterword interpretation-guide" id="using-attention">
 <p class="eyebrow">Using attention in research</p><h2>What can we learn from the output?</h2>
 <p>An attention heatmap describes a particular computation: for one head, in one layer, each destination forms a weighted mixture of source value vectors. A large weight tells us that the source receives a large mixing coefficient. Its effect on a particular classification also depends on the value vector and everything that follows.</p>
-<p>The opening schematic uses two sentences to motivate the task. The following DistilBERT chapter reports measured predictions and attention weights for those exact sentences. The residual path preserves each token’s representation while attention and the position-wise MLP add updates. A sentiment readout uses the final token representations. The numerical example removes those extra paths to make one exact decomposition possible.</p>
+<p>The Infinite Jest schematic uses two reviews to motivate sentiment classification. The following DistilBERT chapter reports measured predictions and attention weights for those exact reviews. The residual path preserves each token’s representation while attention and the position-wise MLP add updates. A sentiment readout uses the final token representations. The numerical example removes those extra paths to make one exact decomposition possible.</p>
 <p>That makes attention useful for investigating the relationships a model has learned. For example, <a href="https://aclanthology.org/W19-4828/">Clark et al. (2019)</a> found BERT heads associated with syntactic relations and coreference. Such patterns can suggest what to inspect or test next. A pattern across token positions and an explanation of a particular sentiment score answer different questions.</p>
 <p>The three-token numerical example produces one output vector per token: the rows of <span data-math="U=AV"></span>. Mean pooling turns those three rows into a sentence summary, <span data-math="h=\frac13\sum_i u_i=\sum_j\alpha_jv_j"></span>, where <span data-math="\alpha_j=\frac13\sum_i a_{ij}"></span>. These effective source weights are the column means of <span data-math="A"></span>, computed across all destinations.</p>
 <p>A linear classifier reads the summary as <span data-math="z=b+h\beta"></span>. With token vectors stored as rows, <span data-math="\beta"></span> is a column. The positive-class probability is <span data-math="\sigma(z)"></span>.</p>
@@ -112,6 +124,7 @@
 <p>A useful next step is <a href="https://huggingface.co/NeelNanda/Attn_Only_1L512W_C4_Code">Neel Nanda’s pretrained one-layer attention-only model</a>. Its <a href="https://huggingface.co/NeelNanda/Attn_Only_1L512W_C4_Code/blob/main/config.json">configuration</a> has eight parallel attention heads and no feed-forward network in the layer. Embeddings, positional information, normalization, and a prediction readout remain. One layer need not mean one head.</p>
 <p>The current lesson computes its constructed examples in the browser. It does not display measurements from that checkpoint or GPT-2. Those models can provide a later comparison using actual tokenization, attention weights, and continuation probabilities.</p>
 <h3>Sources and conventions</h3>
+<p>The opening distinguishes a token’s shared lookup embedding from its position-dependent input and later contextual representations. The <a href="https://github.com/huggingface/transformers/blob/v4.47.0/src/transformers/models/distilbert/modeling_distilbert.py">DistilBERT implementation used for the measured chapter</a> adds word and position embeddings, then normalizes them before the transformer blocks. The desert diagrams are conceptual; their routes and sense labels are not measured model outputs.</p>
 <p>Goro Kobayashi and colleagues (2020), <a href="https://aclanthology.org/2020.emnlp-main.574/">Attention is Not Only a Weight</a>, motivates examining transformed values as well as attention weights. Samira Abnar and Willem Zuidema (2020), <a href="https://aclanthology.org/2020.acl-main.385/">Quantifying Attention Flow in Transformers</a>, explains why repeated mixing complicates attribution to original input tokens.</p>
 <p>Ashish Vaswani and colleagues (2017), <a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a>, §3.2, defines the matching and weighted-value operation. Sarthak Jain and Byron Wallace (2019), <a href="https://aclanthology.org/N19-1357/">Attention is not Explanation</a>, and Sarah Wiegreffe and Yuval Pinter (2019), <a href="https://aclanthology.org/D19-1002/">Attention is not not Explanation</a>, motivate testing an explanation against the architecture and prediction behavior. Their disagreement is useful: attention can be diagnostic without every heatmap being a faithful word-importance explanation.</p>
 <details id="sentiment-model"><summary>The exact sentiment construction and its limits</summary>

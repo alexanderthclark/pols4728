@@ -51,3 +51,20 @@
 #story[data-scene="1"] #narration{display:none}
 #story[data-scene="1"] .scene-layout{grid-template-columns:minmax(0,1fr)}
 #story[data-scene="1"] .visual{max-width:760px;max-height:none;margin-inline:auto}
+
+/* Contextual meaning introduces the existing residual-stream sequence. */
+.intuition-story{height:400svh;border-top:0}
+.intuition-story .lesson-chapter{margin-left:auto;text-align:right}
+.intuition-story .lesson-counter{white-space:nowrap}
+@media(max-width:760px){
+ .intuition-story .lesson-chapter{grid-column:1;grid-row:2;margin:0;text-align:left}
+ .intuition-story .lesson-counter{grid-column:2;grid-row:1;align-self:center}
+ .intuition-story .visual{max-height:none}
+}
+
+/* Center the measured prediction cards; model context precedes the stage. */
+#trained-story[data-scene="0"] #trained-narration{display:none}
+#trained-story[data-scene="0"] .scene-layout{grid-template-columns:minmax(0,1fr)}
+#trained-story[data-scene="0"] .visual{max-width:840px;max-height:none;margin-inline:auto}
+
+#intuition[data-scene="0"] #intuition-equation{display:none}

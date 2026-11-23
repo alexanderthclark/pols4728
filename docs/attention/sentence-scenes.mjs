@@ -86,14 +86,23 @@ export function createSentenceScenes({m, line, rect, C}) {
     return out;
   }
   function compareSentences(t) {
-    const active=clamp(t)<.5?0:1;
+    const phase=Math.min(2,Math.floor(clamp(t)*3)),active=phase-1;
+    const run=(parts,x,y,size=28)=>`<text class="sentence-label" x="${x}" y="${y}" style="font-size:${size}px;fill:${ink}">${parts.map(([s,emphasis,color=blue])=>`<tspan${emphasis?` fill="${color}" text-decoration="underline"`:''}>${esc(s)}</tspan>`).join('')}</text>`;
+    const explanations=[
+      ['Both contain “good” and negation.', 'The whole phrase determines the reading.'],
+      ['“Don’t belong” rejects “good” as a description.', 'The sentence criticizes Infinite Jest.'],
+      ['“Wasn’t just good” means better than good.', '“Spectacular” reinforces the praise.'],
+    ];
     return label('Sentiment toward Infinite Jest',320,42,28)
       +box(34,77,572,148,active===0?blue:rule,'#fff',active===0?2.6:1.4)
-      +label('Good and Infinite Jest',62,119,28,ink,'start')+label("don't belong in the same sentence",62,161,27,ink,'start')
+      +run([['Good',phase===0],[' and Infinite Jest']],62,119)
+      +run([["don't belong in the same sentence",phase===1,rust]],62,161,27)
       +label('Intended reading: negative',62,204,22,rust,'start')
       +box(34,267,572,148,active===1?blue:rule,'#fff',active===1?2.6:1.4)
-      +label("Infinite Jest wasn't just good.",62,309,28,ink,'start')+label('It was spectacular.',62,351,28,ink,'start')
-      +label('Intended reading: positive',62,394,22,teal,'start')+label('The surrounding phrase changes the reading.',320,489,25,muted);
+      +run([['Infinite Jest '],["wasn't just ",phase===2,teal],['good.',phase===0||phase===2,phase===2?teal:blue]],62,309)
+      +run([['It was '],['spectacular.',phase===2,teal]],62,351)
+      +label('Intended reading: positive',62,394,22,teal,'start')
+      +label(explanations[phase][0],320,475,24,muted)+label(explanations[phase][1],320,513,23,muted);
   }
   function expandedHead(t=1) {
     const p=ease(t),x=lerp(attentionFrame.x,197,p),y=lerp(attentionFrame.y,86,p),w=lerp(attentionFrame.w,405,p),h=lerp(attentionFrame.h,385,p);
@@ -157,12 +166,12 @@ export function createSentenceScenes({m, line, rect, C}) {
   }
   return [
     {id:'sentence-stream',part:'01 · From a sentence to a score',label:'',title:'Follow the residual stream.',
-      caption:'Each token carries a row of features. Attention and an MLP add updates; a readout scores the final sentence.',
+      caption:'Contextual token features can support a sentence-level prediction. Attention and an MLP add updates; a readout scores the final sentence.',
       equation:'r=\\frac1T\\sum_i(X_2)_i,\\qquad z=b+r\\beta',
       detail:'One encoder block; one head shown. Normalization and attention biases omitted. A is symbolic, with no measured weights. Readings are labels, not model outputs.',
       visual:'The attention matrix A sits on the branch that adds an update to the blue residual stream.',quotes:SENTENCE_EXAMPLES,draw:architecture},
     {id:'sentence-contrast',part:'01 · From a sentence to a score',label:'',title:'“Good” is not enough.',
-      caption:'The first sentence rejects “good”; the second says “better than good.” Negation changes meaning through its surrounding phrase.',
+      caption:'Desert showed how context selects a word’s sense. Here, the whole phrase determines sentiment: “don’t belong” rejects good, while “wasn’t just good” introduces emphatic praise.',
       equation:'z=f(\\text{whole sentence})',detail:'The task is sentiment toward Infinite Jest. These qualitative readings are not outputs from a fitted model.',
       visual:'Shared words can occur in sentences with opposite sentiment.',draw:compareSentences,discretePhases:true},
     {id:'sentence-head',part:'02 · Inside attention',label:'',title:'Open one attention head.',

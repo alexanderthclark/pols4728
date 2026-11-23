@@ -1,9 +1,10 @@
+import {createIntuitionScenes} from './intuition-scenes.mjs?v=attention-intuition-13';
 import {createTrainedScenes} from './trained-scenes.mjs?v=attention-trained-model-6';
 import {buildExplorer} from './trained-explorer.mjs?v=attention-trained-model-5';
 import {createSocksScenes} from './socks-scenes.mjs?v=attention-notation-8';
 import {createExtensionScenes} from './extension-scenes.mjs?v=attention-notation-8';
 import {createInterpretationScenes} from './interpretation-scenes.mjs?v=attention-notation-8';
-import {createSentenceScenes} from './sentence-scenes.mjs?v=attention-rows-12';
+import {createSentenceScenes} from './sentence-scenes.mjs?v=attention-intuition-13';
 
 const C={ink:'#242424',blue:'#234e70',rust:'#a54f32',teal:'#007f73',purple:'#7b4f9d',muted:'#606060',rule:'#dededb'};
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
@@ -26,12 +27,13 @@ const defs=`<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" r
 function renderMathNodes(root=document){root.querySelectorAll('[data-math]').forEach(el=>el.innerHTML=tex(el.dataset.math))}
 renderMathNodes();
 const drawing={m,text,line,rect,circle,C,ease,lerp,clamp,num};
+const intuitionScenes=createIntuitionScenes(drawing);
 const coreScenes=createSentenceScenes(drawing);
 const numericalScenes=createInterpretationScenes(drawing);
 const mechanicsScenes=[...createSocksScenes(drawing),...createExtensionScenes(drawing)];
 // The complete text remains available independently of visual scene changes.
 const transcript=scenes=>scenes.map((s,i)=>`<section><h3>${i+1}. ${s.title}</h3><p>${s.caption}</p>${(s.quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('')}<div class="transcript-eq">${tex(s.equation)}</div><p>${s.detail}</p></section>`).join('');
-document.querySelector('#transcript').innerHTML='<h3>Sentiment, the residual stream, and attention</h3>'+transcript(coreScenes)+'<h3>A numerical attention classifier</h3>'+transcript(numericalScenes)+'<h3>The earlier Q/K/V calculation</h3>'+transcript(mechanicsScenes);
+document.querySelector('#transcript').innerHTML='<h3>One token, different contexts</h3>'+transcript(intuitionScenes)+'<h3>Sentiment, the residual stream, and attention</h3>'+transcript(coreScenes)+'<h3>A numerical attention classifier</h3>'+transcript(numericalScenes)+'<h3>The earlier Q/K/V calculation</h3>'+transcript(mechanicsScenes);
 renderMathNodes(document.querySelector('#transcript'));
 const quoteMarkup=quotes=>(quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('');
 function makeStory(id,prefix,scenes){
@@ -73,7 +75,7 @@ function makeStory(id,prefix,scenes){
  field('narration').style.opacity=a;
  };
 }
-const renderStories=[makeStory('story','',coreScenes),makeStory('numerical-story','numerical-',numericalScenes),makeStory('mechanics-story','mechanics-',mechanicsScenes)];
+const renderStories=[makeStory('intuition','intuition-',intuitionScenes),makeStory('story','',coreScenes),makeStory('numerical-story','numerical-',numericalScenes),makeStory('mechanics-story','mechanics-',mechanicsScenes)];
 let scheduled=false;
 function render(){scheduled=false;renderStories.forEach(draw=>draw())}
 function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(render)}}
@@ -96,7 +98,7 @@ fetch(new URL('./data/infinite-jest-attention.json',import.meta.url))
  .then(response=>{if(!response.ok)throw new Error('Model results unavailable');return response.json();})
  .then(data=>{
   const scenes=createTrainedScenes(drawing,data);
-  renderStories.splice(1,0,makeStory('trained-story','trained-',scenes));
+  renderStories.splice(2,0,makeStory('trained-story','trained-',scenes));
   buildExplorer(document.querySelector('#trained-explorer'),data);
   const reading=document.createElement('div');
   reading.innerHTML='<h3>Measured results from DistilBERT</h3>'+transcript(scenes);

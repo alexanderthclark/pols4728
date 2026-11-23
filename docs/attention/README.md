@@ -5,10 +5,14 @@ The course homepage links to the lesson. Local fonts and KaTeX require no CDN.
 
 ## Scope and convention
 
-The lesson opens with its full illustrated title page. Scrolling then enters the
-residual-stream overview and continues through all worked examples. No teaching
-chapter is hidden behind a disclosure panel.
-The eight-scene main story starts with a sentiment encoder and the residual stream, using
+The lesson opens with its full illustrated title page, then three intuition
+scenes contrast the two user-supplied desert sentences. They distinguish a
+shared token lookup vector from positional information and context-dependent
+updates. These are conceptual diagrams, not measured sense disambiguation or
+attention weights. Scrolling then enters the residual-stream overview and
+continues through all worked examples. No teaching chapter is hidden behind
+a disclosure panel.
+The following eight-scene story starts with a sentiment encoder and the residual stream, using
 these two reviews as the task:
 
 - “Good and Infinite Jest don't belong in the same sentence”
@@ -57,6 +61,12 @@ original task's target-score claim. The new opening locates attention in a simpl
 Primary reference: Elhage et al. (2021), A Mathematical Framework for Transformer
 Circuits. Secondary: Prince, Understanding Deep Learning, chapter 12 §§12.2–12.3.
 The page explains the transpose convention and includes the exact toy maps. Grant Sanderson’s attention lesson is an additional visual reference. The opening defines the value and output projections before using the Q/K/V maps.
+
+The Infinite Jest comparison progressively underlines the shared word, then the
+negative and positive phrases. Both complete sentences and intended readings
+remain visible. The measured-predictions scene centers its cards without a left
+narration panel; the model description remains in the preceding introduction
+and the full explanation stays in the reading transcript.
 
 ## Measured Infinite Jest results
 
@@ -169,7 +179,7 @@ The current site does not run that checkpoint or claim measurements from it.
 
 ## Implementation and checking
 
-`app.mjs` initializes the three original pinned stories plus the measured-model chapter: `sentence-scenes.mjs` is the default
+`app.mjs` initializes the intuition, three original pinned stories, and measured-model chapter. `intuition-scenes.mjs` introduces meaning in context; `sentence-scenes.mjs` is the default
 route; `interpretation-scenes.mjs` supplies the numerical chapter; and the
 original `socks-scenes.mjs` plus `extension-scenes.mjs` supply the full
 worked-example chapter. Hash links offer shortcuts; scrolling reaches every scene. It derives
