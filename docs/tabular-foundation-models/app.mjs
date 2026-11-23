@@ -1,4 +1,4 @@
-import {renderOverview} from './overview.mjs?v=20261123-context-ten-noise';
+import {renderOverview} from './overview.mjs?v=20261123-table-prompt';
 import {renderPretraining} from './pretraining.mjs?v=20261123-scm-pretraining-2';
 import {renderBearComparison} from './bear-comparison.mjs?v=20261123-context-ten-noise';
 import {renderAtus} from './atus.mjs';
@@ -6,7 +6,7 @@ import {renderBear,renderBearMobile} from './bear.mjs?v=20261123-context-ten-noi
 import {renderDgp} from './dgp.mjs';
 import {renderMechanism} from './mechanism.mjs';
 import {renderNature,renderNatureMobile} from './nature.mjs?v=20261123-context-ten-noise';
-import {scenes,sources} from './scenes.mjs?v=20261123-scm-pretraining';
+import {scenes,sources} from './scenes.mjs?v=20261123-table-prompt';
 import {renderVisual,renderMobile} from './visuals.mjs';
 import * as bayes from './bayes.mjs';
 const $=id=>document.getElementById(id), story=$('story'),diagram=$('diagram');

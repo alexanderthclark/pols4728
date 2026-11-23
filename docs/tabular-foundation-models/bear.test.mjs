@@ -87,9 +87,10 @@ test('worked episodes preserve retained scene routing and every scroll state ren
   assert.equal(scenes[atusScenes.length].kind,'dgp');
   assert.deepEqual(scenes.slice(atusScenes.length+1,atusScenes.length+4),bearComparisonScenes);
   assert.deepEqual(scenes.slice(atusScenes.length+1+bearComparisonScenes.length,atusScenes.length+1+bearComparisonScenes.length+overviewScenes.length),overviewScenes);
-  assert.equal(scenes[15].mechanismStage,5);
-  assert.deepEqual(scenes.slice(16,20),pretrainingScenes);
-  assert.equal(scenes[20].mechanismStage,6);
+  const pretrainingStart=scenes.findIndex(scene=>scene.kind==='mechanism'&&scene.mechanismStage===5)+1;
+  assert.ok(pretrainingStart>0);
+  assert.deepEqual(scenes.slice(pretrainingStart,pretrainingStart+pretrainingScenes.length),pretrainingScenes);
+  assert.equal(scenes[pretrainingStart+pretrainingScenes.length].mechanismStage,6);
   assert.ok(!scenes.some(scene=>scene.bayesStage===5));
   const old=scenes.filter(s=>s.visualIndex!==undefined);
   assert.deepEqual(old.map(s=>s.visualIndex),[0,1,16,17]);

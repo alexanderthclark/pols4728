@@ -1,4 +1,4 @@
-import {overviewScenes} from './overview-scenes.mjs?v=20261123-scm-pretraining';
+import {overviewScenes} from './overview-scenes.mjs?v=20261123-table-prompt';
 import {pretrainingScenes} from './pretraining-scenes.mjs?v=20261123-scm-pretraining';
 import {bearComparisonScenes} from './bear-comparison-scenes.mjs?v=20261123-context-ten-noise';
 import {atusScenes} from './atus-scenes.mjs';

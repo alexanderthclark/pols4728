@@ -36,7 +36,9 @@ const figure=scene=>{
   const snapshots=scene.kind==='pretraining'&&scene.pretrainingStage===1
     ? [{progress:.12,label:'A chain generates a prediction task'},{progress:.37,label:'A shared latent cause generates another task'},{progress:.62,label:'A nonlinear rule with an irrelevant feature'},{progress:.87,label:'A noisy interaction generates a fourth task'}]
     : scene.kind==='overview'&&scene.overviewStage===2
-    ? [{progress:0,label:'Context A: the query and network weights are fixed'},{progress:1,label:'Context B: two example labels change; the query and weights stay fixed'}]
+    ? [{progress:0,label:'Numerical inputs become vectors, including the supplied labels'},{progress:.55,label:'Attention and refinement update the table representations'},{progress:1,label:'Read the query’s final target vector to predict class probabilities'}]
+    : scene.kind==='overview'&&scene.overviewStage===3
+    ? [{progress:0,label:'Context rows can exchange information'},{progress:1,label:'Each query reads context without reading the other query'}]
     : scene.kind==='mechanism'&&scene.mechanismStage===2
     ? [{progress:0,label:'Before the first Adam update'},{progress:1,label:'After the first Adam update'}]
     : scene.kind==='nature'&&scene.natureStage===1

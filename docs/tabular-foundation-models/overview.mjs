@@ -63,64 +63,10 @@ function miniTask(x,y,w,h,index,mobile){
   s+=text(x+2.5*cw,y+h-rh/2+5,'?',mobile?16:20,C.rust);
   return s;
 }
-function contextTable(mobile,stage,p){
-  const x=mobile?16:28,y=mobile?44:132,w=mobile?210:260;
-  const head=mobile?24:30,rh=mobile?23:31,cw=w/3;
-  const switched=stage===2&&p>=.5;
-  const label=stage===2?`Labeled context ${switched?'B':'A'}`:'Labeled context';
-  let s=text(x+w/2,mobile?27:107,label,mobile?19:24,C.blue,'middle','data-context-label="true"');
-  s+=rect(x,y,w,head+4*rh,C.rule,C.paper,1);
-  s+=text(x+cw,y+(mobile?17:21),'Features',mobile?16:19,C.muted);
-  s+=text(x+cw*2.5,y+(mobile?17:21),'Target',mobile?16:19,C.muted);
-  s+=line(x+2*cw,y,x+2*cw,y+head+4*rh,C.rule,1);
-  s+=line(x+cw,y+head,x+cw,y+head+4*rh,C.rule,.7);
-  const data=[['.2','.8','0'],['.4','.1','1'],['.8','.3','1'],['.7','.9','0']];
-  data.forEach((row,i)=>{
-    const yy=y+head+i*rh;
-    s+=line(x,yy,x+w,yy,C.rule,.7);
-    row.forEach((v,j)=>{
-      const changed=switched&&j===2&&(i===0||i===1);
-      const value=changed?(v==='0'?'1':'0'):v;
-      s+=text(x+(j+.5)*cw,yy+rh*.72,value,mobile?17:21,j===2?(changed?C.rust:C.teal):C.ink,'middle',j===2?'data-context-target="true"':'');
-    });
-  });
-  return s;
-}
-function query(mobile){
-  const x=mobile?246:28,y=mobile?88:339,w=mobile?138:260,h=mobile?40:37;
-  let s=text(x+w/2,mobile?66:325,'New row',mobile?19:24,C.blue);
-  s+=rect(x,y,w,h,C.blue,C.paper,1.3,'data-query="true"');
-  ['.6','.2','?'].forEach((v,j)=>{
-    if(j)s+=line(x+j*w/3,y,x+j*w/3,y+h,C.rule,.8);
-    s+=text(x+(j+.5)*w/3,y+h*.68,v,mobile?19:23,j===2?C.rust:C.ink,'middle',j===2?'data-query-target="hidden"':'');
-  });
-  if(mobile)s+=text(x+w/2,151,'Target hidden',16,C.muted);
-  else s+=text(x+w/2,402,'Target hidden',18,C.muted);
-  return `<g data-overview-query="true">${s}</g>`;
-}
-function inputArrows(mobile){
-  if(mobile)return `<path d="M121,167 H86 V198" fill="none" stroke="${C.blue}" stroke-width="1.7"/>`+arrow(86,188,86,198)+arrow(315,159,315,198);
-  return arrow(294,219,346,219)+`<path d="M294,357 H328 V270 H346" fill="none" stroke="${C.blue}" stroke-width="1.7"/>`+arrow(336,270,346,270);
-}
-function output(mobile,stage,p){
-  let s='';
-  if(mobile){
-    s+=arrow(200,297,200,315,C.teal);
-    s+=text(200,337,stage===2?'Prediction can change':'Prediction for the new row',19,C.teal,'middle','data-schematic-output="true"');
-    s+=packet(200,297,200,312,p,C.teal,6);
-  }else{
-    s+=arrow(722,226,776,226,C.teal);
-    s+=packet(724,226,772,226,p,C.teal,8);
-    s+=text(829,211,'Prediction',23,C.teal,'middle','data-schematic-output="true"');
-    s+=text(829,241,stage===2?'can change':'for the',20,C.teal);
-    if(stage!==2)s+=text(829,269,'new row',20,C.teal);
-  }
-  return `<g data-overview-output="schematic">${s}</g>`;
-}
 function pretraining(p,mobile){
   let s='';
   if(mobile){
-    s+=text(200,24,'Earlier: many prediction tasks',20,C.ink);
+    s+=text(200,24,'Pretraining tables used earlier',20,C.ink);
     [16,151,286].forEach((x,i)=>{
       s+=miniTask(x,63,98,89,i,true);
       const route=i===1?[[200,158],[200,166],[326,166],[326,198]]:[[x+49,158],[i===0?86:312,198]];
@@ -129,7 +75,7 @@ function pretraining(p,mobile){
       s+=routedPacket(route,clamp(p*1.6-i*.26),C.teal,6);
     });
   }else{
-    s+=text(170,45,'Many prediction tasks',25,C.ink);
+    s+=text(180,45,'Pretraining tables used earlier',21,C.ink);
     [94,211,328].forEach((yy,i)=>{
       const x=40;
       s+=miniTask(x,yy,130,88,i,false);
@@ -149,77 +95,168 @@ function pretraining(p,mobile){
   }
   return s;
 }
-function inference(p,mobile){
-  let s=contextTable(mobile,1,p)+query(mobile)+inputArrows(mobile)+modelFrame(mobile,1).s;
-  s+=network(mobile,p);
-  s+=mobile?routedPacket([[121,167],[86,167],[86,198],[111,239]],p,C.teal,6)+routedPacket([[315,159],[315,198],[289,253]],p,C.rust,6):packet(295,219,411,218,p,C.teal,8)+packet(328,270,410,259,p,C.rust,8);
-  return s+output(mobile,1,clamp((p-.35)/.65));
+
+const labeledRows=[['.2','.8','0'],['.4','.1','1'],['.8','.3','1'],['.7','.9','0']];
+const queryValues=['.6','.2','?'];
+function promptTable(x,y,w,rh,mobile,{small=false}={}){
+  const cw=w/3,head=rh,fs=small?(mobile?14:17):(mobile?18:23);
+  let s=`<g data-overview-input="whole-table">`+rect(x,y,w,6*rh,C.blue,C.paper,1.5);
+  for(let j=1;j<3;j++)s+=line(x+j*cw,y,x+j*cw,y+6*rh,C.rule,.8);
+  ['X₁','X₂',small&&mobile?'Y':'Target'].forEach((v,j)=>{s+=text(x+(j+.5)*cw,y+rh*.7,v,fs,C.muted);});
+  const centers=[];
+  labeledRows.forEach((row,i)=>{const yy=y+head+i*rh;s+=line(x,yy,x+w,yy,C.rule,.8);const points=[];row.forEach((v,j)=>{const xx=x+(j+.5)*cw,cy=yy+rh*.52;points.push([xx,cy]);s+=text(xx,yy+rh*.72,v,fs,j===2?C.teal:C.ink,'middle',j===2?'data-context-target="true"':'');});centers.push(points);});
+  const qy=y+5*rh;s+=rect(x,qy,w,rh,C.blue,C.pale,1.5);s+=`<g data-overview-query="true">`;
+  queryValues.forEach((v,j)=>{const xx=x+(j+.5)*cw;s+=text(xx,qy+rh*.72,v,fs,j===2?C.rust:C.ink,'middle',j===2?'data-query-target="hidden"':'data-query-feature="true"');});
+  s+='</g></g>';centers.push(queryValues.map((v,j)=>[x+(j+.5)*cw,qy+rh*.52]));
+  return {s,centers,bottom:y+6*rh,cw,queryY:qy};
 }
-function representations(mobile,p){
-  const xs=mobile?[109,200,291]:[412,532,652];
-  const top=mobile?232:165,w=mobile?76:96,h=mobile?48:108;
-  const shift=smooth(p), phase=clamp(p*2);
-  let s='';
-  ['Encode','Exchange','Decode'].forEach((label,k)=>{
-    const x=xs[k]-w/2;
-    if(k)s+=arrow(xs[k-1]+w/2+2,top+h/2,x-3,top+h/2,C.blue,1.4);
-    s+=rect(x,top,w,h,C.blue,C.paper,1.2);
-    s+=text(xs[k],mobile?251:187,label,mobile?16:18,C.blue);
-  });
+function predictor(x,y,w,h,p,mobile,caption='Weights fixed'){
+  let s=rect(x,y,w,h,C.blue,C.paper,1.7);const xs=[x+w*.19,x+w*.5,x+w*.81],ys=[y+h*.2,y+h*.37,y+h*.54];
+  for(let k=0;k<2;k++)for(let i=0;i<3;i++)for(let j=0;j<3;j++)s+=line(xs[k],ys[i],xs[k+1],ys[j],C.blue,1.1,`opacity="${.3+(i+j)%3*.12}"`);
+  xs.forEach((xx,k)=>ys.forEach(yy=>{s+=`<circle cx="${f(xx)}" cy="${f(yy)}" r="${mobile?3.2:5}" fill="${k===2?C.teal:C.blue}"/>`;}));
+  return s+text(x+w/2,y+h*.88,caption,mobile?16:21,C.blue,'middle','data-weight-status="fixed"');
+}
+function inference(p,mobile){
+  const t=mobile?promptTable(22,43,356,24,true):promptTable(28,118,280,34,false);
+  let s=text(mobile?200:168,mobile?22:58,'Current task’s input',mobile?20:24,C.blue)+t.s;
   if(mobile){
-    [0,1].forEach(i=>{
-      s+=line(88,261+i*8,111+mix(3,13,shift*(1-i)),261+i*8,C.teal,2.5);
-      s+=line(273,261+i*8,289+mix(4,15,shift*i),261+i*8,C.teal,2.5);
-      const endY=mix(261+i*8,269-i*8,shift);
-      s+=line(179,261+i*8,219,endY,C.blue,1.2);
-      s+=`<circle cx="179" cy="${261+i*8}" r="2.5" fill="${C.teal}"/><circle cx="219" cy="${f(endY)}" r="2.5" fill="${C.rust}" data-context-representation="true"/>`;
-    });
-    // The representation itself moves: the fixed-weight model never moves.
-    s+=packet(85,277,314,277,p,C.teal,5);
-    return s;
+    s+=text(200,203,'Known labels are inputs; the last target is hidden.',15,C.muted);
+    s+=text(200,229,'Pretrained model',21,C.blue)+predictor(65,240,270,66,p,true);
+    s+=`<path d="M200,192 H40 V272 H61" fill="none" stroke="${C.blue}" stroke-width="1.5"/>`+arrow(49,272,61,272)+routedPacket([[200,192],[40,192],[40,272],[61,272]],p,C.teal,6);
+    s+=arrow(200,311,200,326,C.teal)+packet(200,312,200,323,p,C.teal,5)+`<g data-overview-output="schematic">`+text(200,346,'Prediction for the new row',18,C.teal,'middle','data-schematic-output="true"')+'</g>';
+  }else{
+    s+=text(168,91,'Features, labels, and query features',17,C.muted);
+    s+=text(168,357,'Last row: new case; target unknown',20,C.muted);
+    s+=text(558,105,'Pretrained model',26,C.blue)+text(558,136,'Earlier tables shaped these weights',19,C.muted);
+    s+=predictor(430,159,255,170,p,false)+arrow(317,221,422,221)+packet(319,221,418,221,p,C.teal,8);
+    s+=arrow(693,237,756,237,C.teal)+packet(695,237,752,237,p,C.teal,7);
+    s+=`<g data-overview-output="schematic">`+text(813,216,'Prediction',24,C.teal,'middle','data-schematic-output="true"')+text(813,249,'for the',21,C.teal)+text(813,280,'new row',21,C.teal)+'</g>';
+    s+=text(450,420,'Pretraining tables are not supplied again.',22,C.muted,'middle','data-pretraining-resupplied="false"');
   }
-  // Small vector glyphs stand for representations, not a specified tokenization.
-  const glyph=(x,y,offset,color)=>{
-    let z='';
-    for(let k=0;k<4;k++){
-      const length=12+((k+offset)%3)*6;
-      z+=line(x,y+k*9,x+length,y+k*9,color,3);
-    }
-    return z;
-  };
-  s+=glyph(381,207,0,C.teal)+glyph(416,221,1,C.rust);
-  const left=504,right=559,baseY=211;
-  [0,1,2].forEach(i=>{
-    const aY=baseY+i*20,bY=baseY+((i+1)%3)*20;
-    s+=line(left,aY,right,mix(aY,bY,shift),C.blue,1.2);
-    s+=`<circle cx="${left}" cy="${aY}" r="4" fill="${C.teal}"/>`;
-    s+=`<circle cx="${right}" cy="${f(mix(aY,bY,shift))}" r="4" fill="${C.rust}" data-context-representation="true"/>`;
-  });
-  s+=glyph(625,211,Math.round(phase*2),C.teal);
-  // A progress-controlled representation passes through encode/exchange/decode.
-  s+=packet(382,268,682,268,p,C.teal,7);
-  s+=text(532,350,'Attention + nonlinear transformations',21,C.muted);
   return s;
 }
-function changingContext(p,mobile){
-  let s=contextTable(mobile,2,p)+query(mobile)+inputArrows(mobile)+modelFrame(mobile,2).s;
-  s+=representations(mobile,p);
-  if(mobile){
-    // Labeled context still enters the same model as its representations change.
-    s+=routedPacket([[121,167],[86,167],[86,198]],p,C.teal,6);
-  }else s+=packet(295,219,346,219,p,C.teal,8);
-  return s+output(mobile,2,p);
+function vectorGlyph(x,y,w,h,row,col,p,extra=''){
+  const target=row===4&&col===2,color=col===2?(target?C.rust:C.teal):C.blue;
+  let s=`<g ${extra}>`+rect(x,y,w,h,color,C.paper,target?2:1,target?'stroke-dasharray="3 2"':'');
+  for(let k=0;k<3;k++){const len=w*(.24+((row+col+k)%3)*.12)+p*(target?4:2)*(k-1);s+=line(x+w*.15,y+h*(.28+k*.21),x+w*.15+len,y+h*(.28+k*.21),color,mobileSafeWidth(w));}
+  return s+'</g>';
 }
-
+const mobileSafeWidth=w=>w<50?1.8:2.6;
+function embeddedCube(x,y,w,h,depth,p,mobile){
+  const cw=w/3,rh=h/5;let s=`<g data-table-tensor="true" data-vector-depth="schematic">`;
+  // Offset front/back grids provide the third (embedding-vector) dimension.
+  s+=`<path d="M${x},${y} L${x+depth},${y-depth} H${x+w+depth} V${y+h-depth} L${x+w},${y+h} V${y} Z" fill="${C.pale}" stroke="${C.rule}" stroke-width="1"/>`;
+  for(let j=0;j<=3;j++)s+=line(x+j*cw,y,x+j*cw+depth,y-depth,C.rule,.8);
+  for(let i=0;i<=5;i++)s+=line(x+w,y+i*rh,x+w+depth,y+i*rh-depth,C.rule,.8);
+  const centers=[];
+  for(let i=0;i<5;i++){const row=[];for(let j=0;j<3;j++){const xx=x+j*cw,yy=y+i*rh;row.push([xx+cw/2,yy+rh/2]);const role=i===4?(j===2?'query-target-placeholder':'query-feature'):(j===2?'known-label':'context-feature');s+=vectorGlyph(xx+2,yy+2,cw-4,rh-4,i,j,p,`data-cell-role="${role}" data-embedding-row="${i}" data-embedding-col="${j}"`);}centers.push(row);}
+  s+='</g>';return {s,centers,query:centers[4][2],cw,rh};
+}
+function extractedVector(x,y,w,h,p,mobile){
+  let s=`<g data-final-query-target="true">`+rect(x,y,w,h,C.rust,C.paper,2);
+  const count=mobile?6:8;for(let j=0;j<count;j++){const xx=x+6+j*(w-12)/count;const hh=h*(.35+((j+Math.floor(p*2))%3)*.14);s+=rect(xx,y+(h-hh)/2,(w-12)/count-3,hh,C.rust,C.pale,1);}
+  return s+'</g>';
+}
+function cellComputation(p,mobile){
+  const input=mobile?promptTable(12,78,108,21,true,{small:true}):promptTable(18,132,216,30,false,{small:true});
+  const cube=mobile?embeddedCube(165,103,126,112,24,p,true):embeddedCube(321,140,204,180,32,p,false);
+  let s=input.s+cube.s;
+  if(mobile){
+    s+=text(66,53,'Table',18,C.blue)+text(139,128,'Embed',14,C.blue)+arrow(125,148,157,148)+packet(126,148,155,148,clamp(p*2),C.teal,5);
+    s+=`<path d="M160,77 C170,22 344,22 321,77" fill="none" stroke="${C.blue}" stroke-width="1.5"/>`+arrow(325,66,321,77)+text(243,18,'Transform vectors',18,C.blue)+text(243,62,'repeat',14,C.muted);
+    s+=text(228,239,'Embedding vectors',17,C.muted);
+    s+=text(103,265,'Query target',17,C.rust)+text(103,289,'representation',17,C.rust);
+    s+=`<path d="M295,204 H333 V255" fill="none" stroke="${C.rust}" stroke-width="1.5"/>`+arrow(333,244,333,255,C.rust)+routedPacket([[295,204],[333,204],[333,255]],clamp((p-.35)/.4),C.rust,5);
+    s+=extractedVector(228,262,143,28,p,true);
+    s+=`<g data-readout-source="query-target" data-overview-output="schematic" data-readout-visible="${p>=.75}">`;
+    s+=`<path d="M228,276 H201 V329 H231" fill="none" stroke="${C.teal}" stroke-width="1.5"/>`+arrow(221,329,231,329,C.teal)+routedPacket([[228,276],[201,276],[201,329],[231,329]],clamp((p-.65)/.35),C.teal,5);
+    s+=text(99,331,'Decode',20,C.blue)+text(99,347,'prediction head',14,C.muted);
+    s+=text(306,318,'Pr(Y = 0)',18,C.teal,'middle','data-class-probability="0"')+text(306,344,'Pr(Y = 1)',18,C.teal,'middle','data-class-probability="1"');
+    s+='</g>';
+  }else{
+    s+=text(126,91,'Whole input table',23,C.blue)+text(270,207,'Embed',18,C.blue)+arrow(243,229,307,229)+packet(245,229,304,229,clamp(p*2),C.teal,7);
+    s+=`<path d="M333,113 C335,32 555,32 539,113" fill="none" stroke="${C.blue}" stroke-width="1.5"/>`+arrow(541,99,539,113);
+    s+=text(438,31,'Transform representations',22,C.blue)+text(438,79,'repeat',18,C.muted);
+    s+=text(429,359,'Each cell has an embedding vector',20,C.muted);
+    s+=arrow(535,303,602,303,C.rust)+packet(537,303,598,303,clamp((p-.35)/.4),C.rust,7);
+    s+=text(655,246,'Query target',19,C.rust)+text(655,273,'representation',19,C.rust)+extractedVector(610,285,97,40,p,false);
+    s+=`<g data-readout-source="query-target" data-overview-output="schematic" data-readout-visible="${p>=.75}">`;
+    s+=arrow(715,305,764,305,C.teal)+packet(717,305,760,305,clamp((p-.65)/.35),C.teal,7);
+    s+=text(813,212,'Decode',25,C.blue)+text(813,241,'prediction head',18,C.muted);
+    s+=text(813,291,'Pr(Y = 0)',22,C.teal,'middle','data-class-probability="0"')+text(813,332,'Pr(Y = 1)',22,C.teal,'middle','data-class-probability="1"');s+='</g>';
+    s+=text(450,418,'Fixed pretrained weights · cell-based, TabPFN-style schematic',20,C.blue,'middle','data-weight-status="fixed"');
+  }
+  // Known labels take the table's embedding route too; query truth never enters.
+  return s;
+}
+function permittedArrow(x1,y1,x2,y2,p,{source,reader,sourceRole='context',readerRole='context',queryId=''}={}){
+  const attrs=`data-attention-source="${source}" data-attention-reader="${reader}" data-source-role="${sourceRole}" data-reader-role="${readerRole}"${queryId?` data-query-id="${queryId}"`:''}`;
+  return `<g ${attrs}>`+arrow(x1,y1,x2,y2,readerRole==='context'?C.blue:C.teal,1.5)+packet(x1,y1,x2,y2,p,readerRole==='context'?C.blue:C.teal,4)+'</g>';
+}
+function maskQuery(x,y,w,h,values,id,mobile,p){
+  const cw=w/3;let s=`<g data-mask-query="${id}">`+rect(x,y,w,h,C.blue,C.pale,1.4);values.forEach((v,j)=>{if(j)s+=line(x+j*cw,y,x+j*cw,y+h,C.rule,.8);s+=text(x+(j+.5)*cw,y+h*.7,v,mobile?19:24,j===2?C.rust:C.ink,'middle',j===2?'data-query-target="hidden"':'data-query-feature="true"');});
+  const yy=y+h+10;s+=permittedArrow(x+cw*.5,yy,x+cw*2.5-5,yy,p,{source:`${id}-features`,reader:`${id}-target`,sourceRole:'query',readerRole:'query',queryId:id})+permittedArrow(x+cw*2.5,yy+5,x+cw*.5+5,yy+5,p,{source:`${id}-target`,reader:`${id}-features`,sourceRole:'query',readerRole:'query',queryId:id});return s+'</g>';
+}
+function attentionRoles(p,mobile){
+  const box=mobile?{x:65,y:39,w:270,h:135}:{x:250,y:51,w:400,h:181};
+  const nodes=mobile?[[120,83],[280,83],[200,137]]:[[350,103],[550,103],[450,182]],r=mobile?18:25;
+  let s=text(mobile?200:450,mobile?23:29,'Labeled context rows',mobile?21:27,C.blue)+rect(box.x,box.y,box.w,box.h,C.blue);
+  for(let i=0;i<3;i++)for(let j=0;j<3;j++)if(i!==j){const [ax,ay]=nodes[i],[bx,by]=nodes[j],a=Math.atan2(by-ay,bx-ax),offset=2;const dx=-Math.sin(a)*offset,dy=Math.cos(a)*offset;s+=permittedArrow(ax+(r+3)*Math.cos(a)+dx,ay+(r+3)*Math.sin(a)+dy,bx-(r+4)*Math.cos(a)+dx,by-(r+4)*Math.sin(a)+dy,clamp(p*2),{source:`c${i+1}`,reader:`c${j+1}`});}
+  nodes.forEach(([xx,yy],i)=>{s+=`<circle cx="${xx}" cy="${yy}" r="${r}" fill="white" stroke="${C.blue}" stroke-width="1.5"/>`+text(xx,yy+(mobile?5:7),`C${i+1}`,mobile?17:23,C.blue);});
+  if(mobile){
+    s+=text(200,195,'Features + observed labels',17,C.muted);
+    s+=text(97,220,'Query 1',18,C.blue)+text(303,220,'Query 2',18,C.blue);
+    s+=`<g data-attention-source="context-block" data-attention-reader="q1" data-source-role="context" data-reader-role="query"><path d="M65,128 H6 V257 H8" fill="none" stroke="${C.teal}" stroke-width="1.5"/>`+arrow(0+1,257,8,257,C.teal)+routedPacket([[65,128],[6,128],[6,257],[8,257]],clamp((p-.35)/.65),C.teal,4)+'</g>';
+    s+=`<g data-attention-source="context-block" data-attention-reader="q2" data-source-role="context" data-reader-role="query"><path d="M335,128 H394 V257 H392" fill="none" stroke="${C.teal}" stroke-width="1.5"/>`+arrow(399,257,392,257,C.teal)+routedPacket([[335,128],[394,128],[394,257],[392,257]],clamp((p-.35)/.65),C.teal,4)+'</g>';
+    s+=maskQuery(12,236,170,41,['.6','.2','?'],'q1',true,p)+maskQuery(218,236,170,41,['.1','.7','?'],'q2',true,p);
+    s+=text(200,305,'Within a query, feature attention is allowed.',14,C.muted)+text(200,326,'Distinct queries cannot read each other.',17,C.ink)+text(200,344,'Roles, not left-to-right generation.',14,C.muted);
+  }else{
+    s+=text(450,262,'Context rows can read one another',23,C.blue);
+    s+=text(230,312,'Query 1',24,C.blue)+text(670,312,'Query 2',24,C.blue);
+    s+=`<g data-attention-source="context-block" data-attention-reader="q1" data-source-role="context" data-reader-role="query"><path d="M250,170 H150 V322" fill="none" stroke="${C.teal}" stroke-width="1.5"/>`+arrow(150,310,150,322,C.teal)+routedPacket([[250,170],[150,170],[150,322]],clamp((p-.35)/.65),C.teal,5)+'</g>';
+    s+=`<g data-attention-source="context-block" data-attention-reader="q2" data-source-role="context" data-reader-role="query"><path d="M650,170 H750 V322" fill="none" stroke="${C.teal}" stroke-width="1.5"/>`+arrow(750,310,750,322,C.teal)+routedPacket([[650,170],[750,170],[750,322]],clamp((p-.35)/.65),C.teal,5)+'</g>';
+    s+=maskQuery(80,329,300,44,['.6','.2','?'],'q1',false,p)+maskQuery(520,329,300,44,['.1','.7','?'],'q2',false,p);
+    s+=text(450,420,'Within each query row, features can exchange information.',19,C.muted)+text(450,451,'Distinct queries do not read each other; context never reads queries.',21,C.ink);
+  }
+  return s;
+}
+function shapeTable(x,y,w,rh,featureCount,contextCount,mobile,id){
+  const cw=w/(featureCount+1);let s=`<g data-size-task="${id}" data-feature-count="${featureCount}" data-context-count="${contextCount}" data-query-feature-count="${featureCount}">`+rect(x,y,w,rh*(contextCount+2),C.blue);
+  for(let j=1;j<=featureCount;j++)s+=line(x+j*cw,y,x+j*cw,y+rh*(contextCount+2),C.rule,.8);
+  for(let j=0;j<=featureCount;j++)s+=text(x+(j+.5)*cw,y+rh*.72,j===featureCount?'Y':`X${j+1}`,mobile?16:rh<25?18:20,j===featureCount?C.teal:C.muted);
+  for(let i=0;i<=contextCount;i++){const yy=y+(i+1)*rh,isQuery=i===contextCount;s+=line(x,yy,x+w,yy,isQuery?C.blue:C.rule,isQuery?1.5:.8);for(let j=0;j<=featureCount;j++){const value=j===featureCount?(isQuery?'?':String(i%2)):((i+j+1)%9/10).toFixed(1).replace(/^0/,'');s+=text(x+(j+.5)*cw,yy+rh*.72,value,mobile?16:rh<25?18:21,j===featureCount?(isQuery?C.rust:C.teal):C.ink,'middle',isQuery&&j===featureCount?'data-query-target="hidden"':'');}}
+  return s+'</g>';
+}
+function tableSizes(p,mobile){
+  let s='';
+  if(mobile){
+    s+=text(102,28,'Task A',21,C.blue)+shapeTable(12,42,180,24,2,2,true,'a');
+    s+=text(122,177,'Task B',21,C.blue)+shapeTable(12,190,220,22,4,4,true,'b');
+    s+=text(328,127,'Same model',19,C.blue)+predictor(270,143,116,86,p,true);
+    s+=arrow(200,94,263,169)+packet(202,94,260,169,p,C.blue,5)+arrow(239,260,263,208,C.teal)+packet(241,258,261,212,p,C.teal,5);
+    s+=text(328,263,'Separate calls',16,C.muted)+text(328,289,'Task A prediction',15,C.teal)+text(328,313,'Task B prediction',15,C.teal);
+    s+=text(200,345,'Each query keeps its own task’s columns.',17,C.muted);
+  }else{
+    s+=text(170,38,'Task A: fewer rows and columns',23,C.blue)+shapeTable(30,59,280,31,2,3,false,'a');
+    s+=text(220,268,'Task B: more rows and columns',23,C.blue)+shapeTable(30,290,380,20,4,5,false,'b');
+    s+=text(650,115,'Same pretrained model',26,C.blue)+predictor(525,145,250,170,p,false);
+    s+=arrow(318,139,517,198)+packet(320,140,514,197,p,C.blue,7)+arrow(419,354,517,276,C.teal)+packet(420,353,514,279,p,C.teal,7);
+    s+=text(650,357,'Separate prediction calls',21,C.muted)+text(650,391,'One set of pretrained weights',21,C.blue);
+    s+=text(450,453,'Within each task, context and query columns align.',19,C.muted);
+  }
+  return s;
+}
 /** SVG contents for a 900×460 desktop or 400×350 mobile viewBox. */
 export function renderOverview(stage=0,progress=1,mobile=false){
-  const p=clamp(progress), k=Math.max(0,Math.min(2,Math.trunc(Number.isFinite(stage)?stage:0)));
-  const titles=['Many tasks teach shared network weights','Labeled context and a new row enter a fixed-weight network','Context-dependent representations produce the prediction'];
-  const descriptions=[
-    'Schematic: several separate tables feed a shared network during pretraining. Scroll moves task inputs toward the network and changes its learned connections. These learned weights are reused for a new table.',
-    'Illustrative labeled rows and new-row features feed the same pretrained network. The query target remains a question mark. Scroll moves inputs through the network toward an unnumbered prediction; weights remain fixed.',
-    'The query features stay the same while two example labels change from context A to B. Inside the fixed-weight network, encoding, information exchange, and decoding produce context-dependent representations. Scroll changes their geometry. An unnumbered prediction can change; there are no measured attention values or model outputs.'
+  const p=clamp(progress),k=Math.max(0,Math.min(4,Math.trunc(Number.isFinite(stage)?stage:0)));
+  const titles=['Earlier tables train shared network weights','The whole current task table is the prompt','Cell embeddings transform iteratively, then the query target is read out','Attention follows context and query roles, not left-to-right generation','Different task table sizes use the same fixed pretrained model'];
+  const desc=[
+    'Original schematic: pretraining tables used earlier teach shared network weights. Those earlier tables shape the network; the new task table is supplied later. Moving packets and changing connection widths are not recorded training traces.',
+    'One unified input table contains feature values, four observed context labels, and a new row with known features and an unknown target. Known labels are inputs. The entire current task table enters the pretrained model, whose weights remain fixed. Earlier pretraining tables are not supplied again. The output is unnumbered.',
+    'Original cell-based TabPFN-style schematic inspired by Molnar Figure 4.6. Feature cells, known label cells, and the unknown-target placeholder each become vectors, shown by the depth of a table-shaped tensor. Repeated attention and nonlinear transformations contextualize them. Only the final query-target representation is selected for the prediction head. Pr(Y=0) and Pr(Y=1) are symbolic class probabilities, not numerical model results.',
+    'Arrows show allowed information flow into a reading row. Every labeled context row can read every other context row. Each query row reads labeled context; context rows never read query rows, and distinct query rows never read one another. Feature attention within each query row still exchanges information. This is not a left-to-right language-generation mask.',
+    'Two schematic tasks differ in numbers of context rows and feature columns. Each task is a separate call to the same pretrained model with fixed weights. Within each task, the query has the same feature columns in the same order as its labeled context. This diagram states no numerical size limit or guarantee of predictive accuracy.'
   ];
-  const content=k===0?pretraining(p,mobile):k===1?inference(p,mobile):changingContext(p,mobile);
-  return `<g data-overview="true" data-overview-stage="${k}" data-overview-progress="${p}" data-overview-mobile="${Boolean(mobile)}"><title>${titles[k]}</title><desc>${descriptions[k]}</desc>${content}</g>`;
+  const content=[pretraining,inference,cellComputation,attentionRoles,tableSizes][k](p,mobile);
+  return `<g data-overview="true" data-overview-stage="${k}" data-overview-progress="${p}" data-overview-mobile="${Boolean(mobile)}" data-weight-status="${k===0?'learning':'fixed'}"><title>${titles[k]}</title><desc>${desc[k]}</desc>${content}</g>`;
 }
