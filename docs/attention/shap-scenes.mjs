@@ -52,12 +52,11 @@ function validate(data,originalData) {
 
 export function createShapScenes(drawing,data,originalData) {
   validate(data,originalData);
-  const {text,line,rect,circle,m,C,ease,clamp}=drawing;
+  const {text,line,rect,C,ease,clamp}=drawing;
   const label=(value,x,y,size=23,color=C.ink,anchor='middle',extra='')=>text(value,x,y,size,color,anchor,extra).replace('style="',`style="font-size:${size}px;`);
   const group=(opacity,content,extra='')=>`<g opacity="${opacity}" ${extra}>${content}</g>`;
   const positive=data.examples.find(example=>example.id==='positive');
   const negative=data.examples.find(example=>example.id==='negative');
-  const comparison=positive.illustrative_comparison;
   const phase=(t,start,end,reduced)=>reduced?Number(t>=end):ease(clamp((t-start)/(end-start)));
   const allRows=data.examples.flatMap(shapWaterfall);
   const rawMin=Math.min(0,...allRows.flatMap(row=>[row.start,row.end]));
@@ -77,34 +76,6 @@ export function createShapScenes(drawing,data,originalData) {
       return whitespace+`<span title="${esc(`${word.text}: ${signed(word.shap_value,4)} log-odds; sum of token attributions`)}" style="color:${color};background:rgba(${rgb},${alpha});border-bottom:2px solid ${color};padding:0 1px">${esc(word.text)}</span>`;
     }).join('')+esc(example.text.slice(previousEnd));
     return `<foreignObject x="20" y="8" width="600" height="81"><div xmlns="http://www.w3.org/1999/xhtml" style="font-family:Arial,sans-serif;font-size:25px;line-height:1.5;text-align:center;color:${C.ink}" aria-label="${esc(example.text)}">${spans}</div></foreignObject>`;
-  }
-
-  function reviewLines(value,width=40) {
-    const lines=[];let current='';
-    for(const word of value.split(/\s+/)){
-      if(current && `${current} ${word}`.length>width){lines.push(current);current=word;}
-      else current+=(current?' ':'')+word;
-    }
-    if(current)lines.push(current);
-    return lines;
-  }
-
-  function masking(t,{reducedMotion=false}={}) {
-    const position=comparison.position,[start,end]=positive.token_offsets[position];
-    const hidden=positive.text.slice(0,start)+'[MASK]'+positive.text.slice(end);
-    const restore=phase(t,.15,.68,reducedMotion);
-    let out=m('s(x)=\\log\\frac{P(\\mathrm{positive}\\mid x)}{P(\\mathrm{negative}\\mid x)}',320,40,610,75,31,C.blue);
-    const card=(title,value,score,y,color)=>rect(28,y,584,138,'#fff',color,5,'stroke-width="1.3"')+
-      label(title,48,y+27,21,C.muted,'start')+
-      reviewLines(value).map((row,i)=>label(row,48,y+65+i*33,27,C.ink,'start')).join('')+
-      label(`s = ${plain(score,3)}`,590,y+122,24,color,'end');
-    out+=card('One token hidden; all others present',hidden,comparison.without_margin,97,C.blue);
-    out+=line(320,237,320,282,C.rule,2,'marker-end="url(#arrow)"');
-    out+=circle(320,242+restore*35,5,C.teal);
-    out+=group(restore,card('Restore “good”',positive.text,comparison.with_margin,289,C.teal));
-    out+=label(`This one gain: ${signed(comparison.marginal_gain,3)}`,320,467,28,C.teal);
-    out+=label('SHAP averages gains over all token-entry orders.',320,513,23,C.muted);
-    return out;
   }
 
   function waterfall(example,t,{reducedMotion=false}={}) {
@@ -133,16 +104,13 @@ export function createShapScenes(drawing,data,originalData) {
     return out;
   }
 
-  const methodReading=`<p>We explain the whole-input sentiment score of the pinned classifier: positive logit minus negative logit, equal to positive-class log odds. Each non-special token position is one player. An absent token is replaced by [MASK], with all positions, [CLS], [SEP], and the attention mask held fixed. Every coalition reruns the entire model in evaluation mode. This is a specified masked-input attribution problem; deleting tokens would define a different one.</p><p>For a coalition S, let v(S) be the measured logit margin after masking positions outside S. The baseline is v(∅), which need not be neutral. Exact ordinary Shapley values use <span data-math="\\phi_i=\\sum_{S\\subseteq N\\setminus\\{i\\}}\\frac{|S|!(n-|S|-1)!}{n!}\\bigl[v(S\\cup\\{i\\})-v(S)\\bigr]"></span>. Equivalently, average each token’s marginal contribution over all token-entry orders. We evaluate all ${positive.coalition_count.toLocaleString('en-US')} coalitions for each original input. This uses the ordinary Shapley game, without a Partition/Owen hierarchy.</p><p>The illustrated comparison restores the token ${esc(comparison.token)} at position ${comparison.position+1} while every other token is present. Its marginal gain is ${signed(comparison.marginal_gain,5)}; its Shapley value also averages over other coalitions. See the <a href="https://shap.readthedocs.io/en/latest/generated/shap.maskers.Text.html">SHAP text masker</a> and <a href="https://shap.readthedocs.io/en/latest/generated/shap.PartitionExplainer.html">Partition/Owen documentation</a> for the distinction between masking and coalition choices.</p>`;
+  const methodReading=`<p>We explain the whole-input sentiment score of the pinned classifier: positive logit minus negative logit, equal to positive-class log odds. Each non-special token position is one player. An absent token is replaced by [MASK], with all positions, [CLS], [SEP], and the attention mask held fixed. Every coalition reruns the entire model in evaluation mode. This is a specified masked-input attribution problem; deleting tokens would define a different one.</p><p>For a coalition S, let v(S) be the measured logit margin after masking positions outside S. The baseline is v(∅), which need not be neutral. Exact ordinary Shapley values use <span data-math="\\phi_i=\\sum_{S\\subseteq N\\setminus\\{i\\}}\\frac{|S|!(n-|S|-1)!}{n!}\\bigl[v(S\\cup\\{i\\})-v(S)\\bigr]"></span>. Equivalently, average each token’s marginal contribution over all token-entry orders. We evaluate all ${positive.coalition_count.toLocaleString('en-US')} coalitions for each original input. This uses the ordinary Shapley game, without a Partition/Owen hierarchy.</p><p>See the <a href="https://shap.readthedocs.io/en/latest/generated/shap.maskers.Text.html">SHAP text masker</a> and <a href="https://shap.readthedocs.io/en/latest/generated/shap.PartitionExplainer.html">Partition/Owen documentation</a> for the distinction between masking and coalition choices.</p>`;
   const explanationReading=example=>`<blockquote><p>${esc(example.text)}</p></blockquote><p>Baseline ${plain(example.baseline_margin,5)} plus token contributions ${signed(example.full_margin-example.baseline_margin,5)} equals the full-input logit margin ${plain(example.full_margin,5)}. P(positive) is ${(100*example.positive_probability).toFixed(4)}%. The waterfall accumulates allocated contributions in text order; intermediate totals are not predictions for partly restored sentences. The displayed words sum constituent token values, rather than recomputing a separate word-group game. Interactions are allocated among tokens, so a word’s contribution can change with its context.</p><table><thead><tr><th>Token position</th><th>Model token</th><th>SHAP contribution (log-odds)</th></tr></thead><tbody>${example.feature_positions.map(position=>`<tr><td>${position+1}</td><td>${esc(example.tokens[position])}</td><td>${signed(example.shap_values[position],5)}</td></tr>`).join('')}</tbody></table><p>These contributions attribute the final score under the stated masking rule. Attention matrices describe internal routing; they are not the values in this decomposition.</p>`;
   const common={part:'DistilBERT · SHAP attributions',label:'',equation:'',detail:'',discretePhases:true};
   return [
-    {...common,id:'trained-shap-mask',title:'Define what “missing” means.',caption:'Replace a hidden token with [MASK], keep its position, and rerun the classifier.',
-      visual:'One measured marginal comparison restores good. SHAP averages such gains over all token-entry orders.',
-      reading:methodReading,footer:'Fixed token positions · [MASK] replacement · complete model reruns',draw:masking},
     ...[negative,positive].map(example=>({...common,id:`trained-shap-${example.id}`,title:example.id==='negative'?'“Good” still pushes positive.':'Which words push this score up?',
       caption:'Baseline + signed token contributions = the prediction’s log-odds.',
       visual:`Exact token SHAP for ${example.text} The waterfall starts at ${plain(example.baseline_margin,3)} and ends at ${plain(example.full_margin,3)}. Teal, positive contributions raise the score; rust, negative contributions lower it.`,
-      reading:explanationReading(example),footer:`${example.feature_positions.length} token players · ${example.coalition_count.toLocaleString('en-US')} coalition evaluations · exact Shapley sum`,draw:(t,options)=>waterfall(example,t,options)})),
+      reading:explanationReading(example)+(example.id==='negative'?methodReading:''),footer:`${example.feature_positions.length} token players · ${example.coalition_count.toLocaleString('en-US')} coalition evaluations · exact Shapley sum`,draw:(t,options)=>waterfall(example,t,options)})),
   ];
 }

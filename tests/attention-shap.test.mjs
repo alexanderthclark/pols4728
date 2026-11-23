@@ -80,7 +80,7 @@ test('one-token example is one measured marginal gain, distinct from its SHAP av
 
 test('SHAP scenes preserve exact text, render strict mathematics, and reverse scroll states',()=>{
   const scenes=createShapScenes(drawing,data,original);
-  assert.deepEqual(scenes.map(scene=>scene.id),['trained-shap-mask','trained-shap-negative','trained-shap-positive']);
+  assert.deepEqual(scenes.map(scene=>scene.id),['trained-shap-negative','trained-shap-positive']);
   for(const scene of scenes){
     assert.equal(scene.equation,'');assert.equal(scene.detail,'');
     for(const match of scene.reading.matchAll(/data-math="([^"]+)"/g))drawing.m(match[1]);

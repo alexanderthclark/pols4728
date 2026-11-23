@@ -171,8 +171,9 @@ it does not commit generated results.
 
 ## Exact Shapley explanation of the original reviews
 
-Three scenes follow the original measured predictions: define a missing token,
-then decompose the negative and positive review scores. The display uses the same
+Two waterfall scenes follow the original measured predictions directly,
+decomposing the negative and positive review scores. Masking details remain in
+the optional reading version. The display uses the same
 positive-minus-negative logit margin as the intervention chapter. For binary
 softmax this equals log(P(positive)/P(negative)). It is an explanation of overall
 sentiment for the complete input, not a target-conditioned sentiment model.
