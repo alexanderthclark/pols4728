@@ -18,14 +18,15 @@ export const mechanismScenes=[
     title:'Turn one table into a prediction exercise.',
     body:'Give the network four labeled encounters and the next encounter’s features. Keep its survival outcome outside the input.',
     equation:'\\underbrace{(D,x_*)}_{\\text{input}}\\longrightarrow q_\\theta(Y_*=1\\mid x_*,D)',
-    note:'Actual first task in the first training minibatch. The hidden query answer and generating rule stay outside the input.',
+    note:'qθ is the model’s predicted probability of survival (Y*=1). This recorded task’s query answer and generating rule stay outside the input.',
     reading:'These are the recorded context and query from the first task in the first training minibatch, when the network still has its initial random weights. The query is Brown + Lie down. Each labeled row supplies raw numeric bear, strategy, and survival indicators; the query supplies only the two feature indicators. Repeated bear–strategy pairs can have different outcomes because survival is noisy. The neural network must turn the whole prediction exercise into one survival probability. The displayed query outcome is held outside the network input and used only to score its prediction.'
   },
   {
     chapter:training, kind:'mechanism', mechanismStage:2,
-    title:'Average the losses. Update the weights.',
-    body:`The first sampled query survived. After one Adam step using ${update.batch_size} tasks, its prediction changes from ${pct(update.first_query_probability_before)} to ${pct(update.first_query_probability_after)}.`,
-    equation:`\\overline\\ell=\\frac1{256}\\sum_t\\ell_t:\\quad ${update.batch_log_loss_before.toFixed(4)}\\longrightarrow${update.batch_log_loss_after.toFixed(4)}`,
+    title:'Use prediction errors to improve the network.',
+    body:'The first sampled query survived. Compare predicted probabilities with withheld answers, then use errors across the tasks to update shared weights.',
+    equation:'\\text{predict}\\longrightarrow\\text{check}\\longrightarrow\\text{update}',
+    detailEquation:`\\overline\\ell=\\frac1{256}\\sum_t\\ell_t:\\quad ${update.batch_log_loss_before.toFixed(4)}\\longrightarrow${update.batch_log_loss_after.toFixed(4)}`,
     note:'Recorded before/after values for one update. The mean losses use the same 256 tasks; the displayed probability belongs to one task.',
     reading:`Before the first update, the first query has predicted survival probability ${update.first_query_probability_before.toFixed(6)} and observed outcome Y*=1. Its individual log loss is −log(q) ≈ ${f(-Math.log(update.first_query_probability_before))}. Training averages the losses of all ${update.batch_size} tasks in this minibatch, giving ${update.batch_log_loss_before.toFixed(6)}. Backpropagation differentiates that mean through the decoder, attention projections, and encoders, and Adam updates their shared parameters. Re-evaluating the same minibatch after the update gives mean loss ${update.batch_log_loss_after.toFixed(6)}; the first query’s probability is then ${update.first_query_probability_after.toFixed(6)}. Both quantities are recorded measurements. A single task’s probability is not the minibatch objective, and improving the average need not improve every individual prediction. Scroll switches between the measured before/after states; it does not interpolate fictitious training steps.`
   },
@@ -48,17 +49,19 @@ export const mechanismScenes=[
   {
     chapter:training, kind:'mechanism', mechanismStage:5,
     title:'Pretrain our miniature network across these tasks.',
-    body:`Our Mini-PFN made ${run.metadata.steps.toLocaleString()} updates using ${run.metadata.batch_size} new tasks per update. Its encoders, attention projections, and decoder learned together from hidden-outcome errors.`,
-    equation:'\\theta\\leftarrow\\operatorname{Adam}\\!\\left(\\theta,\\nabla_\\theta\\frac1{256}\\sum_t\\ell_t\\right)',
+    body:'Fresh tables supply fresh prediction exercises. Our small network improves through repeated updates, then we freeze its weights for new contexts.',
+    equation:'\\text{many prediction exercises}\\longrightarrow\\theta',
+    detailEquation:'\\theta\\leftarrow\\operatorname{Adam}\\!\\left(\\theta,\\nabla_\\theta\\frac1{256}\\sum_t\\ell_t\\right)',
+    detailText:`Our Mini-PFN made ${run.metadata.steps.toLocaleString()} updates using ${run.metadata.batch_size} new tasks per update. Its encoders, attention projections, and decoder learned together from hidden-outcome errors.`,
     note:'A real training run of a 7,617-parameter teaching model with one attention head. The task generator supplies labels, not Bayesian answers.',
     reading:'The model starts with randomly initialized neural-network weights. Its inputs contain raw binary bear, strategy, and context-label columns. Neither world identity, the matching-pair indicator, the exact posterior, nor a Bayesian prediction is supplied as an input or training target. A context-row MLP and query MLP feed a single cross-attention head; an MLP decoder produces a survival logit. Adam updates all parameters through the sampled query loss. The final checkpoint is fixed by the training schedule, without selecting it against test results. The plotted curve reports observed log loss on the same 2,048 independent validation tasks at each checkpoint, not the training minibatch loss. The saved source and numerical trace make the calculation reproducible.'
   },
   {
     chapter:inside, kind:'mechanism', mechanismStage:6,
-    title:'Freeze the weights. Supply a new context.',
-    body:`The same trained network returns ${pct(A.probability)} for context A and ${pct(B.probability)} for context B. Its intermediate calculations change because the input changes.`,
+    title:'Back to our trained Mini-PFN.',
+    body:`Return to our earlier teaching checkpoint: it predicts ${pct(A.probability)} survival for context A and ${pct(B.probability)} for context B. Only the context changes.`,
     equation:'\\theta\\text{ fixed};\\qquad q_\\theta(y_*\\mid x_*,D_A)\\ne q_\\theta(y_*\\mid x_*,D_B)',
-    note:'Two forward passes through one checkpoint. No gradients or weight updates occur between them.',
+    note:'The saved two-rule teaching checkpoint, not TabICLv2 or a model retrained on the broad SCM gallery. No weight updates occur here.',
     reading:'This is in-context learning. The function computed by the trained network is fixed, but it is a function of both the query and the labeled context. Replacing the context changes the row vectors, attention computations, pooled representation, and final prediction. In ordinary task-specific neural-network training, fitting a new dataset changes weights; here, pretraining has already learned a way to use the dataset as input. These particular predictions are imperfect: their exact Bayesian targets are approximately 72.3% and 27.7%. Learning the inference procedure does not guarantee exact inference or calibration.'
   },
   {

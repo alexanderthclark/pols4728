@@ -1,8 +1,9 @@
-import {overviewScenes} from './overview-scenes.mjs?v=20261123-icl-labels';
+import {overviewScenes} from './overview-scenes.mjs?v=20261123-scm-pretraining';
+import {pretrainingScenes} from './pretraining-scenes.mjs?v=20261123-scm-pretraining';
 import {bearComparisonScenes} from './bear-comparison-scenes.mjs?v=20261123-context-ten-noise';
 import {atusScenes} from './atus-scenes.mjs';
 import {bearScenes} from './bear-scenes.mjs?v=20261123-context-ten-noise';
-import {mechanismScenes} from './mechanism-scenes.mjs?v=20261123-toy-pretraining';
+import {mechanismScenes} from './mechanism-scenes.mjs?v=20261123-scm-pretraining';
 import {bayesScenes} from './bayes-scenes.mjs';
 import {natureScenes} from './nature-scenes.mjs?v=20261123-context-ten-noise';
 export const scenes = [
@@ -28,8 +29,8 @@ export const scenes = [
 
 scenes.forEach((scene, index) => { scene.visualIndex = index; });
 scenes.splice(2, 8, ...mechanismScenes);
-scenes.splice(scenes.findIndex(scene => scene.visualIndex === 10), 5, ...bayesScenes);
-scenes.splice(scenes.findIndex(scene => scene.visualIndex === 15), 1, ...natureScenes.slice(0,2));
+scenes.splice(scenes.findIndex(scene => scene.visualIndex === 10), 5, ...bayesScenes.filter(scene=>scene.bayesStage!==5));
+scenes.splice(scenes.findIndex(scene => scene.visualIndex === 15), 1, ...natureScenes.slice(1,2));
 scenes.splice(scenes.findIndex(scene => scene.visualIndex === 16), 0, ...bearScenes);
 scenes.splice(scenes.findIndex(scene => scene.visualIndex === 16), 0, natureScenes[2]);
 scenes.unshift({
@@ -44,8 +45,10 @@ scenes.unshift({
 scenes.splice(1,0,...bearComparisonScenes);
 scenes.unshift(...atusScenes);
 scenes.splice(atusScenes.length+1+bearComparisonScenes.length,0,...overviewScenes);
+scenes.splice(scenes.findIndex(scene=>scene.kind==='mechanism'&&scene.mechanismStage===5)+1,0,...pretrainingScenes);
 
 export const sources = [
+ {title:'Ma et al. (2025) · TabDPT: Scaling Tabular Foundation Models on Real Data',url:'https://proceedings.neurips.cc/paper_files/paper/2025/file/fc0e3f908a2116ba529ad0a1530a3675-Paper-Conference.pdf',note:'A different pretraining source: curated real OpenML tables, with self-supervised context/query prediction tasks. See §§3.2–4.1.'},
  {title:'Qu et al. (2026) · TabICLv2',url:'https://arxiv.org/abs/2602.11139',note:'The pretrained model used in the opening bear comparison. Its public checkpoint and implementation are linked with the reproduction instructions.'},
  {title:'Bear task · Tree, forest and TabICLv2',url:'https://github.com/alexanderthclark/pols4728/blob/main/examples/tabular-foundation-models/bear_model_comparison.py',note:'Actual matched simulation runs, with the same training and test encounters for every model. Includes the checkpoint hash and all seed results.'},
  {title:'ATUS prediction comparison · Measured results and protocol',url:'https://github.com/alexanderthclark/pols4728/blob/main/docs/tabular-foundation-models/atus-results.mjs',note:'Actual AutoGluon, TabICLv2, and TabDPT test average precision. The 200-row baseline selects ensemble weights using only that sample’s out-of-fold predictions.'},

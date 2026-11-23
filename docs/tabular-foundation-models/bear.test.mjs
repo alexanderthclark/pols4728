@@ -1,4 +1,6 @@
 import {overviewScenes} from './overview-scenes.mjs';
+import {pretrainingScenes} from './pretraining-scenes.mjs';
+import {renderPretraining} from './pretraining.mjs';
 import {renderOverview} from './overview.mjs';
 import {bearComparisonScenes} from './bear-comparison-scenes.mjs';
 import {renderBearComparison} from './bear-comparison.mjs';
@@ -80,17 +82,21 @@ test('oracle AUC is the population ranking reference, which sample AUC may excee
 });
 
 test('worked episodes preserve retained scene routing and every scroll state renders',()=>{
-  assert.equal(scenes.length,12+mechanismScenes.length+bayesScenes.length+natureScenes.length+atusScenes.length+bearComparisonScenes.length+overviewScenes.length);
+  assert.equal(scenes.length,12+mechanismScenes.length+bayesScenes.length+natureScenes.length+atusScenes.length+bearComparisonScenes.length+overviewScenes.length+pretrainingScenes.length-2);
   assert.equal(scenes[0].kind,'atus');
   assert.equal(scenes[atusScenes.length].kind,'dgp');
   assert.deepEqual(scenes.slice(atusScenes.length+1,atusScenes.length+4),bearComparisonScenes);
   assert.deepEqual(scenes.slice(atusScenes.length+1+bearComparisonScenes.length,atusScenes.length+1+bearComparisonScenes.length+overviewScenes.length),overviewScenes);
+  assert.equal(scenes[15].mechanismStage,5);
+  assert.deepEqual(scenes.slice(16,20),pretrainingScenes);
+  assert.equal(scenes[20].mechanismStage,6);
+  assert.ok(!scenes.some(scene=>scene.bayesStage===5));
   const old=scenes.filter(s=>s.visualIndex!==undefined);
   assert.deepEqual(old.map(s=>s.visualIndex),[0,1,16,17]);
   assert.deepEqual(scenes.filter(s=>s.kind==='bear').map(s=>s.bearStage),[0,1,2,3,4,5,6]);
   for(const scene of scenes)for(const mobile of [false,true])for(const p of [0,.25,.5,.75,1]){
     const index=scene.visualIndex;
-    const svg=scene.kind==='overview'?renderOverview(scene.overviewStage,p,mobile):scene.kind==='bearComparison'?renderBearComparison(scene.comparisonStage,p,mobile):scene.kind==='atus'?renderAtus(scene.atusStage,p,mobile):scene.kind==='nature'?(mobile?renderNatureMobile(scene.natureStage,p):renderNature(scene.natureStage,p)):scene.kind==='bayes'?(mobile?renderBayesMobile(scene.bayesStage,p):renderBayes(scene.bayesStage,p)):scene.kind==='mechanism'?renderMechanism(scene.mechanismStage,p,mobile):scene.kind==='dgp'?renderDgp(p,mobile):scene.kind==='bear'?(mobile?renderBearMobile(scene.bearStage,p):renderBear(scene.bearStage,p)):
+    const svg=scene.kind==='pretraining'?renderPretraining(scene.pretrainingStage,p,mobile):scene.kind==='overview'?renderOverview(scene.overviewStage,p,mobile):scene.kind==='bearComparison'?renderBearComparison(scene.comparisonStage,p,mobile):scene.kind==='atus'?renderAtus(scene.atusStage,p,mobile):scene.kind==='nature'?(mobile?renderNatureMobile(scene.natureStage,p):renderNature(scene.natureStage,p)):scene.kind==='bayes'?(mobile?renderBayesMobile(scene.bayesStage,p):renderBayes(scene.bayesStage,p)):scene.kind==='mechanism'?renderMechanism(scene.mechanismStage,p,mobile):scene.kind==='dgp'?renderDgp(p,mobile):scene.kind==='bear'?(mobile?renderBearMobile(scene.bearStage,p):renderBear(scene.bearStage,p)):
       mobile?(index>=10&&index<=14?renderBayesMobile(index-10,p):renderMobile(index,p)):renderVisual(index,p);
     assert.ok(svg.length>100);
     assert.doesNotMatch(svg,/NaN|undefined|Infinity/);

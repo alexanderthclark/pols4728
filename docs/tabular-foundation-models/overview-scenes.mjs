@@ -14,7 +14,7 @@ export const overviewScenes = [
     title:'In-context learning puts examples in the input.',
     body:'The labeled training rows are the context. Supply them with the new row’s features; the pretrained network predicts without updating its weights.',
     equation:'q_\\theta(y_*\\mid x_*,D),\\qquad\\theta\\;\\text{fixed}',
-    note:'Context = labeled examples for this task. The new row’s target stays hidden; it is what we want to predict.',
+    note:'qθ is the model’s predicted conditional distribution. For binary Y, qθ(Y=1 | x*, D) is its predicted probability of class 1.',
     reading:'In-context learning uses labeled examples at prediction time. A new table supplies the context, alongside features for the row whose target is unknown. The network weights stay fixed in this standard workflow; its computations depend on the supplied examples. Implementations can prepare or cache context representations, so this schematic does not imply that every prediction rereads the full table. Optional fine-tuning is a different workflow.',
     references:[{title:'Molnar · In-context learning',url:'https://tabularfoundationmodels.com/prediction'},{title:'Molnar · First look',url:'https://tabularfoundationmodels.com/first-look'}]
   },
