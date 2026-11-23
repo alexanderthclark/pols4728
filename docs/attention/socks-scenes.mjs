@@ -98,6 +98,24 @@ export function createSocksScenes({m,text,line,rect,circle,C,ease,lerp,clamp,num
     out+=m(`${ev}+${pv<0?'('+pv+')':pv}=${xv}`,320,473,590,76,42,C.ink);
     return out;
   }
+  function positionPooling(t) {
+    const p=ease(t);
+    let out=text('Position is present.',320,35,30,C.ink);
+    out+=text('The mean still ties.',320,75,30,C.ink);
+    out+=m('X=E+P',320,121,520,56,32,C.teal);
+    [{model:forward,x:160,color:blue},{model:reverse,x:480,color:rust}].forEach(({model,x,color})=>{
+      const mean=model.X[0].map((_,j)=>model.X.reduce((sum,row)=>sum+row[j],0)/model.X.length);
+      out+=text(model.tokens.join(' → '),x,175,26,color);
+      out+=cellMatrix(model.X,{x:x-108,y:201,cw:72,ch:68,highlight:2});
+      out+=line(x,349,x,385,C.muted,1.5,'marker-end="url(#arrow)"');
+      out+=circle(x,lerp(349,379,p),3.5,color);
+      out+=m(array([mean.map(value=>value===.5?'\\tfrac12':num(value))]),x,431,280,82,33,color);
+    });
+    out+=m('=',320,431,40,60,31,C.ink);
+    out+=text('Average the rows',320,375,23,C.muted);
+    out+=text('The +1 and −1 positions cancel in either order.',320,516,23,C.muted);
+    return out;
+  }
   function queriesKeys(t) {
     let out=text('Choose one feature for each query and key.',320,35,24,C.ink);
     out+=m('d_k=1',320,81,240,56,36,C.blue);
@@ -250,6 +268,7 @@ export function createSocksScenes({m,text,line,rect,circle,C,ease,lerp,clamp,num
     {part:'01 · Why order matters',label:'Begin with a small task',title:'Socks before shoes.',caption:'Give “socks, shoes” a score of zero and the reversed order a score of minus one. The items are identical; their order changes the target.',equation:'[\\text{socks},\\text{shoes}]\\;\\longmapsto\\;0',detail:'This is a deliberately small construction. We will choose every weight and compute every output; nothing here is a claim about a pretrained model.',visual:'Scroll to exchange the two items while their positions stay fixed.',draw:task},
     {id:'socks-lookup-pooling',part:'01 · Why order matters',label:'Averaging loses the distinction',title:'Transform the lookup embeddings so order survives mean pooling.',caption:'Represent socks and shoes with two identity coordinates. Averaging those vectors gives the same result in either order.',equation:'\\tfrac12\\bigl([1\\;0]+[0\\;1]\\bigr)=[\\tfrac12\\;\\tfrac12]',detail:'A model that sees only this average cannot give the two sequences different predictions. Reordering the rows cannot change their average, so we need a non-trivial transformer.',visual:'The row vectors move with the tokens, but their mean stays fixed.',draw:identities},
     {part:'01 · Why order matters',label:'',title:'Let’s take one simple route.',caption:'Position vectors can be learned and added to token embeddings of the same width. Here, we choose fixed vectors that use the third coordinate.',equation:'X=E+P',detail:'Add matching entries. <span data-math="E"></span>, <span data-math="P"></span>, and <span data-math="X"></span> all have two rows and three columns. From here on, <span data-math="X"></span> includes position.',visual:'We’ll use this choice for the rest of the socks-and-shoes example.',draw:positionalRows,discretePhases:true},
+    {id:'socks-position-pooling',part:'01 · Why order matters',label:'Position alone does not survive averaging',title:'Position is present. The mean still ties.',caption:'These are the complete token-plus-position matrices for both orders. Their rows differ, but averaging still gives the same vector: one half, one half, zero.',equation:'\\operatorname{mean}(X)=[\\tfrac12\\;\\tfrac12\\;0]',detail:'The token coordinates average to one half each, while the position coordinates +1 and −1 cancel. A readout of this mean cannot separate the orders. The transformer must first change the representations so order survives pooling.',visual:'Both complete X = E + P matrices are shown side by side. Their equal means appear beneath them.',draw:positionPooling},
     {part:'02 · Construct one attention head',label:'Choose two feature maps',title:'Let shoes look for socks.',caption:'We choose one feature for each query and key. The query marks shoes as the destination; the key marks socks as the source to favor.',equation:'Q=XW_Q,\\qquad K=XW_K',detail:'The width <span data-math="d_k"></span> is an architecture choice; training learns the entries of the shared maps. Here the chosen factor <span data-math="\\log 3"></span> gives socks three times the weight of shoes.',visual:'Three input features, two token rows, and one feature per query/key.',draw:queriesKeys},
     {part:'02 · Construct one attention head',label:'The shoes query compares both sources',title:'Compare the query with each key.',caption:'The shoes query is one. Its score against socks is log three; its score against shoes is zero.',equation:'s_{ij}=q_i k_j',detail:'The query/key dimension is one, so division by its square root changes nothing. No causal mask is used here.',visual:'The query belongs to the destination; each key belongs to a possible source.',draw:matching},
     {part:'02 · Construct one attention head',label:'Turn scores into weights',title:'Three parts socks, one part shoes.',caption:'Exponentiating the two scores gives three and one. Dividing by their total gives the shoes row weights of three quarters and one quarter.',equation:'\\operatorname{softmax}([\\log3\\;0])=[\\tfrac34\\;\\tfrac14]',detail:'The weights sum to one. They describe how much the shoes destination reads from each source.',visual:'The scroll shows exact scores, exponentials, and normalized weights in turn.',draw:softmax,discretePhases:true},

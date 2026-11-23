@@ -1,8 +1,8 @@
 import { socksAttention, SOCKS_WO } from './socks-model.mjs?v=attention-notation-8';
 
-// Continue the same construction: wider heads, output updates, and a new
-// prediction setting. Every mathematical label uses the shared renderer.
-export function createExtensionScenes({m,text,line,rect,circle,C,ease,lerp,clamp,num}) {
+// Continue the classification construction, then expose the decoder example
+// separately. Every mathematical label uses the shared renderer.
+function createAllScenes({m,text,line,rect,circle,C,ease,lerp,clamp,num}) {
   const L=String.raw;
   const forward=socksAttention();
   const reverse=socksAttention({reverse:true});
@@ -10,7 +10,10 @@ export function createExtensionScenes({m,text,line,rect,circle,C,ease,lerp,clamp
   const color=token=>token==='socks'?C.blue:C.rust;
   const group=(body,opacity=1)=>`<g opacity="${clamp(opacity)}">${body}</g>`;
   const near=(a,b)=>Math.abs(a-b)<1e-10;
-  const value=v=>typeof v==='string'?v:v===-Infinity?L`-\infty`:near(v,Math.log(3))?L`\log3`:near(v,.5)?L`\tfrac12`:near(v,-.5)?L`-\tfrac12`:near(v,.25)?L`\tfrac14`:near(v,.75)?L`\tfrac34`:num(v);
+  const value=v=>typeof v==='string'?v:v===-Infinity?L`-\infty`:near(v,Math.log(3))?L`\log3`:near(v,.5)?L`\tfrac12`:near(v,-.5)?L`-\tfrac12`:near(v,.25)?L`\tfrac14`:near(v,-.25)?L`-\tfrac14`:near(v,.75)?L`\tfrac34`:near(v,1.5)?L`\tfrac32`:num(v);
+  const meanRows=rows=>rows[0].map((_,j)=>rows.reduce((sum,row)=>sum+row[j],0)/rows.length);
+  const pooledForward=meanRows(forward.updatedX),pooledReverse=meanRows(reverse.updatedX);
+  const rowTex=row=>L`\begin{bmatrix}`+row.map(value).join('&')+L`\end{bmatrix}`;
   const arrow=(x1,y1,x2,y2,stroke=C.muted,opacity=1)=>line(x1,y1,x2,y2,stroke,1.5,`opacity="${opacity}" marker-end="url(#arrow)"`);
   const curve=(x1,y1,x2,y2)=>`M${x1} ${y1}C${x1} ${lerp(y1,y2,.55)} ${x2} ${lerp(y1,y2,.55)} ${x2} ${y2}`;
   const cubic=(a,b,c,d,t)=>(1-t)**3*a+3*(1-t)**2*t*b+3*(1-t)*t*t*c+t**3*d;
@@ -83,6 +86,25 @@ export function createExtensionScenes({m,text,line,rect,circle,C,ease,lerp,clamp
     out+=m(L`-1+\tfrac12=-\tfrac12`,320,483,600,80,39,active?C.rust:C.muted);
     return out;
   }
+  function residualReadout(t) {
+    const pool=ease(clamp(t/.65)),score=clamp((t-.55)/.35);
+    let out=text('Now order survives mean pooling.',320,35,26,C.ink);
+    [{run:forward,pooled:pooledForward,x:152,stroke:C.blue},
+     {run:reverse,pooled:pooledReverse,x:472,stroke:C.rust}].forEach(({run,pooled,x,stroke})=>{
+      out+=text(run.tokens.join(' → '),x,86,25,stroke);
+      out+=m(L`X'`,x,122,180,48,32,stroke);
+      out+=matrix(run.updatedX,{x:x-120,y:154,cw:80,ch:58,size:28});
+      out+=arrow(x,276,x,306,stroke);
+      out+=circle(x,lerp(276,306,pool),5,stroke);
+      out+=group(m('r='+rowTex(pooled),x,344,306,66,29,stroke),.2+.8*pool);
+      const prediction=2*pooled[2]-.5;
+      out+=group(m(L`\hat y=`+value(prediction),x,506,260,56,36,stroke),score);
+    });
+    out+=text('Mean token row',320,300,22,C.muted);
+    out+=text('Only the pooled order coordinate changes.',320,399,21,C.muted);
+    out+=m(L`\hat y=2r_3-\tfrac12`,320,444,590,60,34,C.ink);
+    return out;
+  }
   function newSetting(t) {
     const p=ease(t);
     let out=text('Predict the next item after “shoes”.',320,52,26,C.muted);
@@ -140,13 +162,22 @@ export function createExtensionScenes({m,text,line,rect,circle,C,ease,lerp,clamp
     return out;
   }
   return [
-    {part:'04 · From mixtures to updates',label:'Let the matching features be vectors',title:'Queries and keys can be vectors.',caption:'A query can compare several features with each key. A scaled dot product supplies the score; the resulting attention matrix still mixes source rows from the left.',equation:L`s_{ij}=\frac{q_i k_j^{\mathsf T}}{\sqrt{d_k}}`,detail:L`The dot product sums matching-coordinate products; division by <span data-math="\sqrt{d_k}"></span> controls score scale. Our scalar example had <span data-math="d_k=1"></span>.`,visual:'The same matching and mixing, with wider feature vectors.',draw:vectorHead},
-    {part:'04 · From mixtures to updates',label:'Map the output back to the input width',title:'Turn a mixture into an update.',caption:'With socks first, the attention output has one coordinate per token. Choose an output projection that maps it back into three coordinates, matching the width of the input.',equation:L`\Delta X=UW_O=AVW_O`,detail:'Here the output projection writes the mixed value into the third coordinate and zero into the other two. The same map applies to every row.',visual:'The shoes output of one half becomes the third coordinate of its update.',draw:projectOutput},
-    {part:'04 · From mixtures to updates',label:'Add the projected update',title:'Keep the input, and add what attention found.',caption:'Add the projected output to the original input, coordinate by coordinate. The shoes row receives an update of one half in its third coordinate.',equation:L`X'=X+\Delta X`,detail:'Our earlier task read out U directly. Transformer attention can instead add this projected update. After the update, coordinates need not retain their original meanings.',visual:'The right-hand matrix contains updated features. This illustrates the attention update alone.',draw:residual},
-    {part:'05 · When the future is unavailable',label:'A different prediction setting',title:'What if the next item is still unknown?',caption:'Now predict the next item after “shoes.” The first prediction may use that token, but it must not read the second token, “socks.”',equation:L`\text{At position }i,\quad j\leq i`,detail:'This is a new use for attention. We return to the original input rows; the earlier task scoring rule is not used here.',visual:'A later token may be present in a training sequence while being unavailable to this prediction.',draw:newSetting},
-    {part:'05 · When the future is unavailable',label:'Exclude future sources before softmax',title:'Mask the score for the future.',caption:'In the reversed sequence, the first query strongly matches the second key. Replace that future score with negative infinity before applying softmax.',equation:L`\widetilde S=S+M`,detail:'The mask adds zero to allowed entries and negative infinity to future entries. A token may still read itself and earlier tokens.',visual:'Only the top-right entry is forbidden. Scroll to replace its score; all allowed scores stay unchanged.',draw:maskScores,discretePhases:true},
-    {part:'05 · When the future is unavailable',label:'Recompute each probability row',title:'Remove the future, then renormalize.',caption:'The future source receives zero weight. The first token is now its own only allowed source, so its weight becomes one. The second row stays unchanged.',equation:L`A_{\rm causal}=\operatorname{softmax}_{\rm row}(\widetilde S)`,detail:'Masking changes which sources are available, then softmax normalizes over those sources. These are the complete before-and-after matrices.',visual:'The highlight first follows the forbidden contribution, then the weight that grows to one.',draw:renormalize,discretePhases:true},
-    {part:'06 · The whole attention operation',label:'One operation, three roles',title:'Attention routes information.',caption:'Queries and keys determine the weights. Values supply what is mixed. An output projection can turn the mixture into an update to the input rows.',equation:L`X'=X+AVW_O`,detail:'Use a causal mask when the prediction must exclude future sources. The matching, mixing, and output projection otherwise keep the same form.',visual:'Where to read. What to carry. How to return the result to the input feature space.',draw:conclusion}
+    {id:'socks-vector-head',part:'04 · From mixtures to updates',label:'Let the matching features be vectors',title:'Queries and keys can be vectors.',caption:'A query can compare several features with each key. A scaled dot product supplies the score; the resulting attention matrix still mixes source rows from the left.',equation:L`s_{ij}=\frac{q_i k_j^{\mathsf T}}{\sqrt{d_k}}`,detail:L`The dot product sums matching-coordinate products; division by <span data-math="\sqrt{d_k}"></span> controls score scale. Our scalar example had <span data-math="d_k=1"></span>.`,visual:'The same matching and mixing, with wider feature vectors.',draw:vectorHead},
+    {id:'socks-output-projection',part:'04 · From mixtures to updates',label:'Map the output back to the input width',title:'Turn a mixture into an update.',caption:'With socks first, the attention output has one coordinate per token. Choose an output projection that maps it back into three coordinates, matching the width of the input.',equation:L`\Delta X=UW_O=AVW_O`,detail:'Here the output projection writes the mixed value into the third coordinate and zero into the other two. The same map applies to every row.',visual:'The shoes output of one half becomes the third coordinate of its update.',draw:projectOutput},
+    {id:'socks-residual-update',part:'04 · From mixtures to updates',label:'Add the projected update',title:'Keep the input, and add what attention found.',caption:'Add the projected output to the original input, coordinate by coordinate. The shoes row receives an update of one half in its third coordinate.',equation:L`X'=X+\Delta X`,detail:'Our earlier task read out U directly. Transformer attention can instead add this projected update. After the update, coordinates need not retain their original meanings.',visual:'The right-hand matrix contains updated features. This illustrates the attention update alone.',draw:residual},
+    {id:'socks-residual-readout',part:'04 · From mixtures to updates',label:'Read the updated representations',title:'Now order survives mean pooling.',caption:'Average the updated token rows. Their identity coordinates still match across the two orders, but the third coordinate retains an order signal.',equation:L`r=\tfrac12\sum_{i=1}^{2}x'_i,\qquad\hat y=2r_3-\tfrac12`,detail:'The original position coordinates average to zero, so the attention update supplies the pooled third coordinate. The same linear readout gives 0 for socks before shoes and −1 for shoes before socks.',visual:'Mean pooling X′ gives [1/2, 1/2, 1/4] for socks before shoes and [1/2, 1/2, −1/4] for the reverse order. Scroll to read out both scores.',draw:residualReadout},
+    {id:'decoder-next-token',part:'Decoder · When the future is unavailable',label:'A different prediction setting',title:'What if the next item is still unknown?',caption:'Now predict the next item after “shoes.” The first prediction may use that token, but it must not read the second token, “socks.”',equation:L`\text{At position }i,\quad j\leq i`,detail:'This is a new use for attention. We return to the original input rows; the earlier task scoring rule is not used here.',visual:'A later token may be present in a training sequence while being unavailable to this prediction.',draw:newSetting},
+    {id:'decoder-mask-scores',part:'Decoder · When the future is unavailable',label:'Exclude future sources before softmax',title:'Mask the score for the future.',caption:'In the reversed sequence, the first query strongly matches the second key. Replace that future score with negative infinity before applying softmax.',equation:L`\widetilde S=S+M`,detail:'The mask adds zero to allowed entries and negative infinity to future entries. A token may still read itself and earlier tokens.',visual:'Only the top-right entry is forbidden. Scroll to replace its score; all allowed scores stay unchanged.',draw:maskScores,discretePhases:true},
+    {id:'decoder-renormalize',part:'Decoder · When the future is unavailable',label:'Recompute each probability row',title:'Remove the future, then renormalize.',caption:'The future source receives zero weight. The first token is now its own only allowed source, so its weight becomes one. The second row stays unchanged.',equation:L`A_{\rm causal}=\operatorname{softmax}_{\rm row}(\widetilde S)`,detail:'Masking changes which sources are available, then softmax normalizes over those sources. These are the complete before-and-after matrices.',visual:'The highlight first follows the forbidden contribution, then the weight that grows to one.',draw:renormalize,discretePhases:true},
+    {id:'socks-attention-summary',part:'05 · The whole attention operation',label:'One operation, three roles',title:'Attention routes information.',caption:'Queries and keys determine the weights. Values supply what is mixed. An output projection can turn the mixture into an update to the input rows.',equation:L`X'=X+AVW_O`,detail:'For this classifier, mean pooling the updated rows retains the order signal used by the readout.',visual:'Where to read. What to carry. How to return the result to the input feature space.',draw:conclusion}
   ];
+}
+
+export function createExtensionScenes(drawing) {
+  return createAllScenes(drawing).filter(scene=>!scene.id.startsWith('decoder-'));
+}
+
+export function createDecoderScenes(drawing) {
+  return createAllScenes(drawing).filter(scene=>scene.id.startsWith('decoder-'));
 }
 

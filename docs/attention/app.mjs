@@ -2,8 +2,8 @@ import {createIntuitionScenes} from './intuition-scenes.mjs?v=desert-upward-32';
 import {createShapScenes} from './shap-scenes.mjs?v=shap-waterfalls-34';
 import {createGuidedTrainedScenes} from './trained-tour-scenes.mjs?v=attention-contributions-35';
 import {buildExplorer} from './trained-explorer.mjs?v=attention-interventions-1';
-import {createSocksScenes} from './socks-scenes.mjs?v=socks-takeaway-36';
-import {createExtensionScenes} from './extension-scenes.mjs?v=attention-notation-8';
+import {createSocksScenes} from './socks-scenes.mjs?v=pooling-arc-37';
+import {createExtensionScenes,createDecoderScenes} from './extension-scenes.mjs?v=pooling-arc-37';
 import {createSentenceScenes} from './sentence-scenes.mjs?v=attention-sequence-20';
 
 const C={ink:'#242424',blue:'#234e70',rust:'#a54f32',teal:'#007f73',purple:'#7b4f9d',muted:'#606060',rule:'#dededb'};
@@ -30,9 +30,10 @@ const drawing={m,text,line,rect,circle,C,ease,lerp,clamp,num};
 const intuitionScenes=createIntuitionScenes(drawing);
 const coreScenes=createSentenceScenes(drawing);
 const mechanicsScenes=[...createSocksScenes(drawing),...createExtensionScenes(drawing)];
+const decoderScenes=createDecoderScenes(drawing);
 // The complete text remains available independently of visual scene changes.
 const transcript=scenes=>scenes.map((s,i)=>`<section>${s.title?`<h3>${i+1}. ${s.title}</h3>`:""}${s.caption?`<p>${s.caption}</p>`:""}${(s.quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('')}${s.equation?`<div class="transcript-eq">${tex(s.equation)}</div>`:""}${s.detail?`<p>${s.detail}</p>`:""}${s.reading||''}</section>`).join('');
-document.querySelector('#transcript').innerHTML='<h3>One token, different contexts</h3>'+transcript(intuitionScenes)+'<h3 id="transcript-mechanics">Constructing the socks-and-shoes head</h3>'+transcript(mechanicsScenes)+'<h3>Infinite Jest: from representations to sentiment</h3>'+transcript(coreScenes);
+document.querySelector('#transcript').innerHTML='<h3>One token, different contexts</h3>'+transcript(intuitionScenes)+'<h3 id="transcript-mechanics">Constructing the socks-and-shoes head</h3>'+transcript(mechanicsScenes)+'<h3>Infinite Jest: from representations to sentiment</h3>'+transcript(coreScenes)+'<div id="trained-reading"></div><div id="decoder-reading"><h3>Optional extension: decoders and causal masking</h3>'+transcript(decoderScenes)+'</div>';
 renderMathNodes(document.querySelector('#transcript'));
 const quoteMarkup=quotes=>(quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('');
 function makeStory(id,prefix,scenes){
@@ -81,7 +82,7 @@ function makeStory(id,prefix,scenes){
  field('narration').style.opacity=a;
  };
 }
-const renderStories=[makeStory('intuition','intuition-',intuitionScenes),makeStory('mechanics-story','mechanics-',mechanicsScenes),makeStory('story','',coreScenes)];
+const renderStories=[makeStory('intuition','intuition-',intuitionScenes),makeStory('mechanics-story','mechanics-',mechanicsScenes),makeStory('story','',coreScenes),makeStory('decoder-story','decoder-',decoderScenes)];
 let scheduled=false;
 function render(){scheduled=false;renderStories.forEach(draw=>draw())}
 function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(render)}}
@@ -107,10 +108,8 @@ Promise.all(['infinite-jest-attention.json','infinite-jest-investigation.json','
   const scenes=[investigationScenes[0],...createShapScenes(drawing,shapData,data),...investigationScenes.slice(1)];
   renderStories.push(makeStory('trained-story','trained-',scenes));
   buildExplorer(document.querySelector('#trained-explorer'),data);
-  const reading=document.createElement('div');
-  reading.id='trained-reading';
+  const reading=document.querySelector('#trained-reading');
   reading.innerHTML='<h3>DistilBERT predictions, Shapley contributions, and internal computations</h3>'+transcript(scenes);
-  document.querySelector('#transcript').append(reading);
   renderMathNodes(reading);
   render();
   if(location.hash==='#trained-reading')revealReading();

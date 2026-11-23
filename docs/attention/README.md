@@ -23,7 +23,9 @@ mean monotonic improvement: an update can revise or cancel a feature.
 Scrolling then enters the complete socks-and-shoes construction and its encoder
 notebook bridge. All Infinite Jest material follows together: the seven-scene
 schematic, measured predictions, exact Shapley contributions, and internal
-interventions. No teaching chapter is hidden behind a disclosure panel.
+interventions. The classifier sequence remains in the main scroll; a separate,
+optional decoder section follows the interpretation guide and contains all three
+causal-masking scenes.
 The Infinite Jest schematic starts by comparing these two reviews:
 
 - “Good and Infinite Jest don't belong in the same sentence”
@@ -46,9 +48,10 @@ the same scene order. The former thirteen-scene film
 classifier has been removed from the live route, navigation, and reading
 version. Its source modules and arithmetic tests remain as an archived example.
 
-Twenty-one socks-and-shoes scenes are part of the main scroll sequence.
-The first twelve
+Twenty socks-and-shoes scenes are part of the main scroll sequence.
+The first thirteen
 establish the target, show why identity pooling loses order, add explicit position,
+show that both full input means still equal [1/2,1/2,0],
 and motivate a chosen retrieval: shoes looks for socks and reads their position.
 The query/key choice explicitly sets d_k=1: WQ and WK are 3×1, while Q and K
 are 2×1. This width is an architecture choice; the map entries are parameters.
@@ -66,11 +69,14 @@ work, so rank and invertibility are not the criterion. The scroll shows three
 successful patterns and four failures; the complete-text explanation derives
 the condition and its realization by one-dimensional identity-only Q/K maps.
 
-Seven short extension scenes keep the same example. They generalize scalar
+Five extension scenes keep the same classification task. They generalize scalar
 query/key products to vector dot products, project an attention output back to
-representation width, add that update to the original representation, then switch
-to left-to-right prediction to motivate causal masking and renormalization. The
-former seventeen-scene four-token restart has been removed.
+representation width, add that update, and pool the updated residual rows. Their
+means are [1/2,1/2,1/4] and [1/2,1/2,-1/4]; the shared readout 2*r_3-1/2
+recovers 0 and -1. A final summary closes the classification calculation before
+the encoder notebook. The three causal-mask scenes retain their calculations in
+the later optional decoder section. The former seventeen-scene four-token
+restart remains removed.
 
 The socks chapter ends with a bridge to the annotated encoder classifier in the
 course repository, pinned to 5a29ace12e91b1aca3d26eea54b4cbceba92fb22. It connects
@@ -263,6 +269,9 @@ the initial constructed task. The parameters are chosen, not trained. The later
 update illustration uses WO=[0,0,1], producing deltaX=[[0,0,0],[0,0,0.5]]
 for socks first. The original third coordinate of shoes changes from -1 to -0.5;
 the updated feature is no longer simply the original position indicator.
+Pooling X' gives [1/2,1/2,1/4] for socks first and [1/2,1/2,-1/4] for
+shoes first. The readout 2*r_3-1/2 reproduces the same targets because the
+original position coordinate has zero mean in both orders.
 Removing position or intervening with uniform attention yields -0.5 for both.
 
 The matching preferences survive the swap because Q/K intentionally ignore
@@ -270,7 +279,7 @@ position. This is not a claim that token permutations always conjugate A when
 positional features enter Q/K. Finite logits produce strictly positive weights;
 no unattainable hard-routing weights are used.
 
-For the masking extension, reverse the sequence to [shoes,socks]. Its original
+For the optional decoder section after the sentiment material, reverse the sequence to [shoes,socks]. Its original
 attention is [[0.25,0.75],[0.5,0.5]]. Blocking the first destination from reading
 the later socks token gives [[1,0],[0.5,0.5]]. The diagonal stays available and
 each allowed row is normalized. Uniform attention with a causal mask averages
@@ -283,15 +292,19 @@ The current site does not run that checkpoint or claim measurements from it.
 
 ## Implementation and checking
 
-`app.mjs` initializes four pinned stories in scroll order: the intuition primer,
-socks-and-shoes calculation, Infinite Jest schematic, and measured-model chapter.
+`app.mjs` initializes five pinned stories: the intuition primer, socks-and-shoes
+calculation, Infinite Jest schematic, measured-model chapter, and optional
+decoder story. The last story only renders while its disclosure is open; its
+hash link opens that disclosure automatically.
 `intuition-scenes.mjs` introduces meaning in context; `sentence-scenes.mjs`
 supplies the schematic; `trained-tour-scenes.mjs` displays measured results, `shap-scenes.mjs` inserts
 the exact Shapley explanation after the original predictions; and
-`socks-scenes.mjs` plus `extension-scenes.mjs` supply the full worked example.
-`interpretation-scenes.mjs` is archived and is not imported by the live app. Hash links offer shortcuts; scrolling reaches every scene. It derives
+`socks-scenes.mjs` plus `createExtensionScenes` supply the full classifier
+example. `createDecoderScenes` preserves the three causal-mask scenes separately.
+`interpretation-scenes.mjs` is archived and is not imported by the live app. Hash links offer shortcuts; scrolling reaches every main scene. Opening the
+optional decoder section exposes its own three-scene scroll sequence. It derives
 scene state directly from native scroll position. There are no
-autoplay timers or required clicks. Reversing the scroll restores earlier states.
+autoplay timers or required clicks in the main classification sequence. Reversing the scroll restores earlier states.
 Mathematics uses self-hosted KaTeX with MathML output, including SVG labels.
 The reading version contains all scene explanations and equations.
 

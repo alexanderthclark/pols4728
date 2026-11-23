@@ -100,6 +100,13 @@ test('the output map writes the one-feature mixture into the position coordinate
     const result = socksAttention({ reverse: example.reverse });
     matrixClose(result.deltaX, example.deltaX);
     matrixClose(result.updatedX, example.updatedX);
+    const meanRows = rows => rows[0].map((_, j) => rows.reduce((sum, row) => sum + row[j], 0) / rows.length);
+    const sign = example.reverse ? -1 : 1;
+    matrixClose([meanRows(result.X)], [[.5, .5, 0]]);
+    matrixClose([meanRows(result.deltaX)], [[0, 0, sign * .25]]);
+    const residualMean = meanRows(result.updatedX);
+    matrixClose([residualMean], [[.5, .5, sign * .25]]);
+    close(2 * residualMean[2] - .5, example.prediction);
     result.X.forEach((row, i) => {
       assert.equal(result.U[i].length, 1);
       assert.equal(result.deltaX[i].length, 3);
