@@ -44,25 +44,3 @@ test("column totals conserve eight units and give unit-sum credit with no padded
   assert.equal(lesson.credit[4], 0);
 });
 
-test("flattening a five-by-two representation retains ten slots in row-major order", () => {
-  const lesson = traceLessonShapes();
-  assert.equal(lesson.valueWidth, 2);
-  assert.equal(lesson.flatSlots.length, lesson.slotCount * lesson.valueWidth);
-  assert.deepEqual(lesson.flatSlots.slice(0, 8), [
-    { position: 1, coordinate: 1, padded: false },
-    { position: 1, coordinate: 2, padded: false },
-    { position: 2, coordinate: 1, padded: false },
-    { position: 2, coordinate: 2, padded: false },
-    { position: 3, coordinate: 1, padded: false },
-    { position: 3, coordinate: 2, padded: false },
-    { position: 4, coordinate: 1, padded: false },
-    { position: 4, coordinate: 2, padded: false },
-  ]);
-  assert.equal(new Set(lesson.flatSlots.slice(0, 8).map((slot) =>
-    `${slot.position}:${slot.coordinate}`,
-  )).size, 8);
-  assert.deepEqual(lesson.flatSlots.slice(8), [
-    { position: 5, coordinate: 1, padded: true },
-    { position: 5, coordinate: 2, padded: true },
-  ]);
-});

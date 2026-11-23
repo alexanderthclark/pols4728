@@ -25,7 +25,7 @@ export default function Home() {
     <a className="skip" href="#training-data">Skip to the lesson</a>
     <header className="site-header">
       <a className="brand" href="#top">LiDDA</a>
-      <nav aria-label="Lesson sections"><a href="#training-data">Data</a><a href="#architecture-check">Model</a><a href="#flattening">Readout</a><a href="#notes">Paper</a></nav>
+      <nav aria-label="Lesson sections"><a href="#training-data">Data</a><a href="#architecture-check">Model</a><a href="#attention-readout">Credit</a><a href="#notes">Paper</a></nav>
       <div className="reading-progress" ref={progressRef} aria-hidden="true" />
     </header>
     <main id="top">
@@ -39,7 +39,7 @@ export default function Home() {
       <ModelWalkthrough />
       <section className="source-note" id="notes" aria-labelledby="source-title">
         <h2 id="source-title">Paper and illustration</h2>
-        <p><PaperLink section="S2">LiDDA, §§2.1–2.4 and Figure 1</PaperLink> supplies the architecture. The weights and tensor sizes here are synthetic. We average the heads’ value-mixed outputs, flatten them by position, and sum incoming attention for credit. The paper’s prose and equation differ on head combination, and its flattened tensor and query-axis reduction are not fully specified. These choices make the illustration explicit.</p>
+        <p><PaperLink section="S2">LiDDA, §§2.1–2.4 and Figure 1</PaperLink> supplies the architecture. The numbers and two heads are illustrative; the paper does not report its head count. For attribution, we sum incoming attention over valid query positions and heads, then normalize across touches. The paper does not fully specify the query-axis reduction, so this is an explicit teaching convention.</p>
       </section>
     </main>
     <footer className="site-footer"><span>POLS 4728 · Attention applications</span><a href="#top">Back to top ↑</a></footer>

@@ -31,7 +31,7 @@ This command rebuilds the package and replaces the generated `../../docs/lidda/`
 - `app/page.tsx` organizes the lesson; `app/globals.css` supplies shared styles.
 - `components/explainer/` contains the training examples, architecture diagram, scroll-driven readout, equations, and styles.
 - `lib/attribution-model.ts`, `lib/attention-detail.ts`, and `lib/lesson-shapes.ts` define the fixed teaching example and padded tensor shapes. These parameters are illustrative; they are not fitted LiDDA estimates.
-- `tests/` verifies attention arithmetic, padding, column-wise credit, and all ten flattened slots.
+- `tests/` verifies attention arithmetic, padding, column aggregation, and normalized credit.
 - `static/index.html` and `static/main.tsx` provide the standalone browser entry and initial section-link behavior.
 - `public/favicon.svg` supplies the icon.
 - `scripts/export-static.mjs` builds the standalone output; `scripts/publish-static.mjs` stages it under `docs/lidda/`.
@@ -40,9 +40,9 @@ The source intentionally excludes the original hosting configuration, authentica
 
 ## Scope and source history
 
-This lesson assumes students already know embeddings and attention. After concrete training examples, a two-branch diagram shows the sequence model and member/employer covariates. Five concise scroll stages follow the attention matrices through value mixing, flattening, conversion prediction, and credit. The paper representation is available in an optional disclosure beneath the architecture. The same ten output cells move from a 5 × 2 array into a vector; reverse scrolling restores their positions. Reduced motion uses discrete completed states.
+This lesson assumes students already know embeddings and attention. After concrete training examples, a two-branch diagram shows the sequence model and member/employer covariates. Two scroll stages show the attention matrices and their conversion into relative credit. Conversion prediction is summarized in the architecture rather than separate slides. The paper representation remains in an optional disclosure.
 
-The paper specifies one self-attention layer but does not report the head count or residual/LayerNorm wiring. The illustration consistently uses two heads, five padded positions, and two symbolic value coordinates per head. The attention weights are numerical; output coordinates are symbolic. Head averaging, flattening the mixed outputs in position order, and summing incoming attention across queries are explicit teaching conventions where the paper is underspecified.
+The paper specifies one self-attention layer but does not report the head count or residual/LayerNorm wiring. The illustration uses two heads and five positions (four real touches plus PAD). Summing incoming attention across valid queries and heads, then normalizing, is an explicit teaching convention for the paper's underspecified matrix-to-credit reduction.
 
 The full earlier guide is preserved in the original Sites source commit `2c4e2f47cb0f4578326ad84e1affbfacc55f6509`. The course package contains the focused revision only.
 

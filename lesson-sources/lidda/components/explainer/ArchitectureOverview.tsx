@@ -57,6 +57,7 @@ export function ArchitectureOverview() {
           adding them to each token’s residual stream. <PaperLink section="S2.F1">Figure 1</PaperLink>
         </figcaption>
       </figure>
+      <p className="ao-training-signal">Conversion labels train the model, including its attention weights; LiDDA then reuses the learned attention matrices to allocate touchpoint credit.</p>
 
       <details className="ao-representation">
         <summary>The representation in the paper</summary>
