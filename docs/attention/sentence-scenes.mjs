@@ -98,11 +98,11 @@ export function createSentenceScenes({m, line, rect, C}) {
   function expandedHead(t=1) {
     const p=ease(t),x=lerp(attentionFrame.x,197,p),y=lerp(attentionFrame.y,86,p),w=lerp(attentionFrame.w,405,p),h=lerp(attentionFrame.h,385,p);
     let out=box(x,y,w,h,teal,'#fff',1.6)
-      +label(p<.45?'Attention':'One attention head',lerp(128,399.5,p),lerp(390,121,p),28,teal)
-      +opacity(1-p,label('one head shown',62,420,21,muted,'start'))
+      +opacity(1-p/.2,label('Attention',62,390,28,teal,'start')+label('one head shown',62,420,21,muted,'start'))
+      +opacity((p-.8)/.2,label('One attention head',399.5,121,28,teal))
       +math('A',lerp(inset.labelX,286,p),lerp(inset.labelY,157,p),100,51,lerp(25,32,p),teal)
       +featureMatrix(lerp(inset.x,236,p),lerp(inset.y,180,p),10,10,teal,lerp(inset.cell,8,p),lerp(inset.gap,2,p));
-    if(p>.35)out+=opacity((p-.35)/.65,math('\\times',374,228,54,55,35)+math('V',491,157,100,51,32,blue)+featureMatrix(461,180,10,6,blue,8,2)
+    if(p>.9)out+=opacity((p-.9)/.1,math('\\times',374,228,54,55,35)+math('V',491,157,100,51,32,blue)+featureMatrix(461,180,10,6,blue,8,2)
       +math('Y=AV',399,320,330,68,34,teal)+arrow(399,346,399,369,teal)+math('\\Delta X=YW_O',399,408,370,68,34,teal)
       +label('Update to the residual stream',399,455,23,muted));
     return out;
