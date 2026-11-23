@@ -40,7 +40,7 @@ The source intentionally excludes the original hosting configuration, authentica
 
 ## Scope and source history
 
-This lesson assumes students already know embeddings and attention. After concrete training examples, a two-branch diagram shows the sequence model and member/employer covariates. Five scroll stages follow the attention matrices through value mixing, flattening, conversion prediction, and credit. The same ten output cells move from a 5 × 2 array into a vector; reverse scrolling restores their positions. Reduced motion uses discrete completed states.
+This lesson assumes students already know embeddings and attention. After concrete training examples, a two-branch diagram shows the sequence model and member/employer covariates. Five concise scroll stages follow the attention matrices through value mixing, flattening, conversion prediction, and credit. The paper representation is available in an optional disclosure beneath the architecture. The same ten output cells move from a 5 × 2 array into a vector; reverse scrolling restores their positions. Reduced motion uses discrete completed states.
 
 The paper specifies one self-attention layer but does not report the head count or residual/LayerNorm wiring. The illustration consistently uses two heads, five padded positions, and two symbolic value coordinates per head. The attention weights are numerical; output coordinates are symbolic. Head averaging, flattening the mixed outputs in position order, and summing incoming attention across queries are explicit teaching conventions where the paper is underspecified.
 

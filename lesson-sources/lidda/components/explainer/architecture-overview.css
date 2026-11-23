@@ -6,7 +6,7 @@
   --ao-gap: clamp(1.25rem, 5vw, 4rem);
   max-width: 70rem;
   margin-inline: auto;
-  padding: clamp(2.5rem, 6vw, 4.5rem) clamp(1.25rem, 4vw, 3rem);
+  padding: clamp(2rem, 4vw, 3rem) clamp(1.25rem, 4vw, 3rem);
   color: var(--ao-ink);
   background: #fff;
   scroll-margin-top: calc(var(--header, 4rem) + 1rem);
@@ -31,7 +31,7 @@
 }
 
 .ao-figure {
-  margin: 2rem 0 1.75rem;
+  margin: 1.5rem 0;
 }
 
 .ao-flow {
@@ -50,7 +50,7 @@
 
 .ao-overview .ao-node {
   min-width: 0;
-  padding: 1rem 1.1rem;
+  padding: 0.8rem 1rem;
   border: 1px solid var(--ao-rule);
   border-radius: 0.25rem;
   background: #fff;
@@ -79,14 +79,9 @@
   border: 2px solid var(--ao-blue);
 }
 
-.ao-overview .ao-node .ao-shape {
-  color: var(--ao-ink);
-  font-size: 0.9375rem;
-}
-
 .ao-arrow {
   position: relative;
-  flex: 0 0 1.7rem;
+  flex: 0 0 1.4rem;
 }
 
 .ao-arrow::before,
@@ -151,18 +146,21 @@
 }
 
 .ao-overview .ao-representation {
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.25rem;
   border: 1px solid var(--ao-rule);
   border-left: 3px solid var(--ao-blue);
   border-radius: 0.25rem;
   background: #fff;
 }
 
-.ao-overview .ao-representation h3 {
-  margin: 0 0 0.65rem;
+.ao-overview .ao-representation summary {
+  cursor: pointer;
   font-size: 1.0625rem;
   line-height: 1.4;
 }
+
+.ao-overview .ao-representation[open] summary { margin-bottom: 1rem; }
+.ao-overview .ao-representation summary:focus-visible { outline: 3px solid var(--ao-blue); outline-offset: 4px; }
 
 .ao-overview .ao-representation p {
   margin: 0.65rem 0 0;
@@ -199,8 +197,7 @@
     padding: 0.8rem 0.6rem;
   }
 
-  .ao-overview .ao-node p,
-  .ao-overview .ao-node .ao-shape {
+  .ao-overview .ao-node p {
     font-size: 0.875rem;
   }
 

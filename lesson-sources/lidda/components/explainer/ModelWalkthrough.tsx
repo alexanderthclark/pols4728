@@ -117,7 +117,7 @@ export function ModelWalkthrough() {
     };
   }, []);
   return <section className="mw-section" id="attention-readout" ref={sectionRef} aria-labelledby="mw-title">
-    <header className="mw-heading"><h2 id="mw-title">From attention to a prediction</h2><p>Follow customer A. The fifth slot is padding.</p></header>
+    <header className="mw-heading"><h2 id="mw-title">Attention matrices → flattening</h2><p>Customer A · illustrative model: 2 heads, 5 slots, 2 value coordinates per head.</p></header>
     <div className="mw-scrolly">
       <div className="mw-stage" ref={stageRef} data-stage={active}>
         <div className="mw-stage-heading"><span>{active + 1} / 5</span><h3>{titles[active]}</h3></div>
@@ -126,38 +126,33 @@ export function ModelWalkthrough() {
         {active === 4 && <CreditReadout />}
         {active < 4 && <ol className="mw-touch-key" aria-label="Customer A’s input positions">{names.map((name, index) => <li key={name}><span style={{ color: colors[index] }}>{index + 1}</span> {name}</li>)}</ol>}
         <p className="mw-stage-note">
-          {active === 0 && "Rows = queries · columns = source touches. Weights are rounded; each real query row sums to 1 before rounding. Padding is zeroed."}
-          {active === 1 && "Each head produces 5 × 2 outputs. We average matching coordinates; the padded output row stays zero."}
-          {active === 2 && "Keep every coordinate in order: position 1, then position 2, and so on. The two PAD coordinates stay zero."}
-          {active === 3 && "The sequence features and the separate member/employer context both enter the prediction."}
-          {active === 4 && "These are relative attention shares; they are not the conversion probability."}
+          {active === 0 && "Rows: queries. Columns: source touches. Real rows sum to 1 before rounding; PAD is zeroed."}
+          {active === 1 && "One row per position; two value coordinates per row."}
+          {active === 2 && "Same ten entries, in position order. The final two are padding."}
+          {active === 3 && "Context comes from the member/employer interaction branch."}
+          {active === 4 && "Relative attention shares, separate from the conversion probability."}
         </p>
       </div>
       <div className="mw-steps">
         <article className="mw-step" id="attention-detail">
           <span className="mw-step-number">01 · Attention</span><h3>Keep one matrix per head.</h3>
-          <p>The self-attention layer gives us <MathText>{"A^{(1)}"}</MathText> and <MathText>{"A^{(2)}"}</MathText>, each <MathText>{"5\\times5"}</MathText>. Read across a row to see which source touches a query uses.</p>
-          <p>Both heads read the same sequence; they learn different weights.</p>
+          <p>For this sequence, the model gives us two <MathText>{"5\\times5"}</MathText> attention matrices: <MathText>{"A^{(1)}"}</MathText> and <MathText>{"A^{(2)}"}</MathText>.</p>
         </article>
         <article className="mw-step" id="value-outputs">
           <span className="mw-step-number">02 · Outputs</span><h3>Apply the weights to the values.</h3>
-          <p>For each head, <MathText>{"Z^{(h)}=A^{(h)}V^{(h)}"}</MathText>. The result has one row per position and two value coordinates in this illustration.</p>
-          <p>Average the two heads to get <MathText>{"\\bar Z"}</MathText>, a single <MathText>{"5\\times2"}</MathText> array.</p>
+          <p>Each <MathText>{"Z^{(h)}=A^{(h)}V^{(h)}"}</MathText> is <MathText>{"5\\times2"}</MathText>. Our illustration averages the two heads’ outputs into one <MathText>{"5\\times2"}</MathText> array, <MathText>{"\\bar Z"}</MathText>.</p>
         </article>
         <article className="mw-step" id="flattening">
           <span className="mw-step-number">03 · Flatten</span><h3>Lay the output rows end to end.</h3>
-          <p>Scroll to rearrange the same ten entries into one vector. Flattening changes the shape; it does not average positions or calculate new values.</p>
-          <p>We flatten the value-mixed outputs <MathText>{"\\bar Z"}</MathText>, not the attention matrices <MathText>{"A^{(h)}"}</MathText>.</p>
+          <p>Flatten the value-mixed outputs <MathText>{"\\bar Z"}</MathText> into ten features. This only rearranges entries; the attention matrices <MathText>{"A^{(h)}"}</MathText> are not the tensor being flattened.</p>
         </article>
         <article className="mw-step" id="conversion-readout">
           <span className="mw-step-number">04 · Predict</span><h3>Combine sequence and context.</h3>
-          <p>The dense classifier receives the flattened sequence plus the member/employer features from the interaction branch. It predicts the probability of conversion.</p>
-          <p>The conversion labels provide the training signal for this prediction.</p>
+          <p>The classifier combines the flattened sequence with the covariates to predict conversion. The observed conversion labels provide its training signal.</p>
         </article>
         <article className="mw-step" id="touch-credit">
           <span className="mw-step-number">05 · Credit</span><h3>Return to the attention weights.</h3>
-          <p>For each source touch, sum its column over the two heads and four real query rows. Divide by the total mass, 8, to obtain its share.</p>
-          <p>This uses the attention matrices, separately from the classifier’s flattened features.</p>
+          <p>Our illustrative credit rule sums each source column across heads and real queries, then divides by <MathText>{"2\\times4=8"}</MathText> to get a share.</p>
         </article>
       </div>
     </div>

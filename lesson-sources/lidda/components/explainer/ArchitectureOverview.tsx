@@ -7,8 +7,7 @@ export function ArchitectureOverview() {
       <header className="ao-heading">
         <h2 id="ao-title">LiDDA’s conversion model</h2>
         <p>
-          Touch-level inputs enter self-attention. Member and employer covariates
-          enter through a separate branch.
+          A sequence classifier built around multi-head self-attention.
         </p>
       </header>
 
@@ -16,33 +15,28 @@ export function ArchitectureOverview() {
         <div className="ao-flow">
           <div className="ao-branch ao-branch--sequence">
             <div className="ao-node">
-              <h3>Per-touch representations</h3>
+              <h3>Ordered ad-touch sequence</h3>
               <p>Campaign, event, time, position</p>
             </div>
             <span className="ao-arrow" aria-hidden="true" />
             <div className="ao-node ao-node--attention">
-              <h3>One multi-head self-attention layer</h3>
-              <p>Paper head count not reported</p>
+              <h3>Multi-head self-attention</h3>
+              <p><strong>1 layer</strong> · head count not reported</p>
             </div>
             <span className="ao-arrow" aria-hidden="true" />
             <div className="ao-node">
-              <h3>Combine and flatten</h3>
-              <p>Illustration: average heads</p>
-              <p className="ao-shape">
-                <MathText>{"5 \\times 2"}</MathText> outputs → 10 features
-              </p>
+              <h3>Combine outputs and flatten</h3>
             </div>
             <span className="ao-tail" aria-hidden="true" />
           </div>
 
           <div className="ao-branch ao-branch--context">
             <div className="ao-node">
-              <h3>Member + employer embeddings</h3>
+              <h3>Member + employer covariates</h3>
             </div>
             <span className="ao-arrow" aria-hidden="true" />
             <div className="ao-node">
               <h3>Interaction layer</h3>
-              <p>Customer-context features</p>
             </div>
             <span className="ao-tail" aria-hidden="true" />
           </div>
@@ -59,13 +53,13 @@ export function ArchitectureOverview() {
           </div>
         </div>
         <figcaption>
-          Worked illustration: <strong>2 heads, 5 padded slots, 2 value coordinates per head.</strong>{" "}
-          Averaging and flattening the value-mixed outputs is our illustrative readout.
+          Covariates join before classification. The paper does not describe
+          adding them to each token’s residual stream. <PaperLink section="S2.F1">Figure 1</PaperLink>
         </figcaption>
       </figure>
 
-      <aside className="ao-representation" aria-labelledby="ao-representation-title">
-        <h3 id="ao-representation-title">The representation in the paper</h3>
+      <details className="ao-representation">
+        <summary>The representation in the paper</summary>
         <MathText block>
           {"\\begin{aligned}&\\operatorname{concat}(E_{\\mathrm{MCID}}, E_T)\\\\&\\quad + E_D + E_{\\mathrm{DOW}} + \\operatorname{tAPE}\\end{aligned}"}
         </MathText>
@@ -74,11 +68,11 @@ export function ArchitectureOverview() {
           <b>DOW:</b> weekday; <b>tAPE:</b> position.
         </p>
         <p>
-          <PaperLink section="S2.F1">Figure 1</PaperLink> places member/employer
-          covariates on the separate branch, rather than adding them to each token’s residual stream. Residual/LayerNorm wiring is unspecified.{" "}
-          <PaperLink section="S2.SS4">Model §2.4</PaperLink>
+          Campaign and event embeddings are concatenated; time and position terms
+          are added. Residual connections and normalization are unspecified.{" "}
+          <PaperLink section="S2.SS3">Input representation</PaperLink>
         </p>
-      </aside>
+      </details>
     </section>
   );
 }

@@ -8,5 +8,5 @@ export const MathText = memo(function MathText({ children, block = false }: { ch
 });
 
 export function PaperLink({ section, children }: { section: string; children?: ReactNode }) {
-  return <a className="paper-link" href={`${PAPER_URL}#${section}`} target="_blank" rel="noreferrer">{children || "Read the paper"} ↗</a>;
+  return <a className="paper-link" href={`${PAPER_URL}#${section}`} target="_blank" rel="noreferrer">{children || "Read the paper"}</a>;
 }
