@@ -48,6 +48,8 @@ Twenty-one socks-and-shoes scenes are part of the main scroll sequence.
 The first twelve
 establish the target, show why identity pooling loses order, add explicit position,
 and motivate a chosen retrieval: shoes looks for socks and reads their position.
+The query/key choice explicitly sets d_k=1: WQ and WK are 3×1, while Q and K
+are 2×1. This width is an architecture choice; the map entries are parameters.
 Fixed query/key/value maps implement that rule; softmax, left multiplication,
 a task readout, order reversal, and ablations complete the calculation.
 
