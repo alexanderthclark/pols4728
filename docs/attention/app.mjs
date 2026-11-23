@@ -1,4 +1,4 @@
-import {createIntuitionScenes} from './intuition-scenes.mjs?v=attention-copy-18';
+import {createIntuitionScenes} from './intuition-scenes.mjs?v=desert-upward-31';
 import {createGuidedTrainedScenes} from './trained-tour-scenes.mjs?v=attention-interventions-1';
 import {buildExplorer} from './trained-explorer.mjs?v=attention-interventions-1';
 import {createSocksScenes} from './socks-scenes.mjs?v=socks-width-25';

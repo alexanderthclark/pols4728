@@ -104,16 +104,17 @@ export function createIntuitionScenes({m, line, rect, C}) {
       {x:480,sub:'k',name:'Restaurant sentence',cue:'taco · bell',color:teal},
     ].forEach(({x,sub,name,cue,color})=>{
       out+=label(name,x,84,23,color)+label('desert',x,124,28,blue)
-        +box(x-75,144,150,62,blue,'#f5f8fb')+math(`x_${sub}^{(0)}`,x,175,142,50,31,blue)
-        +path([[x,206],[x,323]],blue)+path([[x,347],[x,395]],blue)
-        +box(x-140,248,120,54,color,'#fff')+label(cue,x-80,283,20,color);
-      const route=[[x-80,302],[x-80,335],[x-12,335]];
+        +box(x-75,144,150,62,color,'#fff')+math(`x_${sub}^{(1)}`,x,175,142,50,32,color)
+        +label('contextual state',x,239,22,muted)
+        +path([[x,395],[x,312]],blue)+path([[x,288],[x,206]],blue)
+        +box(x-140,332,120,54,color,'#fff')+label(cue,x-80,367,20,color);
+      const route=[[x-80,332],[x-80,300],[x-12,300]];
       out+=path(route,color)+dot(...pointOnPath(route,p),color)
-        +`<circle cx="${x}" cy="335" r="12" fill="#fff" stroke="${color}" stroke-width="2"/>`
-        +line(x-6,335,x+6,335,color,2)+line(x,329,x,341,color,2)
-        +label('context update',x-80,365,17,color)
-        +box(x-75,395,150,64,color,'#fff')+math(`x_${sub}^{(1)}`,x,427,142,50,32,color)
-        +label('contextual state',x,493,22,muted);
+        +`<circle cx="${x}" cy="300" r="12" fill="#fff" stroke="${color}" stroke-width="2"/>`
+        +line(x-6,300,x+6,300,color,2)+line(x,294,x,306,color,2)
+        +label('context update',x-80,282,17,color)
+        +box(x-75,395,150,64,blue,'#f5f8fb')+math(`x_${sub}^{(0)}`,x,427,142,50,31,blue)
+        +label('initial state',x,493,22,muted);
     });
     return out;
   }
@@ -173,7 +174,7 @@ export function createIntuitionScenes({m, line, rect, C}) {
       detail:'Treat “desert” as one token here. The lookup vector is shared; full input rows can differ because position information is added. Models may also normalize or otherwise process those rows.',
       visual:'Both occurrences select one shared lookup row; position information is a separate input.',draw:sharedLookup},
     {id:'desert-context',part:'Before attention · Meaning in context',label:'',title:'Let the context change the representation.',
-      caption:'A useful representation of “desert” should depend on its neighbors. Attention provides a way for other tokens to contribute information at that position.',
+      caption:'',
       equation:'x_i^{(1)}=x_i^{(0)}+\\Delta x_i',
       detail:'',
       visual:'Context can contribute different updates even when the token lookup vector is shared.',draw:contextUpdates},
