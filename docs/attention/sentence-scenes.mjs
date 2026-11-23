@@ -109,30 +109,37 @@ export function createSentenceScenes({m, line, rect, C}) {
     return out;
   }
   const zoomHead=t=>opacity(1-.88*ease(t),architecture(0,{showMotion:false}))+expandedHead(t)+opacity(ease(t),locationMarker(19,31));
-  function attentionGrid({x=216,y=151,cell=31,row=-1,column=-1,labelOpacity=1}={}) {
+  function attentionGrid({x=216,y=151,cell=31,row=-1,column=-1,labelOpacity=1,columnWords=false}={}) {
     let out='';
+    if(column>=0)out+=rect(x+column*cell,y,cell,10*cell,'#fcf0ea','none',0);
     if(row>=0)out+=rect(x,y+row*cell,10*cell,cell,'#edf7f4','none',0);
     for(let i=0;i<=10;i++)out+=line(x,y+i*cell,x+10*cell,y+i*cell,rule,1)+line(x+i*cell,y,x+i*cell,y+10*cell,rule,1);
     if(row>=0)out+=rect(x,y+row*cell,10*cell,cell,'none',teal,0,'stroke-width="2.4"');
     if(column>=0&&row>=0)out+=rect(x+column*cell,y+row*cell,cell,cell,'#fff',rust,0,'stroke-width="3"');
-    let names=label('Destination',x-18,y-21,21,blue,'end');
-    WORD_TOKENS.forEach((word,i)=>{names+=label(word,x-17,y+(i+.5)*cell+7,21,i===row?teal:ink,'end')+label(i+1,x+(i+.5)*cell,y-20,20,i===column?rust:muted);});
+    let names=label('Attending token',x-18,y-21,20,blue,'end');
+    WORD_TOKENS.forEach((word,i)=>{
+      names+=label(columnWords?`${i+1}  ${word}`:word,x-17,y+(i+.5)*cell+7,21,i===row?teal:ink,'end');
+      const cx=x+(i+.5)*cell,cy=y-15;
+      names+=columnWords?`<g transform="rotate(-55 ${cx} ${cy})">${label(`${i+1}  ${word}`,cx,cy,20,i===column?rust:muted,'start')}</g>`
+        :label(i+1,cx,y-20,20,i===column?rust:muted);
+    });
     return out+opacity(labelOpacity,names);
   }
   function extractMatrix(t) {
     const p=ease(t),scale=lerp(10/31,1,p),tx=lerp(236-216*(10/31),0,p),ty=lerp(180-151*(10/31),0,p);
-    return opacity(1-p,expandedHead(1))+`<g transform="translate(${tx},${ty}) scale(${scale})">${attentionGrid({labelOpacity:p})}</g>`
-      +opacity(p,locationMarker(20,16)+label('Source position',371,53,27,teal)+label('in the same sentence',371,87,21,muted)
+    return opacity(1-p,expandedHead(1))+`<g transform="translate(${tx},${ty}) scale(${scale})">${attentionGrid({labelOpacity:p,columnWords:true})}</g>`
+      +opacity(p,label('Columns: tokens attended to',371,28,24,teal)
         +math('A\\in\\mathbb R^{10\\times10}',371,508,430,58,33,teal));
   }
   function readEntry(t) {
-    return locationMarker(20,16)+label('Column 5: don’t',371,55,27,rust)+label('Row 1: Good',371,91,23,teal)
-      +attentionGrid({row:0,column:4})+label('don’t',227,518,28,rust)+arrow(272,508,444,508,teal)
-      +dot(lerp(280,435,ease(t)),508,teal,5)+label('Good',493,518,28,teal);
+    return label('Columns: tokens attended to',371,28,24,teal)
+      +attentionGrid({row:0,column:4,columnWords:true})
+      +dot(lerp(355.5,231.5,ease(t)),166.5,rust,5)
+      +math('u_1=a_{11}v_1+\\cdots+{\\color{'+rust+'}a_{15}v_5}+\\cdots',320,508,620,60,29,teal);
   }
   function readRow(t) {
     const p=ease(t);
-    return locationMarker(20,16)+attentionGrid({x:lerp(216,253,p),y:lerp(151,75,p),cell:lerp(31,24,p),row:0})
+    return attentionGrid({x:lerp(216,253,p),y:lerp(151,75,p),cell:lerp(31,24,p),row:0})
       +opacity(p,label('The weights used by Good',345,362,26,teal)+math('a_{11},\\ a_{12},\\ldots,\\ a_{1,10}',345,407,535,65,31,teal)
         +math('a_{1j}\\geq0,\\qquad\\sum_{j=1}^{10}a_{1j}=1',345,485,550,67,30,teal));
   }
@@ -164,14 +171,14 @@ export function createSentenceScenes({m, line, rect, C}) {
       detail:'The value map <span data-math="W_V"></span> forms <span data-math="V=XW_V"></span>. The output map <span data-math="W_O"></span> returns mixtures <span data-math="U=AV"></span> to stream width. V and U contain features, not outcome labels.',
       visual:'The highlighted branch remains attached to its place in the architecture.',draw:zoomHead},
     {id:'sentence-matrix',part:'02 · Inside attention',label:'',title:'Pull out the attention matrix.',
-      caption:'Each row is a destination. Each column is a source. Both axes refer to positions in the first sentence.',equation:'A=(a_{ij})',
+      caption:'A row belongs to the token doing the attending. The columns are the tokens it can attend to. Read across a row to see that token’s weights.',equation:'A=(a_{ij})',
       detail:'For this schematic, the ten displayed words are tokens and punctuation is omitted. A model may split them further. No measured weights are shown.',
-      visual:'The small architecture marker locates this matrix inside the selected attention head.',draw:extractMatrix},
-    {id:'sentence-entry',part:'03 · Read the matrix',label:'',title:'One entry connects two positions.',
-      caption:'The outlined entry weights information from “don’t” when computing the output at “Good.”',
-      equation:'a_{15}:\\quad\\text{source 5}\\longrightarrow\\text{destination 1}',
-      detail:'The outlined cell illustrates the indexing. It makes no claim that a trained model gives this pair a large weight.',
-      visual:'Information flows from the source column to the destination row.',draw:readEntry},
+      visual:'Both axes list the same sentence. Row i attends to column j with weight aᵢⱼ.',draw:extractMatrix},
+    {id:'sentence-entry',part:'03 · Read the matrix',label:'',title:'Rows attend to columns.',
+      caption:'Read across row 1: “Good” attends to the column tokens. At column 5, a₁₅ is the weight it gives “don’t.” That weight multiplies don’t’s value vector in Good’s mixture.',
+      equation:'u_1=\\sum_{j=1}^{10}a_{1j}v_j',
+      detail:'The reverse weight <span data-math="a_{51}"></span> describes “don’t” attending to “Good”; it can differ from <span data-math="a_{15}"></span>. The outlined cell illustrates indexing, with no claim that this pair has a large weight in a trained model.',
+      visual:'“Good” attends to “don’t”; value information travels from “don’t” into Good’s output.',draw:readEntry},
     {id:'sentence-row',part:'03 · Read the matrix',label:'',title:'The whole row specifies a mixture.',
       caption:'The row for “Good” assigns one weight to each source position, including “Good” itself.',equation:'\\sum_{j=1}^{10}a_{1j}=1',
       detail:'Weights are nonnegative. Rows sum to one; columns generally do not. The matrix need not be symmetric.',
