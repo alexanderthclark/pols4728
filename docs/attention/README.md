@@ -99,41 +99,72 @@ remain visible. The measured-predictions scene centers its cards without a left
 narration panel; the model description remains in the preceding introduction
 and the full explanation stays in the reading transcript.
 
-## Measured Infinite Jest results
+## Measured Infinite Jest investigation
 
-After the seven schematic scenes, three additional scroll scenes show predictions
-and attention exported from `distilbert/distilbert-base-uncased-finetuned-sst-2-english`,
-pinned to revision `714eb0fa89d2f80546fda750413ed43d93601a13`. This SST-2
-checkpoint has six blocks and twelve heads per block. Its classifier reads the
-final `[CLS]` state through a linear pre-classifier, ReLU, and a final linear map;
-it does not use the schematic overview's mean pooling. The model scores overall
-sentiment, not sentiment toward an independently specified target.
+The measured sequence uses `distilbert/distilbert-base-uncased-finetuned-sst-2-english`,
+pinned to revision `714eb0fa89d2f80546fda750413ed43d93601a13`. Its six blocks
+contain twelve heads each; the classifier reads final `[CLS]` through a linear
+pre-classifier, ReLU, and a final linear map. It scores overall sentiment and
+does not use the schematic overview's mean pooling.
 
-The export includes both unchanged sentences, actual WordPiece tokens and special
-tokens, token IDs and offsets, logits, softmax probabilities, and all 72 full
-attention matrices for each sentence. No special-token columns are discarded or
-renormalized. The initial comparison fixes layer 6/head 1 by position, rather
-than selecting a head for an appealing pattern. A following explorer lets the
-reader inspect every layer, head, sentence, and destination with an exact row
-table. Colors use one linear 0–1 scale. Intended readings remain distinct from
-model predictions; attention coefficients are not signed sentiment attributions.
+The centered scroll sequence connects input contrasts, attention messages, and
+prediction changes. Numbers come from saved inference results:
 
-`data/infinite-jest-attention.json` stores the computed results, checkpoint
-revision, package versions, precision, evaluation settings, and row-sum checks.
-`trained-scenes.mjs` and `trained-explorer.mjs` only display these results.
-The page downloads the small results file, not the model weights.
+- Removing the final sentence from the positive review leaves P(positive) at
+  99.93%; removing `just` lowers it to 0.03%. In layer 2/head 9, `t` reads `just`
+  and `just` reads `t`. Removing those two messages without renormalization
+  changes the short review from 99.93% to 10.02%. The same two-message removal
+  on the full review changes 99.98% to 99.95%; neither experiment removes a
+  whole head. The two reads use incoming states in parallel.
+- In the negative review's layer 6/head 10, `[CLS]` gives the apostrophe 87.31%
+  attention and `t` 4.29%. Their projected value norms differ enough that the
+  resulting message norms are similar: 0.439 and 0.448. Removing only the
+  apostrophe message changes P(positive) from 0.3348% to 0.3386%. Message norms
+  describe vector magnitude, not signed sentiment contributions.
+- The context extension contrasts `bad, not good` with `good, not bad`.
+  Exchanging the contextual state at `not` after block 4 is one intervention.
+  Replacing only its layer-5 value projections across all twelve heads is
+  another: the recipient's layer-5 attention weights stay exactly fixed while
+  its prediction reverses. Layer 6 and the remaining computation rerun.
 
-Reproduce with Python 3.11:
+The export retains all five tested title variants, a separately renormalized
+message-removal check, and eight additional state-transfer pairs fixed before
+validation (15 of 16 directional transfers reverse the predicted class).
+These are limited construction-specific checks. The examples and routes were
+selected after inspecting this checkpoint; they do not establish universal head
+roles, additive token attributions, or population accuracy.
+
+`data/infinite-jest-attention.json` retains both original reviews, their exact
+WordPiece and special tokens, logits, probabilities, and all 72 full attention
+matrices per review. The explorer keeps every layer, head, and destination,
+with an exact row table and a shared linear 0–1 color scale. No special-token
+columns are omitted or renormalized. `data/infinite-jest-investigation.json`
+adds the selected matrices, intervention outputs, vector norms, validation
+cases, checkpoint hash, package versions, and implementation checks.
+`trained-scenes.mjs`, `trained-tour-scenes.mjs`, and `trained-explorer.mjs`
+display the exports without downloading model weights. Detailed methods and
+qualifications remain in the reading transcript; the pinned visual has no left
+narration panel.
+
+Reproduce from the repository root using the pinned dependencies:
 
 ```sh
 python -m pip install -r scripts/requirements-attention-model.txt
 python scripts/export_attention_model.py --output docs/attention/data/infinite-jest-attention.json
+python scripts/export_attention_investigation.py --output docs/attention/data/infinite-jest-investigation.json
 ```
 
-The `Export measured attention` GitHub Actions workflow runs the same export and
-saves an artifact. It has read-only repository permissions and does not commit
-generated results. Inference uses CPU float32, evaluation mode, eager attention,
-and the pinned checkpoint's safetensors weights, without custom model code.
+The investigation exporter downloads the pinned checkpoint unless `--model-path`
+points to an existing local copy. `--reference` can select another copy of the
+original attention export. It verifies the safetensors hash, reproduces the
+original predictions and matrices, and checks the intervention mechanics.
+It reruns the declared examples, selected interventions, and validation cases;
+it does not repeat the exploratory head search. Inference uses CPU float32,
+evaluation mode, eager attention, and no custom model code.
+
+The `Export measured attention` GitHub Actions workflow reproduces the original
+attention export and saves an artifact with read-only repository permissions;
+it does not commit generated results.
 
 ## Archived classification example
 
@@ -239,7 +270,8 @@ node --check docs/attention/socks-scenes.mjs
 node --check docs/attention/extension-scenes.mjs
 node --check docs/attention/interpretation-model.mjs
 node --check docs/attention/interpretation-scenes.mjs
-node --test tests/attention-layer.test.mjs tests/attention-socks.test.mjs tests/attention-interpretation.test.mjs tests/attention-sentences.test.mjs
+node --check docs/attention/trained-tour-scenes.mjs
+node --test tests/attention-*.test.mjs
 ```
 
 Six tests independently check the known numeric projections and mixtures,
@@ -260,4 +292,10 @@ PageUp/PageDown navigation, the reading link, all lesson scenes, math rendering,
 the reduced-motion rendering path. Continuous intermediate states retain honest
 numeric labels; softmax uses discrete exact calculations rather than interpolating
 unnormalized values while calling them probabilities.
+
+`tests/attention-preview.html`, served from the repository root, provides desktop
+(1120 × 780), mobile (390 × 844), and small-mobile (360 × 640) iframe viewports
+for reviewing the actual lesson. Its reduced-motion checkbox reloads the lesson
+with the documented query override. These are review controls outside the
+published `docs/` tree; they are not required by students or used in the story.
 

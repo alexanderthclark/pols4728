@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Attention lesson: responsive review</title>
+<style>
+  *{box-sizing:border-box}body{margin:0;padding:16px;background:#f5f5f3;color:#242424;font:14px/1.5 Arial,sans-serif}
+  header{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:14px}h1{font-size:18px;font-weight:400;margin:0}
+  label{display:flex;align-items:center;gap:8px}select{font:inherit;padding:8px;min-height:44px;background:white;border:1px solid #767676}
+  a{color:#234e70}input{width:18px;height:18px}:focus-visible{outline:3px solid #a54f32;outline-offset:3px}
+  .viewport{max-width:100%;overflow:auto}iframe{display:block;background:white;border:1px solid #767676}
+  output{color:#606060}p{margin:12px 0 0;max-width:80ch}
+</style>
+</head>
+<body>
+<header>
+  <h1>Attention lesson: responsive review</h1>
+  <label for="size">Viewport<select id="size"><option value="desktop">Desktop</option><option value="mobile">Mobile</option><option value="small">Small mobile</option></select></label>
+  <label for="reduce"><input id="reduce" type="checkbox">Reduced motion</label>
+  <output id="dimensions" aria-live="polite"></output>
+  <a href="../docs/attention/" target="_blank" rel="noopener">Open full lesson from the beginning</a>
+  <a id="model-link" href="../docs/attention/#trained-model" target="lesson-preview">New model sequence</a>
+</header>
+<div class="viewport"><iframe id="lesson" name="lesson-preview" title="Attention lesson preview"></iframe></div>
+<p>This preview starts with the full title, then context, the sentiment schematic, the measured model investigation, and socks and shoes. Scroll inside the lesson in both directions and check Page Up and Page Down. The viewport controls belong only to this review harness.</p>
+<script>
+  const lesson=document.getElementById('lesson');
+  const size=document.getElementById('size');
+  const reduce=document.getElementById('reduce');
+  const sizes={desktop:[1120,780],mobile:[390,844],small:[360,640]};
+  function resize(){
+    const [width,height]=sizes[size.value];
+    lesson.style.width=`${width}px`;lesson.style.height=`${height}px`;
+    document.getElementById('dimensions').textContent=`${width} × ${height}`;
+  }
+  function load(){
+    const url=new URL('../docs/attention/',location.href);
+    if(reduce.checked)url.searchParams.set('motion','reduce');
+    lesson.src=url.href;
+    url.hash='trained-model';
+    document.getElementById('model-link').href=url.href;
+  }
+  size.addEventListener('change',resize);reduce.addEventListener('change',load);
+  resize();load();
+</script>
+</body>
+</html>

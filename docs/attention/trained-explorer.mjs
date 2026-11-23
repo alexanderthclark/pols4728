@@ -5,19 +5,31 @@ const esc=value=>String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').re
 export function buildExplorer(element,data) {
   if(!element)throw new Error('An attention-explorer container is required.');
   const measured=normalizeTrainedData(data),examples=measured.examples;
-  const state={sentence:0,layer:measured.layers-1,head:0,destination:0};
+  const state={sentence:0,layer:measured.layers-1,head:9,destination:0};
+  // These are entry points into the unchanged full matrices, not head labels
+  // or rankings of importance. Layer/head indices are zero-based internally.
+  const presets=[
+    {id:'phrase-head',label:'just in the full positive review · layer 2, head 9',sentence:1,layer:1,head:8,token:'just'},
+    {id:'next-token',label:'Next-token stripe · layer 2, head 10',sentence:0,layer:1,head:9,token:'je'},
+    {id:'apostrophe-left',label:'Apostrophe reads don · layer 1, head 3',sentence:0,layer:0,head:2,token:"'"},
+    {id:'apostrophe-right',label:'Apostrophe reads t · layer 1, head 11',sentence:0,layer:0,head:10,token:"'"},
+    {id:'good-negative',label:'Read good in the negative review · layer 5, head 8',sentence:0,layer:4,head:7,token:'[CLS]'},
+    {id:'good-positive',label:'Read good in the positive review · layer 5, head 8',sentence:1,layer:4,head:7,token:'[CLS]'},
+    {id:'late-apostrophe',label:'Final read from the apostrophe · layer 6, head 10',sentence:0,layer:5,head:9,token:'[CLS]'},
+  ];
   const prefix=element.id||'trained-explorer';
   const select=(name,title,options)=>`<label for="${prefix}-${name}">${title}<select id="${prefix}-${name}" name="${name}">${options}</select></label>`;
   const option=(value,label,selected=false)=>`<option value="${value}"${selected?' selected':''}>${esc(label)}</option>`;
-  element.innerHTML=`<div class="trained-explorer-controls">
+  element.innerHTML=`<div class="trained-explorer-presets">${select('preset','Original-review examples',option('','Custom selection')+presets.map(preset=>option(preset.id,preset.label,preset.id==='late-apostrophe')).join(''))}</div><div class="trained-explorer-controls">
     ${select('sentence','Sentence',examples.map((example,i)=>option(i,`${i+1}. ${example.text}`)).join(''))}
     ${select('layer','Encoder layer',Array.from({length:measured.layers},(_,i)=>option(i,i+1,i===state.layer)).join(''))}
-    ${select('head','Attention head',Array.from({length:measured.heads},(_,i)=>option(i,i+1)).join(''))}
+    ${select('head','Attention head',Array.from({length:measured.heads},(_,i)=>option(i,i+1,i===state.head)).join(''))}
     ${select('destination','Destination token','')}
     </div><p class="trained-explorer-summary"></p><p class="trained-explorer-status" role="status" aria-live="polite"></p>
     <div class="trained-explorer-grid"><div class="trained-heatmap-scroll" tabindex="0" aria-label="Attention matrix; scroll horizontally if needed"><div class="trained-heatmap"></div></div><div class="trained-weight-table"></div></div>
     <p class="trained-explorer-note">Rows are destinations; columns are sources. The selected row includes every source, including special tokens. Weights use a fixed linear 0–1 color scale. The table reports the stored coefficients to six decimal places; displayed rounding can affect their sum.</p>`;
   const fields=Object.fromEntries(['sentence','layer','head','destination'].map(name=>[name,element.querySelector(`[name="${name}"]`)]));
+  const presetField=element.querySelector('[name="preset"]');
   const summary=element.querySelector('.trained-explorer-summary'),status=element.querySelector('.trained-explorer-status'),heatmap=element.querySelector('.trained-heatmap'),table=element.querySelector('.trained-weight-table');
   function fillDestinations() {
     const example=examples[state.sentence];state.destination=Math.min(state.destination,example.tokens.length-1);
@@ -41,12 +53,27 @@ export function buildExplorer(element,data) {
     table.innerHTML=`<table><caption>Sources read by ${esc(example.tokens[state.destination])}</caption><thead><tr><th scope="col">Position</th><th scope="col">Source token</th><th scope="col">Weight</th></tr></thead><tbody>${row.map((value,i)=>`<tr><td>${i+1}</td><th scope="row">${esc(example.tokens[i])}</th><td>${formatWeight(value)}</td></tr>`).join('')}</tbody></table>`;
   }
   for(const [name,field] of Object.entries(fields))field.addEventListener('change',()=>{
+    const previous=examples[state.sentence];
+    const previousToken=previous.tokens[state.destination];
+    const occurrence=previous.tokens.slice(0,state.destination+1).filter(token=>token===previousToken).length-1;
     state[name]=Number(field.value);
+    presetField.value='';
     if(name==='sentence'){
       const example=examples[state.sentence];state.layer=Math.min(state.layer,example.attentions.length-1);state.head=Math.min(state.head,example.attentions[state.layer].length-1);
-      fields.layer.value=String(state.layer);fields.head.value=String(state.head);state.destination=Math.max(0,example.tokens.indexOf('[CLS]'));fillDestinations();
+      fields.layer.value=String(state.layer);fields.head.value=String(state.head);
+      // Follow the same token (and occurrence where repeated) across reviews.
+      const matches=example.tokens.flatMap((token,i)=>token===previousToken?[i]:[]);
+      state.destination=matches[Math.min(occurrence,matches.length-1)]??Math.max(0,example.tokens.indexOf('[CLS]'));
+      fillDestinations();
     }
     render();
+  });
+  presetField.addEventListener('change',()=>{
+    const preset=presets.find(item=>item.id===presetField.value);
+    if(!preset)return;
+    Object.assign(state,{sentence:preset.sentence,layer:preset.layer,head:preset.head,destination:examples[preset.sentence].tokens.indexOf(preset.token)});
+    for(const name of ['sentence','layer','head'])fields[name].value=String(state[name]);
+    fillDestinations();render();
   });
   state.destination=Math.max(0,examples[0].tokens.indexOf('[CLS]'));fillDestinations();render();
   return {render};

@@ -1,6 +1,6 @@
 import {createIntuitionScenes} from './intuition-scenes.mjs?v=attention-copy-18';
-import {createTrainedScenes} from './trained-scenes.mjs?v=attention-trained-model-6';
-import {buildExplorer} from './trained-explorer.mjs?v=attention-trained-model-5';
+import {createGuidedTrainedScenes} from './trained-tour-scenes.mjs?v=attention-interventions-1';
+import {buildExplorer} from './trained-explorer.mjs?v=attention-interventions-1';
 import {createSocksScenes} from './socks-scenes.mjs?v=socks-width-25';
 import {createExtensionScenes} from './extension-scenes.mjs?v=attention-notation-8';
 import {createSentenceScenes} from './sentence-scenes.mjs?v=attention-sequence-20';
@@ -30,8 +30,8 @@ const intuitionScenes=createIntuitionScenes(drawing);
 const coreScenes=createSentenceScenes(drawing);
 const mechanicsScenes=[...createSocksScenes(drawing),...createExtensionScenes(drawing)];
 // The complete text remains available independently of visual scene changes.
-const transcript=scenes=>scenes.map((s,i)=>`<section>${s.title?`<h3>${i+1}. ${s.title}</h3>`:""}${s.caption?`<p>${s.caption}</p>`:""}${(s.quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('')}<div class="transcript-eq">${tex(s.equation)}</div><p>${s.detail}</p></section>`).join('');
-document.querySelector('#transcript').innerHTML='<h3>One token, different contexts</h3>'+transcript(intuitionScenes)+'<h3>Sentiment, the residual stream, and attention</h3>'+transcript(coreScenes)+'<h3>The earlier Q/K/V calculation</h3>'+transcript(mechanicsScenes);
+const transcript=scenes=>scenes.map((s,i)=>`<section>${s.title?`<h3>${i+1}. ${s.title}</h3>`:""}${s.caption?`<p>${s.caption}</p>`:""}${(s.quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('')}${s.equation?`<div class="transcript-eq">${tex(s.equation)}</div>`:""}${s.detail?`<p>${s.detail}</p>`:""}${s.reading||''}</section>`).join('');
+document.querySelector('#transcript').innerHTML='<h3>One token, different contexts</h3>'+transcript(intuitionScenes)+'<h3>Sentiment, the residual stream, and attention</h3>'+transcript(coreScenes)+'<h3 id="transcript-mechanics">The earlier Q/K/V calculation</h3>'+transcript(mechanicsScenes);
 renderMathNodes(document.querySelector('#transcript'));
 const quoteMarkup=quotes=>(quotes||[]).map(q=>`<blockquote><p>${esc(q.text)}</p><cite>${esc(q.reading)}</cite></blockquote>`).join('');
 function makeStory(id,prefix,scenes){
@@ -61,17 +61,20 @@ function makeStory(id,prefix,scenes){
   const examples=field('examples');
   if(examples){examples.innerHTML=quoteMarkup(s.quotes);examples.hidden=!s.quotes?.length;}
   story.dataset.hasQuotes=String(Boolean(s.quotes?.length));
-  field('equation').innerHTML=tex(s.equation);
+  field('equation').innerHTML=s.equation?tex(s.equation):'';
+  field('equation').hidden=!s.equation;
   field('detail').innerHTML=s.detail;
   field('detail').hidden=!s.detail;
   renderMathNodes(field('detail'));
   field('visual-caption').textContent=s.visual;
+  const footer=field('footer');
+  if(footer)footer.textContent=s.footer||'6 blocks · 12 heads per block';
   svg.setAttribute('aria-label',`${s.title} ${s.caption} ${s.visual}`);
   last=index;
  }
  field('progress').style.width=`${clamp(total/scenes.length)*100}%`;
  // Each pinned stage owns its SVG paint definitions.
- svg.innerHTML=(defs+s.draw(t)).replaceAll('id="arrow"',`id="${id}-arrow"`).replaceAll('url(#arrow)',`url(#${id}-arrow)`).replaceAll('id="blocked"',`id="${id}-blocked"`).replaceAll('url(#blocked)',`url(#${id}-blocked)`);
+ svg.innerHTML=(defs+s.draw(t,{reducedMotion:reducedMotion()})).replaceAll('id="arrow"',`id="${id}-arrow"`).replaceAll('url(#arrow)',`url(#${id}-arrow)`).replaceAll('id="blocked"',`id="${id}-blocked"`).replaceAll('url(#blocked)',`url(#${id}-blocked)`);
  story.dataset.scene=index;story.dataset.phase=t.toFixed(3);
  const a=reducedMotion()?1:Math.min(1,.72+local*4);
  field('narration').style.opacity=a;
@@ -96,15 +99,17 @@ render();
 
 
 // Precomputed outputs keep this lesson usable without a model download.
-fetch(new URL('./data/infinite-jest-attention.json',import.meta.url))
- .then(response=>{if(!response.ok)throw new Error('Model results unavailable');return response.json();})
- .then(data=>{
-  const scenes=createTrainedScenes(drawing,data);
+Promise.all(['infinite-jest-attention.json','infinite-jest-investigation.json'].map(file=>
+ fetch(new URL(`./data/${file}`,import.meta.url)).then(response=>{if(!response.ok)throw new Error('Model results unavailable');return response.json();})))
+ .then(([data,investigation])=>{
+  const scenes=createGuidedTrainedScenes(drawing,data,investigation);
   renderStories.splice(2,0,makeStory('trained-story','trained-',scenes));
   buildExplorer(document.querySelector('#trained-explorer'),data);
   const reading=document.createElement('div');
-  reading.innerHTML='<h3>Measured results from DistilBERT</h3>'+transcript(scenes);
-  document.querySelector('#transcript').append(reading);
+  reading.id='trained-reading';
+  reading.innerHTML='<h3>Testing DistilBERT’s attention and contextual states</h3>'+transcript(scenes);
+  document.querySelector('#transcript-mechanics').before(reading);
+  renderMathNodes(reading);
   render();
  })
  .catch(error=>{
