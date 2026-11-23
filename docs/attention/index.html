@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Attention — How tokens share information · POLS 4728</title>
+<meta name="description" content="Compare two reviews of Infinite Jest, follow the residual stream to a sentiment score, and open one attention head to examine its matrix and token updates.">
+<link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="style.css?v=attention-stream-opening-2">
+<script defer src="vendor/katex/katex.min.js"></script><script type="module" src="app.mjs?v=attention-stream-polish-3"></script>
+</head>
+<body>
+<a class="skip" href="#reading">Skip to the reading version</a>
+<main>
+<section id="story" class="story sentence-story" aria-label="From a sentiment model through the residual stream into attention">
+<div class="stage">
+<div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
+<header class="lesson-header"><a href="https://alexanderthclark.github.io/pols4728/">POLS 4728</a><span>Machine learning for political science</span><a href="#using-attention">Using attention</a><a href="#references">Sources</a></header>
+<div class="stage-top lesson-heading"><h1 id="title">Attention</h1><span id="chapter">From a sentence to a score</span><span id="counter"></span></div>
+<div class="scene-layout">
+<div class="narration" id="narration"><p class="eyebrow" id="scene-label"></p><h2 id="scene-title"></h2><p id="caption"></p><div id="examples" class="sentence-examples" hidden></div><div id="equation" class="equation"></div><p id="detail" class="detail"></p></div>
+<figure class="visual"><svg id="diagram" viewBox="0 0 640 540" role="img" aria-label="Attention calculation"></svg><figcaption id="visual-caption"></figcaption></figure>
+</div>
+<div class="stage-bottom"><span>Schematic encoder · normalization omitted</span></div>
+</div>
+</section>
+<details class="worked-appendix artwork-appendix"><summary>The attention illustration</summary>
+<section class="hero" aria-label="The attention illustration">
+<div class="hero-copy"><p class="subtitle">From a sentence to a sentiment score.</p><a class="begin" href="#story">Follow the model</a></div>
+<figure class="hero-art"><img src="assets/attention-crowd-loudspeaker.png" width="1536" height="1024" loading="lazy" alt="A crowd of round figures holds phones beneath a loudspeaker. Most look up attentively; four keep staring down at their phones with slack, blank expressions."></figure>
+</section>
+</details>
+<details class="worked-appendix" id="numerical"><summary>A numerical example: attention, pooling, and classification</summary><p class="appendix-intro">This separate three-token model isolates the arithmetic. It has no residual path or MLP; its classifier reads the mean of the attention outputs directly.</p><section id="numerical-story" class="story numerical-story" aria-label="Thirteen scenes from the attention matrix to a prediction">
+<div class="stage">
+<div class="progress-track" aria-hidden="true"><div id="numerical-progress"></div></div>
+<div class="stage-top"><a href="#story">Return to the model</a><span id="numerical-chapter">The attention matrix</span><span id="numerical-counter">1 / 13</span></div>
+<div class="scene-layout">
+<div class="narration" id="numerical-narration"><p class="eyebrow" id="numerical-scene-label"></p><h2 id="numerical-scene-title"></h2><p id="numerical-caption"></p><div id="numerical-equation" class="equation"></div><p id="numerical-detail" class="detail"></p></div>
+<figure class="visual"><svg id="numerical-diagram" viewBox="0 0 640 540" role="img" aria-label="Attention calculation"></svg><figcaption id="numerical-visual-caption"></figcaption></figure>
+</div>
+<div class="stage-bottom"><span>Illustrative numbers · exact calculations</span></div>
+</div>
+</section></details>
+<section class="afterword interpretation-guide" id="using-attention">
+<p class="eyebrow">Using attention in research</p><h2>What can we learn from the output?</h2>
+<p>An attention heatmap describes a particular computation: for one head, in one layer, each destination forms a weighted mixture of source value vectors. A large weight tells us that the source receives a large mixing coefficient. Its effect on a particular classification also depends on the value vector and everything that follows.</p>
+<p>The opening uses two sentences to motivate the task; it does not report model measurements. The residual path preserves each token’s representation while attention and the position-wise MLP add updates. A sentiment readout uses the final token representations. The numerical appendix removes those extra paths to make one exact decomposition possible.</p>
+<p>That makes attention useful for investigating the relationships a model has learned. For example, <a href="https://aclanthology.org/W19-4828/">Clark et al. (2019)</a> found BERT heads associated with syntactic relations and coreference. Such patterns can suggest what to inspect or test next. A pattern across token positions and an explanation of a particular sentiment score answer different questions.</p>
+<p>The optional three-token numerical example produces one output vector per token: the rows of <span data-math="Y=AV"></span>. Mean pooling turns those three rows into a sentence summary, <span data-math="h=\frac13\sum_i y_i=\sum_j\alpha_jv_j"></span>, where <span data-math="\alpha_j=\frac13\sum_i a_{ij}"></span>. These effective source weights are the column means of <span data-math="A"></span>, computed across all destinations.</p>
+<p>A linear classifier reads the summary as <span data-math="z=b+h\beta"></span>. With token vectors stored as rows, <span data-math="\beta"></span> is a column. The positive-class probability is <span data-math="\sigma(z)"></span>.</p>
+<div class="closing-math" data-math="z=b+\sum_j\underbrace{\alpha_j(v_j\beta)}_{c_j}"></div>
+<p>Here <span data-math="c_j"></span> is an exact signed term in this forward pass. A large effective source weight need not produce a large term, and a nonnegative weight can multiply evidence against the class. These terms add to the logit after including the intercept; they do not add to the probability. A separate linear output map can be absorbed into <span data-math="\beta"></span>. Nonlinear layers require further analysis.</p>
+<h3>Choose the question before the visualization</h3>
+<div class="table-scroll"><table class="interpretation-table"><thead><tr><th>Question</th><th>Useful display</th><th>Interpretation</th></tr></thead><tbody>
+<tr><td>Where is information being read?</td><td>A named layer, head and destination row of attention</td><td>Mixing coefficients for source representations.</td></tr>
+<tr><td>What adds to this class score?</td><td>Signed output terms, when the architecture permits an exact decomposition</td><td>Contributions to this computation, including values and the readout.</td></tr>
+<tr><td>Which words change this prediction?</td><td>Replace or remove a word or phrase, rerun the whole model, and compare a fixed class score</td><td>Sensitivity to that particular text edit.</td></tr>
+<tr><td>What caused an outcome outside the model?</td><td>An experiment or an identified causal design</td><td>A different question that attention weights alone do not answer.</td></tr>
+</tbody></table></div>
+<h3>A useful sentiment exercise</h3>
+<p>Begin with a fixed target, such as the positive-class logit, and show the original prediction. Compare “the film was awful” with “the film was great”; then compare “the film was good” with “the film was not good.” Rerun the classifier on each complete sentence. These are proposed checks for a trained model; the numbers in this lesson come only from our constructed three-token example.</p>
+<p>Put the chosen attention row beside the score changes and ask whether its highlighted positions help explain them. Inspect negation as a phrase: in a deep transformer, the representation at “good” may already contain information from “not.” Removing a token also changes the context, positions, and potentially every attention row. It does not isolate a unique contribution inherent to that word.</p>
+<p>Integrated gradients can provide a signed attribution to a chosen output relative to a specified baseline; SHAP requires a specified treatment of missing features. Both address questions that a raw attention heatmap leaves open, and both need their own interpretation. For an introductory exercise, a small set of meaningful text edits makes the contrast easier to inspect. See <a href="https://proceedings.mlr.press/v70/sundararajan17a.html">Sundararajan et al. (2017)</a> and <a href="https://proceedings.neurips.cc/paper_files/paper/2017/hash/8a20a8621978632d76c43dfd28b67767-Abstract.html">Lundberg and Lee (2017)</a>.</p>
+<h3 id="lidda">From words to marketing touchpoints</h3>
+<p>LiDDA predicts conversion from a sequence of marketing interactions and uses aggregated, normalized attention to assign relative touchpoint credit. Its single attention layer and flattened readout are deliberate design choices. The paper also reports sensitivity checks, comparison with incremental propensity, MMM calibration, and email experiments. These provide evidence beyond the attention visualization itself. <a href="https://arxiv.org/html/2505.09861v3">LiDDA v3, §§2.1, 2.4, 2.7, 3.2 and Appendix B.2</a>.</p>
+<p>A 40% credit share is a model-based allocation within a path. It is not automatically a 40% change in conversion probability or a 40% causal effect. Our sentiment model illustrates the interpretive distinction; it is not a reconstruction of LiDDA.</p>
+<details><summary>A technical qualification about LiDDA</summary><p>The paper describes aggregation across heads and normalization, but does not fully specify how its query-by-source attention tensor reduces to one credit per touchpoint. We therefore do not present the sentiment model’s exact computation as LiDDA’s implementation.</p></details>
+<h3>What to remember about Q, K and V</h3>
+<p>A query is what a destination is matched on; a key is what each source is matched on; a value is what that source contributes to the mixture. In a trained transformer, these projections are learned from the training task. “Looking for” is an analogy, not a claim that their coordinates have human-readable meanings. Learn the flow from matching to mixing to prediction first. The full calculation follows below.</p>
+<p class="section-links"><a href="#numerical">Work through the numerical example</a><a href="#reading">Read the complete text</a></p>
+</section>
+<details class="worked-appendix" id="mechanics"><summary>Earlier worked example: socks and shoes</summary><section class="chapter-intro" id="mechanics-intro"><h2>Socks and shoes</h2><p>This earlier worked example retains the input vectors, Q/K matching, values, readout, representation update, and causal mask.</p></section>
+<section id="mechanics-story" class="story" aria-label="Twenty scenes constructing Q, K and V">
+<div class="stage"><div class="progress-track" aria-hidden="true"><div id="mechanics-progress"></div></div>
+<div class="stage-top"><a href="#story">Core idea ↑</a><span id="mechanics-chapter">One head · Socks and shoes</span><span id="mechanics-counter">1 / 20</span></div>
+<div class="scene-layout"><div class="narration" id="mechanics-narration"><p class="eyebrow" id="mechanics-scene-label"></p><h2 id="mechanics-scene-title"></h2><p id="mechanics-caption"></p><div id="mechanics-equation" class="equation"></div><p id="mechanics-detail" class="detail"></p></div><figure class="visual"><svg id="mechanics-diagram" viewBox="0 0 640 540" role="img" aria-label="Attention calculation"></svg><figcaption id="mechanics-visual-caption"></figcaption></figure></div>
+<div class="stage-bottom"><span>Illustrative numbers · exact calculations</span></div></div>
+</section>
+</details>
+<section class="afterword" id="references">
+<p class="eyebrow">Keep the two operations in view</p><h2>Choose where to read.<br>Choose what to carry.</h2>
+<p>Queries and keys determine a distribution over source positions. Values determine the information those positions contribute. The output at each destination is a weighted sum of the source values.</p>
+<div class="closing-math" data-math="A(X)=\operatorname{softmax}_{\mathrm{row}}\!\left(\frac{(XW_Q)(XW_K)^\top}{\sqrt{d_k}}+M\right)"></div>
+<div class="closing-math" data-math="Y=A(X)XW_V"></div>
+<p>When the attention output is used to update a representation, an output map returns it to the input width before addition:</p>
+<div class="closing-math" data-math="\Delta X=YW_O,\qquad X'=X+\Delta X"></div>
+<h3>Notation for this lesson</h3>
+<p>Tokens are rows of <span data-math="X\in\mathbb R^{T\times d}"></span>. Query and key maps have shape <span data-math="W_Q,W_K\in\mathbb R^{d\times d_k}"></span>; the value map has shape <span data-math="W_V\in\mathbb R^{d\times d_v}"></span>. Thus <span data-math="A\in\mathbb R^{T\times T}"></span> and <span data-math="Y\in\mathbb R^{T\times d_v}"></span>. The output map for a representation update is <span data-math="W_O\in\mathbb R^{d_v\times d}"></span>. A subscripted token vector denotes a row throughout.</p>
+<p>The full Q/K/V calculation follows one constructed socks-and-shoes head. First, it matches a destination to a source and mixes position values to produce a task score. Then we generalize the scalar query–key calculation, show how its output can update a representation, and change the setting to left-to-right prediction with a causal mask. The original task has access to both items; its target scores are not claims about the later masked calculation. The parameters are chosen to make every step inspectable.</p>
+<details id="socks-model"><summary>The exact socks-and-shoes model</summary>
+<p>The target is 0 for socks before shoes and −1 for shoes before socks. Each input row contains a socks indicator, a shoes indicator, and a position value: +1 in the first slot and −1 in the second. This is a constructed model with fixed parameters, not a pretrained language model.</p>
+<p>We form <span data-math="X=E+P"></span> by adding token embeddings <span data-math="E"></span> and position vectors <span data-math="P"></span> of the same width. Position embeddings can be learned without reserving a coordinate. For this example, we choose fixed vectors: the token embeddings are zero in the third coordinate, and the position vectors are zero in the first two. We follow this one construction through the calculation.</p>
+<div class="closing-math" data-math="W_Q=\begin{bmatrix}0\\1\\0\end{bmatrix},\quad W_K=\begin{bmatrix}\log 3\\0\\0\end{bmatrix},\quad W_V=\begin{bmatrix}0\\0\\1\end{bmatrix}"></div>
+<p>Queries and keys read token identity; values carry position. With <span data-math="d_k=1"></span>, the score matrix is <span data-math="QK^\top"></span>. Shoes assigns 75% to socks and 25% to itself. The socks row is uniform. All weights come from finite softmax scores.</p>
+<div class="closing-math" data-math="Y=AV,\qquad \widehat y=2\left(\frac{y_1+y_2}{2}\right)-\frac12"></div>
+<p>Swapping the token order preserves the identity-based matching rule while changing which position is carried by each token. The mean output changes from +0.25 to −0.25, giving predictions 0 and −1. Removing positional information or using uniform attention gives −0.5 for both orders. This exact solution covers the two sequences shown; it does not demonstrate generalization to arbitrary clothing sequences.</p>
+</details>
+<h3>From a constructed head to a pretrained model</h3>
+<p>A useful next step is <a href="https://huggingface.co/NeelNanda/Attn_Only_1L512W_C4_Code">Neel Nanda’s pretrained one-layer attention-only model</a>. Its <a href="https://huggingface.co/NeelNanda/Attn_Only_1L512W_C4_Code/blob/main/config.json">configuration</a> has eight parallel attention heads and no feed-forward network in the layer. Embeddings, positional information, normalization, and a prediction readout remain. One layer need not mean one head.</p>
+<p>The current lesson computes its constructed examples in the browser. It does not display measurements from that checkpoint or GPT-2. Those models can provide a later comparison using actual tokenization, attention weights, and continuation probabilities.</p>
+<h3>Sources and conventions</h3>
+<p>Goro Kobayashi and colleagues (2020), <a href="https://aclanthology.org/2020.emnlp-main.574/">Attention is Not Only a Weight</a>, motivates examining transformed values as well as attention weights. Samira Abnar and Willem Zuidema (2020), <a href="https://aclanthology.org/2020.acl-main.385/">Quantifying Attention Flow in Transformers</a>, explains why repeated mixing complicates attribution to original input tokens.</p>
+<p>Ashish Vaswani and colleagues (2017), <a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a>, §3.2, defines the matching and weighted-value operation. Sarthak Jain and Byron Wallace (2019), <a href="https://aclanthology.org/N19-1357/">Attention is not Explanation</a>, and Sarah Wiegreffe and Yuval Pinter (2019), <a href="https://aclanthology.org/D19-1002/">Attention is not not Explanation</a>, motivate testing an explanation against the architecture and prediction behavior. Their disagreement is useful: attention can be diagnostic without every heatmap being a faithful word-importance explanation.</p>
+<details id="sentiment-model"><summary>The exact sentiment construction and its limits</summary>
+<p>The numerical appendix uses a self-attention classifier with three tokens, mean pooling, and a linear readout. All parameters are hand chosen. Rows and columns of the attention matrix follow the order [film, was, awful]:</p>
+<div class="closing-math" data-math="A=\begin{bmatrix}.80&.15&.05\\.60&.30&.10\\.40&.45&.15\end{bmatrix}"></div>
+<p>Each row is a destination’s distribution over sources. The rows sum to one; the matrix is not symmetric, and its columns need not sum to one. To realize these weights with scaled dot-product attention, set <span data-math="d_k=3"></span>, <span data-math="Q=I_3"></span>, and <span data-math="K=\sqrt3\,(\log A)^\top"></span>, where the logarithm is applied to each entry. Then <span data-math="QK^\top/\sqrt3=\log A"></span>, whose row-wise softmax is exactly <span data-math="A"></span>.</p>
+<div class="closing-math" data-math="V=\begin{bmatrix}0.1&4\\0&1\\-8&2\end{bmatrix},\quad Y=AV=\begin{bmatrix}-.32&3.45\\-.74&2.90\\-1.16&2.35\end{bmatrix}"></div>
+<p>Each row of <span data-math="Y"></span> is an attention output at one token position. Mean pooling gives <span data-math="h=\frac13\sum_i y_i=(-.74,2.90)"></span>. Equivalently, <span data-math="h=\sum_j\alpha_jv_j"></span>, with effective source weights <span data-math="\alpha_j=\frac13\sum_i a_{ij}"></span>. Here the column means are <span data-math="\alpha=(.60,.30,.10)"></span>.</p>
+<div class="closing-math" data-math="\beta=\begin{bmatrix}1\\0\end{bmatrix},\quad b=0,\quad z=b+h\beta=-.74"></div>
+<p>Replacing awful with great changes only the last value’s first coordinate to +8, giving <span data-math="z=.86"></span>. Keeping its query and key fixed is an explicit toy assumption, so the entire attention matrix is unchanged. A trained model may change queries, keys, and values.</p>
+<p>Deleting film removes its destination row and source column. The remaining query, key, and value vectors keep their original coordinates, including the query/key dimension of three. Recomputing softmax makes both surviving attention rows (.75, .25). Each output row becomes (−2, 1.25), so their mean gives logit −2. This change cannot be read from film’s original +.06 term. Real-model edits must recompute the entire forward pass. At later layers, source values may already include information from other input tokens; source-position terms therefore need not be original-word attributions.</p>
+</details>
+<p>Nelson Elhage and colleagues (2021), <a href="https://transformer-circuits.pub/2021/framework/index.html">A Mathematical Framework for Transformer Circuits</a>, especially “Attention Heads as Information Movement,” the QK/OV decomposition, and the tensor-product appendix. The distinction between moving information across positions and transforming it within each position motivates this lesson.</p>
+<p>Simon J. D. Prince (2023), <a href="https://udlbook.github.io/udlbook/">Understanding Deep Learning</a>, chapter 12, §§12.2–12.3, equations 12.6–12.9. Prince stores tokens as columns. We transpose the convention: projection matrices multiply from the right, attention multiplies from the left, and softmax normalizes each row. The paper’s per-token maps likewise transpose when translated into this convention.</p>
+<p>Additional visual reference: Grant Sanderson, <a href="https://www.3blue1brown.com/lessons/attention/">Attention in transformers, step-by-step</a>. Its emphasis on what information a destination seeks and how values change a representation informs this sequence. That lesson uses column vectors; this one retains tokens as rows.</p>
+<details id="notation"><summary>The QK and OV products in our row convention</summary><p>Writing <span data-math="W_{QK}=W_QW_K^\top"></span> gives scores <span data-math="XW_{QK}X^\top/\sqrt{d_k}"></span>. Including the output map gives <span data-math="W_{OV}=W_VW_O"></span> and a head contribution <span data-math="AXW_{OV}"></span>. These product orders differ from the column-vector definitions in the Transformer Circuits paper; they express the same operations after transposition.</p><p>Several heads can perform different mixtures in parallel. With their output maps included, their contributions add: <span data-math="\sum_h A^{(h)}XW_V^{(h)}W_O^{(h)}"></span>. Each head follows the mechanism shown here.</p></details>
+<details id="output-map"><summary>From an attention output to a representation update</summary><p>The socks-and-shoes task reads its score directly from <span data-math="Y=AV"></span>. For the update illustration, choose <span data-math="W_O=\begin{bmatrix}0&0&1\end{bmatrix}"></span>. This maps each scalar output into three features before adding it to the original input row.</p><div class="closing-math" data-math="\Delta X=AVW_O,\qquad X'=X+\Delta X"></div><p>For socks first, the shoes row changes from <span data-math="[0\;1\;{-1}]"></span> to <span data-math="[0\;1\;{-\tfrac12}]"></span>. The updated coordinates need no longer have the meanings of the original input features. This socks-and-shoes illustration covers the attention contribution and residual addition. The main opening also shows the MLP update and sentence readout.</p></details>
+<details id="reading"><summary>Read the complete explanation</summary><div id="transcript"></div></details>
+<p class="return"><a href="#title">Back to the beginning ↑</a><a href="https://alexanderthclark.github.io/pols4728/">POLS 4728 ↗</a></p>
+</section>
+</main><footer>Attention · POLS 4728</footer>
+<noscript><p class="no-script">The animated calculation requires JavaScript. The notation and references above describe the complete attention operation.</p></noscript>
+</body></html>
+
