@@ -32,25 +32,57 @@ export function createSentenceScenes({m, line, rect, C}) {
       +featureMatrix(x+7,y+41,3,3,teal,4,2)+join(x+65,y+27,teal)
       +label('This head',x+45,y+119,20,teal);
   }
+  const streamX=422, branchX=184;
+  const attentionFrame={x:40,y:350,w:288,h:112};
+  const inset={x:242,y:384,cell:5,gap:1.5,labelX:274,labelY:366};
+  // Arrowheads inherit their path's semantic color; the open spine remains visible.
+  function route(points,color,width=2.2,head=true) {
+    let out=path(points.map(([x,y],i)=>`${i?'L':'M'}${x} ${y}`).join(''),color,width,false);
+    if(head){const [x,y]=points.at(-1),[px,py]=points.at(-2),d=Math.hypot(x-px,y-py),ux=(x-px)/d,uy=(y-py)/d;
+      out+=path(`M${x-8*ux+4*uy} ${y-8*uy-4*ux}L${x} ${y}L${x-8*ux-4*uy} ${y-8*uy+4*ux}`,color,width,false);}
+    return out;
+  }
+  function travelingPoint(points,t) {
+    const lengths=points.slice(1).map(([x,y],i)=>Math.hypot(x-points[i][0],y-points[i][1]));
+    let distance=clamp(t)*lengths.reduce((a,b)=>a+b,0);
+    for(let i=0;i<lengths.length;i++){
+      if(distance<=lengths[i]||i===lengths.length-1){const p=distance/lengths[i];return [lerp(points[i][0],points[i+1][0],p),lerp(points[i][1],points[i+1][1],p)];}
+      distance-=lengths[i];
+    }
+  }
+  function tokenState(y,subscript) {
+    let out=line(streamX+7,y,457,y,'#b0c4d3',1.3)+rect(460,y-28,64,56,'#f3f7fa','none',5);
+    for(let i=0;i<10;i++)out+=rect(470,y-23+i*5,44,2.5,'#b7cbd9','none',1);
+    return out+math(`X_${subscript}`,564,y,76,49,30,blue);
+  }
   function architecture(t,{writeUpdate=false,showMotion=true}={}) {
-    const p=clamp(t), sx=421;
-    let out=path(`M${sx} 492V360`,blue,3)+path(`M${sx} 336V225`,blue,3)+path(`M${sx} 201V110`,blue,3)
-      +path(`M${sx} 449H190V432`,teal)+path(`M190 358V348H${sx-13}`,teal)
-      +path(`M${sx} 315H190V295`,rust)+path(`M190 236V213H${sx-13}`,rust)
-      +box(18,358,290,74,teal,'#edf7f4',1.8)+box(73,236,235,59,rust,'#faf0eb',1.8)
-      +label('MLP',190,258,27,rust)+label('shared across tokens',190,283,19,muted)
-      +join(sx,348,teal)+join(sx,213,rust)+label('Residual stream',432,386,25,blue,'start');
-    out+=writeUpdate?math('YW_O',190,395,217,66,34,teal)+math('\\Delta X',334,324,125,47,25,teal)
-      :label('Attention',112,386,28,teal)+label('one head shown',112,414,20,teal)
+    const sx=streamX;
+    let out=path(`M${sx} 490V127`,'#eef3f7',15,false)
+      +route([[sx,490],[sx,341]],blue,3)+route([[sx,315],[sx,203]],blue,3)+route([[sx,177],[sx,127]],blue,3)
+      +route([[sx,490],[branchX,490],[branchX,462]],teal)
+      +route([[branchX,350],[branchX,328],[sx-13,328]],teal)
+      +route([[sx,304],[branchX,304],[branchX,288]],rust)
+      +route([[branchX,214],[branchX,190],[sx-13,190]],rust);
+    // The pulse follows a continuous route, disappearing inside each operation.
+    // Drawing cards afterward keeps the moving mark away from their labels.
+    if(showMotion){const [x,y]=travelingPoint([[sx,490],[branchX,490],[branchX,350],[branchX,328],[sx,328],[sx,304],[branchX,304],[branchX,214],[branchX,190],[sx,190],[sx,127]],ease(t));
+      out+=dot(x,y,x===sx?blue:y>315?teal:rust,5);}
+    out+=box(attentionFrame.x,attentionFrame.y,attentionFrame.w,attentionFrame.h,'#9bc8c0','#f5faf8',1.4)
+      +box(40,214,288,74,'#d6b7a7','#fcf7f3',1.4)
+      +label('MLP',62,244,28,rust,'start')+label('shared across tokens',62,273,21,muted,'start')
+      +join(sx,328,teal)+join(sx,190,rust)
+      +'<g aria-label="Residual stream">'+label('Residual',461,370,24,blue,'start')+label('stream',461,399,24,blue,'start')+'</g>';
+    out+=writeUpdate?label('Attention update',62,381,25,teal,'start')+math('YW_O',184,424,220,52,34,teal)
+      :label('Attention',62,390,28,teal,'start')+label('one head shown',62,420,21,muted,'start')
         +'<g class="attention-matrix-inset" aria-label="Symbolic ten by ten attention matrix A">'
-        +featureMatrix(212,370,10,10,teal,4,1)+math('A',284,396,45,49,30,teal)+'</g>';
-    for(const y of [450,260,125])out+=box(sx-25,y-5,51,81,blue,'#fff')+featureMatrix(sx-19,y,10,5,blue,5,2);
-    out+=math('X_0',491,479,100,53,30,blue)+math('X_1',491,294,100,53,30,blue)+math('X_2',491,158,100,53,30,blue)
-      +label('Embeddings + positions',251,519,25,blue)+box(291,43,260,67,blue,'#fff')
-      +(writeUpdate?math('r=\\operatorname{mean}_i(X_2)_i',sx,76,250,62,25,blue):label('Mean pooling',sx,84,28,blue))
-      +arrow(sx,43,sx,31,blue)+math(writeUpdate?'z=b+r\\beta':'z',sx,14,260,42,writeUpdate?25:32,blue)
-      +label(writeUpdate?'Class score':'Sentiment readout',242,20,22,muted,'end');
-    if(showMotion){out+=dot(sx,lerp(486,114,p),blue,6);const phase=p<.5?clamp(p*2):clamp((p-.5)*2);out+=dot(lerp(192,sx-15,ease(phase)),p<.5?348:213,p<.5?teal:rust,6);}
+        +featureMatrix(inset.x,inset.y,10,10,teal,inset.cell,inset.gap)+math('A',inset.labelX,inset.labelY,45,34,25,teal)+'</g>';
+    out+=tokenState(453,0)+tokenState(276,1)+tokenState(155,2)
+      +label('Embeddings + positions',sx,529,24,blue)
+      +box(307,73,230,54,'#b0c4d3','#f5f8fb',1.4)
+      +(writeUpdate?math('r=\\operatorname{mean}_i(X_2)_i',sx,100,225,48,23,blue):label('Mean pooling',sx,109,26,blue))
+      +route([[sx,73],[sx,53]],blue,2)
+      +math(writeUpdate?'z=b+r\\beta':'z',sx,29,260,44,writeUpdate?25:32,blue)
+      +label(writeUpdate?'Class score':'Sentiment readout',61,36,22,muted,'start');
     return out;
   }
   function compareSentences(t) {
@@ -64,10 +96,13 @@ export function createSentenceScenes({m, line, rect, C}) {
       +label('Intended reading: positive',62,394,22,teal,'start')+label('The surrounding phrase changes the reading.',320,489,25,muted);
   }
   function expandedHead(t=1) {
-    const p=ease(t),x=lerp(18,197,p),y=lerp(358,86,p),w=lerp(290,405,p),h=lerp(74,385,p);
-    let out=box(x,y,w,h,teal,'#fff',2)+label(p<.45?'Attention':'One attention head',x+w/2,y+35,28,teal);
-    if(p>.35)out+=opacity((p-.35)/.65,math('A',286,157,100,51,32,teal)+featureMatrix(236,180,10,10,teal,8,2)
-      +math('\\times',374,228,54,55,35)+math('V',491,157,100,51,32,blue)+featureMatrix(461,180,10,6,blue,8,2)
+    const p=ease(t),x=lerp(attentionFrame.x,197,p),y=lerp(attentionFrame.y,86,p),w=lerp(attentionFrame.w,405,p),h=lerp(attentionFrame.h,385,p);
+    let out=box(x,y,w,h,teal,'#fff',1.6)
+      +opacity(1-p/.2,label('Attention',62,390,28,teal,'start')+label('one head shown',62,420,21,muted,'start'))
+      +opacity((p-.8)/.2,label('One attention head',399.5,121,28,teal))
+      +math('A',lerp(inset.labelX,286,p),lerp(inset.labelY,157,p),100,51,lerp(25,32,p),teal)
+      +featureMatrix(lerp(inset.x,236,p),lerp(inset.y,180,p),10,10,teal,lerp(inset.cell,8,p),lerp(inset.gap,2,p));
+    if(p>.9)out+=opacity((p-.9)/.1,math('\\times',374,228,54,55,35)+math('V',491,157,100,51,32,blue)+featureMatrix(461,180,10,6,blue,8,2)
       +math('Y=AV',399,320,330,68,34,teal)+arrow(399,346,399,369,teal)+math('\\Delta X=YW_O',399,408,370,68,34,teal)
       +label('Update to the residual stream',399,455,23,muted));
     return out;
