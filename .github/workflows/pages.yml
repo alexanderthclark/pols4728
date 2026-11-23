@@ -87,6 +87,11 @@ jobs:
           node --check docs/word2vec/exploration.js
           node --check docs/transformers/app.js
           node --check docs/transformers/overview.js
+          node --check docs/llm-corrections/app.js
+          node --check docs/llm-corrections/model.js
+          node --check docs/llm-corrections/scenes.js
+          node --check docs/llm-corrections/state.js
+          node --check docs/llm-corrections/visuals.js
       - name: Check interactive lesson calculations
         run: |
           node --test tests/*.test.mjs tests/*.test.cjs
