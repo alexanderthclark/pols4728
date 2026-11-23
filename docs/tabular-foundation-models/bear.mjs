@@ -6,6 +6,9 @@ const clamp = p => Math.max(0, Math.min(1, Number.isFinite(p) ? p : 0));
 const mix = (a,b,p) => a+(b-a)*p;
 const HIGH = 1/(1+Math.exp(-1));
 const LOW = 1-HIGH;
+// Under the balanced two-level DGP, oracle AUC = p² + ½·2p(1−p) = p.
+// This is a population reference, not an upper bound on an empirical test AUC.
+export const bearOracleAuc = HIGH;
 const escape = value => String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
 const text = (x,y,value,size=22,color=C.ink,anchor='middle') => `<text x="${x}" y="${y}" font-size="${size}" fill="${color}" text-anchor="${anchor}">${escape(value)}</text>`;
 const line = (x1,y1,x2,y2,color=C.rule,width=2,attrs='') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" ${attrs}/>`;
@@ -24,7 +27,8 @@ export const bearAucCases = [
 ].map(item => {
   const result = bearResults.cases.find(row => row.depth === 2 && row.id === item.id);
   if (!result) throw new Error(`Missing bear diagnostic: ${item.id}`);
-  return {...item, auc:result.mean_auc};
+  return {...item, auc:result.mean_auc,
+    seedResults:bearResults.records.filter(row=>row.depth===2&&row.id===item.id).sort((a,b)=>a.seed-b.seed)};
 });
 
 function probabilityBar(x,y,w,h,p,label,small=false) {
@@ -112,22 +116,41 @@ function thresholds(p,mobile) {
 }
 
 function auc(p,mobile) {
-  const left=mobile?185:385, right=mobile?330:810, top=mobile?55:75, row=mobile?48:57, axis=mobile?305:385;
-  const scale=value=>left+(value-.5)/.25*(right-left);
-  let s=text(mobile?200:450,mobile?21:30,'Mean held-out AUC · 12 seeds',mobile?18:24,C.blue);
-  for(const value of (mobile?[.5,.6,.7]:[.5,.6,.7,.75])) {
-    const x=scale(value);
-    s+=line(x,axis,x,axis+6,C.rule,1.5)+text(x,axis+26,value.toFixed(2),mobile?16:20,C.muted);
-    if(value===.5)s+=line(x,top-14,x,axis,C.rule,1,'stroke-dasharray="4 5"');
+  const left=mobile?48:78,right=mobile?384:855,top=mobile?75:82,bottom=mobile?242:332;
+  const xs=mobile?[76,142,208,274,340]:[150,300,450,600,750];
+  const scale=value=>bottom-(value-.46)/(.78-.46)*(bottom-top);
+  const jitter=[-1,-.58,-.17,.25,.67,1,-.83,-.42,0,.42,.83,-.67];
+  const visibleSeeds=Math.min(12,Math.floor(clamp(p/.64)*12+1e-8));
+  const meanReveal=clamp((p-.7)/.24);
+  const pointX=(condition,seed)=>xs[condition]+jitter[seed]*(mobile?12:27);
+  let s=text(mobile?200:450,mobile?21:27,'Dots: 12 seeds · bars: means',mobile?18:24,C.blue);
+  s+=text(mobile?200:450,mobile?47:56,`Dashed: population oracle AUC ${bearOracleAuc.toFixed(3)}`,mobile?16:21,C.teal);
+  s+=line(left,top,left,bottom,C.rule,1.5)+line(left,bottom,right,bottom,C.rule,1.5);
+  for(const value of [.5,.6,.7,.75]){
+    const y=scale(value);
+    s+=line(left-5,y,left,y,C.rule,1.5)+text(left-9,y+6,value.toFixed(2),mobile?16:20,C.muted,'end');
   }
-  s+=line(left,axis,right,axis,C.rule,1.5);
+  s+=line(left,scale(.5),right,scale(.5),C.rule,1,'stroke-dasharray="2 5"');
+  s+=`<line x1="${left}" y1="${scale(bearOracleAuc)}" x2="${right}" y2="${scale(bearOracleAuc)}" stroke="${C.teal}" stroke-width="1.7" stroke-dasharray="8 5" data-oracle-auc="${bearOracleAuc}"/>`;
+  // Join only the continuous/binary-noise pair. Seed offsets are shared across
+  // conditions, and every line joins the same sampled outcomes and test split.
+  const noise=bearAucCases[1],binary=bearAucCases[2];
+  for(let seed=0;seed<visibleSeeds;seed++){
+    const a=noise.seedResults[seed],b=binary.seedResults[seed];
+    s+=line(pointX(1,seed),scale(a.auc),pointX(2,seed),scale(b.auc),'#c7cbcd',1);
+  }
+  const labels=[['Signal','only'],['Continuous','noise'],['Binary','noise'],['Two','bins'],['Add','product']];
   bearAucCases.forEach((d,i)=>{
-    const y=top+i*row, q=clamp(p*1.5-i*.12), x=scale(mix(.5,d.auc,q));
-    s+=text(mobile?12:40,y+6,mobile?d.short:d.label,mobile?16:21,C.ink,'start');
-    s+=line(left,y,x,y,d.color,2)+`<circle cx="${x}" cy="${y}" r="${mobile?5:6}" fill="${d.color}" data-case="${d.id}" data-auc="${d.auc}"/>`;
-    s+=group(text(mobile?390:880,y+6,d.auc.toFixed(3),mobile?16:21,d.color,'end'),q);
+    for(const r of d.seedResults.slice(0,visibleSeeds)){
+      s+=`<circle cx="${pointX(i,r.seed)}" cy="${scale(r.auc)}" r="${mobile?3.6:5}" fill="${d.color}" fill-opacity=".8" stroke="white" stroke-width=".7" data-mark="seed" data-case="${d.id}" data-seed="${r.seed}" data-auc="${r.auc}"/>`;
+    }
+    const firstLabel=mobile&&i===1?'Cont.':labels[i][0];
+    s+=text(xs[i],mobile?265:365,firstLabel,mobile?16:22,C.ink)+text(xs[i],mobile?285:391,labels[i][1],mobile?16:22,C.ink);
+    const y=scale(d.auc),half=mobile?11:23;
+    s+=group(`<line x1="${xs[i]-half*meanReveal}" y1="${y}" x2="${xs[i]+half*meanReveal}" y2="${y}" stroke="${C.ink}" stroke-width="${mobile?3:4}" data-mark="mean" data-case="${d.id}" data-auc="${d.auc}"/>`+text(xs[i],mobile?314:425,d.auc.toFixed(3),mobile?17:23,C.ink),meanReveal);
   });
-  return s;
+  s+=text(mobile?200:450,mobile?342:454,'Population reference; not a test-sample ceiling.',mobile?16:20,C.muted);
+  return `<g data-seeds-visible="${visibleSeeds}" data-means-visible="${meanReveal>0}">${s}</g>`;
 }
 
 function hypothesis(p,mobile) {
@@ -167,8 +190,8 @@ function typeControl(p,mobile) {
       s+=group(text(x+w/2,y+h/2+7+mix(h*.4,0,clamp((p-.25)/.75)),v>.5?1:0,mobile?20:27,C.rust),clamp((p-.25)/.75));
     }
   }
-  s+=text(mobile?200:450,mobile?300:395,'Does TabPFN’s advantage survive?',mobile?20:27,C.blue);
-  s+=text(mobile?200:450,mobile?329:435,'Proposed control; TabPFN has not been rerun.',mobile?16:21,C.muted);
+  s+=text(mobile?200:450,mobile?300:395,'Compare TabPFN on both inputs.',mobile?20:27,C.blue);
+  s+=text(mobile?200:450,mobile?329:435,'The TabPFN comparison remains to be measured.',mobile?16:21,C.muted);
   return s;
 }
 

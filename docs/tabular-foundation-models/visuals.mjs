@@ -7,7 +7,7 @@ const box=(x,y,w,h,col=c.blue,fill='white',rx=4)=>`<rect x="${x}" y="${y}" width
 const circle=(x,y,r,col=c.blue,fill='white')=>`<circle cx="${x}" cy="${y}" r="${r}" stroke="${col}" stroke-width="2" fill="${fill}"/>`;
 const arrow=(x1,y1,x2,y2,col=c.blue)=>line(x1,y1,x2,y2,col,2.5,`marker-end="url(#arrow-${col===c.rust?'rust':'blue'})"`);
 const defs=`<defs><marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10" fill="none" stroke="${c.blue}" stroke-width="1.6"/></marker><marker id="arrow-rust" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10" fill="none" stroke="${c.rust}" stroke-width="1.6"/></marker></defs>`;
-const rows=[['Black','Fight','1'],['Brown','Fight','0'],['Brown','Lie down','1'],['Black','Lie down','0'],['Brown','Lie down','?']];
+const rows=[['Black','Fight','1'],['Black','Lie down','0'],['Brown','Fight','0'],['Brown','Lie down','1'],['Brown','Lie down','?']];
 const survivalHigh=1/(1+Math.exp(-1)), survivalLow=1-survivalHigh;
 function table(x,y,w=330,flip=0,query=true,highlight=-1,compact=false){
  const h=compact?28:45, cols=[.25,.39,.36], starts=[0,.25,.64];
